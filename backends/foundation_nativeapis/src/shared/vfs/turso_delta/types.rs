@@ -114,6 +114,7 @@ impl TursoDentry {
     pub fn to_metadata(&self) -> VfsMetadata {
         let version = unpack_version(self.version_id);
         VfsMetadata {
+            inode: self.ino as u64,
             size: self.size,
             file_type: self.file_type,
             permissions: self.permissions,

@@ -125,7 +125,18 @@ fn fs_metadata_to_vfs(meta: &std::fs::Metadata) -> VfsMetadata {
         owner = (0, 0);
     }
 
+    let inode;
+    #[cfg(unix)]
+    {
+        inode = meta.ino();
+    }
+    #[cfg(not(unix))]
+    {
+        inode = 0;
+    }
+
     VfsMetadata {
+        inode,
         size: meta.len(),
         file_type,
         permissions,
@@ -416,7 +427,17 @@ impl VfsDirectory for NativeDirectory {
             } else {
                 VfsFileType::Regular
             };
-            entries.push(VfsDirEntry { name, file_type });
+            let inode;
+            #[cfg(unix)]
+            {
+                let m = entry.metadata().map_err(|e| ErrorTrace::new(VfsError::Io { source: e }))?;
+                inode = m.ino();
+            }
+            #[cfg(not(unix))]
+            {
+                inode = 0;
+            }
+            entries.push(VfsDirEntry { inode, name, file_type });
         }
         entries.sort_by(|a, b| a.name.cmp(&b.name));
         Ok(entries)
@@ -437,7 +458,17 @@ impl VfsDirectory for NativeDirectory {
         } else {
             VfsFileType::Regular
         };
+        let inode;
+        #[cfg(unix)]
+        {
+            inode = meta.ino();
+        }
+        #[cfg(not(unix))]
+        {
+            inode = 0;
+        }
         Ok(Some(VfsDirEntry {
+            inode,
             name: name.to_string(),
             file_type,
         }))
@@ -650,6 +681,23 @@ impl VfsFileSystem for NativeFs {
             Ok(fs_path) => Ok(fs_path.exists()),
             Err(_) => Ok(false),
         }
+    }
+
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        let meta = self.stat(path)?;
+        Ok(meta.inode)
+    }
+
+    fn path_by_inode(&self, _ino: u64) -> VfsResult<String> {
+        Err(ErrorTrace::new(VfsError::Unsupported {
+            operation: "path_by_inode on NativeFs (no efficient reverse lookup)".to_string(),
+        }))
+    }
+
+    fn stat_by_inode(&self, _ino: u64) -> VfsResult<VfsMetadata> {
+        Err(ErrorTrace::new(VfsError::Unsupported {
+            operation: "stat_by_inode on NativeFs (no efficient reverse lookup)".to_string(),
+        }))
     }
 
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {

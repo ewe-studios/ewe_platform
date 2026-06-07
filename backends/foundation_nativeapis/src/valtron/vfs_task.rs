@@ -21,11 +21,15 @@
 //! // Consume events with collect_one or iterate manually
 //! ```
 
+#![cfg(feature = "vfs")]
+
 use std::sync::Arc;
 
 use foundation_core::synca::mpp::{Receiver, ReceiverError};
-use foundation_core::valtron::{BoxedSendExecutionAction, DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus};
 use foundation_core::valtron::{execute, GenericResult};
+use foundation_core::valtron::{
+    BoxedSendExecutionAction, DrivenStreamIterator, EventReadiness, TaskIterator, TaskStatus,
+};
 
 use crate::shared::vfs::{ObservableFs, VfsEvent, VfsFileSystem};
 

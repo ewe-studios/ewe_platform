@@ -278,6 +278,18 @@ impl VfsFileSystem for SyncLibsqlDelta {
         self.inner.stat(path)
     }
 
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        self.inner.inode(path)
+    }
+
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
+        self.inner.path_by_inode(ino)
+    }
+
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        self.inner.stat_by_inode(ino)
+    }
+
     fn exists(&self, path: &str) -> VfsResult<bool> {
         self.inner.exists(path)
     }

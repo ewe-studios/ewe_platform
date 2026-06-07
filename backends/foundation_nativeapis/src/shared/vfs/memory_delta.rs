@@ -123,6 +123,18 @@ impl VfsFileSystem for MemoryDelta {
         self.fs.stat(path)
     }
 
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        self.fs.inode(path)
+    }
+
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
+        self.fs.path_by_inode(ino)
+    }
+
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        self.fs.stat_by_inode(ino)
+    }
+
     fn exists(&self, path: &str) -> VfsResult<bool> {
         self.fs.exists(path)
     }

@@ -236,6 +236,18 @@ impl<F: VfsFileSystem> VfsFileSystem for ObservableFs<F> {
         }
     }
 
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        self.inner.inode(path)
+    }
+
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
+        self.inner.path_by_inode(ino)
+    }
+
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        self.inner.stat_by_inode(ino)
+    }
+
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
         let version = self.next_version();
         match self.inner.chmod(path, mode) {

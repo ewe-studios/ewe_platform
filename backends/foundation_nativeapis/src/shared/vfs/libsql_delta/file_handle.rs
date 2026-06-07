@@ -337,7 +337,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         let stmt = self
             .db
             .prepare(
-                "SELECT name, file_type FROM vfs_dentry WHERE parent_ino = ? ORDER BY name",
+                "SELECT name, file_type, ino FROM vfs_dentry WHERE parent_ino = ? ORDER BY name",
             )
             .await
             .map_err(le)?;
@@ -346,8 +346,10 @@ impl AsyncVfsDirectory for SqliteDirectory {
         while let Some(row) = rows.next().await.map_err(le)? {
             let name = row.get::<String>(0).map_err(le)?;
             let file_type_str = row.get::<String>(1).map_err(le)?;
+            let ino = row.get::<u64>(2).map_err(le)?;
             if let Some(ft) = super::types::parse_file_type(&file_type_str) {
                 entries.push(VfsDirEntry {
+                    inode: ino,
                     name,
                     file_type: ft,
                 });
@@ -360,7 +362,7 @@ impl AsyncVfsDirectory for SqliteDirectory {
         let stmt = self
             .db
             .prepare(
-                "SELECT name, file_type FROM vfs_dentry WHERE parent_ino = ? AND name = ?",
+                "SELECT name, file_type, ino FROM vfs_dentry WHERE parent_ino = ? AND name = ?",
             )
             .await
             .map_err(le)?;
@@ -374,8 +376,10 @@ impl AsyncVfsDirectory for SqliteDirectory {
         {
             let name = row.get::<String>(0).map_err(le)?;
             let file_type_str = row.get::<String>(1).map_err(le)?;
+            let ino = row.get::<u64>(2).map_err(le)?;
             if let Some(ft) = super::types::parse_file_type(&file_type_str) {
                 return Ok(Some(VfsDirEntry {
+                    inode: ino,
                     name,
                     file_type: ft,
                 }));

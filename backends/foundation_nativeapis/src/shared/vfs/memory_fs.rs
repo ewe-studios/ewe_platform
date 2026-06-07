@@ -66,10 +66,18 @@ impl MemoryNode {
 #[derive(Debug)]
 struct MemoryFsInner {
     nodes: HashMap<String, MemoryNode>,
+    ino_to_path: HashMap<u64, String>,
     version: u64,
+    next_inode: u64,
 }
 
 impl MemoryFsInner {
+    fn alloc_inode(&mut self) -> u64 {
+        let ino = self.next_inode;
+        self.next_inode += 1;
+        ino
+    }
+
     fn next_version(&mut self) -> u64 {
         self.version += 1;
         self.version
@@ -109,6 +117,7 @@ impl MemoryFsInner {
             if let Some(rest) = key.strip_prefix(&prefix) {
                 if !rest.contains('/') && !rest.is_empty() {
                     entries.push(VfsDirEntry {
+                        inode: node.metadata().inode,
                         name: rest.to_string(),
                         file_type: node.file_type(),
                     });
@@ -128,14 +137,21 @@ pub struct MemoryFs {
 impl MemoryFs {
     pub fn new() -> Self {
         let mut nodes = HashMap::new();
+        let mut ino_to_path = HashMap::new();
         nodes.insert(
             "/".to_string(),
             MemoryNode::Directory {
-                metadata: VfsMetadata::new_directory(DEFAULT_DIR_PERMS),
+                metadata: VfsMetadata::new_directory(1, DEFAULT_DIR_PERMS),
             },
         );
+        ino_to_path.insert(1u64, "/".to_string());
         Self {
-            inner: Arc::new(RwLock::new(MemoryFsInner { nodes, version: 0 })),
+            inner: Arc::new(RwLock::new(MemoryFsInner {
+                nodes,
+                ino_to_path,
+                version: 0,
+                next_inode: 2,
+            })),
         }
     }
 }
@@ -359,6 +375,7 @@ impl VfsDirectory for MemoryDirectory {
         let resolved = inner.resolve_symlinks(&child_path)?;
         match inner.nodes.get(&resolved) {
             Some(node) => Ok(Some(VfsDirEntry {
+                inode: node.metadata().inode,
                 name: file_name(&child_path).to_string(),
                 file_type: node.file_type(),
             })),
@@ -374,10 +391,12 @@ impl VfsDirectory for MemoryDirectory {
                 path: child_path,
             }));
         }
+        let ino = inner.alloc_inode();
         let version = inner.next_version();
         let content = Arc::new(RwLock::new(Vec::new()));
-        let mut metadata = VfsMetadata::new_file(0, mode);
+        let mut metadata = VfsMetadata::new_file(ino, 0, mode);
         metadata.version = version;
+        inner.ino_to_path.insert(ino, child_path.clone());
         inner.nodes.insert(
             child_path.clone(),
             MemoryNode::File {
@@ -405,9 +424,11 @@ impl VfsDirectory for MemoryDirectory {
                 path: child_path,
             }));
         }
+        let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_directory(DEFAULT_DIR_PERMS);
+        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS);
         metadata.version = version;
+        inner.ino_to_path.insert(ino, child_path.clone());
         inner
             .nodes
             .insert(child_path.clone(), MemoryNode::Directory { metadata });
@@ -577,6 +598,25 @@ impl VfsFileSystem for MemoryFs {
         }
     }
 
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        let meta = self.stat(path)?;
+        Ok(meta.inode)
+    }
+
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
+        let inner = self.inner.read().unwrap();
+        inner
+            .ino_to_path
+            .get(&ino)
+            .cloned()
+            .ok_or_else(|| ErrorTrace::new(VfsError::NotFound { path: format!("inode:{ino}") }))
+    }
+
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        let path = self.path_by_inode(ino)?;
+        self.stat(&path)
+    }
+
     fn exists(&self, path: &str) -> VfsResult<bool> {
         let path = normalize_path(path)?;
         let inner = self.inner.read().unwrap();
@@ -614,9 +654,11 @@ impl VfsFileSystem for MemoryFs {
                 return Err(ErrorTrace::new(VfsError::NotFound { path: p.clone() }));
             }
         }
+        let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_symlink();
+        let mut metadata = VfsMetadata::new_symlink(ino);
         metadata.version = version;
+        inner.ino_to_path.insert(ino, link.clone());
         inner.nodes.insert(
             link,
             MemoryNode::Symlink {
@@ -664,6 +706,8 @@ impl VfsFileSystem for MemoryFs {
             } else {
                 format!("{to}{}", &key[from.len()..])
             };
+            let ino = node.metadata().inode;
+            inner.ino_to_path.insert(ino, new_key.clone());
             inner.nodes.insert(new_key, node);
         }
         if let Some(node) = inner.nodes.get_mut(&to) {
@@ -696,9 +740,13 @@ impl VfsFileSystem for MemoryFs {
             }
         }
         if path != resolved {
-            inner.nodes.remove(&path);
+            if let Some(node) = inner.nodes.remove(&path) {
+                inner.ino_to_path.remove(&node.metadata().inode);
+            }
         }
-        inner.nodes.remove(&resolved);
+        if let Some(node) = inner.nodes.remove(&resolved) {
+            inner.ino_to_path.remove(&node.metadata().inode);
+        }
         inner.next_version();
         Ok(())
     }
@@ -754,10 +802,12 @@ impl VfsFileSystem for MemoryFs {
                 return Err(ErrorTrace::new(VfsError::NotFound { path: parent }));
             }
         }
+        let ino = inner.alloc_inode();
         let version = inner.next_version();
         let content = Arc::new(RwLock::new(Vec::new()));
-        let mut metadata = VfsMetadata::new_file(0, mode);
+        let mut metadata = VfsMetadata::new_file(ino, 0, mode);
         metadata.version = version;
+        inner.ino_to_path.insert(ino, path.clone());
         inner.nodes.insert(
             path.clone(),
             MemoryNode::File {
@@ -786,9 +836,11 @@ impl VfsFileSystem for MemoryFs {
                 return Err(ErrorTrace::new(VfsError::NotFound { path: parent }));
             }
         }
+        let ino = inner.alloc_inode();
         let version = inner.next_version();
-        let mut metadata = VfsMetadata::new_directory(DEFAULT_DIR_PERMS);
+        let mut metadata = VfsMetadata::new_directory(ino, DEFAULT_DIR_PERMS);
         metadata.version = version;
+        inner.ino_to_path.insert(ino, path.clone());
         inner
             .nodes
             .insert(path, MemoryNode::Directory { metadata });
@@ -832,9 +884,11 @@ impl VfsFileSystem for MemoryFs {
                         return Err(ErrorTrace::new(VfsError::NotFound { path: parent }));
                     }
                 }
+                let ino = inner.alloc_inode();
                 let content = Arc::new(RwLock::new(data.to_vec()));
-                let mut metadata = VfsMetadata::new_file(data.len() as u64, 0o644);
+                let mut metadata = VfsMetadata::new_file(ino, data.len() as u64, 0o644);
                 metadata.version = version;
+                inner.ino_to_path.insert(ino, path.clone());
                 inner.nodes.insert(
                     path,
                     MemoryNode::File {

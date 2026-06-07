@@ -65,6 +65,42 @@ pub fn resolve_parent(conn: &Mutex<libsql::Connection>, path: &str) -> VfsResult
     Ok((parent_ino, leaf_name.to_string()))
 }
 
+/// Resolve an ino back to a VFS path by walking parent_ino up to root.
+pub fn resolve_ino_to_path(conn: &Mutex<libsql::Connection>, ino: i64) -> VfsResult<String> {
+    if ino == 1 {
+        return Ok("/".to_string());
+    }
+    let conn = conn.lock().unwrap();
+    let mut components = Vec::new();
+    let mut current = ino;
+    while current != 1 {
+        let mut stmt = conn
+            .prepare("SELECT name, parent_ino FROM turso_dentry WHERE ino = ?")
+            .map_err(|e| VfsError::Io { source: e.into() })?;
+        let row = stmt
+            .query((current,))
+            .map_err(|e| VfsError::Io { source: e.into() })?
+            .next()
+            .map_err(|e| VfsError::Io { source: e.into() })?
+            .ok_or_else(|| VfsError::NotFound { path: format!("inode:{ino}") })?;
+        let name = row
+            .get_value(0)
+            .map_err(|e| VfsError::Io { source: e.into() })?
+            .as_str()
+            .unwrap_or("")
+            .to_string();
+        let parent = row
+            .get_value(1)
+            .map_err(|e| VfsError::Io { source: e.into() })?
+            .as_integer()
+            .ok_or_else(|| VfsError::NotFound { path: format!("inode:{ino}") })?;
+        components.push(name);
+        current = parent;
+    }
+    components.reverse();
+    Ok(format!("/{}", components.join("/")))
+}
+
 /// Get all descendant inos of a directory using recursive CTE.
 pub fn subtree_inos(conn: &Mutex<libsql::Connection>, dir_ino: i64) -> VfsResult<Vec<i64>> {
     let conn = conn.lock().unwrap();

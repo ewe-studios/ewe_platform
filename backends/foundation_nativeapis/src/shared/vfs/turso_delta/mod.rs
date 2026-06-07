@@ -23,7 +23,7 @@ use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetad
 
 use file_handle::{TursoFile, SeekableTursoFile, TursoDirectory};
 use types::{ChunkConfig, TursoDentry, next_version_id, pack_version, unpack_version};
-use path_resolve::{resolve_path, resolve_parent, subtree_inos};
+use path_resolve::{resolve_path, resolve_parent, resolve_ino_to_path, subtree_inos};
 use chunking::{write_all_chunks, read_chunk_range, truncate_file};
 use schema::run_migrations;
 
@@ -149,6 +149,29 @@ impl VfsFileSystem for TursoDelta {
             .map_err(|e| VfsError::Io { source: e.into() })?
             .ok_or_else(|| VfsError::NotFound { path: path.to_string() })?;
 
+        let dentry = TursoDentry::from_row(&row)?;
+        Ok(dentry.to_metadata())
+    }
+
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        resolve_path(&self.conn, path).map(|ino| ino as u64)
+    }
+
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
+        resolve_ino_to_path(&self.conn, ino as i64)
+    }
+
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        let conn = self.conn.lock().unwrap();
+        let mut stmt = conn
+            .prepare("SELECT * FROM turso_dentry WHERE ino = ?")
+            .map_err(|e| VfsError::Io { source: e.into() })?;
+        let row = stmt
+            .query((ino as i64,))
+            .map_err(|e| VfsError::Io { source: e.into() })?
+            .next()
+            .map_err(|e| VfsError::Io { source: e.into() })?
+            .ok_or_else(|| VfsError::NotFound { path: format!("inode:{ino}") })?;
         let dentry = TursoDentry::from_row(&row)?;
         Ok(dentry.to_metadata())
     }

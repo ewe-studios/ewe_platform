@@ -21,6 +21,7 @@ fn test_vfs_capabilities_roundtrip() {
 #[test]
 fn test_vfs_dir_entry_roundtrip() {
     let entry = VfsDirEntry {
+        inode: 1,
         name: "test.txt".to_string(),
         file_type: VfsFileType::Regular,
     };
@@ -32,7 +33,7 @@ fn test_vfs_dir_entry_roundtrip() {
 
 #[test]
 fn test_vfs_metadata_roundtrip() {
-    let meta = VfsMetadata::new_file(42, 0o644);
+    let meta = VfsMetadata::new_file(1, 42, 0o644);
     let batch = meta.to_arrow().expect("to_arrow failed");
     let encoded = encode_ipc(&batch).expect("encode failed");
     let decoded = decode_ipc(&encoded).expect("decode failed");
@@ -42,9 +43,9 @@ fn test_vfs_metadata_roundtrip() {
 #[test]
 fn test_vec_roundtrip() {
     let entries = vec![
-        VfsDirEntry { name: "foo".to_string(), file_type: VfsFileType::Directory },
-        VfsDirEntry { name: "bar.txt".to_string(), file_type: VfsFileType::Regular },
-        VfsDirEntry { name: "link".to_string(), file_type: VfsFileType::Symlink },
+        VfsDirEntry { inode: 1, name: "foo".to_string(), file_type: VfsFileType::Directory },
+        VfsDirEntry { inode: 2, name: "bar.txt".to_string(), file_type: VfsFileType::Regular },
+        VfsDirEntry { inode: 3, name: "link".to_string(), file_type: VfsFileType::Symlink },
     ];
     let batch = VfsDirEntry::to_arrow_batch(&entries).expect("to_arrow_batch failed");
     assert_eq!(batch.num_rows(), 3);

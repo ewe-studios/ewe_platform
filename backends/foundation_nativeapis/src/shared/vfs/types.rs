@@ -28,6 +28,7 @@ pub enum VfsEntryState {
 
 #[derive(Debug, Clone)]
 pub struct VfsMetadata {
+    pub inode: u64,
     pub size: u64,
     pub file_type: VfsFileType,
     pub permissions: u32,
@@ -41,9 +42,10 @@ pub struct VfsMetadata {
 }
 
 impl VfsMetadata {
-    pub fn new_file(size: u64, permissions: u32) -> Self {
+    pub fn new_file(inode: u64, size: u64, permissions: u32) -> Self {
         let now = Some(SystemTime::now());
         Self {
+            inode,
             size,
             file_type: VfsFileType::Regular,
             permissions,
@@ -57,9 +59,10 @@ impl VfsMetadata {
         }
     }
 
-    pub fn new_directory(permissions: u32) -> Self {
+    pub fn new_directory(inode: u64, permissions: u32) -> Self {
         let now = Some(SystemTime::now());
         Self {
+            inode,
             size: 0,
             file_type: VfsFileType::Directory,
             permissions,
@@ -73,9 +76,10 @@ impl VfsMetadata {
         }
     }
 
-    pub fn new_symlink() -> Self {
+    pub fn new_symlink(inode: u64) -> Self {
         let now = Some(SystemTime::now());
         Self {
+            inode,
             size: 0,
             file_type: VfsFileType::Symlink,
             permissions: 0o777,
@@ -92,6 +96,7 @@ impl VfsMetadata {
 
 #[derive(Debug, Clone)]
 pub struct VfsDirEntry {
+    pub inode: u64,
     pub name: String,
     pub file_type: VfsFileType,
 }

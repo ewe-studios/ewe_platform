@@ -116,6 +116,10 @@ pub trait VfsFileSystem: Send + Sync {
     fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File>;
     fn mkdir(&self, path: &str) -> VfsResult<()>;
 
+    fn inode(&self, path: &str) -> VfsResult<u64>;
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String>;
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata>;
+
     fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
         let file = self.open(path, OpenMode::Read)?;
         let size = file.size()?;

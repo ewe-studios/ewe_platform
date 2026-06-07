@@ -19,7 +19,7 @@ use std::sync::Arc;
 use super::async_traits::{
     AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
 };
-use super::error::VfsResult;
+use super::error::{VfsError, VfsResult};
 use super::exec_async::exec_async;
 use super::traits::{DeltaStore, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem};
 use super::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
@@ -513,6 +513,23 @@ impl<A: AsyncVfsFileSystem + 'static> VfsFileSystem for SyncFs<A> {
         let inner = self.inner.clone();
         let path = path.to_string();
         exec_async(async move { inner.exists_async(path).await })
+    }
+
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        let meta = self.stat(path)?;
+        Ok(meta.inode)
+    }
+
+    fn path_by_inode(&self, _ino: u64) -> VfsResult<String> {
+        Err(foundation_errstacks::ErrorTrace::new(VfsError::Unsupported {
+            operation: "path_by_inode on SyncFs".to_string(),
+        }))
+    }
+
+    fn stat_by_inode(&self, _ino: u64) -> VfsResult<VfsMetadata> {
+        Err(foundation_errstacks::ErrorTrace::new(VfsError::Unsupported {
+            operation: "stat_by_inode on SyncFs".to_string(),
+        }))
     }
 
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {

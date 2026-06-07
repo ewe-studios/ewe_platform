@@ -213,6 +213,9 @@ impl VfsFileSystem for DirectoryDelta {
     // Delegated to self.fs
     fn capabilities(&self) -> VfsCapabilities { scaffold!() }
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { scaffold!() }
+    fn inode(&self, path: &str) -> VfsResult<u64> { scaffold!() }
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> { scaffold!() }
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> { scaffold!() }
     fn exists(&self, path: &str) -> VfsResult<bool> { scaffold!() }
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> { scaffold!() }
     fn symlink(&self, target: &str, link: &str) -> VfsResult<()> { scaffold!() }

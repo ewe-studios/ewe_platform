@@ -18,7 +18,6 @@ use crate::shared::vfs::types::{
 };
 
 fn err(s: String) -> ArrowError { ArrowError::ComputeError(s) }
-fn arc<T>(v: T) -> Arc<T> { Arc::new(v) }
 
 // ──────────────────────────────────────────────
 // VfsFileType
@@ -35,7 +34,7 @@ impl ToArrow for VfsFileType {
         let arr: UInt8Array = values.iter().map(|v| match v {
             VfsFileType::Regular => 0u8, VfsFileType::Directory => 1u8, VfsFileType::Symlink => 2u8,
         }).collect();
-        RecordBatch::try_new(arc(Self::schema()), vec![arc(arr) as ArrayRef]).map_err(|e| err(e.to_string()))
+        RecordBatch::try_new(Arc::new(Self::schema()), vec![Arc::new(arr) as ArrayRef]).map_err(|e| err(e.to_string()))
     }
 }
 
@@ -66,7 +65,7 @@ impl ToArrow for VfsEntryState {
     fn to_arrow(&self) -> IpcResult<RecordBatch> { Self::to_arrow_batch(std::slice::from_ref(self)) }
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
         let arr: UInt8Array = values.iter().map(|v| match v { VfsEntryState::Ready => 0u8, VfsEntryState::Pending => 1u8 }).collect();
-        RecordBatch::try_new(arc(Self::schema()), vec![arc(arr) as ArrayRef]).map_err(|e| err(e.to_string()))
+        RecordBatch::try_new(Arc::new(Self::schema()), vec![Arc::new(arr) as ArrayRef]).map_err(|e| err(e.to_string()))
     }
 }
 
@@ -102,7 +101,7 @@ impl ToArrow for Checksum {
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
         let kinds: UInt8Array = values.iter().map(|v| match v { Checksum::Blake3(_) => 1u8, Checksum::None => 0u8 }).collect();
         let data: BinaryArray = values.iter().map(|v| match v { Checksum::Blake3(b) => Some(b.as_slice()), Checksum::None => None }).collect();
-        RecordBatch::try_new(arc(Self::schema()), vec![arc(kinds) as ArrayRef, arc(data) as ArrayRef]).map_err(|e| err(e.to_string()))
+        RecordBatch::try_new(Arc::new(Self::schema()), vec![Arc::new(kinds) as ArrayRef, Arc::new(data) as ArrayRef]).map_err(|e| err(e.to_string()))
     }
 }
 
@@ -154,7 +153,7 @@ impl ToArrow for VfsCapabilities {
         let perms: BooleanArray = values.iter().map(|v| Some(v.permissions_enforced)).collect();
         let events: BooleanArray = values.iter().map(|v| Some(v.event_emission)).collect();
         let persistent: BooleanArray = values.iter().map(|v| Some(v.persistent)).collect();
-        RecordBatch::try_new(arc(Self::schema()), vec![arc(seekable) as ArrayRef, arc(symlinks) as ArrayRef, arc(perms) as ArrayRef, arc(events) as ArrayRef, arc(persistent) as ArrayRef]).map_err(|e| err(e.to_string()))
+        RecordBatch::try_new(Arc::new(Self::schema()), vec![Arc::new(seekable) as ArrayRef, Arc::new(symlinks) as ArrayRef, Arc::new(perms) as ArrayRef, Arc::new(events) as ArrayRef, Arc::new(persistent) as ArrayRef]).map_err(|e| err(e.to_string()))
     }
 }
 
@@ -183,31 +182,34 @@ impl FromArrow for VfsCapabilities {
 // ──────────────────────────────────────────────
 
 impl ArrowSchema for VfsDirEntry {
-    fn schema() -> Schema { Schema::new(vec![Field::new("name", DataType::Utf8, false), Field::new("file_type", DataType::UInt8, false)]) }
-    fn fields() -> Vec<Field> { vec![Field::new("name", DataType::Utf8, false), Field::new("file_type", DataType::UInt8, false)] }
+    fn schema() -> Schema { Schema::new(vec![Field::new("inode", DataType::UInt64, false), Field::new("name", DataType::Utf8, false), Field::new("file_type", DataType::UInt8, false)]) }
+    fn fields() -> Vec<Field> { vec![Field::new("inode", DataType::UInt64, false), Field::new("name", DataType::Utf8, false), Field::new("file_type", DataType::UInt8, false)] }
 }
 
 impl ToArrow for VfsDirEntry {
     fn to_arrow(&self) -> IpcResult<RecordBatch> { Self::to_arrow_batch(std::slice::from_ref(self)) }
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
+        let inodes: UInt64Array = values.iter().map(|v| Some(v.inode)).collect();
         let names: StringArray = values.iter().map(|v| Some(v.name.as_str())).collect();
         let file_types: UInt8Array = values.iter().map(|v| match v.file_type { VfsFileType::Regular => 0u8, VfsFileType::Directory => 1u8, VfsFileType::Symlink => 2u8 }).collect();
-        RecordBatch::try_new(arc(Self::schema()), vec![arc(names) as ArrayRef, arc(file_types) as ArrayRef]).map_err(|e| err(e.to_string()))
+        RecordBatch::try_new(Arc::new(Self::schema()), vec![Arc::new(inodes) as ArrayRef, Arc::new(names) as ArrayRef, Arc::new(file_types) as ArrayRef]).map_err(|e| err(e.to_string()))
     }
 }
 
 impl FromArrow for VfsDirEntry {
     fn from_arrow(batch: &RecordBatch) -> IpcResult<Self> {
         let idx = 0;
-        let name: String = batch.column(0).arrow_value(idx).unwrap_or_default();
-        let ft_val: u8 = batch.column(1).arrow_value(idx).unwrap_or(0);
-        Ok(VfsDirEntry { name, file_type: match ft_val { 0 => VfsFileType::Regular, 1 => VfsFileType::Directory, _ => VfsFileType::Symlink } })
+        let inode: u64 = batch.column(0).arrow_value(idx).unwrap_or(0);
+        let name: String = batch.column(1).arrow_value(idx).unwrap_or_default();
+        let ft_val: u8 = batch.column(2).arrow_value(idx).unwrap_or(0);
+        Ok(VfsDirEntry { inode, name, file_type: match ft_val { 0 => VfsFileType::Regular, 1 => VfsFileType::Directory, _ => VfsFileType::Symlink } })
     }
     fn from_arrow_batch(batch: &RecordBatch) -> IpcResult<Vec<Self>> {
         (0..batch.num_rows()).map(|idx| {
-            let name: String = batch.column(0).arrow_value(idx).unwrap_or_default();
-            let ft_val: u8 = batch.column(1).arrow_value(idx).unwrap_or(0);
-            Ok(VfsDirEntry { name, file_type: match ft_val { 0 => VfsFileType::Regular, 1 => VfsFileType::Directory, _ => VfsFileType::Symlink } })
+            let inode: u64 = batch.column(0).arrow_value(idx).unwrap_or(0);
+            let name: String = batch.column(1).arrow_value(idx).unwrap_or_default();
+            let ft_val: u8 = batch.column(2).arrow_value(idx).unwrap_or(0);
+            Ok(VfsDirEntry { inode, name, file_type: match ft_val { 0 => VfsFileType::Regular, 1 => VfsFileType::Directory, _ => VfsFileType::Symlink } })
         }).collect()
     }
 }
@@ -219,22 +221,24 @@ impl FromArrow for VfsDirEntry {
 impl ArrowSchema for VfsMetadata {
     fn schema() -> Schema {
         Schema::new(vec![
-            Field::new("size", DataType::UInt64, false), Field::new("file_type", DataType::UInt8, false),
-            Field::new("permissions", DataType::UInt32, false), Field::new("owner_uid", DataType::UInt64, false),
-            Field::new("owner_gid", DataType::UInt64, false), Field::new("created_ms", DataType::Int64, true),
-            Field::new("modified_ms", DataType::Int64, true), Field::new("accessed_ms", DataType::Int64, true),
-            Field::new("checksum_kind", DataType::UInt8, false), Field::new("checksum_data", DataType::Binary, true),
-            Field::new("version", DataType::UInt64, false), Field::new("entry_state", DataType::UInt8, false),
+            Field::new("inode", DataType::UInt64, false), Field::new("size", DataType::UInt64, false),
+            Field::new("file_type", DataType::UInt8, false), Field::new("permissions", DataType::UInt32, false),
+            Field::new("owner_uid", DataType::UInt64, false), Field::new("owner_gid", DataType::UInt64, false),
+            Field::new("created_ms", DataType::Int64, true), Field::new("modified_ms", DataType::Int64, true),
+            Field::new("accessed_ms", DataType::Int64, true), Field::new("checksum_kind", DataType::UInt8, false),
+            Field::new("checksum_data", DataType::Binary, true), Field::new("version", DataType::UInt64, false),
+            Field::new("entry_state", DataType::UInt8, false),
         ])
     }
     fn fields() -> Vec<Field> {
         vec![
-            Field::new("size", DataType::UInt64, false), Field::new("file_type", DataType::UInt8, false),
-            Field::new("permissions", DataType::UInt32, false), Field::new("owner_uid", DataType::UInt64, false),
-            Field::new("owner_gid", DataType::UInt64, false), Field::new("created_ms", DataType::Int64, true),
-            Field::new("modified_ms", DataType::Int64, true), Field::new("accessed_ms", DataType::Int64, true),
-            Field::new("checksum_kind", DataType::UInt8, false), Field::new("checksum_data", DataType::Binary, true),
-            Field::new("version", DataType::UInt64, false), Field::new("entry_state", DataType::UInt8, false),
+            Field::new("inode", DataType::UInt64, false), Field::new("size", DataType::UInt64, false),
+            Field::new("file_type", DataType::UInt8, false), Field::new("permissions", DataType::UInt32, false),
+            Field::new("owner_uid", DataType::UInt64, false), Field::new("owner_gid", DataType::UInt64, false),
+            Field::new("created_ms", DataType::Int64, true), Field::new("modified_ms", DataType::Int64, true),
+            Field::new("accessed_ms", DataType::Int64, true), Field::new("checksum_kind", DataType::UInt8, false),
+            Field::new("checksum_data", DataType::Binary, true), Field::new("version", DataType::UInt64, false),
+            Field::new("entry_state", DataType::UInt8, false),
         ]
     }
 }
@@ -245,6 +249,7 @@ fn ms_to_system_time(ms: Option<i64>) -> Option<SystemTime> { ms.map(|ms| System
 impl ToArrow for VfsMetadata {
     fn to_arrow(&self) -> IpcResult<RecordBatch> { Self::to_arrow_batch(std::slice::from_ref(self)) }
     fn to_arrow_batch(values: &[Self]) -> IpcResult<RecordBatch> {
+        let inode: UInt64Array = values.iter().map(|v| Some(v.inode)).collect();
         let size: UInt64Array = values.iter().map(|v| Some(v.size)).collect();
         let file_type: UInt8Array = values.iter().map(|v| match v.file_type { VfsFileType::Regular => 0u8, VfsFileType::Directory => 1u8, VfsFileType::Symlink => 2u8 }).collect();
         let permissions: foundation_arrow::arrow_array::UInt32Array = values.iter().map(|v| Some(v.permissions)).collect();
@@ -257,50 +262,54 @@ impl ToArrow for VfsMetadata {
         let checksum_data: BinaryArray = values.iter().map(|v| match &v.checksum { Checksum::Blake3(b) => Some(b.as_slice()), Checksum::None => None }).collect();
         let version: UInt64Array = values.iter().map(|v| Some(v.version)).collect();
         let entry_state: UInt8Array = values.iter().map(|v| match v.state { VfsEntryState::Ready => 0u8, VfsEntryState::Pending => 1u8 }).collect();
-        RecordBatch::try_new(arc(Self::schema()), vec![arc(size) as ArrayRef, arc(file_type) as ArrayRef, arc(permissions) as ArrayRef, arc(owner_uid) as ArrayRef, arc(owner_gid) as ArrayRef, arc(created_ms) as ArrayRef, arc(modified_ms) as ArrayRef, arc(accessed_ms) as ArrayRef, arc(checksum_kind) as ArrayRef, arc(checksum_data) as ArrayRef, arc(version) as ArrayRef, arc(entry_state) as ArrayRef]).map_err(|e| err(e.to_string()))
+        RecordBatch::try_new(Arc::new(Self::schema()), vec![Arc::new(inode) as ArrayRef, Arc::new(size) as ArrayRef, Arc::new(file_type) as ArrayRef, Arc::new(permissions) as ArrayRef, Arc::new(owner_uid) as ArrayRef, Arc::new(owner_gid) as ArrayRef, Arc::new(created_ms) as ArrayRef, Arc::new(modified_ms) as ArrayRef, Arc::new(accessed_ms) as ArrayRef, Arc::new(checksum_kind) as ArrayRef, Arc::new(checksum_data) as ArrayRef, Arc::new(version) as ArrayRef, Arc::new(entry_state) as ArrayRef]).map_err(|e| err(e.to_string()))
     }
 }
 
 impl FromArrow for VfsMetadata {
     fn from_arrow(batch: &RecordBatch) -> IpcResult<Self> {
         let idx = 0;
-        let ft_val: u8 = batch.column(1).arrow_value(idx).unwrap_or(0);
-        let checksum_kind: u8 = batch.column(8).arrow_value(idx).unwrap_or(0);
-        let checksum_data: Option<Vec<u8>> = batch.column(9).arrow_value(idx);
-        let state_val: u8 = batch.column(11).arrow_value(idx).unwrap_or(0);
+        let inode: u64 = batch.column(0).arrow_value(idx).unwrap_or(0);
+        let ft_val: u8 = batch.column(2).arrow_value(idx).unwrap_or(0);
+        let checksum_kind: u8 = batch.column(9).arrow_value(idx).unwrap_or(0);
+        let checksum_data: Option<Vec<u8>> = batch.column(10).arrow_value(idx);
+        let state_val: u8 = batch.column(12).arrow_value(idx).unwrap_or(0);
         let checksum = match checksum_kind { 1 => { let bytes = checksum_data.unwrap_or_default(); let mut arr = [0u8; 32]; arr.copy_from_slice(&bytes[..bytes.len().min(32)]); Checksum::Blake3(arr) } _ => Checksum::None };
-        let permissions = batch.column(2).as_any().downcast_ref::<foundation_arrow::arrow_array::UInt32Array>().map_or(0, |a| a.value(idx));
+        let permissions = batch.column(3).as_any().downcast_ref::<foundation_arrow::arrow_array::UInt32Array>().map_or(0, |a| a.value(idx));
         Ok(VfsMetadata {
-            size: batch.column(0).arrow_value(idx).unwrap_or(0),
+            inode,
+            size: batch.column(1).arrow_value(idx).unwrap_or(0),
             file_type: match ft_val { 0 => VfsFileType::Regular, 1 => VfsFileType::Directory, _ => VfsFileType::Symlink },
             permissions,
-            owner: (batch.column(3).arrow_value(idx).unwrap_or(0) as u32, batch.column(4).arrow_value(idx).unwrap_or(0) as u32),
-            created: ms_to_system_time(batch.column(5).arrow_value(idx)),
-            modified: ms_to_system_time(batch.column(6).arrow_value(idx)),
-            accessed: ms_to_system_time(batch.column(7).arrow_value(idx)),
+            owner: (batch.column(4).arrow_value(idx).unwrap_or(0) as u32, batch.column(5).arrow_value(idx).unwrap_or(0) as u32),
+            created: ms_to_system_time(batch.column(6).arrow_value(idx)),
+            modified: ms_to_system_time(batch.column(7).arrow_value(idx)),
+            accessed: ms_to_system_time(batch.column(8).arrow_value(idx)),
             checksum,
-            version: batch.column(10).arrow_value(idx).unwrap_or(0),
+            version: batch.column(11).arrow_value(idx).unwrap_or(0),
             state: match state_val { 0 => VfsEntryState::Ready, _ => VfsEntryState::Pending },
         })
     }
     fn from_arrow_batch(batch: &RecordBatch) -> IpcResult<Vec<Self>> {
         (0..batch.num_rows()).map(|idx| {
-            let ft_val: u8 = batch.column(1).arrow_value(idx).unwrap_or(0);
-            let checksum_kind: u8 = batch.column(8).arrow_value(idx).unwrap_or(0);
-            let checksum_data: Option<Vec<u8>> = batch.column(9).arrow_value(idx);
-            let state_val: u8 = batch.column(11).arrow_value(idx).unwrap_or(0);
+            let inode: u64 = batch.column(0).arrow_value(idx).unwrap_or(0);
+            let ft_val: u8 = batch.column(2).arrow_value(idx).unwrap_or(0);
+            let checksum_kind: u8 = batch.column(9).arrow_value(idx).unwrap_or(0);
+            let checksum_data: Option<Vec<u8>> = batch.column(10).arrow_value(idx);
+            let state_val: u8 = batch.column(12).arrow_value(idx).unwrap_or(0);
             let checksum = match checksum_kind { 1 => { let bytes = checksum_data.clone().unwrap_or_default(); let mut arr = [0u8; 32]; arr.copy_from_slice(&bytes[..bytes.len().min(32)]); Checksum::Blake3(arr) } _ => Checksum::None };
-            let permissions = batch.column(2).as_any().downcast_ref::<foundation_arrow::arrow_array::UInt32Array>().map_or(0, |a| a.value(idx));
+            let permissions = batch.column(3).as_any().downcast_ref::<foundation_arrow::arrow_array::UInt32Array>().map_or(0, |a| a.value(idx));
             Ok(VfsMetadata {
-                size: batch.column(0).arrow_value(idx).unwrap_or(0),
+                inode,
+                size: batch.column(1).arrow_value(idx).unwrap_or(0),
                 file_type: match ft_val { 0 => VfsFileType::Regular, 1 => VfsFileType::Directory, _ => VfsFileType::Symlink },
                 permissions,
-                owner: (batch.column(3).arrow_value(idx).unwrap_or(0) as u32, batch.column(4).arrow_value(idx).unwrap_or(0) as u32),
-                created: ms_to_system_time(batch.column(5).arrow_value(idx)),
-                modified: ms_to_system_time(batch.column(6).arrow_value(idx)),
-                accessed: ms_to_system_time(batch.column(7).arrow_value(idx)),
+                owner: (batch.column(4).arrow_value(idx).unwrap_or(0) as u32, batch.column(5).arrow_value(idx).unwrap_or(0) as u32),
+                created: ms_to_system_time(batch.column(6).arrow_value(idx)),
+                modified: ms_to_system_time(batch.column(7).arrow_value(idx)),
+                accessed: ms_to_system_time(batch.column(8).arrow_value(idx)),
                 checksum,
-                version: batch.column(10).arrow_value(idx).unwrap_or(0),
+                version: batch.column(11).arrow_value(idx).unwrap_or(0),
                 state: match state_val { 0 => VfsEntryState::Ready, _ => VfsEntryState::Pending },
             })
         }).collect()

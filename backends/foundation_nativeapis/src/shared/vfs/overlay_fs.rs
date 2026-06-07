@@ -347,6 +347,7 @@ impl<B: VfsFileSystem + 'static, D: DeltaStore + 'static> VfsDirectory for Overl
         if self.delta().exists(&child_path)? {
             let meta = self.delta().stat(&child_path)?;
             return Ok(Some(VfsDirEntry {
+                inode: meta.inode,
                 name: name.to_string(),
                 file_type: meta.file_type,
             }));
@@ -354,6 +355,7 @@ impl<B: VfsFileSystem + 'static, D: DeltaStore + 'static> VfsDirectory for Overl
         if self.base().exists(&child_path)? {
             let meta = self.base().stat(&child_path)?;
             return Ok(Some(VfsDirEntry {
+                inode: meta.inode,
                 name: name.to_string(),
                 file_type: meta.file_type,
             }));
@@ -596,6 +598,20 @@ impl<B: VfsFileSystem + 'static, D: DeltaStore + 'static> VfsFileSystem for Over
     fn exists(&self, path: &str) -> VfsResult<bool> {
         let path = normalize_path(path)?;
         self.is_visible(&path)
+    }
+
+    fn inode(&self, path: &str) -> VfsResult<u64> {
+        let meta = self.stat(path)?;
+        Ok(meta.inode)
+    }
+
+    fn path_by_inode(&self, ino: u64) -> VfsResult<String> {
+        self.delta.path_by_inode(ino).or_else(|_| self.base.path_by_inode(ino))
+    }
+
+    fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> {
+        let path = self.path_by_inode(ino)?;
+        self.stat(&path)
     }
 
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {

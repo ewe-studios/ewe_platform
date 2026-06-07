@@ -137,7 +137,7 @@ fn test_metadata_to_attr_regular_file() {
     let fs = MemoryFs::new();
     let mount = FuseMount::new(fs, FuseMountOptions::default());
 
-    let meta = VfsMetadata::new_file(1024, 0o644);
+    let meta = VfsMetadata::new_file(5, 1024, 0o644);
     let attr = mount.metadata_to_attr(5, &meta);
 
     assert_eq!(attr.ino, 5);
@@ -151,7 +151,7 @@ fn test_metadata_to_attr_directory() {
     let fs = MemoryFs::new();
     let mount = FuseMount::new(fs, FuseMountOptions::default());
 
-    let meta = VfsMetadata::new_directory(0o755);
+    let meta = VfsMetadata::new_directory(3, 0o755);
     let attr = mount.metadata_to_attr(3, &meta);
 
     assert_eq!(attr.ino, 3);

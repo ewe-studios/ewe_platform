@@ -185,7 +185,7 @@ impl VfsDirectory for TursoDirectory {
     fn list(&self) -> VfsResult<Vec<VfsDirEntry>> {
         let conn = self.db.lock().unwrap();
         let mut stmt = conn
-            .prepare("SELECT name, file_type FROM turso_dentry WHERE parent_ino = ? ORDER BY name")
+            .prepare("SELECT name, file_type, ino FROM turso_dentry WHERE parent_ino = ? ORDER BY name")
             .map_err(|e| VfsError::Io { source: e.into() })?;
 
         let mut rows = stmt
@@ -205,9 +205,14 @@ impl VfsDirectory for TursoDirectory {
                 .map_err(|e| VfsError::Io { source: e.into() })?
                 .as_str()
                 .unwrap_or("file");
+            let ino = row
+                .get_value(2)
+                .map_err(|e| VfsError::Io { source: e.into() })?
+                .as_integer()
+                .unwrap_or(0) as u64;
 
             if let Some(ft) = super::types::parse_file_type(file_type_str) {
-                entries.push(VfsDirEntry { name, file_type: ft });
+                entries.push(VfsDirEntry { inode: ino, name, file_type: ft });
             }
         }
 
@@ -217,7 +222,7 @@ impl VfsDirectory for TursoDirectory {
     fn get_entry(&self, name: &str) -> VfsResult<Option<VfsDirEntry>> {
         let conn = self.db.lock().unwrap();
         let mut stmt = conn
-            .prepare("SELECT name, file_type FROM turso_dentry WHERE parent_ino = ? AND name = ?")
+            .prepare("SELECT name, file_type, ino FROM turso_dentry WHERE parent_ino = ? AND name = ?")
             .map_err(|e| VfsError::Io { source: e.into() })?;
 
         if let Some(row) = stmt
@@ -237,9 +242,14 @@ impl VfsDirectory for TursoDirectory {
                 .map_err(|e| VfsError::Io { source: e.into() })?
                 .as_str()
                 .unwrap_or("file");
+            let ino = row
+                .get_value(2)
+                .map_err(|e| VfsError::Io { source: e.into() })?
+                .as_integer()
+                .unwrap_or(0) as u64;
 
             if let Some(ft) = super::types::parse_file_type(file_type_str) {
-                return Ok(Some(VfsDirEntry { name, file_type: ft }));
+                return Ok(Some(VfsDirEntry { inode: ino, name, file_type: ft }));
             }
         }
 
