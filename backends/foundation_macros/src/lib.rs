@@ -13,27 +13,11 @@ mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
 
-/// Marker for methods that should be delegated by `#[scaffold_impl]`.
-///
-/// Used inside `impl` blocks annotated with `#[scaffold_impl]` to mark
-/// methods that should have their body replaced with delegation code.
-///
-/// # Example
-///
-/// ```ignore
-/// use foundation_nostd::macros::scaffold;
-///
-/// #[scaffold_impl(via = "self.inner")]
-/// impl MyTrait for Wrapper {
-///     fn method(&self, x: u32) -> String { scaffold!() }
-/// }
-/// ```
-///
-/// If the proc macro hasn't processed the impl block, this compiles to
-/// `unreachable!()`, ensuring a clear panic instead of silent misbehavior.
-///
-/// Note: defined in `foundation_nostd` (since `macro_rules!` can't be
-/// exported from proc-macro crates). Import from `foundation_nostd::macros`.
+// scaffold!() — marker for methods delegated by #[scaffold_impl].
+// Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
+// Import from foundation_nostd::macros.
+
+// ── Embed macros ──
 
 /// [`embed_directory_as`] specifies a proc macro for embedding files into
 /// your binary as a series of UTF8 array and UTF16 array with
@@ -230,7 +214,7 @@ pub fn json_hash_derive(item: TokenStream) -> TokenStream {
 /// }
 /// ```
 ///
-/// Generate UUIDs at https://www.uuidgenerator.net
+/// Generate UUIDs at <https://www.uuidgenerator.net>
 #[proc_macro_derive(TypeUuid, attributes(uuid))]
 pub fn type_uuid_derive(item: TokenStream) -> TokenStream {
     type_uuid::type_uuid_derive(item)
@@ -376,7 +360,7 @@ pub fn arrow_schema_derive(item: TokenStream) -> TokenStream {
 /// Derive macro that generates `impl ArrowJsonSchema` for a struct.
 ///
 /// Produces a pre-built `serde_json::Value` with Arrow-specific type names
-/// (UInt64, Utf8, Binary, etc.). Requires `ArrowSchema` to also be derived.
+/// (`UInt64`, Utf8, Binary, etc.). Requires `ArrowSchema` to also be derived.
 ///
 /// # Example
 ///

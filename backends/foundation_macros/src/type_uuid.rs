@@ -24,12 +24,11 @@ fn foundation_core_path() -> proc_macro2::TokenStream {
 
 fn foundation_nativeapis_path() -> proc_macro2::TokenStream {
     match crate_name("foundation_nativeapis") {
-        Ok(FoundCrate::Itself) => quote! { foundation_nativeapis },
         Ok(FoundCrate::Name(n)) => {
             let ident = syn::Ident::new(&n, proc_macro2::Span::call_site());
             quote! { #ident }
         }
-        Err(_) => quote! { foundation_nativeapis },
+        Ok(FoundCrate::Itself) | Err(_) => quote! { foundation_nativeapis },
     }
 }
 
@@ -143,9 +142,8 @@ pub fn message_box_derive(input: TokenStream) -> TokenStream {
     let ast: DeriveInput = syn::parse(input).expect("MessageBox: failed to parse input");
     let name = &ast.ident;
 
-    let data_enum = match &ast.data {
-        Data::Enum(e) => e,
-        _ => panic!("#[derive(MessageBox)] only supports enums"),
+    let Data::Enum(data_enum) = &ast.data else {
+        panic!("#[derive(MessageBox)] only supports enums")
     };
 
     let variants_ident: Vec<_> = data_enum.variants.iter().map(|v| &v.ident).collect();

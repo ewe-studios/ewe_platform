@@ -80,10 +80,11 @@ fn build_field_extraction(
     arrow: &TokenStream2,
 ) -> TokenStream2 {
     let col_access = quote! { batch.column(#col_idx) };
+    let idx = quote! { 0 };
     if nullable {
-        value_extraction_optional(rust_type, field_ident, &col_access, arrow, quote! { 0 })
+        value_extraction_optional(rust_type, field_ident, &col_access, arrow, &idx)
     } else {
-        value_extraction_required(rust_type, field_ident, &col_access, arrow, quote! { 0 })
+        value_extraction_required(rust_type, field_ident, &col_access, arrow, &idx)
     }
 }
 
@@ -95,10 +96,11 @@ fn build_batch_field_extraction(
     arrow: &TokenStream2,
 ) -> TokenStream2 {
     let col_access = quote! { batch.column(#col_idx) };
+    let idx = quote! { row };
     if nullable {
-        value_extraction_optional(rust_type, field_ident, &col_access, arrow, quote! { row })
+        value_extraction_optional(rust_type, field_ident, &col_access, arrow, &idx)
     } else {
-        value_extraction_required(rust_type, field_ident, &col_access, arrow, quote! { row })
+        value_extraction_required(rust_type, field_ident, &col_access, arrow, &idx)
     }
 }
 
@@ -107,7 +109,7 @@ fn value_extraction_optional(
     field_ident: &syn::Ident,
     col_access: &TokenStream2,
     arrow: &TokenStream2,
-    idx: TokenStream2,
+    idx: &TokenStream2,
 ) -> TokenStream2 {
     let value_type = arrow_value_type(rust_type);
     quote! {
@@ -120,7 +122,7 @@ fn value_extraction_required(
     field_ident: &syn::Ident,
     col_access: &TokenStream2,
     arrow: &TokenStream2,
-    idx: TokenStream2,
+    idx: &TokenStream2,
 ) -> TokenStream2 {
     let value_type = arrow_value_type(rust_type);
     let field_name = field_ident.to_string();

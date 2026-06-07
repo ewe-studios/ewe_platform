@@ -83,6 +83,10 @@ impl<T> NoopMutex<T> {
 
     /// Returns a mutable reference to the underlying data.
     ///
+    /// # Errors
+    ///
+    /// This never returns an error in single-threaded contexts.
+    ///
     /// # Examples
     ///
     /// ```ignore
@@ -91,7 +95,7 @@ impl<T> NoopMutex<T> {
     /// let mut mutex = NoopMutex::new(0);
     /// *mutex.get_mut().unwrap() = 10;
     /// assert_eq!(*mutex.lock(), 10);
-    /// ```ignore
+    /// ```
     #[inline]
     pub fn get_mut(&mut self) -> LockResult<&mut T> {
         Ok(unsafe { &mut *self.data.get() })

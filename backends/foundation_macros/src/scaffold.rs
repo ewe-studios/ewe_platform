@@ -9,6 +9,7 @@ use syn::{
 
 // ── #[scaffoldable] — marks an impl block for automatic forwarding ──
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn scaffoldable(_attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     let impl_block: ItemImpl = match syn::parse2(item.clone()) {
         Ok(b) => b,
@@ -16,15 +17,12 @@ pub fn scaffoldable(_attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     };
 
     // Extract the inner type name
-    let type_name = match extract_type_name(&impl_block.self_ty) {
-        Some(name) => name,
-        None => {
-            return syn::Error::new(
-                impl_block.self_ty.span(),
-                "#[scaffoldable] requires a simple type name (not a trait impl)",
-            )
-            .to_compile_error();
-        }
+    let Some(type_name) = extract_type_name(&impl_block.self_ty) else {
+        return syn::Error::new(
+            impl_block.self_ty.span(),
+            "#[scaffoldable] requires a simple type name (not a trait impl)",
+        )
+        .to_compile_error();
     };
 
     // Collect all pub fn method signatures
@@ -47,7 +45,7 @@ pub fn scaffoldable(_attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
             // Get the self receiver
             let receiver = sig.inputs.iter().find_map(|arg| match arg {
                 FnArg::Receiver(r) => Some(r.clone()),
-                _ => None,
+                FnArg::Typed(_) => None,
             });
 
             // Collect parameters (excluding self)
@@ -182,8 +180,9 @@ pub fn scaffold_derive(item: TokenStream2) -> TokenStream2 {
 
 // ── #[scaffold_impl] — manual impl block delegation ──
 
+#[allow(clippy::needless_pass_by_value)]
 pub fn scaffold_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
-    let impl_block: ItemImpl = match syn::parse2(item.clone()) {
+    let impl_block: ItemImpl = match syn::parse2(item) {
         Ok(b) => b,
         Err(e) => return e.to_compile_error(),
     };
@@ -196,10 +195,9 @@ pub fn scaffold_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
         .attrs
         .iter()
         .find(|a| a.path().is_ident("scaffold_call"))
-        .and_then(|a| parse_call_block(a));
+        .and_then(parse_call_block);
 
-    // Clone items before we consume them
-    let items: Vec<_> = impl_block.items.iter().cloned().collect();
+    let items = impl_block.items.clone();
 
     // Walk impl items, replace scaffold!() bodies with delegation
     let mut new_items = Vec::new();
@@ -212,29 +210,26 @@ pub fn scaffold_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
                 let delegated_body = if let Some(call_block) = method_call_block {
                     let call_expr = quote! { { #call_block } };
-                    build_delegation(&method.sig, call_expr)
+                    build_delegation(&method.sig, &call_expr)
                 } else {
                     // Determine via expression: method scaffold_method > block scaffold_call > block via
                     let via_expr = method
                         .attrs
                         .iter()
                         .find(|a| a.path().is_ident("scaffold_method"))
-                        .and_then(|a| parse_scaffold_method_attr(a))
+                        .and_then(parse_scaffold_method_attr)
                         .or_else(|| block_call.clone().map(|b| quote! { { #b } }))
                         .or_else(|| block_via.clone());
 
-                    let via_expr = match via_expr {
-                        Some(expr) => expr,
-                        None => {
-                            return syn::Error::new(
-                                method.span(),
-                                "scaffold!() requires a delegation target: add #[scaffold_impl(via = \"...\")], #[scaffold_method(via = \"...\")], or #[scaffold_call(call = { ... })]",
-                            )
-                            .to_compile_error();
-                        }
+                    let Some(via_expr) = via_expr else {
+                        return syn::Error::new(
+                            method.span(),
+                            "scaffold!() requires a delegation target: add #[scaffold_impl(via = \"...\")], #[scaffold_method(via = \"...\")], or #[scaffold_call(call = { ... })]",
+                        )
+                        .to_compile_error();
                     };
 
-                    build_delegation(&method.sig, via_expr)
+                    build_delegation(&method.sig, &via_expr)
                 };
 
                 // Remove scaffold-related attributes from the output
@@ -266,14 +261,14 @@ pub fn scaffold_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
     });
 
     // Reconstruct the impl block manually (impl_block already contains 'impl')
-    let attrs_tokens: TokenStream2 = new_attrs.iter().map(|a| a.to_token_stream()).collect();
+    let attrs_tokens: TokenStream2 = new_attrs.iter().map(quote::ToTokens::to_token_stream).collect();
     let unsafety = &impl_block.unsafety;
     let generics = &impl_block.generics;
     let self_ty = &impl_block.self_ty;
     let where_clause = &impl_block.generics.where_clause;
 
     let header = if let Some((defaultness, trait_path, for_token)) = &impl_block.trait_ {
-        let d = defaultness.as_ref().map(|d| d.to_token_stream());
+        let d = defaultness.as_ref().map(quote::ToTokens::to_token_stream);
         quote! { #d #trait_path #for_token #self_ty }
     } else {
         quote! { #self_ty }
@@ -289,7 +284,7 @@ pub fn scaffold_impl(attr: TokenStream2, item: TokenStream2) -> TokenStream2 {
 
 // ── Helpers ──
 
-/// Replace `self` with `$self` in a receiver (for macro_rules! template)
+/// Replace `self` with `$self` in a receiver (for `macro_rules`! template)
 fn replace_self_in_receiver(recv: &Receiver) -> proc_macro2::TokenStream {
     let mutability = &recv.mutability;
     let reference = &recv.reference;
@@ -377,13 +372,11 @@ fn determine_access_expr(field: &syn::Field) -> proc_macro2::TokenStream {
 
             // Check for nested wrappers like Arc<Mutex<T>>
             if let PathArguments::AngleBracketed(args) = &segment.arguments {
-                if let Some(GenericArgument::Type(inner_ty)) = args.args.first() {
-                    if let Type::Path(inner_path) = inner_ty {
-                        if let Some(inner_segment) = inner_path.path.segments.last() {
-                            let inner_name = inner_segment.ident.to_string();
-                            if inner_name == "Mutex" || inner_name == "RwLock" {
-                                return detect_preset(&inner_name, field_name);
-                            }
+                if let Some(GenericArgument::Type(Type::Path(inner_path))) = args.args.first() {
+                    if let Some(inner_segment) = inner_path.path.segments.last() {
+                        let inner_name = inner_segment.ident.to_string();
+                        if inner_name == "Mutex" || inner_name == "RwLock" {
+                            return detect_preset(&inner_name, field_name);
                         }
                     }
                 }
@@ -457,10 +450,9 @@ fn parse_scaffold_impl_attr(attr: &TokenStream2) -> Option<proc_macro2::TokenStr
                             // String literal — parse as expression
                             let s = lit.to_string();
                             let s = s.trim_matches('"');
-                            return Some(syn::parse_str::<proc_macro2::TokenStream>(s).ok()?);
-                        } else {
-                            return Some(proc_macro2::TokenStream::from(val.clone()));
+                            return syn::parse_str::<proc_macro2::TokenStream>(s).ok();
                         }
+                        return Some(proc_macro2::TokenStream::from(val.clone()));
                     }
                 }
             }
@@ -484,8 +476,8 @@ fn parse_scaffold_method_attr(attr: &Attribute) -> Option<proc_macro2::TokenStre
     .ok()
 }
 
+#[allow(dead_code)]
 fn parse_scaffold_call_attr_as_via(attr: &Attribute) -> Option<proc_macro2::TokenStream> {
-    // For #[scaffold_call(call = { ... })], return the block as an expression
     parse_call_block(attr).map(|block| quote! { #block })
 }
 
@@ -493,20 +485,16 @@ fn find_scaffold_call_block(attrs: &[Attribute]) -> Option<proc_macro2::TokenStr
     attrs
         .iter()
         .find(|a| a.path().is_ident("scaffold_call"))
-        .and_then(|a| parse_call_block(a))
+        .and_then(parse_call_block)
 }
 
 fn is_scaffold_call(block: &syn::Block) -> bool {
-    // Check if block is exactly { scaffold!() }
     if block.stmts.len() == 1 {
-        if let syn::Stmt::Expr(expr, None) = &block.stmts[0] {
-            if let syn::Expr::Macro(mac_expr) = expr {
-                if mac_expr.mac.path.is_ident("scaffold") {
-                    // Check that the macro has no arguments (or just () )
-                    let tokens: String = mac_expr.mac.tokens.to_string();
-                    if tokens.trim().is_empty() || tokens.trim() == "()" {
-                        return true;
-                    }
+        if let syn::Stmt::Expr(syn::Expr::Macro(mac_expr), None) = &block.stmts[0] {
+            if mac_expr.mac.path.is_ident("scaffold") {
+                let tokens: String = mac_expr.mac.tokens.to_string();
+                if tokens.trim().is_empty() || tokens.trim() == "()" {
+                    return true;
                 }
             }
         }
@@ -516,7 +504,7 @@ fn is_scaffold_call(block: &syn::Block) -> bool {
 
 fn build_delegation(
     sig: &syn::Signature,
-    via: proc_macro2::TokenStream,
+    via: &proc_macro2::TokenStream,
 ) -> syn::Block {
     let ident = &sig.ident;
     let arg_names: Vec<_> = sig

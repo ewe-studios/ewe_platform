@@ -8,7 +8,7 @@
 //! `schedule_resume` callback that integrates with their timer subsystem.
 //!
 //! HOW: `wait(dur)` calls `schedule_resume(dur, resume_closure)` and returns
-//! `WaitStatus::Waiting` immediately. The resume_closure sets an `AtomicBool`
+//! `WaitStatus::Waiting` immediately. The `resume_closure` sets an `AtomicBool`
 //! flag when the timer fires. Callers check `has_resumed()` to know if the
 //! wait period has elapsed.
 
@@ -31,7 +31,7 @@ pub enum WaitStatus {
     Waiting,
 }
 
-/// Signature for the schedule_resume callback.
+/// Signature for the `schedule_resume` callback.
 /// The consumer provides the external timer mechanism (setTimeout, host FFI, etc.).
 pub type ScheduleResumeFn = fn(core::time::Duration, Box<dyn FnOnce()>);
 
@@ -73,6 +73,7 @@ impl CooperativeSpinWaiter {
     /// Tell the runtime to wake me up after `dur`.
     /// Returns [`WaitStatus::Waiting`] immediately — no spinning.
     #[inline]
+    #[must_use]
     pub fn wait(&self, dur: core::time::Duration) -> WaitStatus {
         let resumed = Arc::clone(&self.resumed);
         (self.schedule_resume)(dur, Box::new(move || {
