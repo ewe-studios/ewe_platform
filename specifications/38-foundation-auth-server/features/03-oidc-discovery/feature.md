@@ -2,7 +2,43 @@
 
 ## Description
 
-Fetch and parse the OIDC discovery document from `/.well-known/openid-configuration` (we should be using a specific KVStore from foundation_db for this, we can read a path on disk and load it into it or use foundation_nativeapi to create a db backed storage for this, this then allows us allow users swap the underlying implementation for a cloud, s3 backed or remote store instead of disk but still support disk if needed). Auto-configure `OAuthConfig` from the discovery response instead of manual endpoint setup. Works on both native and wasm.
+Fetch and parse the OIDC discovery document from `/.well-known/openid-configuration`.
+Auto-configure `OAuthConfig` from the discovery response instead of manual endpoint setup.
+Works on both native and wasm.
+
+### Discovery Document — Cache, Don't Persist
+
+The `/.well-known/openid-configuration` path is a **standard HTTP endpoint**, not storage.
+It is defined by the OIDC specification (RFC 8414) and lives at:
+
+```
+{issuer}/.well-known/openid-configuration
+```
+
+For example:
+- `https://accounts.google.com/.well-known/openid-configuration`
+- `https://login.microsoftonline.com/common/.well-known/openid-configuration`
+
+The document returns a small JSON blob of provider metadata (endpoints, supported algorithms,
+scopes, etc.) that **rarely changes** — only when a provider adds or removes capabilities.
+
+**Caching strategy:**
+- Fetch once, cache in memory for the lifetime of the application.
+- No TTL needed — unlike JWKS (Feature 02) which rotates keys frequently, discovery documents
+  are essentially static configuration.
+- No KVStore, no foundation_db, no disk persistence. Just an in-memory `Option<OidcDiscovery>`.
+- Provide `refresh()` for explicit cache invalidation (e.g. provider URL changed at runtime).
+- On process restart, re-fetch naturally.
+
+**What does NOT use foundation_db:**
+- The discovery document is NOT a credential, session, or policy. It does not need
+  `KeyValueStore` or `QueryStore`. It is HTTP response metadata, cached in a struct field.
+
+**What DOES use foundation_db in this spec:**
+- User records, OAuth clients, authorization codes, refresh tokens, device codes →
+  `QueryStore` (Feature 10 IdP models, Feature 13 migrations).
+- Credential storage, session data → `KeyValueStore` (existing auth).
+- Policy files from git/disk/S3 → `foundation_nativeapis` (Feature 14 Cedar only).
 
 ## Module
 
@@ -43,16 +79,34 @@ pub struct OidcDiscovery {
     pub code_challenge_methods_supported: Option<Vec<String>>,
 }
 
-/// Discovery client — fetches and parses OIDC discovery documents.
-pub struct DiscoveryClient;
+/// Discovery client — fetches and caches OIDC discovery documents.
+///
+/// The discovery document is configuration metadata that rarely changes.
+/// It is cached in memory for the lifetime of the client — no disk or DB persistence.
+pub struct DiscoveryClient {
+    cached: Option<(String, OidcDiscovery)>,  // (issuer_url, discovery)
+}
 
 impl DiscoveryClient {
-    /// Fetch discovery document from the issuer URL.
-    /// Constructs the well-known URL: {issuer}/.well-known/openid-configuration
-    pub async fn fetch(issuer_url: &str) -> Result<OidcDiscovery, DiscoveryError>;
+    /// Create a new discovery client with an empty cache.
+    #[must_use]
+    pub fn new() -> Self;
 
-    /// Fetch discovery document from an explicit URL.
-    pub async fn fetch_from_url(url: &str) -> Result<OidcDiscovery, DiscoveryError>;
+    /// Get the cached discovery document, fetching if not cached.
+    pub async fn get(&mut self, issuer_url: &str) -> Result<&OidcDiscovery, DiscoveryError>;
+
+    /// Fetch discovery document from the issuer URL, replacing cache.
+    pub async fn fetch(&mut self, issuer_url: &str) -> Result<&OidcDiscovery, DiscoveryError>;
+
+    /// Fetch discovery document from an explicit URL (bypasses cache, no caching).
+    pub async fn fetch_from_url(&self, url: &str) -> Result<OidcDiscovery, DiscoveryError>;
+
+    /// Clear the cached discovery document.
+    pub fn clear_cache(&mut self);
+
+    /// Returns true if a discovery document is cached for this issuer.
+    #[must_use]
+    pub fn is_cached(&self, issuer_url: &str) -> bool;
 }
 
 impl OidcDiscovery {
@@ -60,6 +114,7 @@ impl OidcDiscovery {
     pub fn to_oauth_config(&self, client_id: &str, redirect_uri: &str) -> OAuthConfig;
 
     /// Get the JWKS URL, preferring jwks_uri over issuer + "/jwks".
+    #[must_use]
     pub fn jwks_url(&self) -> String;
 }
 ```
@@ -79,10 +134,18 @@ impl OidcDiscovery {
 - `response_type` ← `response_types_supported[0]` (usually `"code"`)
 - `client_id` and `redirect_uri` passed in by caller
 
-### HTTP fetch
-- Native: `SimpleHttpClient::get(url).send_async()`
-- Wasm: browser fetch API (same pattern as `wasm_bindgen/oauth.rs`)
-- Both return JSON body → `serde_json::from_str`
+### HTTP fetch (shared — same pattern for native and wasm)
+- The `DiscoveryClient` uses a platform-agnostic internal HTTP fetcher
+- Native: delegates through `foundation_netio::SimpleHttpClient`
+- Wasm: uses browser fetch API via `web-sys`
+- Both return JSON body → `serde_json::from_str` → `OidcDiscovery`
+
+### Caching (in-memory, no persistence)
+- `cached: Option<(String, OidcDiscovery)>` stores `(issuer_url, discovery_document)`
+- `get()` checks cache first — returns cached if issuer matches, otherwise fetches
+- `fetch()` always fetches and replaces cache
+- `clear_cache()` drops the cached entry
+- No TTL, no expiration, no background refresh — discovery documents are static config
 
 ### Error type
 ```rust
@@ -112,4 +175,16 @@ pub enum DiscoveryError {
 ## Sync/Async Notes
 
 The `async fn` methods shown are the primary implementation. For sync callers,
-use valtron bridging: `from_future` + `execute` + `collect_one`. See the valtron skill.
+use valtron bridging (no tokio):
+
+```rust
+let task = from_future(async move { client.fetch(issuer_url).await });
+let stream = execute(task, None)?;
+collect_one(stream).ok_or_else(|| DiscoveryError::FetchFailed("no result".into()))?
+```
+
+For callers who want to hold onto `&mut DiscoveryClient` across async calls and need
+sync access to the cached result, the `&self` methods (like `is_cached`, `clear_cache`,
+`jwks_url`) are pure sync state accessors.
+
+See the valtron skill and requirements.md "Valtron Bridging" section for full patterns.

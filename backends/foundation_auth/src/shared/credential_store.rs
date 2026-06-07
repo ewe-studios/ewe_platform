@@ -302,6 +302,9 @@ impl AsyncCredentialStore for CredentialStorage {
     async fn list_keys_async(&self, prefix: Option<&str>) -> Result<Vec<String>, CredentialStoreError> {
         self.storage.list_keys_async(prefix)
             .await
+            .map_err(CredentialStoreError::Storage)?
+            .collect_all()
+            .await
             .map_err(CredentialStoreError::Storage)
     }
 }

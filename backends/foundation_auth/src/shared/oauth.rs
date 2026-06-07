@@ -27,6 +27,10 @@ pub struct OAuthConfig {
     pub response_type: String,
     /// Grant type.
     pub grant_type: String,
+    // Feature 07: OIDC nonce for anti-replay protection.
+    /// OIDC nonce parameter (binds ID token to specific auth request).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub nonce: Option<String>,
 }
 
 impl Default for OAuthConfig {
@@ -41,6 +45,7 @@ impl Default for OAuthConfig {
             pkce_enabled: true,
             response_type: "code".to_string(),
             grant_type: "authorization_code".to_string(),
+            nonce: None,
         }
     }
 }
@@ -136,6 +141,19 @@ impl OAuthConfigBuilder {
     }
 
     #[must_use]
+    pub fn response_type(mut self, response_type: impl Into<String>) -> Self {
+        self.config.response_type = response_type.into();
+        self
+    }
+
+    // Feature 07: OIDC nonce support.
+    #[must_use]
+    pub fn nonce(mut self, nonce: String) -> Self {
+        self.config.nonce = Some(nonce);
+        self
+    }
+
+    #[must_use]
     pub fn build(self) -> OAuthConfig {
         self.config
     }
@@ -211,7 +229,16 @@ impl OAuthManager {
         URL_SAFE_NO_PAD.encode(bytes)
     }
 
-    /// Generate the authorization URL with PKCE support.
+    // Feature 07: Generate a random nonce for OIDC anti-replay protection.
+    /// Generates 32 random bytes, base64url encoded.
+    #[must_use]
+    pub fn generate_nonce() -> String {
+        let mut bytes = [0u8; 32];
+        rand::thread_rng().fill_bytes(&mut bytes);
+        URL_SAFE_NO_PAD.encode(bytes)
+    }
+
+    /// Generate the authorization URL with PKCE and nonce support.
     ///
     /// # Errors
     ///
@@ -241,6 +268,11 @@ impl OAuthManager {
         } else {
             None
         };
+
+        // Feature 07: Include nonce in authorization URL when set (OIDC only).
+        if let Some(ref nonce) = self.config.nonce {
+            query.append("nonce", nonce);
+        }
 
         let query_string = query.to_string();
         let base = &self.config.authorization_url;
