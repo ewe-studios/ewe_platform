@@ -115,6 +115,11 @@ name = "ipc_vfs"
 path = "tests/ipc_vfs/mod.rs"
 required-features = ["vfs-ipc", "vfs-native"]
 
+[[test]]
+name = "ptrace_vfs"
+path = "tests/ptrace_vfs/mod.rs"
+required-features = ["vfs-ptrace-nix", "vfs-native"]
+
 [features]
 # Default: full platform-native stack.
 default = ["native"]
