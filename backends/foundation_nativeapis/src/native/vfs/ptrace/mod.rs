@@ -395,6 +395,15 @@ pub struct MountTable {
     default_fs: Option<DynFs>,
 }
 
+impl Clone for MountTable {
+    fn clone(&self) -> Self {
+        Self {
+            entries: self.entries.iter().map(|(s, f)| (s.clone(), DynFs { inner: Arc::clone(&f.inner) })).collect(),
+            default_fs: self.default_fs.as_ref().map(|f| DynFs { inner: Arc::clone(&f.inner) }),
+        }
+    }
+}
+
 impl MountTable {
     pub fn new() -> Self { Self::default() }
     pub fn mount(&mut self, prefix: &str, fs: DynFs) {

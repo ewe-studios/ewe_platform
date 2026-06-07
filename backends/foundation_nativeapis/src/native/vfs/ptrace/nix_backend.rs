@@ -12,6 +12,7 @@ use std::sync::Arc;
 
 use nix::sys::ptrace;
 use nix::sys::ptrace::Options as PtraceOptions;
+use nix::sys::wait::waitpid;
 use nix::unistd::Pid;
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
@@ -120,13 +121,9 @@ fn ptrace_loop(
     let mut pending_actions: std::collections::HashMap<i32, (SyscallAction, i64)> = std::collections::HashMap::new();
 
     loop {
-        // Wait for the next ptrace stop
-        let status = match nix::sys::wait::waitpid(tracee_pid, None) {
+        let status = match waitpid(tracee_pid, None) {
             Ok(s) => s,
-            Err(nix::errno::Errno::ECHILD) => {
-                // No more children — we're done
-                return Ok(0);
-            }
+            Err(nix::errno::Errno::ECHILD) => return Ok(0),
             Err(e) => {
                 return Err(VfsError::Backend {
                     message: format!("waitpid failed: {e}"),
@@ -134,119 +131,104 @@ fn ptrace_loop(
             }
         };
 
-        // Check if the process exited
-        if let nix::sys::wait::WaitStatus::Exited(pid, exit_code) = status {
-            if pid == child {
+        use nix::sys::wait::WaitStatus;
+        match status {
+            WaitStatus::Exited(pid, exit_code) => {
+                fd_table.close_all(pid.as_raw() as u32);
+                pending_actions.remove(&pid.as_raw());
                 return Ok(exit_code);
             }
-            // A child process exited — clean up its FDs
-            fd_table.close_all(pid.as_raw() as u32);
-            pending_actions.remove(&pid.as_raw());
-            continue;
-        }
-
-        if let nix::sys::wait::WaitStatus::Signaled(pid, _sig, _core_dump) = status {
-            // Process was killed by a signal
-            if pid == child {
-                return Ok(128 + _sig as i32);
+            WaitStatus::Signaled(pid, sig, _core_dump) => {
+                fd_table.close_all(pid.as_raw() as u32);
+                pending_actions.remove(&pid.as_raw());
+                return Ok(128 + sig as i32);
             }
-            fd_table.close_all(pid.as_raw() as u32);
-            pending_actions.remove(&pid.as_raw());
-            continue;
+            WaitStatus::Stopped(pid, _sig) => {
+                handle_ptrace_stop(pid, mount_table, fd_table, &mut pending_actions, None);
+                tracee_pid = pid;
+            }
+            WaitStatus::PtraceEvent(pid, _sig, event) => {
+                handle_ptrace_stop(pid, mount_table, fd_table, &mut pending_actions, Some(event));
+                tracee_pid = pid;
+            }
+            _ => { tracee_pid = child; }
         }
+    }
+}
 
-        let pid = match status {
-            nix::sys::wait::WaitStatus::Stopped(pid, _sig) => pid,
-            nix::sys::wait::WaitStatus::PtraceEvent(pid, _sig, event) => {
-                // Handle fork/clone/exec events
-                let event_u = event as u32;
-                if event_u == libc::PTRACE_EVENT_FORK as u32
-                    || event_u == libc::PTRACE_EVENT_VFORK as u32
-                    || event_u == libc::PTRACE_EVENT_CLONE as u32
-                {
-                    if let Ok(new_pid) = ptrace::getevent(pid) {
-                        fd_table.clone_for_child(pid.as_raw() as u32, new_pid as u32);
-                    }
+/// Handle a single ptrace stop for a traced process.
+fn handle_ptrace_stop(
+    pid: Pid,
+    mount_table: &Arc<MountTable>,
+    fd_table: &Arc<VirtualFdTable>,
+    pending_actions: &mut std::collections::HashMap<i32, (SyscallAction, i64)>,
+    event: Option<i32>,
+) {
+    // Handle fork/clone/exec events from PtraceEvent
+    if let Some(event) = event {
+        let event_u = event as u32;
+        if event_u == libc::PTRACE_EVENT_FORK as u32
+            || event_u == libc::PTRACE_EVENT_VFORK as u32
+            || event_u == libc::PTRACE_EVENT_CLONE as u32
+        {
+            if let Ok(new_pid) = ptrace::getevent(pid) {
+                let new_pid = new_pid as i32;
+                fd_table.clone_for_child(pid.as_raw() as u32, new_pid as u32);
+            }
+        }
+        // PTRACE_EVENT_EXEC: the new process image is loaded, continue normally
+    }
+
+    // Read registers to get syscall number + args
+    let regs = match ptrace::getregs(pid) {
+        Ok(r) => r,
+        Err(_) => {
+            // Can't read registers — pass through
+            ptrace::cont(pid, None).ok();
+            return;
+        }
+    };
+
+    let is_exit = pending_actions.contains_key(&pid.as_raw());
+
+    if is_exit {
+        // Syscall exit — apply the action from entry
+        if let Some((action, _syscall_nr)) = pending_actions.remove(&pid.as_raw()) {
+            match action {
+                SyscallAction::Passthrough => {}
+                SyscallAction::Skip { return_value } => {
+                    let mut regs = regs;
+                    regs.rax = return_value as u64;
+                    ptrace::setregs(pid, regs).ok();
                 }
-                ptrace::cont(pid, None).ok();
-                tracee_pid = pid;
-                continue;
-            }
-            _ => {
-                tracee_pid = child;
-                continue;
-            }
-        };
-
-        // Read registers to get syscall number + args
-        let regs = match ptrace::getregs(pid) {
-            Ok(r) => r,
-            Err(_) => {
-                // Can't read registers — pass through
-                ptrace::cont(pid, None).ok();
-                tracee_pid = pid;
-                continue;
-            }
-        };
-
-        // Check if this is syscall entry or exit.
-        // We track this per-pid using pending_actions.
-        let is_exit = pending_actions.contains_key(&pid.as_raw());
-
-        if is_exit {
-            // Syscall exit — apply the action from entry
-            if let Some((action, _syscall_nr)) = pending_actions.remove(&pid.as_raw()) {
-                match action {
-                    SyscallAction::Passthrough => {
-                        // Let the kernel result pass through normally
-                    }
-                    SyscallAction::Skip { return_value } => {
-                        // Override the return value
-                        let mut regs = ptrace::getregs(pid).unwrap_or(regs);
-                        regs.rax = return_value as u64;
-                        ptrace::setregs(pid, regs).ok();
-                    }
-                    SyscallAction::SkipError { errno } => {
-                        // Return error (negative errno in rax, set carry)
-                        let mut regs = ptrace::getregs(pid).unwrap_or(regs);
-                        regs.rax = (-errno) as u64;
-                        ptrace::setregs(pid, regs).ok();
-                    }
+                SyscallAction::SkipError { errno } => {
+                    let mut regs = regs;
+                    regs.rax = (-errno) as u64;
+                    ptrace::setregs(pid, regs).ok();
                 }
             }
-
-            // Continue to next syscall
-            ptrace::syscall(pid, None).map_err(|e| VfsError::Backend {
-                message: format!("ptrace syscall (exit) failed: {e}"),
-            })?;
-        } else {
-            // Syscall entry — dispatch
-            let syscall_args = SyscallArgs {
-                nr: regs.orig_rax as i64,
-                arg0: regs.rdi,
-                arg1: regs.rsi,
-                arg2: regs.rdx,
-                arg3: regs.r10,
-                arg4: regs.r8,
-                arg5: regs.r9,
-            };
-
-            let action = syscall_dispatch::on_syscall_entry(
-                pid,
-                &syscall_args,
-                mount_table,
-                fd_table,
-            );
-
-            // Store the action for the exit handler
-            pending_actions.insert(pid.as_raw(), (action, syscall_args.nr));
-
-            // Continue to syscall exit
-            ptrace::syscall(pid, None).map_err(|e| VfsError::Backend {
-                message: format!("ptrace syscall (entry) failed: {e}"),
-            })?;
         }
+        ptrace::syscall(pid, None).ok();
+    } else {
+        // Syscall entry — dispatch
+        let syscall_args = SyscallArgs {
+            nr: regs.orig_rax as i64,
+            arg0: regs.rdi,
+            arg1: regs.rsi,
+            arg2: regs.rdx,
+            arg3: regs.r10,
+            arg4: regs.r8,
+            arg5: regs.r9,
+        };
 
-        tracee_pid = pid;
+        let action = syscall_dispatch::on_syscall_entry(
+            pid,
+            &syscall_args,
+            mount_table,
+            fd_table,
+        );
+
+        pending_actions.insert(pid.as_raw(), (action, syscall_args.nr));
+        ptrace::syscall(pid, None).ok();
     }
 }

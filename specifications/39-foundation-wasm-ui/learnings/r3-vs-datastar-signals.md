@@ -354,6 +354,10 @@ store.get::<String>("user.name");
 
 This maps naturally to our Arrow batch format — paths are strings, values are typed.
 
+But we should do this on the javascript side, so we can create the proxies on the javascript side for direct, specific signal updates communicated by the wasm side and from the js to the wasm side which could just create a hashmap/dict of existing properties with the newly changed one and the rust wasm side updates.
+
+But i also believe updates should go 1 way, actions should trigger the wasm side or server side and then wasm or server communicates the signal updates and not two way reducing complexity.
+
 ### 11.6 Signal-to-DOM Bridge
 
 The critical difference: R3 has no built-in DOM integration, and Datastar binds via attribute plugins (`data-text`, `data-bind`). Our WASM-UI needs a direct bridge:
@@ -368,6 +372,8 @@ let binding = signal.bind_dom(NodeId(42), DomUpdateType::TextContent);
 
 This is a new layer that neither R3 nor Datastar has — the DOM binding is managed by the WASM signal system, not by a client-side plugin.
 
+**NOTE FROM USER**: If wasm and server only ever returns signals (patches) either as dom updates, json dom updates then js just applies the dom updates and never really cares about the signals since what it gets is already computed changes it needs to merge/morph to the DOM. We could use the js side signals for client only things that the js benefits from.
+
 ### 11.7 Batching is Essential
 
 Both systems agree: batch multiple signal changes into one effect flush cycle. For WASM-UI, this means:
@@ -381,6 +387,7 @@ Both systems agree: batch multiple signal changes into one effect flush cycle. F
 - **Datastar's `deep()` Proxy** — Path-based store is simpler and WASM-compatible
 - **R3's `markHeap()`** — This is only needed for pull-based updates in `read()`. With height ordering, stabilization happens automatically.
 
+**NOTE**: The firewall signal is interesting - is there anything stopping us from adding it for completeness and users can use it or not.
 ---
 
 ## 12. Summary
@@ -406,3 +413,8 @@ R3 and Datastar are two implementations of the same fundamental ideas:
 - Datastar has **Proxy-based deep reactivity** (convenient, but not WASM-compatible)
 
 For our WASM-UI, the **R3 approach is the better fit**: height-based ordering, explicit disposal, no Proxy, and the version-based stale detection that both systems share.
+
+References: 
+1. specifications/39-foundation-wasm-ui/learnings/signals/signal.md
+2. specifications/39-foundation-wasm-ui/learnings/signals/datastar-signals-sse.md
+3. specifications/39-foundation-wasm-ui/learnings/signals/svelte-ui.md

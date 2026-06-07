@@ -61,6 +61,13 @@ pub fn on_syscall_entry(
     mount_table: &MountTable,
     fd_table: &VirtualFdTable,
 ) -> SyscallAction {
+    // exit(60) and exit_group(231) must always passthrough — if we intercept them,
+    // the process hangs because the tracer continues through the exit stop
+    // but the process is already terminating.
+    if args.nr == 60 || args.nr == 231 {
+        return SyscallAction::passthrough();
+    }
+
     match args.nr {
         // ── File open/create ──
         OPEN => handle_open(pid, args, mount_table, fd_table),
