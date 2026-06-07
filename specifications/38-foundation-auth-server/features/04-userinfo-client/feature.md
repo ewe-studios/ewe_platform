@@ -1,3 +1,20 @@
+---
+feature: "UserInfo Client"
+description: "Fetch user profile from /oidc/userinfo with bearer token"
+status: "completed"
+priority: "high"
+depends_on: ["03-oidc-discovery"]
+estimated_effort: "small"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 1
+  uncompleted: 0
+  total: 1
+  completion_percentage: 100%
+---
+
 # Feature 04: UserInfo Client
 
 ## Description

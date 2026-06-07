@@ -1,3 +1,20 @@
+---
+feature: "JWT Verifier"
+description: "Cryptographic JWT signature verification (EdDSA, RS256, ES256), claim validation, issuer/audience checking"
+status: "completed"
+priority: "high"
+depends_on: []
+estimated_effort: "medium"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 1
+  uncompleted: 0
+  total: 1
+  completion_percentage: 100%
+---
+
 # Feature 01: JWT Verifier
 
 ## Description

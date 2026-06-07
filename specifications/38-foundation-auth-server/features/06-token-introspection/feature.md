@@ -1,3 +1,20 @@
+---
+feature: "Token Introspection"
+description: "RFC 7662 token introspection client for resource servers"
+status: "completed"
+priority: "medium"
+depends_on: []
+estimated_effort: "small"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 1
+  uncompleted: 0
+  total: 1
+  completion_percentage: 100%
+---
+
 # Feature 06: Token Introspection
 
 ## Description

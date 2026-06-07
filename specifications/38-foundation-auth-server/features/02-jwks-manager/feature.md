@@ -1,3 +1,20 @@
+---
+feature: "JWKS Manager"
+description: "JWKS fetcher, cache with TTL, key rotation, kid lookup, native + wasm"
+status: "completed"
+priority: "high"
+depends_on: ["01-jwt-verifier"]
+estimated_effort: "medium"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 1
+  uncompleted: 0
+  total: 1
+  completion_percentage: 100%
+---
+
 # Feature 02: JWKS Manager
 
 ## Description

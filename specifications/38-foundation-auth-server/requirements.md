@@ -1,6 +1,6 @@
 ---
 description: "foundation_auth Rework v3 — OIDC client library hardening + IdP server module. Closes critical client-side security gaps (JWT signature verification, JWKS, OIDC discovery, UserInfo, password auth, token introspection, nonce). Adds IdP server module behind `server` feature flag using foundation_http, with full OIDC authorization code + PKCE, refresh token, client credentials, and device code grant support. Uses foundation_db QueryStore for SQL-backed persistence with migrations 016-019 for OIDC server tables."
-status: "pending"
+status: "in-progress"
 priority: "high"
 created: 2026-06-05
 updated: 2026-06-05
@@ -126,14 +126,14 @@ Built on foundation_db capabilities:
 
 | Feature | Description | Phase | Status |
 |---------|-------------|-------|--------|
-| [00-query-store-stream-parity](features/00-query-store-stream-parity/) | Fix AsyncQueryStore API parity — return streams not Vec for multi-row queries | 0 | pending |
-| [01-jwt-verifier](features/01-jwt-verifier/) | Cryptographic JWT signature verification (EdDSA, RS256, ES256), claim validation, issuer/audience checking | 1 | pending |
-| [02-jwks-manager](features/02-jwks-manager/) | JWKS fetcher, cache with TTL, key rotation, kid lookup, native + wasm | 1 | pending |
-| [03-oidc-discovery](features/03-oidc-discovery/) | OIDC discovery client, auto-configure OAuthConfig from .well-known | 1 | pending |
-| [04-userinfo-client](features/04-userinfo-client/) | Fetch user profile from /oidc/userinfo with bearer token | 1 | pending |
-| [05-password-auth](features/05-password-auth/) | Username/password login flow against IdP, MFA challenge support, native + wasm | 1 | pending |
-| [06-token-introspection](features/06-token-introspection/) | RFC 7662 token introspection client for resource servers | 2 | pending |
-| [07-nonce-support](features/07-nonce-support/) | OIDC anti-replay nonce in auth requests, ID token nonce validation | 2 | pending |
+| [00-query-store-stream-parity](features/00-query-store-stream-parity/) | Fix AsyncQueryStore API parity — return streams not Vec for multi-row queries | 0 | ✅ complete |
+| [01-jwt-verifier](features/01-jwt-verifier/) | Cryptographic JWT signature verification (EdDSA, RS256, ES256), claim validation, issuer/audience checking | 1 | ✅ complete |
+| [02-jwks-manager](features/02-jwks-manager/) | JWKS fetcher, cache with TTL, key rotation, kid lookup, native + wasm | 1 | ✅ complete |
+| [03-oidc-discovery](features/03-oidc-discovery/) | OIDC discovery client, auto-configure OAuthConfig from .well-known | 1 | ✅ complete |
+| [04-userinfo-client](features/04-userinfo-client/) | Fetch user profile from /oidc/userinfo with bearer token | 1 | ✅ complete |
+| [05-password-auth](features/05-password-auth/) | Username/password login flow against IdP, MFA challenge support, native + wasm | 1 | ✅ complete |
+| [06-token-introspection](features/06-token-introspection/) | RFC 7662 token introspection client for resource servers | 2 | ✅ complete |
+| [07-nonce-support](features/07-nonce-support/) | OIDC anti-replay nonce in auth requests, ID token nonce validation | 2 | ✅ complete |
 | [08-auth-manager](features/08-auth-manager/) | Central lifecycle manager coordinating JWT, sessions, state machine, credential store | 2 | pending |
 | [09-idp-server](features/09-idp-server/) | IdP HTTP server using foundation_http, router setup, CORS, rate limiting | 2 | pending |
 | [10-idp-models](features/10-idp-models/) | User, client, authorization code, device code, refresh token entities | 2 | pending |

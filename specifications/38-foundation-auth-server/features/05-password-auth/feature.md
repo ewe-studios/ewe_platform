@@ -1,3 +1,20 @@
+---
+feature: "Password Authentication Flow"
+description: "Username/password login against IdP, MFA challenge support, native + wasm"
+status: "completed"
+priority: "high"
+depends_on: []
+estimated_effort: "medium"
+created: 2026-06-05
+last_updated: 2026-06-07
+author: "Main Agent"
+tasks:
+  completed: 1
+  uncompleted: 0
+  total: 1
+  completion_percentage: 100%
+---
+
 # Feature 05: Password Authentication Flow
 
 ## Description
