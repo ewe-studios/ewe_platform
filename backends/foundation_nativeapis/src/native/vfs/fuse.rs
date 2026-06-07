@@ -14,9 +14,9 @@ use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::traits::{VfsDirectory, VfsFile, VfsFileSystem};
 use crate::shared::vfs::types::{OpenMode, VfsFileType, VfsMetadata};
 
-const ROOT_INO: u64 = 1;
+pub const ROOT_INO: u64 = 1;
 
-fn vfs_error_to_errno(e: &VfsError) -> i32 {
+pub fn vfs_error_to_errno(e: &VfsError) -> i32 {
     match e {
         VfsError::NotFound { .. } => libc::ENOENT,
         VfsError::AlreadyExists { .. } => libc::EEXIST,
@@ -102,11 +102,11 @@ impl FuseReplyError for ReplyStatfs {
 }
 
 #[derive(Debug, Clone)]
-struct InodeEntry {
-    path: String,
-    refcount: u64,
+pub struct InodeEntry {
+    pub path: String,
+    pub refcount: u64,
     #[allow(dead_code)]
-    file_type: VfsFileType,
+    pub file_type: VfsFileType,
 }
 
 struct OpenFileHandle {
@@ -139,8 +139,8 @@ impl Default for FuseMountOptions {
 pub struct FuseMount<F: VfsFileSystem> {
     fs: Arc<F>,
     options: FuseMountOptions,
-    inodes: RwLock<HashMap<u64, InodeEntry>>,
-    path_to_ino: RwLock<HashMap<String, u64>>,
+    pub inodes: RwLock<HashMap<u64, InodeEntry>>,
+    pub path_to_ino: RwLock<HashMap<String, u64>>,
     next_ino: AtomicU64,
     file_handles: RwLock<HashMap<u64, OpenFileHandle>>,
     dir_handles: RwLock<HashMap<u64, OpenDirHandle>>,
@@ -219,15 +219,15 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
         opts
     }
 
-    fn alloc_ino(&self) -> u64 {
+    pub fn alloc_ino(&self) -> u64 {
         self.next_ino.fetch_add(1, Ordering::Relaxed)
     }
 
-    fn alloc_fh(&self) -> u64 {
+    pub fn alloc_fh(&self) -> u64 {
         self.next_fh.fetch_add(1, Ordering::Relaxed)
     }
 
-    fn lookup_or_insert(&self, path: &str, file_type: VfsFileType) -> u64 {
+    pub fn lookup_or_insert(&self, path: &str, file_type: VfsFileType) -> u64 {
         {
             let p2i = self.path_to_ino.read().unwrap();
             if let Some(&ino) = p2i.get(path) {
@@ -266,7 +266,7 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
         self.inodes.read().unwrap().get(&ino).map(|e| e.path.clone())
     }
 
-    fn child_path(parent: &str, name: &str) -> String {
+    pub fn child_path(parent: &str, name: &str) -> String {
         if parent == "/" {
             format!("/{name}")
         } else {
@@ -274,7 +274,7 @@ impl<F: VfsFileSystem + 'static> FuseMount<F> {
         }
     }
 
-    fn metadata_to_attr(&self, ino: u64, meta: &VfsMetadata) -> FileAttr {
+    pub fn metadata_to_attr(&self, ino: u64, meta: &VfsMetadata) -> FileAttr {
         let kind = match meta.file_type {
             VfsFileType::Regular => FileType::RegularFile,
             VfsFileType::Directory => FileType::Directory,
@@ -847,7 +847,7 @@ impl<F: VfsFileSystem + 'static> Filesystem for FuseMount<F> {
     }
 }
 
-fn flags_to_open_mode(flags: i32) -> OpenMode {
+pub fn flags_to_open_mode(flags: i32) -> OpenMode {
     let access = flags & libc::O_ACCMODE;
     match access {
         libc::O_RDONLY => OpenMode::Read,
@@ -857,189 +857,3 @@ fn flags_to_open_mode(flags: i32) -> OpenMode {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_vfs_error_to_errno_mapping() {
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::NotFound {
-                path: "/x".into()
-            }),
-            libc::ENOENT
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::AlreadyExists {
-                path: "/x".into()
-            }),
-            libc::EEXIST
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::PermissionDenied {
-                path: "/x".into()
-            }),
-            libc::EACCES
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::NotAFile {
-                path: "/x".into()
-            }),
-            libc::EISDIR
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::NotADirectory {
-                path: "/x".into()
-            }),
-            libc::ENOTDIR
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::Unsupported {
-                operation: "op".into()
-            }),
-            libc::ENOSYS
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::InvalidPath {
-                path: "/x".into()
-            }),
-            libc::EINVAL
-        );
-        assert_eq!(vfs_error_to_errno(&VfsError::ReadOnly), libc::EROFS);
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::EntryPending {
-                path: "/x".into()
-            }),
-            libc::EAGAIN
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::SymlinkLoop {
-                path: "/x".into()
-            }),
-            libc::ELOOP
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::DirectoryNotEmpty {
-                path: "/x".into()
-            }),
-            libc::ENOTEMPTY
-        );
-        assert_eq!(
-            vfs_error_to_errno(&VfsError::Backend {
-                message: "err".into()
-            }),
-            libc::EIO
-        );
-    }
-
-    #[test]
-    fn test_flags_to_open_mode() {
-        assert_eq!(flags_to_open_mode(libc::O_RDONLY), OpenMode::Read);
-        assert_eq!(flags_to_open_mode(libc::O_WRONLY), OpenMode::Write);
-        assert_eq!(flags_to_open_mode(libc::O_RDWR), OpenMode::ReadWrite);
-    }
-
-    #[test]
-    fn test_child_path() {
-        assert_eq!(FuseMount::<crate::shared::vfs::MemoryFs>::child_path("/", "foo"), "/foo");
-        assert_eq!(
-            FuseMount::<crate::shared::vfs::MemoryFs>::child_path("/bar", "baz"),
-            "/bar/baz"
-        );
-    }
-
-    #[test]
-    fn test_fuse_mount_new_initializes_root_inode() {
-        let fs = crate::shared::vfs::MemoryFs::new();
-        let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-        let inodes = mount.inodes.read().unwrap();
-        assert!(inodes.contains_key(&ROOT_INO));
-        let root = &inodes[&ROOT_INO];
-        assert_eq!(root.path, "/");
-        assert_eq!(root.file_type, VfsFileType::Directory);
-        assert_eq!(root.refcount, u64::MAX);
-
-        let p2i = mount.path_to_ino.read().unwrap();
-        assert_eq!(p2i.get("/"), Some(&ROOT_INO));
-    }
-
-    #[test]
-    fn test_inode_allocation_is_monotonic() {
-        let fs = crate::shared::vfs::MemoryFs::new();
-        let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-        let first = mount.alloc_ino();
-        let second = mount.alloc_ino();
-        let third = mount.alloc_ino();
-
-        assert_eq!(first, 2);
-        assert_eq!(second, 3);
-        assert_eq!(third, 4);
-    }
-
-    #[test]
-    fn test_lookup_or_insert_creates_and_increments() {
-        let fs = crate::shared::vfs::MemoryFs::new();
-        let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-        let ino1 = mount.lookup_or_insert("/foo", VfsFileType::Regular);
-        assert_eq!(ino1, 2);
-
-        let ino2 = mount.lookup_or_insert("/foo", VfsFileType::Regular);
-        assert_eq!(ino2, ino1);
-
-        let inodes = mount.inodes.read().unwrap();
-        assert_eq!(inodes[&ino1].refcount, 2);
-    }
-
-    #[test]
-    fn test_file_handle_allocation() {
-        let fs = crate::shared::vfs::MemoryFs::new();
-        let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-        let fh1 = mount.alloc_fh();
-        let fh2 = mount.alloc_fh();
-
-        assert_eq!(fh1, 1);
-        assert_eq!(fh2, 2);
-    }
-
-    #[test]
-    fn test_metadata_to_attr_regular_file() {
-        let fs = crate::shared::vfs::MemoryFs::new();
-        let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-        let meta = VfsMetadata::new_file(1024, 0o644);
-        let attr = mount.metadata_to_attr(5, &meta);
-
-        assert_eq!(attr.ino, 5);
-        assert_eq!(attr.size, 1024);
-        assert_eq!(attr.kind, FileType::RegularFile);
-        assert_eq!(attr.perm, 0o644);
-        assert_eq!(attr.nlink, 1);
-    }
-
-    #[test]
-    fn test_metadata_to_attr_directory() {
-        let fs = crate::shared::vfs::MemoryFs::new();
-        let mount = FuseMount::new(fs, FuseMountOptions::default());
-
-        let meta = VfsMetadata::new_directory(0o755);
-        let attr = mount.metadata_to_attr(3, &meta);
-
-        assert_eq!(attr.ino, 3);
-        assert_eq!(attr.kind, FileType::Directory);
-        assert_eq!(attr.perm, 0o755);
-        assert_eq!(attr.nlink, 2);
-    }
-
-    #[test]
-    fn test_default_options() {
-        let opts = FuseMountOptions::default();
-        assert_eq!(opts.attr_timeout, Duration::from_secs(1));
-        assert_eq!(opts.entry_timeout, Duration::from_secs(1));
-        assert!(opts.auto_unmount);
-        assert!(!opts.allow_other);
-    }
-}
