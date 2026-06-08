@@ -124,3 +124,32 @@ To make type-erased wrappers work, blanket impls `impl<T: VfsFile + ?Sized> VfsF
 
 ### MountTable Clone for Arc-based sharing
 `MountTable` contains `Vec<(String, DynFs)>` where `DynFs` wraps `Arc<dyn DynFsOps>`. Manual `Clone` impl that clones the Arc (not the underlying filesystem) — cheap clone, shared ownership.
+
+## Phase 4 (2026-06-07) — FUSE Adapter
+
+### FUSE operates on inodes, not paths
+Every FUSE callback receives an inode number, never a path string. The adapter maintains a synthetic inode-to-path cache: root is always inode 1, `AtomicU64` counter allocates subsequent inodes on `lookup()`. The kernel manages refcounts via `forget(ino, nlookup)` — eviction is optional for performance.
+
+### VfsError to FUSE errno mapping
+Each `VfsError` variant maps to a specific `libc` errno: `NotFound→ENOENT`, `AlreadyExists→EEXIST`, `PermissionDenied→EACCES`, `NotAFile→EISDIR`, `NotADirectory→ENOTDIR`, `Unsupported→ENOSYS`, `Io→EIO`, `InvalidPath→EINVAL`, `ReadOnly→EROFS`, `EntryPending→EAGAIN`.
+
+## Phase 4 (2026-06-07) — Inode-Native VFS
+
+### Inodes as first-class VFS concept
+FUSE's synthetic inode cache was duplicating state already tracked by the underlying VFS. Solution: push inode awareness into the VFS layer itself — `VfsMetadata` and `VfsDirEntry` carry inode numbers, `VfsFileSystem` owns inode allocation and provides `inode()`, `path_by_inode()`, `stat_by_inode()` reverse lookup. Eliminates the FUSE-side cache entirely.
+
+### Inode rules
+Inode 0 = reserved ("no inode"), inode 1 = root `/` (FUSE convention), monotonic counters never reuse, `u64` matches POSIX `ino_t`. NativeFs uses real OS inodes (`MetadataExt::ino()`); `path_by_inode()` returns `Unsupported` since the OS provides no efficient reverse lookup.
+
+## Phase 3 (2026-06-06) — Async-First Migration
+
+### Async-first, sync wraps: two backend categories
+**Async-native backends** (LibsqlDelta, TursoDelta) implement `AsyncVfsFileSystem` only and get sync API for free via `SyncFs<Backend>`. **Sync-native backends** (MemoryFs, NativeFs) implement sync traits directly AND also implement async traits (methods return immediately) for use in async contexts. The `_async` suffix convention (`read_at_async`, `open_async`) eliminates UFCS disambiguation.
+
+### SyncFs<A> bridge wrapper
+Generic `SyncFs<A: AsyncVfsFileSystem>` bridges async→sync by running async calls through valtron's `exec_async`. This replaced ~30 per-method inline `exec_future(async move { ... })` closures in LibsqlDelta, each of which cloned Arcs and `.to_string()`ed parameters. One bridge type replaced all boilerplate.
+
+## Phase 5 (2026-06-07) — ObservableFs
+
+### ObservableFs as pure decorator
+`ObservableFs<F>` wraps any `VfsFileSystem` and emits audit events for ALL operations via `Broadcaster`. It does not add any I/O logic — every method delegates to the inner filesystem and emits a `VfsEvent` before/after. This makes it composable: `ObservableFs<OverlayFileSystem<NativeFs, LibsqlDelta>>`.
