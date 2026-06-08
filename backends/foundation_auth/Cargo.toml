@@ -12,6 +12,7 @@ keywords.workspace = true
 foundation_core = { workspace = true }
 foundation_netio = { workspace = true }
 foundation_db = { workspace = true, default-features = false }
+foundation_http = { workspace = true, optional = true }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
@@ -71,6 +72,8 @@ workspace = true
 # Turso/SQLite backend (native only)
 default = ["turso"]
 turso = ["foundation_db/turso"]
+# IdP server module (pulls in foundation_http)
+server = ["dep:foundation_http"]
 # Wasm compatibility — browser crypto and JS time APIs
 wasm = ["uuid/js", "chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen OAuth client using browser fetch API

@@ -8,6 +8,9 @@ pub mod shared;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod native;
 
+#[cfg(feature = "server")]
+pub mod server;
+
 #[cfg(any(feature = "wasm-bindgen-oauth", feature = "wasm-bindgen-session"))]
 pub mod wasm_bindgen;
 
@@ -17,6 +20,7 @@ pub use shared::types::{
     AuthenticationStates, ConfidentialText, JwtCredential, OnAuthData, OAuthCredential,
     AuthProviderEndpoint, SessionCredential,
 };
+pub use shared::auth_manager::{AuthManager, AuthManagerConfig, AuthManagerError};
 pub use shared::auth_state::{AuthEvent, AuthState, AuthStateError, AuthStateMachine, QueuedRequest};
 pub use shared::auth_token::AuthToken;
 pub use shared::credential_store::{

@@ -134,13 +134,13 @@ Built on foundation_db capabilities:
 | [05-password-auth](features/05-password-auth/) | Username/password login flow against IdP, MFA challenge support, native + wasm | 1 | ✅ complete |
 | [06-token-introspection](features/06-token-introspection/) | RFC 7662 token introspection client for resource servers | 2 | ✅ complete |
 | [07-nonce-support](features/07-nonce-support/) | OIDC anti-replay nonce in auth requests, ID token nonce validation | 2 | ✅ complete |
-| [08-auth-manager](features/08-auth-manager/) | Central lifecycle manager coordinating JWT, sessions, state machine, credential store | 2 | pending |
-| [09-idp-server](features/09-idp-server/) | IdP HTTP server using foundation_http, router setup, CORS, rate limiting | 2 | pending |
-| [10-idp-models](features/10-idp-models/) | User, client, authorization code, device code, refresh token entities | 2 | pending |
-| [11-idp-services](features/11-idp-services/) | Token generation (jwt-simple), user management (Argon2id), client management, session service | 2 | pending |
-| [12-idp-handlers](features/12-idp-handlers/) | OIDC endpoints: authorize, token, userinfo, jwks, discovery, introspect, device_authorize | 3 | pending |
-| [13-oidc-migrations](features/13-oidc-migrations/) | foundation_db migrations 016-019: oauth_clients, authorization_codes, refresh_tokens, device_codes | 1 | pending |
-| [14-cedar-policy-engine](features/14-cedar-policy-engine/) | Cedar policy engine with multi-source storage (R2, D1, local file, git), entity providers, HTTP middleware | 3 | pending |
+| [08-auth-manager](features/08-auth-manager/) | Central lifecycle manager coordinating JWT, sessions, state machine, credential store | 2 | ✅ complete |
+| [09-idp-server](features/09-idp-server/) | IdP HTTP server using foundation_http, router setup, CORS, rate limiting | 2 | ✅ complete |
+| [10-idp-models](features/10-idp-models/) | User, client, authorization code, device code, refresh token entities | 2 | ✅ complete |
+| [11-idp-services](features/11-idp-services/) | Token generation (jwt-simple), user management (Argon2id), client management, session service | 2 | ✅ complete |
+| [12-idp-handlers](features/12-idp-handlers/) | OIDC endpoints: authorize, token, userinfo, jwks, discovery, introspect, device_authorize | 3 | ✅ complete |
+| [13-oidc-migrations](features/13-oidc-migrations/) | foundation_db migrations 016-019: oauth_clients, authorization_codes, refresh_tokens, device_codes | 1 | ✅ complete |
+| [14-cedar-policy-engine](features/14-cedar-policy-engine/) | Cedar policy engine with multi-source storage (R2, D1, local file, git), entity providers, HTTP middleware | 3 | ✅ complete |
 
 ## Architecture
 

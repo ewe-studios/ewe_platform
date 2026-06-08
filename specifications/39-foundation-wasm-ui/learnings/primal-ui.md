@@ -38,7 +38,7 @@ And tell the component to attach the event to he function referenced in the valu
     const showCaseController = {
          showPage: (ctx: Context, buttonNode: PrimalNode) => {},
     }
-    window.showCaseController;
+    window.showCaseController = showCaseController;
 </script>
 
 <button id="show-case-button" primal:onclick="showCaseController.showPage">Click me</button>
@@ -60,7 +60,7 @@ We can use mutation observers and as well querySelectorAll to find these and get
 
 I want users to be able to express themselves with html, css and javascript like normal without complexity, so in my mind user should be able to do:
 
-```
+```html
 <div id="menu-tabs">
   <script type="text/javascript">
    // normal javascript stuff that is not scoped and just is a tag like others and we do what we need to do
@@ -91,13 +91,13 @@ I want users to be able to express themselves with html, css and javascript like
 
 We can apply this same idea the same idea around, we could also allow variants that lets user specify the scope to specific dom node/nodes like:
 
-```
+```html
   <script type="text/javascript" scoped="div#menu-tabs" primal:script></script>
 ```
 
 OR:
 
-```
+```html
   <script type="text/javascript" scoped="div.tabs" primal:script></script>
 ```
 
@@ -117,7 +117,7 @@ But the web always had issues with scoped css where this css should only apply t
 
 So i would like to like script support normal `style` dom nodes and scoped ones like the script tag above in 1.1
 
-```
+```html
   <style type="text/css" scoped primal:style></style>
   <style type="text/css" scoped="div#menu-tabs" primal:style></style>
 ```
@@ -187,6 +187,10 @@ We utilize mutation observers, event bubbling and basic javascript attached to d
 </island
 ```
 
+NOTE: I think our idea of scripts, and styles with `scoped` supercedes the need for an `island` component, since those already take care of scoping things to a specific element.
+
+Although there is some value in this, like a `<shadow-island>` tag that expressly says push this all into a shadow dom, i like this alot.
+
 Where the island will have a created web  component representing the island and it will take care of scoping the csss and script  to anything within its children. This can be shadow dom or basic html parents.
 
 You will notice its all standard html, nothing special, no templating process, wasm or server can return this and the js already just has the custom element / web component defined to handle this.
@@ -200,8 +204,16 @@ The output is **plain HTML** — no `{{}}`, no `<for-data>` tags. The browser se
 
 ### Component 1: `<mount-ui />` — The Materialization Tag
 
+Whatever handles the request, every requests is wrappe in a defined structure and contains a unqiue id that identifies the dom node and the request it made, this way, you know who to go back to when you get the response to apply the operation.
+
+In some sense, they all generate some structure (json, arrow) with the request id and then tell the central manager: 
+
+- schedule(domNode, request_object) - where request_object contains the request id and the request details
+
 ```html
-<mount-ui api="/v2/users" />
+<mount-ui api="/v2/users" /> // location is where it all gets materialized
+
+<mount-ui api="/v2/users" target="div#user-list" /> // location is the value of `target` css selector. Which allow us support applying to multiple elements by just querySelectorAll
 ```
 
 This is the one custom element that matters. It tells the runtime:
@@ -213,6 +225,12 @@ The response can itself contain `<mount-ui />` tags for nested lazy loading.
 
 ### Component 2:  `<mount-data />` — The Input Tag
 
+Whatever handles the request, every requests is wrappe in a defined structure and contains a unqiue id that identifies the dom node and the request it made, this way, you know who to go back to when you get the response to apply the operation.
+
+In some sense, they all generate some structure (json, arrow) with the request id and then tell the central manager: 
+
+- schedule(domNode, request_object) - where request_object contains the request id and the request details
+
 ```html
 <mount-data api="/v2/users" method="POST" data="{...}" />
 ```
@@ -223,6 +241,16 @@ This is the interaction model — users supply input, the server returns what ne
 
 
 ### Component 3:  `<mount-stream />` — The Stream and optional input Tag
+
+Whatever handles the request, every requests is wrappe in a defined structure and contains a unqiue id that identifies the dom node and the request it made, this way, you know who to go back to when you get the response to apply the operation.
+
+In some sense, they all generate some structure (json, arrow) with the request id and then tell the central manager: 
+
+- scheduleStream(domNode, request_object) - where request_object contains the request id and the request details
+
+This for streams become important so that when streams of reply come in, we use the request id to know which element to keep updating owned by which dom node - internally this would have created a manager that knows what to do based on the tag and its attributes to where it puts the resulting streams.
+
+In my mind streams never end, so the manager just stays alive until a relooad happens or something requires cleaning it up e.g disconnection from server, etc
 
 We add a new `<mount-stream />` or `<mount-stream state={} />` — Streaming Server Updates
 
@@ -262,38 +290,37 @@ The content type indicates to us if its: html, json or arrow.
 
 *TODO*: This needs update, the source can be a wasm instant instantianted for the page (webworker, in main thread, service worker) or a http endpoint. Also, the transport is just mechanism, it does not matter how we get this: SSE, websocket, plain http response.
 
+A `order_id` - a scru128 for timed ordered messages sent out of order but that can easily be sorted in order
+A `request_id` - a unique id for the request, used to identify the dom node or signal and the request it made, so we know who to go back to when we get the response to apply the operation.
+A `dataprotocol` - the protocol the request was using e.g `arrow`, `json`
+
+The protocol is interesting because in the underlying transport e.g it lets us send json or arrow batch streams and clearly articulate it, maybe `dataprotocol` is a better name.
+
+On websocket, it could be plain arrow data that already contains those `order_id`, `request_id` because the setup assume arrow all the way, else we require all messages to have the necessary magic signature that indicates the `order_id`, `request_id` and `dataprotocol` making it easy to identify.
+
+I think following this base target of each data stream starts with the `request_id` and `order_id`, `dataprotocol` is better since it can work reqardless of transport.
+
+Even a basic http response works, we can also include information in the headers to make it easier as well to pull, but the underlying body would still follow that arrangment for consistency.
+
 ```
 event: patch-elements
-data: selector #user-count
-data: mode inner
-data: elements <span>42</span>
+data: requst_id,order_id,{protocol},selector #user-count
+data: requst_id,order_id,{protocol},mode inner
+data: requst_id,order_id,{protocol},elements <span>42</span>
 
 event: patch-signals
-data: signals {"unreadCount": 42, "lastUpdate": "2026-06-06T08:00:00Z"}
+data: requst_id,order_id,{protocol},signals {"unreadCount": 42, "lastUpdate": "2026-06-06T08:00:00Z"}
 
 event: patch-elements
-data: selector #notification-list
-data: mode append
-data: elements <div class="notification">New message</div>
+data: requst_id,order_id,{protocol},selector #notification-list
+data: requst_id,order_id,{protocol},mode append
+data: requst_id,order_id,{protocol},elements <div class="notification">New message</div>
 
 ```
 
 The server can mix element patches and signal updates in a single stream. Each event is applied immediately as it arrives.
 
-### How It Works
-
-```
-1. Page loads, runtime encounters <mount-stream api="/v2/live-feed" method="GET" />
-2. Runtime opens SSE connection (or chunked HTTP with SSE parser)
-3. Server streams events as they occur
-4. For each event:
-   a. Parse the event type (patch-elements, patch-signals, etc.)
-   b. Resolve the target (self, sibling, parent, selector)
-   c. Apply the change:
-      - patch-elements → morph or direct DOM update
-      - patch-signals → update WASM signal store, trigger effects
-   d. Continue listening for next event
-```
+Because our server can be an actual http server or websocket server or a service worker (running our wasm) or the wasm itself, it ends up being the same response format sent by all and the js runtime side understands it via our protocol selection system and just applies the necessary updates.
 
 ### Comparison with `<mount-data />`
 
@@ -305,13 +332,6 @@ The server can mix element patches and signal updates in a single stream. Each e
 | Use Case | Form submission, action triggers | Live feeds, notifications, real-time dashboards |
 | Target | Same as stream (self, sibling, parent, selector) | Same as data |
 
-### Why This Is Clean
-
-1. **No WebSocket complexity** — SSE is HTTP, works through proxies/CDNs, auto-reconnects
-2. **No client-side state management** — Server pushes what to change, browser applies it
-3. **Progressive enhancement** — Without JS, the element is just a placeholder. With JS, it becomes a live feed.
-4. **Composable** — Multiple `<mount-stream />` elements on one page, each with its own target and endpoint
-5. **Familiar** — Same pattern as Datastar, but expressed as a simple HTML element instead of JavaScript API
 
 ### Real-World Examples
 
@@ -381,9 +401,9 @@ Regardless of transport, the **event format is the same**. The transport is just
 
 ```
 event: patch-elements
-data: selector #notif-list
-data: mode append
-data: elements <div class="notif">New notification</div>
+data: requst_id,order_id,{protocol},selector #notif-list
+data: requst_id,order_id,{protocol},{protocol},mode append
+data: requst_id,order_id,{protocol},elements <div class="notif">New notification</div>
 
 event: patch-signals
 data: signals {"unreadCount": 5}

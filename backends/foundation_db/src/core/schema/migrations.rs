@@ -90,6 +90,26 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Create audit logs table",
         sql: include_str!("sql/015_create_audit_logs.sql"),
     },
+    Migration {
+        id: "016_create_oauth_clients",
+        name: "Create OAuth clients table",
+        sql: include_str!("sql/016_create_oauth_clients.sql"),
+    },
+    Migration {
+        id: "017_create_authorization_codes",
+        name: "Create authorization codes table",
+        sql: include_str!("sql/017_create_authorization_codes.sql"),
+    },
+    Migration {
+        id: "018_create_refresh_tokens",
+        name: "Create refresh tokens table",
+        sql: include_str!("sql/018_create_refresh_tokens.sql"),
+    },
+    Migration {
+        id: "019_create_device_codes",
+        name: "Create device codes table",
+        sql: include_str!("sql/019_create_device_codes.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.
@@ -195,7 +215,7 @@ mod tests {
     #[test]
     fn test_migrations_defined() {
         assert!(!MIGRATIONS.is_empty());
-        assert_eq!(MIGRATIONS.len(), 15);
+        assert_eq!(MIGRATIONS.len(), 19);
     }
 
     #[test]

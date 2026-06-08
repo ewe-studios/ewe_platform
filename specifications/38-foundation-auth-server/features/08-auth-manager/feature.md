@@ -1,7 +1,7 @@
 ---
 feature: "Auth Manager"
 description: "Central lifecycle manager coordinating JWT, sessions, state machine, credential store"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["00-query-store-stream-parity", "01-jwt-verifier", "02-jwks-manager", "05-password-auth"]
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-06-05
 last_updated: 2026-06-07
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 1
+  completed: 1
+  uncompleted: 0
   total: 1
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 08: Auth Manager
