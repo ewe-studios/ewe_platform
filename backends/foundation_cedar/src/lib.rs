@@ -1,8 +1,3 @@
-//! Cedar policy engine wrapper for ewe_platform.
-//!
-//! Wraps the `cedar-policy` crate with pluggable policy storage,
-//! entity providers, and an ergonomic builder API.
-
 pub mod core;
 pub mod storage;
 
@@ -13,4 +8,9 @@ pub use self::core::policy::{
 };
 pub use self::core::request::{CedarRequest, CedarRequestBuilder};
 pub use self::core::response::CedarResponse;
-pub use self::storage::{InMemoryPolicyStore, PolicyStore, load_from_store};
+pub use self::storage::{FilePolicyStore, InMemoryPolicyStore, PolicyStore, load_from_store};
+
+#[cfg(feature = "db")]
+pub use self::storage::{SqlPolicyStore, CREATE_TABLE_SQL};
+#[cfg(feature = "db")]
+pub use self::storage::kv_store::KvPolicyStore;

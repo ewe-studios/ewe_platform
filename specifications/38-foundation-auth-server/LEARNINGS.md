@@ -30,9 +30,10 @@ a pluggable `PolicyFetcher` trait with `GitPolicyFetcher` (gix-based) as primary
 and `HttpPolicyFetcher` as fallback.
 
 **Issue 6: Handler types needed clarification.**
-foundation_http has two handler traits: `ServeWriter` (sync, native) and `WebServe`
-(async, wasm). Features 09 and 12 were updated to describe both and explain how
-ServeWriter bridges to async via valtron.
+foundation_http has two handler traits: `Serve` (sync, native — receives concrete
+`SharedByteBufferStream<RawStream>`) and `WebServe` (async, wasm). Features 09 and 12
+use `Serve` + `ServeFactory` with an `IdpHandlerCore` async core bridged via noop-waker
+`block_on` (all futures complete synchronously, no real I/O yet).
 
 ### 2026-06-08: Feature 08 — AuthManager Design Decisions
 
@@ -58,11 +59,14 @@ would fail silently.
 
 ### 2026-06-08: Features 09-12 — IdP Server Implementation
 
-**Decision 1: Handlers write raw HTTP/1.1 to `dyn Write` directly.**
-`foundation_http`'s `respond::json()` takes `&mut impl Write` (requires `Sized`), but
-`ServeWriter::serve_writer` receives `&mut dyn Write` (unsized). Rather than fighting
-the type system with double-borrow tricks, handlers write HTTP response lines directly
-via `write!()` + `write_all()`. Simple, no extra dependencies.
+**Decision 1: Serve trait + IdpHandlerCore + ServeAdapter pattern.**
+`Serve::serve()` receives `SharedByteBufferStream<RawStream>` — a concrete Sized type
+that implements `Write`. `respond::json(&mut conn, status, &body)` works naturally.
+`IdpHandlerCore` holds all async endpoint logic (`discovery`, `jwks`, `authorize`, etc.)
+and a `dispatch()` method that routes by suffix matching (prefix-agnostic). `ServeAdapter`
+implements `Serve` + `ServeFactory`, bridging async→sync via noop-waker `block_on`.
+`IdpServer::register_routes(app, prefix)` applies all routes with a caller-controlled
+prefix (default "/idp") for namespace uniqueness.
 
 **Decision 2: Scaffold handlers return error JSON, not panics.**
 Endpoints that need a storage backend (token, authorize, device_authorize) return
@@ -72,7 +76,7 @@ integration is added incrementally.
 
 **Decision 3: IdpConfig stored in ContextBag.**
 `IdpServer::http_app()` stores `IdpConfig` in the `ContextBag`. Handlers retrieve it
-via `bag.get::<IdpConfig>()` in their `ServeWriterFactory::create()`. This follows the
+via `bag.get::<IdpConfig>()` in their `ServeFactory::create()`. This follows the
 established foundation_http pattern — no global state, no `Arc` threading.
 
 **Decision 4: SimpleMethod variants are UPPERCASE (GET, POST, not Get, Post).**
@@ -90,10 +94,12 @@ The method accepts entities from the caller for evaluation — does NOT fall bac
 `self.entities`. The caller is responsible for providing the full entity set needed
 for the request.
 
-**Decision 3: Phase 1 = core engine + in-memory store only.**
-Storage backends (local file, R2, D1, git), wasm backends, HTTP middleware, and
-valtron bridging are Phase 2+. The core `CedarEngine`, `CedarRequest`, `CedarResponse`,
-`PolicyStore` trait, and `InMemoryPolicyStore` are sufficient for the initial scaffold.
+**Decision 3: Phase 1 = core engine + pluggable storage backends.**
+Core: `CedarEngine`, `CedarRequest`, `CedarResponse`, `PolicyStore` trait. Storage:
+`InMemoryPolicyStore` (always), `FilePolicyStore` (filesystem paths, always),
+`KvPolicyStore<S: KeyValueStore>` and `SqlPolicyStore` (behind `db` feature, bridge
+to any `foundation_db` backend — Turso, libsql, D1 KV, MemoryStorage). Wasm backends,
+HTTP middleware, git fetching, and valtron bridging are Phase 2+.
 
 ### 2026-06-06: Git Storage Capability Split
 

@@ -2783,6 +2783,8 @@ version = "0.0.1"
 dependencies = [
  "cedar-policy",
  "derive_more",
+ "foundation_core",
+ "foundation_db",
  "serde",
  "serde_json",
  "smol_str",
