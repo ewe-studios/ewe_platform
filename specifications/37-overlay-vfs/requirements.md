@@ -3,7 +3,7 @@ description: "OverlayFileSystem — cross-platform virtual filesystem with trait
 status: "in-progress"
 priority: "high"
 created: 2026-06-04
-updated: 2026-06-06
+updated: 2026-06-09
 author: "Main Agent"
 metadata:
   version: "1.0"
@@ -24,10 +24,10 @@ builds_on:
 related_specs:
   - "specifications/34-native-file-watchers"
 tasks:
-  completed: 10
-  uncompleted: 12
-  total: 22
-  completion_percentage: 45%
+  completed: 18
+  uncompleted: 7
+  total: 25
+  completion_percentage: 72%
 ---
 
 # OverlayFileSystem — Cross-Platform Virtual File System
@@ -69,22 +69,25 @@ The central composition primitive is `OverlayFileSystem<B, D>` — an overlay th
 | [03-foundation-fs](features/03-foundation-fs/) | OverlayFileSystem\<B, D\> overlay — CoW, whiteouts, directory merging | 1 | done |
 | [04-native-fs](features/04-native-fs/) | NativeFs passthrough — std::fs, path containment, Arc\<PathBuf\> root | 2 | done |
 | [05-directory-delta](features/05-directory-delta/) | DirectoryDelta — shadow directory with sentinel whiteout files | 2 | done |
-| [18-scaffold-macro](features/18-scaffold-macro/) | #[scaffold] derive macro — trait impl delegation for wrapper types | 3 | done |
 | [06-sqlite-delta](features/06-sqlite-delta/) | LibsqlDelta — libsql-backed delta store, feature-gated | 3 | done |
+| [18-scaffold-macro](features/18-scaffold-macro/) | #[scaffold] derive macro — trait impl delegation for wrapper types | 3 | done |
 | [20-async-first-migration](features/20-async-first-migration/) | Async trait counterparts for all VFS traits, SyncFs\<A\> bridge, exec_async centralized | 3 | done |
 | [21-seekable-sync-cleanup](features/21-seekable-sync-cleanup/) | Remove Arc\<Mutex\<Option\<A\>\>\> from SyncSeekableFile, per-backend seekable wrappers | 3 | done |
 | [22-vfs-valtron-tests](features/22-vfs-valtron-tests/) | Comprehensive valtron-backed integration tests — 120 tests, all sync bridge paths | 3 | done |
-| [12-arrow-serialization](features/12-arrow-serialization/) | foundation_arrow crate — Arrow zero-copy serialization for any type, derive macro, IPC streaming | 3 | in-progress |
+| [12-arrow-serialization](features/12-arrow-serialization/) | foundation_arrow crate — Arrow zero-copy serialization for any type, derive macro, IPC streaming | 3 | done |
+| [07-fuse-adapter](features/07-fuse-adapter/) | FuseMount — FUSE adapter exposing VfsFileSystem as mount (Linux) | 4 | done |
+| [23-inode-native-vfs](features/23-inode-native-vfs/) | Inode-native VFS — push inode awareness into VfsMetadata/VfsDirEntry, inode-to-path reverse lookup | 4 | done |
+| [11-ipc-daemon](features/11-ipc-daemon/) | VfsDaemon + VfsClient — host VfsFileSystem over IPC bus, client library, binary | 4 | done |
+| [09-ptrace-interceptor](features/09-ptrace-interceptor/) | PtraceInterceptor — dual-backend ptrace syscall interception, nix + reverie backends (Linux) | 4 | in-progress |
+| [10-valtron-integration](features/10-valtron-integration/) | VfsTask — event emission via Broadcaster, spec-34 watcher integration | 5 | done |
+| [15-observable-fs](features/15-observable-fs/) | ObservableFs — decorator wrapping any VfsFileSystem, full audit event emission for ALL operations | 5 | done |
+| [24-scaffold-macro-clippy](features/24-scaffold-macro-clippy/) | scaffold!() clippy warning suppression — never-type technique from todo!() | 5 | done |
 | [19-fjall-cacache-vfs](features/19-fjall-cacache-vfs/) | FjallFs/FjallDelta — fjall LSM-tree + cacache CAS, SCRU128 keys, hierarchical prefix index | 3 | pending |
-| [07-fuse-adapter](features/07-fuse-adapter/) | FuseMount — FUSE adapter exposing VfsFileSystem as mount (Linux) | 4 | pending |
 | [08-nfs-adapter](features/08-nfs-adapter/) | NfsMount — NFS v3 loopback adapter (macOS, Linux) | 4 | pending |
-| [09-ptrace-interceptor](features/09-ptrace-interceptor/) | PtraceInterceptor — Reverie/ptrace syscall interception (Linux) | 4 | pending |
-| [11-ipc-daemon](features/11-ipc-daemon/) | VfsDaemon + VfsClient — host VfsFileSystem over IPC bus, client library, binary | 4 | pending |
-| [10-valtron-integration](features/10-valtron-integration/) | VfsTask — event emission via Broadcaster, spec-34 watcher integration | 5 | pending |
-| [15-observable-fs](features/15-observable-fs/) | ObservableFs — decorator wrapping any VfsFileSystem, full audit event emission for ALL operations | 5 | pending |
 | [16-ld-preload-shim](features/16-ld-preload-shim/) | LD_PRELOAD/DYLD_INSERT_LIBRARIES shim — libc interception, redirects to VFS daemon | 5 | pending |
 | [13-cloudflare-d1-delta](features/13-cloudflare-d1-delta/) | D1Delta — Cloudflare D1 (edge SQLite) as DeltaStore | 5 | pending |
 | [14-cloudflare-r2-delta](features/14-cloudflare-r2-delta/) | R2Delta — Cloudflare R2 (S3-compatible) as DeltaStore | 5 | pending |
+| [25-examples-showcase](features/25-examples-showcase/) | Examples showcase — programmatic API walkthroughs for every VFS and IPC API | 6 | pending |
 | [17-projfs-windows](features/17-projfs-windows/) | ProjFS — Windows 10+ native projection, provider callbacks, auto-promote on write | 6 | deferred |
 
 ## Architecture
@@ -171,8 +174,16 @@ vfs-ptrace = ["vfs-native"] # Linux ptrace (adds reverie dep)
 - [x] NativeFs passthrough reads real files with path containment
 - [x] DirectoryDelta persists writes to shadow directory
 - [x] OverlayFileSystem<NativeFs, DirectoryDelta> end-to-end: mount dir, read existing, write new, delete, rollback
-- [ ] FUSE adapter mounts and serves files to external processes (Linux)
-- [ ] Event emission delivers delta change events via Broadcaster
+- [x] FUSE adapter mounts and serves files to external processes (Linux)
+- [x] Event emission delivers delta change events via Broadcaster
+- [x] IPC daemon hosts VfsFileSystem over IPC bus with client library
+- [x] ObservableFs decorator provides full audit event emission
+- [x] Inode-native VFS with inode-to-path reverse lookup
+- [x] Arrow zero-copy serialization with derive macro
+- [x] Async-first traits with SyncFs bridge
+- [ ] Ptrace interceptor: reverie backend, remaining edge cases and integration tests
+- [ ] NFS v3 loopback adapter (macOS)
+- [ ] FjallFs/FjallDelta LSM-tree + CAS backend
 
 ## Module References
 

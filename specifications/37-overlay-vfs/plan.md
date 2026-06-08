@@ -508,31 +508,42 @@ vfs-ptrace = ["vfs-native"] # Linux ptrace (adds reverie dep)
 
 ---
 
-## Feature Phasing (To Discuss)
+## Feature Phasing
 
-### Phase 1 — Core (portable, zero new deps)
-- Feature 01: Core traits + types + error
-- Feature 02: MemoryFs + MemoryDelta
-- Feature 03: OverlayFileSystem overlay logic (CoW, whiteouts, merging)
+### Phase 1 — Core (portable, zero new deps) ✓
+- Feature 01: Core traits + types + error ✓
+- Feature 02: MemoryFs + MemoryDelta ✓
+- Feature 03: OverlayFileSystem overlay logic (CoW, whiteouts, merging) ✓
 
-### Phase 2 — Native
-- Feature 04: NativeFs passthrough (path containment)
-- Feature 05: DirectoryDelta
+### Phase 2 — Native ✓
+- Feature 04: NativeFs passthrough (path containment) ✓
+- Feature 05: DirectoryDelta ✓
 
-### Phase 3 — Structured Storage + Serialization + Async Migration
-- Feature 06: SqliteDelta
-- Feature 12: foundation_arrow crate (standalone, general-purpose Arrow serialization)
-- Feature 18: Scaffold derive macro
-- Feature 19: FjallFs / FjallDelta (fjall LSM-tree + cacache CAS backend)
-- Feature 20: Async-First VFS Migration (async traits, sync bridge, LibsqlDelta migration)
+### Phase 3 — Structured Storage + Serialization + Async Migration (5/7 done)
+- Feature 00: Schema derive codegen (ArrowSchema, JsonSchema) ✓
+- Feature 06: SqliteDelta ✓
+- Feature 12: foundation_arrow crate (Arrow serialization) ✓
+- Feature 18: Scaffold derive macro ✓
+- Feature 20: Async-First VFS Migration (async traits, sync bridge) ✓
+- Feature 21: Seekable sync cleanup ✓
+- Feature 22: VFS Valtron integration tests ✓
+- Feature 19: FjallFs / FjallDelta (fjall LSM-tree + cacache CAS backend) — pending
 
-### Phase 4 — Transparent Mounting
-- Feature 07: FUSE adapter (Linux)
-- Feature 08: NFS adapter (macOS)
-- Feature 09: Ptrace/Reverie interceptor (Linux)
+### Phase 4 — Transparent Mounting + Inode Layer (3/5 done)
+- Feature 07: FUSE adapter (Linux) ✓
+- Feature 23: Inode-native VFS (inode awareness in core traits) ✓
+- Feature 11: IPC VFS Daemon + VfsClient ✓
+- Feature 09: Ptrace/Reverie interceptor (Linux) — in-progress (nix backend done, reverie + edge cases remaining)
+- Feature 08: NFS adapter (macOS) — pending
 
-### Phase 5 — Integration + Cloud
-- Feature 10: Valtron VfsTask + event emission + Broadcaster
-- Feature 11: IPC VFS Daemon + VfsClient (builds on IPC bus from spec-34)
-- Feature 13: D1Delta — Cloudflare D1 as delta store
-- Feature 14: R2Delta — Cloudflare R2 as delta store
+### Phase 5 — Observation + Interception + Cloud (2/6 done)
+- Feature 10: Valtron VfsTask + event emission + Broadcaster ✓
+- Feature 15: ObservableFs decorator ✓
+- Feature 24: scaffold!() clippy warning suppression ✓
+- Feature 16: LD_PRELOAD / DYLD_INSERT_LIBRARIES shim — pending
+- Feature 13: D1Delta — Cloudflare D1 as delta store — pending
+- Feature 14: R2Delta — Cloudflare R2 as delta store — pending
+
+### Phase 6 — Polish + Platform
+- Feature 25: Examples showcase — pending
+- Feature 17: ProjFS (Windows) — deferred
