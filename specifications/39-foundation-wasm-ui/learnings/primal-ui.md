@@ -56,8 +56,57 @@ Or even simpler:
 
 We can use mutation observers and as well querySelectorAll to find these and get them wired up.
 
+### Events and wiring up are just script tags in dom elements with scoped attributes
 
-### 
+I want users to be able to express themselves with html, css and javascript like normal without complexity, so in my mind user should be able to do:
+
+```
+<div id="menu-tabs">
+  <script type="text/javascript">
+   // normal javascript stuff that is not scoped and just is a tag like others and we do what we need to do
+  </script>
+  <script type="text/javascript" scoped primal:script>
+    // a specific javascript tag scoped to the containing div, 
+    // ensuring to only export a annoymouse function, the framework will use text to take the content, parse and materialize it within a function e.g (function(scope){})(scope) where scope has all the needed parameters and configuration to focus on the html node that owns the script with these attributes.
+    function(scope, ...) {
+      // scope represents the scoped target the focuses operation
+      // around the node this script is defined in, this allows 
+      // operations to be very specific to this node.
+      let parents = scope.targets();
+      
+      // users want to handle teardown themselves
+      parent.addEventListener(...)
+
+      or 
+
+      addEvent(parent, "click", () -> {})
+
+      Do something, addEvent wires up the needed event, adds the needed registration that this element has events, and the needed tear down to ensure if this ever gets removed from the dom then its gets properly turned down, it could use event bubbling and wire the event to the body tag and instead when event bubble, it sees if the dom node is the target and react (like what jquery does) to reduce tear down issues.
+    }
+  </script>
+
+</div>
+
+```
+
+We can apply this same idea the same idea around, we could also allow variants that lets user specify the scope to specific dom node/nodes like:
+
+```
+  <script type="text/javascript" scoped="div#menu-tabs" primal:script>
+```
+
+OR:
+
+```
+  <script type="text/javascript" scoped="div.tabs" primal:script>
+```
+
+The `scoped` is a standard selector you would pass to querySelectorAll that returns 1 or more objects (we enforce 1 or more and throw/raise error if zero  cause it should apply to something).
+
+This way users get a clean api that applies to 1 or more elements and our nice helper methods like addEvents/etc make this all super easy to do.
+
+I am thinking we should not have free methods but instead have a central `primal` scoped variable on window or the global context (this) so users can do `primal.addEvent()` etc.
+
 
 ## 2. Components
 . 
@@ -140,16 +189,14 @@ Natural HTTP requests (POST/PUT/DELETE, default POST) to an endpoint that return
 
 This is the interaction model — users supply input, the server returns what needs to change, the runtime applies it. No special syntax, just HTTP.
 
----
 
+### Component 3:  `<mount-stream />` — The Stream and optional input Tag
 
----
-
-## 10. `<mount-stream />` — Streaming Server Updates
+We add a new `<mount-stream />` or `<mount-stream state={} />` — Streaming Server Updates
 
 ### The Idea
 
-`<mount-stream />` is like `<mount-data />` but for **streaming responses**. Instead of a one-shot POST/GET that returns a single HTML fragment or JSON patch, it opens a stream (SSE or chunked HTTP) and applies a sequence of changes as they arrive.
+`<mount-stream />` is like `<mount-data />` but for **streaming responses**. Instead of a one-shot POST/GET that returns a single HTML fragment or JSON patch, it opens a stream (SSE or chunked HTTP) and applies a sequence of changes as they arrive, optionally allowing us to pass data/state to the server for the requests sent. Like datastar lets use fetch instead and process the event stream, i think we can pass it to wasm (if from a http server) to process or if its the wasm responding then it uses arrow for fast zero deserialization speed.
 
 ```html
 <!-- Stream into self (default) -->
@@ -178,6 +225,10 @@ This is the interaction model — users supply input, the server returns what ne
 ### Server Response Format
 
 The server streams **SSE events** (like Datastar) with typed payloads:
+
+The content type indicates to us if its: html, json or arrow.
+
+*TODO*: This needs update, the source can be a wasm instant instantianted for the page (webworker, in main thread, service worker) or a http endpoint. Also, the transport is just mechanism, it does not matter how we get this: SSE, websocket, plain http response.
 
 ```
 event: patch-elements

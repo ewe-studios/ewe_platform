@@ -1,35 +1,12 @@
 /// nix-based raw ptrace backend.
 ///
-/// Uses `nix::sys::ptrace` for direct `ptrace(2)` calls:
-/// - `PTRACE_SEIZE` on the child (modern alternative to TRACEME)
-/// - `PTRACE_SYSCALL` to trap syscall entry/exit
-/// - `PTRACE_GETREGS` to read syscall number + arguments
-/// - `PTRACE_SETREGS` to modify return values
-///
-/// No external framework dependency — just the `nix` crate.
+/// Uses `nix::sys::ptrace` for direct `ptrace(2)` calls.
 ///
 /// ## ptrace semantics
 ///
-/// `PTRACE_SEIZE` is used instead of `PTRACE_TRACEME` because it allows setting
-/// trace options atomically before the child starts executing. With `PTRACE_O_TRACESYSGOOD`,
-/// syscall stops are delivered as SIGTRAP | 0x80 (signal 137), so we can distinguish
-/// them from plain signal stops by checking `WSTOPSIG(status)`.
-///
-/// ## execve transition flow
-///
-/// ```text
-/// fork()
-///   ├─ child: execvp() → blocked until traced
-///   └─ parent: PTRACE_SEIZE(child, OPTIONS) → stops child before execve runs
-///              waitpid(child) → initial SIGTRAP stop (from SEIZE)
-///              PTRACE_SYSCALL(child) → continue to execve ENTRY
-///              waitpid(child) → execve ENTRY syscall stop (SIGTRAP|0x80)
-///              PTRACE_SYSCALL(child) → continue through execve
-///              waitpid(child) → PTRACE_EVENT_EXEC stop
-///              PTRACE_SYSCALL(child) → start tracing new program
-///              waitpid(child) → first syscall entry of new program
-///              [ptrace_loop takes over from here]
-/// ```
+/// `PTRACE_SEIZE` with `PTRACE_O_TRACESYSGOOD` is used. The execve transition:
+/// SEIZE → waitpid (SIGTRAP) → SYSCALL → waitpid (PtraceSyscall, execve entry) →
+/// SYSCALL → waitpid (PTRACE_EVENT_EXEC) → SYSCALL → ptrace_loop handles the rest.
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -37,7 +14,7 @@ use std::sync::Arc;
 use nix::libc::{PTRACE_O_TRACECLONE, PTRACE_O_TRACEEXEC, PTRACE_O_TRACEEXIT,
                 PTRACE_O_TRACEFORK, PTRACE_O_TRACESYSGOOD, PTRACE_O_TRACEVFORK};
 use nix::sys::ptrace::{self, Options};
-use nix::sys::wait::{WaitPidFlag, WaitStatus, waitpid};
+use nix::sys::wait::{WaitStatus, waitpid};
 use nix::unistd::Pid;
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
@@ -46,8 +23,6 @@ use super::syscall_dispatch::{self, SyscallAction, SyscallArgs};
 use super::{InterceptorHandle, MountTable, SyscallInterceptor, VirtualFdTable};
 
 /// Signal number for SIGTRAP with the SYSGOOD bit set.
-/// When PTRACE_O_TRACESYSGOOD is active, syscall stops deliver signal 137
-/// instead of the normal SIGTRAP (5).
 const SYSCALL_STOP_SIGNAL: i32 = libc::SIGTRAP | 0x80;
 
 /// All ptrace options set atomically via PTRACE_SEIZE.
@@ -59,6 +34,16 @@ const PTRACE_OPTIONS: Options = Options::from_bits_truncate(
     | PTRACE_O_TRACEEXEC
     | PTRACE_O_TRACEEXIT,
 );
+
+/// Read registers using raw libc::ptrace (PTRACE_GETREGS).
+fn get_regs(pid: Pid) -> Option<libc::user_regs_struct> {
+    let mut regs: libc::user_regs_struct = unsafe { std::mem::zeroed() };
+    let ret = unsafe {
+        libc::ptrace(libc::PTRACE_GETREGS, pid.as_raw(), std::ptr::null_mut::<libc::c_void>(),
+                     &mut regs as *mut _ as *mut libc::c_void)
+    };
+    if ret == 0 { Some(regs) } else { None }
+}
 
 /// nix-based raw ptrace interceptor.
 pub struct NixInterceptor;
@@ -88,7 +73,6 @@ impl SyscallInterceptor for NixInterceptor {
     }
 }
 
-/// Fork a child, seize it with ptrace, and exec the target command.
 fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
     let child = match unsafe { nix::unistd::fork() } {
         Ok(nix::unistd::ForkResult::Child) => {
@@ -111,7 +95,6 @@ fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
     };
 
     // PTRACE_SEIZE stops the child immediately with a SIGTRAP.
-    // The child is stopped BEFORE execve starts running.
     ptrace::seize(child, PTRACE_OPTIONS).map_err(|e| VfsError::Backend {
         message: format!("ptrace seize failed: {e}"),
     })?;
@@ -126,78 +109,40 @@ fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
         message: format!("ptrace syscall after seize failed: {e}"),
     })?;
 
-    // Wait for execve ENTRY stop (syscall stop, SIGTRAP|0x80)
-    // We just need to pass through this — no dispatch needed for execve itself.
+    // Wait for execve ENTRY stop (PtraceSyscall)
     let exec_entry = waitpid(child, None).map_err(|e| VfsError::Backend {
         message: format!("waitpid for execve entry failed: {e}"),
     })?;
 
-    // Verify it's a syscall stop
-    if let WaitStatus::Stopped(pid, sig) = exec_entry {
-        if sig as i32 != SYSCALL_STOP_SIGNAL {
-            // Not a syscall stop — might be a signal. Just continue.
-            ptrace::cont(pid, None).ok();
-        }
-    }
-
-    // Use PTRACE_SYSCALL to continue through execve.
-    // This will trigger PTRACE_EVENT_EXEC when execve completes.
-    ptrace::syscall(child, None).map_err(|e| VfsError::Backend {
-        message: format!("ptrace syscall to complete execve failed: {e}"),
+    // Continue through execve. Use PTRACE_CONT (not SYSCALL) to avoid
+    // stopping at the execve exit — we want the PTRACE_EVENT_EXEC event.
+    ptrace::cont(child, None).map_err(|e| VfsError::Backend {
+        message: format!("ptrace cont to complete execve failed: {e}"),
     })?;
 
-    // Wait for PTRACE_EVENT_EXEC (new program image loaded)
+    // Wait for PTRACE_EVENT_EXEC
     let exec_status = waitpid(child, None).map_err(|e| VfsError::Backend {
         message: format!("waitpid for exec event failed: {e}"),
     })?;
 
-    // After the exec event, use PTRACE_SYSCALL to start tracing
-    // syscalls of the new program.
-    let next_pid = match exec_status {
+    // Start tracing the new program
+    match exec_status {
         WaitStatus::PtraceEvent(pid, _sig, _event) => {
             ptrace::syscall(pid, None).map_err(|e| VfsError::Backend {
                 message: format!("ptrace syscall after exec event failed: {e}"),
             })?;
-            pid
         }
         WaitStatus::Exited(pid, code) => {
-            // execvp failed — child exited
             return Ok(Pid::from_raw(pid.as_raw()));
         }
-        _ => child,
-    };
-
-    // Now use PTRACE_SYSCALL to start tracing syscalls of the new program.
-    // DON'T wait for the first syscall entry here — let the ptrace_loop
-    // handle it. After PTRACE_SYSCALL, the child will run and stop at
-    // the first syscall entry, which ptrace_loop's waitpid(-1) will pick up.
-    if let WaitStatus::PtraceEvent(pid, _sig, _event) = exec_status {
-        ptrace::syscall(pid, None).map_err(|e| VfsError::Backend {
-            message: format!("ptrace syscall after exec event failed: {e}"),
-        })?;
-    } else {
-        // If we didn't get a PtraceEvent, the child might have exited
-        // (execvp failed). Just continue and let the loop handle it.
-        ptrace::syscall(child, None).ok();
+        _ => {
+            ptrace::cont(child, None).ok();
+        }
     }
 
-    // DON'T consume the first syscall stop here. The ptrace_loop thread
-    // will pick it up via its waitpid(-1).
     Ok(child)
 }
 
-/// Check if a waitpid status indicates a syscall stop.
-fn is_syscall_stop(status: &WaitStatus) -> bool {
-    match status {
-        WaitStatus::Stopped(_pid, sig) => (*sig as i32) == SYSCALL_STOP_SIGNAL,
-        _ => false,
-    }
-}
-
-/// Main ptrace loop — intercept syscalls and dispatch to VFS.
-///
-/// Uses `waitpid(-1)` to receive stops from all traced processes
-/// (including forked children), following the iii-init PID-1 pattern.
 fn ptrace_loop(
     child: Pid,
     mount_table: &Arc<MountTable>,
@@ -206,7 +151,7 @@ fn ptrace_loop(
     let mut pending_actions: HashMap<i32, (SyscallAction, i64)> = HashMap::new();
 
     loop {
-        let status = match waitpid(Pid::from_raw(-1), Some(WaitPidFlag::__WALL)) {
+        let status = match waitpid(Pid::from_raw(-1), None) {
             Ok(s) => s,
             Err(nix::errno::Errno::ECHILD) => return Ok(0),
             Err(e) => {
@@ -232,13 +177,55 @@ fn ptrace_loop(
                 }
             }
             WaitStatus::Stopped(pid, _sig) => {
-                // With PTRACE_O_TRACESYSGOOD, syscall stops are SIGTRAP|0x80.
-                // Non-syscall stops (signals) are regular signals.
-                if is_syscall_stop(&status) {
-                    handle_syscall_stop(pid, mount_table, fd_table, &mut pending_actions);
+                // Signal stop — deliver signal and continue
+                ptrace::cont(pid, None).ok();
+            }
+            WaitStatus::PtraceSyscall(pid) => {
+                // Syscall stop — dispatch using raw getregs
+                if let Some(regs) = get_regs(pid) {
+                    let is_exit = pending_actions.contains_key(&pid.as_raw());
+
+                    if is_exit {
+                        if let Some((action, _syscall_nr)) = pending_actions.remove(&pid.as_raw()) {
+                            match action {
+                                SyscallAction::Passthrough => {}
+                                SyscallAction::Skip { return_value } => {
+                                    let mut r = regs;
+                                    r.rax = return_value as u64;
+                                    ptrace::setregs(pid, r).ok();
+                                }
+                                SyscallAction::SkipError { errno } => {
+                                    let mut r = regs;
+                                    r.rax = (-errno) as u64;
+                                    ptrace::setregs(pid, r).ok();
+                                }
+                            }
+                        }
+                        ptrace::syscall(pid, None).ok();
+                    } else {
+                        let syscall_args = SyscallArgs {
+                            nr: regs.orig_rax as i64,
+                            arg0: regs.rdi,
+                            arg1: regs.rsi,
+                            arg2: regs.rdx,
+                            arg3: regs.r10,
+                            arg4: regs.r8,
+                            arg5: regs.r9,
+                        };
+
+                        let action = syscall_dispatch::on_syscall_entry(
+                            pid,
+                            &syscall_args,
+                            mount_table,
+                            fd_table,
+                        );
+
+                        pending_actions.insert(pid.as_raw(), (action, syscall_args.nr));
+                        ptrace::syscall(pid, None).ok();
+                    }
                 } else {
-                    // Signal stop — deliver the signal and continue
-                    ptrace::cont(pid, None).ok();
+                    // Process gone — continue
+                    ptrace::syscall(pid, None).ok();
                 }
             }
             WaitStatus::PtraceEvent(pid, _sig, event) => {
@@ -265,66 +252,5 @@ fn ptrace_loop(
             }
             _ => {}
         }
-    }
-}
-
-/// Handle a syscall entry/exit stop.
-///
-/// Uses `pending_actions` to track entry vs exit:
-/// - If the pid has a pending action → this is the EXIT stop
-/// - Otherwise → this is the ENTRY stop
-fn handle_syscall_stop(
-    pid: Pid,
-    mount_table: &Arc<MountTable>,
-    fd_table: &Arc<VirtualFdTable>,
-    pending_actions: &mut HashMap<i32, (SyscallAction, i64)>,
-) {
-    let regs = match ptrace::getregs(pid) {
-        Ok(r) => r,
-        Err(_) => {
-            ptrace::syscall(pid, None).ok();
-            return;
-        }
-    };
-
-    let is_exit = pending_actions.contains_key(&pid.as_raw());
-
-    if is_exit {
-        if let Some((action, _syscall_nr)) = pending_actions.remove(&pid.as_raw()) {
-            match action {
-                SyscallAction::Passthrough => {}
-                SyscallAction::Skip { return_value } => {
-                    let mut regs = regs;
-                    regs.rax = return_value as u64;
-                    ptrace::setregs(pid, regs).ok();
-                }
-                SyscallAction::SkipError { errno } => {
-                    let mut regs = regs;
-                    regs.rax = (-errno) as u64;
-                    ptrace::setregs(pid, regs).ok();
-                }
-            }
-        }
-        ptrace::syscall(pid, None).ok();
-    } else {
-        let syscall_args = SyscallArgs {
-            nr: regs.orig_rax as i64,
-            arg0: regs.rdi,
-            arg1: regs.rsi,
-            arg2: regs.rdx,
-            arg3: regs.r10,
-            arg4: regs.r8,
-            arg5: regs.r9,
-        };
-
-        let action = syscall_dispatch::on_syscall_entry(
-            pid,
-            &syscall_args,
-            mount_table,
-            fd_table,
-        );
-
-        pending_actions.insert(pid.as_raw(), (action, syscall_args.nr));
-        ptrace::syscall(pid, None).ok();
     }
 }
