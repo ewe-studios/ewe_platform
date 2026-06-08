@@ -55,7 +55,7 @@ We should also refactor to make the code cleaner and nicer and more clear especi
 **What it keeps:**
 - `MemoryAllocations` — create_allocation, dispose_allocation, get, clear
 - Instructions encoder/decoder — parse_ops, parse_text
-- **ArrowParser** — TypedArray column views from ArrayBuffer (moved from foundation-wasm-ui.js)
+- **ArrowParser** — TypedArray column views from ArrayBuffer
 - **ArrowParser.encode()** — Rust-side Arrow encoding (columnar, zero-copy)
 - FunctionRegistry — register_function, invoke_as_*, invoke_async
 - CallbackRegistry — register_callback, invoke_callback, unregister_callback

@@ -37,6 +37,23 @@ DOM Operations RecordBatch:
 | 13 | SET_STYLE | target | prop | val | |
 | 14 | ADD_CLASS | target | | class_name | |
 | 15 | REMOVE_CLASS | target | | class_name | |
+| 16 | MORPH_NODE | target | | | new_html |
+
+### Morph operations
+
+`MORPH_NODE` morphs an existing element's children using Datastar's morphing algorithm (decision 027) — form state preservation, element identity tracking, move detection:
+
+| Field | Value |
+|-------|-------|
+| `node_id` | Target element to morph |
+| `text_val` | New HTML content as a string (parsed into fragment, morphed into target) |
+
+`REPLACE_NODE` is a hard replacement — removes old element, inserts new one with no preservation:
+
+| Field | Value |
+|-------|-------|
+| `node_id` | Element to remove |
+| `value` | `new_id` for the replacement element |
 
 ### DomOp → Arrow mapping
 
@@ -49,6 +66,7 @@ DOM Operations RecordBatch:
 - `DomOp::Remove(node_id)` → `REMOVE_NODE`
 - `DomOp::InsertBefore(parent, child, ref)` → `INSERT_BEFORE`
 - `DomOp::Replace(old, new_id)` → `REPLACE_NODE`
+- `DomOp::Morph(node_id, html)` → `MORPH_NODE`
 
 ### Arrow encoding location
 

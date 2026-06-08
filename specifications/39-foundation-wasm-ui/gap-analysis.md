@@ -1,12 +1,12 @@
 # Spec-39: Gap Analysis & TODOs
 
-**Date:** 2026-06-08
+**Date:** 2026-06-09
 
-Comprehensive catalog of everything still unresolved after decisions 001-010. Old features and primal-ui.md reviewed, resolved items crossed out, gaps grouped by theme.
+Comprehensive catalog of everything still unresolved after decisions 001-030. Old features and primal-ui.md reviewed, resolved items crossed out, gaps grouped by theme.
 
 ---
 
-## Already Resolved (decisions 001-010)
+## Already Resolved (decisions 001-029)
 
 | # | Decision | File |
 |---|----------|------|
@@ -22,73 +22,82 @@ Comprehensive catalog of everything still unresolved after decisions 001-010. Ol
 | 010 | Arrow batch: operation mapping and schema | `decisions/010-arrow-batch-schema.md` |
 | 011 | Signal identity: no string keys | `decisions/011-no-string-keys.md` |
 | 012 | `foundation_ui_traits` crate for shared types | `decisions/012-foundation-ui-traits.md` |
+| 013 | Web Component: 3 execution modes (transport abstraction) | `decisions/013-web-component-execution-modes.md` |
+| 014 | `#[wasm_bin]` vs `#[wasm_worker]` vs `#[wasm_service]` design | `decisions/014-execution-modes-design.md` |
+| 015 | Crate split: foundation_wasm / foundation_wasm_ui | `decisions/015-crate-split.md` |
+| 016 | Build pipeline | `decisions/016-build-pipeline.md` |
+| 017 | Service Worker uses webserve | `decisions/017-service-worker-uses-webserve.md` |
+| 018 | Event Runtime: direct binding + MutationObserver cleanup (non-island only) | `decisions/018-event-runtime.md` |
+| 019 | Scoped script/style tags (compile-time transform, island owns scoped content) | `decisions/019-scoped-script-style-tags.md` |
+| 020 | Theme system | `decisions/020-theme-system.md` |
+| 021 | `<island>` web component: scoped content container | `decisions/021-island-web-component.md` |
+| 022 | Content type handling | `decisions/022-content-type-handling.md` |
+| 023 | Mount components | `decisions/023-mount-components.md` |
+| 024 | Component class structure | `decisions/024-component-class-structure.md` |
+| 025 | Server-client state sync | `decisions/025-server-client-state-sync.md` |
+| 026 | Fetch bundling | `decisions/026-fetch-bundling.md` |
+| 027 | DOM morphing | `decisions/027-dom-morphing.md` |
+| 028 | WASM boundary memory management and buffer ownership | `decisions/028-wasm-memory-ownership.md` |
+| 029 | Signals return (getter, setter); two-way bindings via compile-time registered callbacks | `decisions/029-signal-getter-setter.md` |
+| 030 | Runtime-owned `InstructionReceiver` replaces global `FRAME_BATCH` | `decisions/030-instruction-receiver.md` |
 
 ---
 
 ## Critical Unresolved (Blocks Implementation)
 
-### 1. Web Component Architecture
-**Source:** `old_features/05-web-component-base/feature.md`, lines 3-19  
-**Question:** Generic inheritable `CustomComponent` class? How do components map to WASM execution modes (direct, ServiceWorker, WebWorker)? How is mode negotiated, identified, and lifecycle managed?
+### 1. Web Component Architecture ✅ RESOLVED
 
-### 2. Three WASM Execution Modes
-**Source:** `old_features/05-web-component-base/feature.md`, lines 7-17; `requirements.md`, lines 636-644  
-**Question:** 
-- Direct calls vs ServiceWorker (HTTP interception) vs WebWorker (postMessage)
-- How does the component know which mode it's running in?
-- How does communication differ between modes?
-- Can the same component run in any mode transparently?
-- `#[wasm_bin]` vs `#[wasm_worker]` vs `#[wasm_service]` proc macros?
+**Resolved via Decisions 013, 014, 021.** Islands handle their own lifecycle. MutationObserver handles non-island content only.
+**Source:** `old_features/05-web-component-base/feature.md`, lines 3-19
 
-### 3. Protocol Abstraction & Version Negotiation
-**Source:** `old_features/06-js-runtime-core/feature.md`, lines 3-7; `old_features/04-dom-batching-arrow/feature.md`, line 9; `requirements.md`, line 634  
-**Question:**
-- `u8 protocol` + `u8 version` in all messages?
-- Trait-based protocol handler system?
-- How JS selects protocol on initialization?
-- How Rust routes to correct protocol handler?
+### 2. Three WASM Execution Modes ✅ RESOLVED
 
-### 4. Primal-UI Core Integration (`<mount-ui>`, `<mount-data>`, `<mount-stream>`)
-**Source:** `primal-ui.md`, lines 205-519; `requirements.md`, line 632  
-**Question:**
-- How do `<mount-ui api="/v2/users">` elements work under the hood?
-- MutationObserver-based discovery (Stimulus-style scanning)?
-- Transport-agnostic streaming (SSE/WebSocket/chunked HTTP)?
-- Transport negotiation flow?
-- Server-driven signal updates — how does server know client state?
+**Resolved via Decisions 013, 014.** `#[wasm_bin]` / `#[wasm_worker]` / `#[wasm_service]` proc macros handle transport abstraction.
+**Source:** `old_features/05-web-component-base/feature.md`, lines 7-17; `requirements.md`, lines 636-644
 
-### 5. Server-Client State Synchronization
-**Source:** `primal-ui.md`, line 649; `old_features/06-js-runtime-core/feature.md`, lines 393-420  
-**Question:**
-- Does client send full state or just changes with each request?
-- State serialization format (JSON? Arrow? Binary?)?
-- Selective state sync — every signal (Datastar) or only marked ones?
-- Request bundling — Livewire-style microtask queue?
+### 3. Protocol Abstraction & Version Negotiation ✅ RESOLVED
+
+**Resolved via Decisions 014, 015, 022, 028.** Each protocol owns its contract, demuxed by protocol byte.
+**Source:** `old_features/06-js-runtime-core/feature.md`, lines 3-7; `old_features/04-dom-batching-arrow/feature.md`, line 9; `requirements.md`, line 634
+
+### 4. Primal-UI Core Integration ✅ RESOLVED
+
+**Resolved via Decisions 021, 023, 024, 029.** Islands, mount-data, mount-stream, getter/setter signals.
+**Source:** `primal-ui.md`, lines 205-519; `requirements.md`, line 632
+
+### 5. Server-Client State Synchronization ✅ RESOLVED
+
+**Resolved via Decision 025 (client sends actions only, server-rendered HTML is self-contained, no hydration needed) and Decision 029 (signals return getter/setter tuples, two-way bindings via compile-time registered callbacks).**
+**Source:** `primal-ui.md`, line 649; `old_features/06-js-runtime-core/feature.md`, lines 393-420
 
 ---
 
 ## Important Design Gaps (Should Address Before Coding)
 
-### 6. DOM Morphing Strategy
+### 6. DOM Morphing Strategy ✅ RESOLVED
+
+**Resolved via Decision 027.** `MorphDom` class based on Datastar's approach (morphdom + idiomorph + form preservation).
 **Source:** `primal-ui.md`, line 650  
 **Question:** morphdom vs idiomorph vs custom? How does form state preservation integrate with Arrow batch system?
 
-### 7. Fetch Wrapper & Request Bundling
-**Source:** `requirements.md`, lines 635, 647; `primal-ui.md`, line 647  
-**Question:**
-- Where does it live? (`foundation-wasm.js` vs `foundation-wasm-ui.js`)
-- Microtask queue vs timeout coalescing?
-- How does server respond to bundled requests?
+### 7. Fetch Wrapper & Request Bundling ✅ RESOLVED
 
-### 8. Event Attachment (`primal:onclick`)
-**Source:** `primal-ui.md`, lines 30-57  
-**Question:** How does `primal:onclick="controller.method"` resolve and wire up? MutationObserver + event delegation?
+**Resolved via Decision 026.** Bundling auto-enabled for full-stack builds, manual config for JS-only.
+**Resolved via Decision 030.** `InstructionReceiver` on `Runtime` handles batching + protocol dispatch — no handoff ambiguity.
+**Source:** `requirements.md`, lines 635, 647; `primal-ui.md`, line 647
 
-### 9. Scoped Script/Style Tags
-**Source:** `primal-ui.md`, lines 68-140  
-**Question:** `<script scoped primal:script>` and `<style scoped primal:style>` — supported or discarded? Atomic CSS StyleManager?
+### 8. Event Attachment (`primal:onclick`) ✅ RESOLVED
+
+**Resolved via Decisions 018, 029.** Direct binding with MutationObserver cleanup (non-island only). Setters registered as compile-time callbacks for two-way bindings.
+**Source:** `primal-ui.md`, lines 30-57
+
+### 9. Scoped Script/Style Tags ✅ RESOLVED
+
+**Resolved via Decisions 019, 021.** Compile-time CSS transformation with `:parent` pseudo-class. `<island>` owns all scoped content lifecycle.
+**Source:** `primal-ui.md`, lines 68-140
 
 ### 10. Feature Ordering
+
 **Source:** `old_features/07-auth-ui-package/feature.md` (line 3); `old_features/08-headless-ui-components/feature.md` (line 3)  
 **Question:** Headless UI before Auth UI? Auth UI last? Formalize dependency graph.
 
@@ -112,7 +121,9 @@ Comprehensive catalog of everything still unresolved after decisions 001-010. Ol
 **Source:** `requirements.md`, line 633  
 **Note:** Tooling enhancement, not blocking. What gets generated? Types? Wrappers? Component stubs?
 
-### 15. Signal Crate Separation
+### 15. TypeScript Binding Generation ✅ DEFERRED
+
+**Deferred.** JS wrapper types are generated by the build pipeline (decision 016). TypeScript types can be derived from that. No separate feature needed.
 **Source:** `old_features/02-signal-system/feature.md`, line 78  
 **Note:** ✅ Resolved in decision 002 — standalone `foundation_signals` crate.
 

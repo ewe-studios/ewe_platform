@@ -1,11 +1,11 @@
-# 016 — Build Pipeline: proc macros + CLI bundler
+# 016 — Build Pipeline: CLI bundler with foundation_codegen
 
-**Date:** 2026-06-08
+**Date:** 2026-06-08  
 **Status:** Resolved
 
 ### Decision
 
-Proc macros can't generate JS files (TokenStream is Rust-only). Instead, a **CLI bundler** in `foundation_wasm_ui` handles the full build pipeline, driven by proc macro annotations.
+Proc macros can't generate JS files (TokenStream is Rust-only). Instead, a **CLI bundler** binary in `foundation_wasm_ui` handles the full build pipeline. It uses `foundation_codegen` to produce the bundled output.
 
 ### How it works
 
@@ -21,7 +21,7 @@ Proc macros can't generate JS files (TokenStream is Rust-only). Instead, a **CLI
 #[wasm_service(js=single-file, encoded=b64)]
 ```
 
-The proc macro writes metadata that the CLI reads. The CLI does the bundling:
+The CLI orchestrates the build:
 
 ```bash
 # CLI entrypoint in foundation_wasm_ui
@@ -32,8 +32,7 @@ ewe-wasm build --release
 
 1. **`cargo build --target wasm32-unknown-unknown`** — compiles the WASM binary
 2. **Collects JS runtimes** — `foundation-wasm.js` + `foundation-wasm-ui.js`
-3. **Reads proc macro metadata** — which macros want which output format
-4. **Generates output** — in `build/` directory:
+3. **Generates output** — in `build/` directory:
 
 ```
 build/
@@ -69,19 +68,3 @@ Like web-rs, the runtime can auto-discover and instantiate WASM:
   FoundationWasm.autoInstantiate();
 </script>
 ```
-
-### Proc macro metadata storage
-
-The proc macro generates a `.ewe-wasm-manifest.json` alongside the compiled WASM:
-
-```json
-{
-  "entry": "my_app",
-  "modes": [
-    { "type": "bin", "js": "single-file", "encoded": "uint8array" },
-    { "type": "worker", "js": "standalone" }
-  ]
-}
-```
-
-The CLI reads this manifest and generates the appropriate output files.

@@ -18,7 +18,7 @@ impl DomSignalBinding {
         let effect = ctx.effect(move || {
             let value = signal.get();            // reads signal → dependency auto-tracked
             let text = transform(&value);        // transform to DOM operation
-            FRAME_BATCH.queue(DomOp::SetText(node_id, text));  // queues, doesn't apply yet
+            receiver.queue(DomOp::SetText(node_id, text));  // queues, doesn't apply yet
         });
         
         Self { effect }
@@ -30,8 +30,8 @@ impl DomSignalBinding {
 
 1. **Creation**: `ctx.effect()` registers a callback in the signal graph
 2. **Initial run**: Effect runs immediately → reads signals → dependencies auto-linked via `startTracking`/`endTracking`
-3. **Signal change**: `stabilize()` runs effects in height order → effect re-runs → queues DOM op into `FRAME_BATCH`
-4. **Flush**: After `stabilize()` completes → `FRAME_BATCH` flushes all queued ops → single Arrow batch → `host_batch_apply()`
+3. **Signal change**: `stabilize()` runs effects in height order → effect re-runs → queues DOM op into `InstructionReceiver` (decision 030)
+4. **Flush**: After `stabilize()` completes → `InstructionReceiver.flush()` → protocol encodes ops → single FFI call → JS applies
 
 ### Why this design
 
@@ -63,7 +63,7 @@ trait Effect {
 **Lifecycle:**
 1. On creation: effect gets assigned height, links into dependency graph, calls `register(runtime)` 
 2. On signal change: effect marked Dirty, inserted into `dirtyHeap[height]`
-3. During `stabilize()`: effect runs, queues DOM op into frame batcher
+3. During `stabilize()`: effect runs, queues DOM op into `InstructionReceiver`
 4. On Drop: effect calls `unregister(runtime)` — Runtime adds its ID to `pending_removals`
 5. **Deferred removal**: Runtime collects removals during stabilize, applies them **after** the loop finishes (prevents heap corruption from mid-loop unlink)
 
@@ -72,12 +72,13 @@ trait Effect {
 - Effects access it via `Runtime::global()` — scoped to that module, not `pub static`
 - Each component creates its own `DomBindingEffect` instances with their own heights
 
-### FRAME_BATCH ownership
+### InstructionReceiver ownership
 
-`FRAME_BATCH` lives in **`foundation_wasm_ui`**, not in `foundation_signals` or the Runtime:
-- `DomBindingEffect` is created by `foundation_wasm_ui` code and knows which frame batcher to queue into
-- The Runtime doesn't know about DOM ops, Arrow, or batches
-- `foundation_wasm_ui` triggers the flush after `stabilize()` returns — either via a `NotificationManager` callback on the Runtime, or by calling `FRAME_BATCH.flush()` explicitly after signal operations
+The `InstructionReceiver` lives on the `Runtime` (decision 030), not in `foundation_signals` or a global:
+- Effects receive a reference to the receiver during creation and queue DOM ops into it
+- The Runtime owns both the signal graph and the instruction receiver — no cross-boundary coupling
+- `stabilize()` triggers `receiver.flush()` after all dirty nodes are processed
+- The configured protocol handles encoding, memory allocation, and FFI dispatch
 
 ### Multi-signal bindings
 
@@ -88,7 +89,7 @@ No special multi-signal API needed. Two equivalent approaches:
 ctx.effect(|| {
     let first = sig1.get();   // tracked
     let last = sig2.get();    // tracked
-    FRAME_BATCH.queue(DomOp::SetText(node_id, format!("{} {}", first, last)));
+    receiver.queue(DomOp::SetText(node_id, format!("{} {}", first, last)));
 });
 ```
 

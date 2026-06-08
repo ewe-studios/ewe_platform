@@ -1,6 +1,6 @@
 ---
 description: "foundation_auth Rework v3 — OIDC client library hardening + IdP server module. Closes critical client-side security gaps (JWT signature verification, JWKS, OIDC discovery, UserInfo, password auth, token introspection, nonce). Adds IdP server module behind `server` feature flag using foundation_http, with full OIDC authorization code + PKCE, refresh token, client credentials, and device code grant support. Uses foundation_db QueryStore for SQL-backed persistence with migrations 016-019 for OIDC server tables."
-status: "in-progress"
+status: "complete"
 priority: "high"
 created: 2026-06-05
 updated: 2026-06-05

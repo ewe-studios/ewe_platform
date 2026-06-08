@@ -8,9 +8,9 @@
 **No special backpressure mechanism needed.** The architecture naturally prevents accumulation:
 
 ### WASM → JS
-- Effects queue into `FRAME_BATCH` during `stabilize()`
-- After stabilize completes: **one Arrow batch** → `host_batch_apply()`
-- JS processes ops sequentially from the Arrow buffer (zero-copy, no accumulation)
+- Effects queue into `InstructionReceiver` during `stabilize()`
+- After stabilize completes: **one protocol-encoded batch** → FFI call
+- JS processes ops sequentially from the buffer (zero-copy, no accumulation)
 
 ### Server → JS
 - Streamed via SSE/WebSocket

@@ -76,13 +76,6 @@ pub struct DeviceAuthResponse {
     pub interval: u32,
 }
 
-#[derive(Debug, Serialize)]
-pub(crate) struct ErrorResponse {
-    pub error: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub error_description: Option<String>,
-}
-
 #[derive(Debug, Deserialize)]
 pub struct TokenRequest {
     pub grant_type: String,

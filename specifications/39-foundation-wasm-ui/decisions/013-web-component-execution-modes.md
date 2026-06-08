@@ -43,4 +43,4 @@ Every message starts with a protocol byte + version:
 
 - **No Transport trait** — proc macros already abstract this
 - **No component awareness of mode** — `ctx.renderer()` doesn't know or care
-- **No FRAME_BATCH transport coupling** — batcher hands bytes off, wrapper delivers
+- **No InstructionReceiver transport coupling** — receiver batches ops, protocol handles delivery

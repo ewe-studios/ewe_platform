@@ -11,20 +11,30 @@ Three proc macros control how the WASM binary communicates with the outside worl
 
 ## Message Envelope
 
-Every message sent in either direction starts with a protocol header:
+Every message starts with a common envelope, followed by protocol-specific payload:
 
 ```
-[protocol: u8][version: u8][payload_length: u32][payload...]
+[protocol: u8][version: u8][batch_memory_id: u64][payload...]
 ```
 
-| Byte | Meaning |
-|------|---------|
-| `protocol` | 0 = custom binary (foundation_wasm Instructions), 1 = Arrow, 2 = JSON |
-| `version` | Protocol version for backward compatibility |
-| `payload_length` | Remaining bytes |
-| `payload` | Protocol-specific data |
+| Byte | Size | Meaning |
+|------|------|---------|
+| `protocol` | 1 | 0 = custom binary, 1 = Arrow, 2 = JSON |
+| `version` | 1 | Protocol version for backward compatibility |
+| `batch_memory_id` | 8 | Arena slot holding this message — JS calls `dispose_allocation` to free after processing |
+| `payload` | rest | Protocol-specific data |
 
-The WASM binary reads `protocol` and `version` from incoming messages and dispatches to the correct handler. It doesn't know or care how the message arrived.
+**`batch_memory_id` is in every envelope** — it tells JS which arena slot to release back to WASM after processing, regardless of protocol. This is the ACK mechanism: JS reads the memory ID from the envelope, applies the payload, then calls `dispose_allocation(memory_id)`.
+
+Each protocol defines its own payload structure:
+
+| Protocol | Payload format |
+|----------|---------------|
+| Custom Binary (0) | `[ops_arena_id: u64][text_arena_id: u64][ops...]` |
+| Arrow (1) | `[arrow_ipc_length: u32][Arrow IPC...]` |
+| JSON (2) | `[json_length: u32][json_text...]` |
+
+The WASM binary reads the first 10 bytes (protocol + version + memory_id), then dispatches to the protocol handler which reads its own payload structure.
 
 ---
 
@@ -163,7 +173,8 @@ The WASM binary dispatches incoming messages based on the protocol byte:
 fn dispatch_message(message: &[u8]) {
     let protocol = message[0];
     let version = message[1];
-    let payload = &message[6..];  // skip protocol + version + length
+    let memory_id = u64::from_le_bytes(message[2..10].try_into().unwrap());
+    let payload = &message[10..];  // skip envelope header
 
     match protocol {
         0 => handle_custom_binary(payload, version),
@@ -173,6 +184,8 @@ fn dispatch_message(message: &[u8]) {
     }
 }
 ```
+
+Each protocol handler reads its own sub-header from `payload` (e.g., Arrow reads `batch_memory_id` and `arrow_ipc_length` from the first 12 bytes).
 
 The **same dispatch code** runs regardless of execution mode — the wrapper just delivers bytes differently.
 
