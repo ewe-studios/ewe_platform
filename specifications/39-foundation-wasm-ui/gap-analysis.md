@@ -140,12 +140,26 @@ Based on dependencies, the working order should be:
 | Phase | Feature | Depends On |
 |-------|---------|------------|
 | 1 | `foundation_ui_traits` (shared types: IntoHtml, Html, Part, DomOp) | None |
-| 2 | Crate split (foundation_wasm_ui from foundation_wasm) | None |
-| 3 | Protocol abstraction + version negotiation | 2 |
-| 4 | JS runtime core (split SDK) | 2, 3 |
-| 5 | Signal system (foundation_signals) | 1 |
-| 6 | Arrow DOM batching | 1, 3 |
-| 7 | DOM morphing + form preservation | 4, 6 |
-| 8 | Web component base (3 execution modes) | 3, 4, 5, 6 |
-| 9 | Headless UI components | 2, 5, 8 |
-| 10 | Auth UI package | 2, 5, 8, 9 |
+| 2 | Signal system (`foundation_signals`) | 1 |
+| 3 | `html!` macro | 1 |
+| 4 | `InstructionReceiver` | 1, 2 |
+| 5 | Arrow encoding (17 ops + MORPH_NODE) | 1, 4 |
+| 6 | JS runtime core (`foundation-wasm.js`) | None |
+| 7 | JS runtime UI (`foundation-wasm-ui.js`) | 6 |
+| 8 | Web components (island, mount-data, mount-stream) | 7 |
+| 9 | DOM morphing (MorphDom) | 5, 7 |
+| 10 | Event runtime (binding, MutationObserver) | 7 |
+| 11 | Scoped styles + theme system | 3, 7 |
+| 12 | Build pipeline CLI (`ewe-wasm build`) | 6, 7 |
+| 13 | Fetch wrapper & request bundling | 7, 8 |
+| 14 | Service worker routing (WebServe) | 7, 12 |
+
+### Phase groupings
+
+| Phase | Features | Focus |
+|-------|----------|-------|
+| Foundation (Rust) | 01, 02, 03, 04, 05 | Types, signals, macro, batching, encoding |
+| JS Runtime | 06, 07 | foundation-wasm.js + foundation-wasm-ui.js |
+| Web Components & DOM | 08, 09, 10 | Islands, mounts, morphing, events |
+| Styling | 11 | Scoped CSS, theme generation |
+| Build & Transport | 12, 13, 14 | CLI, fetch bundling, service worker |

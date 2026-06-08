@@ -67,6 +67,7 @@ foundation_nativeapis = { path = "./backends/foundation_nativeapis", version = "
 
 foundation_codegentools = { path = "./backends/foundation_codegentools", version = "0.1.0" }
 foundation_webwasm = { path = "./backends/foundation_webwasm", version = "0.1.0" }
+foundation_ui_traits = { path = "./backends/foundation_ui_traits", version = "0.0.1" }
 
 # -- workspace wide packages
 derive_more = { version = ">=2.0", features = ["full"] }

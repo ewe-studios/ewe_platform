@@ -1,0 +1,12 @@
+[package]
+name = "foundation_ui_traits"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Shared UI types: IntoHtml trait, Html struct, Part descriptors, DomOp enum. No runtime dependencies."
+
+[lints]
+workspace = true
