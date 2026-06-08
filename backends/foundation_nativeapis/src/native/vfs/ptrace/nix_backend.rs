@@ -149,6 +149,7 @@ fn ptrace_loop(
     fd_table: &Arc<VirtualFdTable>,
 ) -> VfsResult<i32> {
     let mut pending_actions: HashMap<i32, (SyscallAction, i64)> = HashMap::new();
+    let mut iter = 0u64;
 
     loop {
         let status = match waitpid(Pid::from_raw(-1), None) {
@@ -230,13 +231,24 @@ fn ptrace_loop(
             }
             WaitStatus::PtraceEvent(pid, _sig, event) => {
                 match event {
+                    libc::PTRACE_EVENT_STOP => {
+                        // Child born from fork/clone is stopped.
+                        // Continue without tracing — let it run normally.
+                        ptrace::cont(pid, None).ok();
+                    }
                     libc::PTRACE_EVENT_FORK
                     | libc::PTRACE_EVENT_VFORK
                     | libc::PTRACE_EVENT_CLONE => {
                         if let Ok(new_pid) = ptrace::getevent(pid) {
-                            let new_pid = new_pid as i32;
-                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid as u32);
+                            let new_pid = Pid::from_raw(new_pid as i32);
+                            eprintln!("[fork] parent {} forked child {}", pid, new_pid);
+                            // Set the same options on the child so it's also traced
+                            ptrace::setoptions(new_pid, PTRACE_OPTIONS).ok();
+                            // Continue the child with SYSCALL so it starts being traced
+                            ptrace::syscall(new_pid, None).ok();
+                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
                         }
+                        // Continue the parent with SYSCALL
                         ptrace::syscall(pid, None).ok();
                     }
                     libc::PTRACE_EVENT_EXEC => {

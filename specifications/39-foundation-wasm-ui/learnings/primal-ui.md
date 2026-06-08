@@ -92,13 +92,13 @@ I want users to be able to express themselves with html, css and javascript like
 We can apply this same idea the same idea around, we could also allow variants that lets user specify the scope to specific dom node/nodes like:
 
 ```
-  <script type="text/javascript" scoped="div#menu-tabs" primal:script>
+  <script type="text/javascript" scoped="div#menu-tabs" primal:script></script>
 ```
 
 OR:
 
 ```
-  <script type="text/javascript" scoped="div.tabs" primal:script>
+  <script type="text/javascript" scoped="div.tabs" primal:script></script>
 ```
 
 The `scoped` is a standard selector you would pass to querySelectorAll that returns 1 or more objects (we enforce 1 or more and throw/raise error if zero  cause it should apply to something).
@@ -106,6 +106,38 @@ The `scoped` is a standard selector you would pass to querySelectorAll that retu
 This way users get a clean api that applies to 1 or more elements and our nice helper methods like addEvents/etc make this all super easy to do.
 
 I am thinking we should not have free methods but instead have a central `primal` scoped variable on window or the global context (this) so users can do `primal.addEvent()` etc.
+
+
+
+## 1.2 Styling Runtime — Separate from Everything
+
+In my mind, styling should not be anything unique, we should let the web do what the web do, we could support tailwind style specific css attributes but its optional and users can just specify css as they like.
+
+But the web always had issues with scoped css where this css should only apply to just this eleemnt and its children, whilst shadow dom fixes this, its not a silver bullet and has its own gotchas and support matrix.
+
+So i would like to like script support normal `style` dom nodes and scoped ones like the script tag above in 1.1
+
+```
+  <style type="text/css" scoped primal:style></style>
+  <style type="text/css" scoped="div#menu-tabs" primal:style></style>
+```
+
+Where if a style tag has `primal:style` in then its applied to the parent dom node where it appears under (the parent), and if `scoped` has a value then its applied to the dom nodes matching that selector which is 1 or more.
+
+We need a way to ensure the styles once we pull the content via the style.text to:
+
+1. Extract the css and hydrate them into a structure that is performant representation of css, this allows us during the html parsing clearly represent them properly and then use this to create specific apply rules that apply to specific objects matching the selectors, scoped already provides the target, so we can in the simplest sense just prefix the selectors with the tag and id or tag and class for that parent and it should properly scope it. 
+2. I think if we create a actual repreentation of css then we can just wrap them in a parent css that represent the scoped tags, and when the scoped produces many dom nodes, we just ensure to create scoped css code for each and do a simple <style> append that can be pushed first to the head or body before appending the element, though we might need to be careful here, if html does not care where it appears then its good to style put in the parent of the target so its easy to also remove later, another approach is to have what i call the central atomic StyleManager.
+
+The idea is: We create a StyleManager that will takes all the css styles, break them down into their atomic units e.g margin-large, paddng, ...etc like tailwind does, then returns the list of atomic css rules for a giving dom node, this way we can centralize all them, creating unique custom css rules for very specific things, then these can be added to added to a central style tag which will own all of them, we ensure to deduplicate them and ensure they are very specific to the property they are applying.
+
+I reason there will be cases where some rules are just so specific e.g animations, in such situations, we can use the matching node to ensure the css rules is specific to it and not anything else.
+
+Lets think deeply, and design a system that works extensively for this type of behaviour for css.
+
+But the core idea is: when a style has scoped and `primal:style` it is treated differently and in the simplest situation we just add a prefix for each dom node and clone all the rules to only apply to that specific dom node so the rules stay scoped and not break other things.
+
+In a more engineered and performant system, we use the css structure to deduplicate similar rules, move them into a shared style tag (they will never get duplicated since we deduplicate by a central style manager) and anything specific is scoped to the dom nodes they affected based on `scoped` selector matching.
 
 
 ## 2. Components
@@ -307,13 +339,16 @@ The server can mix element patches and signal updates in a single stream. Each e
 
 <!-- Dashboard panel that streams real-time metrics -->
 <div id="dashboard">
-    <mount-stream api="/v2/dashboard/stream" method="GET" target="self" />
+    <mount-stream api="/v2/dashboard/stream" method="GET" target="div#dashboard" />
 </div>
 ```
 
 ### Transport-Agnostic Design
 
 The `<mount-stream />` element is an **abstraction** — the transport is an implementation detail. The same HTML element can use different streaming protocols based on a `transport` attribute:
+
+**TODO**: there should always be the central manager which gets the actions they are needed to be performed, it can then either respect their need for a custom transport or use the already selected transport being used, this lets it use SSE, websocket or whatever has been set.
+This also lets it own the request bundling via queueMicroTask which lets it schedule all these to the wasm or server.
 
 ```html
 <!-- SSE (default) — best for server-to-client streams -->
@@ -473,6 +508,8 @@ Combining the best of the original Primal ideas with everything we've learned:
 <!DOCTYPE html>
 <html>
 <head>
+    // TODO: this is interesting, but the idea is when the 
+    // project is built, and we generate the js, we should be bundling all this into the single js file we generate, users should not need to care about this.
     <script src="foundation-wasm.js"></script>
     <script src="foundation-wasm-ui.js"></script>
 </head>
@@ -504,11 +541,17 @@ Combining the best of the original Primal ideas with everything we've learned:
 
 ### The Rust Component
 
+**TODO**: I like the Context, its a nice abstraction and we can use it to own the full signal chain, this way there is a control and scoping of the context, pass it around and even have multiple contexts for different parts of the UI.
+But it needs more elaboration, how does it work, where is it set up, who manages it, how does the rust component get it, alot of things is vague.
+
 ```rust
 #[component]
 fn UserList(ctx: &Context) -> impl Html {
     let users = ctx.signal::<Vec<User>>("users");
 
+`   **TODO**: i hate this @for directive, this is now custom 
+    stuff not needed, we are using macros here, nothing stops us from creating writing a rust for loop and yields a Vec of html elements that gets append into this.
+    
     html! {
         <div id="user-list">
             @for user in users.iter() {
@@ -536,22 +579,9 @@ fn UserList(ctx: &Context) -> impl Html {
 6. JS runtime applies changes to DOM (morph or direct update)
 ```
 
-### The Core Principles
-
-1. **Plain HTML** — Everything is valid HTML, works without JS
-2. **Attributes for behavior** — `primal:onclick="path.to.func"` — no expression parsing
-3. **HTTP for everything** — POST/PUT/DELETE to endpoints, server returns HTML or change definitions
-4. **Rust macros for generation** — `html!` macro produces plain HTML, normal Rust for logic
-5. **Signals for state** — Fine-grained reactivity (R3-inspired signal system)
-6. **Arrow for batching** — Efficient WASM→JS DOM updates
-7. **Morphing for updates** — Server returns HTML, morph applies changes preserving state
-8. **Islands for scoping** — `<mount-ui />` tags define lazy-loaded boundaries
-9. **Event delegation** — One listener per event type at root, dispatches to registered handlers
-10. **No VNode** — Real DOM, direct updates, morphing for complex changes
-
 ---
 
-## 11. Summary of Lessons from the Original Vision
+## 11. Summary of Lessons from the learnings docs.
 
 The original Primal exploration was searching for the right abstraction level — not too low (raw DOM manipulation), not too high (full component framework). The answer, validated by all the frameworks we've studied, is:
 
@@ -573,3 +603,28 @@ What **does** matter from the original vision:
 - Island scoping as the lazy loading strategy
 - HTTP as the interaction protocol
 - HTML as the response format (with Arrow as an optimization)
+
+
+## Big TODOs
+
+1.0 Lets review all the todos across all features and this requirement file. For now i have moved all the old features in ./specifications/39-foundation-wasm-ui/old_features and then rewrite them following a more refined thoughtful designed process.
+1.1 
+2. I want to lean more into the core ideas of primal-ui in specifications/39-foundation-wasm-ui/learnings/primal-ui.md (but we need to make it clear what exactly we are bring in and what is out)
+3. Its now clear, i would like to expand our codegen tooling (foundation_codegen) with capability javascript and typescript generation capabilities after seeing how web-rs does this (see specifications/39-foundation-wasm-ui/learnings/web-gen-ts-binding-generation.md)
+4. Also its clear i want to refactor and make communication protocol aware, so that interactions always start with protocol and version starters in the messages sent back and forth to support multiple protocol and versions e.g our current custom binary protocol and arrow messages.
+5. Its seems reasonable to also have some central fetch wrapper that knows how to batch API requests to reduce the thundering heard problem and use this everywhere so that we can control and better manage outgoing requests and it wrapping the fetch allows us to be smart in how this works, how long it waits to batch or if it batches based on how many times it gets triggered in the shortest amount of time, we need to think about this, research and see what others do or if this is even a good idea.
+6.Its clear we want to be smart with how we define our WebComponent setup and not go crazy creating many different types but instead a specific set of types which understand how to interact in some specific way e.g mount-api, mount-stream, mount-data, we need to clearly define this, how they work and create a generic web component where these build on and doing it well will allow them just automatically work since we move e.g http communication to a service worker when its available and transparently owns the communication and responds and properly proxies to the server, but for this like web-workers, we might want to maybe add a mount-from-worker (to indicate this is coming from a webworker? I am unsure if this is a good idea) or if there is something we can do to indicate via mount-api, mount-stream, mount-data if its going to a web worker which might be better, I think i like this better, users can probably add a `worker=name-of-worker` and a central system that knows the web-workers (probably our webworkers) add them selves to some list and then the name just cleaning map and uses the worker communication proxy to deliver the messages to it and workers send back their response to them - we figure the right way to identify whoes response hook will get the reply.
+7. Its clear we want to support: direct invocation, web-worker execution, service workers (when possible, which will allow isomorphic http endpoints that get intercepted before they go to the server or remote endpoint) and so need to think more about how this should work.
+  a. I was thinking just like we do with the #[wasm_bin] proc macro, we can mark functions further that specific use #[wasm_bin], new proc macros that indicate how its going to be executed:
+    - `#[wasm_bin]` — regular WASM function, executed in the main thread
+      - #[wasm_bin(js=single-file, encoded=b64|uint8array)] - generates also a js wrapper which will encoded the generate wasm beside it as a single js file and by default add it as a Uint8Array else base64 encoded data with the needed logic to decode and initialize it.
+    - `#[wasm_worker]` — executed in a web worker and also will generate a js wrapper for it and could have a marker js=single-file to indicate when present to not just generate a wasm but then create a js file which will base64 encode the wasm into the js file and setup the necessary logic to have it running which can be served like a regular file and if not then it automatically assumes where ever its (the js) is served, it will just ask the server for the wasm file in the web-worker.
+    - `#[wasm_worker(js=single-file, encoded=b64|uint8array)]` — executed in a web worker and also will generate a js wrapper file will base64 encode the wasm into the js file and setup the necessary logic to have it running which can be served like a regular file and if not then it automatically assumes where ever its (the js) is served, it will just ask the server for the wasm file in the web-worker. When the js property is present then we look for encoded which by default is `uint8array` where we just store the raw bytes in a Uint8Array (see specifications/39-foundation-wasm-ui/learnings/wasm-delivery.md) and letting the server compress it. 
+    - `#[wasm_service]` — executed in a service worker - which will let users present a fetch endpoint (yes we are stealing from cloudflare) which lets us present a http endpoint to fetch content and a route() method that returns the routes the service worker should scope for going to the wasm else passing them along to the server.
+    - `#[wasm_service(js=single-file, encoded=b64|uint8array)]` — executed in a service worker and following the same semantics as #[wasm_worker] to support how its encoded into the single file when we generate it.
+8. I am super interesting in data star signal communication to the server, how does it work, how does it first set it up on the server and communicate to the client? Lets dig in and update the learnings (specifications/39-foundation-wasm-ui/learnings) with a more detailed exploration of it, check the data store code  location (see /home/darkvoid/Boxxed/@formulas/src.UIFrameworks/src.starfederation/datastar/ and /home/darkvoid/Boxxed/@formulas/src.UIFrameworks/src.starfederation/datastar-go/ and https://data-star.dev/guide/backend_requests). Also datastar as a very interesting html, signal merging logic that we can definitely learn from, adapt for our needs, make reusable for both sides (rust and js - js for the actual dom, rust can use json or arrow to merge changes into a map structure? - lets think on it).
+9. I am very interested in setting up a proxy for {} which allows us patch but listen for changes on js object, javascript has the proxy object that you see alpine, datastar use, lets learn as much in how each sets those up, use them, interact with them, update them and come up a clear idea of the good parts we can adapt for our approach. Also datastar sets up a way to ensure all signals are updated as a batch instead of one at a time, by adding them to a process/flush queue and the queue just contains functions that get executed all at once, allowing us to keep things closely linked to get triggered and updated together. This is really good. I would really like to see how datastar and r3 really compare, their difference, whats great in each side and how we can take each of those, create a specification for signals for both js and rust side that adapt these good parts to create a more resilient and cool signal framework (see /home/darkvoid/Boxxed/@dev/ewe_platform/specifications/39-foundation-wasm-ui/learnings/r3-vs-datastar-signals.md which already does this, especially the automatic depth creation for signals). I added notes we should adapt in our features to guide our thinking.
+10. I leant alot today about how livewire does request bundling, instead of using a timeout to batch requests, it instead setups a manager which it registers to the queueMicroTask (letting the browser call it when its ready) and within that period multiple elements (dom nodes, processes) can register their requests to the manager which will then bundle all of those together into a single request object or batch deliver them, letting the server also respond in kind but with an explicit id to identify the response from the others, in my mind, i can bundle all the requests  content together and let the server stream the response back via SSE or Websocket which resolves a need to let the slowest block all response but we need to ensure we create a concrete structure for the structure that represent what the request about, this way SSE or Websocket can send back another well structured response that has the id to indicate this is the response for this - it does require a different way of thinking about how the body is structured.
+11. Another cool thing for datastar is - it uses fetch instead of the EventSource API so it can send other HTTP methods to the backend, then it can just listen to the request response continously listening and reading the SSE responses from it, and for GET request, the body is actually base64 encoded and included as a query parameter (normal stuff) which the server will know and handle.
+12. Also, it has this idea that all signals (data signals) should always be sent to the server, like livewire, letting the server, decide what should change and send SSE data to update them which lets the server decide how the client changes and not the other way around. Datastar and livewire share this, i was always worried about state and the server needing to be stateful but always immagined we needed some new stateful setup or thinking to get this to work but if the client always present back its state then its not something the server needs to keep and the server can then build specific logic for the differnt usecase on how and what state it sends to client, the state it gets back, how that state should change e.g logged in or not, etc, this creates very interesting senergy. Our primal-ui lets client stay client, and get updates from server, we can also add the fact to them that they can also communicate some data to the server when they fetch that request endpoint which the server can respond back just like regular http handler that get queries or request body and use that to define how they respond either as a normal single request response lifecycle (HTTP, RPC e.g ConnectRPC) or they get the request and deliver the update via SSE/Websocket
+13. Lets create a feature focused on dom updates and form preservation taking key ideas from datastar which combines morphdom & idiomorph to create a consistent dom morphing system that works for our primal ui usecase, see specifications/39-foundation-wasm-ui/learnings/domupdates/datastar-morph.md
