@@ -86,3 +86,41 @@ The `vfs-ipc` feature depends on both `vfs` and `ipc`. The IPC VFS modules (`ipc
 - `shared::vfs::ipc_messages` — `#[cfg(feature = "vfs-ipc")]`
 - `shared::vfs::ipc_daemon` / `ipc_client` — `#[cfg(all(feature = "vfs-ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]`
 - `native::vfs::ipc_bus` — same as above
+
+## Phase 4 (2026-06-07) — Ptrace Interceptor
+
+### PTRACE_SEIZE vs PTRACE_TRACEME
+`PTRACE_TRACEME` has a well-known issue: after the initial SIGTRAP stop, calling `PTRACE_SYSCALL` completes the execve entry but the subsequent stop is a plain `SIGTRAP` (not `PTRACE_EVENT_EXEC`), and further `PTRACE_SYSCALL` calls produce `PtraceSyscall` stops that don't generate corresponding exit stops — the ptrace loop hangs.
+
+**Solution**: Use `PTRACE_SEIZE` (Linux 3.4+) which:
+1. Stops the child atomically with trace options set before any code runs
+2. Supports `PTRACE_O_TRACESYSGOOD` — syscall stops delivered as `SIGTRAP | 0x80` (signal 137), distinguishing them from plain signal stops
+3. The execve flow works correctly: SEIZE → SYSCALL (execve entry) → waitpid (execve entry stop) → SYSCALL (complete execve) → waitpid (PTRACE_EVENT_EXEC) → SYSCALL (start tracing new program)
+
+Sources: [man7.org ptrace(2)](https://man7.org/linux/man-pages/man2/ptrace.2.html), [strace README-linux-ptrace](https://github.com/bnoordhuis/strace/blob/master/README-linux-ptrace), [blog.nelhage.com](https://blog.nelhage.com/2010/08/write-yourself-an-strace-in-70-lines-of-code/), [stackoverflow: changing from TRACEME to SEIZE](https://stackoverflow.com/questions/73168140/changing-from-ptrace-traceme-to-ptrace-seize)
+
+### SYSCALL_STOP_SIGNAL detection
+With `PTRACE_O_TRACESYSGOOD`, `WSTOPSIG(status) == SIGTRAP | 0x80` (137) for syscall stops. This is the approach used by `strace` and is cleaner than checking `orig_rax >= 0`.
+
+### PID-1 supervision via waitpid(-1)
+The ptrace loop uses `waitpid(-1, __WALL)` instead of `waitpid(child_pid)` to receive stops from all traced processes (including forked children). This follows the iii-init pattern. Key insight: `pending_actions` is keyed by `(pid)` so each traced process has its own entry/exit state machine.
+
+Sources: [iii-init supervisor.rs](/home/darkvoid/Boxxed/@formulas/src.rust/src.AI/src.iii/iii/crates/iii-init/src/supervisor.rs), [iii-supervisor child.rs](/home/darkvoid/Boxxed/@formulas/src.rust/src.AI/src.iii/iii/crates/iii-supervisor/src/child.rs)
+
+### Platform module: errno translation and openat2
+Copied from `iii-filesystem/platform.rs` — 85+ BSD→Linux errno mappings for macOS FUSE protocol compatibility, plus `openat2(RESOLVE_BENEATH)` kernel-enforced path containment probe (Linux 5.6+). On Linux, `linux_error()` is identity; on macOS it maps BSD errno to Linux errno.
+
+### killpg for process group management (iii pattern)
+The iii-supervisor uses `nix::sys::signal::{Signal, killpg}` for SIGTERM→SIGKILL escalation with graceful shutdown. `Command::process_group(0)` puts each worker in its own process group, and `killpg(pgid, Signal::SIGTERM)` kills the entire worker subtree (npm, shells, tsx, node, esbuild) in one shot. **Relevance to ptrace:** When the traced child forks a complex process tree (e.g., `sh -c "npm run dev"`), we may need killpg to clean up orphaned descendants if the traced child dies unexpectedly.
+
+### DynFs type erasure for heterogeneous mount table
+`VfsFileSystem` has associated types (`File`, `SeekableFile`, `Directory`) that can't be erased with `dyn`. Solution: `DynFs` wraps `Arc<dyn DynFsOps>` where `DynFsOps` is a trait with all VFS operations returning boxed trait objects (`ErasedFile`, `ErasedDir`). This allows the `MountTable` to store heterogeneous filesystems behind a common interface.
+
+### VfsTask/VfsTaskBuilder/VfsEventReadiness feature gate
+These types were imported in `lib.rs` without `#[cfg(feature = "vfs")]` — they're defined in `valtron::vfs_task` which is only compiled with `vfs`. Fixed by gating the re-export: `#[cfg(feature = "vfs")] pub use valtron::{VfsTask, VfsTaskBuilder, VfsEventReadiness};`
+
+### Blanket impls for Box<dyn VfsFile> and Box<dyn VfsDirectory>
+To make type-erased wrappers work, blanket impls `impl<T: VfsFile + ?Sized> VfsFile for Box<T>` and `impl<T: SeekableVfsFile + ?Sized> SeekableVfsFile for Box<T>` are needed. These delegate to `(**self)`. The `VfsDirectory` blanket impl must carefully preserve associated types: `type File = T::File; type SeekableFile = T::SeekableFile;`.
+
+### MountTable Clone for Arc-based sharing
+`MountTable` contains `Vec<(String, DynFs)>` where `DynFs` wraps `Arc<dyn DynFsOps>`. Manual `Clone` impl that clones the Arc (not the underlying filesystem) — cheap clone, shared ownership.

@@ -24,11 +24,50 @@ All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTra
 
 ## Overview
 
-The most transparent mounting mechanism — intercepts filesystem syscalls at the kernel boundary using ptrace (via the Reverie crate from AgentFS). A spawned process's file operations are silently routed through the VfsFileSystem. Non-filesystem syscalls (network, memory, process) pass through unmodified.
+The most transparent mounting mechanism — intercepts filesystem syscalls at the kernel boundary using ptrace. A spawned process's file operations are silently routed through the VfsFileSystem. Non-filesystem syscalls (network, memory, process) pass through unmodified.
 
 Linux only. Feature-gated behind `vfs-ptrace`. Highest complexity feature.
 
 Inspired by AgentFS's sandbox design: mount table routing, virtual FD table, syscall entry/exit handlers.
+
+### Architecture: Why PTRACE_SEIZE over PTRACE_TRACEME
+
+**Initial approach**: `PTRACE_TRACEME` — the traditional ptrace flow where the child calls `ptrace(PTRACE_TRACEME, ...)` before `execve()`.
+
+**Problem discovered**: After the initial `waitpid` returns from `TRACEME`, the child is stopped at the `execve` *entry*. Calling `PTRACE_SYSCALL` after this point completes the execve entry but the subsequent `waitpid` returns a plain `SIGTRAP` (not `PTRACE_EVENT_EXEC`), and subsequent `PTRACE_SYSCALL` calls produce `PtraceSyscall` stops that don't generate corresponding exit stops — the loop hangs indefinitely.
+
+**Solution**: `PTRACE_SEIZE` — modern ptrace API (Linux 3.4+) that:
+1. Stops the child atomically with trace options set before any code runs
+2. Sets `PTRACE_O_TRACESYSGOOD` which delivers syscall stops as `SIGTRAP | 0x80` (signal 137), making them trivially distinguishable from plain signal stops
+3. The execve transition flow works correctly: SEIZE → SYSCALL (execve entry) → waitpid (execve entry stop) → SYSCALL (complete execve) → waitpid (PTRACE_EVENT_EXEC) → SYSCALL (start tracing new program)
+
+### ptrace lifecycle flow (SEIZE approach)
+
+```text
+fork()
+  ├─ child: execvp() → blocked until traced
+  └─ parent: PTRACE_SEIZE(child, OPTIONS) → stops child before execve runs
+             waitpid(child) → initial SIGTRAP stop (from SEIZE)
+             PTRACE_SYSCALL(child) → continue to execve ENTRY
+             waitpid(child) → execve ENTRY syscall stop (SIGTRAP|0x80)
+             PTRACE_SYSCALL(child) → complete execve, trigger EVENT_EXEC
+             waitpid(child) → PTRACE_EVENT_EXEC stop (new image loaded)
+             PTRACE_SYSCALL(child) → start tracing new program's syscalls
+             waitpid(child) → first syscall entry of new program
+             [ptrace_loop takes over from here]
+```
+
+### Signal vs Syscall Stop Detection
+
+With `PTRACE_O_TRACESYSGOOD`:
+- Syscall stops: `WSTOPSIG(status) == SIGTRAP | 0x80` (137)
+- Signal stops: `WSTOPSIG(status) < 128` (normal signals)
+
+This is cleaner than checking `orig_rax >= 0` and matches the approach used by `strace`.
+
+### PID-1 Supervision Pattern (from iii-init)
+
+The ptrace loop uses `waitpid(-1, __WALL)` instead of `waitpid(child_pid)` to receive stops from all traced processes (including forked children). This follows the iii-init pattern where PID-1 reaps all orphans. Key difference: we track pending_actions per-pid so each traced process has its own entry/exit state machine.
 
 ### Dual Backend Architecture
 
@@ -37,9 +76,8 @@ Both a raw `nix`-based ptrace backend and a `reverie`-based backend are implemen
 ```rust
 /// Shared trait — both backends implement this.
 pub trait SyscallInterceptor: Send + Sync {
-    fn spawn<F: VfsFileSystem>(
+    fn spawn(
         &self,
-        fs: Arc<F>,
         mount_table: MountTable,
         command: &str,
         args: &[&str],
@@ -52,21 +90,21 @@ pub struct InterceptorHandle {
 }
 ```
 
-**nix backend (`vfs-ptrace-nix`)**: Raw `ptrace(2)` via the `nix` crate (`nix::sys::ptrace`). No external framework dependency. Uses `PTRACE_SYSCALL` to trap syscall entry/exit, reads/writes tracee memory via `process_vm_readv`/`process_vm_writev`. More code but zero framework risk.
+**nix backend (`vfs-ptrace-nix`)**: Raw `ptrace(2)` via the `nix` crate. Uses `PTRACE_SEIZE` with `PTRACE_O_TRACESYSGOOD`, `PTRACE_SYSCALL` for entry/exit trapping, `process_vm_readv`/`process_vm_writev` for tracee memory. More code but zero framework risk.
 
-**reverie backend (`vfs-ptrace-reverie`)**: Uses the `reverie` + `reverie-ptrace` crates from Meta (facebookexperimental/reverie). Higher-level API with structured syscall dispatch. Experimental but functional. Pin to a specific version.
+**reverie backend (`vfs-ptrace-reverie`)**: Uses the `reverie` + `reverie-ptrace` crates from Meta. Higher-level API with structured syscall dispatch. Experimental but functional.
 
 ### Module Structure
 
 ```
 src/native/vfs/ptrace/
-    mod.rs              # SyscallInterceptor trait, MountTable, VirtualFdTable, InterceptorHandle
-    mount_table.rs      # Path prefix → VFS backend routing
-    fd_table.rs         # Virtual FD allocation and tracking
+    mod.rs              # SyscallInterceptor trait, MountTable, VirtualFdTable, InterceptorHandle,
+                        # DynFs (type-erased wrapper), ErasedFile/Dir/SeekableFile
     memory.rs           # Tracee memory read/write helpers (process_vm_readv/writev)
-    syscall_dispatch.rs # Shared syscall → VFS method mapping logic
-    nix_backend.rs      # nix-based raw ptrace implementation
-    reverie_backend.rs  # reverie-based implementation
+    nix_backend.rs      # nix-based raw ptrace implementation (PTRACE_SEIZE flow)
+    platform.rs         # errno translation (macOS→Linux), openat2 RESOLVE_BENEATH probe
+    syscall_dispatch.rs # Shared syscall → VFS method mapping logic (used by both backends)
+    reverie_backend.rs  # reverie-based implementation (future)
 ```
 
 ### Reverie Crate Status
@@ -128,20 +166,20 @@ Virtual FDs must not collide with real kernel FDs. Strategy:
 ```rust
 struct VirtualFdTable {
     next_fd: AtomicU64,  // starts at FD_VIRTUAL_BASE (10_000)
-    entries: HashMap<u64, VirtualFdEntry>,
+    entries: Mutex<HashMap<(u32, u64), VirtualFdEntry>>,  // keyed by (pid, fd)
 }
 
 enum VirtualFdEntry {
     File {
-        handle: Box<dyn VfsFile>,
+        handle: ErasedFile,     // Arc<Mutex<Box<dyn VfsFile + Send + Sync>>>
         path: String,
-        offset: u64,  // current seek position
+        offset: Arc<Mutex<u64>>,  // shared across fork for CLONE_FILES
         mode: OpenMode,
     },
     Directory {
-        handle: Box<dyn VfsDirectory>,
+        handle: ErasedDir,      // Arc<Mutex<Box<dyn ErasedDirOps>>>
         path: String,
-        dir_offset: u64,  // getdents offset tracking
+        dir_offset: Arc<Mutex<u64>>,
     },
 }
 ```
@@ -154,10 +192,17 @@ enum VirtualFdEntry {
 When a traced process calls `fork()` or `clone()`:
 
 1. **Reverie/ptrace automatically traces children**: The `PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE | PTRACE_O_TRACEVFORK` options ensure child processes are also traced.
-2. **FD inheritance**: On `fork()`, the child inherits the parent's FD table. Virtual FD entries are cloned (the underlying VfsFile handles are shared via `Arc` or re-opened).
+2. **FD inheritance**: On `fork()`, the child inherits the parent's FD table. Virtual FD entries are cloned (the underlying VfsFile handles are shared via `Arc`).
 3. **Mount table inheritance**: The child process sees the same mount table as the parent. Changes to the mount table by the parent do not affect the child (snapshot semantics).
-4. **Thread handling**: `clone()` with `CLONE_FILES` means the child shares the FD table with the parent (same as threads sharing file descriptors). The virtual FD table must be `Arc<RwLock<...>>` to handle this correctly.
+4. **Thread handling**: `clone()` with `CLONE_FILES` means the child shares the FD table with the parent (same as threads sharing file descriptors). Virtual FD entries use `Arc<Mutex<>>` for thread safety.
 5. **`exec()` handling**: On `execve()`, the FD table is preserved (same as real FDs). `O_CLOEXEC` virtual FDs should be closed.
+
+### Platform Module (from iii-filesystem pattern)
+
+Copied from `iii-filesystem/platform.rs` with adaptations:
+- **errno translation**: 85+ BSD→Linux errno mappings for macOS support
+- **openat2 RESOLVE_BENEATH**: Linux 5.6+ kernel-enforced path containment probe
+- **Error helpers**: `eio()`, `enoent()`, `eexist()` etc. for consistent errno creation
 
 ### Performance Overhead Expectations
 
@@ -180,6 +225,10 @@ Ptrace interception has inherent overhead due to context switches between tracee
 - [x] Define `VirtualFdTable`: tracks virtual FDs keyed by (pid, fd) with Arc-based sharing
 - [x] Define `VirtualFdEntry` enum: File { handle: ErasedFile, path, offset, mode } | Directory { handle: ErasedDir, path, dir_offset }
 - [x] Implement virtual FD allocation: monotonic counter starting at FD_VIRTUAL_BASE (10_000)
+- [x] Implement `DynFs` type-erased filesystem wrapper for heterogeneous mount table
+- [x] Implement `ErasedFile`, `ErasedSeekableFile`, `ErasedDir` (Arc<Mutex> wrappers)
+- [x] Implement blanket `Clone` for `VirtualFdEntry` (shares via Arc)
+- [x] Add `platform.rs`: errno translation, openat2 RESOLVE_BENEATH probe (from iii-filesystem)
 
 ### Tracee Memory Helpers (`src/native/vfs/ptrace/memory.rs`)
 
@@ -201,14 +250,19 @@ Ptrace interception has inherent overhead due to context switches between tracee
   - `unlink`/`unlinkat`/`rmdir`/`mkdir`/`mkdirat`/`rename`/`renameat`/`renameat2` → if virtual path, VFS op; else passthrough
   - `readlink`/`readlinkat`/`symlink`/`symlinkat` → if virtual path, VFS op; else passthrough
   - `lseek`/`truncate`/`ftruncate`/`chmod`/`fchmod` → if virtual, VFS op; else passthrough
+  - `dup`/`dup2`/`dup3` → virtual FD range collision avoidance
+- [x] Add `exit(60)`/`exit_group(231)` passthrough (prevents ptrace loop hang)
 
 ### nix Backend (`src/native/vfs/ptrace/nix_backend.rs`)
 
 - [x] Implement `NixInterceptor` struct implementing `SyscallInterceptor`
-- [x] Implement raw ptrace loop: `PTRACE_TRACEME` on child, `PTRACE_SYSCALL` for entry/exit trapping
+- [x] Implement `PTRACE_SEIZE` flow (replaced PTRACE_TRACEME) with `PTRACE_O_TRACESYSGOOD`
+- [x] Handle execve transition: SEIZE → SYSCALL (entry) → waitpid → SYSCALL (EVENT_EXEC) → SYSCALL (new program)
 - [x] Read syscall number + args from registers (`PTRACE_GETREGS`) on syscall-entry-stop
 - [x] Dispatch to shared syscall handler, modify registers/memory, set return value on syscall-exit-stop
 - [x] Handle `fork`/`clone` propagation via `PTRACE_O_TRACEFORK | PTRACE_O_TRACECLONE | PTRACE_O_TRACEVFORK`
+- [x] Use `waitpid(-1, __WALL)` for PID-1 supervision pattern (iii-init style)
+- [x] Detect syscall vs signal stops via `WSTOPSIG(status) == SIGTRAP | 0x80`
 
 ### reverie Backend (`src/native/vfs/ptrace/reverie_backend.rs`)
 
@@ -237,7 +291,11 @@ Ptrace interception has inherent overhead due to context switches between tracee
 
 ### Tests
 
-- [ ] Test: spawn `cat /virtual/file.txt`, verify output matches VFS content
+- [x] Test: dispatch table correctly identifies virtual vs real paths/FDs
+- [x] Test: mount table routes paths to the right VFS backend
+- [x] Test: virtual FD table allocation and tracking
+- [x] Test: non-filesystem syscalls pass through unmodified
+- [ ] Test: spawn `cat /virtual/file.txt`, verify output matches VFS content (ptrace spawn needs SEIZE flow fix)
 - [ ] Test: spawn process that writes, verify write goes to delta store
 - [ ] Test: spawn process that forks, child inherits virtual FDs
 - [ ] Test: non-virtual paths pass through to real filesystem unchanged

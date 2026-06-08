@@ -6,57 +6,118 @@ Original Notion design notes: "HTML As DataCarrier V2" — early conceptual expl
 
 ---
 
-## 1. Core Philosophy
+## 1.0 Core Ideas: Dom Updates and Rendering
 
-**Return to primal HTML** — enhance it with a minimal runtime (JS or WASM) that transforms presentation markup into real HTML. The page should work as plain HTML, then become interactive when the runtime loads.
+1. Island focused architecture where the wasm or server owns the actual rendering and also is the defactor owner of state updates, the browser / client is simply the presentation layer.
 
-### Three Deployment Modes
+2. Signals are the defacto means of reactivity, and signals dont just live on the client but also come from the server/wasm, state changes are communicated as actions (request either query or body contains: the current state the client was giving, could be a subset for the specific component and the action they want performed), which allows the server receive, process and respond with a response telling the client what to do:
+  a. This could be pure json body that has nothing to do about dom updates, signals and the component has code on the client side to process that it process any how it wants via fetch.
+  b. The server responds with a specific content type indicating its a signal update e.g application/primal+json (for the json updates - the content indicates if its signal or DOM updates), application/primal+event-stream event stream of primal data (signals, doms, state update), this ensures we can clearly indicate when its a primal ui style response and not your regular json or event stream. 
+  
 
-| Mode | How It Works |
-|------|-------------|
-| **Client SPA** | Import core runtime (WASM or JS), render directly in browser. Open an HTML file from filesystem and it works. |
-| **Static Build** | Compiler parses the markup and generates complete static HTML. No runtime needed in browser. |
-| **Server Rendering** | Runtime moves to server. Browser is a shell that sends presentation templates to server, server transforms to HTML, browser merges into page. |
+Everything else is the server or wasm sending html content (optimized via arrow batches) to the browser for zero deserialization and applied updates.
 
-### Key Insight
 
-The same runtime core works across all three modes — WASM for client, compiled Rust for static build, embedded HTTP server or WASM module for server rendering. This enables **single-file websites** (like Deno's "whole website in a single JS file").
+This means it can be from the wasm initialized in the page, in a web worker, in a service worker or from the server.
 
----
+Actions go to the wasm, server, web worker, service worker then gets back html to apply and morph with.
 
-## 2. HTML As DataCarrier
+## 1.1 Event Runtime — Separate from Everything
 
-### The Original Idea (Now Discarded)
+We utilize mutation observers, event bubbling and basic javascript attached to dom nodes that is owned by the html elements in that scope. This is why i want to introduce a special web component.
 
-Early exploration used `{{dotted.notation}}` templates and custom elements like `<mount-data>`, `<for-data>`, `<index>`:
+
+### Events can be attached based on basic html `primal:{event}` attributes
+
+Simple attribute based event attachement, letting users define script tags containing code that gets attached to the window context (or whatever users want).
+
+And tell the component to attach the event to he function referenced in the value, no special process needed, its literally a javascript  reference string that if we use will get the function to call and use it.
 
 ```html
-<mount-data api=/v2/users>
-  <h1>{{user.name.first}} <span>{{user.name.last}}</span></h1>
-  <for-data context="user.schools" as="school">
-    <div><label>Name:</label><span>{{school.name}}</span></div>
-  </for-data>
-</mount-data>
+<script>
+    const showCaseController = {
+         showPage: (ctx: Context, buttonNode: PrimalNode) => {},
+    }
+    window.showCaseController;
+</script>
+
+<button id="show-case-button" primal:onclick="showCaseController.showPage">Click me</button>
 ```
 
-### The Refined Idea (What Actually Matters)
+Or even simpler:
 
-**Discard the template syntax entirely.** Use a Rust `html!` macro that compiles to plain HTML. Normal Rust structs for data, normal Rust loops for iteration. No special syntax in the HTML.
+```html
+<script>
+    const showPage = (ctx: Context, buttonNode: PrimalNode) => {},
+    window.showPage = showPage;
+</script>
+<button primal::on-click="window.showPage" />
+```
+
+We can use mutation observers and as well querySelectorAll to find these and get them wired up.
+
+
+### 
+
+## 2. Components
+. 
+### Scroll or Appearance Observers: react to Scroll
+
+Like Stimulus's `AppearanceObserver` (used by Turbo Frames for `loading="lazy"`), we can allow components to only load themselves when they know they are close to be viewed by the scroll wheel, letting things stay dormant and they load themselves and cache content then materialize it when the scroll will is close to them, further reducing page load cost and requests.
+
+
+### No templates but just plain rust macros creating html
+
+**Discard the templating language syntax entirely.** Use a Rust `html!` macro that compiles to plain HTML. Normal Rust structs for data, normal Rust loops for iteration. No special syntax in the HTML.
 
 ```rust
 html! {
   <div id="users">
-    <h1>{ user.name.first } <span>{ user.name.last }</span></h1>
-    @for school in &user.schools {
-      <div><label>Name:</label><span>{ school.name }</span></div>
-    }
+    <!-- Rust struct fields just get placed in -->
+    <h1>{ self.user.name.first } <span>{ self.user.name.last }</span></h1>
   }
 }
 ```
 
+See more in specifications/39-foundation-wasm-ui/old_features/03-html-templates/feature.md
+
+## Components of Islands - Interactive or Non-Interactive.
+
+These are defined components of island which are dynamic content that pull and expect primal content from the server, and they expect the response sent by the server to be primal style responses:
+
+- Html
+- JSON (signal updates, state update)
+
+They dont care much if its using the primal content type headers, but will treat it as signal, and dom updates based on the structure of the data, this works whether its RPC, HTTP response, SSE event streams.
+
+We utilize mutation observers, event bubbling and basic javascript attached to dom nodes that is owned by the html elements in that scope. This is why i want to introduce a special web component.
+
+```html
+<island>
+    <div>...</div>
+    <style></style>
+    <script>
+        // the island injects a scope() function that will focus down all operations to just its own children. This allows users still refer to the dom, but use scope() specifically to focus on just whats in the content the island contains.
+        let div = scope().querySelector("div");
+
+        // helper functions that makes event attachement easier and simple.
+        addEvent(div, "onClick", () => {...})
+    </script>
+</island
+```
+
+Where the island will have a created web  component representing the island and it will take care of scoping the csss and script  to anything within its children. This can be shadow dom or basic html parents.
+
+You will notice its all standard html, nothing special, no templating process, wasm or server can return this and the js already just has the custom element / web component defined to handle this.
+
+It can contain all other components that get perform other operations with the server/wasm or in the page, can be web components themselves.
+
+
+### Decision 1: Dynamic Content Templating is a  NOGO
+
 The output is **plain HTML** — no `{{}}`, no `<for-data>` tags. The browser sees normal HTML. The Rust code that generated it uses normal language constructs.
 
-### `<mount-ui />` — The Materialization Tag
+### Component 1: `<mount-ui />` — The Materialization Tag
 
 ```html
 <mount-ui api="/v2/users" />
@@ -69,7 +130,7 @@ This is the one custom element that matters. It tells the runtime:
 
 The response can itself contain `<mount-ui />` tags for nested lazy loading.
 
-### `<mount-data />` — The Input Tag
+### Component 2:  `<mount-data />` — The Input Tag
 
 ```html
 <mount-data api="/v2/users" method="POST" data="{...}" />
@@ -81,248 +142,6 @@ This is the interaction model — users supply input, the server returns what ne
 
 ---
 
-## 3. Script-Level Functions & Event Binding
-
-### The Original Idea
-
-```html
-<script>
-    const showCaseController = {
-         showPage: (ctx: Context, buttonNode: PrimalNode) => {},
-    }
-</script>
-
-<button id="show-case-button" primal:onclick="showCaseController.showPage">Click me</button>
-```
-
-Or even simpler:
-
-```html
-<button controller="showPage" />
-```
-
-Where:
-- **For events** (`primal:onclick`): The function is called when the event occurs
-- **For controllers** (`controller="..."`): The function is called immediately on page load, so it can set up the DOM element (e.g., bind signals)
-
-### How This Maps to What We've Learned
-
-This is **exactly Stimulus's model**, simplified:
-
-| Primal (Original) | Stimulus | Our WASM-UI |
-|---|---|---|
-| `primal:onclick="controller.method"` | `data-action="click->controller#method"` | Signal binding or JS event delegation |
-| `controller="setupMethod"` | `data-controller="controller"` (connects on load) | Component trait `connect()` lifecycle |
-| `showPage(ctx, node)` | `connect() { this.element }` | Rust Component trait with element reference |
-| Script-level object on `window` | ES module registered with Application | WASM function registry |
-
-### What Works
-
-1. **MutationObserver for discovery** — Use Stimulus's pattern: one `MutationObserver` on the document, scan for `primal:onclick` (or whatever attribute), wire up event listeners.
-
-2. **No expression parsing** — The attribute value is just a dotted path (`showCaseController.showPage`). No template language, no eval, no complex syntax. Just resolve the function and call it with `(event, element)`.
-
-3. **Auto-registration** — A `<script>` tag that defines `window.showCaseController` is all that's needed. The MutationObserver picks up elements with `primal:onclick`, resolves the function, wires it up.
-
-4. **Immediate invocation for controllers** — When an element has `controller="..."`, call the function immediately. This is the Stimulus `connect()` lifecycle — the controller can set up signals, bind event listeners, initialize state.
-
-### What to Simplify
-
-The original idea had `PrimalNode` with `dom`, `vdom`, `value` — a VNode abstraction. **This is unnecessary.** The function receives the real DOM `Element` and an event object. No VNode layer needed.
-
----
-
-## 4. Island Controllers vs Element Controllers
-
-### The Split
-
-The original design broke components into two pieces:
-
-**Island Controllers** — Stateful, self-contained portions of reactivity:
-```rust
-struct UserDetailIsland {
-    // Business logic for a section of the page
-}
-```
-
-**Element Controllers** — Stateless enhancements for specific elements:
-```html
-<x-button>
-    <title>show user</title>
-    <on-click>
-        <mount-api endpoint="/user/1" as="user">
-            <popup-modal>...</popup-modal>
-        </mount-api>
-    </on-click>
-</x-button>
-```
-
-### What This Maps To
-
-| Original Concept | Stimulus Equivalent | Our WASM-UI |
-|---|---|---|
-| Island Controller | Stimulus Controller with state | Component trait + Signal<T> |
-| Element Controller | Custom element / web component | Headless UI component (Feature 08) |
-| `<x-button>` as element controller | Stimulus controller on `<button>` | `html!` macro → `<button>` with bindings |
-| Portal / island scoping | `data-controller` scope | Component root element with shadow DOM |
-
-### The Key Insight
-
-**Don't over-engineer custom elements.** `<x-button>` is just `<button>` enhanced with bindings. The `html!` macro in Rust produces real `<button>` HTML. The WASM runtime wires up the behavior. No custom element registration needed for most cases.
-
-Custom elements (Feature 05) are only needed for the **web component boundary** — shadow DOM encapsulation, lifecycle callbacks. Most UI elements don't need shadow DOM.
-
----
-
-## 5. Portals — Scoped Activation
-
-### The Original Idea
-
-```html
-<portal id="component-title-section">
-    <section>
-        <h3>Title</h3>
-        <x-button>...</x-button>
-    </section>
-    <script src="x-button.js" />
-    <data>{}</data>
-</portal>
-```
-
-Portals scope component activation to only things within the `<portal>` tag. They can contain:
-- **`<portal-data>`** — Initial data for hydration
-- **`<script>`** — Component definitions loaded on demand
-- **Lazy loading** — Scripts only activate when portal scrolls into view
-
-### What This Maps To
-
-This is the **islands architecture** (Astro, Qwik). Each portal is an island:
-- Self-contained section of the page
-- Has its own data and scripts
-- Can be lazily hydrated (IntersectionObserver triggers loading)
-
-**In our WASM-UI**: A Component (Feature 01/05) is a portal. It has:
-- A root element (the portal boundary)
-- Signal state (the `<portal-data>`)
-- WASM logic (the `<script>`)
-- Lifecycle hooks (connect/disconnect, like Stimulus)
-
-### Lazy Loading
-
-The idea of loading scripts only when scrolled into view maps to:
-- Stimulus's `AppearanceObserver` (used by Turbo Frames for `loading="lazy"`)
-- Our web component's `connectedCallback` + IntersectionObserver
-- WASM module lazy loading via dynamic import
-
----
-
-## 6. Event Runtime — Separate from Everything
-
-### The Original Idea
-
-> "The activation of behaviours for interaction, execution or activation must be separate and on the JS side"
-
-A central event runtime that:
-1. Manages triggering events for DOM elements based on user activation
-2. Elements indicate by attribute what should be done (`primal:onclick`, `primal:onpress`)
-3. Delegates to a central runtime that knows what to call
-4. No complex parsing syntax — just dotted path resolution
-
-### What This Maps To
-
-This is **Stimulus's Dispatcher** + **HTMX's event-driven model**:
-
-- Stimulus: One `EventListener` per (target, event) combo, multiple bindings share it
-- HTMX: `hx-on:click="..."` inline event handlers, resolved at runtime
-
-**In our WASM-UI**: The JS runtime (`foundation-wasm-ui.js`) has an event dispatcher that:
-1. Listens for events at the root (delegation)
-2. When an event fires, looks up the handler by attribute value
-3. Calls the WASM function with `(event, element)`
-4. WASM handles the logic, returns DOM updates via Arrow batch
-
----
-
-## 7. JIT Compilation vs Build Step
-
-### The Original Idea
-
-Two modes for preparing the presentation markup:
-1. **JIT in browser** — First page load compiles the markup into an internal representation, checksums it, re-compiles if it changes
-2. **Build step** — Pre-compile everything, ready the page for speed without browser overhead
-
-### What This Maps To
-
-In our WASM-UI:
-- **JIT**: The Rust `html!` macro compiles at build time (no runtime JIT needed). The WASM binary is the pre-compiled representation.
-- **Build step**: Static site generation — run the WASM at build time, produce static HTML files.
-
-The original concern about "cost of transformation every time" is solved by **compiling to WASM** — the transformation happens once at compile time, not at runtime.
-
----
-
-## 8. Dual Rendering Modes
-
-### Client-Rendered
-
-```
-Browser → WASM renders → DOM updates via Arrow batches → morphing
-```
-
-The client owns all state. Server returns data, WASM renders it.
-
-### Server-Rendered
-
-```
-Browser → sends interaction → Server renders HTML → browser morphs DOM
-```
-
-The browser is a forwarding proxy. Portal controller identifies a route, delivers triggers to server, server decides how to handle updates.
-
-### What We've Learned
-
-Datastar, Livewire, and HTMX all prove the server-rendered model works well:
-- **HTMX**: `hx-get="/api/data"` → server returns HTML → swap into DOM
-- **Livewire**: User interaction → server re-renders → Alpine morphs DOM
-- **Datastar**: SSE stream → `patch-elements` → morph DOM
-
-Our WASM-UI supports **both modes**:
-- **Client mode**: WASM handles rendering, server returns data (JSON/Arrow)
-- **Server mode**: Server returns HTML, WASM morphs DOM (using the morph module from Feature 02/learnings)
-
----
-
-## 9. What to Keep, What to Discard
-
-### Keep (These Ideas Are Good)
-
-| Idea | Why | Maps To |
-|------|-----|---------|
-| **Plain HTML on the page** | Works without JS, progressive enhancement | `html!` macro output |
-| **`<mount-ui />` materialization tag** | Clean lazy loading boundary | Web component base (Feature 05) |
-| **`<mount-data />` for POST/PUT/DELETE** | Natural HTTP interaction | SSE stream actions + Arrow batches |
-| **Script-level functions** | Simple, no framework needed | WASM function registry |
-| **`primal:onclick="path.to.func"`** | No expression parsing needed | Event delegation in JS runtime |
-| **Controller auto-connect on load** | Stimulus pattern, works well | Component `connect()` lifecycle |
-| **Island scoping** | Lazy loading, self-contained | Component root + shadow DOM |
-| **Server returns HTML or JSON changes** | Flexibility, like Datastar | Arrow batches (JSON alternative) |
-| **Event runtime separate from everything** | Clean separation | JS event delegation + WASM handlers |
-| **No VNode layer** | Real DOM, no virtual tree | Direct DOM updates via Arrow batches |
-
-### Discard (These Ideas Are Over-Engineered)
-
-| Idea | Why Discard | Simpler Alternative |
-|------|------------|-------------------|
-| **`{{dotted.notation}}` templates** | Custom syntax, parser needed | Rust `html!` macro with `{expr}` |
-| **`<for-data>` custom elements** | Custom element overhead | Rust `for` loops in `html!` macro |
-| **`<mount-api>` / `<mount-data>` as nested elements** | Complex nesting | HTTP endpoint returns HTML with `<mount-ui>` tags |
-| **`PrimalNode` with VNode/PNode abstraction** | Unnecessary indirection | Real DOM `Element` reference |
-| **`<portal-data>` JSON blocks in HTML** | Inline data in HTML is fragile | Server sends data, WASM manages state |
-| **`<on-click>` as child element of button** | Non-standard HTML structure | `primal:onclick` attribute |
-| **JIT compilation in browser** | WASM is already compiled | Build-time WASM compilation |
-| **Component checksums for change detection** | Over-engineered | Standard WASM module versioning |
-| **`<popup-onclick>` custom elements** | Every interaction as custom element | `primal:onclick` + function |
-| **ElementController as functions returning HTML** | Functions returning HTML = templates | `html!` macro already does this |
 
 ---
 

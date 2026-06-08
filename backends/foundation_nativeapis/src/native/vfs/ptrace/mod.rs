@@ -14,10 +14,9 @@ use crate::shared::vfs::traits::{SeekableVfsFile, VfsDirectory, VfsFile, VfsFile
 use crate::shared::vfs::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
 
 pub mod memory;
-pub mod syscall_dispatch;
-
-#[cfg(target_os = "linux")]
 pub mod nix_backend;
+pub mod platform;
+pub mod syscall_dispatch;
 
 // ── Syscall numbers (x86_64 Linux) ──
 

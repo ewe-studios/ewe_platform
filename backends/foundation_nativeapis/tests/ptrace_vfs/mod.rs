@@ -196,7 +196,6 @@ fn test_spawn_echo_with_args() {
 }
 
 #[test]
-#[ignore = "ptrace exit code handling needs refinement"]
 fn test_spawn_false_exits_nonzero() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
@@ -218,7 +217,6 @@ fn test_spawn_nonexistent_fails() {
 }
 
 #[test]
-#[ignore = "ptrace fork/clone handling needs refinement"]
 fn test_spawn_pipe_chain() {
     // Verify non-fs syscalls (pipe, dup, etc.) pass through normally
     let i = NixInterceptor::new();
@@ -228,7 +226,6 @@ fn test_spawn_pipe_chain() {
 }
 
 #[test]
-#[ignore = "ptrace fork/clone handling needs refinement"]
 fn test_spawn_can_write_to_real_fs() {
     // Verify the child can write to the real filesystem (passthrough)
     let i = NixInterceptor::new();
@@ -243,7 +240,6 @@ fn test_spawn_can_write_to_real_fs() {
 }
 
 #[test]
-#[ignore = "ptrace multi-process handling needs refinement"]
 fn test_spawn_multiple_children() {
     let i = NixInterceptor::new();
     let mt = MountTable::new();
