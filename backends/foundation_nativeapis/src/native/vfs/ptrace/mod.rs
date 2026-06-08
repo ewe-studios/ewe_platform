@@ -7,6 +7,8 @@ use std::collections::HashMap;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::{Arc, Mutex};
 
+use nix::libc;
+
 use foundation_errstacks::ErrorTrace;
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
@@ -437,6 +439,7 @@ pub enum VirtualFdEntry {
         path: String,
         offset: Arc<Mutex<u64>>,
         mode: OpenMode,
+        flags: i32,
     },
     Directory {
         handle: ErasedDir,
@@ -448,10 +451,11 @@ pub enum VirtualFdEntry {
 impl Clone for VirtualFdEntry {
     fn clone(&self) -> Self {
         match self {
-            VirtualFdEntry::File { handle, path, offset, mode } => {
+            VirtualFdEntry::File { handle, path, offset, mode, flags } => {
                 VirtualFdEntry::File {
                     handle: ErasedFile(Arc::clone(&handle.0)),
                     path: path.clone(), offset: Arc::clone(offset), mode: *mode,
+                    flags: *flags,
                 }
             }
             VirtualFdEntry::Directory { handle, path, dir_offset } => {
@@ -504,9 +508,21 @@ impl VirtualFdTable {
         for (key, entry) in clones { entries.insert(key, entry); }
     }
 
-    /// Close all virtual FDs for a process (on exec).
+    /// Close all virtual FDs for a process (on exit).
     pub fn close_all(&self, pid: u32) {
         let mut entries = self.entries.lock().unwrap();
         entries.retain(|(p, _), _| *p != pid);
+    }
+
+    /// Close virtual FDs with O_CLOEXEC set (on exec).
+    pub fn close_cloexec(&self, pid: u32) {
+        let mut entries = self.entries.lock().unwrap();
+        entries.retain(|(p, _), entry| {
+            if *p != pid { return true; }
+            match entry {
+                VirtualFdEntry::File { flags, .. } => *flags & libc::O_CLOEXEC == 0,
+                VirtualFdEntry::Directory { .. } => true,
+            }
+        });
     }
 }

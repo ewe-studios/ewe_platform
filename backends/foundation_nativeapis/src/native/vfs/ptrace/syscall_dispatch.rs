@@ -260,6 +260,13 @@ fn handle_open(
     };
 
     let mode = flags_to_open_mode(flags);
+
+    if flags & libc::O_CREAT != 0 && flags & libc::O_EXCL != 0 {
+        if fs.exists(&path).unwrap_or(false) {
+            return SyscallAction::skip_error(libc::EEXIST as i64);
+        }
+    }
+
     let result = if flags & libc::O_CREAT != 0 {
         fs.create(&path, flags_to_perm(flags))
     } else {
@@ -274,6 +281,7 @@ fn handle_open(
                 path,
                 offset: Arc::new(Mutex::new(0)),
                 mode,
+                flags,
             });
             SyscallAction::skip(vfd as i64)
         }
@@ -306,6 +314,13 @@ fn handle_openat(
     };
 
     let mode = flags_to_open_mode(flags);
+
+    if flags & libc::O_CREAT != 0 && flags & libc::O_EXCL != 0 {
+        if fs.exists(&path).unwrap_or(false) {
+            return SyscallAction::skip_error(libc::EEXIST as i64);
+        }
+    }
+
     let result = if flags & libc::O_CREAT != 0 {
         fs.create(&path, flags_to_perm(flags))
     } else {
@@ -316,7 +331,7 @@ fn handle_openat(
         Ok(file) => {
             let vfd = fd_table.alloc_fd();
             fd_table.insert(pid.as_raw() as u32, vfd, VirtualFdEntry::File {
-                handle: file, path, offset: Arc::new(Mutex::new(0)), mode,
+                handle: file, path, offset: Arc::new(Mutex::new(0)), mode, flags,
             });
             SyscallAction::skip(vfd as i64)
         }
@@ -350,6 +365,7 @@ fn handle_creat(
             let vfd = fd_table.alloc_fd();
             fd_table.insert(pid.as_raw() as u32, vfd, VirtualFdEntry::File {
                 handle: file, path, offset: Arc::new(Mutex::new(0)), mode: OpenMode::Write,
+                flags: libc::O_CREAT | libc::O_WRONLY | libc::O_TRUNC,
             });
             SyscallAction::skip(vfd as i64)
         }
@@ -1150,10 +1166,20 @@ fn flags_to_perm(flags: i32) -> u32 {
     ((flags >> 16) & 0o777) as u32
 }
 
-fn vfs_error_to_errno(_e: &ErrorTrace<VfsError>) -> i64 {
-    // Map VfsError variants to errno values.
-    // For now, return EIO (general I/O error).
-    // A more complete implementation would match on VfsError variants:
-    //   NotFound → ENOENT, AlreadyExists → EEXIST, PermissionDenied → EACCES, etc.
-    libc::EIO as i64
+fn vfs_error_to_errno(e: &ErrorTrace<VfsError>) -> i64 {
+    match e.current_context() {
+        VfsError::NotFound { .. } => libc::ENOENT as i64,
+        VfsError::AlreadyExists { .. } => libc::EEXIST as i64,
+        VfsError::PermissionDenied { .. } => libc::EACCES as i64,
+        VfsError::NotAFile { .. } => libc::EISDIR as i64,
+        VfsError::NotADirectory { .. } => libc::ENOTDIR as i64,
+        VfsError::Unsupported { .. } => libc::ENOSYS as i64,
+        VfsError::InvalidPath { .. } => libc::EINVAL as i64,
+        VfsError::ReadOnly => libc::EROFS as i64,
+        VfsError::EntryPending { .. } => libc::EAGAIN as i64,
+        VfsError::SymlinkLoop { .. } => libc::ELOOP as i64,
+        VfsError::DirectoryNotEmpty { .. } => libc::ENOTEMPTY as i64,
+        VfsError::NotASymlink { .. } => libc::EINVAL as i64,
+        _ => libc::EIO as i64,
+    }
 }

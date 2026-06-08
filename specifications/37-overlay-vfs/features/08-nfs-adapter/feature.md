@@ -1,6 +1,6 @@
 ---
 feature_name: "NFS Adapter"
-description: "NfsMount — NFS v3 loopback server exposing VfsFileSystem as a mount on macOS. No kernel extension required."
+description: "NfsMount — NFS v3 loopback server exposing VfsFileSystem as a mount on Linux and macOS. No kernel extension required."
 status: "pending"
 priority: "medium"
 phase: 4
@@ -25,7 +25,7 @@ All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTra
 
 ## Overview
 
-macOS alternative to FUSE. Runs an NFS v3 server on loopback, mounted via `mount_nfs`. No kernel extension (kext) needed — works with Apple's security model. Inspired by AgentFS's macOS mounting strategy.
+Cross-platform alternative to FUSE. Runs an NFS v3 server on loopback, mounted via `mount_nfs` (macOS) or `mount -t nfs` (Linux). No kernel extension (kext) needed on macOS — works with Apple's security model. On Linux, provides an alternative to FUSE when FUSE is unavailable or when NFS mount semantics are preferred. Inspired by AgentFS's macOS mounting strategy.
 
 Feature-gated behind `vfs-nfs`.
 

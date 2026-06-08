@@ -1,7 +1,7 @@
 ---
 feature_name: "LD_PRELOAD VFS Shim"
 description: "Shared library (.so/.dylib) that intercepts libc filesystem calls via LD_PRELOAD (Linux) / DYLD_INSERT_LIBRARIES (macOS), redirecting configured paths to a VFS daemon over IPC. Semi-transparent — works for dynamically linked applications without FUSE or kernel modules."
-status: "pending"
+status: "in-progress"
 priority: "low"
 phase: 5
 created: 2026-06-04

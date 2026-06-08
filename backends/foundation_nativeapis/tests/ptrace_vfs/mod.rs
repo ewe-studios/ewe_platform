@@ -15,10 +15,12 @@ use std::sync::Arc;
 use foundation_nativeapis::native::vfs::ptrace::{
     nix_backend::NixInterceptor,
     syscall_dispatch::{on_syscall_entry, SyscallAction, SyscallArgs},
-    DynFs, MountTable, VirtualFdTable, SyscallInterceptor,
+    DynFs, ErasedFile, MountTable, VirtualFdEntry, VirtualFdTable, SyscallInterceptor,
 };
+use foundation_nativeapis::shared::vfs::types::OpenMode;
 use foundation_nativeapis::native::vfs::NativeFs;
 use foundation_nativeapis::shared::vfs::MemoryFs;
+use foundation_nativeapis::shared::vfs::VfsFileSystem;
 
 // ── Helpers ──
 
@@ -174,6 +176,81 @@ fn test_is_virtual_fd() {
     assert!(VirtualFdTable::is_virtual_fd(99_999));
     assert!(!VirtualFdTable::is_virtual_fd(0));
     assert!(!VirtualFdTable::is_virtual_fd(9_999));
+}
+
+// ── Virtual file I/O ──
+
+#[test]
+fn test_virtual_fd_insert_and_read() {
+    use std::sync::Mutex;
+
+    let fs = MemoryFs::new();
+    fs.write_file("/hello.txt", b"virtual content").unwrap();
+
+    let fd_table = VirtualFdTable::new();
+    let file = fs.open("/hello.txt", OpenMode::Read).unwrap();
+    let erased = ErasedFile::new(file);
+    let vfd = fd_table.alloc_fd();
+    fd_table.insert(1, vfd, VirtualFdEntry::File {
+        handle: erased,
+        path: "/hello.txt".into(),
+        offset: Arc::new(Mutex::new(0)),
+        mode: OpenMode::Read,
+        flags: 0,
+    });
+
+    let entry = fd_table.get(1, vfd).expect("should have entry");
+    match entry {
+        VirtualFdEntry::File { handle, .. } => {
+            let mut buf = vec![0u8; 64];
+            let n = handle.read_at(&mut buf, 0).unwrap();
+            assert_eq!(&buf[..n], b"virtual content");
+        }
+        _ => panic!("expected File entry"),
+    }
+}
+
+#[test]
+fn test_virtual_fd_write_and_readback() {
+    use std::sync::Mutex;
+
+    let fs = MemoryFs::new();
+    fs.mkdir("/dir").unwrap();
+    fs.write_file("/dir/out.txt", b"").unwrap();
+
+    let file = fs.open("/dir/out.txt", OpenMode::ReadWrite).unwrap();
+    let erased = ErasedFile::new(file);
+    let fd_table = VirtualFdTable::new();
+    let vfd = fd_table.alloc_fd();
+    fd_table.insert(1, vfd, VirtualFdEntry::File {
+        handle: erased,
+        path: "/dir/out.txt".into(),
+        offset: Arc::new(Mutex::new(0)),
+        mode: OpenMode::ReadWrite,
+        flags: 0,
+    });
+
+    let entry = fd_table.get(1, vfd).unwrap();
+    match entry {
+        VirtualFdEntry::File { handle, .. } => {
+            handle.write_at(b"written by test", 0).unwrap();
+        }
+        _ => panic!("expected File entry"),
+    }
+
+    let content = fs.read_file("/dir/out.txt").unwrap();
+    assert_eq!(&content, b"written by test");
+}
+
+#[test]
+fn test_virtual_fd_range_no_collision() {
+    let fd_table = VirtualFdTable::new();
+
+    for _ in 0..100 {
+        let vfd = fd_table.alloc_fd();
+        assert!(vfd >= 10_000, "virtual FD {vfd} below base");
+        assert!(!((0..1000).contains(&(vfd as u32))), "virtual FD {vfd} in real range");
+    }
 }
 
 // ── NixInterceptor: spawn + wait ──

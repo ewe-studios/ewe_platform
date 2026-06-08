@@ -252,6 +252,7 @@ fn ptrace_loop(
                         ptrace::syscall(pid, None).ok();
                     }
                     libc::PTRACE_EVENT_EXEC => {
+                        fd_table.close_cloexec(pid.as_raw() as u32);
                         ptrace::syscall(pid, None).ok();
                     }
                     libc::PTRACE_EVENT_EXIT => {
