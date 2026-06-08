@@ -139,13 +139,14 @@ Based on dependencies, the working order should be:
 
 | Phase | Feature | Depends On |
 |-------|---------|------------|
+| 0 | Crate split + JS runtime rewrite (015) | None |
 | 1 | `foundation_ui_traits` (shared types: IntoHtml, Html, Part, DomOp) | None |
 | 2 | Signal system (`foundation_signals`) | 1 |
 | 3 | `html!` macro | 1 |
 | 4 | `InstructionReceiver` | 1, 2 |
 | 5 | Arrow encoding (17 ops + MORPH_NODE) | 1, 4 |
-| 6 | JS runtime core (`foundation-wasm.js`) | None |
-| 7 | JS runtime UI (`foundation-wasm-ui.js`) | 6 |
+| 6 | JS runtime core (`foundation-wasm.js`) | 0 |
+| 7 | JS runtime UI (`foundation-wasm-ui.js`) | 0, 6 |
 | 8 | Web components (island, mount-data, mount-stream) | 7 |
 | 9 | DOM morphing (MorphDom) | 5, 7 |
 | 10 | Event runtime (binding, MutationObserver) | 7 |
@@ -158,7 +159,8 @@ Based on dependencies, the working order should be:
 
 | Phase | Features | Focus |
 |-------|----------|-------|
-| Foundation (Rust) | 01, 02, 03, 04, 05 | Types, signals, macro, batching, encoding |
+| Foundation | 00, 01 | Crate split, shared types |
+| Rust Core | 02, 03, 04, 05 | Signals, macro, batching, Arrow encoding |
 | JS Runtime | 06, 07 | foundation-wasm.js + foundation-wasm-ui.js |
 | Web Components & DOM | 08, 09, 10 | Islands, mounts, morphing, events |
 | Styling | 11 | Scoped CSS, theme generation |
