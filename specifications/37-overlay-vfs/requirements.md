@@ -24,10 +24,10 @@ builds_on:
 related_specs:
   - "specifications/34-native-file-watchers"
 tasks:
-  completed: 19
-  uncompleted: 9
+  completed: 20
+  uncompleted: 8
   total: 28
-  completion_percentage: 68%
+  completion_percentage: 71%
 ---
 
 # OverlayFileSystem — Cross-Platform Virtual File System

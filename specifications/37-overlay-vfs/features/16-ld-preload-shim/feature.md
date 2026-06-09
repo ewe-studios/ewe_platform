@@ -1,6 +1,6 @@
 ---
 feature_name: "LD_PRELOAD VFS Shim"
-description: "Shared library (.so/.dylib) that intercepts libc filesystem calls via LD_PRELOAD (Linux) / DYLD_INSERT_LIBRARIES (macOS), redirecting configured paths through OverlayFileSystem with pluggable delta stores (memory, sqlite, turso, dir, d1, r2). Integrated into foundation_nativeapis crate as a feature-gated cdylib."
+description: "Shared library (cdylib) integrated into foundation_nativeapis (.so/.dylib) that intercepts libc filesystem calls via LD_PRELOAD (Linux) / DYLD_INSERT_LIBRARIES (macOS), redirecting configured paths through OverlayFileSystem with pluggable delta stores (memory, sqlite, turso, dir, d1, r2). Integrated into foundation_nativeapis crate as a feature-gated cdylib."
 status: "in-progress"
 priority: "low"
 phase: 5

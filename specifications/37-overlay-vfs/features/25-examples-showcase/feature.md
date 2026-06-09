@@ -19,7 +19,7 @@ dependencies:
   - "18-scaffold-macro"
   - "23-inode-native-vfs"
 tasks:
-  completed: 15
+  completed: 16
   uncompleted: 6
   total: 21
   completion_percentage: 71%
