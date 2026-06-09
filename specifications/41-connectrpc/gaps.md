@@ -30,9 +30,69 @@ The `Serve` trait returns `ConnectionResult` after the handler completes. `Serve
 **Affects:** Decision 01, 05
 `SimpleHttpClient` only supports HTTP/1.1. Response rendering is hardcoded to HTTP/1.1 wire format. gRPC protocol requires HTTP/2. Decision 01 acknowledges this and proposes Phase 2 with the `h2` crate. This also blocks true full-duplex bidi streaming.
 
+#### B5a. What's already protocol-agnostic (works for HTTP/2 as-is)
+- `SimpleIncomingRequest` / `SimpleOutgoingResponse` carry a `Proto` field; `Proto::HTTP20` variant exists but is unused.
+- `SendSafeBody` enum is protocol-agnostic — works with any HTTP version.
+- `Serve` / `ServeWriter` handler traits receive `SimpleIncomingRequest` with no HTTP/1.1 assumption.
+- Router and middleware are generic, no protocol constraints.
+
+#### B5b. What's hardcoded to HTTP/1.1 in foundation_netio
+1. **Text-based request parsing** (`impls.rs:3156-3417`): `HttpRequestReader` assumes `METHOD URI HTTP/1.1\r\n` text format. HTTP/2 uses binary 9-byte frame headers + HPACK-compressed pseudo-headers (`:method`, `:path`, `:scheme`, `:authority`). A new `Http2FrameDecoder` is needed alongside the text parser.
+2. **Text-based response rendering** (`impls.rs:2013-2072`): `Http11RequestDescriptorIterator` hardcodes `"{METHOD} {PATH} HTTP/1.1\r\n"`. HTTP/2 needs binary HEADERS frames with HPACK encoding. Need `Http2FrameEncoder`.
+3. **`HTTPStreams<T>` factory** (`impls.rs:5456-5487`): `next_request()` / `next_response()` can only create HTTP/1.1 readers. Must branch on negotiated protocol.
+4. **No ALPN in TLS** (`netcap/ssl/mod.rs:23-86`): rustls 0.23 supports ALPN via `set_protocols(&[b"h2", b"http/1.1"])` but it's not wired. Without ALPN, clients can't negotiate `h2` over TLS. Also no h2c detection (the `PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n` magic prefix for cleartext HTTP/2).
+5. **HTTP client is single-request-per-connection** (`simple_http/client/native/`): No multiplexing. HTTP/2 allows hundreds of concurrent streams on one TCP connection.
+
+#### B5c. What's hardcoded to HTTP/1.1 in foundation_http
+1. **Sequential connection handler** (`native/server/connection.rs:56-250`): `ConnectionHandler` state machine is `Idle → CheckExpect → WaitingForBody → Processing → loop`. One request at a time per connection. HTTP/2 needs per-stream state machines with concurrent dispatch to the router.
+2. **100-Continue handling** (`connection.rs:34-45, 117-158`): Hardcoded to HTTP/1.1 interim response semantics. HTTP/2 uses RST_STREAM, not 100-continue.
+3. **Response rendering** (`shared/serve/mod.rs:146-165`): `render_response()` hardcodes `Http11::response(response).http_render_to_writer(conn)`. Needs a protocol branch.
+
+#### B5d. What HTTP/2 support requires (3 subsystems in netio, 2 in http)
+
+**foundation_netio — 3 new subsystems:**
+1. **Binary frame codec**: 9-byte frame headers, HPACK header compression/decompression table, frame type dispatch (DATA, HEADERS, PRIORITY, RST_STREAM, SETTINGS, PUSH_PROMISE, PING, GOAWAY, WINDOW_UPDATE, CONTINUATION). Recommended: use the `h2` crate which handles all of this.
+2. **ALPN wiring in TLS**: Configure rustls `ServerConfig` / `ClientConfig` with `set_protocols(&[b"h2", b"http/1.1"])`. Detect negotiated protocol after TLS handshake. Also detect h2c via magic prefix on cleartext connections.
+3. **Stream multiplexer**: Track concurrent streams by stream ID, per-stream and per-connection flow control windows, stream priority/dependency graph, RST_STREAM handling, GOAWAY for graceful shutdown.
+
+**foundation_http — 2 major changes:**
+1. **Multi-stream connection handler**: After ALPN selects `h2`, hand the socket to the `h2` crate's `server::handshake()`. Bridge `h2::RecvStream` / `h2::SendStream` into `SimpleIncomingRequest` / `SimpleOutgoingResponse`. Each HTTP/2 stream dispatches independently to the router. The key integration point is `ConnectionHandler` — it needs a branch: h2 crate for HTTP/2, existing state machine for HTTP/1.1.
+2. **SETTINGS exchange & flow control**: HTTP/2 connections start with a SETTINGS frame handshake. Flow control is per-stream and per-connection. The `h2` crate manages this, but foundation_http must expose configuration (max concurrent streams, initial window size, max frame size).
+
+#### B5e. Recommended approach: Fork h2 internals, rewrite tokio-free
+The `h2` crate is the most mature HTTP/2 implementation in Rust, but it depends on tokio (`AsyncRead`/`AsyncWrite`, tokio runtime context). This conflicts with Valtron's progress-driven async model — bringing in tokio means two competing executors.
+
+**Approach:** Bring in the `h2` crate's source and rewrite it to remove all tokio dependencies. The core logic (HPACK header compression, binary frame codec, flow control state machine, stream multiplexing) is not inherently async — it's layered on top of tokio's `AsyncRead`/`AsyncWrite`. Replace those with synchronous `Read`/`Write` on `SharedByteBufferStream<RawStream>`, or with Valtron's iterator-based streaming model. The result is a platform-owned HTTP/2 implementation that fits naturally into the existing connection handling.
+
+**What to extract from h2:**
+- HPACK encoder/decoder (header compression table, Huffman coding)
+- Frame codec (9-byte frame headers, frame type dispatch, continuation handling)
+- Flow control arithmetic (per-stream and per-connection window tracking)
+- Stream state machine (idle → open → half-closed → closed)
+- Settings negotiation logic
+- Priority/dependency tree (optional, can defer)
+
+**What to replace:**
+- `tokio::io::AsyncRead` / `AsyncWrite` → `std::io::Read` / `Write` on `SharedByteBufferStream<RawStream>`
+- `tokio::sync` channels → Valtron's `ConcurrentQueueStreamIterator` or crossbeam channels
+- `Future`/`Poll`-based state machines → iterator-based state machines matching `HttpRequestReader` pattern
+- Connection handshake → synchronous SETTINGS exchange in `ConnectionHandler`
+
+**Integration point:** `ConnectionHandler` in foundation_http branches after protocol detection: HTTP/1.1 uses existing text parser, HTTP/2 uses the rewritten frame codec. Both paths produce `SimpleIncomingRequest` and consume `SimpleOutgoingResponse`. The `HTTPStreams<T>` factory (B8) creates the appropriate reader/writer pair.
+
+**Estimated scope:** 5-8 features (larger than wrapping h2 as-is, but avoids the tokio dependency and gives full control). Can be phased: (1) frame codec + HPACK, (2) server-side stream multiplexer, (3) client-side multiplexer, (4) flow control tuning.
+
 ### B6. Client-side body streaming is request-at-once (SIGNIFICANT)
 **Affects:** Decision 07
 connect-go's `duplexHTTPCall` uses `io.Pipe` to stream request body concurrently with reading the response. Foundation's HTTP client builds the full request, sends it, then reads the response. There is no pipe equivalent. Client streaming and bidi RPCs require sending request body chunks while simultaneously receiving response chunks. `SendSafeBody::Stream` iterator is consumed during request rendering with no mechanism to push new data after the request starts sending.
+
+### B7. No ALPN negotiation in TLS layer (CRITICAL for HTTP/2)
+**Affects:** Decision 01, 05
+TLS backend selection (`netcap/ssl/mod.rs:23-86`) supports rustls 0.23, openssl, and native-tls, but none are configured with ALPN protocol lists. Without ALPN, the server cannot advertise `h2` support during TLS handshake. This is the standard mechanism for HTTP/2 over TLS (RFC 7301). rustls 0.23 supports it natively — it just needs wiring.
+
+### B8. `HTTPStreams<T>` factory only creates HTTP/1.1 readers (SIGNIFICANT)
+**Affects:** Decision 01
+`HTTPStreams<T>` (`impls.rs:5456-5487`) is the generic factory for creating request/response readers from a connection. `next_request()` and `next_response()` always create `HttpRequestReader` / `HttpResponseReader` (HTTP/1.1 text parsers). After protocol negotiation, this factory must branch to create the appropriate parser for the negotiated protocol.
 
 ---
 
@@ -382,18 +442,19 @@ Multiple mismatches: `extract_bearer_token` not case-insensitive, `has_scope` si
 
 | Category | Critical | Significant | Medium | Small | Total |
 |---|---|---|---|---|---|
-| Platform Blockers | 3 | 2 | 0 | 0 | 6 |
+| Platform Blockers | 4 | 3 | 0 | 0 | 8 |
 | Protocol/Wire Gaps | 3 | 3 | 5 | 4 | 17 |
 | Handler/Interceptor | 3 | 4 | 5 | 5 | 20 |
 | Client Architecture | 0 | 0 | 6 | 1 | 8 |
 | Router/Auth/Codegen | 1 | 2 | 6 | 4 | 14 |
 | Rust Type System | 2 | 2 | 4 | 2 | 10 |
-| **Total** | **12** | **13** | **26** | **16** | **75** |
+| **Total** | **13** | **14** | **26** | **16** | **77** |
 
-The 12 critical items must be resolved before feature specs can be written. The most impactful are:
+The 13 critical items must be resolved before feature specs can be written. The most impactful are:
 1. **B1/B2**: Foundation streaming response model (blocks all streaming RPCs)
-2. **H1/H2/Q8**: Push vs pull handler model (shapes the entire API)
-3. **RS1/RS3**: Invalid Rust type signatures (design doesn't compile)
-4. **H9**: Wrong EOF signaling (contradicts actual foundation_core semantics)
-5. **R1**: Leading slash mismatch (breaks routing)
-6. **P1/P2/P3**: Missing wire format mappings (breaks interop)
+2. **B5/B7**: HTTP/2 support — no binary framing, no ALPN, no stream multiplexing (blocks gRPC, full-duplex bidi)
+3. **H1/H2/Q8**: Push vs pull handler model (shapes the entire API)
+4. **RS1/RS3**: Invalid Rust type signatures (design doesn't compile)
+5. **H9**: Wrong EOF signaling (contradicts actual foundation_core semantics)
+6. **R1**: Leading slash mismatch (breaks routing)
+7. **P1/P2/P3**: Missing wire format mappings (breaks interop)
