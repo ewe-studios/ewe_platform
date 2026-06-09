@@ -19,6 +19,58 @@ Three custom elements composing shared classes: `<island>` (scoped content conta
 
 ## 2. Transport Layer
 
+## 2. Transport Layer
+
+**G7 resolved — Transport vs proc macros boundary:**
+
+Transport classes (F06) and proc macro wrappers (F10) operate at different levels:
+- **Transport (F06):** client→server HTTP/SSE/WS communication. Used by `<mount-data>`, `<mount-stream>` to make requests to the server. Returns response data (HTML, Arrow, JSON) to the Patcher.
+- **Proc macros (F10):** WASM↔JS communication. `#[wasm_bin]`, `#[wasm_worker]`, `#[wasm_service]` generate wrappers that load and instantiate the WASM binary and provide the FFI host functions (`host_apply`, etc.).
+
+They don't conflict. The Transport layer is for fetching data from the server. The proc macro layer is for running WASM locally. A `<mount-stream>` component might use SSETransport to receive live updates from the server, while the same page uses `#[wasm_bin]` to run interactive components locally.
+
+### Request Bundling
+
+**HTTP server:** On init, probe `HEAD /primal/messages`. If `200 OK`, server supports batching. Requests are queued via `queueMicrotask` and flushed as a single `POST /primal/messages` batch. Server returns a batched response (one envelope per request).
+
+**Service worker:** Always supports batching — we control the SW, it intercepts HTTP. Same `POST /primal/messages` path.
+
+**Web worker:** Always batches — our protocol. `postMessage` calls queued, flushed as one transfer per microtask tick.
+
+**WASM (local):** Always batches — direct memory handoff. `queue()` calls accumulate, flushed once per `stabilize()` cycle.
+
+**WebSocket:** Less critical (persistent connection, low overhead), but still buffers messages per microtask to reduce frame count.
+
+```javascript
+class RequestQueue {
+    constructor(transport) {
+        this.queue = [];
+        this.scheduled = false;
+        this.transport = transport;
+        this.bundlingEnabled = false;  // set true after /primal/messages probe succeeds
+    }
+
+    enqueue(request) {
+        if (!this.bundlingEnabled || this.queue.length === 0) {
+            this.transport.send(request.url, request.method, request.data);
+            return;
+        }
+        this.queue.push(request);
+        if (!this.scheduled) {
+            this.scheduled = true;
+            queueMicrotask(() => this.flush());
+        }
+    }
+
+    flush() {
+        this.scheduled = false;
+        if (this.queue.length === 0) return;
+        const batch = this.queue.splice(0);
+        this.transport.send('/primal/messages', 'POST', batch);
+    }
+}
+```
+
 ```javascript
 class Transport {
     static create(config) {
@@ -58,6 +110,12 @@ class Transport {
 | `application/primal-arrow` | ArrowHandler | `text/event-stream-arrow` |
 | `application/primal-json` | JsonHandler | `text/event-stream-json` |
 
+**G46 resolved — SSE content-type:** `text/event-stream-arrow` etc. are custom `event:` type values
+in SSE events, not HTTP Content-Type headers. The HTTP Content-Type for SSE is always
+`text/event-stream`. Each SSE event has an `event: arrow` (or `event: html`, `event: json`) field
+that the SSE transport reads to select the correct handler. Alternatively, the server can send
+the protocol in the Arrow IPC payload's first byte, and the handler is selected by that byte.
+
 ### Factory and Handlers
 
 ```javascript
@@ -73,11 +131,23 @@ class ProtocolHandler {
 }
 ```
 
-**ArrowHandler.process(response)** — `arrayBuffer()` -> `ArrowParser.parse(buffer)` -> return `{ type: 'arrow', columns }`. Caller passes to `ArrowDomApplicator.apply`.
+**ArrowHandler.process(response)** — `arrayBuffer()` -> `ArrowParser.parse(buffer)` -> return `{ type: 'arrow', columns }`. Caller passes to `ArrowDomApplicator.apply` (which handles MORPH_NODE ops internally).
 
-**JsonHandler.process(response)** — `response.json()` -> return `{ type: 'json', patches }`. Caller passes to `SignalBridge.applyPatches`.
+**JsonHandler.process(response)** — `response.json()` -> check for morph wrapper:
+```json
+{ "morph": { "target": "#main", "action": "replace-children", "content": "<div>...</div>" } }
+```
+If morph wrapper present -> `MorphDom.morph(resolveTarget(target), parseContent(content), action)`.
+Otherwise -> `{ type: 'json', patches }` -> `SignalBridge.applyPatches`.
 
-**HtmlHandler.process(response)** — `response.text()` -> return `{ type: 'html', html }`. Caller passes to `Patcher.materialize`.
+**HtmlHandler.process(response)** — `response.text()` -> check for `<island>` wrapper:
+```html
+<island data-target="#main" data-action="replace-children">
+  <div>...new content...</div>
+</island>
+```
+If island present -> read `data-target`/`data-action` attributes, resolve target, morph content.
+Otherwise -> `{ type: 'html', html }` -> `Patcher.materialize`.
 
 **RawHandler.process(response)** — `response.text()` -> return `{ type: 'raw', text }`. Fallback: inserted as `textContent`.
 
@@ -90,27 +160,35 @@ class Patcher {
     static materialize(html, target) {
         // 1. createRange().createContextualFragment(html) — parse without inserting
         // 2. target.appendChild(fragment) — triggers connectedCallback on custom elements
-        // 3. Hydrator.hydrate(target) — wire events, scope styles, execute scripts
+        // 3. Hydrator.hydrate(target) — scope styles, execute scripts (NOT events)
+        // 4. runtime.scanAndWire(target) — wire primal:on* events (F08 EventRuntime)
     }
     static applyDomOps(columns)        { ArrowDomApplicator.apply(columns); }
     static applySignalPatches(patches) { SignalBridge.applyPatches(patches); }
 }
 ```
 
+**Event wiring split (G2 resolved):**
+- **F06 Hydrator** — handles `<style primal:style>` and `<script primal:script>` ONLY. Does NOT wire `primal:on*` events.
+- **F08 EventRuntime** — handles ALL `primal:on*` event wiring via `scanAndWire()` and MutationObserver.
+- After `Patcher.materialize()` inserts new DOM, it calls `Hydrator.hydrate()` (styles/scripts) THEN `runtime.scanAndWire()` (events).
+- The MutationObserver (F08) sees the same insertion and would also call `scanAndWire()`, but `scanAndWire()` is idempotent — double-scanning removes the old listener before adding a new one (F08 §3 step 6). No double-wiring occurs.
+
 ---
 
 ## 5. Hydrator
 
+Hydrator handles styles and scripts ONLY. Event wiring is delegated to F08 EventRuntime.
+
 ```javascript
 class Hydrator {
     static hydrate(root) {
-        // 1. Wire events: querySelectorAll('[primal\\:on]') and primal:on* attributes
-        //    For each, extract event name (strip "on" prefix), resolve handler, addEventListener
-        // 2. Process styles: querySelectorAll('style[primal\\:style]')
+        // 1. Process styles: querySelectorAll('style[primal\\:style]')
         //    For each, new CSSStyleSheet(), scope rules with parent id/class prefix,
         //    document.adoptedStyleSheets push, remove inline tag
-        // 3. Process scripts: querySelectorAll('script[primal\\:script]')
+        // 2. Process scripts: querySelectorAll('script[primal\\:script]')
         //    For each, new Function('scope', body), call with _createScope(parentElement), remove tag
+        // NOTE: Event wiring (primal:on*) is handled by EventRuntime.scanAndWire() — NOT here.
     }
 
     static _createScope(targetElement) {
@@ -140,7 +218,7 @@ class Hydrator {
 
 ## 6. IslandComponent
 
-No network requests. Wires scoped styles, scripts, and events on existing children.
+No network requests. Wires scoped styles, scripts, and delegates event wiring to EventRuntime.
 
 ```javascript
 class IslandComponent extends HTMLElement {
@@ -156,15 +234,16 @@ class IslandComponent extends HTMLElement {
         //   querySelectorAll('script[primal\\:script]') -> for each:
         //     new Function('scope', textContent), call with _scope, remove tag
         //
-        // Step 3: _wireEvents()
-        //   querySelectorAll('[primal\\:on]') and primal:on* attrs -> for each:
-        //     extract event name, register via _scope.addEvent
+        // Step 3: Event wiring delegated to EventRuntime
+        //   runtime.scanAndWire(this) — wires primal:on* attrs via F08
+        //   MutationObserver does NOT scan island subtrees (boundary rule)
     }
 
     disconnectedCallback() {
         // 1. Remove adopted stylesheets: filter out this._sheets from document.adoptedStyleSheets
-        // 2. this._scope.cleanup() — remove all event listeners
-        // 3. this._sheets = []; this._scope = null
+        // 2. this._scope.cleanup() — remove script-scoped event listeners
+        // 3. EventRuntime.removeListeners(this) — remove primal:on* listeners (F08)
+        // 4. this._sheets = []; this._scope = null
     }
 }
 ```
@@ -266,6 +345,17 @@ window.primal = {
     Transport, ProtocolHandler, Patcher, Hydrator   // advanced direct access
 };
 ```
+
+**G28 resolved — Transport API consistency:** All Transport classes implement:
+- `send(url, method, data)` — Fetch, Worker (request-response)
+- `connect(url, data, onChunk)` — SSE, WS, Chunked (streaming)
+- `disconnect()` — cleanup. Callers use `transport.connect ? connect(...) : send(...)`.
+
+**G29 resolved — `_resolveTarget` side effects:** When target is omitted, mount element replaces
+itself with a container div. The mount element is removed, `disconnectedCallback` fires,
+transport is cleaned up. Mount element is a placeholder that disappears once content arrives.
+
+**G30 resolved — `window.primal` namespace:** All APIs live under `window.primal`. No double-underscore — this is our namespace, we own it.
 
 ---
 

@@ -18,7 +18,7 @@ protocol encoder: Vec<DomOp> → Arrow / JSON / custom binary (whatever is confi
     ↓
 envelope: [protocol byte][version][memory_id][length][payload...]
     ↓
-protocol FFI: host_arrow_apply / host_batch_apply / host_json_apply
+protocol FFI: host_apply (uniform 3-param for all protocols)
     ↓
 JS reads envelope byte → dispatches to correct handler → applies, ACKs, frees memory
 ```
@@ -77,17 +77,13 @@ impl ProtocolMethods<Vec<DomOp>> for ArrowV1 {
 impl ProtocolMethods<Vec<DomOp>> for CustomBinaryV1 {
     fn encode_and_send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) -> SendResult {
         let bytes = self.encoder.encode(ops);           // Layer 1: pure encoding
-        // Custom binary uses 2 arena slots (ops + text) — protocol-specific allocation
-        let (ops_mem, text_mem) = self.split_and_allocate(bytes, memory);
-        let (ops_ptr, ops_len) = ops_mem.as_address().unwrap();
-        let (text_ptr, text_len) = text_mem.as_address().unwrap();
-        unsafe {
-            host_batch_apply(
-                ops_mem.id.as_u64(), ops_ptr as u64, ops_len as u64,
-                text_mem.id.as_u64(), text_ptr as u64, text_len as u64,
-            );
-        }
-        SendResult { memory_id: ops_mem.id }
+        // Single arena slot — ops and text pool packed together
+        let mem_id = memory.allocate(bytes.len());
+        let slot = memory.get(mem_id).unwrap();
+        slot.apply(|mem| mem.extend_from_slice(&bytes));
+        let (ptr, len) = slot.as_address().unwrap();
+        self.send_to_js(mem_id, ptr, len);              // Layer 2: uniform FFI
+        SendResult { memory_id: mem_id }
     }
 }
 ```

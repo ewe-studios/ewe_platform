@@ -8,16 +8,37 @@ idiomorph). Invoked by Arrow MORPH_NODE (op 16).
 
 ---
 
-## 1. Types and Static Fields
+## 1. Types and Fields
+
+**G31 resolved: Morphing state is instance-level, not static.** Only `pantry` and `scripts` are
+static (global concerns). Per-morph state lives on a `MorphContext` object so re-entrant morphs
+(e.g., a script inside morphed content triggers another morph) don't corrupt each other's state.
 
 ```javascript
 class MorphDom {
-    static idMap         = new Map()         // Map<Node, Set<string>>  — node to persistent IDs in subtree
-    static persistentIds = new Set()         // Set<string>            — IDs in both old & new with same tag
-    static oldIdTagMap   = new Map()         // Map<string, string>    — ID to tagName in old tree
-    static duplicates    = new Set()         // Set<string>            — IDs appearing more than once
-    static pantry        = createPantry()    // HTMLElement            — hidden div for parked nodes
-    static scripts       = new WeakSet()     // WeakSet<HTMLScriptElement> — executed scripts
+    // Global static state (safe — not mutated per-morph)
+    static pantry  = createPantry()    // HTMLElement — hidden div for parked nodes
+    static scripts = new WeakSet()     // WeakSet<HTMLScriptElement> — executed scripts
+
+    // Per-morph state — created fresh each call, no cross-morph contamination
+    static morph(target, newContent) {
+        const ctx = new MorphContext(target, newContent);
+        ctx._computePersistentIds();
+        ctx._populateIdMaps();
+        ctx._morphChildren(target, newContent);
+        this._executeNewScripts(target);
+        ctx._cleanup();
+    }
+}
+
+class MorphContext {
+    constructor(oldRoot, newRoot) {
+        this.idMap         = new Map();  // Map<Node, Set<string>>
+        this.persistentIds = new Set();  // Set<string>
+        this.oldIdTagMap   = new Map();  // Map<string, string>
+        this.duplicates    = new Set();  // Set<string>
+    }
+    // All methods use this.* instead of MorphDom.*
 }
 ```
 
@@ -177,6 +198,24 @@ While pantry.firstChild: pantry.removeChild(pantry.firstChild)  // remove unclai
 idMap.clear(); persistentIds.clear(); oldIdTagMap.clear(); duplicates.clear()
 ```
 
+**G33 resolved — pantry leak on error:** `_cleanup()` is called in a `finally` block inside
+`MorphDom.morph()` so parked nodes are always cleaned up even if `_morphChildren` throws.
+The MorphContext instance is discarded after each call, so re-entrant morphs get fresh state.
+
+```javascript
+static morph(target, newContent) {
+    const ctx = new MorphContext(target, newContent);
+    try {
+        ctx._computePersistentIds();
+        ctx._populateIdMaps();
+        ctx._morphChildren(target, newContent);
+        this._executeNewScripts(target);
+    } finally {
+        ctx._cleanup();  // always runs — prevents pantry leak
+    }
+}
+```
+
 ---
 
 ## 5. Form State Preservation
@@ -204,13 +243,16 @@ _preserveFormState(oldEl, newEl):
 
 ## 6. `moveBefore()` and Fallback
 
-Moves a node without disconnect/reconnect lifecycle. Preserves iframe state, CSS
-animations, web component lifecycle, focus.
+**G32 resolved — `moveBefore()` browser support:** As of 2026, `moveBefore()` is available in
+Chromium (115+) and Firefox (125+). Safari supports it since TP 185. Feature detection at module
+load. Fallback (`removeChild` + `insertBefore`) is used on older browsers — this loses focus state
+and restarts CSS animations, but is functionally correct for DOM structure.
 
 ```
 moveBefore(parent, node, ref):
-    If parent.moveBefore: parent.moveBefore(node, ref)
-    Else: parent.removeChild(node); parent.insertBefore(node, ref)  // fallback
+    If parent.moveBefore: parent.moveBefore(node, ref)   // preserves focus, animations, lifecycle
+    Else: parent.removeChild(node); parent.insertBefore(node, ref)  // fallback — loses state
+```
 ```
 
 Feature detection at module load. Fallback is correct but loses state guarantees.

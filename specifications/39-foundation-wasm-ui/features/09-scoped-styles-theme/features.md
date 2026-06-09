@@ -213,96 +213,70 @@ Outside `<island>`: MutationObserver does NOT process scoped scripts. Scoped scr
 #[derive(ThemeTokens)]
 struct AppTheme {
     colors: Colors {
-        primary: "#3b82f6",
-        secondary: "#10b981",
-        accent: "#8b5cf6",
-        white: "#ffffff",
-        black: "#000000",
-        gray: "#6b7280",
+        light: LightColors {
+            primary: "#3b82f6",
+            secondary: "#10b981",
+            bg: "#ffffff",
+        },
+        // Option 1: omit entirely → all dark auto-generated from light
+        // Option 2: Some { ... } with partial overrides
+        dark: Some(DarkColors {
+            primary: Some("#60a5fa"),   // explicit override
+            secondary: None,            // auto-generate from light
+            bg: Some("#1a1a2e"),        // explicit override
+        }),
     },
-    spacing: Spacing {
+    spacing: Spacing {     // no light/dark split — same for both
         xs: "4px",
-        sm: "8px",
         md: "16px",
-        lg: "24px",
-        xl: "32px",
-    },
-    borders: Borders {
-        sm: "4px",
-        md: "8px",
-        lg: "16px",
-    },
-    shadows: Shadows {
-        sm: "0 1px 2px rgba(0,0,0,0.05)",
-        md: "0 4px 6px rgba(0,0,0,0.1)",
-        lg: "0 10px 15px rgba(0,0,0,0.1)",
     },
 }
 ```
 
+Three levels of control:
+1. **No `dark` field** → all dark values auto-generated from light
+2. **`dark: Some { ... }`** with some `None` → explicit where specified, auto-generate the rest
+3. **`dark: Some { ... }`** with all `Some` → fully explicit
+
+If a dark token is `None`, the macro auto-generates by inverting the light color:
+- **Backgrounds** — lightened (dark mode needs lighter backgrounds)
+- **Text/foreground** — darkened (light text on dark bg)
+- **Non-color tokens** — no auto-generation, same value in both modes
+
 ### 6.2 Generated `Theme` struct
 
 ```rust
-pub struct AppTheme { /* private fields holding token values */ }
+pub struct AppTheme { /* private fields */ }
 
 impl AppTheme {
     pub fn new() -> Self { /* default token values from struct literal */ }
-    pub fn builder() -> AppThemeBuilder { /* builder for overriding tokens */ }
     pub fn css_string(&self) -> &'static str { /* pre-generated CSS */ }
-    pub fn dark_css_string(&self) -> &'static str { /* dark theme overrides */ }
 }
 ```
 
 ### 6.3 Generated static CSS string
 
-The macro produces a `&'static str` containing all utility class rules. The CSS is computed at compile-time and embedded in the binary. Example excerpt:
-
 ```css
-/* Custom properties (light theme defaults) */
+/* Light theme (default) */
 :root {
   --color-primary: #3b82f6;
-  --color-secondary: #10b981;
-  --color-accent: #8b5cf6;
-  --color-white: #ffffff;
-  --color-black: #000000;
-  --color-gray: #6b7280;
+  --color-bg: #ffffff;
   --spacing-xs: 4px;
-  --spacing-sm: 8px;
-  --spacing-md: 16px;
-  --spacing-lg: 24px;
-  --spacing-xl: 32px;
-  --border-radius-sm: 4px;
-  --border-radius-md: 8px;
-  --border-radius-lg: 16px;
-  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
-  --shadow-lg: 0 10px 15px rgba(0,0,0,0.1);
 }
 
-/* Token-derived utility classes */
-.bg-primary { background-color: var(--color-primary); }
-.bg-secondary { background-color: var(--color-secondary); }
-.text-primary { color: var(--color-primary); }
-.text-white { color: var(--color-white); }
-.border-secondary { border-color: var(--color-secondary); }
-.p-sm { padding: var(--spacing-sm); }
-.p-md { padding: var(--spacing-md); }
-.m-lg { margin: var(--spacing-lg); }
-.rounded-sm { border-radius: var(--border-radius-sm); }
-.rounded-md { border-radius: var(--border-radius-md); }
-.shadow-md { box-shadow: var(--shadow-md); }
+/* Dark theme — auto-generated where None, explicit where Some */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-primary: #60a5fa;    /* explicit */
+    --color-bg: #1a1a2e;         /* explicit */
+    --color-secondary: #0d8f6b;  /* auto-inverted from #10b981 */
+  }
+}
 
-/* Built-in utilities (not token-dependent) */
-.flex { display: flex; }
-.grid { display: grid; }
-.block { display: block; }
-.hidden { display: none; }
-.relative { position: relative; }
-.absolute { position: absolute; }
-.w-full { width: 100%; }
-.h-screen { height: 100vh; }
-.font-bold { font-weight: 700; }
-.text-center { text-align: center; }
+/* Utility classes */
+.bg-primary { background-color: var(--color-primary); }
+.text-primary { color: var(--color-primary); }
+.p-md { padding: var(--spacing-md); }
 ```
 
 ---
@@ -408,55 +382,37 @@ Scoped styles from `primal:style` tags follow the same pattern but target `<head
 
 ### 9.1 Light theme (default)
 
-Custom properties are defined on `:root`:
-
-```css
-:root {
-  --color-primary: #3b82f6;
-  --color-secondary: #10b981;
-  /* ... all tokens */
-}
-```
+Custom properties are defined on `:root` from the `light` struct fields.
 
 ### 9.2 Dark theme via `prefers-color-scheme`
 
-The derive macro generates a `@media` block with overridden custom properties:
-
-```css
-@media (prefers-color-scheme: dark) {
-  :root {
-    --color-primary: #60a5fa;
-    --color-secondary: #34d399;
-    --color-gray: #9ca3af;
-    /* ... dark variants */
-  }
-}
-```
-
-Dark values are derived by lightening colors by a fixed amount or specified explicitly in the struct via an optional `dark` field:
+The derive macro generates a `@media` block. For each dark token:
+- `Some(value)` → use explicit value
+- `None` → auto-invert the corresponding light value
 
 ```rust
 colors: Colors {
-    primary: "#3b82f6",
-    primary_dark: "#60a5fa",     // explicit dark override
+    light: LightColors {
+        primary: "#3b82f6",
+    },
+    dark: DarkColors {
+        primary: Some("#60a5fa"),  // explicit
+        bg: None,                  // auto-invert from light bg
+    },
 }
 ```
 
-If no `_dark` suffix field exists, the macro auto-generates a lightened variant for background colors and a darkened variant for text colors.
-
 ### 9.3 Manual theme switching
 
+Override via class on `<html>`:
 ```rust
-// Override via class on <html>
 receiver.queue(DomOp::AddClass { node_id: HTML_ROOT_ID, class: "dark".into() });
 ```
 
 When `.dark` is present on `<html>`, a second CSS block applies:
-
 ```css
-.dark { --color-primary: #60a5fa; --color-secondary: #34d399; }
+.dark { --color-primary: #60a5fa; --color-bg: #1a1a2e; }
 ```
-
 This allows programmatic switching without relying on the media query.
 
 ---
@@ -473,6 +429,20 @@ This allows programmatic switching without relying on the media query.
 | 6 | Duplicate token name across categories | Compile error: `"duplicate token name 'sm' in spacing and borders"` |
 | 7 | Invalid CSS value in token (e.g., `primary: "not-a-color"`) | Accepted — values are opaque strings. Validation is CSS-level, not Rust-level. |
 | 8 | Multiple `#[derive(ThemeTokens)]` structs | Each generates independent CSS. Only one should be registered via `ctx.set_theme()`. |
+
+**G37 resolved — `lightningcss` dependency:** Use the `lightningcss` Rust crate
+(`lightningcss = "1"` from npm's parcel-bundler/lightningcss). It compiles to WASM via napi and
+is available as a pure-Rust crate. Used at compile-time only (macro processing), not shipped to
+the browser. The CSS AST is parsed, transformed (`:parent` → parent selector), and serialized
+back to a minified CSS string.
+
+**G38 resolved — reserved node_id values:** `HEAD_NODE_ID = 0`, `BODY_NODE_ID = 1`,
+`HTML_ROOT_ID = 2`. These are registered by the init batch before any component mounts.
+Macro-assigned primal-ids start at `1000` (component prefix starts at 1000, template IDs start at 0
+within each template, so the first runtime ID is `1000:0 = 10000` with the prefix formula).
+No collision possible.
+
+**G39 resolved — ThemeTokens dark naming:** Dark tokens use `Some(value)` for explicit overrides, `None` for auto-inversion. Struct groups by mode: `light: { ... }`, `dark: { ... }`. No naming convention needed.
 
 ---
 

@@ -25,42 +25,91 @@ pub struct Html {
 ### Part Descriptors
 
 ```rust
-pub enum Part { Text(TextPart), Attribute(AttrPart), Event(EventPart), Children(ChildPart) }
+pub enum Part { Text(TextPart), Attribute(AttrPart), Event(EventPart) }
+// Note: ChildPart was removed — all child positions generate Part::Text.
+// Vec<Html> expressions are handled at runtime via IntoHtml (wraps as tagless node).
 pub struct TextPart   { pub node_id: u32 }
 pub struct AttrPart   { pub node_id: u32, pub attr_name: String }
 pub struct EventPart  { pub node_id: u32, pub event_name: String }
-pub struct ChildPart  { pub parent_id: u32 }
 ```
 
-### DomOp Enum (17 variants)
+### DomOp Enum (19 variants)
 
 Each variant maps 1:1 to an Arrow operation u8 discriminant (decision 010).
 
-```rust
+Two ops (17-18) manage the JS-side NodeRegistry explicitly — no implicit registration.
+Every element that will be referenced by subsequent ops must be registered first.
+
+// Target selector — compact wire representation
+pub enum TargetSelector {
+    NodeId(u32),                                    // op=0: direct registry lookup
+    Id(Cow<'static, str>),                          // op=1: #id
+    Class(Cow<'static, str>),                       // op=2: .class (first match)
+    Query(Cow<'static, str>),                       // op=3: arbitrary CSS query
+}
+
+// Morph action — small enum, saves wire bytes vs string
+pub enum MorphAction {
+    ReplaceChildren,   // 0: morph target's children
+    ReplaceElement,    // 1: replace target itself
+    InsertBefore,      // 2: insert before target
+    InsertAfter,       // 3: insert after target
+    AppendSibling,     // 4: append as sibling
+}
+
 pub enum DomOp {
-    CreateElement       { node_id: u32, tag: String, class: String },       // op=0
-    CreateTextNode      { node_id: u32, content: String },                  // op=1
-    SetText             { node_id: u32, text: String },                     // op=2
-    SetAttribute        { node_id: u32, name: String, value: String },      // op=3
-    RemoveAttribute     { node_id: u32, name: String },                     // op=4
-    SetProperty         { node_id: u32, name: String, value: String },      // op=5
-    AddEventListener    { node_id: u32, event_name: String },               // op=6
-    RemoveEventListener { node_id: u32, event_name: String },               // op=7
-    AppendChild         { parent_id: u32, child_id: u32 },                  // op=8
-    RemoveChild         { parent_id: u32, child_id: u32 },                  // op=9
-    RemoveNode          { node_id: u32 },                                   // op=10
-    InsertBefore        { parent_id: u32, child_id: u32, ref_id: u32 },     // op=11
-    ReplaceNode         { old_id: u32, new_id: u32 },                       // op=12
-    SetStyle            { node_id: u32, prop: String, value: String },      // op=13
-    AddClass            { node_id: u32, class: String },                    // op=14
-    RemoveClass         { node_id: u32, class: String },                    // op=15
-    MorphNode           { node_id: u32, html: String },                     // op=16
+    CreateElement       { node_id: u32, tag: HtmlTag, class: Cow<'static, str> },  // op=0
+    CreateTextNode      { node_id: u32, content: Cow<'static, str> },               // op=1
+    SetText             { node_id: u32, text: Cow<'static, str> },                  // op=2
+    SetAttribute        { node_id: u32, name: AttrName, value: Cow<'static, str> }, // op=3
+    RemoveAttribute     { node_id: u32, name: AttrName },                           // op=4
+    SetProperty         { node_id: u32, name: AttrName, value: Cow<'static, str> }, // op=5
+    AddEventListener    { node_id: u32, event_name: AttrName },                     // op=6
+    RemoveEventListener { node_id: u32, event_name: AttrName },                     // op=7
+    AppendChild         { parent_id: u32, child_id: u32 },                          // op=8
+    RemoveChild         { parent_id: u32, child_id: u32 },                          // op=9
+    RemoveNode          { node_id: u32 },                                           // op=10
+    InsertBefore        { parent_id: u32, child_id: u32, ref_id: u32 },             // op=11
+    ReplaceNode         { old_id: u32, new_id: u32 },                               // op=12
+    SetStyle            { node_id: u32, prop: AttrName, value: Cow<'static, str> }, // op=13
+    AddClass            { node_id: u32, class: Cow<'static, str> },                 // op=14
+    RemoveClass         { node_id: u32, class: Cow<'static, str> },                 // op=15
+    MorphNode           { target: TargetSelector, action: MorphAction,              // op=16
+                          content: Cow<'static, str> },
+    RegisterNode        { node_id: u32 },                                           // op=17
+    UnregisterNode      { node_id: u32 },                                           // op=18
 }
 ```
 
-**Arrow column mapping:** Secondary node IDs (child_id, new_id, ref_id) are stored as
-decimal strings in the `attribute`, `value`, or `text_val` columns. The JS parser
-converts back to integers. This keeps the Arrow schema uniform at six columns.
+**MORPH_NODE is self-contained in Arrow:** carries target selector, action enum, and content.
+JS reads all three, resolves target, parses content, morphs.
+
+**JSON morphing wrapper:**
+```json
+{ "morph": { "target": "#main", "action": "replace-children", "content": "<div>...</div>" } }
+```
+
+**HTML morphing:** Server sends HTML inside an `<island>` component that carries the target
+and action as attributes:
+```html
+<island data-target="#main" data-action="replace-children">
+  <div>...new content...</div>
+</island>
+```
+The island web component reads the attributes, resolves the target, and morphs.
+
+**RegisterNode / UnregisterNode semantics:**
+- `RegisterNode { node_id }` — JS adds `node_id → DOM Element` to NodeRegistry. The element must already exist in the DOM (created by a prior `CreateElement`, `CreateTextNode`, or found via `querySelector` for existing elements like `<head>`). If `node_id` is already registered, this is a no-op.
+- `UnregisterNode { node_id }` — JS removes `node_id` from NodeRegistry. If `node_id` is not registered, this is a no-op. The DOM element is NOT removed — this only clears the registry entry. Typically paired with `RemoveNode` (which removes from DOM) or used standalone for elements that are DOM-removed by browser navigation.
+- `CreateElement` and `CreateTextNode` do NOT auto-register. The caller must emit `RegisterNode` explicitly after creation, before any op that references the node_id. This makes registry ownership explicit and testable.
+- `ReplaceNode` implicitly unregisters `old_id` and registers `new_id` — no separate ops needed.
+- `RemoveNode` implicitly unregisters `node_id` — no separate op needed.
+
+**Arrow column mapping:** `HtmlTag` and `AttrName` values are encoded as: known IDs become
+decimal strings `"id:1234"` (prefixed with `id:` to distinguish from string names). Unknown names
+are stored as the raw string. The JS parser detects the `id:` prefix and resolves via lookup table.
+Secondary node IDs (child_id, new_id, ref_id) are stored as plain decimal strings. This keeps the
+Arrow schema uniform at six columns.
 
 | op | Variant | node_id | attribute | value | text_val |
 |----|---------|---------|-----------|-------|----------|
@@ -80,12 +129,55 @@ converts back to integers. This keeps the Arrow schema uniform at six columns.
 | 13 | SetStyle | target | prop | val | |
 | 14 | AddClass | target | | class | |
 | 15 | RemoveClass | target | | class | |
-| 16 | MorphNode | target | | | html |
+| 16 | MorphNode | target_id(0 if selector) | action_enum + selector_str | content |
+| 17 | RegisterNode | node_id | | | |
+| 18 | UnregisterNode | node_id | | | |
 
 ## 2. IntoHtml Trait and Implementations
 
 ```rust
 pub trait IntoHtml { fn into_html(self) -> Html; }
+```
+
+**G11 resolved — `ProtocolEncoder<T>` generic scope:** The trait is only implemented for concrete
+types: `ProtocolEncoder<Vec<DomOp>>`, `ProtocolEncoder<SignalPatch>`, `ProtocolEncoder<Action>`.
+No blanket implementations. Each type gets its own encoder impl. The trait's `T` parameter exists
+for future extensibility but the current codebase only uses `Vec<DomOp>`.
+
+**G12/G13/G14 resolved — Tag/Attribute wire optimization:**
+
+Known tag names and attribute names are assigned numeric IDs (`u16`). Unknown names (custom elements, user-defined attributes) fall back to `Cow<'static, str>`. This saves wire bytes — most DOM ops use known tags/attrs.
+
+```rust
+// Known tags assigned u16 IDs at compile time
+pub enum HtmlTag { Id(u16), Name(Cow<'static, str>) }
+pub enum AttrName { Id(u16), Name(Cow<'static, str>) }
+
+// Known tag IDs (partial list)
+pub const TAG_DIV: u16 = 1;
+pub const TAG_SPAN: u16 = 2;
+pub const TAG_INPUT: u16 = 3;
+pub const TAG_BUTTON: u16 = 4;
+// ... all standard HTML elements
+
+// Known attribute IDs
+pub const ATTR_CLASS: u16 = 1;
+pub const ATTR_ID: u16 = 2;
+pub const ATTR_STYLE: u16 = 3;
+pub const ATTR_VALUE: u16 = 4;
+// ... common attributes
+```
+
+**Wire format:** Protocol encodes known tags/attrs as `[type: u8 = 0][id: u16 LE]` (3 bytes). Unknown as `[type: u8 = 1][len: u16 LE][utf8...]` (variable). JS side has matching lookup tables to resolve IDs to DOM method names.
+
+```rust
+pub struct Html {
+    pub tag: Option<HtmlTag>,
+    pub attributes: Vec<(AttrName, Cow<'static, str>)>,
+    pub children: Vec<Html>,
+    pub text: Option<Cow<'static, str>>,
+    pub parts: Vec<Part>,
+}
 ```
 
 **18 implementations in this crate:**
@@ -147,24 +239,26 @@ pub enum DecodeError {
 
 ### 4.1 ArrowEncoder (`protocol_byte=1`)
 
+Uses the `arrow` crate with `features = ["ipc"]` for encoding/decoding.
+
 **Encoding algorithm (Vec<DomOp> to Arrow IPC bytes):**
 
-1. Allocate six column builders: `op_ids: Vec<u32>`, `node_ids: Vec<u32>`,
-   `operations: Vec<u8>`, `attributes: Vec<Option<String>>`,
-   `values: Vec<Option<String>>`, `text_vals: Vec<Option<String>>`.
+1. Allocate six Arrow array builders: `UInt32Builder` (op_ids, node_ids),
+   `UInt8Builder` (operations), `StringBuilder` (attributes, values, text_vals).
 2. For each `DomOp`, push a monotonic `op_id`, extract node_id/parent_id/old_id into
-   `node_ids`, push the operation discriminant (0-16), and map variant fields into the
-   three string columns per the table in section 1. Unused columns get `None`.
-3. Build an Arrow RecordBatch: `op_id` UInt32, `node_id` UInt32, `operation` UInt8,
+   `node_ids`, push the operation discriminant (0-18), and map variant fields into the
+   three string columns per the table in section 1. Unused columns get `append_null()`.
+3. Build an Arrow `RecordBatch`: `op_id` UInt32, `node_id` UInt32, `operation` UInt8,
    `attribute` Utf8 nullable, `value` Utf8 nullable, `text_val` Utf8 nullable.
 4. Serialize as Arrow IPC stream format (single batch) and return bytes.
 
 **Decoding algorithm:**
 
-1. Parse Arrow IPC stream, extract single RecordBatch.
+1. Use `arrow::ipc::reader::StreamReader` over byte slice. Read single RecordBatch
+   (zero rows = `Success(vec![])`).
 2. Validate 6 columns with correct types, else `SchemaMismatch`.
 3. For each row: read `operation` u8, read `node_id` u32, read nullable strings.
-   Match operation 0-16 to reconstruct DomOp. Unknown u8 returns `UnknownOperation`.
+   Match operation 0-18 to reconstruct DomOp. Unknown u8 returns `UnknownOperation`.
    Invalid UTF-8 returns `InvalidUtf8`.
 
 **Buffer layout:**
@@ -280,7 +374,7 @@ crates/foundation_ui_traits/src/
 ├── lib.rs              // Re-exports
 ├── html.rs             // Html struct, IntoHtml trait + all 18 impls
 ├── parts.rs            // Part, TextPart, AttrPart, EventPart, ChildPart
-├── dom_op.rs           // DomOp enum (17 variants)
+├── dom_op.rs           // DomOp enum (19 variants)
 ├── encoder.rs          // ProtocolEncoder<T>, DecodeResult, DecodeError
 ├── arrow_encoder.rs    // ArrowEncoder
 ├── json_encoder.rs     // JsonEncoder
@@ -322,7 +416,7 @@ crates/foundation_ui_traits/src/
 | 11 | 5 mixed DomOps | Encode, decode, all 5 match field-by-field |
 | 12 | Empty Vec | Valid zero-row Arrow buffer, decodes to `Success(vec![])` |
 | 13 | Single CreateElement | Tag and class survive round-trip |
-| 14 | All 17 variants | Batch of 17 (one per variant), all match after round-trip |
+| 14 | All 19 variants | Batch of 19 (one per variant), all match after round-trip |
 | 15 | 1000 SetText ops | Unique text per op, all 1000 texts match after round-trip |
 | 16 | Unicode (CJK, emoji, RTL) | Byte-exact match after round-trip |
 | 17 | Hand-crafted op=99 | Returns `UnknownOperation { op_id: 99, row_index: 0 }` |
@@ -333,7 +427,7 @@ crates/foundation_ui_traits/src/
 |---|----------|--------|
 | 18 | 5 mixed DomOps | Encode, decode, all match |
 | 19 | Empty Vec | Decodes to `Success(vec![])` |
-| 20 | All 17 variants | All match after round-trip |
+| 20 | All 19 variants | All match after round-trip |
 | 21 | JSON shape | Parse output as serde_json::Value, verify array of objects with correct field names |
 
 ### CustomBinaryEncoder round-trip (tests 22-24)

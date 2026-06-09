@@ -60,7 +60,7 @@ We should also refactor to make the code cleaner and nicer and more clear especi
 - FunctionRegistry — register_function, invoke_as_*, invoke_async
 - CallbackRegistry — register_callback, invoke_callback, unregister_callback
 - TimerRegistry — schedule_timeout, schedule_interval
-- Batch API — `host_batch_apply`, `host_batch_returning_apply`
+- Batch API — `host_apply` (uniform 3-param for all protocols)
 - **Protocol dispatcher** — reads protocol byte, routes to handler (0=custom binary, 1=arrow, 2=json)
 
 **What changes:**

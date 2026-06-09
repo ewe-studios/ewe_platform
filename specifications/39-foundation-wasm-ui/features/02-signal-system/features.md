@@ -12,6 +12,10 @@ Signal identity is the `Arc` reference — no string keys (decision 011). Bindin
 
 `crates/foundation_signals/` (depends on `foundation_ui_traits`)
 
+**G47 resolved — `foundation_signals` crate location:** New crate at `crates/foundation_signals/`.
+Not a rename — it's a fresh crate. The existing signal-related code in `foundation_wasm` (if any)
+will be migrated into this crate during the refactor (F00).
+
 ---
 
 ## Types & Structs
@@ -27,7 +31,7 @@ pub struct Runtime {
     active_effect: Option<NodeId>,                         // currently evaluating node (for dep tracking)
     pending_removals: Vec<NodeId>,                         // deferred removal during stabilize
     nodes: SlotMap<NodeId, Node>,                          // primary node storage, O(1) lookup
-    callbacks: BTreeMap<u64, Box<dyn FnMut(serde_json::Value)>>,  // JS interop callback registry
+    callbacks: BTreeMap<u64, Box<dyn FnMut(EventData)>>,   // JS interop callback registry — EventData from F08
     next_callback_id: u64,                                 // monotonically increasing, never reset
     notification_managers: Vec<Box<dyn NotificationManager>>,     // fired after stabilize completes
 }
@@ -106,6 +110,28 @@ impl Context {
     pub fn on_cleanup(&self, f: impl FnOnce() + 'static);
 }
 ```
+
+**How effects produce side-effects (DOM ops):** Effects are closures — they capture whatever they need from their environment. The signal system doesn't know or care what an effect does. A `DomSignalBinding` helper in `foundation_wasm_ui` creates the effect and captures a reference to `InstructionReceiver`:
+
+```rust
+// In foundation_wasm_ui — no trait needed, closure captures receiver directly
+impl DomSignalBinding {
+    pub fn bind<T: Clone + 'static, F: Fn(&T) -> String + 'static>(
+        ctx: &Context, getter: &SignalGetter<T>, receiver: &InstructionReceiver,
+        node_id: u32, transform: F,
+    ) -> Self {
+        let getter = getter.clone();
+        let receiver = receiver.clone();  // InstructionReceiver is Clone (Arc-based)
+        ctx.effect(move || {
+            let value = getter.get();                          // dependency tracked
+            receiver.queue(DomOp::SetText { node_id, text: transform(&value) });  // direct call
+        });
+        Self { /* effect_node_id */ }
+    }
+}
+```
+
+The closure captures `receiver` alongside `getter`. No bridge trait, no `Box<dyn Any>`, no downcast. The signal system runs the closure; the closure does what it wants.
 
 **Disposal:** dropping a Context runs on_cleanup for all owned effects, adds owned nodes to pending_removals, drops children recursively. Double-dispose is a no-op (SlotMap removal of nonexistent key does nothing).
 
@@ -272,19 +298,20 @@ pub trait Effect {
 
 ### DomSignalBinding
 
-An effect bridging signal changes to DOM operations. Implemented in `foundation_wasm_ui`, not `foundation_signals` — shown here to illustrate integration.
+An effect bridging signal changes to DOM operations. Implemented in `foundation_wasm_ui`, not `foundation_signals`. Exactly the pattern from decision 004 — closure captures signal getter and receiver directly:
 
 ```rust
 // In foundation_wasm_ui
 impl DomSignalBinding {
     pub fn bind<T: Clone + 'static, F: Fn(&T) -> String + 'static>(
-        ctx: &Context, getter: &SignalGetter<T>, node_id: u32, transform: F,
+        ctx: &Context, getter: &SignalGetter<T>, receiver: &InstructionReceiver,
+        node_id: u32, transform: F,
     ) -> Self {
         let getter = getter.clone();
-        let receiver = ctx.runtime().instruction_receiver();
+        let receiver = receiver.clone();  // InstructionReceiver is Clone (Arc-based)
         ctx.effect(move || {
             let value = getter.get();                          // dependency tracked
-            receiver.queue(DomOp::SetText(node_id, transform(&value)));
+            receiver.queue(DomOp::SetText { node_id, text: transform(&value) });
         });
         Self { /* effect_node_id */ }
     }
@@ -328,7 +355,7 @@ Both handles share `Arc<SignalStorage<T>>`. Getters for read-only access, setter
 
 ### callback_id and JS Interop
 
-Each setter carries `callback_id: u64` assigned from the Runtime's monotonic counter. The ID bridges JS DOM events to Rust signal updates: JS calls `invoke_callback(42, value)` across the WASM boundary, Rust looks up ID 42 in `runtime.callbacks`, dispatches to the setter closure. Stale IDs (disposed signals) return None — silently dropped.
+Each setter carries `callback_id: u64` assigned from the Runtime's monotonic counter. The ID bridges JS DOM events to Rust signal updates: JS serializes full event data into an arena slot, calls `invoke_callback(42, memory_id)` across the WASM boundary. Rust reads the `EventData` from the arena slot, looks up ID 42 in `runtime.callbacks`, dispatches to the setter closure. Stale IDs (disposed signals) return None — silently dropped. The arena slot is freed by Rust after reading (no JS-side dispose needed).
 
 ### Two-Way Binding Codegen
 
@@ -336,9 +363,9 @@ The `html!` macro (F03) detects `SignalSetter` in event-handler position and gen
 
 1. Developer writes: `html! { <input primal:onchange={set_name} /> }`
 2. Macro detects setter, reads `set_name.callback_id()` (e.g. 42)
-3. Codegen registers callback: `runtime.register_callback(42, |value| set_name.set(deserialize(value)))`
+3. Codegen registers callback: `runtime.register_callback(42, |event_data| { if let Some(v) = event_data.value { set_name.set(v) } })`
 4. Rendered HTML attribute: `primal:setter(42)`
-5. JS user interaction -> `invoke_callback(42, eventValue)` -> Rust setter -> signal update -> stabilize -> effects
+5. JS user interaction -> serializes `{ type: "change", value: "hello", ... }` into arena slot -> `invoke_callback(42, memory_id)` -> Rust deserializes EventData -> setter closure extracts `value` -> signal update -> stabilize -> effects
 
 IDs are monotonically increasing per Runtime, assigned at signal creation time. The macro reads the ID; it does not assign it.
 
@@ -353,6 +380,34 @@ IDs are monotonically increasing per Runtime, assigned at signal creation time. 
 **Re-entrant set during stabilize:** effect calls `setter.set()` during its execution — newly dirtied observers are inserted into dirty_heap at their heights. If height >= current level, processed in this pass. If below, processed in a subsequent stabilize call. Never triggers recursive/inline propagation.
 
 **Type mismatch on callback:** JS sends undeserializable value — `serde_json::from_value` fails, set is skipped, signal retains previous value. Logged if logging configured.
+
+**G15 resolved — `RefCell<T>` thread safety:** `SignalStorage<T>` uses `RefCell<T>` because WASM is single-threaded.
+For native (non-WASM) builds, `foundation_signals` uses a `single_threaded` feature flag (default).
+When `single_threaded` is off, `RefCell<T>` is replaced with `Mutex<T>` via a cfg-based type alias:
+```rust
+#[cfg(feature = "single_threaded")]
+type Cell<T> = RefCell<T>;
+#[cfg(not(feature = "single_threaded"))]
+type Cell<T> = Mutex<T>;
+```
+The default feature is `single_threaded` — WASM always uses this path.
+
+**G16 resolved — `notification_managers` ordering:** NotificationManagers fire after the dirty loop
+completes, in registration order. If a NotificationManager modifies signals during its callback,
+the newly dirtied observers are NOT processed in the same stabilize() — they'll be processed on
+the next `stabilize()` call. No infinite loop guard needed because stabilize() doesn't recurse;
+it processes the dirty heap once and returns.
+
+**G17 resolved — `callback_id` allocation timing:** Each setter gets its `callback_id` at signal
+creation time (`ctx.signal()`), not lazily. The ID is assigned from `Runtime.next_callback_id`
+when the `SignalSetter` is constructed. The callback is registered immediately in the BTreeMap:
+`runtime.callbacks.insert(callback_id, Box::new(|event_data| { /* dispatches to setter */ }))`.
+
+**G18 resolved — `ComputedNode.cached` downcast:** `ComputedNode.cached: Box<dyn Any>` stores
+the last evaluation result. When `computed.get()` is called, it downcasts to `&T`. If types
+changed between evaluations (e.g., the closure was modified at runtime — unlikely but possible
+via dynamic code), the downcast fails and the computed re-evaluates. In practice, the closure
+type is fixed at compile time, so this cannot happen.
 
 ---
 

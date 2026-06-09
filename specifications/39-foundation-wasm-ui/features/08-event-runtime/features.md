@@ -253,29 +253,76 @@ When `resolveFunctionRef` matches `/^callback-(\d+)$/`, it returns a WASM bridge
 ```
 createWasmCallbackHandler(callbackId):
   return function(event) {
-    1. let allocationId = event.target.getAttribute('primal-id')
-    2. let numericId = parseInt(allocationId, 10)
-    3. if isNaN(numericId): numericId = 0           // fallback: missing primal-id
-    4. wasmExports.invoke_callback(callbackId, numericId)
+    1. let eventData = {
+         type: event.type,                              // "click", "change", etc.
+         primalId: event.target.getAttribute('primal-id'),
+         value: event.target.value ?? null,              // input value (for change/input)
+         checked: event.target.checked ?? null,          // checkbox/radio state
+         keyCode: event.keyCode ?? event.which ?? null,  // keyboard events
+         modifiers: {
+           shiftKey: event.shiftKey,
+           ctrlKey: event.ctrlKey,
+           altKey: event.altKey,
+           metaKey: event.metaKey,
+         }
+       }
+    2. let json = JSON.stringify(eventData)
+    3. let bytes = new TextEncoder().encode(json)
+    4. let memId = wasmExports.create_allocation(bytes.length)
+    5. let ptr = wasmExports.allocation_start_pointer(memId)
+    6. new Uint8Array(wasmMemory.buffer, ptr, bytes.length).set(bytes)
+    7. wasmExports.invoke_callback(callbackId, memId)
   }
+```
+
+The `allocation_id` passed to `invoke_callback` is now a `MemoryId` pointing to an arena slot containing serialized JSON event data. The Rust callback reads from that slot, deserializes the `EventData` struct, and dispatches to the setter closure.
+
+**EventData struct (Rust side, in foundation_wasm_ui):**
+```rust
+#[derive(serde::Deserialize)]
+pub struct EventData {
+    pub primal_id: Option<String>,
+    pub event_type: String,
+    pub value: Option<String>,
+    pub checked: Option<bool>,
+    pub key_code: Option<u32>,
+    pub shift_key: bool,
+    pub ctrl_key: bool,
+    pub alt_key: bool,
+    pub meta_key: bool,
+}
 ```
 
 **Rust side** (foundation_wasm):
 ```rust
 #[no_mangle]
-pub extern "C" fn invoke_callback(callback_id: u64, allocation_id: u32) {
+pub extern "C" fn invoke_callback(callback_id: u64, allocation_id: u64) {
+    let mem_id = MemoryId::from_u64(allocation_id);
     RUNTIME.with(|rt| {
-        if let Some(cb) = rt.borrow_mut().callbacks.get_mut(&callback_id) {
-            cb(serde_json::Value::Number(allocation_id.into()));
+        let mut rt = rt.borrow_mut();
+        // Read event data from arena slot
+        let data = match rt.memory.get(mem_id) {
+            Ok(slot) => {
+                let bytes = slot.as_ref();
+                let json = core::str::from_utf8(bytes).unwrap_or("");
+                serde_json::from_str::<EventData>(json).ok()
+            }
+            Err(_) => None,
+        };
+        // Dispatch to callback
+        if let (Some(cb), Some(event_data)) = (rt.callbacks.get_mut(&callback_id), data) {
+            cb(event_data);
         }
-        // Not found → silently dropped (stale/disposed signal)
+        // Free the arena slot after reading
+        rt.memory.deallocate(mem_id).ok();
+        // Not found / parse error → silently dropped (stale/disposed signal)
     });
 }
 ```
 
 **Callback ID lifecycle:** Monotonic `u64` from `Runtime.next_callback_id` (F02). Each `SignalSetter<T>` carries a `callback_id`. Signal disposal removes the `BTreeMap` entry. Stale `invoke_callback` finds no entry, silently returns.
 
-**allocation_id:** Carries the `primal-id` of the event target, letting the Rust callback identify which DOM element triggered the event.
+**allocation_id:** Now a `MemoryId` (u64, generation-packed) pointing to an arena slot containing serialized JSON event data. The callback reads the data then deallocates the slot — no JS-side dispose needed (Rust owns the cleanup).
 
 **html! macro codegen:**
 ```rust
@@ -300,9 +347,19 @@ JS sees `primal:onclick="callback-7"`. `scanAndWire` calls `resolveFunctionRef("
 | `primal-id` missing on callback target | `allocation_id` falls back to 0. |
 | Double scanAndWire on same element | Old listener removed, new attached (idempotent). |
 | removeListeners on unwired element | WeakMap returns undefined, skipped. |
-| Non-bubbling event with delegation | focus/blur do not bubble. Use focusin/focusout or avoid delegation. |
-| MutationObserver unavailable (jsdom) | Manual `trackRemoved` required. `initMutationObserver` no-ops. |
 | Malformed attribute (`primal:foo`) | `startsWith('on')` check fails, skipped. |
+| MutationObserver unavailable (jsdom) | Manual `trackRemoved` required. `initMutationObserver` no-ops. |
+
+**G35 resolved — MutationObserver performance:** A single observer on `document` with `subtree: true`
+fires on every DOM change. Mitigated by: (1) skipping island subtrees (`node.closest('island')`),
+(2) batching microtask cleanup, (3) only wiring elements with `primal:on*` attributes (fast
+`startsWith` check). If performance is a concern, scope the observer to a container element.
+
+**G36 resolved — `elementListeners` WeakMap cleanup:** `removeListeners()` does explicit
+`elementListeners.delete(element)`, so listeners are cleaned up immediately. If a JS reference
+to a removed element exists, the element isn't GC'd, but the listener is already removed from
+the map — no stale listener fires.
+| Double scanAndWire on same element | Old listener removed, new attached (idempotent). |
 
 ## 14. Integration Points
 

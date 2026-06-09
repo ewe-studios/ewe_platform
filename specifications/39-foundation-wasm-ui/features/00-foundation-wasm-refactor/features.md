@@ -148,21 +148,16 @@ This is the WASM-specific transport layer — how encoded bytes cross the WASM�
 | `HostFunction` struct + methods | Function handle wrapper |
 | `invoke_for_none()` / `invoke_for_bool()` / `invoke_for_*` | Typed result extraction |
 | `invoke_for_object()` | Generic object invocation |
-| `batch()` — MODIFIED for ACK | Sends DOM ops batch (adds memory IDs) |
-| `batch_response()` — MODIFIED for ACK | Sends DOM ops batch, gets returns |
+| `batch()` | Sends DOM ops batch via `host_apply` |
+| `batch_response()` | Sends DOM ops batch, gets returns |
 | `register_schedule()` / `unregister_schedule()` | setTimeout wrapper |
 | `register_interval()` / `unregister_interval()` | setInterval wrapper |
 
 **Key FFI import signatures** (`extern "C"` functions imported from the JS host). All imports have `#[cfg(target_arch = "wasm32")]` guards; non-WASM builds provide stub implementations that panic.
 
 ```rust
-// --- Protocol batch imports ---
-fn host_batch_apply(                              // Custom Binary: 2 arena slots (ops + text)
-    ops_mem_id: u64, ops_ptr: u64, ops_len: u64,
-    text_mem_id: u64, text_ptr: u64, text_len: u64,
-);
-fn host_arrow_apply(mem_id: u64, ptr: u64, len: u64);  // Arrow: 1 arena slot
-fn host_json_apply(mem_id: u64, ptr: u64, len: u64);   // JSON: 1 arena slot
+// --- Uniform protocol apply (3 params for ALL protocols) ---
+fn host_apply(mem_id: u64, ptr: u64, len: u64);
 
 // --- Timers ---
 fn schedule_timeout(callback_id: u64, delay_ms: u32);   // setTimeout
@@ -182,6 +177,14 @@ fn host_invoke_function(                                             // Call JS 
 ) -> u64;
 ```
 
+**G44 resolved — single `host_apply` for all protocols:** Arrow, CustomBinary, and JSON all use
+the same 3-param FFI. CustomBinary packs its text pool into the same arena slot as ops (payload
+starts with `[text_pool_offset: u32][text_pool_length: u32]`). JS handler reads the offset, splits
+the payload, applies both. One `host_apply` call, one `dispose_allocation`.
+```javascript
+const imports = { env: { host_apply, schedule_timeout, cancel_timeout, ... } };
+```
+
 **MOVES to foundation_wasm_ui:**
 
 | Code | Reason |
@@ -190,6 +193,15 @@ fn host_invoke_function(                                             // Call JS 
 | `allocate_dom_reference()` | DOM-specific pointer allocation |
 | `invoke_for_dom()` | DOM-specific invocation |
 | `register_animation_hook()` / `register_animation_hook_callback()` | DOM-specific (calls hook_up_animation_frames) |
+
+**G8 resolved — `internal_api` module:** The module stays in `foundation_wasm` as `pub mod internal_api` — public so external users can build on top of the ABI logic, but they can't change the implementation. Contains: `create_instructions()`, `get_memory()`, `parse_callback_replies()`, `get_total_animation_callbacks()`, `run_animation_frames()`, `run_internal_callbacks()`, `extract_vec_from_memory()`, `extract_string_from_memory()`. Animation functions (`get_total_animation_callbacks`, `run_animation_frames`, `register_animation_hook`) stay here — they're ABI functions that external crates (including `foundation_wasm_ui`) can call.
+
+**G9 resolved — non-WASM stub implementations:** All FFI functions have `#[cfg(target_arch = "wasm32")]`
+guards with stub implementations for non-WASM targets. Stubs panic in release builds, but return
+safe defaults in `#[cfg(test)]` builds so unit tests run natively.
+
+**G10 resolved — line number references:** Line numbers in this spec are approximate and for
+orientation only. Use function/type names as the authoritative reference.
 
 #### `internal_api` module — STAYS in foundation_wasm
 
@@ -370,6 +382,9 @@ WASM-specific transport — how encoded bytes cross the WASM↔JS boundary using
 
 #### ProtocolHandler trait — full definition
 
+Uniform for ALL protocols. One arena slot per message, 3-param FFI. The protocol-specific
+payload structure lives inside the slot — the router doesn't care what's inside.
+
 ```rust
 // In foundation_wasm::protocol — WASM-only
 pub trait ProtocolHandler {
@@ -377,13 +392,24 @@ pub trait ProtocolHandler {
     fn protocol_byte(&self) -> u8;
     /// Protocol version for backward compatibility.
     fn version(&self) -> u8;
-    /// WASM->JS: ship payload in arena slot `memory_id` at (ptr, len).
-    /// JS reads the data then calls dispose_allocation(memory_id).
+    /// Ship payload in arena slot `memory_id` at (ptr, len).
+    /// JS reads the envelope header, dispatches to the correct handler by protocol byte,
+    /// and the handler decodes the protocol-specific payload from the slot.
     fn send_to_js(&self, memory_id: MemoryId, ptr: *const u8, len: usize);
     /// JS->WASM: receive payload from arena slot `memory_id` at (ptr, len).
     /// Handler calls memory.deallocate(memory_id) after processing.
     fn handle_from_js(&self, memory_id: MemoryId, ptr: *const u8, len: usize);
 }
+```
+
+**Single arena slot per message, all protocols:** Each protocol writes its complete message into
+one arena slot. The envelope header `[protocol: u8][version: u8][memory_id: u64][length: u32]`
+points to that slot. CustomBinary's payload contains its own sub-structure (text pool offset, ops
+binary, etc.) — the handler decodes it. One `host_*_apply` call, 3 params. One `dispose_allocation`.
+
+```rust
+// All protocols use the same 3-param FFI:
+fn host_apply(mem_id: u64, ptr: u64, len: u64);
 ```
 
 #### WasmEnvelope — 14-byte WASM-specific message header
@@ -468,40 +494,57 @@ Also owns the WASM-specific envelope extension (adds `memory_id: u64` to the bas
 
 ### Layer 3: WASM Protocol Impls (foundation_wasm_ui)
 
-Composes encoding (Layer 1) and transport (Layer 2) into a single call. Each impl uses an encoder from `foundation_ui_traits` to produce bytes, then uses `ProtocolHandler` to ship them through the arena.
+Composes encoding (Layer 1) and transport (Layer 2) into a single call. Each impl uses an encoder
+from `foundation_ui_traits` to produce bytes, then calls `send_to_js` from `ProtocolHandler`.
 
 ```rust
 // In foundation_wasm_ui
 pub trait ProtocolMethods<T>: ProtocolHandler {
     fn encode_and_send(&self, data: T, memory: &mut MemoryAllocations) -> SendResult;
-    fn handle_received(&self, payload: &[u8]) -> HandleResult;
-    fn ack(&self, memory_ids: &[MemoryId], memory: &mut MemoryAllocations);
+    fn handle_received(&self, memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult;
+    fn ack(&self, memory_id: MemoryId, memory: &mut MemoryAllocations);
 }
 
-// ArrowV1 composes ArrowEncoder + ProtocolHandler
+// ArrowV1: single slot, Arrow IPC payload
 impl ProtocolMethods<Vec<DomOp>> for ArrowV1 {
     fn encode_and_send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) -> SendResult {
         let bytes = self.encoder.encode(ops);           // Layer 1: encode
-        let mem_id = memory.allocate(bytes.len());      // allocate arena slot
+        let mem_id = memory.allocate(bytes.len());      // 1 arena slot
         let slot = memory.get(mem_id).unwrap();
         slot.apply(|mem| mem.extend_from_slice(&bytes));
         let (ptr, len) = slot.as_address().unwrap();
-        self.send_to_js(mem_id, ptr, len);              // Layer 2: transport
+        self.send_to_js(mem_id, ptr, len);              // Layer 2: uniform FFI
+        SendResult { memory_id: mem_id }
+    }
+}
+
+// CustomBinaryV1: single slot, payload contains text pool offset + ops binary
+impl ProtocolMethods<Vec<DomOp>> for CustomBinaryV1 {
+    fn encode_and_send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) -> SendResult {
+        let bytes = self.encoder.encode(ops);           // single-slot encoding
+        let mem_id = memory.allocate(bytes.len());
+        let slot = memory.get(mem_id).unwrap();
+        slot.apply(|mem| mem.extend_from_slice(&bytes));
+        let (ptr, len) = slot.as_address().unwrap();
+        self.send_to_js(mem_id, ptr, len);              // same uniform FFI
         SendResult { memory_id: mem_id }
     }
 }
 ```
 
-`InstructionReceiver` holds `Box<dyn ProtocolMethods<Vec<DomOp>>>` — it calls `encode_and_send(ops, memory)` and the impl owns the full pipeline.
+**CustomBinary single-slot encoding:** Instead of two arena slots (ops + text), CustomBinary
+packs both into one slot: `[text_pool_offset: u32][text_pool_length: u32][ops_binary...][text_pool...]`.
+JS CustomBinary handler reads the offset, splits the payload, and applies both. One slot, one
+`dispose_allocation`, same FFI as Arrow and JSON.
 
 ### Protocol-specific Differences
 
 | Aspect | CustomBinaryV1 | ArrowV1 | JsonV1 |
 |--------|---------------|---------|--------|
-| FFI import | `host_batch_apply(6 params)` | `host_arrow_apply(ptr, len)` | `host_json_apply(ptr, len)` |
-| Memory per message | 2 arena slots (ops + text) | 1 arena slot | 1 arena slot |
-| ACK calls | 2x `dispose_allocation` | 1x `dispose_allocation` | 1x `dispose_allocation` |
-| Envelope payload | `[ops_arena_id][text_arena_id][ops + text data...]` | `[arrow_ipc_length][Arrow IPC...]` | `[json_length][JSON text...]` |
+| FFI import | `host_apply(3 params)` | `host_apply(3 params)` | `host_apply(3 params)` |
+| Memory per message | 1 arena slot (ops + text inline) | 1 arena slot | 1 arena slot |
+| ACK calls | 1x `dispose_allocation` | 1x `dispose_allocation` | 1x `dispose_allocation` |
+| Envelope payload | `[text_pool_offset][text_pool_len][ops...][text...]` | `[arrow_ipc_length][Arrow IPC...]` | `[json_length][JSON text...]` |
 | Return value parsing | `ReturnValueParserIter` on ops slot | N/A (DOM ops) | JSON parse |
 
 ---
@@ -516,7 +559,7 @@ impl ProtocolMethods<Vec<DomOp>> for ArrowV1 {
 - FunctionRegistry — register_function, invoke_as_*, invoke_async
 - CallbackRegistry — register_callback, invoke_callback, unregister_callback
 - TimerRegistry — schedule_timeout, schedule_interval
-- Batch API — host_batch_apply, host_batch_returning_apply
+- Batch API — host_apply (uniform 3-param for all protocols)
 - Protocol dispatcher — reads protocol byte, routes to handler
 - Transport detection — SharedArrayBuffer vs Transferable
 
@@ -600,9 +643,27 @@ Each crate owns its own Runtime:
 
 ### foundation_signals Runtime (decision 002)
 Owns the signal graph. No knowledge of protocols, DOM ops, or memory allocations.
+Effects are plain closures — they capture whatever they need from their environment.
+The signal system runs closures; what they do is not its concern.
 
 ### foundation_wasm_ui Runtime
 Owns the instruction receiver, protocol dispatch, and memory allocations. No knowledge of signal internals.
+
+### How effects queue DOM ops (no bridge trait)
+Effects are closures created at a call site where both `Context` and `InstructionReceiver` are in scope:
+
+```rust
+// Developer code or binding helper — both ctx and receiver are available here
+let getter = signal.clone();
+let receiver = wasm_ui.receiver.clone();  // InstructionReceiver is Clone (Arc-based)
+ctx.effect(move || {
+    let value = getter.get();
+    receiver.queue(DomOp::SetText { node_id, text: value.to_string() });
+});
+```
+
+No trait, no `Box<dyn Any>`, no downcast. The closure captures `receiver` directly.
+The signal system just executes the closure.
 
 ### Application Orchestrator
 ```rust
@@ -612,12 +673,37 @@ pub struct AppOrchestrator {
 }
 
 impl AppOrchestrator {
+    pub fn new() -> Self {
+        let signals = foundation_signals::Runtime::builder().build();
+        let wasm_ui = foundation_wasm_ui::Runtime::builder()
+            .protocol(ArrowV1::new())
+            .memory(MemoryAllocations::new(16))
+            .build();
+        Self { signals, wasm_ui }
+    }
+
     pub fn stabilize(&mut self) {
-        self.signals.stabilize();
-        self.wasm_ui.flush();
+        // G43: Atomic stabilize — if flush fails, signal state is already updated.
+        // The DOM may be out of sync with signals, but the next stabilize() will
+        // re-emit the correct DOM ops from effects (since effects re-read signal values).
+        // There is no rollback needed — the signal system is the source of truth,
+        // and effects will naturally reconcile the DOM on the next cycle.
+        self.signals.stabilize();    // effects run, push DomOps via captured receiver ref
+        if let Err(e) = self.wasm_ui.try_flush() {
+            // Log error. DOM may be stale, but next stabilize() will re-emit correct ops.
+            log::error!("flush failed: {e} — DOM will reconcile on next stabilize()");
+        }
     }
 }
 ```
+
+**G43 atomicity guarantee:**
+- If `flush()` panics or fails, the signal values are already updated (from `signals.stabilize()`).
+- The DOM may temporarily lag, but effects are idempotent — they re-read signal values and re-queue the correct DomOps on the next `stabilize()` call.
+- No rollback mechanism needed: signal values are the source of truth, and effects naturally converge the DOM.
+- For critical paths, the application can wrap `stabilize()` in `std::panic::catch_unwind` to catch panics before they crash the WASM instance.
+
+**Key property:** `foundation_signals` has zero dependency on `DomOp` or `foundation_wasm_ui`. Effects are closures — the signal system runs them, closures do what they want. The developer or binding helper provides the connection at the call site.
 
 ---
 
@@ -633,7 +719,7 @@ impl AppOrchestrator {
 | `host_invoke_async_function(handler, callback, params, returns)` | WASM → JS | WASM calls async JS function, JS responds via invoke_callback |
 | `host_invoke_function(handler, params, returns)` | WASM → JS | WASM calls sync JS function, gets return value |
 | `host_invoke_function_as_*` variants | WASM → JS | WASM calls JS, expects specific return type |
-| `host_batch_apply` / `host_batch_returning_apply` | WASM → JS | WASM sends DOM ops batch |
+| `host_apply` | WASM → JS | WASM sends DOM ops batch (uniform for all protocols) |
 | `host_cache_string` | WASM → JS | WASM caches string in JS runtime |
 | `host_register_function` / `host_unregister_function` | WASM → JS | WASM registers JS functions |
 
@@ -701,7 +787,7 @@ slot.apply(|mem| {
 **Step 3: WASM ships data to JS via protocol FFI**
 ```rust
 let (ptr, len) = slot.as_address()?;
-unsafe { host_arrow_apply(mem_id.as_u64(), ptr as u64, len); }
+unsafe { host_apply(mem_id.as_u64(), ptr as u64, len); }
 // JS now reads from WASM linear memory at (ptr, len)
 ```
 
@@ -744,13 +830,11 @@ memory.get(stale_id)  // => Err(InvalidAllocationId)
 
 `MemoryId(index: u32, generation: u32)` is packed into a `u64` for FFI transport. The `index` identifies the slot position in the `allocs` vector. The `generation` is a monotonically increasing counter per slot — it increments each time the slot is recycled through `deallocate` + `allocate`. This makes stale IDs detectable without any bookkeeping on the JS side.
 
-### Custom Binary — two slots per message
+### Single arena slot per message
 
-The Custom Binary protocol allocates two arena slots per batch: one for ops, one for text. Both `MemoryId` values are passed to `host_batch_apply`. JS must call `dispose_allocation` twice — once for each slot. If JS fails to ACK either slot, that slot leaks until the WASM instance is torn down.
-
-### Arrow / JSON — one slot per message
-
-Arrow and JSON protocols use a single arena slot per message. One `MemoryId`, one `dispose_allocation` call.
+All protocols use one arena slot per batch. CustomBinary packs ops and text pool into a single slot
+(payload starts with `[text_pool_offset: u32][text_pool_length: u32]`). One `MemoryId`, one
+`dispose_allocation` call.
 
 ---
 
@@ -926,10 +1010,10 @@ Specific test scenarios:
 
 Specific test scenarios:
 
-- **ArrowV1 encode_and_send:** Create 3 DomOps. Call `encode_and_send`. Assert exactly 1 arena slot allocated. Assert `host_arrow_apply` called with correct (mem_id, ptr, len). Call `ack` — slot freed.
-- **CustomBinaryV1 encode_and_send:** Create 3 DomOps. Call `encode_and_send`. Assert exactly 2 arena slots allocated (ops + text). Assert `host_batch_apply` called with 6 parameters (2x mem_id, ptr, len). Call `ack` with both IDs — both slots freed.
-- **JsonV1 encode_and_send:** Create 3 DomOps. Call `encode_and_send`. Assert 1 arena slot. Assert `host_json_apply` called.
-- **host_batch_apply with 2 arena slots:** Allocate ops and text slots. Ship via `host_batch_apply`. JS processes, calls `dispose_allocation` twice. Assert both slots freed and available for reuse.
+- **ArrowV1 encode_and_send:** Create 3 DomOps. Call `encode_and_send`. Assert exactly 1 arena slot allocated. Assert `host_apply` called with correct (mem_id, ptr, len). Call `ack` — slot freed.
+- **CustomBinaryV1 encode_and_send:** Create 3 DomOps. Call `encode_and_send`. Assert exactly 1 arena slot allocated. Assert `host_apply` called. JS parses payload — text pool offset correct, ops binary correct. Call `ack` — slot freed.
+- **JsonV1 encode_and_send:** Create 3 DomOps. Call `encode_and_send`. Assert 1 arena slot. Assert `host_apply` called.
+- **host_apply with 1 arena slot:** Allocate slot. Ship via `host_apply`. JS processes, calls `dispose_allocation` once. Assert slot freed and available for reuse.
 - **InstructionReceiver flush:** Queue 10 DomOps via `receiver.queue()`. Call `flush()`. Assert protocol's `encode_and_send` called once with all 10 ops. Assert `receiver.ops` is empty after flush.
 - **InstructionReceiver empty flush:** Call `flush()` with no queued ops. Assert no encoding or FFI calls made.
 

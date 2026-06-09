@@ -16,11 +16,12 @@ pub struct Html {
     pub text: Option<String>,
     pub parts: Vec<Part>,                 // Reactive binding descriptors
 }
-pub enum Part { Text(TextPart), Attribute(AttrPart), Event(EventPart), Children(ChildPart) }
+pub enum Part { Text(TextPart), Attribute(AttrPart), Event(EventPart) }
+// Note: ChildPart removed — all child positions generate Part::Text.
+// Vec<Html> expressions are handled at runtime via IntoHtml (wraps as tagless node).
 pub struct TextPart   { pub node_id: u32 }
 pub struct AttrPart   { pub node_id: u32, pub attr_name: String }
 pub struct EventPart  { pub node_id: u32, pub event_name: String }
-pub struct ChildPart  { pub parent_id: u32 }
 ```
 
 ## 2. Proc Macro Entry Point
@@ -128,7 +129,29 @@ fn prefix_ids(html: &mut Html, prefix: u64) {
 
 ### 4.3 Loops and Conditionals
 
-Each `html!` in a `.map()` closure is a separate expansion (IDs start at 0). At mount, each iteration gets a distinct prefix: `"43:0"`, `"44:0"`. Conditional branches assign IDs at compile time; unused IDs absent from DOM. Gaps acceptable.
+**G20 resolved — loop iteration prefix allocation:** Each `html!` in a `.map()` closure is a separate
+expansion (IDs start at 0). At mount, the caller allocates prefixes per iteration using
+`ctx.allocate_prefix()` which increments an atomic counter on the Context. Each iteration gets
+a distinct prefix: `"43:0"`, `"44:0"`. Conditional branches assign IDs at compile time; unused
+IDs absent from DOM. Gaps acceptable.
+
+```rust
+// User code:
+items.iter().map(|item| html! { <li>{item.name}</li> }).collect::<Vec<Html>>()
+
+// Each html! generates primal-id 0 internally.
+// At mount, the caller allocates a fresh prefix for each iteration:
+for html in items {
+    prefix_ids(&mut html, ctx.allocate_prefix());  // 43, 44, 45, ...
+    mount_html(ctx, html, receiver);
+}
+```
+
+**G21 resolved — `MaybeCallback` trait placement:** `MaybeCallback` lives in `foundation_wasm_ui`
+(runtime support crate), not in the proc macro crate. The macro generates code that calls
+`MaybeCallback::maybe_callback_id(&expr)` — since proc macros can't depend on their host crate,
+the generated code adds `use foundation_wasm_ui::MaybeCallback;` at the call site. The user's
+crate already depends on `foundation_wasm_ui`, so the import resolves at compile time.
 
 ## 5. Part Determination
 
@@ -219,7 +242,200 @@ IDs: div=0, span=1, input=2, button=3. `__h1` captures setter -> `MaybeCallback`
 
 ## 8. mount(ctx) Integration
 
-Mount (in `foundation_wasm_ui`) walks `Html.parts`, creates one effect per Part (decision 005). Effects run immediately (decision 008). On signal change, only affected effects re-run. `Text` -> effect queues `SetText`. `Attribute` -> effect queues `SetAttribute`. `Event` -> queues `AddEventListener` once (no effect). `Children` -> effect diffs and queues child ops.
+**G19 resolved:** Mount walks the `Html` tree, creates DOM elements, then creates one effect per `Part`.
+
+### What the macro generates vs what mount does
+
+The `html!` macro generates code that **captures signal getters as local variables** and passes them into `mount`. Mount then creates effects that close over those captured getters.
+
+**Developer writes:**
+```rust
+html! {
+    ctx,
+    <div class="card">
+        <span>{count.get()}</span>
+        <input primal:onchange={set_name} value={name.get()} />
+    </div>
+}
+```
+
+**Macro generates (conceptual):**
+```rust
+{
+    // Step 1: Capture signal getters as local variables
+    let __count_getter = count.clone();
+    let __name_getter = name.clone();
+    let __set_name = set_name.clone();  // for the setter callback
+
+    // Step 2: Evaluate expressions to produce the Html tree
+    let html = Html {
+        tag: Some("div".into()),
+        attributes: vec![("primal-id", "0"), ("class", "card")],
+        children: vec![
+            Html {
+                tag: Some("span".into()),
+                attributes: vec![("primal-id", "1")],
+                children: vec![(__count_getter.get()).into_html()],  // evaluated once
+                text: None,
+                parts: vec![Part::Text(TextPart { node_id: 1 })],
+            },
+            Html {
+                tag: Some("input".into()),
+                attributes: vec![("primal-id", "2"), ("value", (__name_getter.get()).to_string())],
+                children: vec![],
+                text: None,
+                parts: vec![Part::Attribute(AttrPart { node_id: 2, attr_name: "value".into() })],
+            },
+        ],
+        text: None,
+        parts: vec![
+            Part::Event(EventPart { node_id: 2, event_name: "change".into() }),
+        ],
+    };
+
+    // Step 3: Call mount — pass the captured getters + html + receiver
+    mount(ctx, html, receiver, __count_getter, __name_getter, __set_name)
+}
+```
+
+**Mount uses the captured getters to create effects:**
+```rust
+// In foundation_wasm_ui::html_macro::mount
+pub fn mount(
+    ctx: &Context,
+    html: Html,
+    receiver: &InstructionReceiver,
+    // Macro-generated: one argument per Part that needs an effect
+    count_getter: SignalGetter<i32>,
+    name_getter: SignalGetter<String>,
+) {
+    // 1. Prefix primal-ids: rewrite compile-time IDs (0,1,2) to runtime-prefixed ("42:0","42:1")
+    let mut html = html;
+    let prefix = ctx.allocate_prefix();
+    prefix_ids(&mut html, prefix);
+
+    // 2. Recursively walk Html tree, create DOM elements, register in NodeRegistry
+    create_dom_tree(&html, receiver);
+
+    // 3. Create one effect per Part — each effect closes over the captured getter
+    //    For Part::Text { node_id: 1 } (the span):
+    let receiver = receiver.clone();
+    ctx.effect(move || {
+        let value = count_getter.get();  // re-evaluate the captured getter
+        receiver.queue(DomOp::SetText { node_id: 1, text: value.to_string() });
+    });
+
+    //    For Part::Attribute { node_id: 2, attr_name: "value" } (the input):
+    let receiver = receiver.clone();
+    ctx.effect(move || {
+        let value = name_getter.get();  // re-evaluate the captured getter
+        receiver.queue(DomOp::SetAttribute { node_id: 2, name: "value".into(), value });
+    });
+
+    //    For Part::Event { node_id: 2, event_name: "change" } — no effect, one-time op:
+    receiver.queue(DomOp::AddEventListener { node_id: 2, event_name: "change".into() });
+}
+```
+
+**Key point:** The macro generates the closure captures (`let __count_getter = count.clone()`). Mount receives them as parameters and closes over them in the effect closures. The expression `{count.get()}` is evaluated twice — once during `Html` construction (initial DOM), and again inside the effect (reactive update). Both calls use the same captured getter.
+
+// Recursively creates DOM elements from Html tree
+fn create_dom_tree(html: &Html, receiver: &InstructionReceiver, counter: &mut u32) {
+    match &html.tag {
+        Some(tag) => {
+            // Element node: CreateElement + RegisterNode + attributes
+            receiver.queue(DomOp::CreateElement { node_id: extract_primal_id(html), tag: tag.clone(), class: extract_class(html) });
+            receiver.queue(DomOp::RegisterNode { node_id: extract_primal_id(html) });
+            for (name, value) in &html.attributes {
+                if name != "primal-id" && name != "class" {
+                    receiver.queue(DomOp::SetAttribute { node_id: extract_primal_id(html), name: name.clone(), value: value.clone() });
+                }
+            }
+            // Recurse into children
+            for child in &html.children {
+                create_dom_tree(child, receiver, counter);
+            }
+            // Parent-child relationships
+            for child in &html.children {
+                if let Some(child_id) = extract_primal_id_opt(child) {
+                    receiver.queue(DomOp::AppendChild { parent_id: extract_primal_id(html), child_id });
+                }
+            }
+        }
+        None => {
+            // Text node or tagless node (from IntoHtml on primitives or Vec<Html>)
+            if let Some(text) = &html.text {
+                // Single text value — create a text node with a runtime-unique ID
+                let text_id = *counter; *counter += 1;
+                receiver.queue(DomOp::CreateTextNode { node_id: text_id, content: text.clone() });
+                receiver.queue(DomOp::RegisterNode { node_id: text_id });
+                // Parent is determined by context — mount_child passes it
+            } else if !html.children.is_empty() {
+                // Tagless node (from Vec<Html>) — just process children
+                for child in &html.children {
+                    create_dom_tree(child, receiver, counter);
+                }
+            }
+        }
+    }
+}
+
+### create_effects — reactive bindings
+
+The macro doesn't call a generic `create_effects` function. Instead, for each `Part`, the macro
+generates the specific effect closure inline, using the captured getter variable:
+
+```rust
+// Generated by macro for each Part::Text { node_id: 1 }:
+let getter = __count_getter.clone();  // captured local variable
+let receiver = receiver.clone();
+ctx.effect(move || {
+    let value = getter.get();
+    receiver.queue(DomOp::SetText { node_id: 1, text: value.to_string() });
+});
+
+// Generated by macro for each Part::Attribute { node_id: 2, attr_name: "value" }:
+let getter = __name_getter.clone();
+let receiver = receiver.clone();
+ctx.effect(move || {
+    let value = getter.get();
+    receiver.queue(DomOp::SetAttribute { node_id: 2, name: "value".into(), value });
+});
+
+// For Part::Event — one-time, no effect:
+receiver.queue(DomOp::AddEventListener { node_id: 2, event_name: "change".into() });
+```
+
+**How signal → DOM mapping works:**
+
+```rust
+// Developer writes:
+html! { <div class="card"><span>{count.get()}</span></div> }
+
+// Macro generates:
+Html {
+    tag: Some("div"),
+    attributes: [("primal-id", "0"), ("class", "card")],
+    children: [
+        Html {
+            tag: Some("span"),
+            attributes: [("primal-id", "1")],
+            children: [ /* {count.get()} evaluated → Html { tag: None, text: Some("42") } */ ],
+            text: None,
+            parts: [Part::Text(TextPart { node_id: 1 })],  // targets the span
+        }
+    ],
+    text: None,
+    parts: [],
+}
+
+// mount() does:
+// 1. create_dom_tree → creates <div primal-id="42:0">, <span primal-id="42:1">
+// 2. create_effects → for Part::Text { node_id: 1 } (the span):
+//      effect captures count getter, queues SetText { node_id: "42:1", text: count.get() }
+```
+
+The `Part::Text { node_id }` points to the **parent element** of the dynamic slot (the span), not the text node itself. The effect calls `SetText` on the span's node_id, which sets its textContent. This is correct because the span only contains the text — no other children to destroy.
 
 ## 9. Error Cases and Edge Cases
 

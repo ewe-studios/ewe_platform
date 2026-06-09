@@ -19,7 +19,7 @@ pub struct InstructionReceiver {
 }
 
 pub struct SendResult {
-    pub memory_id: MemoryId,    // primary arena slot (Arrow/JSON: single slot; CustomBinary: ops slot)
+    pub memory_id: MemoryId,    // arena slot to ACK (one slot per message, all protocols)
     pub op_count: usize,        // number of DomOps encoded
     pub encoded_bytes: usize,   // payload byte size excluding envelope
 }
@@ -48,20 +48,30 @@ pub trait ProtocolEncoder<T> {
     fn encode(&self, data: T) -> Vec<u8>;
     fn decode(&self, payload: &[u8]) -> DecodeResult<T>;
 }
-// Layer 2 (foundation_wasm) — WASM transport: arena + FFI, no encoding logic
+
+// Layer 2 (foundation_wasm) — WASM transport: uniform arena slot handoff for ALL protocols.
+// Each protocol writes its complete message into one arena slot. The envelope header
+// [protocol: u8][version: u8][memory_id: u64][length: u32] points to that slot.
+// Protocol-specific payload structure lives inside the slot.
 pub trait ProtocolHandler {
     fn protocol_byte(&self) -> u8;
     fn version(&self) -> u8;
     fn send_to_js(&self, memory_id: MemoryId, ptr: *const u8, len: usize);
     fn handle_from_js(&self, memory_id: MemoryId, ptr: *const u8, len: usize);
 }
+
 // Layer 3 (foundation_wasm_ui) — composes encoder + transport
 pub trait ProtocolMethods<T>: ProtocolHandler {
     fn encode_and_send(&self, data: T, memory: &mut MemoryAllocations) -> SendResult;
-    fn handle_received(&self, payload: &[u8]) -> HandleResult;
-    fn ack(&self, memory_ids: &[MemoryId], memory: &mut MemoryAllocations);
+    fn handle_received(&self, memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult;
+    fn ack(&self, memory_id: MemoryId, memory: &mut MemoryAllocations);
 }
 ```
+
+**All protocols use the same 3-param FFI:** `host_apply(mem_id, ptr, len)`. CustomBinary packs
+its text pool into the same arena slot as ops — payload starts with `[text_pool_offset: u32]
+[text_pool_length: u32][ops_binary...][text_pool...]`. JS handler splits and applies. One slot,
+one `dispose_allocation`, same FFI for all protocols.
 
 ## 3. Method Signatures & Behavior
 
@@ -89,7 +99,12 @@ pub fn flush(&mut self)
    // JS applies synchronously, ACKs, calls dispose_allocation
 4. self.flush_count += 1
 ```
-Post-flush: `self.ops` is empty with zero capacity (from `mem::take`). Next `queue()` re-allocates. Intentional — avoids holding memory between cycles.
+Post-flush: `self.ops` is empty. Next `queue()` uses the existing Vec capacity (from the initial
+pre-allocated 64). We use `self.ops.clear()` instead of `mem::take` — this preserves the Vec's
+allocated capacity between flush cycles, avoiding reallocation every stabilize.
+
+**G22 resolved:** `clear()` retains capacity. `mem::take` was wrong — it would zero the Vec's
+capacity, forcing a re-allocation on every queue() after flush.
 
 ### Accessors
 ```rust
@@ -106,36 +121,45 @@ pub struct ArrowV1 { encoder: ArrowEncoder }
 impl ProtocolMethods<Vec<DomOp>> for ArrowV1 {
     fn encode_and_send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) -> SendResult {
         let op_count = ops.len();
-        let bytes = self.encoder.encode(ops);              // Layer 1: DomOps → Arrow IPC bytes
-        let mem_id = memory.allocate(bytes.len());          // single arena slot
+        let bytes = self.encoder.encode(ops);
+        let mem_id = memory.allocate(bytes.len());
         let slot = memory.get_mut(mem_id).unwrap();
-        slot.apply(|mem| mem.extend_from_slice(&bytes));    // copy into arena
+        slot.apply(|mem| mem.extend_from_slice(&bytes));
         let (ptr, len) = slot.as_address().unwrap();
-        self.send_to_js(mem_id, ptr, len);                  // FFI: host_batch_apply(idx,gen,ptr,len)
+        self.send_to_js(mem_id, ptr, len);
         SendResult { memory_id: mem_id, op_count, encoded_bytes: bytes.len() }
     }
-    fn ack(&self, ids: &[MemoryId], memory: &mut MemoryAllocations) {
-        for &id in ids { memory.dispose(id); }              // frees slot, increments generation
+    fn ack(&self, id: MemoryId, memory: &mut MemoryAllocations) {
+        memory.dispose(id);
     }
 }
 ```
 
-### CustomBinaryV1 (protocol_byte=0, 2 MemoryIds per batch)
+### CustomBinaryV1 (protocol_byte=0, 1 MemoryId per batch)
+
+CustomBinary packs ops and text pool into a single arena slot:
+```
+[4 bytes: text_pool_offset][4 bytes: text_pool_length][ops_binary...][text_pool...]
+```
 ```rust
 pub struct CustomBinaryV1 { encoder: CustomBinaryEncoder }
 
 impl ProtocolMethods<Vec<DomOp>> for CustomBinaryV1 {
     fn encode_and_send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) -> SendResult {
         let op_count = ops.len();
-        let bytes = self.encoder.encode(ops);
-        let (ops_bytes, text_bytes) = self.split_regions(&bytes);
-        let ops_id = memory.allocate(ops_bytes.len());       // slot 1: op structs
-        let txt_id = memory.allocate(text_bytes.len());       // slot 2: text pool
-        memory.get_mut(ops_id).unwrap().apply(|m| m.extend_from_slice(&ops_bytes));
-        memory.get_mut(txt_id).unwrap().apply(|m| m.extend_from_slice(&text_bytes));
-        let (op, ol) = memory.get(ops_id).unwrap().as_address().unwrap();
-        let (tp, tl) = memory.get(txt_id).unwrap().as_address().unwrap();
-        self.send_binary_to_js(ops_id, op, ol, txt_id, tp, tl);  // 8-param FFI
+        let bytes = self.encoder.encode(ops);  // single-slot encoding with text pool inline
+        let mem_id = memory.allocate(bytes.len());
+        let slot = memory.get_mut(mem_id).unwrap();
+        slot.apply(|mem| mem.extend_from_slice(&bytes));
+        let (ptr, len) = slot.as_address().unwrap();
+        self.send_to_js(mem_id, ptr, len);  // same uniform FFI as Arrow
+        SendResult { memory_id: mem_id, op_count, encoded_bytes: bytes.len() }
+    }
+    fn ack(&self, id: MemoryId, memory: &mut MemoryAllocations) {
+        memory.dispose(id);  // one slot, one dispose
+    }
+}
+```
         SendResult { memory_id: ops_id, op_count, encoded_bytes: bytes.len() }
     }
 }
@@ -284,7 +308,7 @@ crates/foundation_wasm_ui/src/
 | # | Scenario | Verify |
 |---|----------|--------|
 | 10 | ArrowV1 encode_and_send, 5 mixed DomOps | Valid MemoryId, op_count==5, encoded_bytes>0 |
-| 11 | CustomBinaryV1 encode_and_send | Exactly 2 arena slots allocated (memory.active_count()) |
+| 11 | CustomBinaryV1 encode_and_send | Exactly 1 arena slot allocated. Payload has text_pool_offset + ops inline. |
 | 12 | JsonV1 encode_and_send | Arena slot contains valid JSON (serde_json parseable) |
 | 13 | ArrowV1 ack frees memory | After ack, memory.get(id) returns None |
 | 14 | Protocol byte values | Arrow==1, CustomBinary==0, JSON==2 |

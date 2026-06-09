@@ -21,7 +21,7 @@ morphing algorithm (decision 027).
 | 4 | `value` | Utf8 | Yes | `Vec<Option<String>>` |
 | 5 | `text_val` | Utf8 | Yes | `Vec<Option<String>>` |
 
-### 17 Operations (u8 discriminant)
+### 19 Operations (u8 discriminant)
 
 | ID | Operation | node_id | attribute | value | text_val |
 |----|-----------|---------|-----------|-------|----------|
@@ -42,8 +42,12 @@ morphing algorithm (decision 027).
 | 14 | ADD_CLASS | target | | class_name | |
 | 15 | REMOVE_CLASS | target | | class_name | |
 | 16 | MORPH_NODE | target | | | new_html |
+| 17 | REGISTER_NODE | node_id | | | |
+| 18 | UNREGISTER_NODE | node_id | | | |
 
 *Secondary u32 IDs stored as decimal strings in string columns. JS `parseInt()` recovers.
+
+**Registry ops (17-18):** Explicit NodeRegistry management. `CREATE_ELEMENT`/`CREATE_TEXT_NODE` do NOT auto-register — caller must emit `RegisterNode` explicitly. `RemoveNode` (op 10) implicitly unregisters. `ReplaceNode` (op 12) implicitly unregisters old_id and registers new_id.
 
 ---
 
@@ -117,28 +121,33 @@ JS: `new Uint32Array(buffer, offset, N)` — true zero-copy view.
 
 ## 4. JS Runtime
 
-### ArrowParser (foundation-wasm.js)
+**G3/G25 resolved:** Uses Apache Arrow JS library, bundled into our runtime. We copy the
+`apache-arrow` JS source file from the npm package into `assets/apache-arrow.js` — no npm
+dependency for the end user.
+
+### ArrowParser (foundation-wasm-ui.js)
 
 ```javascript
+import { tableFromIPC } from './apache-arrow.js';
+
 class ArrowParser {
-    /** @returns {{ opIds: Uint32Array, nodeIds: Uint32Array, operations: Uint8Array,
-     *              attributes: (string|null)[], values: (string|null)[],
-     *              textVals: (string|null)[], numRows: number }} */
     static parse(buffer) {
-        // 1. Skip schema message. Locate RecordBatch via continuation markers.
-        // 2. Read buffer descriptors from RecordBatch metadata flatbuffer.
-        // 3. bodyOffset = first 8-byte-aligned position after metadata.
-        // 4. Fixed-width columns — zero-copy TypedArray views:
-        //    opIds      = new Uint32Array(buffer, bodyOffset + desc[0].offset, N)
-        //    nodeIds    = new Uint32Array(buffer, bodyOffset + desc[1].offset, N)
-        //    operations = new Uint8Array(buffer, bodyOffset + desc[2].offset, N)
-        // 5. String columns — per column:
-        //    a. Read validity bitmap. b. Read offsets via Int32Array.
-        //    c. Per row: check bit, if null push null, else TextDecoder.decode(slice).
-        // 6. Return { opIds, nodeIds, operations, attributes, values, textVals, numRows }
+        const table = tableFromIPC(buffer);
+        const numRows = table.numRows;
+        return {
+            opIds:      table.getChild('op_id').toArray(),
+            nodeIds:    table.getChild('node_id').toArray(),
+            operations: table.getChild('operation').toArray(),
+            attributes: table.getChild('attribute').toArray(),
+            values:     table.getChild('value').toArray(),
+            textVals:   table.getChild('text_val').toArray(),
+            numRows,
+        };
     }
 }
 ```
+
+**Rust side** uses the `arrow` crate (`features = ["ipc"]`).
 
 ### ArrowDomApplicator (foundation-wasm-ui.js)
 
@@ -183,11 +192,99 @@ class ArrowDomApplicator {
 }
 ```
 
+### NodeRegistry (foundation-wasm-ui.js)
+
+**G45 resolved — primal-id string↔number conversion:** Compile-time primal-ids are `u32` (0, 1, 2...).
+At runtime, they're prefixed: `"42:0"` (string). Arrow ops use `node_id: u32` (the raw number).
+The NodeRegistry stores entries by `u32` key. The mapping is:
+- **Arrow ops → Registry:** `node_id` is already `u32` — direct key lookup.
+- **DOM scan → Registry:** JS parses `primal-id="42:0"` by splitting on `:` and extracting the
+  template-local ID. For registry lookups, JS doesn't need to convert — Arrow ops always use the
+  prefixed number directly. The `primal-id` attribute on DOM elements is for developer debugging
+  and JS-side scanning; the Arrow pipeline uses numeric IDs exclusively.
+
+Central registry mapping `node_id: u32` → `DOM Element`. All Arrow ops that reference a `node_id` look it up here.
+
+```javascript
+class NodeRegistry {
+    constructor() {
+        this._map = new Map();  // Map<number, Element>
+    }
+
+    /** Register a DOM element under a numeric node_id. Idempotent — no-op if already registered. */
+    register(nodeId, element) {
+        if (!this._map.has(nodeId)) {
+            this._map.set(nodeId, element);
+        }
+    }
+
+    /** Unregister a node_id. Does NOT remove the element from DOM. No-op if not registered. */
+    unregister(nodeId) {
+        this._map.delete(nodeId);
+    }
+
+    /** Get element by node_id. Returns undefined if not registered — caller throws. */
+    get(nodeId) {
+        return this._map.get(nodeId);
+    }
+
+    /** Clear all entries. Used during teardown. */
+    clear() {
+        this._map.clear();
+    }
+
+    /** Debug: count of registered nodes. */
+    get size() { return this._map.size; }
+}
+```
+
+**Registry op handling in ArrowDomApplicator:**
+```javascript
+case 17: { // REGISTER_NODE
+    const el = this.nodes.get(nid);
+    if (el) this.registry.register(nid, el);
+    break;
+}
+case 18: { // UNREGISTER_NODE
+    this.registry.unregister(nid);
+    break;
+}
+case 10: { // REMOVE_NODE — implicit unregister
+    const el = this.nodes.get(nid);
+    el?.parentNode?.removeChild(el);
+    this.registry.unregister(nid);
+    break;
+}
+case 12: { // REPLACE_NODE — implicit unregister old, register new
+    const oldEl = this.nodes.get(nid);
+    const newEl = this.nodes.get(parseInt(attr));
+    oldEl?.parentNode?.replaceChild(newEl, oldEl);
+    this.registry.unregister(nid);
+    this.registry.register(parseInt(attr), newEl);
+    break;
+}
+```
+
+**Typical op sequence for creating a registered element:**
+```
+CreateElement  { node_id: 42, tag: "div", class: "main" }
+RegisterNode   { node_id: 42 }                     // now addressable by subsequent ops
+SetAttribute   { node_id: 42, name: "id", value: "hero" }
+SetText        { node_id: 42, text: "Hello" }
+AppendChild    { parent_id: 1, child_id: 42 }
+```
+
+**Reserved node_ids** (allocated at init, never collide with macro-assigned primal-ids):
+- `0` = `<head>` element — registered by first-batch theme injection
+- `1` = `<body>` element — registered by init batch
+- `2` = `<html>` element — registered by init batch
+- Macro-assigned primal-ids start at `1000` to avoid collision. The Runtime's atomic counter for component prefixes begins at `1000`.
+
 ---
 
 ## 5. WASM Envelope
 
-14-byte WasmEnvelope (decision 028). Arrow uses 1 arena slot per batch.
+14-byte WasmEnvelope (decision 028). All protocols use uniform 3-param FFI via `host_apply`.
 
 ```
 Offset  Size  Field             Encoding
@@ -230,9 +327,14 @@ Synchronous apply — no requestAnimationFrame deferral (decision 009).
 | Invalid UTF-8 in string column | `InvalidUtf8 { column_name, row_index }`. |
 | Schema mismatch | `SchemaMismatch { detail }`. |
 | Secondary ID not parseable / node_id missing | `nodes.get()` returns undefined, DOM call throws TypeError. |
+| Unregistered node_id used in op | `nodes.get()` returns undefined, DOM call throws TypeError. Caller must emit `RegisterNode` before referencing. |
+| Duplicate register (same node_id twice) | No-op — second register ignored. Element stays the same. |
+| Unregister non-existent node_id | No-op — `Map.delete` on missing key returns false. |
 | MORPH_NODE with empty html | Target children removed. |
 | JS fails to dispose_allocation | Arena slot leaks. Mandatory try/finally mitigates. |
 | Concurrent batches | Impossible. Synchronous processing serializes batches. |
+| MORPH_NODE ordering with other ops | MORPH_NODE is self-contained — it takes a target element (via node_id in the registry) and an HTML string, parses it, and morphs the target's children. It doesn't depend on other ops in the batch. The target must already be registered in the NodeRegistry before MORPH_NODE fires. |
+| Arrow IPC size limit | Max batch: 10MB Arrow IPC buffer. Beyond this, the encoder splits into multiple batches. Arena slot must accommodate the full buffer — slots are sized dynamically at allocate time. JS TypedArray views can handle buffers up to ~2GB (ArrayBuffer max). |
 
 ---
 
@@ -258,13 +360,13 @@ O(N * avg_str_len) via TextDecoder. DOM application dominates total cost.
 |---------|-------------|
 | F01 (foundation_ui_traits) | Owns `ArrowEncoder` (Layer 1). F05 specifies Arrow internals. |
 | F04 (InstructionReceiver) | Calls `ArrowV1.encode_and_send` (composes encoder + transport). |
-| F00 (foundation_wasm) | `ProtocolHandler`, WasmEnvelope, `host_arrow_apply` FFI, arena. |
+| F00 (foundation_wasm) | `ProtocolHandler`, WasmEnvelope, `host_apply` FFI, arena. |
 | F06 (Web Components) | ArrowHandler for `primal-arrow` content-type in mount elements. |
 | F07 (DOM Morphing) | Op 16 delegates to `MorphDom.morph`. Html via text_val column. |
 | F08 (Event Runtime) | Ops 6-7 wire listeners. EventDispatcher manages handler registry. |
 
 **Flow:** `DomOp -> ArrowEncoder.encode (L1) -> ArrowV1.encode_and_send (L3) ->
-memory.allocate + host_arrow_apply (L2) -> JS ArrowParser.parse ->
+memory.allocate + host_apply (L2) -> JS ArrowParser.parse ->
 ArrowDomApplicator.apply -> dispose_allocation (ACK)`
 
 ---
@@ -274,7 +376,7 @@ ArrowDomApplicator.apply -> dispose_allocation (ACK)`
 - `crates/foundation_ui_traits/src/arrow_encoder.rs` — ArrowEncoder encode/decode
 - `crates/foundation_ui_traits/src/dom_op.rs` — DomOp enum (17 variants)
 - `crates/foundation_wasm_ui/src/protocol/arrow.rs` — ArrowV1 (encoder + transport)
-- `assets/foundation-wasm.js` — ArrowParser class
+- `crates/foundation_wasm_ui/assets/apache-arrow.js` — Apache Arrow JS (bundled from npm package source)
 - `assets/foundation-wasm-ui.js` — ArrowDomApplicator class
 
 ---
@@ -284,7 +386,7 @@ ArrowDomApplicator.apply -> dispose_allocation (ACK)`
 1. Implement `ArrowEncoder` in `foundation_ui_traits`. Pass Rust round-trip tests.
 2. Implement `ArrowV1` in `foundation_wasm_ui`. Test with mock FFI.
 3. Implement `ArrowParser` in `foundation-wasm.js`. Test against Rust hex fixtures.
-4. Implement `ArrowDomApplicator` in `foundation-wasm-ui.js`. Test 17 ops with jsdom.
+4. Implement `ArrowDomApplicator` in `foundation-wasm-ui.js`. Test 19 ops with jsdom.
 5. Wire `ProtocolDispatcher` (protocol byte 1 -> Arrow path).
 6. End-to-end: Rust encodes, WASM ships, JS applies, DOM correct, slot freed.
 
@@ -300,7 +402,7 @@ ArrowDomApplicator.apply -> dispose_allocation (ACK)`
 | 2 | Single CreateTextNode | `op=1`, `text_val="hello"`, `attr=null`. |
 | 3 | AppendChild (secondary ID) | `attr` is child_id decimal string. |
 | 4 | InsertBefore (two secondary IDs) | `attr`=child_id string, `text_val`=ref_id string. |
-| 5 | All 17 variants in one batch | 17 rows, each op matches index, all fields round-trip. |
+| 5 | All 19 variants in one batch | 19 rows, each op matches index, all fields round-trip. |
 | 6 | 1000 SetText ops | Encode < 1ms. All texts byte-exact after round-trip. |
 | 7 | Unicode (CJK, emoji, RTL) | Byte-identical after round-trip. |
 | 8 | Empty Vec | 0-row Arrow IPC. Decode returns `Success(vec![])`. |
@@ -323,28 +425,40 @@ ArrowDomApplicator.apply -> dispose_allocation (ACK)`
 | 15 | Null string columns | `attributes[i] === null` where expected. |
 | 16 | 1000-row batch | Parses correctly, all strings match. |
 
-### JS ArrowDomApplicator (tests 17-28)
+### JS ArrowDomApplicator (tests 17-30)
 
 | # | Scenario | Verify |
 |---|----------|--------|
-| 17 | CREATE_ELEMENT | createElement with tag, className set, node registered. |
-| 18 | CREATE_TEXT_NODE | createTextNode, node registered. |
+| 17 | CREATE_ELEMENT | createElement with tag, className set. Element NOT in registry (auto-register removed). |
+| 18 | CREATE_TEXT_NODE | createTextNode. Element NOT in registry. |
 | 19 | SET_TEXT_CONTENT | textContent updated. |
 | 20 | SET/REMOVE_ATTRIBUTE | setAttribute/removeAttribute with correct args. |
 | 21 | SET_PROPERTY | Bracket property set, value JSON-parsed. |
 | 22 | ADD/REMOVE_EVENT_LISTENER | addEventListener/removeEventListener called. |
 | 23 | APPEND/REMOVE_CHILD | Parent-child created/broken. Secondary ID parsed. |
 | 24 | INSERT_BEFORE | insertBefore with child and ref, both IDs parsed. |
-| 25 | REPLACE_NODE | replaceChild. Old replaced by new. |
+| 25 | REPLACE_NODE | replaceChild. Old unregistered, new registered. |
 | 26 | SET_STYLE | `style[prop] = val`. |
 | 27 | ADD/REMOVE_CLASS | classList.add/remove called. |
 | 28 | MORPH_NODE | MorphDom.morph called with fragment from html string. |
+| 29 | REGISTER_NODE | Element added to registry under node_id. |
+| 30 | UNREGISTER_NODE | Element removed from registry, DOM element unchanged. |
 
-### End-to-End (tests 29-32)
+### NodeRegistry (tests 31-35)
 
 | # | Scenario | Verify |
 |---|----------|--------|
-| 29 | Full pipeline: encode -> ship -> parse -> apply | DOM matches after 10-op batch. |
-| 30 | dispose_allocation after apply | Slot freed, generation incremented. |
-| 31 | dispose_allocation on error | Handler throws; finally still frees slot. |
-| 32 | MORPH_NODE end-to-end | MorphNode op applied, form state preserved. |
+| 31 | register(42, el), get(42) | Returns el. |
+| 32 | register(42, el1), register(42, el2), get(42) | Returns el1 (idempotent, first wins). |
+| 33 | unregister(42), get(42) | Returns undefined. |
+| 34 | unregister(999) (never registered) | No error, no-op. |
+| 35 | clear() | size == 0, all get() return undefined. |
+
+### End-to-End (tests 36-39)
+
+| # | Scenario | Verify |
+|---|----------|--------|
+| 36 | Full pipeline: encode -> ship -> parse -> apply | DOM matches after 10-op batch. |
+| 37 | dispose_allocation after apply | Slot freed, generation incremented. |
+| 38 | dispose_allocation on error | Handler throws; finally still frees slot. |
+| 39 | MORPH_NODE end-to-end | MorphNode op applied, form state preserved. |
