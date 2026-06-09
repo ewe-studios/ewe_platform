@@ -398,6 +398,124 @@ mod shim_exports {
         unsafe { super::real::rmdir(pathname) }
     }
 
+    // ── pread / pwrite ──
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn pread(fd: c_int, buf: *mut c_void, count: libc::size_t, offset: libc::off_t) -> libc::ssize_t {
+        if is_virtual_fd(fd) {
+            let buf_slice = unsafe { std::slice::from_raw_parts_mut(buf as *mut u8, count) };
+            return match FD_TABLE.read_at(fd, buf_slice, offset as u64) {
+                Some(n) => n as libc::ssize_t,
+                None => { set_errno(libc::EBADF); -1 }
+            };
+        }
+        unsafe { libc::pread(fd, buf, count, offset) }
+    }
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn pwrite(fd: c_int, buf: *const c_void, count: libc::size_t, offset: libc::off_t) -> libc::ssize_t {
+        if is_virtual_fd(fd) {
+            let data = unsafe { std::slice::from_raw_parts(buf as *const u8, count) };
+            return match FD_TABLE.write_at(fd, data, offset as u64) {
+                Some(n) => n as libc::ssize_t,
+                None => { set_errno(libc::EBADF); -1 }
+            };
+        }
+        unsafe { libc::pwrite(fd, buf, count, offset) }
+    }
+
+    // ── readlink / symlink ──
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn readlink(pathname: *const c_char, buf: *mut c_char, bufsiz: libc::size_t) -> libc::ssize_t {
+        // Virtual symlinks not implemented yet
+        if let Some(path) = unsafe { c_path_to_str(pathname) } {
+            if path_matches_prefix(path) {
+                set_errno(libc::EINVAL); // not a symlink
+                return -1;
+            }
+        }
+        unsafe { libc::readlink(pathname, buf, bufsiz) }
+    }
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn symlink(target: *const c_char, linkpath: *const c_char) -> c_int {
+        // Virtual symlinks not implemented yet
+        if let Some(path) = unsafe { c_path_to_str(linkpath) } {
+            if path_matches_prefix(path) {
+                set_errno(libc::ENOSYS);
+                return -1;
+            }
+        }
+        unsafe { libc::symlink(target, linkpath) }
+    }
+
+    // ── chmod / fchmod ──
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn chmod(pathname: *const c_char, mode: libc::mode_t) -> c_int {
+        if let Some(path) = unsafe { c_path_to_str(pathname) } {
+            if path_matches_prefix(path) {
+                // chmod on virtual files is a no-op for now
+                return 0;
+            }
+        }
+        unsafe { libc::chmod(pathname, mode) }
+    }
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn fchmod(fd: c_int, mode: libc::mode_t) -> c_int {
+        if is_virtual_fd(fd) {
+            // chmod on virtual files is a no-op for now
+            return 0;
+        }
+        unsafe { libc::fchmod(fd, mode) }
+    }
+
+    // ── truncate / ftruncate ──
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn truncate(pathname: *const c_char, length: libc::off_t) -> c_int {
+        if let Some(path) = unsafe { c_path_to_str(pathname) } {
+            if path_matches_prefix(path) {
+                let key = strip_prefix(path);
+                // Read existing content, truncate/pad to length
+                let mut data = VFS.fs.read_file(&key).unwrap_or_default();
+                data.resize(length as usize, 0u8);
+                let _ = VFS.fs.write_file(&key, &data);
+                return 0;
+            }
+        }
+        unsafe { libc::truncate(pathname, length) }
+    }
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn ftruncate(fd: c_int, length: libc::off_t) -> c_int {
+        if is_virtual_fd(fd) {
+            if let Some(path) = FD_TABLE.path(fd) {
+                let key = strip_prefix(&path);
+                let mut data = VFS.fs.read_file(&key).unwrap_or_default();
+                data.resize(length as usize, 0u8);
+                let _ = VFS.fs.write_file(&key, &data);
+                return 0;
+            }
+            set_errno(libc::EBADF);
+            return -1;
+        }
+        unsafe { libc::ftruncate(fd, length) }
+    }
+
+    // ── fsync ──
+
+    #[unsafe(no_mangle)]
+    pub unsafe extern "C" fn fsync(fd: c_int) -> c_int {
+        if is_virtual_fd(fd) {
+            // In-memory / SQLite delta — data is already persisted
+            return 0;
+        }
+        unsafe { libc::fsync(fd) }
+    }
+
     // ── opendir / readdir / closedir ──
 
     #[unsafe(no_mangle)]

@@ -1,6 +1,6 @@
 ---
 description: "Create foundation_codegen, a source-scanning code generation library that finds macro-annotated items (structs, traits, enums) across Rust crates, resolves their module paths, and exports a registry for downstream code generation (WASM binaries, test harnesses, documentation, etc.)"
-status: "pending"
+status: "completed"
 priority: "high"
 created: 2026-03-12
 author: "Main Agent"
@@ -28,10 +28,10 @@ builds_on: []
 related_specs:
   - "specifications/03-wasm-friendly-sync-primitives"
 features:
-  completed: 4
-  uncompleted: 1
+  completed: 5
+  uncompleted: 0
   total: 5
-  completion_percentage: 80%
+  completion_percentage: 100%
 ---
 
 # Foundation Codegen - Source-Scanning Code Generation Library
@@ -139,10 +139,11 @@ Features are listed in dependency order. Each feature contains detailed requirem
    - Dependencies: #0, #1, #2
    - Status: Completed
 
-5. **[wasm-entrypoint-toolchain](./features/04-wasm-entrypoint-toolchain/feature.md)** - Pending
-   - Description: `wasm_entrypoint` proc macro, `system_operations` crate with `WasmBinGenerator`, and `wasm_bins` platform subcommand for listing/generating WASM binary entrypoints
+5. **[wasm-entrypoint-toolchain](./features/04-wasm-entrypoint-toolchain/feature.md)** - Completed
+   - Description: `wasm_entrypoint` proc macro, `foundation_codegentools` crate with `WasmBinGenerator`, and `wasm_bins` platform subcommand for listing/generating WASM binary entrypoints
    - Dependencies: #0, #1, #2, #3
-   - Status: Pending
+   - Status: Completed
+   - Note: Implemented as `backends/foundation_codegentools` instead of spec's `crates/system_operations`
 
 ## Requirements Conversation Summary
 
@@ -162,13 +163,13 @@ Create a source-scanning codegen library that can find all instances of a specif
 
 ## Success Criteria (Spec-Wide)
 
-- [ ] `foundation_codegen` crate compiles and passes all tests
-- [ ] Can scan a crate and find all items with a given attribute macro
-- [ ] Correctly resolves module paths for file-based and inline modules
-- [ ] Exports `HashMap<String, DerivedTarget>` with complete metadata
-- [ ] Handles nested modules, mod.rs files, and multi-file crates
-- [ ] Works as a dependency in build.rs scripts
-- [ ] All code passes `cargo fmt` and `cargo clippy`
+- [x] `foundation_codegen` crate compiles and passes all tests
+- [x] Can scan a crate and find all items with a given attribute macro
+- [x] Correctly resolves module paths for file-based and inline modules
+- [x] Exports `HashMap<String, DerivedTarget>` with complete metadata
+- [x] Handles nested modules, mod.rs files, and multi-file crates
+- [x] Works as a dependency in build.rs scripts
+- [x] All code passes `cargo fmt` and `cargo clippy`
 
 ## Module Documentation References
 

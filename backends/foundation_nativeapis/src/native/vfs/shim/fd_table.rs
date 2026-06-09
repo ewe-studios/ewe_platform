@@ -75,6 +75,20 @@ impl VirtualFdTable {
         Some(n)
     }
 
+    /// Read from a virtual FD at a specific offset (does not advance cursor).
+    pub fn read_at(&self, fd: c_int, buf: &mut [u8], offset: u64) -> Option<usize> {
+        let entries = self.entries.lock().unwrap();
+        let entry = entries.get(&fd)?;
+        entry.file.read_at(buf, offset).ok()
+    }
+
+    /// Write to a virtual FD at a specific offset (does not advance cursor).
+    pub fn write_at(&self, fd: c_int, buf: &[u8], offset: u64) -> Option<usize> {
+        let entries = self.entries.lock().unwrap();
+        let entry = entries.get(&fd)?;
+        entry.file.write_at(buf, offset).ok()
+    }
+
     /// Get the offset for a virtual FD.
     pub fn get_offset(&self, fd: c_int) -> Option<u64> {
         self.entries.lock().unwrap().get(&fd).map(|e| e.offset)

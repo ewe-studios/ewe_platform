@@ -63,8 +63,8 @@ Each falls back to `memory` if the feature flag isn't enabled or initialization 
 - [x] Falls back to memory delta when feature flag missing or init fails
 - [x] Base filesystem configurable via `FOUNDATION_VFS_ROOT` (defaults to `.`)
 - [x] Virtual prefix configurable via `FOUNDATION_VFS_PREFIX` (colon-separated)
-- [x] Intercepted functions: `open`, `open64`, `openat`, `__openat64_time64`, `close`, `read`, `write`, `lseek`, `fstat`, `stat`, `lstat`, `access`, `unlink`, `rename`, `mkdir`, `rmdir`, `opendir`
-- [ ] Intercepted functions: `pread`, `pwrite`, `readdir`, `readdir_r`, `readlink`, `symlink`, `chmod`, `fchmod`, `truncate`, `ftruncate`, `fsync`, `openat2`
+- [x] Intercepted functions: `open`, `open64`, `openat`, `__openat64_time64`, `close`, `read`, `write`, `pread`, `pwrite`, `lseek`, `fstat`, `stat`, `lstat`, `access`, `unlink`, `rename`, `mkdir`, `rmdir`, `opendir`, `readlink`, `symlink`, `chmod`, `fchmod`, `truncate`, `ftruncate`, `fsync`
+- [ ] Intercepted functions: `readdir`, `readdir_r`, `openat2`
 - [x] Virtual fd table: synthetic FDs (10000+) map to `ErasedFile` handles
 - [x] Thread safety: fd table uses `Mutex`, file handles use `Arc<Mutex<>>`
 - [ ] Directory listing: `opendir` returns ENOSYS (needs DIR* wrapper for VfsDirectory → dirent)

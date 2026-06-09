@@ -27,6 +27,8 @@ foundation_core = { workspace = true }
 foundation_nostd = { workspace = true, optional = true }
 foundation_errstacks = { workspace = true }
 derive_more = { workspace = true }
+foundation_db = { workspace = true, optional = true }
+foundation_netio = { workspace = true, optional = true }
 libsql = { version = "0.9", optional = true }
 turso = { version = "0.5.3", optional = true }
 scru128 = { version = "4", optional = true }
@@ -262,11 +264,11 @@ vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]
 # VFS Turso cloud-backed DeltaStore (remote connection, WASM-compatible)
 vfs-turso = ["vfs", "dep:turso", "dep:scru128", "dep:blake3"]
 
-# Cloudflare D1 edge SQLite DeltaStore (schema + chunking, no HTTP yet)
-vfs-d1 = ["vfs"]
+# Cloudflare D1 edge SQLite DeltaStore — uses foundation_db's D1 HTTP client
+vfs-d1 = ["vfs", "dep:foundation_db"]
 
-# Cloudflare R2 S3-compatible DeltaStore (types only, no HTTP yet)
-vfs-r2 = ["vfs"]
+# Cloudflare R2 S3-compatible DeltaStore — uses foundation_db's R2 HTTP client
+vfs-r2 = ["vfs", "dep:foundation_db"]
 
 # Arrow serialization for VFS types
 vfs-arrow = ["vfs", "dep:foundation_arrow"]
