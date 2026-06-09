@@ -29,7 +29,7 @@ mod shim_exports {
 
     use once_cell::sync::Lazy;
 
-    use foundation_core::valtron::executors::multi::pool::{PoolGuard, initialize_pool};
+    use foundation_core::valtron::{initialize_pool, PoolGuard};
 
     use crate::native::vfs::native_fs::NativeFs;
     use crate::shared::vfs::dynfs::DynFs;
@@ -86,7 +86,7 @@ mod shim_exports {
                 #[cfg(feature = "vfs-sqlite")]
                 {
                     // Initialize valtron pool for async-through-sync execution
-                    let guard = initialize_pool(42, Some(2));
+                    let guard = initialize_pool(42, Some(4));
                     use crate::shared::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
                     let path = CONFIG.delta_path.clone().unwrap_or_else(|| {
                         let dir = std::env::temp_dir();
@@ -113,7 +113,7 @@ mod shim_exports {
                 #[cfg(feature = "vfs-turso")]
                 {
                     // Initialize valtron pool for async-through-sync execution
-                    let guard = initialize_pool(42, Some(2));
+                    let guard = initialize_pool(42, Some(4));
                     use crate::shared::vfs::turso_delta::TursoDelta;
                     let url = std::env::var("FOUNDATION_VFS_TURSO_URL")
                         .unwrap_or_else(|_| "libsql://localhost".to_string());
@@ -437,7 +437,7 @@ mod shim_exports {
         };
 
         // Check existence via stat
-        let exists = VFS.fs.fs.exists(&key).unwrap_or(false);
+        let exists = VFS.fs.exists(&key).unwrap_or(false);
 
         if exists {
             if creat && excl {
