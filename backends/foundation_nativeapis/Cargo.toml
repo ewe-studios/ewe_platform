@@ -120,6 +120,47 @@ name = "ptrace_vfs"
 path = "tests/ptrace_vfs/mod.rs"
 required-features = ["vfs-ptrace-nix", "vfs-native"]
 
+# Examples (directory-based)
+[[example]]
+name = "memory_fs"
+path = "examples/memory_fs/main.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "native_fs"
+path = "examples/native_fs/main.rs"
+required-features = ["vfs-native"]
+
+[[example]]
+name = "overlay_fs"
+path = "examples/overlay_fs/main.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "observable_fs"
+path = "examples/observable_fs/main.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "sqlite_delta"
+path = "examples/sqlite_delta/main.rs"
+required-features = ["vfs-sqlite"]
+
+[[example]]
+name = "scaffold_macro"
+path = "examples/scaffold_macro/main.rs"
+required-features = ["vfs-native"]
+
+[[example]]
+name = "inode_native"
+path = "examples/inode_native/main.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "sync_async_bridge"
+path = "examples/sync_async_bridge/main.rs"
+required-features = ["vfs"]
+
 [features]
 # Default: full platform-native stack.
 default = ["native"]
