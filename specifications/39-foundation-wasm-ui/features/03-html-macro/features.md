@@ -2,9 +2,7 @@
 
 ## Description
 
-Implement the `html!` macro — a compile-time DOM tree builder that parses HTML-like syntax via `TokenTree::Group`, assigns `primal-id` to every element, and generates an `Html` struct with `Part` descriptors for dynamic `{}` slots. Zero runtime parsing.
-
-Uses plain Rust for loops, conditionals, and control flow — no template directives.
+Implement the `html!` macro — compile-time DOM tree builder that parses HTML-like syntax via `TokenTree::Group`, assigns `primal-id` to every element, generates `Html` struct with `Part` descriptors for dynamic `{}` slots. Zero runtime parsing.
 
 **Decisions:** 001, 005, 006
 
@@ -15,21 +13,19 @@ Uses plain Rust for loops, conditionals, and control flow — no template direct
 ## API Surface
 
 ```rust
-/// The macro — invoked via `html! { <div>{expr}</div> }`
-#[proc_macro]
-pub fn html(input: TokenStream) -> TokenStream { ... }
+#[proc_macro] pub fn html(input: TokenStream) -> TokenStream { ... }
 ```
 
 ### Parsing
 
-- Uses `TokenTree::Group` for brace balancing — no Rust parser needed
+- Uses `TokenTree::Group` for brace balancing
 - Reuses `foundation_html`'s parser for tag recognition, self-closing rules, attribute parsing
 - `{}` delimits a Rust expression that evaluates to anything `IntoHtml`
 
 ### Generated output
 
 ```rust
-// html! { <div class="foo">{name}</div> }
+html! { <div class="foo">{name}</div> }
 // generates:
 Html {
     tag: Some("div"),
@@ -47,25 +43,10 @@ Html {
 - Final DOM attribute: `primal-id="42:0"` — no cross-component collisions
 - User `id` attribute preserved as-is, coexists with `primal-id`
 
-### IntoHtml in slots
-
-```rust
-// {} accepts:
-html! { <div>{string_value}</div> }           // &str, String → text
-html! { <div>{42}</div> }                     // primitives → Display → text
-html! { <div>{html! { <span>hi</span> }}</div> }  // Html → child
-html! { <div>{vec![html! {...}, html! {...}]}</div> }  // Vec<Html> → children
-html! { <div>{my_signal}</div> }              // Signal → reads value → IntoHtml
-```
-
 ### No template directives
 
 - Discards `@for`, `@if`, `on:click=`, `.value:bind=`, `...{spread}`, `x-directive`
-- Control flow is plain Rust:
-  ```rust
-  let items: Vec<_> = users.iter().map(|u| html! { <li>{u.name}</li> }).collect();
-  html! { <div>{items}</div> }
-  ```
+- Control flow is plain Rust: `let items: Vec<_> = users.iter().map(|u| html! { <li>{u.name}</li> }).collect();`
 
 ## Dependencies
 
@@ -78,9 +59,7 @@ html! { <div>{my_signal}</div> }              // Signal → reads value → Into
 - Simple element → correct Html struct
 - Nested elements → correct tree structure
 - `{}` slot with string → TextPart generated
-- `{}` slot with Html → ChildPart generated
 - Loop → Vec<Html> renders all items
 - Conditional → Option<Html> works
 - primal-id → sequential, no gaps for conditionals
 - User id attribute → preserved alongside primal-id
-- Multiple components → different runtime prefixes, no collisions

@@ -1,12 +1,12 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/39-foundation-wasm-ui"
-this_file: "specifications/39-foundation-wasm-ui/features/02-signal-system/start.md"
-feature_name: "02-signal-system"
+this_file: "specifications/39-foundation-wasm-ui/features/09-scoped-styles-theme/start.md"
+feature_name: "09-scoped-styles-theme"
 created: 2026-06-09
 ---
 
-# Start: Feature 02 — signal-system
+# Start: Feature 09 — scoped-styles-theme
 
 ## Workflow
 

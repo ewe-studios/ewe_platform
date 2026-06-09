@@ -1,12 +1,12 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/39-foundation-wasm-ui"
-this_file: "specifications/39-foundation-wasm-ui/features/02-signal-system/start.md"
-feature_name: "02-signal-system"
+this_file: "specifications/39-foundation-wasm-ui/features/07-dom-morphing/start.md"
+feature_name: "07-dom-morphing"
 created: 2026-06-09
 ---
 
-# Start: Feature 02 — signal-system
+# Start: Feature 07 — dom-morphing
 
 ## Workflow
 

@@ -1,12 +1,12 @@
 ---
 workspace_name: "ewe_platform"
 spec_directory: "specifications/39-foundation-wasm-ui"
-this_file: "specifications/39-foundation-wasm-ui/features/02-signal-system/start.md"
-feature_name: "02-signal-system"
+this_file: "specifications/39-foundation-wasm-ui/features/06-web-components/start.md"
+feature_name: "06-web-components"
 created: 2026-06-09
 ---
 
-# Start: Feature 02 — signal-system
+# Start: Feature 06 — web-components
 
 ## Workflow
 

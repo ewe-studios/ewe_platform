@@ -5,18 +5,22 @@
 
 ### Decision
 
-**No global `FRAME_BATCH`.** The `Runtime` owns an `InstructionReceiver` instance — a batching component that receives DOM operations, knows how to encode them into the chosen protocol, and handles the FFI handoff.
+**No global `FRAME_BATCH`.** The `Runtime` owns an `InstructionReceiver` instance — a batching component that receives DOM operations from effects, encodes them via the configured protocol, and handles the FFI handoff.
+
+**Protocols are per-message, not per-session.** There is no "session protocol" that locks the system into one format. Every message carries its own protocol byte in the envelope (`[protocol: u8][version: u8][memory_id: u64][length: u32]`). The receiver reads the first byte and dispatches to the correct protocol handler. Messages can use different protocols back and forth — one message might be Arrow, the next might be JSON, the next Custom Binary. The envelope is the demux layer.
 
 ```
 stabilize() completes
     ↓
 InstructionReceiver.take_ops() — drains pending ops
     ↓
-protocol encoder: Vec<DomOp> → Arrow / JSON / custom binary
+protocol encoder: Vec<DomOp> → Arrow / JSON / custom binary (whatever is configured)
+    ↓
+envelope: [protocol byte][version][memory_id][length][payload...]
     ↓
 protocol FFI: host_arrow_apply / host_batch_apply / host_json_apply
     ↓
-JS applies, ACKs, frees memory
+JS reads envelope byte → dispatches to correct handler → applies, ACKs, frees memory
 ```
 
 ### How it works
@@ -24,8 +28,8 @@ JS applies, ACKs, frees memory
 ```rust
 pub struct InstructionReceiver {
     ops: Vec<DomOp>,
-    protocol: Protocol,
-    memory: Arc<MemoryAllocations>,
+    protocol: Box<dyn ProtocolMethods>,
+    memory: MemoryAllocations,
 }
 
 impl InstructionReceiver {
@@ -40,7 +44,7 @@ impl InstructionReceiver {
             return;
         }
         let ops = std::mem::take(&mut self.ops);
-        self.protocol.send(ops, &self.memory);
+        self.protocol.encode(ops, &mut self.memory);  // writes envelope + payload, calls FFI
     }
 }
 ```
@@ -51,8 +55,8 @@ Each protocol implementation owns its complete contract — encoding, memory all
 
 ```rust
 // Arrow protocol
-impl Protocol for ArrowProtocol {
-    fn send(&self, ops: Vec<DomOp>, memory: &MemoryAllocations) {
+impl ProtocolMethods for ArrowProtocol {
+    fn send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) {
         let ipc = encode_arrow_ipc(&ops);        // Vec<u8>
         let mem_id = memory.allocate(ipc.len());
         let slot = memory.get(mem_id).unwrap();
@@ -66,8 +70,8 @@ impl Protocol for ArrowProtocol {
 }
 
 // Custom binary protocol
-impl Protocol for CustomBinaryProtocol {
-    fn send(&self, ops: Vec<DomOp>, memory: &MemoryAllocations) {
+impl ProtocolMethods for CustomBinaryProtocol {
+    fn send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) {
         let (ops_mem, text_mem) = encode_instructions(&ops, memory);
         let (ops_ptr, ops_len) = ops_mem.as_address().unwrap();
         let (text_ptr, text_len) = text_mem.as_address().unwrap();
@@ -96,22 +100,39 @@ After `stabilize()` completes, the Runtime calls `receiver.flush()` — one enco
 
 ### Runtime construction
 
+Each crate owns its own Runtime:
+
 ```rust
-fn init() {
-    let runtime = Runtime::builder()
-        .protocol(ArrowProtocol::new())   // or JsonProtocol, CustomBinaryProtocol
+// foundation_signals — owns the signal graph
+fn init_signals() -> signals::Runtime {
+    signals::Runtime::builder().build()
+}
+
+// foundation_wasm_ui — owns the instruction receiver + protocol dispatch
+fn init_wasm_ui() -> wasm_ui::Runtime {
+    wasm_ui::Runtime::builder()
+        .protocol(ArrowProtocol::new())   // default protocol for sending DOM ops
         .memory(memory_allocations)
-        .build();
-    // InstructionReceiver is created internally with the protocol
+        .build()
+}
+
+// Application code creates an orchestrator Runtime that holds both
+fn init() {
+    let signals_runtime = init_signals();
+    let wasm_ui_runtime = init_wasm_ui();
+    let app = AppOrchestrator { signals_runtime, wasm_ui_runtime };
 }
 ```
+
+The `protocol` configured at init is the **default** for sending DOM operations. But incoming messages can use any protocol — the envelope byte dispatches to the correct handler. There's no session lock-in.
 
 ### Why this design
 
 - **No global state** — `InstructionReceiver` belongs to the Runtime, not a `static mut` or `LazyCell`
-- **Protocol owns encoding** — the `Protocol` trait takes `Vec<DomOp>` and does everything: encode, allocate, FFI call. No handoff ambiguity.
+- **Protocol owns encoding** — the `ProtocolMethods` trait takes `Vec<DomOp>` and does everything: encode, allocate, FFI call. No handoff ambiguity.
+- **Per-message protocol, not per-session** — the envelope byte demuxes every message independently. One message can be Arrow, the next JSON, the next Custom Binary.
 - **Same effect API** — effects call `receiver.queue(op)` unchanged. They don't know or care about protocols.
 - **Single batch per stabilize** — all effects in one cycle queue into the same receiver, flushed once
 - **Testable** — mock protocol implementations for unit testing (collect ops without encoding)
-- **Extensible** — adding a new protocol means implementing `Protocol::send`, no changes to effect code
-- **User can intercept** — swap the protocol at init time to add logging, filtering, or custom encoding
+- **Extensible** — adding a new protocol means implementing `ProtocolMethods::send`, no changes to effect code
+- **User can intercept** — swap the default protocol at init time to add logging, filtering, or custom encoding
