@@ -16,6 +16,12 @@ pub mod libsql_delta;
 #[cfg(feature = "vfs-turso")]
 pub mod turso_delta;
 
+#[cfg(feature = "vfs-d1")]
+pub mod d1_delta;
+
+#[cfg(feature = "vfs-r2")]
+pub mod r2_delta;
+
 #[cfg(feature = "vfs-arrow")]
 pub mod arrow;
 

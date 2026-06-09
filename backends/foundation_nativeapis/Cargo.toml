@@ -194,6 +194,12 @@ vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]
 # VFS Turso cloud-backed DeltaStore (remote connection, WASM-compatible)
 vfs-turso = ["vfs", "dep:turso", "dep:scru128", "dep:blake3"]
 
+# Cloudflare D1 edge SQLite DeltaStore (schema + chunking, no HTTP yet)
+vfs-d1 = ["vfs"]
+
+# Cloudflare R2 S3-compatible DeltaStore (types only, no HTTP yet)
+vfs-r2 = ["vfs"]
+
 # Arrow serialization for VFS types
 vfs-arrow = ["vfs", "dep:foundation_arrow"]
 

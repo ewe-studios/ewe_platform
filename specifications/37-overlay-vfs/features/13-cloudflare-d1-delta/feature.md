@@ -5,14 +5,14 @@ status: "in-progress"
 priority: "low"
 phase: 5
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-09
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 48
+  completed: 4
+  uncompleted: 44
   total: 48
-  completion_percentage: 0%
+  completion_percentage: 8%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -470,9 +470,9 @@ pub struct D1FsOptions {
 
 - [ ] Define `D1Connection` trait (internal abstraction)
 - [ ] Define `D1Statement`, `D1Result`, `D1Row` types
-- [ ] Implement chunking logic with configurable chunk size (default 512 KB)
-- [ ] Define `D1FileMeta`, `D1ChunkRef` types
-- [ ] Define SQL schema and migration (first-connect check/create tables, insert root dentry ino=1)
+- [x] Implement chunking logic with configurable chunk size (default 4KB)
+- [x] Define `D1FileMeta`, `D1ChunkRef` types
+- [x] Define SQL schema and migration (first-connect check/create tables, insert root dentry ino=1)
 - [ ] Implement `D1Fs<Conn>` struct with full `VfsFileSystem` trait:
   - `stat()` -- path walk via parent_ino + name lookups
   - `open()` / `open_seekable()` -- resolve inode, return D1File/D1SeekableFile

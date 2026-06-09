@@ -5,14 +5,14 @@ status: "in-progress"
 priority: "low"
 phase: 5
 created: 2026-06-04
-updated: 2026-06-04
+updated: 2026-06-09
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 0
-  uncompleted: 30
+  completed: 3
+  uncompleted: 27
   total: 30
-  completion_percentage: 0%
+  completion_percentage: 10%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -270,9 +270,9 @@ wasm/wasm-bindgen/
 
 ### Shared (`src/shared/vfs/r2_delta/`)
 
-- [ ] Define `R2Layout` trait + `FileRef`, `R2DirEntry` types
-- [ ] Define `R2MetaStore` trait + `EntryMeta` type
-- [ ] Implement `PathKeyLayout` (simplest, no metadata store needed)
+- [x] Define `R2Layout` trait + `FileRef`, `R2DirEntry` types
+- [x] Define `R2MetaStore` trait + `EntryMeta` type
+- [x] Implement `PathKeyLayout` (simplest, no metadata store needed)
 - [ ] Implement `CASKeyLayout` (content hashing, dedup logic)
 - [ ] Implement `DirManifestLayout` (manifest read/write, directory listing)
 - [ ] Implement `R2Fs<Layout, Meta>` struct with full `VfsFileSystem` trait:
