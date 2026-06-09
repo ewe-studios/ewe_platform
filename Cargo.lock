@@ -2699,14 +2699,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation-vfs-preload"
-version = "0.0.1"
-dependencies = [
- "libc",
- "once_cell",
-]
-
-[[package]]
 name = "foundation_ai"
 version = "0.0.1"
 dependencies = [

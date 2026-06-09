@@ -19,10 +19,10 @@ dependencies:
   - "18-scaffold-macro"
   - "23-inode-native-vfs"
 tasks:
-  completed: 9
-  uncompleted: 12
+  completed: 15
+  uncompleted: 6
   total: 21
-  completion_percentage: 43%
+  completion_percentage: 71%
 ---
 
 # Feature 25: Examples Showcase — Programmatic API Walkthroughs
@@ -127,9 +127,9 @@ which traits/types are used, and how they compose.
 
 ### Restructure Existing Examples
 
-- [ ] Move `fd_readiness.rs` → `fd_readiness/main.rs` + add README.md
-- [ ] Move `file_watcher.rs` → `file_watcher/main.rs` + add README.md
-- [ ] Consolidate `ipc_bench.rs`, `ipc_latency.rs`, `ipc_multiple_type.rs`, `ipc_region_free.rs`, `ipc_rejoin.rs`, `ipc_triangle.rs` → `ipc_bus/` directory with individual binaries + shared README.md
+- [x] Move `fd_readiness.rs` → `fd_readiness/main.rs` + add README.md
+- [x] Move `file_watcher.rs` → `file_watcher/main.rs` + add README.md
+- [x] Consolidate `ipc_bench.rs`, `ipc_latency.rs`, `ipc_multiple_type.rs`, `ipc_region_free.rs`, `ipc_rejoin.rs`, `ipc_triangle.rs` → `ipc_bus/` directory with individual binaries + shared README.md
 - [x] Update Cargo.toml `[[example]]` entries for new directory structure
 
 ### New VFS Examples
@@ -139,8 +139,8 @@ which traits/types are used, and how they compose.
 - [x] `overlay_fs/` — OverlayFileSystem layering MemoryDelta over NativeFs, demonstrating copy-on-write and whiteout semantics
 - [x] `observable_fs/` — ObservableFs wrapping MemoryFs, subscribing to VfsEvent stream, demonstrating event-driven patterns
 - [x] `sqlite_delta/` — LibsqlDelta as a DeltaStore, demonstrating SQLite-backed file operations and flush/reset
-- [ ] `arrow_serialization/` — VfsMetadata and VfsDirEntry Arrow IPC roundtrip, batch serialization, schema inspection
-- [ ] `fuse_mount/` — Mount a MemoryFs via FUSE, show how to interact with it from a shell, graceful unmount
+- [x] `arrow_serialization/` — VfsMetadata and VfsDirEntry Arrow IPC roundtrip, batch serialization, schema inspection
+- [x] `fuse_mount/` — Mount a MemoryFs via FUSE, show how to interact with it from a shell, graceful unmount
 - [x] `scaffold_macro/` — Demonstrate scaffold!() + #[scaffold_impl] delegation, showing trait forwarding patterns
 - [x] `inode_native/` — Inode allocation in MemoryFs, path_by_inode reverse lookup, stat_by_inode, rename preserves inode
 - [x] `sync_async_bridge/` — SyncFs wrapping an async VFS impl via valtron exec_async, demonstrating the sync/async bridge

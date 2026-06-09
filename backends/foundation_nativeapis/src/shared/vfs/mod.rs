@@ -1,4 +1,5 @@
 pub mod async_traits;
+pub mod dynfs;
 pub mod error;
 pub mod exec_async;
 pub mod memory_delta;

@@ -23,6 +23,12 @@ real_fn!(REAL_MKDIR, unsafe extern "C" fn(*const c_char, mode_t) -> c_int);
 real_fn!(REAL_UNLINK, unsafe extern "C" fn(*const c_char) -> c_int);
 real_fn!(REAL_RENAME, unsafe extern "C" fn(*const c_char, *const c_char) -> c_int);
 real_fn!(REAL_RMDIR, unsafe extern "C" fn(*const c_char) -> c_int);
+real_fn!(REAL_OPENAT, unsafe extern "C" fn(c_int, *const c_char, c_int, mode_t) -> c_int);
+
+pub unsafe fn openat(dirfd: c_int, pathname: *const c_char, flags: c_int, mode: mode_t) -> c_int {
+    let f = REAL_OPENAT.get_or_init(|| unsafe { resolve(b"openat\0") });
+    unsafe { f(dirfd, pathname, flags, mode) }
+}
 
 unsafe fn resolve<T: Copy>(name: &[u8]) -> T {
     let ptr = unsafe { libc::dlsym(libc::RTLD_NEXT, name.as_ptr() as *const c_char) };

@@ -338,14 +338,44 @@ When WASM context drops (component unmount):
 
 ---
 
-## 7. Protocol handler interface
+## 7. Protocol handler interface — three-layer design
 
-Each protocol defines a **bidirectional** contract — both WASM→JS and JS→WASM use the same loan pattern (producer allocates, consumer ACKs):
+The protocol system is split into three layers so that encoding is usable outside WASM (HTTP servers, SSE, WebSocket, etc.):
+
+### Layer 1: Encoding (foundation_ui_traits) — no WASM dependency
+
+Pure encoding — `DomOp → Vec<u8>`. Usable by any Rust binary.
 
 ```rust
-// Rust side: each protocol implements this
-trait ProtocolHandler {
+// In foundation_ui_traits
+pub trait ProtocolEncoder<T> {
     fn protocol_byte(&self) -> u8;
+    fn version(&self) -> u8;
+    fn encode(&self, data: T) -> Vec<u8>;
+    fn decode(&self, payload: &[u8]) -> DecodeResult;
+}
+
+struct ArrowEncoder;          // DomOp → Arrow IPC bytes
+struct JsonEncoder;           // DomOp → JSON bytes
+struct CustomBinaryEncoder;   // DomOp → custom binary bytes
+```
+
+```rust
+// HTTP server — no foundation_wasm dependency
+let encoder = ArrowEncoder;
+let bytes = encoder.encode(dom_ops);
+response.body(bytes).content_type("application/primal-arrow")
+```
+
+### Layer 2: WASM Transport (foundation_wasm) — arena memory + FFI
+
+Bidirectional transport contract — both WASM→JS and JS→WASM use the same loan pattern (producer allocates, consumer ACKs):
+
+```rust
+// In foundation_wasm
+pub trait ProtocolHandler {
+    fn protocol_byte(&self) -> u8;
+    fn version(&self) -> u8;
 
     // WASM → JS: WASM produces, JS consumes and ACKs
     fn send_to_js(&self, memory_id: MemoryId, ptr: *const u8, len: usize);
@@ -353,13 +383,24 @@ trait ProtocolHandler {
     // JS → WASM: JS produces, WASM consumes and ACKs
     fn handle_from_js(&self, memory_id: MemoryId, ptr: *const u8, len: usize);
 }
-
-struct CustomBinaryProtocol;  // protocol 0 — existing Instructions
-struct ArrowProtocol;         // protocol 1 — Arrow IPC
-struct JsonProtocol;          // protocol 2 — JSON
 ```
 
-JS side mirrors this:
+### Layer 3: WASM Protocol Impls (foundation_wasm_ui) — compose encoding + transport
+
+```rust
+// In foundation_wasm_ui — composes Layer 1 + Layer 2
+pub trait ProtocolMethods<T>: ProtocolHandler {
+    fn encode_and_send(&self, data: T, memory: &mut MemoryAllocations) -> SendResult;
+    fn handle_received(&self, payload: &[u8]) -> HandleResult;
+    fn ack(&self, memory_ids: &[MemoryId], memory: &mut MemoryAllocations);
+}
+
+struct ArrowV1;          // impl ProtocolHandler + ProtocolMethods<Vec<DomOp>>, uses ArrowEncoder
+struct CustomBinaryV1;   // impl ProtocolHandler + ProtocolMethods<Vec<DomOp>>, uses CustomBinaryEncoder
+struct JsonV1;           // impl ProtocolHandler + ProtocolMethods<Vec<DomOp>>, uses JsonEncoder
+```
+
+JS side mirrors the transport layer:
 
 ```javascript
 class ProtocolHandler {
@@ -396,6 +437,8 @@ Both sides use `SharedTransport` or `TransferTransport` — picked at init by `d
 ## 8. Why this design
 
 - **Protocol isolation** — each protocol owns its contract; no cross-protocol leakage
+- **Encoding is WASM-independent** — `ProtocolEncoder<T>` in `foundation_ui_traits` produces pure `Vec<u8>` with no FFI, no `MemoryAllocations`, no WASM dependency. HTTP servers, SSE endpoints, WebSocket servers, CLI tools all use the same encoders.
+- **Three clean layers** — encoding (foundation_ui_traits) → transport (foundation_wasm) → composed impls (foundation_wasm_ui). Each layer is independently usable.
 - **Arrow gets its own design** — not shoehorned into Custom Binary's ops+text arenas
 - **Custom Binary gets a simple fix** — pass memory IDs, JS calls `dispose_allocation`
 - **Generation IDs prevent memory use-after-free** — arena slot reuse increments generation, stale IDs fail validation

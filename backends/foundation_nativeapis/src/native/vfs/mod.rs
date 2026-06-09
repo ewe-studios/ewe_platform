@@ -10,6 +10,9 @@ pub mod ptrace;
 #[cfg(all(feature = "vfs-ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 pub mod ipc_bus;
 
+#[cfg(feature = "vfs-preload")]
+pub mod shim;
+
 pub use dir_delta::DirectoryDelta;
 pub use native_fs::NativeFs;
 

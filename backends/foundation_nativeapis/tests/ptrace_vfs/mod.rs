@@ -253,6 +253,93 @@ fn test_virtual_fd_range_no_collision() {
     }
 }
 
+// ── Fork inheritance ──
+
+#[test]
+fn test_fork_inherits_virtual_fds() {
+    use std::sync::Mutex;
+
+    let fs = MemoryFs::new();
+    fs.write_file("/shared.txt", b"inherited data").unwrap();
+
+    let fd_table = VirtualFdTable::new();
+    let file = fs.open("/shared.txt", OpenMode::Read).unwrap();
+    let erased = ErasedFile::new(file);
+    let vfd = fd_table.alloc_fd();
+
+    let parent_pid = 100u32;
+    let child_pid = 200u32;
+
+    fd_table.insert(parent_pid, vfd, VirtualFdEntry::File {
+        handle: erased,
+        path: "/shared.txt".into(),
+        offset: Arc::new(Mutex::new(0)),
+        mode: OpenMode::Read,
+        flags: 0,
+    });
+
+    // Simulate fork: clone parent's FDs to child
+    fd_table.clone_for_child(parent_pid, child_pid);
+
+    // Child should see the same FD
+    let child_entry = fd_table.get(child_pid, vfd).expect("child should have inherited FD");
+    match child_entry {
+        VirtualFdEntry::File { handle, path, .. } => {
+            assert_eq!(path, "/shared.txt");
+            let mut buf = vec![0u8; 64];
+            let n = handle.read_at(&mut buf, 0).unwrap();
+            assert_eq!(&buf[..n], b"inherited data");
+        }
+        _ => panic!("expected File entry"),
+    }
+
+    // Parent still has its copy
+    assert!(fd_table.get(parent_pid, vfd).is_some());
+
+    // Child exit cleans only child's FDs
+    fd_table.close_all(child_pid);
+    assert!(fd_table.get(child_pid, vfd).is_none());
+    assert!(fd_table.get(parent_pid, vfd).is_some());
+}
+
+#[test]
+fn test_fork_cloexec_not_inherited_on_exec() {
+    use std::sync::Mutex;
+
+    let fs = MemoryFs::new();
+    fs.write_file("/cloexec.txt", b"temp").unwrap();
+    fs.write_file("/persist.txt", b"keep").unwrap();
+
+    let fd_table = VirtualFdTable::new();
+    let pid = 300u32;
+
+    let f1 = fs.open("/cloexec.txt", OpenMode::Read).unwrap();
+    let fd1 = fd_table.alloc_fd();
+    fd_table.insert(pid, fd1, VirtualFdEntry::File {
+        handle: ErasedFile::new(f1),
+        path: "/cloexec.txt".into(),
+        offset: Arc::new(Mutex::new(0)),
+        mode: OpenMode::Read,
+        flags: libc::O_CLOEXEC,
+    });
+
+    let f2 = fs.open("/persist.txt", OpenMode::Read).unwrap();
+    let fd2 = fd_table.alloc_fd();
+    fd_table.insert(pid, fd2, VirtualFdEntry::File {
+        handle: ErasedFile::new(f2),
+        path: "/persist.txt".into(),
+        offset: Arc::new(Mutex::new(0)),
+        mode: OpenMode::Read,
+        flags: 0,
+    });
+
+    // Simulate exec: close O_CLOEXEC FDs
+    fd_table.close_cloexec(pid);
+
+    assert!(fd_table.get(pid, fd1).is_none(), "O_CLOEXEC fd should be closed");
+    assert!(fd_table.get(pid, fd2).is_some(), "non-CLOEXEC fd should survive exec");
+}
+
 // ── NixInterceptor: spawn + wait ──
 
 #[test]
@@ -294,7 +381,7 @@ fn test_spawn_nonexistent_fails() {
 }
 
 #[test]
-#[ignore = "fork tracing: parent fork exit stop not delivered after child EVENT_STOP"]
+#[ignore = "fork tracing: PTRACE_EVENT_STOP on kernel 7.0.9 causes deadlock in parent's vfork wait"]
 fn test_spawn_pipe_chain() {
     // Verify non-fs syscalls (pipe, dup, etc.) pass through normally
     let i = NixInterceptor::new();
@@ -304,7 +391,7 @@ fn test_spawn_pipe_chain() {
 }
 
 #[test]
-#[ignore = "fork tracing: parent fork exit stop not delivered after child EVENT_STOP"]
+#[ignore = "fork tracing: PTRACE_EVENT_STOP on kernel 7.0.9 causes deadlock in parent's vfork wait"]
 fn test_spawn_can_write_to_real_fs() {
     // Verify the child can write to the real filesystem (passthrough)
     let i = NixInterceptor::new();

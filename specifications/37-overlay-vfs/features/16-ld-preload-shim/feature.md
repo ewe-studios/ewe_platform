@@ -1,6 +1,6 @@
 ---
 feature_name: "LD_PRELOAD VFS Shim"
-description: "Shared library (.so/.dylib) that intercepts libc filesystem calls via LD_PRELOAD (Linux) / DYLD_INSERT_LIBRARIES (macOS), redirecting configured paths to a VFS daemon over IPC. Semi-transparent — works for dynamically linked applications without FUSE or kernel modules."
+description: "Shared library (.so/.dylib) that intercepts libc filesystem calls via LD_PRELOAD (Linux) / DYLD_INSERT_LIBRARIES (macOS), redirecting configured paths through OverlayFileSystem with pluggable delta stores (memory, sqlite, turso, dir, d1, r2). Integrated into foundation_nativeapis crate as a feature-gated cdylib."
 status: "in-progress"
 priority: "low"
 phase: 5
@@ -8,13 +8,14 @@ created: 2026-06-04
 updated: 2026-06-09
 dependencies:
   - "01-core-traits"
-  - "11-ipc-daemon"
-  - "23-inode-native-vfs"
+  - "04-native-fs"
+  - "02-memory-impls"
+  - "03-foundation-fs"
 tasks:
-  completed: 5
-  uncompleted: 9
-  total: 14
-  completion_percentage: 36%
+  completed: 12
+  uncompleted: 10
+  total: 22
+  completion_percentage: 55%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -26,54 +27,53 @@ All VFS types MUST implement `Debug` and use `VfsResult<T>` (`Result<T, ErrorTra
 
 ## Overview
 
-A shared library (`.so` on Linux, `.dylib` on macOS) that interposes libc filesystem functions via `LD_PRELOAD` / `DYLD_INSERT_LIBRARIES`. When loaded into a process, it intercepts calls like `open()`, `read()`, `write()`, `stat()`, `opendir()`, etc. For paths matching configured prefixes, calls are redirected to a VFS daemon over IPC (feature 11). For all other paths, calls pass through to the real libc.
+A shared library (`.so` on Linux, `.dylib` on macOS) that interposes libc filesystem functions via `LD_PRELOAD` / `DYLD_INSERT_LIBRARIES`. Built as a `cdylib` target within the `foundation_nativeapis` crate (feature `vfs-preload`). Routes virtual paths through the real VFS stack — `OverlayFileSystem<NativeFs, Delta>` — where the delta store is pluggable at runtime via environment variable.
 
-This gives semi-transparent VFS access to any dynamically linked application — no FUSE, no kernel module, no driver install. Useful for:
-- Running build tools (`gcc`, `make`, `python`) against a virtual overlay
-- Sandboxing interpreted language runtimes
-- macOS where FUSE requires a kext and NFS has overhead
+### Delta Stores
 
-### Limitations
+| Env value | Store | Persistence | Feature flag |
+|-----------|-------|-------------|--------------|
+| `memory` (default) | MemoryDelta | None | `vfs-preload` |
+| `sqlite` | LibsqlDelta | Local SQLite | `vfs-sqlite` |
+| `turso` | TursoDelta | Remote libSQL | `vfs-turso` |
+| `dir` | DirectoryDelta | Shadow directory | `vfs-native` |
+| `d1` | D1Delta (pending) | Cloudflare D1 | `vfs-d1` |
+| `r2` | R2Delta (pending) | Cloudflare R2 | `vfs-r2` |
 
-- **Statically linked binaries** — not intercepted (Go programs with raw syscalls, musl-static builds)
-- **Raw `syscall()` invocations** — not intercepted (only libc wrappers are replaced)
-- **macOS SIP** — `DYLD_INSERT_LIBRARIES` is stripped for system binaries under `/usr/bin/`, `/usr/sbin/`, etc. Works for user-installed binaries.
-- **Thread safety** — must be safe for multi-threaded applications
+Each falls back to `memory` if the feature flag isn't enabled or initialization fails.
 
-### How It Works
+### Configuration
 
-```
-Application process
-  │
-  ├── open("/virtual/file.txt") ──► Shim intercepts (libc interposition)
-  │                                  ├── Path matches prefix? → Send VfsRequest to daemon via IPC
-  │                                  │                          ← Receive VfsResponse (fd or data)
-  │                                  │                          Return synthetic fd to application
-  │                                  └── Path doesn't match?  → Call real libc open()
-  │
-  ├── read(fd) ──► Shim checks fd table
-  │                 ├── Virtual fd? → Send ReadAt to daemon via IPC
-  │                 └── Real fd?    → Call real libc read()
-  │
-  └── (application sees normal POSIX behavior)
-```
+| Variable | Description | Default |
+|----------|-------------|---------|
+| `FOUNDATION_VFS_PREFIX` | Colon-separated virtual path prefixes (e.g., `/virtual`) | (none) |
+| `FOUNDATION_VFS_ROOT` | Base directory for NativeFs overlay | `.` |
+| `FOUNDATION_VFS_DELTA` | Delta store backend | `memory` |
+| `FOUNDATION_VFS_DELTA_PATH` | Path for persistent delta stores | `/tmp/vfs-delta.{db,dir}` |
+| `FOUNDATION_VFS_SOCKET` | IPC daemon socket (future) | — |
 
 ## Tasks
 
-### Shim Library (`shims/foundation-vfs-preload/`)
+### Shim Library (`backends/foundation_nativeapis/src/native/vfs/shim/`)
 
-- [x] Create separate crate/build target producing a `.so`/`.dylib`
-- [x] Implement libc function interposition using `dlsym(RTLD_NEXT, ...)` to get real function pointers
-- [ ] Intercepted functions: `open`, `open64`, `openat`, `close`, `read`, `write`, `pread`, `pwrite`, `lseek`, `fstat`, `stat`, `lstat`, `access`, `unlink`, `rename`, `mkdir`, `rmdir`, `opendir`, `readdir`, `readdir_r`, `closedir`, `readlink`, `symlink`, `chmod`, `fchmod`, `truncate`, `ftruncate`, `fsync`
-- [x] Path prefix configuration: read from environment variable (e.g., `FOUNDATION_VFS_PREFIX=/virtual`) or config file
-- [ ] IPC connection: connect to VFS daemon on init (socket path from environment variable `FOUNDATION_VFS_SOCKET`)
-- [x] Virtual fd table: map synthetic fd numbers (high range, e.g., 10000+) to VFS daemon handles
-- [ ] Thread safety: fd table behind a lock, IPC connection thread-safe
+- [x] Integrated into main crate as `native::vfs::shim` module (feature-gated behind `vfs-preload`)
+- [x] Crate produces both `rlib` and `cdylib` (same source, no duplicate crate)
+- [x] Uses real VFS infrastructure: `OverlayFileSystem<NativeFs, Delta>` with `DynFs` type erasure
+- [x] Pluggable delta stores: memory, sqlite, turso, dir, d1 (scaffolded), r2 (scaffolded)
+- [x] Falls back to memory delta when feature flag missing or init fails
+- [x] Base filesystem configurable via `FOUNDATION_VFS_ROOT` (defaults to `.`)
+- [x] Virtual prefix configurable via `FOUNDATION_VFS_PREFIX` (colon-separated)
+- [x] Intercepted functions: `open`, `open64`, `openat`, `__openat64_time64`, `close`, `read`, `write`, `lseek`, `fstat`, `stat`, `lstat`, `access`, `unlink`, `rename`, `mkdir`, `rmdir`, `opendir`
+- [ ] Intercepted functions: `pread`, `pwrite`, `readdir`, `readdir_r`, `readlink`, `symlink`, `chmod`, `fchmod`, `truncate`, `ftruncate`, `fsync`, `openat2`
+- [x] Virtual fd table: synthetic FDs (10000+) map to `ErasedFile` handles
+- [x] Thread safety: fd table uses `Mutex`, file handles use `Arc<Mutex<>>`
+- [ ] Directory listing: `opendir` returns ENOSYS (needs DIR* wrapper for VfsDirectory → dirent)
+- [x] Example: `cargo run --example vfs_shim` demonstrates all scenarios
 
 ### Platform Support
 
-- [x] Linux: `LD_PRELOAD=libfoundation_vfs.so` — standard interposition
-- [ ] macOS: `DYLD_INSERT_LIBRARIES=libfoundation_vfs.dylib` — note SIP restrictions
+- [x] Linux: `LD_PRELOAD=libfoundation_nativeapis.so` — standard interposition
+- [ ] macOS: `DYLD_INSERT_LIBRARIES=libfoundation_nativeapis.dylib` — note SIP restrictions
 - [ ] Build both targets from same source with `#[cfg(target_os)]` for platform differences
 
 ### Launcher Helper
@@ -82,15 +82,22 @@ Application process
 
 ### Tests
 
-- [ ] Test: `LD_PRELOAD` shim + VFS daemon — spawn child process with preload, child reads virtual file, verify correct content
+- [ ] Test: `LD_PRELOAD` shim — spawn child process with preload, child reads virtual file, verify correct content
 - [ ] Test: non-virtual paths pass through to real filesystem
 - [ ] Test: write through preloaded process goes to delta store
 - [ ] Test: multi-threaded application doesn't deadlock on fd table
+- [ ] Test: sqlite delta persists across process restarts
+- [ ] Test: directory delta shows files on disk
 
 ## Verification
 
-- Tests pass on Linux
-- `cat /virtual/file.txt` (with preload) returns VFS content
-- `ls /virtual/` (with preload) shows VFS directory listing
-- Real filesystem access unaffected
-- No segfaults or deadlocks in multi-threaded usage
+- [x] Example runs: `cargo run -p foundation_nativeapis --features vfs-preload --example vfs_shim`
+- [ ] Tests pass on Linux
+- [ ] `cat /virtual/file.txt` (with preload) returns VFS content
+- [ ] `ls /virtual/` (with preload) shows VFS directory listing
+- [ ] Real filesystem access unaffected
+- [ ] No segfaults or deadlocks in multi-threaded usage
+
+---
+
+_Created: 2026-06-04 | Updated: 2026-06-09_

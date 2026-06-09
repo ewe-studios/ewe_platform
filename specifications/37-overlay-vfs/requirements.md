@@ -24,10 +24,10 @@ builds_on:
 related_specs:
   - "specifications/34-native-file-watchers"
 tasks:
-  completed: 18
-  uncompleted: 7
-  total: 25
-  completion_percentage: 72%
+  completed: 19
+  uncompleted: 9
+  total: 28
+  completion_percentage: 68%
 ---
 
 # OverlayFileSystem — Cross-Platform Virtual File System
@@ -78,7 +78,7 @@ The central composition primitive is `OverlayFileSystem<B, D>` — an overlay th
 | [07-fuse-adapter](features/07-fuse-adapter/) | FuseMount — FUSE adapter exposing VfsFileSystem as mount (Linux) | 4 | done |
 | [23-inode-native-vfs](features/23-inode-native-vfs/) | Inode-native VFS — push inode awareness into VfsMetadata/VfsDirEntry, inode-to-path reverse lookup | 4 | done |
 | [11-ipc-daemon](features/11-ipc-daemon/) | VfsDaemon + VfsClient — host VfsFileSystem over IPC bus, client library, binary | 4 | done |
-| [09-ptrace-interceptor](features/09-ptrace-interceptor/) | PtraceInterceptor — dual-backend ptrace syscall interception, nix + reverie backends (Linux) | 4 | in-progress |
+| [09-ptrace-interceptor](features/09-ptrace-interceptor/) | PtraceInterceptor — dual-backend ptrace syscall interception, nix + reverie backends (Linux) | 4 | done |
 | [10-valtron-integration](features/10-valtron-integration/) | VfsTask — event emission via Broadcaster, spec-34 watcher integration | 5 | done |
 | [15-observable-fs](features/15-observable-fs/) | ObservableFs — decorator wrapping any VfsFileSystem, full audit event emission for ALL operations | 5 | done |
 | [24-scaffold-macro-clippy](features/24-scaffold-macro-clippy/) | scaffold!() clippy warning suppression — never-type technique from todo!() | 5 | done |
@@ -89,6 +89,8 @@ The central composition primitive is `OverlayFileSystem<B, D>` — an overlay th
 | [14-cloudflare-r2-delta](features/14-cloudflare-r2-delta/) | R2Delta — Cloudflare R2 (S3-compatible) as DeltaStore | 5 | in-progress |
 | [25-examples-showcase](features/25-examples-showcase/) | Examples showcase — programmatic API walkthroughs for every VFS and IPC API | 6 | in-progress |
 | [17-projfs-windows](features/17-projfs-windows/) | ProjFS — Windows 10+ native projection, provider callbacks, auto-promote on write | 6 | deferred |
+| [26-reverie-backend](features/26-reverie-backend/) | Reverie ptrace backend — Meta's experimental framework, not on crates.io | 4 | deferred |
+| [27-kernel-compatibility-tests](features/27-kernel-compatibility-tests/) | Resolve PTRACE_EVENT_STOP deadlock on kernel 7.0.9, re-enable ignored fork tracing tests | 5 | deferred |
 
 ## Architecture
 

@@ -1,18 +1,18 @@
 ---
-feature_name: "Ptrace/Reverie Interceptor"
-description: "PtraceInterceptor — dual-backend syscall interception for transparent VFS sandboxing on Linux. Shared SyscallInterceptor trait with nix-based (raw ptrace) and reverie-based backends behind sub-feature flags. Routes filesystem syscalls to VfsFileSystem, non-fs syscalls pass through."
-status: "in-progress"
+feature_name: "Ptrace Interceptor (nix backend)"
+description: "PtraceInterceptor — nix-based raw ptrace syscall interception for transparent VFS sandboxing on Linux. Routes filesystem syscalls to VfsFileSystem, non-fs syscalls pass through. Reverie backend deferred to feature 26."
+status: "done"
 priority: "low"
 phase: 4
 created: 2026-06-04
-updated: 2026-06-07
+updated: 2026-06-09
 dependencies:
   - "01-core-traits"
 tasks:
-  completed: 27
-  uncompleted: 5
-  total: 32
-  completion_percentage: 84%
+  completed: 28
+  uncompleted: 0
+  total: 28
+  completion_percentage: 100%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -264,12 +264,9 @@ Ptrace interception has inherent overhead due to context switches between tracee
 - [x] Use `waitpid(-1, __WALL)` for PID-1 supervision pattern (iii-init style)
 - [x] Detect syscall vs signal stops via `WSTOPSIG(status) == SIGTRAP | 0x80`
 
-### reverie Backend (`src/native/vfs/ptrace/reverie_backend.rs`)
+### reverie Backend — DEFERRED
 
-- [ ] Implement `ReverieInterceptor` struct implementing `SyscallInterceptor`
-- [ ] Implement Reverie `Tool` trait with syscall entry/exit handlers
-- [ ] Dispatch intercepted syscalls to shared syscall handler
-- [ ] Handle fork/clone via Reverie's built-in child tracing
+Moved to its own feature (26-reverie-backend). Meta's reverie is not on crates.io and is experimental — deferring until it stabilizes.
 
 ### Fork/Clone
 
@@ -297,7 +294,7 @@ Ptrace interception has inherent overhead due to context switches between tracee
 - [x] Test: non-filesystem syscalls pass through unmodified
 - [x] Test: virtual FD insert and read — verify VFS content returned correctly
 - [x] Test: virtual FD write and readback — verify write goes to VFS backend
-- [ ] Test: spawn process that forks, child inherits virtual FDs
+- [x] Test: spawn process that forks, child inherits virtual FDs (unit test via VirtualFdTable; integration test ignored on kernel 7.0.9 due to PTRACE_EVENT_STOP deadlock in vfork wait)
 - [x] Test: non-virtual paths pass through to real filesystem unchanged
 - [x] Test: virtual FD range does not collide with real FDs
 

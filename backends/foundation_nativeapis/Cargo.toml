@@ -9,6 +9,9 @@ repository.workspace = true
 description = "Cross-platform native APIs: I/O readiness polling, io_uring, file watching, and interprocess messaging"
 keywords = ["io-uring", "epoll", "kqueue", "iocp", "file-watcher", "ipc"]
 
+[lib]
+crate-type = ["rlib", "cdylib"]
+
 [dependencies]
 io-uring = { version = "0.7", optional = true }
 concurrent-queue = { workspace = true }
@@ -161,6 +164,71 @@ name = "sync_async_bridge"
 path = "examples/sync_async_bridge/main.rs"
 required-features = ["vfs"]
 
+[[example]]
+name = "fd_readiness"
+path = "examples/fd_readiness/main.rs"
+required-features = ["fd"]
+
+[[example]]
+name = "file_watcher"
+path = "examples/file_watcher/main.rs"
+required-features = ["watcher-linux"]
+
+[[example]]
+name = "ipc_bench"
+path = "examples/ipc_bus/main_bench.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "ipc_latency"
+path = "examples/ipc_bus/main_latency.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "ipc_multiple_type"
+path = "examples/ipc_bus/main_multiple_type.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "ipc_region_free"
+path = "examples/ipc_bus/main_regionfree.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "ipc_rejoin"
+path = "examples/ipc_bus/main_rejoin.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "ipc_triangle"
+path = "examples/ipc_bus/main_triangle.rs"
+required-features = ["vfs"]
+
+[[example]]
+name = "arrow_serialization"
+path = "examples/arrow_serialization/main.rs"
+required-features = ["vfs-arrow"]
+
+[[example]]
+name = "fuse_mount"
+path = "examples/fuse_mount/main.rs"
+required-features = ["vfs-fuse"]
+
+[[example]]
+name = "vfs_shim"
+path = "examples/vfs_shim/main.rs"
+required-features = ["vfs-preload"]
+
+[[example]]
+name = "vfs_sqlite_delta"
+path = "examples/vfs_sqlite_delta/main.rs"
+required-features = ["vfs-sqlite"]
+
+[[example]]
+name = "vfs_turso_delta"
+path = "examples/vfs_turso_delta/main.rs"
+required-features = ["vfs-turso"]
+
 [features]
 # Default: full platform-native stack.
 default = ["native"]
@@ -212,6 +280,9 @@ vfs-ptrace = ["vfs-ptrace-nix"]
 
 # FUSE mount adapter (Linux only)
 vfs-fuse = ["vfs-native", "dep:fuser"]
+
+# LD_PRELOAD VFS shim — produces a .so that intercepts libc calls
+vfs-preload = ["vfs-native", "dep:once_cell"]
 
 # Full feature set for current platform
 native = ["poll", "fd"]

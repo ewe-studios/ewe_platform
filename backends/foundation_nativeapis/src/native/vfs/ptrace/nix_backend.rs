@@ -110,7 +110,7 @@ fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
     })?;
 
     // Wait for execve ENTRY stop (PtraceSyscall)
-    let exec_entry = waitpid(child, None).map_err(|e| VfsError::Backend {
+    let _exec_entry = waitpid(child, None).map_err(|e| VfsError::Backend {
         message: format!("waitpid for execve entry failed: {e}"),
     })?;
 
@@ -132,7 +132,7 @@ fn spawn_child(command: &str, args: &[&str]) -> VfsResult<Pid> {
                 message: format!("ptrace syscall after exec event failed: {e}"),
             })?;
         }
-        WaitStatus::Exited(pid, code) => {
+        WaitStatus::Exited(pid, _code) => {
             return Ok(Pid::from_raw(pid.as_raw()));
         }
         _ => {
@@ -149,7 +149,6 @@ fn ptrace_loop(
     fd_table: &Arc<VirtualFdTable>,
 ) -> VfsResult<i32> {
     let mut pending_actions: HashMap<i32, (SyscallAction, i64)> = HashMap::new();
-    let mut iter = 0u64;
 
     loop {
         let status = match waitpid(Pid::from_raw(-1), None) {
@@ -177,9 +176,14 @@ fn ptrace_loop(
                     return Ok(128 + sig as i32);
                 }
             }
-            WaitStatus::Stopped(pid, _sig) => {
-                // Signal stop — deliver signal and continue
-                ptrace::cont(pid, None).ok();
+            WaitStatus::Stopped(pid, sig) => {
+                if sig == nix::sys::signal::Signal::SIGSTOP {
+                    // Group-stop or new child stop — continue with syscall tracing
+                    ptrace::syscall(pid, None).ok();
+                } else {
+                    // Real signal — deliver it and continue with tracing
+                    ptrace::syscall(pid, Some(sig)).ok();
+                }
             }
             WaitStatus::PtraceSyscall(pid) => {
                 // Syscall stop — dispatch using raw getregs
@@ -232,23 +236,21 @@ fn ptrace_loop(
             WaitStatus::PtraceEvent(pid, _sig, event) => {
                 match event {
                     libc::PTRACE_EVENT_STOP => {
-                        // Child born from fork/clone is stopped.
-                        // Continue without tracing — let it run normally.
-                        ptrace::cont(pid, None).ok();
+                        // Special stop condition (e.g. after PTRACE_EVENT_EXIT,
+                        // or on newer kernels for thread stops). Detach to let
+                        // the process run freely.
+                        ptrace::detach(pid, None).ok();
                     }
                     libc::PTRACE_EVENT_FORK
                     | libc::PTRACE_EVENT_VFORK
                     | libc::PTRACE_EVENT_CLONE => {
-                        if let Ok(new_pid) = ptrace::getevent(pid) {
-                            let new_pid = Pid::from_raw(new_pid as i32);
-                            eprintln!("[fork] parent {} forked child {}", pid, new_pid);
-                            // Set the same options on the child so it's also traced
-                            ptrace::setoptions(new_pid, PTRACE_OPTIONS).ok();
-                            // Continue the child with SYSCALL so it starts being traced
-                            ptrace::syscall(new_pid, None).ok();
+                        if let Ok(new_pid_raw) = ptrace::getevent(pid) {
+                            let new_pid = Pid::from_raw(new_pid_raw as i32);
                             fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
+                            // The child is born stopped — continue it with syscall tracing
+                            // so we intercept it too. Trace options are inherited from parent.
+                            ptrace::syscall(new_pid, None).ok();
                         }
-                        // Continue the parent with SYSCALL
                         ptrace::syscall(pid, None).ok();
                     }
                     libc::PTRACE_EVENT_EXEC => {
@@ -259,6 +261,12 @@ fn ptrace_loop(
                         ptrace::syscall(pid, None).ok();
                     }
                     _ => {
+                        // Unknown ptrace event. May include a child pid — continue it if so.
+                        if let Ok(new_pid_raw) = ptrace::getevent(pid) {
+                            let new_pid = Pid::from_raw(new_pid_raw as i32);
+                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
+                            ptrace::syscall(new_pid, None).ok();
+                        }
                         ptrace::syscall(pid, None).ok();
                     }
                 }

@@ -82,9 +82,15 @@ We should also refactor to make the code cleaner and nicer and more clear especi
 
 ---
 
-## Protocol-Aware Communication
+## Protocol-Aware Communication — Three-Layer Split
 
-The current `megatron.js` has a single hardcoded protocol (custom binary Instructions). The rewritten JS runtime must support multiple protocols:
+The protocol system is split across three crates so encoding is usable outside WASM:
+
+| Layer | Crate | What it owns |
+|-------|-------|--------------|
+| Encoding | `foundation_ui_traits` | `ProtocolEncoder<T>` trait, `ArrowEncoder`, `JsonEncoder`, `CustomBinaryEncoder`, `Envelope` — pure `DomOp → Vec<u8>`, no WASM dependency |
+| WASM Transport | `foundation_wasm` | `ProtocolHandler` trait — ships bytes across WASM↔JS boundary via arena memory + FFI |
+| WASM Protocol Impls | `foundation_wasm_ui` | `ProtocolMethods<T>` trait, `ArrowV1`, `CustomBinaryV1`, `JsonV1` — compose encoder + transport |
 
 ```
 Message envelope: [protocol: u8][version: u8][payload_length: u32][payload...]
@@ -109,3 +115,11 @@ function handleMessage(buffer) {
 ```
 
 The `#[wasm_bin]`, `#[wasm_worker]`, `#[wasm_service]` proc macros handle delivery (decision 014) — the protocol byte is in the message, not the transport.
+
+**Encoding outside WASM** — HTTP servers, SSE endpoints, WebSocket servers use the same encoders from `foundation_ui_traits` without any WASM dependency:
+
+```rust
+use foundation_ui_traits::{ArrowEncoder, ProtocolEncoder};
+let bytes = ArrowEncoder.encode(dom_ops);
+response.body(bytes).content_type("application/primal-arrow")
+```
