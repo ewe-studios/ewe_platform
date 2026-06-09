@@ -5,16 +5,16 @@ status: "in-progress"
 priority: "low"
 phase: 5
 created: 2026-06-04
-updated: 2026-06-07
+updated: 2026-06-09
 dependencies:
   - "01-core-traits"
   - "11-ipc-daemon"
   - "23-inode-native-vfs"
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 5
+  uncompleted: 9
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 36%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -62,17 +62,17 @@ Application process
 
 ### Shim Library (`shims/foundation-vfs-preload/`)
 
-- [ ] Create separate crate/build target producing a `.so`/`.dylib`
-- [ ] Implement libc function interposition using `dlsym(RTLD_NEXT, ...)` to get real function pointers
+- [x] Create separate crate/build target producing a `.so`/`.dylib`
+- [x] Implement libc function interposition using `dlsym(RTLD_NEXT, ...)` to get real function pointers
 - [ ] Intercepted functions: `open`, `open64`, `openat`, `close`, `read`, `write`, `pread`, `pwrite`, `lseek`, `fstat`, `stat`, `lstat`, `access`, `unlink`, `rename`, `mkdir`, `rmdir`, `opendir`, `readdir`, `readdir_r`, `closedir`, `readlink`, `symlink`, `chmod`, `fchmod`, `truncate`, `ftruncate`, `fsync`
-- [ ] Path prefix configuration: read from environment variable (e.g., `FOUNDATION_VFS_PREFIX=/virtual`) or config file
+- [x] Path prefix configuration: read from environment variable (e.g., `FOUNDATION_VFS_PREFIX=/virtual`) or config file
 - [ ] IPC connection: connect to VFS daemon on init (socket path from environment variable `FOUNDATION_VFS_SOCKET`)
-- [ ] Virtual fd table: map synthetic fd numbers (high range, e.g., 10000+) to VFS daemon handles
+- [x] Virtual fd table: map synthetic fd numbers (high range, e.g., 10000+) to VFS daemon handles
 - [ ] Thread safety: fd table behind a lock, IPC connection thread-safe
 
 ### Platform Support
 
-- [ ] Linux: `LD_PRELOAD=libfoundation_vfs.so` — standard interposition
+- [x] Linux: `LD_PRELOAD=libfoundation_vfs.so` — standard interposition
 - [ ] macOS: `DYLD_INSERT_LIBRARIES=libfoundation_vfs.dylib` — note SIP restrictions
 - [ ] Build both targets from same source with `#[cfg(target_os)]` for platform differences
 
