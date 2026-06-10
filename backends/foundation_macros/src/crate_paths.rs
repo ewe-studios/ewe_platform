@@ -19,6 +19,10 @@ pub fn foundation_arrow_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_arrow")
 }
 
+pub fn foundation_codegen_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_codegen")
+}
+
 pub fn foundation_jsonschema_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_jsonschema")
 }

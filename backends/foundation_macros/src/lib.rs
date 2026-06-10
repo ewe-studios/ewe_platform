@@ -12,6 +12,7 @@ mod schema_fields;
 mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
+mod wasmbin_codec;
 
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
 // Defined in foundation_nostd (macro_rules! can't be exported from proc-macro crates).
@@ -445,4 +446,48 @@ pub fn to_arrow_derive(item: TokenStream) -> TokenStream {
 #[proc_macro_derive(FromArrow)]
 pub fn from_arrow_derive(item: TokenStream) -> TokenStream {
     from_arrow::from_arrow_derive(item.into()).into()
+}
+
+/// Run a synstructure-based derive body: parse the input, build the `Structure`,
+/// and surface any error as a compile error (replaces upstream `decl_derive!`).
+fn run_synstructure(
+    item: TokenStream,
+    body: fn(synstructure::Structure) -> proc_macro2::TokenStream,
+) -> TokenStream {
+    let input = match syn::parse::<syn::DeriveInput>(item) {
+        Ok(input) => input,
+        Err(err) => return err.to_compile_error().into(),
+    };
+    match synstructure::Structure::try_new(&input) {
+        Ok(structure) => body(structure).into(),
+        Err(err) => err.to_compile_error().into(),
+    }
+}
+
+/// Derives the WebAssembly binary codec (`Encode` + `Decode`, and
+/// `DecodeWithDiscriminant` for `#[repr(N)]` enums / `#[wasmbin(discriminant = N)]`
+/// structs) for `foundation_codegen::wasm` model types.
+///
+/// Ported from `wasmbin-derive` (https://github.com/RReverser/wasmbin), Apache-2.0.
+#[proc_macro_derive(Wasmbin, attributes(wasmbin))]
+pub fn wasmbin_derive(item: TokenStream) -> TokenStream {
+    run_synstructure(item, wasmbin_codec::wasmbin_derive)
+}
+
+/// Marks a `foundation_codegen::wasm` model type as countable — serializable inside
+/// LEB128 length-prefixed collections.
+///
+/// Ported from `wasmbin-derive` (https://github.com/RReverser/wasmbin), Apache-2.0.
+#[proc_macro_derive(WasmbinCountable)]
+pub fn wasmbin_countable_derive(item: TokenStream) -> TokenStream {
+    run_synstructure(item, wasmbin_codec::wasmbin_countable_derive)
+}
+
+/// Derives typed deep-traversal (`Visit::visit_children` / `visit_children_mut`)
+/// over every field of a `foundation_codegen::wasm` model type.
+///
+/// Ported from `wasmbin-derive` (https://github.com/RReverser/wasmbin), Apache-2.0.
+#[proc_macro_derive(Visit)]
+pub fn wasmbin_visit_derive(item: TokenStream) -> TokenStream {
+    run_synstructure(item, wasmbin_codec::wasmbin_visit_derive)
 }
