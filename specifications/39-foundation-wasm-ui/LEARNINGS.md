@@ -228,6 +228,20 @@ create/attr/class/append batch, unknown-node-id throw, and **full WASM→JS→DO
 module's Arrow batch is parsed (nodeIds=[5,6], ops=[SET_TEXT,REMOVE], textVal[0]="hi") and applied
 to the mock DOM. **15 JS tests green total.**
 
+### Feature 12 added — testbed owns native testing (spec-31 review) — 2026-06-10
+
+Reviewed `specifications/completed/31-wasm-testbed`: it claims to replace wasm-pack/wasm-bindgen but
+actually DEPENDS on them — `bindgen-*` modes run the wasm-bindgen CLI for JS glue, discover tests via
+the `__wbgt_` wasm-bindgen convention (walrus), and feature-02 wrote `#[wasm_bindgen_test]` tests.
+That contradicts spec-39 owning the WASM↔JS interop. Added `features/12-testbed-native-harness/`
+specifying the owned replacement: `foundation_wasm_testbed` builds a foundation_wasm cdylib (LLVM
+backend — it already sets `CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm`), runs it under foundation-wasm.js
+via `{ abi: rt.web_abi }`, with OUR `#[wasm_test]` macro + `__fwt_` discovery + a result protocol;
+node/deno/browser runners; wasm-bindgen kept only as an explicit opt-in. Proven seed already in-tree:
+`integrations/nodejs/foundation-wasm/` (15 node tests incl. real-module e2e, zero wasm-bindgen).
+Registered in requirements.md Feature Index (rows 01-08 there are the stale original plan; authoritative
+set is features/00-12).
+
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
   `ReturnHintParser`) — the big host_invoke_* surface.
