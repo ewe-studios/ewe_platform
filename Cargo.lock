@@ -1942,6 +1942,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "custom_debug"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2da7d1ad9567b3e11e877f1d7a0fa0360f04162f94965fc4448fbed41a65298e"
+dependencies = [
+ "custom_debug_derive",
+]
+
+[[package]]
+name = "custom_debug_derive"
+version = "0.6.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a707ceda8652f6c7624f2be725652e9524c815bf3b9d55a0b2320be2303f9c11"
+dependencies = [
+ "darling 0.20.11",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.114",
+ "synstructure",
+]
+
+[[package]]
 name = "darling"
 version = "0.20.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2851,12 +2873,18 @@ dependencies = [
 name = "foundation_codegen"
 version = "0.1.0"
 dependencies = [
+ "custom_debug",
  "derive_more",
+ "foundation_macros",
+ "leb128",
+ "once_cell",
  "proc-macro2",
  "quote",
  "serde",
+ "serde_bytes",
  "syn 2.0.114",
  "tempfile",
+ "thiserror 2.0.17",
  "toml 0.9.8",
  "walkdir",
 ]
@@ -3095,6 +3123,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "syn 2.0.114",
+ "synstructure",
  "trybuild",
  "uuid",
 ]

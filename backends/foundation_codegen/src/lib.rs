@@ -8,6 +8,7 @@ pub mod registry;
 pub mod scanner;
 pub mod types;
 pub mod visitor;
+pub mod wasm;
 
 pub use crate_scanner::{CrateScanner, RegistryExt};
 pub use error::{CodegenError, Result};
