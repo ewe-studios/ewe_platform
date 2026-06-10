@@ -17,9 +17,9 @@ io-uring = { version = "0.7", optional = true }
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-bincode = { version = "2", features = ["serde"], optional = true }
 foundation_macros = { workspace = true, optional = true }
 once_cell = { version = "1", optional = true }
+bincode = { version = "2", features = ["serde"], optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
@@ -32,7 +32,6 @@ foundation_db = { workspace = true, optional = true }
 foundation_netio = { workspace = true, optional = true }
 libsql = { version = "0.9", optional = true }
 turso = { version = "0.5.3", optional = true }
-scru128 = { version = "4", optional = true }
 blake3 = { version = "1", optional = true }
 async-trait = "0.1"
 foundation_arrow = { workspace = true, optional = true }
@@ -233,6 +232,7 @@ path = "examples/vfs_turso_delta/main.rs"
 required-features = ["vfs-turso"]
 
 
+
 [features]
 # Default: full platform-native stack.
 default = ["native"]
@@ -261,10 +261,10 @@ vfs = []
 vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]
 
 # VFS SQLite-backed DeltaStore (libsql)
-vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]
+vfs-sqlite = ["vfs", "dep:libsql", "dep:blake3"]
 
 # VFS Turso cloud-backed DeltaStore (remote connection, WASM-compatible)
-vfs-turso = ["vfs", "dep:turso", "dep:scru128", "dep:blake3"]
+vfs-turso = ["vfs", "dep:turso", "dep:blake3"]
 
 # Cloudflare D1 edge SQLite DeltaStore — uses foundation_db's D1 HTTP client
 vfs-d1 = ["vfs", "dep:foundation_db", "dep:serde_json", "foundation_db/d1"]

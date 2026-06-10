@@ -907,7 +907,7 @@ Tests must initialize the pool before calling any sync-bridge methods — see `b
 
 ```toml
 [features]
-vfs-fjall = ["vfs", "dep:fjall", "dep:cacache", "dep:ssri", "dep:scru128", "dep:bincode"]
+vfs-fjall = ["vfs", "dep:fjall", "dep:cacache", "dep:scru128", "dep:bincode", "dep:hex"]
 ```
 
 ## Dependencies
@@ -915,10 +915,39 @@ vfs-fjall = ["vfs", "dep:fjall", "dep:cacache", "dep:ssri", "dep:scru128", "dep:
 ```toml
 [dependencies]
 fjall = { version = "2", optional = true }
-cacache = { version = "13", optional = true, default-features = false, features = ["sync"] }
-ssri = { version = "9", optional = true }
-scru128 = { version = "0.10", optional = true }
-bincode = { version = "2", optional = true }
+cacache = { version = "13", optional = true }
+scru128 = { version = "4", optional = true }
+bincode = { version = "2", features = ["serde"], optional = true }
+hex = { version = "0.4", optional = true }
+```
+
+## fjall v2 API Notes
+
+fjall v2 uses a partition-based API:
+
+```rust
+// Open database
+let keyspace = fjall::Config::new(path).open()?;
+
+// Open partitions (like column families)
+let inodes = keyspace.open_partition("inodes", fjall::PartitionCreateOptions::default())?;
+let idx_path = keyspace.open_partition("idx_path", fjall::PartitionCreateOptions::default())?;
+
+// Operations on partitions
+inodes.insert(key, value)?;
+let value = inodes.get(key)?;  // Option<Vec<u8>>
+inodes.remove(key)?;
+
+// Iteration
+for item in idx_path.iter().flatten() {
+    let (key, value) = item;
+}
+
+// Prefix scans
+for item in idx_path.prefix(prefix).flatten() { ... }
+
+// Durability
+keyspace.persist(fjall::PersistMode::SyncAll)?;
 ```
 
 ## Verification
