@@ -331,6 +331,31 @@ reads a UTF-8 (0) or UTF-16LE (1) string from WASM memory and interns it, return
   assert exact bytes per type.** This is a dedicated effort (faithful decode incl. quantization +
   return encoder + e2e WASM module that register_function/invoke); do NOT rush — high mismatch risk.
   Port from megatron `ParameterParserV2`/`ReturnHintParser`/`Reply` (the working impl) for parity.
+
+  **Full invoke contract (studied 2026-06-10):** `host_invoke_function(handler:u64, params_ptr,
+  params_len, returns_ptr, returns_len) -> u64`. Returns a **MemoryId** (as u64) pointing to an
+  ALLOCATIONS slot holding the **ReturnValues binary** matching the hints. JS flow:
+  (1) decode params from `[params_ptr,len]`; (2) decode return hints from `[returns_ptr,len]`;
+  (3) call the registered JS fn(args) (with `this` = the runtime, e.g. `this.mock`); (4) ENCODE the
+  result as ReturnValues per the hints (megatron `Reply`); (5) `create_allocation`, write, return
+  `MemoryId.as_u64()`. `host_register_function(src_ptr, src_len) -> handle`: JS reads the function
+  SOURCE string, evals → fn, stores, returns a handle. There are typed fast-paths
+  `host_invoke_function_as_{bool,i8..u64,f32,f64}` too.
+
+  **This IS the custom-binary protocol (byte 0)** — per user: the Params/Instructions encoding is
+  our custom binary format; the transport prefixes messages with the envelope header
+  `[protocol][version][memory_id][length]` and the dispatcher routes byte 0 → the custom-binary
+  handler whose payload is this Params/ReturnValues codec. (host_invoke_function passes params raw,
+  not enveloped; the envelope wrapping applies to the host_apply/DOM-op path.)
+
+  **Validation suite = `integrations/nodejs/integrations/*`** (real .wasm + .wat + index.node.js,
+  megatron-driven): tests_callfunction, tests_registerfunction, tests_instructions_{array,function,
+  multi_return,none_return_callback,array_callback}, tests_js_invoke_function(+_and_return_{big_int,
+  bool,dom,none,object,string,types},_with_array), tests_js_{raf,timeout,interval,invoke_async_function,
+  invoke_failed_async_function}. PLAN: port the codec into a `FunctionRegistry` in foundation-wasm.js,
+  then re-point these tests' `require("./megatron.js")` → `foundation-wasm.js` (`{abi: rt.web_abi}`,
+  `rt.init`) to validate parity (the F12/F13 migration). Import sigs confirmed from .wat:
+  `host_register_function`:(i64,i64,i32)->i64, `host_invoke_function`:(i64,i32,i64,i32,i64)->i64.
 - foundation-wasm-ui.js rest: SignalBridge, ComponentRegistry (islands/mount), Hydrator
   (styles/scripts; events now via EventDispatcher), MutationObserver auto-wire/cleanup (decision 018
   §3, browser-only), SSEClient, transports (decision 028), MorphDom (decision 027 — applicator has an
