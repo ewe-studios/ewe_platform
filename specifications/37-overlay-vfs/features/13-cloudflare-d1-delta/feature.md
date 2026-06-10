@@ -1,7 +1,7 @@
 ---
 feature_name: "Cloudflare D1 DeltaStore"
 description: "Cloudflare D1 (edge SQLite) as DeltaStore — 4KB chunks matching SQLite page size, two implementations: wasm-bindgen/worker-rs for Workers, native HTTP API for server-side"
-status: "in-progress"
+status: "done"
 priority: "low"
 phase: 5
 created: 2026-06-04

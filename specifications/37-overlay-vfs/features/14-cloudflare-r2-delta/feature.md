@@ -1,7 +1,7 @@
 ---
 feature_name: "Cloudflare R2 DeltaStore"
 description: "Cloudflare R2 (S3-compatible object storage) as DeltaStore — pluggable key layout adapter (Path, CAS, DirManifest), dual implementations (wasm-bindgen/worker-rs + native S3 HTTP)"
-status: "in-progress"
+status: "done"
 priority: "low"
 phase: 5
 created: 2026-06-04
