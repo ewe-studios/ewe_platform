@@ -317,6 +317,22 @@ reads a UTF-8 (0) or UTF-16LE (1) string from WASM memory and interns it, return
 `bigint` handle (same string → same handle) — the building block `CachedText` params reference.
 3 tests. **foundation_wasm/integration: 18 node tests green.**
 
+### Feature 17 — ABI function-call codec RESEARCH locked in — 2026-06-10
+
+Before porting the codec, mapped both sides into `features/17-abi-function-call-codec/`:
+- `research.md` — the invoke flow + the TWO param encodings (FLAT: Rust `Params::to_binary` ↔ JS
+  `ParameterParserV1`, used by host_invoke_function; MARKER+QUANTIZED: Rust `Batchable::encode` ↔ JS
+  `ParameterParserV2`, used by batch/instructions). Resolves the earlier contradiction —
+  `host_invoke_function_with_return` uses V1 (flat), so current Rust+JS match.
+- `research-core-types.md` — parity map of the foundational types everything builds on:
+  ExternalPointer/InternalPointer/CachePointer (u64 ids into host heaps), ThreeState
+  (ThreeStateId 70/80/90), ReturnHint family (No/Single/List/MultiReturn ↔ ReturnIds 0/1/2/3),
+  ReturnHintValue, ReturnHintParser (ReturnHintMarker Start=200/Stop=201), TypedArraySlice
+  (TypedSlice 1-10, param id 30), ReplyContainer, Reply (encode ↔ ReturnValueParserIter decode),
+  BatchOperation + Operations (ArgumentOperations Start/Begin/End/Stop=1/2/3/4), BatchInstructions.
+  Includes the consolidated discriminant tables (the contract), parity rules, and a carry-forward
+  open-items checklist so no detail is lost in the port.
+
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
   `ReturnHintParser`) — the big host_invoke_* surface. **Format grounding (studied 2026-06-10):**
