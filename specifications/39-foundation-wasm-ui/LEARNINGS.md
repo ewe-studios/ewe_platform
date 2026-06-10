@@ -560,3 +560,26 @@ per parameter position; (2) the wasm module independently self-asserts the round
 (`100 * v1` checked module-side; mismatch = trap). Rule for porting the remaining old tests:
 the old suite's literal expectation arrays are NOT a reliable source for value TYPES — always
 cross-check megatron's parser source (or the Rust encoder) when writing strict assertions.
+
+## F15 started: wasmbin port landed (derives + core model) (2026-06-11)
+
+- **Derives in foundation_macros** (`wasmbin_codec.rs`, from wasmbin-derive v0.2.4):
+  Wasmbin (Encode/Decode/DecodeWithDiscriminant), WasmbinCountable, Visit. Adaptations:
+  trait paths resolve via proc-macro-crate → `foundation_codegen::wasm::{io,builtins,visit}`
+  (upstream hardcoded `crate::…`); decl_derive! → plain #[proc_macro_derive] wrappers
+  (run_synstructure helper). PathItem/in_path must be PUBLIC in the model for the derives
+  to expand outside foundation_codegen.
+- **Core model in foundation_codegen::wasm** (from wasmbin v0.9.2): mechanical port
+  (`crate::X` → `crate::wasm::X`, `wasmbin_derive::` → `foundation_macros::`) compiled on
+  the second pass. Gotchas: upstream uses edition-2024 let-chains (one rewrite in
+  builtins/lazy.rs); upstream's optional `serde` feature must be RENAMED (`wasm-serde`)
+  because foundation_codegen has a non-optional serde dep and cargo forbids a feature
+  sharing a dependency's name; doctests carry `use wasmbin::…` paths that need repathing.
+  New deps: leb128, thiserror 2, custom_debug, once_cell, serde_bytes (optional).
+- **Attribution set**: workspace NOTICE, vendored LICENSE at src/wasm/vendor/,
+  module README (modifications per Apache-2.0 §4(b)), per-file port notes, v0.9.2 marker.
+- **Round-trip oracle = the workspace's real .wasm fixtures**: all 23 (2 e2e + 21 legacy)
+  decode→encode byte-identically; export enumeration (F13 path) + append-only custom-section
+  injection (F10 path) proven in tests/wasm_roundtrip_tests.rs.
+- Remaining F15: WAT ⇄ binary layer (net-new design), CLI in foundation_codegentools
+  (inspect/edit/convert/validate), then the deferred reference auto-cleanup enhancement.
