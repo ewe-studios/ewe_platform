@@ -54,6 +54,31 @@ export class TypedArraySliceValue {
   constructor(sliceType, content) { this.sliceType = sliceType; this.content = content; }
 }
 
+/**
+ * A pre-typed return slot: `{type: ReturnType, value}`. Registered functions build
+ * these via the context `as*` helpers; the encoder passes them through untouched
+ * instead of inferring the type from the hint (megatron ReplyContainer parity).
+ */
+export class ReplyContainer {
+  constructor(type, value) { this.type = type; this.value = value; }
+}
+
+/** Minimal DOM-node stand-in for non-DOM hosts (megatron FakeNode parity). */
+export class FakeNode {
+  constructor(tag) { this.tag = tag; }
+}
+
+/** A failure a registered fn raises to reach the WASM callback as an ErrorCode. */
+export class ReplyError extends Error {
+  constructor(code, options) {
+    if (!Number.isInteger(code)) {
+      throw new Error("Only numbers allowed to represent the code to be sent");
+    }
+    super(`Reply failed with error code: ${code}`, options);
+    this.code = code;
+  }
+}
+
 // ─── Shared discriminants (the cross-language contract) ─────────────────────────
 export const ParamType = Object.freeze({
   Null: 0, Undefined: 1, Bool: 2, Text8: 3, Text16: 4, Int8: 5, Int16: 6, Int32: 7,
@@ -179,21 +204,47 @@ function asTypedSlice(value) {
 }
 
 /**
- * Best-effort map from a concrete JS value to a `ReturnType`, used only to resolve a
- * union ThreeState (Two/Three) where the hint allows several types. Non-union states
- * never call this. The Rust `ReturnValueParserIter` validates the choice.
+ * Does `value`'s JS runtime type satisfy the candidate `ReturnType`? Used to resolve
+ * a union ThreeState (Two/Three): candidates are tried IN DECLARED ORDER and the
+ * first match wins (megatron `Reply.check_for_type` parity — e.g. `1` against
+ * `Three(Bool, Int8, Uint8)` picks Int8, not Bool). Non-union states never consult
+ * this; the Rust `ReturnValueParserIter` validates the final choice.
  */
-function inferReturnType(value) {
-  switch (typeof value) {
-    case "boolean": return ReturnType.Bool;
-    case "string": return ReturnType.Text8;
-    case "bigint": return ReturnType.Int64;
-    case "number": return Number.isInteger(value) ? ReturnType.Int32 : ReturnType.Float64;
-    default:
-      if (value instanceof ErrorCodeValue) return ReturnType.ErrorCode;
-      if (value instanceof ExternalPointer) return ReturnType.ExternalReference;
-      if (value instanceof InternalPointer) return ReturnType.InternalReference;
-      return ReturnType.MemorySlice;
+function matchesReturnType(value, type) {
+  switch (type) {
+    case ReturnType.None: return value === undefined || value === null;
+    case ReturnType.Bool: return typeof value === "boolean";
+    case ReturnType.Text8: return typeof value === "string";
+    case ReturnType.Int8:
+    case ReturnType.Int16:
+    case ReturnType.Int32:
+    case ReturnType.Uint8:
+    case ReturnType.Uint16:
+    case ReturnType.Uint32:
+      return typeof value === "number" && Number.isInteger(value);
+    case ReturnType.Int64:
+    case ReturnType.Uint64:
+    case ReturnType.Int128:
+    case ReturnType.Uint128:
+      return typeof value === "bigint" || (typeof value === "number" && Number.isInteger(value));
+    case ReturnType.Float32:
+    case ReturnType.Float64:
+      return typeof value === "number";
+    case ReturnType.ErrorCode:
+      return value instanceof ErrorCodeValue || value instanceof ReplyError ||
+        (typeof value === "number" && Number.isInteger(value));
+    case ReturnType.ExternalReference: return value instanceof ExternalPointer;
+    case ReturnType.InternalReference: return value instanceof InternalPointer;
+    case ReturnType.TypedArraySlice:
+      return value instanceof TypedArraySliceValue || ArrayBuffer.isView(value);
+    case ReturnType.MemorySlice:
+      return typeof value === "bigint" || typeof value === "number" || ArrayBuffer.isView(value);
+    case ReturnType.DOMObject:
+      return value instanceof FakeNode ||
+        (typeof Node !== "undefined" && value instanceof Node) ||
+        (typeof value === "object" && value !== null);
+    case ReturnType.Object: return typeof value === "object" && value !== null;
+    default: return false;
   }
 }
 
@@ -412,16 +463,22 @@ export class ReplyEncoder {
    * A union ThreeState (Two/Three) is resolved per concrete value (see #pickType).
    */
   #containers(hint, value) {
+    // A ReplyContainer is already typed (context as* helpers) — pass it through
+    // untouched (megatron transform_from_hint checks this before any inference).
+    const resolve = (state, v) =>
+      v instanceof ReplyContainer
+        ? { type: v.type, value: v.value }
+        : { type: this.#pickType(state, v), value: v };
     switch (hint.id) {
       case ReturnIds.One:
-        return [{ type: this.#pickType(hint.states[0], value), value }];
+        return [resolve(hint.states[0], value)];
       case ReturnIds.List: {
         const state = hint.states[0];
-        return Array.from(value).map((v) => ({ type: this.#pickType(state, v), value: v }));
+        return Array.from(value).map((v) => resolve(state, v));
       }
       case ReturnIds.Multi: {
         const arr = Array.from(value);
-        return hint.states.map((state, k) => ({ type: this.#pickType(state, arr[k]), value: arr[k] }));
+        return hint.states.map((state, k) => resolve(state, arr[k]));
       }
       default:
         return [];
@@ -430,14 +487,17 @@ export class ReplyEncoder {
 
   /**
    * Resolve a single declared ThreeState to the concrete ReturnType for `value`.
-   * Non-union (`One(t)`) states use their one type directly; union states pick the
-   * member that matches the JS value's runtime type (Rust validates the match).
+   * Non-union (`One(t)`) states use their one type directly; union states try each
+   * candidate IN DECLARED ORDER and take the first whose runtime type matches
+   * (megatron check_for_type order — Rust validates the final choice).
    */
   #pickType(state, value) {
     const { types } = state;
     if (types.length === 1) return types[0];
-    const inferred = inferReturnType(value);
-    return types.includes(inferred) ? inferred : types[0];
+    for (const candidate of types) {
+      if (matchesReturnType(value, candidate)) return candidate;
+    }
+    throw new Error(`return value ${value} matches none of the hinted types [${types}]`);
   }
 
   /** Encode containers `{type, value}` as `[type][value]…` into one arena slot → MemoryId. */
@@ -506,8 +566,13 @@ export class ReplyEncoder {
           push(slot, 8);
           break;
         }
-        // MemorySlice / array buffers: write the raw bytes into a slot, send [type][slot_id].
+        // MemorySlice / array buffers: a numeric value IS an existing slot id (the
+        // asMemorySlice contract); raw bytes get written into a fresh slot first.
         case ReturnType.MemorySlice: {
+          if (typeof value === "bigint" || typeof value === "number") {
+            push(BigInt(value), 8);
+            break;
+          }
           const u8 = value instanceof Uint8Array ? value : new Uint8Array(value.buffer ?? value);
           const slot = this.memory.create(u8.length);
           this.memory.write(slot, u8);
@@ -655,6 +720,102 @@ export class FunctionRegistry {
     this.reply.memory.write(slot, bytes);
     return slot;
   }
+
+  // ── Context `as*` helpers (megatron middleware parity) ──────────────────────────
+  // Registered functions run with `this` = the context (this registry by default) and
+  // build PRE-TYPED return slots with these, e.g. `return this.asUint8(10)`. Each
+  // yields a ReplyContainer the encoder passes through without hint inference.
+
+  asNone() { return new ReplyContainer(ReturnType.None, undefined); }
+  asBool(v) { return new ReplyContainer(ReturnType.Bool, Boolean(v)); }
+  asText8(v) { return new ReplyContainer(ReturnType.Text8, String(v)); }
+  asInt8(v) { return new ReplyContainer(ReturnType.Int8, v); }
+  asInt16(v) { return new ReplyContainer(ReturnType.Int16, v); }
+  asInt32(v) { return new ReplyContainer(ReturnType.Int32, v); }
+  asInt64(v) { return new ReplyContainer(ReturnType.Int64, BigInt(v)); }
+  asUint8(v) { return new ReplyContainer(ReturnType.Uint8, v); }
+  asUint16(v) { return new ReplyContainer(ReturnType.Uint16, v); }
+  asUint32(v) { return new ReplyContainer(ReturnType.Uint32, v); }
+  asUint64(v) { return new ReplyContainer(ReturnType.Uint64, BigInt(v)); }
+  asFloat32(v) { return new ReplyContainer(ReturnType.Float32, v); }
+  asFloat64(v) { return new ReplyContainer(ReturnType.Float64, v); }
+  asInt128(lsb, msb = 0) {
+    return new ReplyContainer(
+      ReturnType.Int128,
+      (BigInt(msb) << 64n) | (BigInt(lsb) & 0xffffffffffffffffn),
+    );
+  }
+  asUint128(lsb, msb = 0) {
+    return new ReplyContainer(
+      ReturnType.Uint128,
+      (BigInt(msb) << 64n) | (BigInt(lsb) & 0xffffffffffffffffn),
+    );
+  }
+  asErrorCode(v) {
+    return new ReplyContainer(ReturnType.ErrorCode, v instanceof ErrorCodeValue ? v.code : v);
+  }
+  asReplyError(code) { return new ReplyError(code); }
+
+  /** Intern a JS object in the host object heap → pre-typed Object container. */
+  asObject(value) {
+    if (typeof value !== "object" || value === null) {
+      throw new Error("Value must be a JS Object/object");
+    }
+    if (!this.reply.objects) throw new Error("asObject: no object heap wired");
+    return new ReplyContainer(ReturnType.Object, new ExternalPointer(this.reply.objects.create(value)));
+  }
+
+  /** Intern a DOM node in the host DOM heap → pre-typed DOMObject container. */
+  asDOMObject(value) {
+    if (!this.reply.dom) throw new Error("asDOMObject: no DOM heap wired");
+    return new ReplyContainer(ReturnType.DOMObject, new InternalPointer(this.reply.dom.create(value)));
+  }
+
+  /** A FakeNode (non-DOM host stand-in) interned as a DOMObject. */
+  asFakeNode(tag) {
+    if (typeof tag !== "string") throw new Error("Value must be a JS string");
+    return this.asDOMObject(new FakeNode(tag));
+  }
+
+  /** An existing arena-slot id (or raw bytes) as a MemorySlice return. */
+  asMemorySlice(value) {
+    const id = typeof value === "bigint" || typeof value === "number" ? BigInt(value) : value;
+    return new ReplyContainer(ReturnType.MemorySlice, id);
+  }
+
+  asTypedArraySlice(sliceType, content) {
+    return new ReplyContainer(ReturnType.TypedArraySlice, new TypedArraySliceValue(sliceType, content));
+  }
+
+  asInternalReference(v) {
+    return new ReplyContainer(
+      ReturnType.InternalReference,
+      v instanceof RefPointer ? v : new InternalPointer(BigInt(v)),
+    );
+  }
+
+  asExternalReference(v) {
+    return new ReplyContainer(
+      ReturnType.ExternalReference,
+      v instanceof RefPointer ? v : new ExternalPointer(BigInt(v)),
+    );
+  }
+
+  // Typed-array returns ride MemorySlice (raw bytes) under the current contract.
+  #asArray(Ctor, v) {
+    if (!(v instanceof Ctor)) throw new Error(`Value must be a ${Ctor.name}`);
+    return new ReplyContainer(ReturnType.MemorySlice, new Uint8Array(v.buffer, v.byteOffset, v.byteLength));
+  }
+  asUint8Array(v) { return this.#asArray(Uint8Array, v); }
+  asUint16Array(v) { return this.#asArray(Uint16Array, v); }
+  asUint32Array(v) { return this.#asArray(Uint32Array, v); }
+  asUint64Array(v) { return this.#asArray(BigUint64Array, v); }
+  asInt8Array(v) { return this.#asArray(Int8Array, v); }
+  asInt16Array(v) { return this.#asArray(Int16Array, v); }
+  asInt32Array(v) { return this.#asArray(Int32Array, v); }
+  asInt64Array(v) { return this.#asArray(BigInt64Array, v); }
+  asFloat32Array(v) { return this.#asArray(Float32Array, v); }
+  asFloat64Array(v) { return this.#asArray(Float64Array, v); }
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -1628,4 +1789,7 @@ globalThis.FoundationWasmRuntime = Object.freeze({
   ErrorCodeValue,
   TypedArraySliceValue,
   TypedSliceArray,
+  ReplyContainer,
+  FakeNode,
+  ReplyError,
 });
