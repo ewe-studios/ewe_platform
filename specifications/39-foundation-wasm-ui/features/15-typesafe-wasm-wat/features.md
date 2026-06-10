@@ -102,6 +102,24 @@ The documentation directive's grandfather review standards apply to the generate
 
 ---
 
+## Future enhancement — reference auto-cleanup (walrus-style, deferred)
+
+wasmbin's faithful 1:1 model means deleting an entity (a function, type, global, …) does **not**
+fix up the now-dangling references — that's the one ergonomic edge walrus has (its
+`tombstone_arena` + `passes::used`/`gc`). Planned enhancement to our port (deferred, recorded
+here so the intent isn't lost):
+
+- When the caller removes an entity, **cache the removed reference/index** (a deletion set /
+  tombstones) instead of mutating indices immediately.
+- Before serializing, run a **cleanup pass**: compute the live set, drop dead entities, and
+  **relocate/renumber references** so the emitted module is consistent — then `Lazy<T>` re-encodes
+  minimally.
+- This cherry-picks walrus's most valuable capability onto our owned, type-safe model **without**
+  porting all of walrus (see F16, deferred). Design reference: walrus `tombstone_arena.rs`,
+  `passes/used.rs`, `passes/gc.rs`.
+
+This keeps additive/local edits zero-cost (no pass needed) while making deletions safe on demand.
+
 ## Success criteria
 
 - [ ] `foundation_codegen::wasm` parses & re-serializes real `.wasm` fixtures byte-identically (`Lazy<T>` verbatim copy for untouched parts).

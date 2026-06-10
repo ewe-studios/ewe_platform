@@ -309,8 +309,9 @@ backends/
 | [13-wasm-test-native](features/13-wasm-test-native/) | Owned test execution: `#[wasm_test]` macro + `__fwt_` discovery (walrus, our prefix) + result protocol over our ABI — replaces `#[wasm_bindgen_test]`/`__wbgt_` | 1 | pending |
 | [14-wasm-bindgen-interop-boundary](features/14-wasm-bindgen-interop-boundary/) | The ONLY sanctioned wasm-bindgen usage: minimal, isolated, opt-in (Cloudflare worker-rs, foundation_db); never in the owned runtime/build/test backbone | 1 | pending |
 | [15-typesafe-wasm-wat](features/15-typesafe-wasm-wat/) | Port wasmbin (Apache-2.0) into foundation_codegen for type-safe, minimal-diff (`Lazy<T>`) wasm editing + WAT support + a foundation_codegentools CLI; full attribution to the upstream project | 1 | pending |
+| [16-walrus-transform-port](features/16-walrus-transform-port/) | **DEFERRED** — port walrus (MIT/Apache-2.0) transformation IR into foundation_codegen for heavy structural rewrites; large + dep-heavy, overlaps wasmbin. Intent recorded; revisit when heavy rewrites are needed | 1 | deferred |
 
-> Note: the index rows 01–08 above are the original phase-1 plan; the authoritative feature set lives in `features/00`–`features/15` (see those dirs). Features 12–15 + decision 031 were added 2026-06-10 (own WASM infra end-to-end; wasm-bindgen only at explicit integration points; wasmbin ported for type-safe edits).
+> Note: the index rows 01–08 above are the original phase-1 plan; the authoritative feature set lives in `features/00`–`features/16` (see those dirs). Features 12–16 + decision 031 were added 2026-06-10 (own WASM infra end-to-end; wasm-bindgen only at explicit integration points; wasmbin ported for type-safe edits; walrus port deferred).
 
 
 ## Module References

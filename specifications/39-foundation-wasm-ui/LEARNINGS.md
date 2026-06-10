@@ -260,9 +260,22 @@ into `foundation_codegen::wasm` for type-safe, minimal-diff (`Lazy<T>`) wasm edi
 macros → `foundation_macros` (per macros-location rule); CLI binary → `foundation_codegentools`
 (beside `wasm_bins`). Extend with WAT (text) ⇄ binary. Workspace is also Apache-2.0 → compatible;
 attribution MANDATORY (vendored LICENSE, NOTICE, per-file credit headers, README links, upstream
-version, stated modifications — Apache-2.0 §4). Complements walrus (decision 031): wasmbin =
-type-safe/minimal-diff (preferred for precise edits); walrus = general rewrites + wasm-bindgen-output
-boundary.
+version, stated modifications — Apache-2.0 §4). **wasmbin vs walrus (clarified 2026-06-10):** wasmbin covers everything we actually use walrus for
+(our only live walrus use is one read-only export scan in `foundation_wasm_testbed/src/wasm_test.rs`),
+plus type-safe minimal-diff editing — a superset. The ONLY edge walrus has is mutation ergonomics:
+its id-arena + `tombstone_arena` + `passes/{used,gc}` auto-fix references on heavy structural
+rewrites; wasmbin is a faithful 1:1 mirror (you manage indices). So **wasmbin is the single owned
+wasm tool**; walrus dropped from the owned path (decision 031 updated).
+
+**Feature 16 added — walrus transform port, DEFERRED (2026-06-10, per user):** reviewed walrus
+(https://github.com/rustwasm/walrus, MIT/Apache-2.0, © Nick Fitzgerald, v0.23.3, source at
+`/home/darkvoid/Boxxed/@formulas/src.rust/src.wasm/src.wasmbindgen/walrus/`). ~12.5k LOC, NOT
+self-contained (wraps wasmparser + wasm-encoder), heavy deps (id-arena, gimli/DWARF, rayon,
+walrus-macro). Overlaps wasmbin for parse/serialize; unique value = mutable IR + auto-relocation for
+heavy rewrites. **Deferred** — record intent; trigger to revisit = real need for heavy structural
+rewrites. The one capability worth having (reference cleanup on delete) is recorded as a wasmbin (F15)
+**future enhancement**: cache deleted refs/tombstones, run a cleanup+relocation pass before serialize
+(design ref: walrus `tombstone_arena.rs` + `passes/used.rs`+`gc.rs`) — cherry-pick, not full port.
 
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,

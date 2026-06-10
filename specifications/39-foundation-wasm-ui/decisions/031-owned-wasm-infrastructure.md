@@ -50,10 +50,14 @@ LLVM codegen backend on a Cranelift-default workspace).
 at the boundary above, and our own `__fwt_` export discovery. It is a wasm-format tool, not
 a wasm-bindgen dependency.
 
-**`wasmbin`** (Apache-2.0) is ported into `foundation_codegen` (F15) for type-safe,
-minimal-diff (`Lazy<T>`) wasm editing — owned, preferred where precise/auditable edits matter;
-`walrus` stays for general rewrites and the wasm-bindgen-output boundary. Both coexist; pick per
-task. Attribution to the upstream project is mandatory (F15).
+**`wasmbin`** (Apache-2.0) is ported into `foundation_codegen` (F15) and becomes the **single
+owned wasm tool** for the default path — type-safe, minimal-diff (`Lazy<T>`) editing. It covers
+everything we actually do today (incl. the one read-only export scan currently on `walrus`), so
+**`walrus` is not needed in the owned path** and is dropped from it; its one unique edge (auto
+reference cleanup on heavy rewrites) is planned as a wasmbin enhancement (F15) and, if ever truly
+needed wholesale, a deferred walrus port (F16). `walrus` may still appear only at the F14
+wasm-bindgen boundary if that integration genuinely calls for it. Attribution to upstream projects
+is mandatory (F15/F16).
 
 ### Boundary rules
 
@@ -71,3 +75,4 @@ task. Attribution to the upstream project is mandatory (F15).
 - F13 (`#[wasm_test]` native discovery) — owned test execution.
 - F14 (wasm-bindgen interop boundary) — the only sanctioned wasm-bindgen usage.
 - F15 (type-safe WASM/WAT) — `wasmbin` ported into `foundation_codegen` for owned, type-safe edits.
+- F16 (walrus transform port) — DEFERRED; recorded intention for heavy structural rewrites.
