@@ -295,3 +295,13 @@ native-windows = ["native", "watcher-windows"]
 
 [lints]
 workspace = true
+
+[[test]]
+name = "d1_delta_vfs"
+path = "tests/d1_delta_vfs/mod.rs"
+required-features = ["vfs-native", "vfs-d1"]
+
+[[test]]
+name = "r2_delta_vfs"
+path = "tests/r2_delta_vfs/mod.rs"
+required-features = ["vfs-native", "vfs-r2"]
