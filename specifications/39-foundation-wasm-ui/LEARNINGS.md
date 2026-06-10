@@ -187,6 +187,36 @@ create/write/get/dispose, timer fire + interval-stop, callback invoke, host_appl
 incl. dispose-on-throw). Added `runtime/package.json {"type":"module"}` to silence Node's
 typeless-module warning.
 
+### Task 5 — REAL-MODULE e2e testing now works (key enabler) — 2026-06-10
+
+**wasm32 builds: use `--profile uat`.** The repo's `dev` profile uses the Cranelift codegen
+backend (`.cargo/config.toml` + root Cargo.toml `[profile.dev] codegen-backend="cranelift"`),
+which can't target wasm32 ("Support for this target has not been implemented yet" comes from
+Cranelift, NOT a missing target). `[profile.uat] codegen-backend="llvm"` builds wasm32 fine.
+foundation_wasm (no_std) compiles to wasm32-unknown-unknown this way.
+
+**e2e harness:** `integrations/nodejs/foundation-wasm/module/` is a tiny STANDALONE crate (own
+`[workspace]`, path deps, NOT a workspace member — keeps the `web` feature out of the main
+workspace's feature unification; also in root Cargo.toml `exclude`). It's a `std` crate (gets the
+default allocator + panic handler — like the existing fixtures; `#![no_std]` cdylibs would need a
+manual `#[global_allocator]`/`#[panic_handler]`). Exports `emit_arrow_batch`: allocates a GLOBAL
+arena slot via `exposed_runtime::create_allocation`, frames an Arrow batch in a `WasmEnvelope`,
+ships via `abi::web::host_apply`. Imports only `abi.host_apply`; exports memory + the arena fns.
+- Build: `./build-module.sh` → copies to `fixtures/foundation_wasm_e2e.wasm` (committed, like the
+  old fixtures). `module/target/` gitignored.
+- `test/e2e-real-module.test.js`: instantiates with `{ abi: rt.web_abi }`, `rt.init(instance)`,
+  calls `emit_arrow_batch()`, asserts the handler saw a 2-row Arrow payload and the slot was freed.
+  Skips gracefully if the fixture isn't built. 12 JS tests green total (11 mock + 1 real).
+
+This proves the full Rust↔JS protocol path against a REAL module. Going forward, JS features can be
+tested against real wasm, not just mocks.
+
+**Side effect noted (not fixed):** the OLD megatron-era fixtures under
+`integrations/nodejs/integrations/*` use the pre-rename path `host_runtime::web::*` (now `abi::web`)
+and the old megatron.js — their SOURCE is stale after the rename, but they're excluded and ship
+committed .wasm so nothing rebuilds them. They'll be superseded as the new harness grows; revisit if
+we keep them.
+
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
   `ReturnHintParser`) — the big host_invoke_* surface. Deferred from the core increment.
