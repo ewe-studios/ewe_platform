@@ -59,12 +59,12 @@ The `Serve` trait returns `ConnectionResult` after the handler completes. `Serve
 1. **Multi-stream connection handler**: After ALPN selects `h2`, hand the socket to the `h2` crate's `server::handshake()`. Bridge `h2::RecvStream` / `h2::SendStream` into `SimpleIncomingRequest` / `SimpleOutgoingResponse`. Each HTTP/2 stream dispatches independently to the router. The key integration point is `ConnectionHandler` — it needs a branch: h2 crate for HTTP/2, existing state machine for HTTP/1.1.
 2. **SETTINGS exchange & flow control**: HTTP/2 connections start with a SETTINGS frame handshake. Flow control is per-stream and per-connection. The `h2` crate manages this, but foundation_http must expose configuration (max concurrent streams, initial window size, max frame size).
 
-#### B5e. Recommended approach: Fork h2 internals, rewrite tokio-free
+#### B5e. Recommended approach: Replicate h2's design, tokio-free
 The `h2` crate is the most mature HTTP/2 implementation in Rust, but it depends on tokio (`AsyncRead`/`AsyncWrite`, tokio runtime context). This conflicts with Valtron's progress-driven async model — bringing in tokio means two competing executors.
 
-**Approach:** Bring in the `h2` crate's source and rewrite it to remove all tokio dependencies. The core logic (HPACK header compression, binary frame codec, flow control state machine, stream multiplexing) is not inherently async — it's layered on top of tokio's `AsyncRead`/`AsyncWrite`. Replace those with synchronous `Read`/`Write` on `SharedByteBufferStream<RawStream>`, or with Valtron's iterator-based streaming model. The result is a platform-owned HTTP/2 implementation that fits naturally into the existing connection handling.
+**Approach:** Use `h2` as the reference implementation — study its architecture, data structures, and state machines — then replicate the parts we need as a tokio-free implementation in foundation_netio's `http2/` module. This is not a fork or vendored copy; it's a clean reimplementation that follows h2's proven design decisions while writing against `std::io::Read`/`Write` and Valtron's iterator-based streaming model.
 
-**What to extract from h2:**
+**What to replicate from h2:**
 - HPACK encoder/decoder (header compression table, Huffman coding)
 - Frame codec (9-byte frame headers, frame type dispatch, continuation handling)
 - Flow control arithmetic (per-stream and per-connection window tracking)
@@ -72,15 +72,106 @@ The `h2` crate is the most mature HTTP/2 implementation in Rust, but it depends 
 - Settings negotiation logic
 - Priority/dependency tree (optional, can defer)
 
-**What to replace:**
+**Key differences from h2:**
 - `tokio::io::AsyncRead` / `AsyncWrite` → `std::io::Read` / `Write` on `SharedByteBufferStream<RawStream>`
 - `tokio::sync` channels → Valtron's `ConcurrentQueueStreamIterator` or crossbeam channels
 - `Future`/`Poll`-based state machines → iterator-based state machines matching `HttpRequestReader` pattern
 - Connection handshake → synchronous SETTINGS exchange in `ConnectionHandler`
 
-**Integration point:** `ConnectionHandler` in foundation_http branches after protocol detection: HTTP/1.1 uses existing text parser, HTTP/2 uses the rewritten frame codec. Both paths produce `SimpleIncomingRequest` and consume `SimpleOutgoingResponse`. The `HTTPStreams<T>` factory (B8) creates the appropriate reader/writer pair.
+**Module structure:** HTTP/2 gets its own module in foundation_netio, separate from `simple_http/`. The HTTP/1.1 text-based parser in `simple_http/shared/impls.rs` is fundamentally different from HTTP/2's binary framing — they should not share a parser. The new module reuses foundation_netio's shared types (`SimpleIncomingRequest`, `SimpleOutgoingResponse`, `SimpleHeaders`, `SendSafeBody`, `Proto`, `SharedByteBufferStream<RawStream>`, TLS/SSL wrappers) but implements its own frame reader/writer, stream state machine, and connection handler. Think of it as a sibling to `simple_http/`, not an extension of it.
+
+```
+backends/foundation_netio/src/
+├── simple_http/          # existing HTTP/1.1 text-based parser
+│   └── shared/impls.rs   # HttpRequestReader, Http11RequestDescriptorIterator, etc.
+├── http2/                # new HTTP/2 binary frame parser (forked from h2)
+│   ├── mod.rs
+│   ├── frame/            # 9-byte frame codec, frame types
+│   ├── hpack/            # HPACK header compression/decompression
+│   ├── stream/           # per-stream state machine, multiplexer
+│   ├── flow_control.rs   # window tracking (per-stream + per-connection)
+│   ├── settings.rs       # SETTINGS negotiation
+│   └── connection.rs     # connection-level state, GOAWAY, PING
+└── netcap/               # shared: TCP, TLS/SSL, RawStream (used by both)
+```
+
+**Integration point:** `ConnectionHandler` in foundation_http branches after protocol detection (ALPN or h2c magic prefix): HTTP/1.1 uses `simple_http/` parser, HTTP/2 uses `http2/` parser. Both paths produce `SimpleIncomingRequest` and consume `SimpleOutgoingResponse` — handlers see the same types regardless of protocol version.
 
 **Estimated scope:** 5-8 features (larger than wrapping h2 as-is, but avoids the tokio dependency and gives full control). Can be phased: (1) frame codec + HPACK, (2) server-side stream multiplexer, (3) client-side multiplexer, (4) flow control tuning.
+
+### B9. No HTTP/3 support (Phase 3, replicates h3 design with a tokio-free QUIC backend)
+**Affects:** Decision 01
+HTTP/3 replaces TCP+TLS with QUIC — multiplexed streams without head-of-line blocking, 0-RTT connection establishment, built-in encryption. For ConnectRPC this means all three wire protocols (Connect, gRPC, gRPC-Web) can run over QUIC with better latency and resilience than HTTP/2 over TCP.
+
+**Reference implementation:** The `h3` crate by hyperium (`/home/darkvoid/Boxxed/@formulas/src.rust/src.tokio/h3/`). It has a clean architecture worth replicating:
+- `h3/` — core HTTP/3 framing, QPACK, connection/stream management. Only depends on tokio for `tokio::sync` (channels), not the runtime. Uses `Poll`-based QUIC trait abstraction.
+- `h3/src/quic.rs` — defines QUIC transport traits (`Connection`, `OpenStreams`, `SendStream`, `RecvStream`, `BidiStream`) that are backend-agnostic.
+- `h3/src/qpack/` — QPACK header compression (HTTP/3's replacement for HPACK).
+- `h3/src/frame.rs`, `h3/src/proto/` — HTTP/3 frame types and stream ID management.
+- `h3-quinn/` — one QUIC backend (quinn). The trait abstraction means any QUIC implementation can plug in.
+
+**Approach:** Same as HTTP/2 — replicate h3's design tokio-free, don't fork or vendor. Study h3's QUIC trait abstraction, QPACK implementation, frame codec, and connection state machine. Rewrite against synchronous/iterator-based APIs matching Valtron's model. Replace `tokio::sync` with crossbeam or Valtron's `ConcurrentQueueStreamIterator`. Replace `Poll`-based QUIC traits with synchronous equivalents.
+
+For the QUIC transport layer itself: find or build a tokio-free QUIC implementation. Options include adapting quinn-proto (the protocol-only layer of quinn, which is transport-agnostic) or evaluating other pure Rust QUIC libraries. The QUIC backend plugs into the HTTP/3 module via the same trait abstraction pattern h3 uses.
+
+**Module structure:**
+```
+backends/foundation_netio/src/
+├── simple_http/          # HTTP/1.1 text-based parser
+├── http2/                # HTTP/2 binary frame parser (replicated from h2)
+├── http3/                # HTTP/3 over QUIC (replicated from h3)
+│   ├── mod.rs
+│   ├── qpack/            # QPACK header compression/decompression
+│   ├── stream/           # QUIC stream ↔ HTTP/3 stream mapping
+│   ├── frame/            # HTTP/3 frame types (DATA, HEADERS, etc.)
+│   ├── connection.rs     # QUIC connection lifecycle, control streams
+│   ├── settings.rs       # HTTP/3 SETTINGS negotiation
+│   └── quic.rs           # QUIC transport trait abstraction (backend-agnostic)
+├── quic/                 # QUIC transport backend (replicated from quinn-proto or similar)
+│   ├── mod.rs
+│   ├── connection.rs     # QUIC connection state machine
+│   ├── stream.rs         # QUIC stream management
+│   ├── crypto.rs         # TLS 1.3 integration
+│   └── packet.rs         # QUIC packet codec
+└── netcap/               # shared: TCP, TLS/SSL, RawStream (used by all)
+```
+
+Same integration pattern as HTTP/2: produces `SimpleIncomingRequest` / consumes `SimpleOutgoingResponse`. Handlers see the same types. `ConnectionHandler` in foundation_http adds a third branch for HTTP/3 alongside HTTP/1.1 and HTTP/2. `Proto::HTTP30` variant already exists in the `Proto` enum.
+
+**Estimated scope:** Phase 3, after HTTP/2 is stable. 6-10 features (larger than HTTP/2 because it includes the QUIC transport layer). Can be phased: (1) QUIC transport backend, (2) HTTP/3 frame codec + QPACK, (3) server-side integration, (4) client-side integration.
+
+### B10. iroh peer-to-peer connectivity module (Phase 3+)
+**Affects:** Decision 01
+[iroh](https://crates.io/crates/iroh) is a peer-to-peer QUIC connectivity library — direct connections dialed by public key with automatic hole punching and relay server fallback. It depends on tokio, but parts of it can be used directly or wrapped with Valtron's async bridging where needed (wrapping futures with Valtron's progress-driven model, or using `block_on` at the boundary).
+
+**Source:** `/home/darkvoid/Boxxed/@formulas/src.rust/src.WebTransport/src.n0-computer/iroh/`
+
+**Approach:** Add a separate `iroh/` module in foundation_netio that integrates iroh's peer-to-peer connectivity. This is distinct from the `quic/` module (which is a raw QUIC transport replicated from quinn-proto) — iroh adds peer discovery, NAT traversal, relay fallback, and public-key-based authentication on top of QUIC. Where iroh's tokio futures surface, wrap them with Valtron adapters or bridge at the connection boundary.
+
+**iroh stands on its own as a first-class transport.** It is not just a QUIC backend for HTTP/3 — it provides direct peer-to-peer encrypted connections, bidirectional and unidirectional QUIC streams, and relay-based connectivity that are independently useful. Applications can use iroh connections for raw stream communication, custom protocols, data synchronization, or any P2P messaging — without HTTP/3 framing on top. The `iroh/` module exposes these capabilities through foundation_netio's abstractions so the rest of the platform can use iroh connections the same way it uses TCP or TLS connections.
+
+**Two integration paths:**
+1. **Standalone P2P transport:** iroh `Endpoint` → bidirectional/unidirectional QUIC streams → application reads/writes directly. Used for custom protocols, data sync, P2P messaging, or any scenario where HTTP framing is unnecessary overhead.
+2. **HTTP/3 backend:** iroh connection plugs into `http3/`'s QUIC trait abstraction → HTTP/3 framing runs over the P2P connection → ConnectRPC dispatches RPCs. Full stack: `iroh (P2P QUIC) → http3/ (HTTP/3 framing) → foundation_connectrpc (RPC dispatch)`.
+
+**Module structure:**
+```
+backends/foundation_netio/src/
+├── simple_http/          # HTTP/1.1
+├── http2/                # HTTP/2 (replicated from h2)
+├── http3/                # HTTP/3 framing (replicated from h3)
+├── quic/                 # Raw QUIC transport (replicated from quinn-proto)
+├── iroh/                 # P2P connectivity (wraps iroh crate)
+│   ├── mod.rs
+│   ├── endpoint.rs       # iroh Endpoint ↔ foundation_netio bridge
+│   ├── connection.rs     # iroh Connection → QUIC trait impl for http3/
+│   └── discovery.rs      # peer discovery, relay configuration
+└── netcap/               # shared: TCP, TLS/SSL, RawStream
+```
+
+**Key integration:** The `iroh/` module implements the same QUIC transport traits that `http3/` expects (from `http3/quic.rs`). This means `http3/` doesn't care whether the QUIC connection came from raw `quic/` (direct UDP) or `iroh/` (P2P with hole punching + relay). Same `SimpleIncomingRequest` / `SimpleOutgoingResponse` at the top.
+
+**Estimated scope:** 2-3 features on top of the http3 work. iroh handles the hard P2P parts; the work is bridging its tokio-based API into foundation_netio's types and implementing the QUIC trait abstraction.
 
 ### B6. Client-side body streaming is request-at-once (SIGNIFICANT)
 **Affects:** Decision 07
@@ -438,23 +529,166 @@ Multiple mismatches: `extract_bearer_token` not case-insensitive, `has_scope` si
 
 ---
 
+## 8. Multi-Protocol Transport Gaps
+
+New gaps introduced by the HTTP/2, HTTP/3, QUIC, and iroh additions. These affect both the ConnectRPC design decisions and foundation_netio/foundation_http architecture.
+
+### T1. Decision 01 only covers HTTP/1.1 transport mapping (CRITICAL)
+**Affects:** Decision 01
+Decision 01 maps connect-go's `net/http` onto `SimpleIncomingRequest`/`SimpleOutgoingResponse` assuming HTTP/1.1 throughout. With three protocol modules (`simple_http/`, `http2/`, `http3/`), Decision 01 must be updated to describe how the transport layer selects and bridges each protocol version. The `Transport` trait (client-side) and `Serve` trait (server-side) need protocol-version-aware variants or a unified abstraction that works across all three.
+
+### T2. No protocol negotiation strategy documented (CRITICAL)
+**Affects:** Decision 01, 05
+The server must select HTTP version per-connection. Three negotiation mechanisms needed:
+1. **ALPN** for HTTP/2 over TLS (`h2` vs `http/1.1`)
+2. **h2c upgrade** for HTTP/2 over cleartext (HTTP Upgrade or prior knowledge via magic prefix)
+3. **Alt-Svc** header for HTTP/3 discovery (server advertises `h3` availability, client upgrades on next connection)
+
+None of these are documented. `ConnectionHandler` in foundation_http needs a protocol detection step before dispatching to the appropriate parser module.
+
+### T3. `ConnectionHandler` needs protocol-branching architecture (SIGNIFICANT)
+**Affects:** Decision 08
+Currently `ConnectionHandler` is a single sequential state machine. With three protocol modules it needs:
+```
+Connection arrives →
+  ├── TLS with ALPN "h2" → http2/ module → per-stream dispatch to Router
+  ├── TLS with ALPN "http/1.1" (or no ALPN) → simple_http/ module → sequential dispatch
+  ├── Cleartext with h2c magic prefix → http2/ module
+  ├── Cleartext without magic → simple_http/ module
+  └── QUIC (UDP) → http3/ module → per-stream dispatch to Router
+```
+iroh connections arrive via QUIC but with peer-identity context (public key) that must be propagated to handlers/auth.
+
+### T4. gRPC wire protocol requires HTTP/2 trailing HEADERS — design must specify the Phase 1 workaround (SIGNIFICANT)
+**Affects:** Decision 05
+With HTTP/2 as Phase 2, the design must be explicit about what gRPC support looks like in Phase 1 (HTTP/1.1 only):
+- **gRPC protocol**: not supported in Phase 1 (requires HTTP/2 trailing HEADERS frames). Must be documented as a known limitation, not left ambiguous.
+- **gRPC-Web protocol**: works over HTTP/1.1 (trailers encoded in body). Full support in Phase 1.
+- **Connect protocol**: works over HTTP/1.1. Full support in Phase 1.
+
+### T5. HTTP/2 enables true full-duplex bidi — handler model must account for this (SIGNIFICANT)
+**Affects:** Decision 04, Q2
+Over HTTP/1.1, bidi is half-duplex (send all, then receive all). Over HTTP/2, bidi is full-duplex (concurrent send/receive on the same stream). The handler model (Q8 — push vs pull) must work for both modes. If we choose push (connect-go style with `stream.Send()`/`stream.Receive()`), the handler can be protocol-agnostic. If we choose pull (separate iterators), the framework must somehow interleave iteration of input and output — which is impossible in a single-threaded context without cooperative scheduling.
+
+### T6. HTTP/2 server push not addressed (MEDIUM)
+**Affects:** Decision 05
+HTTP/2 supports server push (PUSH_PROMISE frames). ConnectRPC doesn't use this, but foundation_http's HTTP/2 module should handle PUSH_PROMISE frames gracefully (reject or ignore) even if not exposed. The design should explicitly state server push is not supported for ConnectRPC.
+
+### T7. Client `Transport` trait must support multiple HTTP versions (SIGNIFICANT)
+**Affects:** Decision 07
+The `Transport` trait currently defines `round_trip(SimpleOutgoingRequest) -> Result<SimpleIncomingResponse>`. This assumes a single request-response exchange. For HTTP/2 and HTTP/3:
+- Multiplexed connections: multiple concurrent RPCs share one connection
+- Client needs connection pooling that is HTTP-version-aware
+- Stream-level operations (reset, flow control) need to be exposed for streaming RPCs
+- The client must know which HTTP version to use (Connect+gRPC-Web work on any; gRPC requires HTTP/2+)
+
+The `Transport` trait may need a `StreamingTransport` extension or the streaming client types (`ServerStream`, `BidiStream`) need protocol-aware internals.
+
+### T8. `SimpleHeaders` must handle HTTP/2 pseudo-headers (SIGNIFICANT)
+**Affects:** Decision 05
+HTTP/2 uses pseudo-headers (`:method`, `:path`, `:scheme`, `:authority`, `:status`) that are distinct from regular headers. `SimpleHeaders` currently stores headers in a `BTreeMap<SimpleHeader, Vec<String>>` with known variants (`CONTENT_TYPE`, `HOST`, etc.) and `Custom(String)`. The http2 module must:
+1. Map `:method` → `SimpleIncomingRequest.method`, not a header
+2. Map `:path` → `SimpleIncomingRequest.url`, not a header
+3. Map `:authority` → `Host` header equivalent
+4. Map `:status` → `SimpleOutgoingResponse.status`, not a header
+5. Reject pseudo-headers in regular header positions and vice versa
+
+This mapping happens inside the http2 module before producing `SimpleIncomingRequest`, so handlers never see pseudo-headers — but the mapping logic must be correct.
+
+### T9. QUIC transport traits need synchronous equivalents (MEDIUM)
+**Affects:** B9
+h3's QUIC trait abstraction (`Connection`, `OpenStreams`, `SendStream`, `RecvStream`, `BidiStream`) uses `Poll`-based async APIs. The tokio-free reimplementation needs synchronous equivalents:
+- `poll_accept_recv` → blocking or iterator-based `accept_recv`
+- `poll_data` → blocking `read` or `Iterator::next`
+- `poll_ready` / `send_data` → blocking `write`
+- Flow control backpressure via blocking instead of `Poll::Pending`
+
+The trait design must work for both the raw `quic/` backend and the `iroh/` wrapper.
+
+### T10. iroh public-key identity must flow into auth context (MEDIUM)
+**Affects:** Decision 09
+iroh connections are authenticated by public key (Ed25519), not certificates or tokens. When ConnectRPC runs over iroh (either standalone or via HTTP/3), the peer's public key should be available in `RequestContext` / auth extensions. This is a new auth mechanism not covered by Decision 09's JWT/session/OAuth authenticators. A `PublicKeyAuthenticator` or similar should be possible, and `Peer` should carry the public key when the connection is iroh-based.
+
+### T11. No design for multi-transport server (listening on TCP + QUIC + iroh simultaneously) (MEDIUM)
+**Affects:** Decision 08
+A production ConnectRPC server may listen on:
+- TCP port (HTTP/1.1 + HTTP/2 via ALPN)
+- UDP port (HTTP/3 via QUIC)
+- iroh endpoint (P2P via public key)
+
+All three should dispatch to the same `Router`. foundation_http's `HttpServer` currently only accepts TCP. The server architecture needs to support multiple listeners dispatching to a shared router, or separate servers sharing a router via `Arc`.
+
+### T12. Client protocol selection strategy not documented (MEDIUM)
+**Affects:** Decision 07
+The client needs a strategy for choosing HTTP version:
+- **Connect protocol**: works on HTTP/1.1, HTTP/2, HTTP/3 — prefer highest available
+- **gRPC-Web**: works on HTTP/1.1, HTTP/2, HTTP/3 — prefer highest available
+- **gRPC**: requires HTTP/2 or HTTP/3 — error if only HTTP/1.1 available
+- **iroh**: always QUIC, can layer HTTP/3 or use raw streams
+
+`ClientOptions` needs `with_preferred_http_version()` or automatic negotiation. connect-go doesn't handle this (Go's `net/http` auto-negotiates), but we must be explicit since we have separate protocol modules.
+
+### T13. h2 source reference path not recorded (SMALL)
+**Affects:** B5
+The h2 crate source being used as the reference implementation for the HTTP/2 module — record its location if available locally, similar to how h3 and iroh sources are recorded.
+
+### T14. quinn-proto as potential QUIC backend not evaluated (MEDIUM)
+**Affects:** B9
+quinn-proto is the protocol-only layer of quinn — it handles QUIC state machines without any async runtime dependency. It's transport-agnostic: you feed it bytes and timers, it tells you what bytes to send. This could be a better fit than a full rewrite for the `quic/` module. Needs evaluation: does quinn-proto's API map cleanly onto foundation_netio's `SharedByteBufferStream<RawStream>` model?
+
+---
+
+## 9. Open Questions — Transport & Multi-Protocol
+
+### Q11. Protocol phasing strategy — what ships when?
+Proposed phasing from the transport analysis:
+- **Phase 1**: HTTP/1.1 only. Connect protocol + gRPC-Web. No gRPC (requires HTTP/2). Half-duplex bidi only.
+- **Phase 2**: HTTP/2 (replicated from h2). Full gRPC support. Full-duplex bidi. HTTP/2 client with multiplexing.
+- **Phase 3**: HTTP/3 (replicated from h3) + QUIC backend. All protocols over QUIC.
+- **Phase 3+**: iroh integration. P2P ConnectRPC. Public-key auth.
+
+Is this phasing correct? Should gRPC-Web be deferred to Phase 2 as well, or is it safe for Phase 1?
+
+### Q12. Does foundation_http need a `Listener` abstraction?
+Currently `HttpServer` binds a TCP listener. With QUIC (UDP) and iroh (P2P), the server needs multiple listener types. Options:
+1. Separate server instances per transport, sharing a `Router` via `Arc`
+2. A `Listener` trait abstracting over TCP, QUIC, iroh — server accepts from any
+3. A multi-listener server that polls all sources
+
+### Q13. How does connection-level state (HTTP version, TLS info, peer identity) reach handlers?
+Handlers receive `SimpleIncomingRequest` which has `proto: Proto`. But they may also need:
+- TLS certificate info (for mTLS)
+- HTTP/2 stream ID (for logging/tracing)
+- iroh public key (for P2P auth)
+- QUIC connection ID
+- Whether 0-RTT was used (security implications)
+
+Should these go in `RequestContext.extensions`, `Peer`, or `SimpleIncomingRequest` fields?
+
+### Q14. Should the `http2/` and `http3/` modules be in foundation_netio or separate crates?
+They're large subsystems (5-8 and 6-10 features respectively). Putting them in foundation_netio keeps the transport layer unified but makes the crate large. Separate crates (`foundation_http2`, `foundation_http3`) keep compilation fast but fragment the network stack. Feature flags on foundation_netio could be a middle ground.
+
+---
+
 ## Summary Counts
 
 | Category | Critical | Significant | Medium | Small | Total |
 |---|---|---|---|---|---|
-| Platform Blockers | 4 | 3 | 0 | 0 | 8 |
+| Platform Blockers | 4 | 3 | 2 | 0 | 10 |
 | Protocol/Wire Gaps | 3 | 3 | 5 | 4 | 17 |
 | Handler/Interceptor | 3 | 4 | 5 | 5 | 20 |
 | Client Architecture | 0 | 0 | 6 | 1 | 8 |
 | Router/Auth/Codegen | 1 | 2 | 6 | 4 | 14 |
 | Rust Type System | 2 | 2 | 4 | 2 | 10 |
-| **Total** | **13** | **14** | **26** | **16** | **77** |
+| Multi-Protocol Transport | 2 | 4 | 5 | 1 | 14 |
+| **Total** | **15** | **18** | **33** | **17** | **93** |
 
-The 13 critical items must be resolved before feature specs can be written. The most impactful are:
+The 15 critical items must be resolved before feature specs can be written. The most impactful are:
 1. **B1/B2**: Foundation streaming response model (blocks all streaming RPCs)
 2. **B5/B7**: HTTP/2 support — no binary framing, no ALPN, no stream multiplexing (blocks gRPC, full-duplex bidi)
-3. **H1/H2/Q8**: Push vs pull handler model (shapes the entire API)
-4. **RS1/RS3**: Invalid Rust type signatures (design doesn't compile)
-5. **H9**: Wrong EOF signaling (contradicts actual foundation_core semantics)
-6. **R1**: Leading slash mismatch (breaks routing)
-7. **P1/P2/P3**: Missing wire format mappings (breaks interop)
+3. **T1/T2**: Transport decisions don't cover multi-protocol — design must specify negotiation and bridging
+4. **H1/H2/Q8**: Push vs pull handler model (shapes the entire API)
+5. **RS1/RS3**: Invalid Rust type signatures (design doesn't compile)
+6. **H9**: Wrong EOF signaling (contradicts actual foundation_core semantics)
+7. **R1**: Leading slash mismatch (breaks routing)
+8. **P1/P2/P3**: Missing wire format mappings (breaks interop)
