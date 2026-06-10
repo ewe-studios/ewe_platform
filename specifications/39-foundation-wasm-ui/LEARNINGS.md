@@ -333,8 +333,30 @@ Before porting the codec, mapped both sides into `features/17-abi-function-call-
   Includes the consolidated discriminant tables (the contract), parity rules, and a carry-forward
   open-items checklist so no detail is lost in the port.
 
-### Task 5 REMAINING:
-- `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
+### Task 5 — FunctionRegistry codec PORTED + validated against real WASM — 2026-06-10
+
+`backends/foundation_wasm/runtime/function-registry.js` (ES module, imported by foundation-wasm.js):
+faithful port of megatron `ParameterParserV1` (FLAT `[ParamType:u8][value]` decode — all 0-31 types
+incl. Text8/16 pointer-into-memory, arrays, CachedText via StringCache, 128-bit, refs as
+Ext/Internal/CachePointer), `ReturnHintParser` (`[Start=200][ReturnIds][ThreeState][Stop=201]`),
+and `Reply`/`ReplyEncoder` (`[ReturnType:u8][value]` matching `ReturnValueParserIter`; `return_naked`
+scalar fast-path; `encode_into_memory` → MemoryId; None→-1n). `FunctionRegistry`: `register`
+(reads source, `Function(...)` eval, handle heap), `invoke` (generic → MemoryId), and typed
+`invoke_as_{bool,float,int,bigint}` (naked). Wired into `web_abi` (host_register_function,
+host_invoke_function, host_invoke_function_as_*, host_unregister_function).
+
+**Validated against a REAL module** (foundation_wasm/integration/module exports roundtrip_i32/f64/
+bool_and + capture_mixed_params): Rust `Params::to_binary` → JS decode → fn → JS encode → Rust
+`invoke_as_*` decode, all green. **foundation_wasm/integration: 22 node tests.**
+
+REMAINING on the codec (carry-forward): string return (`invoke_as_str` + writeUTF8ToMemory),
+ReplyEncoder for arrays/MemorySlice/Object/DOMObject/refs (slot semantics), validating the generic
+MemoryId-return path + List/Multi hints, and the async-callback path (`invoke_callback` replies).
+The marker/quantized V2 batch codec remains separate (host_apply/instructions path).
+
+### Task 5 STILL REMAINING (other):
+- (codec extras above)
+- `FunctionRegistry` legacy note (megatron's `ParameterParserV2` ~1000 lines,
   `ReturnHintParser`) — the big host_invoke_* surface. **Format grounding (studied 2026-06-10):**
   `abi::web::invoke` ships `params.to_binary()` + `returns.to_binary()` via `host_invoke_function`.
   Each param is `[ArgumentOperations::Begin][ParamTypeId:u8][optional TypeOptimization byte][value…]

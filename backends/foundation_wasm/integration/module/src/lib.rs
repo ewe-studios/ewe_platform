@@ -9,8 +9,10 @@
 //! default allocator + panic handler; `foundation_wasm` itself stays `no_std`.
 
 use foundation_ui_traits::{ArrowEncoder, DomOp, ProtocolEncoder};
-use foundation_wasm::abi::web::host_apply;
-use foundation_wasm::{exposed_runtime, internal_api, MemoryId, WasmEnvelope};
+use foundation_wasm::abi::web::{
+    host_apply, invoke_as_bool, invoke_as_f64, invoke_as_i32, register_function,
+};
+use foundation_wasm::{exposed_runtime, internal_api, MemoryId, Params, WasmEnvelope};
 
 /// Build a 2-op Arrow batch and ship it to JS via `host_apply`.
 ///
@@ -41,4 +43,42 @@ pub extern "C" fn emit_arrow_batch() {
 
     let (ptr, len) = slot.as_address().expect("slot address");
     unsafe { host_apply(mem_id, ptr as u64, len) };
+}
+
+// ── Function-call ABI round-trips (validate the FunctionRegistry codec) ──────────
+// Each registers a JS fn (source string), invokes it with real `Params` (flat encoding),
+// and returns the typed result so the JS test can assert the full Rust↔JS round-trip.
+
+/// `x * 2` via Int32 param + i32 return (typed fast-path, naked).
+#[no_mangle]
+pub extern "C" fn roundtrip_i32(input: i32) -> i32 {
+    let f = register_function("function(x){ return x * 2; }");
+    invoke_as_i32(f.handler, &[Params::Int32(input)])
+}
+
+/// `x + 0.5` via Float64 param + f64 return.
+#[no_mangle]
+pub extern "C" fn roundtrip_f64(input: f64) -> f64 {
+    let f = register_function("function(x){ return x + 0.5; }");
+    invoke_as_f64(f.handler, &[Params::Float64(input)])
+}
+
+/// `a && b` via two Bool params + bool return (returned as i32 for the FFI boundary).
+#[no_mangle]
+pub extern "C" fn roundtrip_bool_and(a: i32, b: i32) -> i32 {
+    let f = register_function("function(a, b){ return a && b; }");
+    i32::from(invoke_as_bool(f.handler, &[Params::Bool(a != 0), Params::Bool(b != 0)]))
+}
+
+/// Registers a fn that records all decoded args onto `this` (JS-side capture), invoked
+/// with a mix of param types incl. a Text8 (pointer into WASM memory). None return.
+#[no_mangle]
+pub extern "C" fn capture_mixed_params() {
+    let f = register_function("function(){ this.captured = Array.from(arguments); }");
+    f.invoke_no_return(&[
+        Params::Int32(10),
+        Params::Text8("hi"),
+        Params::Bool(true),
+        Params::Float64(2.5),
+    ]);
 }

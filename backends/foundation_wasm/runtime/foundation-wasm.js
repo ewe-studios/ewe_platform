@@ -22,6 +22,8 @@
 //
 // Protocol bytes (decision 014/022): 0 = Custom Binary, 1 = Arrow, 2 = JSON.
 
+import { FunctionRegistry } from "./function-registry.js";
+
 // ─── WasmEnvelope ──────────────────────────────────────────────────────────────
 
 /**
@@ -358,6 +360,7 @@ export class FoundationWasm {
     this.callbacks = new CallbackRegistry(this.bridge, this.memory);
     this.animation = new AnimationDriver(this.bridge, opts.rafHost);
     this.strings = new StringCache(this.bridge);
+    this.functions = new FunctionRegistry(this.bridge, this.memory, this.strings);
     this.dispatcher = new ProtocolDispatcher();
   }
 
@@ -367,7 +370,7 @@ export class FoundationWasm {
    * foundation-wasm-ui.js, which can extend this object.
    */
   get web_abi() {
-    const { memory, dispatcher, timers, animation, strings } = this;
+    const { memory, dispatcher, timers, animation, strings, functions } = this;
     return {
       // Uniform protocol transport: WASM shipped a message in slot `memId`.
       host_apply(memId, ptr, len) {
@@ -396,6 +399,29 @@ export class FoundationWasm {
       // Intern a UTF-8/UTF-16 string from WASM memory; returns a stable handle.
       host_cache_string(ptr, len, encoding) {
         return strings.cache(ptr, len, Number(encoding));
+      },
+
+      // Function registry: register a JS fn (source string) → handle; invoke it.
+      host_register_function(start, len, utf) {
+        return functions.register(start, len, utf);
+      },
+      host_invoke_function(handle, pPtr, pLen, rPtr, rLen) {
+        return functions.invoke(handle, pPtr, pLen, rPtr, rLen);
+      },
+      // Typed fast-paths: return the naked scalar directly.
+      host_invoke_function_as_bool: (h, p, l) => functions.invokeAsBool(h, p, l),
+      host_invoke_function_as_f32: (h, p, l) => functions.invokeAsFloat(h, p, l),
+      host_invoke_function_as_f64: (h, p, l) => functions.invokeAsFloat(h, p, l),
+      host_invoke_function_as_u8: (h, p, l) => functions.invokeAsInt(h, p, l),
+      host_invoke_function_as_u16: (h, p, l) => functions.invokeAsInt(h, p, l),
+      host_invoke_function_as_u32: (h, p, l) => functions.invokeAsInt(h, p, l),
+      host_invoke_function_as_i8: (h, p, l) => functions.invokeAsInt(h, p, l),
+      host_invoke_function_as_i16: (h, p, l) => functions.invokeAsInt(h, p, l),
+      host_invoke_function_as_i32: (h, p, l) => functions.invokeAsInt(h, p, l),
+      host_invoke_function_as_u64: (h, p, l) => functions.invokeAsBigInt(h, p, l),
+      host_invoke_function_as_i64: (h, p, l) => functions.invokeAsBigInt(h, p, l),
+      host_unregister_function(handle) {
+        functions.heap.delete(BigInt(handle));
       },
     };
   }
