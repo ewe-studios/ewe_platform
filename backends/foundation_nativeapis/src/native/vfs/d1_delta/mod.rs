@@ -20,7 +20,7 @@ use foundation_db::D1Store;
 use foundation_db::core::storage_provider::{BlobStore, KeyValueStore};
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
-use crate::shared::vfs::traits::{DeltaStore, VfsFileSystem};
+use crate::shared::vfs::traits::{DeltaStore, VfsFile, VfsFileSystem};
 use crate::shared::vfs::types::{
     OpenMode, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType, VfsMetadata,
 };
@@ -57,7 +57,7 @@ impl D1Delta {
 
     fn get_meta(&self, path: &str) -> VfsResult<Option<VfsMetadata>> {
         let stream = self.store.get_blob(&Self::meta_key(path)).map_err(serr)?;
-        let data: Option<Vec<u8>> = collect_one(stream);
+        let data: Option<Vec<u8>> = collect_blob(stream)?;
         match data {
             Some(bytes) => Ok(Some(serde_json::from_slice(&bytes).map_err(|e| VfsError::Backend { message: format!("meta deserialize: {e}") })?)),
             None => Ok(None),
@@ -169,7 +169,7 @@ impl crate::shared::vfs::traits::VfsDirectory for D1Directory {
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> { self.delta.open_seekable(path, mode) }
     fn open_directory(&self, path: &str) -> VfsResult<Box<dyn crate::shared::vfs::traits::VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
         let f = if path.starts_with('/') { path.to_string() } else if self.path.ends_with('/') { format!("{}{}", self.path, path) } else { format!("{}/{}", self.path, path) };
-        self.delta.open_directory(&f)
+        self.delta.open_directory(&f).map(|d| Box::new(d) as Box<dyn crate::shared::vfs::traits::VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>)
     }
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
         let f = if path.starts_with('/') { path.to_string() } else if self.path.ends_with('/') { format!("{}{}", self.path, path) } else { format!("{}/{}", self.path, path) };
@@ -185,35 +185,35 @@ impl VfsFileSystem for D1Delta {
     type File = D1File; type SeekableFile = D1SeekableFile; type Directory = D1Directory;
     fn capabilities(&self) -> VfsCapabilities { VfsCapabilities { seekable: true, symlinks: false, permissions_enforced: false, event_emission: false, persistent: true } }
     fn create(&self, path: &str, _mode: u32) -> VfsResult<Self::File> {
-        let s = self.store.put_blob(&Self::data_key(path), &[]).map_err(serr)?; collect_one(s);
+        let s = self.store.put_blob(&Self::data_key(path), &[]).map_err(serr)?; drain_void(s);
         self.store_meta(path, &new_meta(path, 0, VfsFileType::Regular))?;
         Ok(D1File { content: std::sync::Arc::new(std::sync::RwLock::new(Vec::new())), delta: self.clone_arc(), path: path.to_string(), mode: OpenMode::ReadWrite })
     }
     fn mkdir(&self, path: &str) -> VfsResult<()> { self.store_meta(path, &new_meta(path, 0, VfsFileType::Directory)) }
     fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
         let s = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
-        let data: Option<Vec<u8>> = collect_one(s);
+        let data: Option<Vec<u8>> = collect_blob(s)?;
         Ok(D1File { content: std::sync::Arc::new(std::sync::RwLock::new(data.unwrap_or_default())), delta: self.clone_arc(), path: path.to_string(), mode })
     }
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
         Ok(D1SeekableFile { file: self.open(path, mode)?, pos: std::sync::Arc::new(std::sync::RwLock::new(0)) })
     }
-    fn open_directory(&self, path: &str) -> VfsResult<Box<dyn crate::shared::vfs::traits::VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
-        self.get_meta(path)?; Ok(Box::new(D1Directory { path: path.to_string(), delta: self.clone_arc() }))
+    fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
+        self.get_meta(path)?; Ok(D1Directory { path: path.to_string(), delta: self.clone_arc() })
     }
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
         if let Some(m) = self.get_meta(path)? { return Ok(m); }
         let s = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
-        let d: Option<Vec<u8>> = collect_one(s);
+        let d: Option<Vec<u8>> = collect_blob(s)?;
         match d { Some(c) => Ok(new_meta(path, c.len() as u64, VfsFileType::Regular)), None => Err(VfsError::Backend { message: format!("not found: {path}") }.into()) }
     }
     fn exists(&self, path: &str) -> VfsResult<bool> {
         if whiteout_exists(self, path)? { return Ok(false); }
         if self.get_meta(path)?.is_some() { return Ok(true); }
         let s = self.store.blob_exists(&Self::data_key(path)).map_err(serr)?;
-        if collect_one(s).unwrap_or(false) { return Ok(true); }
+        if collect_bool(s).unwrap_or(false) { return Ok(true); }
         let s = self.store.blob_exists(&Self::meta_key(path)).map_err(serr)?;
-        Ok(collect_one(s).unwrap_or(false))
+        Ok(collect_bool(s).unwrap_or(false))
     }
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
         if let Some(mut m) = self.get_meta(path)? { m.permissions = mode; self.store_meta(path, &m) }
@@ -222,24 +222,24 @@ impl VfsFileSystem for D1Delta {
     fn symlink(&self, _t: &str, _l: &str) -> VfsResult<()> { Err(VfsError::Backend { message: "unsupported".into() }.into()) }
     fn readlink(&self, _p: &str) -> VfsResult<String> { Err(VfsError::Backend { message: "unsupported".into() }.into()) }
     fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
-        let s = self.store.get_blob(&Self::data_key(from)).map_err(serr)?; let d: Option<Vec<u8>> = collect_one(s);
-        if let Some(d) = d { let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?; collect_one(s); }
+        let s = self.store.get_blob(&Self::data_key(from)).map_err(serr)?; let d: Option<Vec<u8>> = collect_blob(s)?;
+        if let Some(d) = d { let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?; drain_void(s); }
         if let Some(m) = self.get_meta(from)? { self.store_meta(to, &m)?; }
-        let s = self.store.delete_blob(&Self::data_key(from)).map_err(serr)?; collect_one(s);
-        let s = self.store.delete_blob(&Self::meta_key(from)).map_err(serr)?; collect_one(s);
+        let s = self.store.delete_blob(&Self::data_key(from)).map_err(serr)?; drain_void(s);
+        let s = self.store.delete_blob(&Self::meta_key(from)).map_err(serr)?; drain_void(s);
         Ok(())
     }
     fn remove(&self, path: &str) -> VfsResult<()> {
-        let s = self.store.put_blob(&Self::whiteout_key(path), b"1").map_err(serr)?; collect_one(s);
+        let s = self.store.put_blob(&Self::whiteout_key(path), b"1").map_err(serr)?; drain_void(s);
         Ok(())
     }
     fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
         let s = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
-        let d: Option<Vec<u8>> = collect_one(s);
+        let d: Option<Vec<u8>> = collect_blob(s)?;
         d.ok_or_else(|| VfsError::Backend { message: format!("not found: {path}") }.into())
     }
     fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
-        let s = self.store.put_blob(&Self::data_key(path), data).map_err(serr)?; collect_one(s);
+        let s = self.store.put_blob(&Self::data_key(path), data).map_err(serr)?; drain_void(s);
         let mut m = self.get_meta(path)?.unwrap_or_else(|| new_meta(path, data.len() as u64, VfsFileType::Regular));
         m.size = data.len() as u64; m.modified = Some(std::time::SystemTime::now());
         self.store_meta(path, &m)
@@ -248,8 +248,8 @@ impl VfsFileSystem for D1Delta {
     fn path_by_inode(&self, _ino: u64) -> VfsResult<String> { Err(VfsError::Backend { message: "unsupported".into() }.into()) }
     fn stat_by_inode(&self, _ino: u64) -> VfsResult<VfsMetadata> { Err(VfsError::Backend { message: "unsupported".into() }.into()) }
     fn copy(&self, from: &str, to: &str) -> VfsResult<()> {
-        let s = self.store.get_blob(&Self::data_key(from)).map_err(serr)?; let d: Option<Vec<u8>> = collect_one(s);
-        if let Some(d) = d { let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?; collect_one(s); }
+        let s = self.store.get_blob(&Self::data_key(from)).map_err(serr)?; let d: Option<Vec<u8>> = collect_blob(s)?;
+        if let Some(d) = d { let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?; drain_void(s); }
         if let Some(m) = self.get_meta(from)? { self.store_meta(to, &m)?; }
         Ok(())
     }
@@ -269,7 +269,7 @@ impl DeltaStore for D1Delta {
     fn add_whiteout(&self, path: &str, _version: u64) -> VfsResult<()> { self.remove(path) }
     fn is_whiteout(&self, path: &str) -> VfsResult<Option<u64>> { if whiteout_exists(self, path)? { Ok(Some(0)) } else { Ok(None) } }
     fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
-        let s = self.store.delete_key(&Self::whiteout_key(path)).map_err(serr)?; collect_one(s); Ok(())
+        let s = self.store.delete(&Self::whiteout_key(path)).map_err(serr)?; drain_void(s); Ok(())
     }
     fn list_whiteouts(&self, _dir: &str) -> VfsResult<Vec<(String, u64)>> { Ok(Vec::new()) }
     fn flush(&self) -> VfsResult<()> { Ok(()) }
@@ -282,6 +282,23 @@ fn new_meta(path: &str, size: u64, ft: VfsFileType) -> VfsMetadata {
 fn path_hash(path: &str) -> u64 { use std::collections::hash_map::DefaultHasher; use std::hash::{Hash, Hasher}; let mut h = DefaultHasher::new(); path.hash(&mut h); h.finish() }
 fn whiteout_exists(d: &D1Delta, p: &str) -> VfsResult<bool> {
     let s = d.store.exists(&D1Delta::whiteout_key(p)).map_err(serr)?;
-    Ok(collect_one(s).unwrap_or(false))
+    Ok(collect_bool(s).unwrap_or(false))
+}
+fn drain_void(stream: impl Iterator<Item = foundation_core::valtron::Stream<Result<(), foundation_db::StorageError>, ()>>) {
+    if let Some(Err(e)) = collect_one(stream) { eprintln!("[vfs-d1] stream error: {e}"); }
+}
+fn collect_bool(stream: impl Iterator<Item = foundation_core::valtron::Stream<Result<bool, foundation_db::StorageError>, ()>>) -> VfsResult<bool> {
+    match collect_one(stream) {
+        Some(Ok(b)) => Ok(b),
+        Some(Err(e)) => Err(serr(e).into()),
+        None => Ok(false),
+    }
+}
+fn collect_blob(stream: impl Iterator<Item = foundation_core::valtron::Stream<Result<Option<Vec<u8>>, foundation_db::StorageError>, ()>>) -> VfsResult<Option<Vec<u8>>> {
+    match collect_one(stream) {
+        Some(Ok(data)) => Ok(data),
+        Some(Err(e)) => Err(serr(e).into()),
+        None => Ok(None),
+    }
 }
 fn serr(e: foundation_db::StorageError) -> VfsError { VfsError::Backend { message: e.to_string() } }
