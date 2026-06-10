@@ -310,6 +310,13 @@ loop that calls `trigger_animation_callbacks(ts)` each frame and stops when
 Wired into `web_abi.hook_up_animation_frames` (was a no-op stub). mock-wasm gained the animation
 exports; 3 tests. **foundation_wasm/integration: 15 node tests green.**
 
+### Task 5 — StringCache increment DONE — 2026-06-10
+
+foundation-wasm.js gained `StringCache` + the `host_cache_string(ptr, len, encoding)` import:
+reads a UTF-8 (0) or UTF-16LE (1) string from WASM memory and interns it, returning a stable
+`bigint` handle (same string → same handle) — the building block `CachedText` params reference.
+3 tests. **foundation_wasm/integration: 18 node tests green.**
+
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
   `ReturnHintParser`) — the big host_invoke_* surface.

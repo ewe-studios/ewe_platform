@@ -235,6 +235,49 @@ export class CallbackRegistry {
   }
 }
 
+// ─── StringCache ─────────────────────────────────────────────────────────────────
+
+/**
+ * Interns UTF-8/UTF-16 strings that WASM caches via the `host_cache_string` import,
+ * returning a stable `bigint` handle reused for identical strings. The handle is how
+ * `CachedText` params later refer to the string without re-sending the bytes.
+ */
+export class StringCache {
+  /** @param {{memory:WebAssembly.Memory}} bridge */
+  constructor(bridge) {
+    this.bridge = bridge;
+    this.byString = new Map(); // string -> handle (bigint)
+    this.byHandle = new Map(); // handle (bigint) -> string
+    this.next = 1n;
+  }
+
+  /**
+   * Read a string from WASM memory at `(ptr, len)` and intern it.
+   * @param {bigint|number} ptr
+   * @param {bigint|number} len
+   * @param {number} encoding 0 = UTF-8, 1 = UTF-16LE (JSEncoding)
+   * @returns {bigint} stable handle
+   */
+  cache(ptr, len, encoding = 0) {
+    const bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(len));
+    const decoder = encoding === 1 ? new TextDecoder("utf-16le") : new TextDecoder();
+    const str = decoder.decode(bytes);
+    let handle = this.byString.get(str);
+    if (handle === undefined) {
+      handle = this.next;
+      this.next += 1n;
+      this.byString.set(str, handle);
+      this.byHandle.set(handle, str);
+    }
+    return handle;
+  }
+
+  /** Resolve a handle back to its string (or `undefined`). */
+  get(handle) {
+    return this.byHandle.get(BigInt(handle));
+  }
+}
+
 // ─── AnimationDriver ─────────────────────────────────────────────────────────────
 
 /**
@@ -314,6 +357,7 @@ export class FoundationWasm {
     this.timers = new TimerRegistry(this.bridge, opts.timerHost);
     this.callbacks = new CallbackRegistry(this.bridge, this.memory);
     this.animation = new AnimationDriver(this.bridge, opts.rafHost);
+    this.strings = new StringCache(this.bridge);
     this.dispatcher = new ProtocolDispatcher();
   }
 
@@ -323,7 +367,7 @@ export class FoundationWasm {
    * foundation-wasm-ui.js, which can extend this object.
    */
   get web_abi() {
-    const { memory, dispatcher, timers, animation } = this;
+    const { memory, dispatcher, timers, animation, strings } = this;
     return {
       // Uniform protocol transport: WASM shipped a message in slot `memId`.
       host_apply(memId, ptr, len) {
@@ -348,6 +392,10 @@ export class FoundationWasm {
       // WASM registered a frame callback — start (or keep) the rAF loop.
       hook_up_animation_frames() {
         animation.start();
+      },
+      // Intern a UTF-8/UTF-16 string from WASM memory; returns a stable handle.
+      host_cache_string(ptr, len, encoding) {
+        return strings.cache(ptr, len, Number(encoding));
       },
     };
   }
