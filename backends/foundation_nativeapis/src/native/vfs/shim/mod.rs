@@ -87,7 +87,7 @@ mod shim_exports {
                 {
                     // Initialize valtron pool for async-through-sync execution
                     let guard = initialize_pool(42, Some(4));
-                    use crate::shared::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
+                    use crate::native::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
                     let path = CONFIG.delta_path.clone().unwrap_or_else(|| {
                         let dir = std::env::temp_dir();
                         dir.join("vfs-delta.db").to_string_lossy().to_string()
@@ -114,7 +114,7 @@ mod shim_exports {
                 {
                     // Initialize valtron pool for async-through-sync execution
                     let guard = initialize_pool(42, Some(4));
-                    use crate::shared::vfs::turso_delta::TursoDelta;
+                    use crate::native::vfs::turso_delta::TursoDelta;
                     let url = std::env::var("FOUNDATION_VFS_TURSO_URL")
                         .unwrap_or_else(|_| "libsql://localhost".to_string());
                     let token = std::env::var("FOUNDATION_VFS_TURSO_TOKEN").ok();

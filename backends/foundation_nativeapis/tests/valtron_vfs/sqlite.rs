@@ -13,7 +13,7 @@ use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::shared::vfs::{
     DeltaStore, OpenMode, SeekableVfsFile, VfsDirectory, VfsFile, VfsFileSystem,
 };
-use foundation_nativeapis::shared::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
+use foundation_nativeapis::native::vfs::libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
 
 fn init_pool() -> PoolGuard {
     initialize_pool(42, Some(3))
