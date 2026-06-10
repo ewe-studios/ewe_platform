@@ -183,7 +183,7 @@ impl VfsFileSystem for R2Delta {
     type File = R2File; type SeekableFile = R2SeekableFile; type Directory = R2Directory;
     fn capabilities(&self) -> VfsCapabilities { VfsCapabilities { seekable: true, symlinks: false, permissions_enforced: false, event_emission: false, persistent: true } }
     fn create(&self, path: &str, _mode: u32) -> VfsResult<Self::File> {
-        let s = self.store.put_blob(&Self::data_key(path), &[]).map_err(serr)?; drain_void(s);
+        let s = self.store.put_blob(&Self::data_key(path), &[]).map_err(serr)?; drain_ok(s)?;
         self.store_meta(path, &new_meta(path, 0, VfsFileType::Regular))?;
         Ok(R2File { content: std::sync::Arc::new(std::sync::RwLock::new(Vec::new())), delta: self.clone_arc(), path: path.to_string(), mode: OpenMode::ReadWrite })
     }
@@ -221,14 +221,14 @@ impl VfsFileSystem for R2Delta {
     fn readlink(&self, _p: &str) -> VfsResult<String> { Err(VfsError::Backend { message: "unsupported".into() }.into()) }
     fn rename(&self, from: &str, to: &str) -> VfsResult<()> {
         let s = self.store.get_blob(&Self::data_key(from)).map_err(serr)?; let d: Option<Vec<u8>> = collect_blob(s)?;
-        if let Some(d) = d { let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?; drain_void(s); }
+        if let Some(d) = d { let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?; drain_ok(s)?; }
         if let Some(m) = self.get_meta(from)? { self.store_meta(to, &m)?; }
-        let s = self.store.delete_blob(&Self::data_key(from)).map_err(serr)?; drain_void(s);
-        let s = self.store.delete_blob(&Self::meta_key(from)).map_err(serr)?; drain_void(s);
+        let s = self.store.delete_blob(&Self::data_key(from)).map_err(serr)?; drain_ok(s)?;
+        let s = self.store.delete_blob(&Self::meta_key(from)).map_err(serr)?; drain_ok(s)?;
         Ok(())
     }
     fn remove(&self, path: &str) -> VfsResult<()> {
-        let s = self.store.put_blob(&Self::whiteout_key(path), b"1").map_err(serr)?; drain_void(s);
+        let s = self.store.put_blob(&Self::whiteout_key(path), b"1").map_err(serr)?; drain_ok(s)?;
         Ok(())
     }
     fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
@@ -237,7 +237,7 @@ impl VfsFileSystem for R2Delta {
         d.ok_or_else(|| VfsError::Backend { message: format!("not found: {path}") }.into())
     }
     fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
-        let s = self.store.put_blob(&Self::data_key(path), data).map_err(serr)?; drain_void(s);
+        let s = self.store.put_blob(&Self::data_key(path), data).map_err(serr)?; drain_ok(s)?;
         let mut m = self.get_meta(path)?.unwrap_or_else(|| new_meta(path, data.len() as u64, VfsFileType::Regular));
         m.size = data.len() as u64; m.modified = Some(std::time::SystemTime::now());
         self.store_meta(path, &m)
@@ -247,7 +247,7 @@ impl VfsFileSystem for R2Delta {
     fn stat_by_inode(&self, _ino: u64) -> VfsResult<VfsMetadata> { Err(VfsError::Backend { message: "unsupported".into() }.into()) }
     fn copy(&self, from: &str, to: &str) -> VfsResult<()> {
         let s = self.store.get_blob(&Self::data_key(from)).map_err(serr)?; let d: Option<Vec<u8>> = collect_blob(s)?;
-        if let Some(d) = d { let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?; drain_void(s); }
+        if let Some(d) = d { let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?; drain_ok(s)?; }
         if let Some(m) = self.get_meta(from)? { self.store_meta(to, &m)?; }
         Ok(())
     }
@@ -267,7 +267,7 @@ impl DeltaStore for R2Delta {
     fn add_whiteout(&self, path: &str, _version: u64) -> VfsResult<()> { self.remove(path) }
     fn is_whiteout(&self, path: &str) -> VfsResult<Option<u64>> { if whiteout_exists(self, path)? { Ok(Some(0)) } else { Ok(None) } }
     fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
-        let s = self.store.delete_blob(&Self::whiteout_key(path)).map_err(serr)?; drain_void(s); Ok(())
+        let s = self.store.delete_blob(&Self::whiteout_key(path)).map_err(serr)?; drain_ok(s)?; Ok(())
     }
     fn list_whiteouts(&self, _dir: &str) -> VfsResult<Vec<(String, u64)>> { Ok(Vec::new()) }
     fn flush(&self) -> VfsResult<()> { Ok(()) }
@@ -282,8 +282,12 @@ fn whiteout_exists(d: &R2Delta, p: &str) -> VfsResult<bool> {
     let s = d.store.blob_exists(&R2Delta::whiteout_key(p)).map_err(serr)?;
     Ok(collect_bool(s).unwrap_or(false))
 }
-fn drain_void(stream: impl Iterator<Item = foundation_core::valtron::Stream<Result<(), foundation_db::StorageError>, ()>>) {
-    if let Some(Err(e)) = collect_one(stream) { eprintln!("[vfs-r2] stream error: {e}"); }
+fn drain_ok(stream: impl Iterator<Item = foundation_core::valtron::Stream<Result<(), foundation_db::StorageError>, ()>>) -> VfsResult<()> {
+    match collect_one(stream) {
+        Some(Ok(())) => Ok(()),
+        Some(Err(e)) => Err(serr(e).into()),
+        None => Ok(()),
+    }
 }
 fn collect_bool(stream: impl Iterator<Item = foundation_core::valtron::Stream<Result<bool, foundation_db::StorageError>, ()>>) -> VfsResult<bool> {
     match collect_one(stream) {

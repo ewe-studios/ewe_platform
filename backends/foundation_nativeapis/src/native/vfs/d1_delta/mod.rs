@@ -351,7 +351,7 @@ impl VfsFileSystem for D1Delta {
             .store
             .put_blob(&Self::data_key(path), &[])
             .map_err(serr)?;
-        drain_void(s);
+        drain_ok(s)?;
         self.store_meta(path, &new_meta(path, 0, VfsFileType::Regular))?;
         Ok(D1File {
             content: std::sync::Arc::new(std::sync::RwLock::new(Vec::new())),
@@ -448,7 +448,7 @@ impl VfsFileSystem for D1Delta {
         let d: Option<Vec<u8>> = collect_blob(s)?;
         if let Some(d) = d {
             let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?;
-            drain_void(s);
+            drain_ok(s)?;
         }
         if let Some(m) = self.get_meta(from)? {
             self.store_meta(to, &m)?;
@@ -457,12 +457,12 @@ impl VfsFileSystem for D1Delta {
             .store
             .delete_blob(&Self::data_key(from))
             .map_err(serr)?;
-        drain_void(s);
+        drain_ok(s)?;
         let s = self
             .store
             .delete_blob(&Self::meta_key(from))
             .map_err(serr)?;
-        drain_void(s);
+        drain_ok(s)?;
         Ok(())
     }
     fn remove(&self, path: &str) -> VfsResult<()> {
@@ -470,7 +470,7 @@ impl VfsFileSystem for D1Delta {
             .store
             .put_blob(&Self::whiteout_key(path), b"1")
             .map_err(serr)?;
-        drain_void(s);
+        drain_ok(s)?;
         Ok(())
     }
     fn read_file(&self, path: &str) -> VfsResult<Vec<u8>> {
@@ -488,7 +488,7 @@ impl VfsFileSystem for D1Delta {
             .store
             .put_blob(&Self::data_key(path), data)
             .map_err(serr)?;
-        drain_void(s);
+        drain_ok(s)?;
         let mut m = self
             .get_meta(path)?
             .unwrap_or_else(|| new_meta(path, data.len() as u64, VfsFileType::Regular));
@@ -516,7 +516,7 @@ impl VfsFileSystem for D1Delta {
         let d: Option<Vec<u8>> = collect_blob(s)?;
         if let Some(d) = d {
             let s = self.store.put_blob(&Self::data_key(to), &d).map_err(serr)?;
-            drain_void(s);
+            drain_ok(s)?;
         }
         if let Some(m) = self.get_meta(from)? {
             self.store_meta(to, &m)?;
@@ -558,7 +558,7 @@ impl DeltaStore for D1Delta {
     }
     fn remove_whiteout(&self, path: &str) -> VfsResult<()> {
         let s = self.store.delete(&Self::whiteout_key(path)).map_err(serr)?;
-        drain_void(s);
+        drain_ok(s)?;
         Ok(())
     }
     fn list_whiteouts(&self, _dir: &str) -> VfsResult<Vec<(String, u64)>> {
@@ -605,13 +605,11 @@ fn whiteout_exists(d: &D1Delta, p: &str) -> VfsResult<bool> {
     let s = d.store.exists(&D1Delta::whiteout_key(p)).map_err(serr)?;
     Ok(collect_bool(s).unwrap_or(false))
 }
-fn drain_void(
-    stream: impl Iterator<
-        Item = foundation_core::valtron::Stream<Result<(), foundation_db::StorageError>, ()>,
-    >,
-) {
-    if let Some(Err(e)) = collect_one(stream) {
-        eprintln!("[vfs-d1] stream error: {e}");
+fn drain_ok(stream: impl Iterator<Item = foundation_core::valtron::Stream<Result<(), foundation_db::StorageError>, ()>>) -> VfsResult<()> {
+    match collect_one(stream) {
+        Some(Ok(())) => Ok(()),
+        Some(Err(e)) => Err(serr(e).into()),
+        None => Ok(()),
     }
 }
 fn collect_bool(

@@ -28,6 +28,7 @@ mod shim_exports {
     use std::sync::Arc;
 
     use once_cell::sync::Lazy;
+    use tracing;
 
     use foundation_core::valtron::{initialize_pool, PoolGuard};
 
@@ -63,7 +64,7 @@ mod shim_exports {
 
         macro_rules! mem_fallback {
             ($msg:expr) => {{
-                eprintln!("[vfs-shim] {} — falling back to memory", $msg);
+                tracing::warn!("[vfs-shim] {} — falling back to memory", $msg);
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
                 return VfsRuntime {
@@ -151,13 +152,13 @@ mod shim_exports {
                 }
             }
             super::config::DeltaBackend::D1 => {
-                eprintln!("[vfs-shim] D1Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
+                tracing::warn!("[vfs-shim] D1Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
                 VfsRuntime { fs: DynFs::new(Arc::new(overlay)), guard: None }
             }
             super::config::DeltaBackend::R2 => {
-                eprintln!("[vfs-shim] R2Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
+                tracing::warn!("[vfs-shim] R2Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
                 let delta = MemoryDelta::new();
                 let overlay = OverlayFileSystem::new(base, delta);
                 VfsRuntime { fs: DynFs::new(Arc::new(overlay)), guard: None }
