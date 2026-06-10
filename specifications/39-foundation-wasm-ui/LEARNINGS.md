@@ -543,3 +543,20 @@ counterpart: 61 core + 15 UI tests green. The JS runtime split (megatron 1:1 por
 functionally COMPLETE — remaining foundation-wasm-ui.js items (SignalBridge,
 ComponentRegistry, Hydrator, MutationObserver, SSE, transports, MorphDom) are NET-NEW
 spec features (decisions 013/018/027/028), not megatron ports.
+
+## Clarification: the BigInt finding was a test-oracle trap, not a coverage gap (2026-06-11)
+
+The V1 64/128-bit BigInt behavior IS tested — more strictly than ever before. The sequence:
+the new parity test copied the OLD suite's literal expectation (`[5, 5, 10, 10, …]`, plain
+numbers) and FAILED under `assert/strict`, because Int64/Uint64/Int128/Uint128 params arrive
+as `5n`/`10n`. Cross-checking megatron's own source (parseBigInt64, megatron.js:2123 — pushes
+the raw `getBigInt64` result) confirmed megatron ALWAYS delivered BigInts there; the old test
+only passed because node's NON-strict `assert.deepEqual` treats `5n == 5` as equal — it never
+distinguished JS value types. The new runtime matches megatron exactly; only the copied
+expectation was wrong.
+
+Now pinned by TWO oracles: (1) the strict assert verifies exact JS types (number vs BigInt)
+per parameter position; (2) the wasm module independently self-asserts the round-trip in Rust
+(`100 * v1` checked module-side; mismatch = trap). Rule for porting the remaining old tests:
+the old suite's literal expectation arrays are NOT a reliable source for value TYPES — always
+cross-check megatron's parser source (or the Rust encoder) when writing strict assertions.
