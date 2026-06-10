@@ -301,6 +301,15 @@ node --test`. The e2e module is a standalone `[workspace]` crate at
 `.agents/skills/rust-clean-code/testing/skill.md` §3 (`.agents` is a submodule — the rule edit is
 committed there separately by the user).
 
+### Task 5 — AnimationDriver increment DONE — 2026-06-10
+
+foundation-wasm.js gained `AnimationDriver`: the `hook_up_animation_frames` import starts a rAF
+loop that calls `trigger_animation_callbacks(ts)` each frame and stops when
+`get_total_animation_callbacks()` returns 0. Idempotent start (one loop), injectable rAF
+(`opts.rafHost`; default = `requestAnimationFrame`, ~16ms timer fallback for node/deno), `stop()`.
+Wired into `web_abi.hook_up_animation_frames` (was a no-op stub). mock-wasm gained the animation
+exports; 3 tests. **foundation_wasm/integration: 15 node tests green.**
+
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
   `ReturnHintParser`) — the big host_invoke_* surface.

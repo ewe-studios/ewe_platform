@@ -235,6 +235,70 @@ export class CallbackRegistry {
   }
 }
 
+// ─── AnimationDriver ─────────────────────────────────────────────────────────────
+
+/**
+ * Drives the WASM animation-frame loop. WASM calls the `hook_up_animation_frames`
+ * import when it registers a frame callback; this driver runs a rAF loop that calls
+ * the `trigger_animation_callbacks(timestamp)` export each frame and stops once
+ * `get_total_animation_callbacks()` returns 0 (decision: exposed_runtime semantics).
+ */
+export class AnimationDriver {
+  /**
+   * @param {{exports:object}} bridge
+   * @param {{request:(cb:(ts:number)=>void)=>any, cancel:(handle:any)=>void}} [raf]
+   */
+  constructor(bridge, raf) {
+    this.bridge = bridge;
+    this.raf = raf ?? defaultRaf();
+    this.running = false;
+    this.handle = null;
+  }
+
+  /** Start the loop. Idempotent — repeated `hook_up` calls keep a single loop. */
+  start() {
+    if (this.running) return;
+    this.running = true;
+    this.#schedule();
+  }
+
+  #schedule() {
+    this.handle = this.raf.request((ts) => this.#frame(ts));
+  }
+
+  #frame(ts) {
+    this.bridge.exports.trigger_animation_callbacks(ts);
+    if (Number(this.bridge.exports.get_total_animation_callbacks()) > 0) {
+      this.#schedule(); // more callbacks pending — next frame
+    } else {
+      this.running = false; // 0 callbacks left — WASM tells JS to stop the loop
+      this.handle = null;
+    }
+  }
+
+  /** Stop the loop early (e.g. teardown). */
+  stop() {
+    if (this.handle !== null) this.raf.cancel(this.handle);
+    this.running = false;
+    this.handle = null;
+  }
+}
+
+/** Browser `requestAnimationFrame` when available; a ~16ms timer fallback otherwise. */
+function defaultRaf() {
+  if (typeof globalThis.requestAnimationFrame === "function") {
+    return {
+      request: (cb) => globalThis.requestAnimationFrame(cb),
+      cancel: (h) => globalThis.cancelAnimationFrame?.(h),
+    };
+  }
+  const now = () => (globalThis.performance?.now?.() ?? Date.now());
+  return {
+    request: (cb) => setTimeout(() => cb(now()), 16),
+    cancel: (h) => clearTimeout(h),
+  };
+}
+
 // ─── FoundationWasm runtime ──────────────────────────────────────────────────────
 
 /**
@@ -249,6 +313,7 @@ export class FoundationWasm {
     this.memory = new MemoryAllocations(this.bridge);
     this.timers = new TimerRegistry(this.bridge, opts.timerHost);
     this.callbacks = new CallbackRegistry(this.bridge, this.memory);
+    this.animation = new AnimationDriver(this.bridge, opts.rafHost);
     this.dispatcher = new ProtocolDispatcher();
   }
 
@@ -258,7 +323,7 @@ export class FoundationWasm {
    * foundation-wasm-ui.js, which can extend this object.
    */
   get web_abi() {
-    const { memory, dispatcher, timers } = this;
+    const { memory, dispatcher, timers, animation } = this;
     return {
       // Uniform protocol transport: WASM shipped a message in slot `memId`.
       host_apply(memId, ptr, len) {
@@ -280,9 +345,10 @@ export class FoundationWasm {
       unschedule_interval(callbackId) {
         timers.cancelInterval(callbackId);
       },
-      // Provided by foundation-wasm-ui.js / a later FunctionRegistry increment; no-op
-      // here so a core-only module still links.
-      hook_up_animation_frames() {},
+      // WASM registered a frame callback — start (or keep) the rAF loop.
+      hook_up_animation_frames() {
+        animation.start();
+      },
     };
   }
 

@@ -23,10 +23,14 @@ export function makeMockWasm(memoryBytes = 64 * 1024) {
     unregister_callback: [],
     dispose_allocation: [],
     clear_allocation: [],
+    trigger_animation_callbacks: [],
   };
 
   // Lets a test make the next interval tick ask to stop (return 0).
   let intervalStopAt = new Map(); // id(string) -> remaining ticks before STOP
+
+  // Animation callback count; each trigger consumes one (simulates a Done callback).
+  let animationCallbacks = 0;
 
   const exports = {
     create_allocation(size) {
@@ -77,9 +81,20 @@ export function makeMockWasm(memoryBytes = 64 * 1024) {
     unregister_callback(addr) {
       calls.unregister_callback.push(BigInt(addr));
     },
-    // test helper, not part of the real ABI
+    trigger_animation_callbacks(ts) {
+      calls.trigger_animation_callbacks.push(ts);
+      if (animationCallbacks > 0) animationCallbacks -= 1; // one callback finished
+      return 0;
+    },
+    get_total_animation_callbacks() {
+      return animationCallbacks;
+    },
+    // test helpers, not part of the real ABI
     __stopIntervalAfter(id, ticks) {
       intervalStopAt.set(String(id), ticks);
+    },
+    __setAnimationCallbacks(n) {
+      animationCallbacks = n;
     },
     __slotCount() {
       return slots.size;
