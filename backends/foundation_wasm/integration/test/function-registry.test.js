@@ -89,6 +89,44 @@ test("invoke_async_test: async fn result framed + delivered via invoke_callback"
   assert.equal(d[6], 101); // ReturnValueMarker.End
 });
 
+test("batch_register_invoke_i32: V2 MakeFunction+Invoke, quantized param, group return", { skip }, () => {
+  const { instance } = boot();
+  assert.equal(instance.exports.batch_register_invoke_i32(14), 42); // x*3
+  assert.equal(instance.exports.batch_register_invoke_i32(-4), -12);
+});
+
+test("batch_capture_mixed_params: V2 quantized decode of Int32/Text8/Bool/Float64", { skip }, () => {
+  const { rt, instance } = boot();
+  const ctx = {};
+  rt.functions.context = ctx;
+  instance.exports.batch_capture_mixed_params();
+  assert.deepEqual(ctx.batch_captured, [10, "hi", true, 2.5]);
+});
+
+test("batch_invoke_async: V2 InvokeAsync delivers framed reply via invoke_callback", { skip }, async () => {
+  const { rt, instance } = boot();
+  const calls = [];
+  rt.callbacks.invoke = (id, data) => calls.push({ id, data: Uint8Array.from(data) });
+
+  instance.exports.batch_invoke_async(9n); // callback id = 9
+  await Promise.resolve();
+  await Promise.resolve();
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].id, 9n);
+  const d = calls[0].data; // [Begin=100][Int32=5][10 LE u32][End=101]
+  assert.equal(d[0], 100);
+  assert.equal(d[1], 5);
+  const dv = new DataView(d.buffer, d.byteOffset, d.byteLength);
+  assert.equal(dv.getInt32(2, true), 10); // 1 + 9
+  assert.equal(d[6], 101);
+});
+
+test("batch_quantized_spread: i8-quantized and full-width i32 params in one call", { skip }, () => {
+  const { instance } = boot();
+  assert.equal(instance.exports.batch_quantized_spread(), 100007); // 7 + 100000
+});
+
 test("capture_mixed_params: flat decode of Int32/Text8/Bool/Float64", { skip }, () => {
   const { rt, instance } = boot();
   const ctx = {};

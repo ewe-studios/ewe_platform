@@ -22,7 +22,8 @@
 //
 // Protocol bytes (decision 014/022): 0 = Custom Binary, 1 = Arrow, 2 = JSON.
 
-import { FunctionRegistry } from "./function-registry.js";
+import { ExternalHeap, FunctionRegistry } from "./function-registry.js";
+import { BatchInstructions } from "./batch-instructions.js";
 
 // ─── WasmEnvelope ──────────────────────────────────────────────────────────────
 
@@ -361,6 +362,12 @@ export class FoundationWasm {
     this.animation = new AnimationDriver(this.bridge, opts.rafHost);
     this.strings = new StringCache(this.bridge);
     this.functions = new FunctionRegistry(this.bridge, this.memory, this.strings, this.callbacks);
+    // Host-side object heap (object_allocate_external_pointer pre-allocations).
+    this.objects = new ExternalHeap();
+    // V2 quantized batch codec (host_batch_apply / host_batch_returning_apply).
+    this.batches = new BatchInstructions(
+      this.bridge, this.memory, this.strings, this.functions, this.callbacks,
+    );
     this.dispatcher = new ProtocolDispatcher();
   }
 
@@ -370,7 +377,7 @@ export class FoundationWasm {
    * foundation-wasm-ui.js, which can extend this object.
    */
   get web_abi() {
-    const { memory, dispatcher, timers, animation, strings, functions } = this;
+    const { memory, dispatcher, timers, animation, strings, functions, objects, batches } = this;
     return {
       // Uniform protocol transport: WASM shipped a message in slot `memId`.
       host_apply(memId, ptr, len) {
@@ -425,7 +432,19 @@ export class FoundationWasm {
       host_invoke_function_as_u64: (h, p, l) => functions.invokeAsBigInt(h, p, l),
       host_invoke_function_as_i64: (h, p, l) => functions.invokeAsBigInt(h, p, l),
       host_unregister_function(handle) {
-        functions.heap.delete(BigInt(handle));
+        functions.unregister(handle);
+      },
+
+      // Pre-allocate empty heap handles for later binding (batch MakeFunction / objects).
+      function_allocate_external_pointer: () => functions.allocate(),
+      object_allocate_external_pointer: () => objects.create(null),
+
+      // V2 quantized batch transport: ops + texts buffers in WASM memory.
+      host_batch_apply(opsPtr, opsLen, textPtr, textLen) {
+        batches.applyNoReturn(opsPtr, opsLen, textPtr, textLen);
+      },
+      host_batch_returning_apply(opsPtr, opsLen, textPtr, textLen) {
+        return batches.applyReturning(opsPtr, opsLen, textPtr, textLen);
       },
     };
   }

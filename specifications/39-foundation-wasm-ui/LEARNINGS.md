@@ -416,3 +416,49 @@ The marker/quantized V2 batch codec remains separate (host_apply/instructions pa
 ### Open integration seam (still): `InstructionReceiver` owns its OWN `MemoryAllocations`, but JS
 `dispose_allocation` (exposed_runtime) frees the GLOBAL `ALLOCATIONS` static — reconcile when wiring
 the live loop (likely the receiver should use the global arena).
+
+## V2 batch codec ported + validated (2026-06-11)
+
+**`runtime/batch-instructions.js`** is the faithful port of megatron's
+`ParameterParserV2` + `BatchInstructions` + `BatchOperation` (the custom protocol's backbone —
+NOT legacy; coexists with Arrow as separate protocol paths). Validated e2e against a real
+uat-profile module: MakeFunction+Invoke with group returns, no-return mixed params, InvokeAsync
+callback delivery, and quantized-vs-full-width spread (32/32 tests green).
+
+Pinned contract (Rust `ops.rs`/`base.rs` are the byte-level source of truth):
+- **Operations**: Begin=0, MakeFunction=1, Invoke=2, InvokeAsync=3, End=254, Stop=255. Ops stream =
+  `[Begin](op…)*[Stop]`, each op = `[opId][payload][End]`. TWO buffers ship via
+  `host_batch_apply(ops_ptr, ops_len, text_ptr, text_len)`: OPS (opcodes) + TEXTS (raw UTF-8).
+- **MakeFunction payload**: `[ParamTypeId.ExternalReference=15][TQ][handle]` then
+  `[ParamTypeId.Text8=3][index:u64 RAW][len:u64 RAW]` (string location into TEXTS — unquantized,
+  unlike Text8 params!). Handle comes from `function_allocate_external_pointer` pre-allocation;
+  JS `heap.update(handle, fn)`. Thunk yields One(ExternalReference) — so a returning batch's
+  results INCLUDE the MakeFunction handle (results[0]) before invoke results.
+- **Invoke/InvokeAsync payload**: external handle, (async: `[26][TQ][callback]`), return-hint frame
+  `[200][ReturnIds][ThreeStates…][201]`, args `[ArgStart=1]([ArgBegin=2][type][TQ?][value][ArgEnd=3])*
+  [ArgStop=4]`, then `[End=254]`. `encode_params(None)` writes NOTHING (no ArgStart) — Rust callers
+  must pass `Some(&[])`; JS requires the Start marker (megatron parity).
+- **TypeOptimization quantization** (0–27): Bool/Int8/Uint8/Float32 carry NO TQ byte; all other
+  numerics/refs/pointers carry `[TQ][narrowed bytes]` per `value_quantitization::q*` (i16→i8,
+  i32→i8/i16, i64→i8/i16/i32, u-equivalents, f64→f32 when in f32 range, 128-bit→8/16/32/64,
+  ptr→u8/u16/u32). 128-bit None layout = [msb:8][lsb:8] LE halves, msb first.
+  `create_instructions(text, ops)` always sets optimized=true.
+- **Text8 param** = TWO TQ'd u64s (index, len) into the TEXTS string (substr) — NOT WASM memory.
+  Text16/TypedArraySlice/*ArrayBuffer = TQ'd pointer + TQ'd length into WASM memory
+  (*ArrayBuffer len = ELEMENT count ×BYTES_PER_ELEMENT; TypedArraySlice len = bytes; Text16 len ×2).
+- **Group returns** (`host_batch_returning_apply` → u64 slot id, -1 if none): frame
+  `[GroupReturnHintMarker.Start=111]([ReturnIds][Multi only: count:u16 LE][ThreeStates…]
+  [slot_id:u64 LE])*[Stop=222]`; each slot holds a Begin=100..End=101 framed ReturnValues binary;
+  Rust `GroupReturnTypeHints::from_binary` decodes + frees each slot. Decoded per-instruction as
+  Returns::One/List/Multi.
+- **Unified function heap**: host_register_function, function_allocate_external_pointer, and batch
+  MakeFunction all share ONE generation-arena heap (`ExternalHeap`, uid = (index<<32)|generation,
+  bigint) — handles interchangeable across flat invoke and batch invoke (megatron parity).
+  `object_allocate_external_pointer` gets its own ExternalHeap on the runtime.
+- **megatron bugs NOT ported** (wire format follows the Rust encoder instead): `parseErrorCode`
+  read a u64 but Rust encodes ErrorCode via qu16 (`[TQ][u8|u16]`); `parseText16` was broken
+  (no return); `parseNull` validated against Undefined. Also `parseNumber64` missed several TQ
+  arms (e.g. QuantizedUint16AsU8) — the port's `readQuantized` handles the full table.
+- **Async-in-batch**: InvokeAsync thunk returns null (never an inline result); reply delivered via
+  the shared `ReplyEncoder.callbackSuccess` → `CallbackRegistry.invoke` → `invoke_callback`.
+  None-hint = fire-and-forget (promise unwatched).

@@ -10,11 +10,12 @@
 
 use foundation_ui_traits::{ArrowEncoder, DomOp, ProtocolEncoder};
 use foundation_wasm::abi::web::{
-    host_apply, invoke_as_bool, invoke_as_f64, invoke_as_i32, register_function,
+    allocate_function_reference, batch, batch_response, host_apply, invoke_as_bool, invoke_as_f64,
+    invoke_as_i32, register_function,
 };
 use foundation_wasm::{
     exposed_runtime, internal_api, InternalPointer, MemoryId, Params, ReturnTypeHints,
-    ReturnTypeId, ReturnValues, ThreeState, WasmEnvelope,
+    ReturnTypeId, ReturnValues, Returns, ThreeState, WasmEnvelope,
 };
 
 /// Build a 2-op Arrow batch and ship it to JS via `host_apply`.
@@ -164,6 +165,131 @@ pub extern "C" fn invoke_async_test(callback_id: u64) {
         &[Params::Int32(41)],
         ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Int32)),
     );
+}
+
+// ── V2 batch codec round-trips (Operations + quantized params + group returns) ──
+
+/// BATCH returning path: one batch carries MakeFunction (register `x*3` at a
+/// pre-allocated handle) + Invoke with a quantized Int32 param and a One(Int32) hint.
+/// `batch_response` decodes the group-return frame: results[0] is MakeFunction's
+/// ExternalReference, results[1] the invoke result. Returns that Int32.
+#[no_mangle]
+pub extern "C" fn batch_register_invoke_i32(input: i32) -> i32 {
+    let handle = allocate_function_reference();
+    let instructions = internal_api::create_instructions(128, 128);
+    if instructions
+        .register_function(handle, "function(x){ return x * 3; }")
+        .is_err()
+    {
+        return -3;
+    }
+    if instructions
+        .invoke(
+            handle,
+            Some(&[Params::Int32(input)]),
+            ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Int32)),
+        )
+        .is_err()
+    {
+        return -4;
+    }
+    let Ok(completed) = instructions.complete() else {
+        return -5;
+    };
+    match batch_response(completed) {
+        Ok(results) => {
+            let mut it = results.into_iter();
+            match it.next() {
+                Some(Returns::One(ReturnValues::ExternalReference(_))) => {}
+                _ => return -6,
+            }
+            match it.next() {
+                Some(Returns::One(ReturnValues::Int32(v))) => v,
+                _ => -1,
+            }
+        }
+        Err(_) => -2,
+    }
+}
+
+/// BATCH no-return path: MakeFunction + Invoke(None hint) with mixed quantized params
+/// (Int32, Text8 via the TEXTS buffer, Bool, Float64→f32-quantized). The JS fn captures
+/// the decoded args onto `this` for the test to assert.
+#[no_mangle]
+pub extern "C" fn batch_capture_mixed_params() {
+    let handle = allocate_function_reference();
+    let instructions = internal_api::create_instructions(128, 256);
+    instructions
+        .register_function(handle, "function(){ this.batch_captured = Array.from(arguments); }")
+        .expect("register in batch");
+    instructions
+        .invoke(
+            handle,
+            Some(&[
+                Params::Int32(10),
+                Params::Text8("hi"),
+                Params::Bool(true),
+                Params::Float64(2.5),
+            ]),
+            ReturnTypeHints::None,
+        )
+        .expect("invoke in batch");
+    batch(instructions.complete().expect("complete batch"));
+}
+
+/// BATCH async path: MakeFunction(async `x+9`) + InvokeAsync with a caller-supplied
+/// callback id and One(Int32) hint. JS resolves the Promise and delivers the framed
+/// reply via invoke_callback — the test spies the callback registry.
+#[no_mangle]
+pub extern "C" fn batch_invoke_async(callback_id: u64) {
+    let handle = allocate_function_reference();
+    let instructions = internal_api::create_instructions(128, 128);
+    instructions
+        .register_function(handle, "async function(x){ return x + 9; }")
+        .expect("register in batch");
+    instructions
+        .invoke_async(
+            handle,
+            InternalPointer::pointer(callback_id),
+            Some(&[Params::Int32(1)]),
+            ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Int32)),
+        )
+        .expect("invoke_async in batch");
+    batch(instructions.complete().expect("complete batch"));
+}
+
+/// BATCH quantization spread: invokes `a+b` where `a` fits an i8 (quantized) and `b`
+/// needs the full i32 (TypeOptimization::None) — exercises both decoder branches.
+#[no_mangle]
+pub extern "C" fn batch_quantized_spread() -> i32 {
+    let handle = allocate_function_reference();
+    let instructions = internal_api::create_instructions(128, 128);
+    if instructions
+        .register_function(handle, "function(a, b){ return a + b; }")
+        .is_err()
+    {
+        return -3;
+    }
+    if instructions
+        .invoke(
+            handle,
+            Some(&[Params::Int32(7), Params::Int32(100_000)]),
+            ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Int32)),
+        )
+        .is_err()
+    {
+        return -4;
+    }
+    let Ok(completed) = instructions.complete() else {
+        return -5;
+    };
+    match batch_response(completed) {
+        Ok(results) => match results.into_iter().nth(1) {
+            Some(Returns::One(ReturnValues::Int32(v))) => v,
+            _ => -1,
+        },
+        Err(_) => -2,
+    }
 }
 
 /// Registers a fn that records all decoded args onto `this` (JS-side capture), invoked
