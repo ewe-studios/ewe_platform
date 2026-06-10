@@ -319,7 +319,18 @@ reads a UTF-8 (0) or UTF-16LE (1) string from WASM memory and interns it, return
 
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
-  `ReturnHintParser`) — the big host_invoke_* surface.
+  `ReturnHintParser`) — the big host_invoke_* surface. **Format grounding (studied 2026-06-10):**
+  `abi::web::invoke` ships `params.to_binary()` + `returns.to_binary()` via `host_invoke_function`.
+  Each param is `[ArgumentOperations::Begin][ParamTypeId:u8][optional TypeOptimization byte][value…]
+  [ArgumentOperations::End]` — NOT a flat `[type][payload]`. The optimized path runs value
+  QUANTIZATION (`value_quantitization::qf64/qi16/qu16/...` in ops.rs) so value width is variable;
+  Float32/Int8/Bool have no tq byte, Float64/Int16+/ErrorCode do. `ParamTypeId` discriminants:
+  Null=0,Undefined=1,Bool=2,Text8=3,Text16=4,Int8=5..Float64=14,ExternalReference=15,
+  *ArrayBuffer=16-25,InternalReference=26,Int128=27,Uint128=28,CachedText=29,TypedArraySlice=30,
+  ErrorCode=31 (base.rs:566). **Authoritative format spec = ops.rs encode tests (ops.rs ~1135-1330)
+  assert exact bytes per type.** This is a dedicated effort (faithful decode incl. quantization +
+  return encoder + e2e WASM module that register_function/invoke); do NOT rush — high mismatch risk.
+  Port from megatron `ParameterParserV2`/`ReturnHintParser`/`Reply` (the working impl) for parity.
 - foundation-wasm-ui.js rest: SignalBridge, ComponentRegistry (islands/mount), Hydrator
   (styles/scripts; events now via EventDispatcher), MutationObserver auto-wire/cleanup (decision 018
   §3, browser-only), SSEClient, transports (decision 028), MorphDom (decision 027 — applicator has an
