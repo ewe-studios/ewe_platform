@@ -146,7 +146,7 @@ impl Envelope {
         let mut buf = Vec::with_capacity(Self::HEADER_LEN + payload.len());
         buf.push(protocol);
         buf.push(version);
-        buf.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+        buf.extend_from_slice(&to_u32(payload.len()).to_le_bytes());
         buf.extend_from_slice(payload);
         buf
     }
@@ -211,7 +211,10 @@ impl<'a> Cursor<'a> {
     }
 
     fn bytes(&mut self, len: usize) -> Result<&'a [u8], DecodeError> {
-        let end = self.pos.checked_add(len).ok_or(DecodeError::InvalidLength)?;
+        let end = self
+            .pos
+            .checked_add(len)
+            .ok_or(DecodeError::InvalidLength)?;
         let slice = self
             .bytes
             .get(self.pos..end)
@@ -230,9 +233,27 @@ impl<'a> Cursor<'a> {
     }
 }
 
+/// Convert a `usize` length / count / offset into the `u32` the wire format uses.
+///
+/// WHY: every length, row count, and string offset in these formats is a 4-byte
+/// `u32` field — the same convention Apache Arrow IPC uses with its i32 offsets.
+/// That caps a single batch, payload, or string column at `u32::MAX` (~4 GiB),
+/// which is far beyond any real DOM update: batch sizes are bounded by the document,
+/// not by the target's pointer width, so they're identical on wasm32 and wasm64.
+/// Using a checked conversion means a value past the cap fails loudly instead of
+/// silently truncating on a 64-bit target.
+///
+/// # Panics
+/// Panics if `value > u32::MAX` — a >4 GiB DOM batch, which never occurs in practice
+/// and would indicate a bug upstream.
+#[inline]
+fn to_u32(value: usize) -> u32 {
+    u32::try_from(value).expect("wire-format field exceeds u32::MAX (~4 GiB)")
+}
+
 /// Append `[len: u32 LE][bytes]` for a string.
 fn push_lp_string(buf: &mut Vec<u8>, s: &str) {
-    buf.extend_from_slice(&(s.len() as u32).to_le_bytes());
+    buf.extend_from_slice(&to_u32(s.len()).to_le_bytes());
     buf.extend_from_slice(s.as_bytes());
 }
 
@@ -433,7 +454,7 @@ impl ProtocolEncoder<Vec<DomOp>> for CustomBinaryEncoder {
 
     fn encode(&self, data: Vec<DomOp>) -> Vec<u8> {
         let mut buf = Vec::new();
-        buf.extend_from_slice(&(data.len() as u32).to_le_bytes());
+        buf.extend_from_slice(&to_u32(data.len()).to_le_bytes());
         for op in &data {
             let row = Row::from_op(op);
             buf.push(row.operation);
@@ -494,7 +515,7 @@ impl ArrowEncoder {
         // Offsets buffer: N+1 cumulative byte offsets.
         buf.extend_from_slice(&offset.to_le_bytes());
         for v in values {
-            offset += v.len() as u32;
+            offset += to_u32(v.len());
             buf.extend_from_slice(&offset.to_le_bytes());
         }
         // Data buffer: total length then concatenated bytes.
@@ -519,7 +540,8 @@ impl ArrowEncoder {
             if start > end || end > data.len() {
                 return Err(DecodeError::InvalidLength);
             }
-            let s = core::str::from_utf8(&data[start..end]).map_err(|_| DecodeError::InvalidUtf8)?;
+            let s =
+                core::str::from_utf8(&data[start..end]).map_err(|_| DecodeError::InvalidUtf8)?;
             out.push(s.to_string());
         }
         Ok(out)
@@ -539,11 +561,11 @@ impl ProtocolEncoder<Vec<DomOp>> for ArrowEncoder {
         let rows: Vec<Row> = data.iter().map(Row::from_op).collect();
         let n = rows.len();
         let mut buf = Vec::new();
-        buf.extend_from_slice(&(n as u32).to_le_bytes());
+        buf.extend_from_slice(&to_u32(n).to_le_bytes());
 
         // Fixed-width columns.
-        for (i, _) in rows.iter().enumerate() {
-            buf.extend_from_slice(&(i as u32).to_le_bytes()); // op_id = sequential index
+        for i in 0..n {
+            buf.extend_from_slice(&to_u32(i).to_le_bytes()); // op_id = sequential index
         }
         for row in &rows {
             buf.extend_from_slice(&row.node_id.to_le_bytes());
@@ -638,9 +660,8 @@ impl ProtocolEncoder<Vec<DomOp>> for JsonEncoder {
     fn decode(&self, payload: &[u8]) -> DecodeResult {
         let text = core::str::from_utf8(payload).map_err(|_| DecodeError::InvalidUtf8)?;
         let value = json::parse(text)?;
-        let array = match value {
-            json::Value::Array(a) => a,
-            _ => return Err(DecodeError::MalformedJson(0)),
+        let json::Value::Array(array) = value else {
+            return Err(DecodeError::MalformedJson(0));
         };
         let mut ops = Vec::with_capacity(array.len());
         for item in array {
@@ -753,9 +774,8 @@ fn encode_op_json(out: &mut String, op: &DomOp) {
 
 /// Build a `DomOp` from a decoded JSON object value.
 fn op_from_json(value: json::Value) -> Result<DomOp, DecodeError> {
-    let obj = match value {
-        json::Value::Object(o) => o,
-        _ => return Err(DecodeError::MalformedJson(0)),
+    let json::Value::Object(obj) = value else {
+        return Err(DecodeError::MalformedJson(0));
     };
     let get_str = |key: &str| -> Result<String, DecodeError> {
         for (k, v) in &obj {
@@ -876,7 +896,7 @@ mod json {
         pos: usize,
     }
 
-    impl<'a> Parser<'a> {
+    impl Parser<'_> {
         fn skip_ws(&mut self) {
             while let Some(&b) = self.bytes.get(self.pos) {
                 if b == b' ' || b == b'\t' || b == b'\n' || b == b'\r' {

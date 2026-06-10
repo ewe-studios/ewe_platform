@@ -35,5 +35,5 @@ fn allocate_dom_reference_uses_native_stub_slot_zero() {
 fn dom_invoke_is_implemented_for_host_function() {
     // Type-level proof the extension trait is wired onto HostFunction, without
     // triggering the native host-invocation stub.
-    let _f: fn(&HostFunction, &[Params]) -> ExternalPointer = HostFunction::invoke_for_dom;
+    let _: fn(&HostFunction, &[Params]) -> ExternalPointer = HostFunction::invoke_for_dom;
 }

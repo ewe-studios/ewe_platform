@@ -72,9 +72,10 @@ pub trait ProtocolMethods<T>: ProtocolHandler {
 
     /// Decode an incoming payload (envelope already stripped) at `(ptr, len)`.
     ///
-    /// # Safety / Errors
-    /// `ptr`/`len` must describe a valid readable region; returns [`DecodeError`] if
-    /// the bytes are malformed for this protocol.
+    /// `ptr`/`len` must describe a valid readable region for this call.
+    ///
+    /// # Errors
+    /// Returns [`DecodeError`] if the bytes are malformed for this protocol.
     fn handle_received(&self, memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult;
 
     /// Release arena slot `memory_id` back to `memory` (the WASM-side ACK).
@@ -119,7 +120,10 @@ where
     });
 
     let (ptr, len) = slot.as_address().expect("arena address failed");
-    handler.send_to_js(mem_id, ptr, len as usize);
+    // The slot length came from a `usize` (`total`), so this never truncates; use a
+    // checked conversion so a 32-bit target can't silently lose the high bits.
+    let len = usize::try_from(len).expect("arena slot length exceeds usize::MAX");
+    handler.send_to_js(mem_id, ptr, len);
     SendResult { memory_id: mem_id }
 }
 

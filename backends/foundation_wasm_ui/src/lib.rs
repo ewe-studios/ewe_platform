@@ -1,4 +1,4 @@
-//! # foundation_wasm_ui
+//! # `foundation_wasm_ui`
 //!
 //! WHY: `foundation_wasm` is the pure WASM↔JS ABI — memory, binary messaging,
 //! function invocation — with no DOM concepts. UI applications still need DOM/window
