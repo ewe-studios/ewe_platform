@@ -713,10 +713,11 @@ export class FunctionRegistry {
     const result = this.#call(handle, pPtr, pLen);
     if (hint.id === ReturnIds.None) return; // fire-and-forget
     const callbackId = BigInt(callbackHandle);
-    Promise.resolve(result).then(
+    const settled = Promise.resolve(result).then(
       (value) => this.reply.callbackSuccess(this.callbacks, callbackId, hint, value),
       (error) => this.reply.callbackFailure(this.callbacks, callbackId, error),
     );
+    if (this.tasks) this.tasks.add(settled);
   }
 
   invokeAsBool(handle, pPtr, pLen) { return this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Bool) ? 1 : 0; }
@@ -1283,10 +1284,11 @@ export class BatchInstructions {
       if (!fn) throw new Error(`batch invokeAsync: no function for handle ${handle}`);
       const result = fn.apply(b.functions.context, args);
       if (hint.id === ReturnIds.None) return null; // fire-and-forget
-      Promise.resolve(result).then(
+      const settled = Promise.resolve(result).then(
         (value) => b.reply.callbackSuccess(b.callbacks, callbackId, hint, value),
         (error) => b.reply.callbackFailure(b.callbacks, callbackId, error),
       );
+      if (b.functions.tasks) b.functions.tasks.add(settled);
       return null; // delivery happens via invoke_callback, never inline
     };
     return [i, thunk];
@@ -1627,6 +1629,32 @@ function defaultRaf() {
   };
 }
 
+// ─── AsyncTaskCollector ────────────────────────────────────────────────────────────
+
+/**
+ * Tracks the Promises behind async invocations so tests/hosts can await settlement
+ * (`rt.awaitTasks()`). Collection is OFF by default (megatron parity) — long-running
+ * apps shouldn't accumulate promise refs; enable around the window you care about.
+ */
+export class AsyncTaskCollector {
+  constructor(collect = false) {
+    this.tasks = [];
+    this.collect = collect;
+  }
+
+  enable() { this.collect = true; }
+  disable() { this.collect = false; }
+
+  add(task) {
+    if (!(task instanceof Promise)) throw new Error("Item must be a Promise");
+    if (this.collect) this.tasks.push(task);
+  }
+
+  clear() { this.tasks.length = 0; }
+
+  awaitAll() { return Promise.all(this.tasks); }
+}
+
 // ─── FoundationWasm runtime ──────────────────────────────────────────────────────
 
 /**
@@ -1647,6 +1675,9 @@ export class FoundationWasm {
     // Host-side object heap (object returns + object_allocate_external_pointer).
     this.objects = new ExternalHeap();
     this.functions.reply.objects = this.objects;
+    // Pending async-invocation promises (off by default; rt.tasks.enable() to track).
+    this.tasks = new AsyncTaskCollector(false);
+    this.functions.tasks = this.tasks;
     // V2 quantized batch codec (host_batch_apply / host_batch_returning_apply).
     this.batches = new BatchInstructions(
       this.bridge, this.memory, this.strings, this.functions, this.callbacks,
@@ -1769,6 +1800,108 @@ export class FoundationWasm {
     this.dispatcher.setHandler(protocol, handler);
     return this;
   }
+
+  /** Await every tracked async invocation (requires `rt.tasks.enable()` beforehand). */
+  awaitTasks() {
+    return this.tasks.awaitAll();
+  }
+}
+
+// ─── WasmLoader / WasmWebScripts (megatron WASMLoader parity) ──────────────────────
+
+/**
+ * Convenience loader: owns a FoundationWasm runtime, instantiates a module from a
+ * URL (streaming) or raw bytes with the `abi` imports + a `js.mem` memory, and binds
+ * the bridge. Mirrors megatron WASMLoader incl. the JS-string-builtins compile
+ * options (`builtins: ["js-strings"]`, `importedStringConstants`).
+ */
+export class WasmLoader {
+  /**
+   * @param {{initialMemory?:number, maximumMemory?:number, environment?:object,
+   *          compileOptions?:object}} [opts] memory sizes are in WASM pages
+   */
+  constructor(opts = {}) {
+    this.runtime = new FoundationWasm(opts);
+    this.environment = opts.environment ?? {};
+    this.compileOptions = WasmLoader.compileOptionsOf(opts.compileOptions);
+    this.memory = new WebAssembly.Memory({
+      initial: opts.initialMemory ?? 10,
+      maximum: opts.maximumMemory ?? 200,
+    });
+    this.module = null;
+  }
+
+  static compileOptionsOf(compileOptions) {
+    return {
+      builtins: compileOptions?.builtins ?? ["js-strings"],
+      importedStringConstants: compileOptions?.importedStringConstants ?? "imported_strings",
+    };
+  }
+
+  /** The full import object: the ABI, a host memory under `js.mem`, plus extras. */
+  get imports() {
+    return { abi: this.runtime.web_abi, js: { mem: this.memory }, ...this.environment };
+  }
+
+  /** Instantiate from a URL via instantiateStreaming. */
+  async loadURL(url) {
+    const module = await WebAssembly.instantiateStreaming(
+      fetch(url), this.imports, this.compileOptions,
+    );
+    this.#bind(module);
+    return this;
+  }
+
+  /** Instantiate from raw bytes (ArrayBuffer/TypedArray). */
+  async loadBytes(bytes) {
+    const module = await WebAssembly.instantiate(bytes, this.imports, this.compileOptions);
+    this.#bind(module);
+    return this;
+  }
+
+  #bind(module) {
+    this.module = module;
+    this.runtime.init(module);
+  }
+
+  /** Call the module's exported `main()`. */
+  run() {
+    if (!this.module) throw new Error("No wasm module loaded");
+    const main = this.module.instance.exports.main;
+    if (!main) throw new Error("wasm module has no exported main function");
+    return main();
+  }
+
+  /** Load every `<script type="application/wasm" src=…>` on the page → loaders. */
+  static async fromScripts(opts = {}) {
+    const scripts = document.querySelectorAll('script[type="application/wasm"]');
+    const loading = [];
+    for (const script of scripts) {
+      if (!script.src) continue;
+      loading.push(new WasmLoader(opts).loadURL(script.src));
+    }
+    return Promise.all(loading);
+  }
+}
+
+/**
+ * Page bootstrap: loads every `application/wasm` script tag and runs each module's
+ * `main()` (megatron WasmWebScripts parity).
+ */
+export class WasmWebScripts {
+  constructor(opts = {}) {
+    this.modules = WasmLoader.fromScripts(opts);
+  }
+
+  static default(environment) {
+    return new WasmWebScripts({ environment });
+  }
+
+  async runAll() {
+    const loaders = await this.modules;
+    for (const loader of loaders) loader.run();
+    return loaders;
+  }
 }
 
 // ─── Global registration ──────────────────────────────────────────────────────────
@@ -1778,6 +1911,9 @@ export class FoundationWasm {
 // `globalThis.FoundationWasmRuntime` once the module has loaded.
 globalThis.FoundationWasmRuntime = Object.freeze({
   FoundationWasm,
+  WasmLoader,
+  WasmWebScripts,
+  AsyncTaskCollector,
   WasmEnvelope,
   ProtocolDispatcher,
   MemoryAllocations,

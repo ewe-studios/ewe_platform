@@ -530,3 +530,16 @@ byte-level drop-in parity. What it took beyond the codecs:
 - Old fixtures' import set is a strict subset of the new web_abi (verified via
   WebAssembly.Module.imports across all 21 modules), so megatron.js retirement (F12/F13)
   is unblocked.
+
+## Final megatron pieces: AsyncTaskCollector + WasmLoader/WasmWebScripts (2026-06-11)
+
+The last unported megatron classes are in foundation-wasm.js: AsyncTaskCollector
+(promise tracking for async invocations, OFF by default; `rt.tasks.enable()` +
+`rt.awaitTasks()`; wired into both the flat invokeAsync and batch InvokeAsync paths) and
+WasmLoader/WasmWebScripts (loadURL via instantiateStreaming / loadBytes, `js.mem` memory
+import, JS-string-builtins compile options, `script[type="application/wasm"]` page
+bootstrap with runAll()). With these, every class in megatron.js has a new-runtime
+counterpart: 61 core + 15 UI tests green. The JS runtime split (megatron 1:1 port) is
+functionally COMPLETE — remaining foundation-wasm-ui.js items (SignalBridge,
+ComponentRegistry, Hydrator, MutationObserver, SSE, transports, MorphDom) are NET-NEW
+spec features (decisions 013/018/027/028), not megatron ports.
