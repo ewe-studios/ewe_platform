@@ -167,6 +167,46 @@ pub extern "C" fn invoke_async_test(callback_id: u64) {
     );
 }
 
+/// OBJECT return: the JS fn returns a plain object; ReplyEncoder interns it in the
+/// host object heap and sends `[Object=28][handle:u64]`. Returns the handle so the JS
+/// test can resolve it back out of `rt.objects`.
+#[no_mangle]
+pub extern "C" fn roundtrip_object_handle() -> i64 {
+    let f = register_function("function(){ return { a: 1 }; }");
+    match f.invoke_for_replies(
+        &[],
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Object)),
+    ) {
+        Ok(values) => match values.into_iter().next() {
+            Some(ReturnValues::Object(ptr)) => ptr.clone_inner() as i64,
+            _ => -1,
+        },
+        Err(_) => -2,
+    }
+}
+
+/// TYPED-SLICE return: the JS fn returns a Uint8Array; ReplyEncoder stages the bytes in
+/// a slot and sends `[TypedArraySlice=32][slice_type][ptr:u64][len:u64]`. Rust reads the
+/// raw MemoryLocation and sums the bytes (1+2+3 = 6).
+#[no_mangle]
+pub extern "C" fn roundtrip_typed_slice_sum() -> i32 {
+    let f = register_function("function(){ return new Uint8Array([1, 2, 3]); }");
+    match f.invoke_for_replies(
+        &[],
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::TypedArraySlice)),
+    ) {
+        Ok(values) => match values.into_iter().next() {
+            Some(ReturnValues::TypedArraySlice(_slice_type, location)) => {
+                let bytes =
+                    unsafe { core::slice::from_raw_parts(location.0, location.1 as usize) };
+                bytes.iter().map(|b| i32::from(*b)).sum()
+            }
+            _ => -1,
+        },
+        Err(_) => -2,
+    }
+}
+
 // ── V2 batch codec round-trips (Operations + quantized params + group returns) ──
 
 /// BATCH returning path: one batch carries MakeFunction (register `x*3` at a

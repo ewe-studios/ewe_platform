@@ -362,8 +362,9 @@ export class FoundationWasm {
     this.animation = new AnimationDriver(this.bridge, opts.rafHost);
     this.strings = new StringCache(this.bridge);
     this.functions = new FunctionRegistry(this.bridge, this.memory, this.strings, this.callbacks);
-    // Host-side object heap (object_allocate_external_pointer pre-allocations).
+    // Host-side object heap (object returns + object_allocate_external_pointer).
     this.objects = new ExternalHeap();
+    this.functions.reply.objects = this.objects;
     // V2 quantized batch codec (host_batch_apply / host_batch_returning_apply).
     this.batches = new BatchInstructions(
       this.bridge, this.memory, this.strings, this.functions, this.callbacks,

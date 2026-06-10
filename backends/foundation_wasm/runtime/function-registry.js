@@ -123,6 +123,30 @@ export class ExternalHeap {
 }
 
 /**
+ * Normalize a typed-slice return value: a `TypedArraySliceValue` keeps its declared
+ * slice type; a bare TypedArray maps to its `TypedSlice` id (megatron check_for_type
+ * accepted both). Returns the slice id + a byte view over the content.
+ */
+function asTypedSlice(value) {
+  if (value instanceof TypedArraySliceValue) {
+    const content = value.content;
+    return {
+      sliceType: value.sliceType,
+      u8: new Uint8Array(content.buffer, content.byteOffset, content.byteLength),
+    };
+  }
+  for (const [id, Ctor] of Object.entries(TypedSliceArray)) {
+    if (value instanceof Ctor && value.constructor === Ctor) {
+      return {
+        sliceType: Number(id),
+        u8: new Uint8Array(value.buffer, value.byteOffset, value.byteLength),
+      };
+    }
+  }
+  throw new Error("TypedArraySlice return: expected a TypedArray or TypedArraySliceValue");
+}
+
+/**
  * Best-effort map from a concrete JS value to a `ReturnType`, used only to resolve a
  * union ThreeState (Two/Three) where the hint allows several types. Non-union states
  * never call this. The Rust `ReturnValueParserIter` validates the choice.
@@ -296,7 +320,13 @@ export class ReturnHintParser {
 /** Encodes a JS return value as `[ReturnType:u8][value]` and (when needed) into an arena slot. */
 export class ReplyEncoder {
   /** @param {import('./foundation-wasm.js').MemoryAllocations} memory */
-  constructor(memory) { this.memory = memory; }
+  constructor(memory) {
+    this.memory = memory;
+    // Heaps for reference-returning types; the runtime wires `objects`, the DOM layer
+    // wires `dom` (megatron threaded object_heap/dom_heap into Reply.transform).
+    this.objects = null; // ExternalHeap | null
+    this.dom = null; // ExternalHeap | null
+  }
 
   /**
    * Mirror of megatron `Reply.immediate`. `hint` is the parsed return-hint
@@ -429,7 +459,31 @@ export class ReplyEncoder {
           push(slot, 8);
           break;
         }
-        default: throw new Error(`ReplyEncoder: unsupported return type ${type} (Object/DOMObject/typed arrays need heaps — extend when needed)`);
+        // Object/DOMObject: intern in the matching host heap, send [type][heap_handle:u64]
+        // (megatron Reply.asObject/asDOMObject). A RefPointer passes its existing id through.
+        case ReturnType.Object: {
+          if (!this.objects) throw new Error("ReplyEncoder: no object heap wired");
+          push(value instanceof RefPointer ? value.value : this.objects.create(value), 8);
+          break;
+        }
+        case ReturnType.DOMObject: {
+          if (!this.dom) throw new Error("ReplyEncoder: no DOM heap wired");
+          push(value instanceof RefPointer ? value.value : this.dom.create(value), 8);
+          break;
+        }
+        // TypedArraySlice: stage the bytes in a slot and send the slot's LIVE address —
+        // [type][slice_type:u8][ptr:u64][len:u64] (Rust ReturnValues::TypedArraySlice
+        // carries a raw MemoryLocation; consume it before the next allocation).
+        case ReturnType.TypedArraySlice: {
+          const { sliceType, u8 } = asTypedSlice(value);
+          const slot = this.memory.create(u8.length);
+          this.memory.write(slot, u8);
+          out.push(sliceType);
+          push(this.memory.get(slot).ptr, 8);
+          push(u8.length, 8);
+          break;
+        }
+        default: throw new Error(`ReplyEncoder: unsupported return type ${type}`);
       }
     }
     out.push(ReturnValueMarker.End);

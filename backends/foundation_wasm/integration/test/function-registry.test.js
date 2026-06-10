@@ -89,6 +89,18 @@ test("invoke_async_test: async fn result framed + delivered via invoke_callback"
   assert.equal(d[6], 101); // ReturnValueMarker.End
 });
 
+test("roundtrip_object_handle: object return interned in the host object heap", { skip }, () => {
+  const { rt, instance } = boot();
+  const handle = instance.exports.roundtrip_object_handle();
+  assert.ok(handle >= 0n, `expected a heap handle, got ${handle}`);
+  assert.deepEqual(rt.objects.get(BigInt(handle)), { a: 1 });
+});
+
+test("roundtrip_typed_slice_sum: TypedArray return via raw memory location", { skip }, () => {
+  const { instance } = boot();
+  assert.equal(instance.exports.roundtrip_typed_slice_sum(), 6); // 1+2+3
+});
+
 test("batch_register_invoke_i32: V2 MakeFunction+Invoke, quantized param, group return", { skip }, () => {
   const { instance } = boot();
   assert.equal(instance.exports.batch_register_invoke_i32(14), 42); // x*3
