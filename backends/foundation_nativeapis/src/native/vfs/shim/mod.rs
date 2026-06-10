@@ -151,58 +151,16 @@ mod shim_exports {
                 }
             }
             super::config::DeltaBackend::D1 => {
-                // D1Delta implementation pending — types scaffolded in shared/vfs/d1_delta/
-                #[cfg(feature = "vfs-d1")]
-                {
-                    use crate::shared::vfs::d1_delta::types::D1FsConfig;
-                    let account_id = std::env::var("FOUNDATION_VFS_D1_ACCOUNT_ID")
-                        .unwrap_or_else(|_| "your-account-id".to_string());
-                    let api_token = std::env::var("FOUNDATION_VFS_D1_API_TOKEN")
-                        .unwrap_or_else(|_| "your-api-token".to_string());
-                    let database_id = std::env::var("FOUNDATION_VFS_D1_DATABASE_ID")
-                        .unwrap_or_else(|_| "your-database-id".to_string());
-                    let _config = D1FsConfig {
-                        account_id, database_id, api_token,
-                        chunk_size: 4096,
-                    };
-                    eprintln!("[vfs-shim] D1Delta: types scaffolded, implementation pending — using memory delta");
-                    let delta = MemoryDelta::new();
-                    let overlay = OverlayFileSystem::new(base, delta);
-                    VfsRuntime {
-                        fs: DynFs::new(Arc::new(overlay)),
-                        guard: None,
-                    }
-                }
-                #[cfg(not(feature = "vfs-d1"))]
-                mem_fallback!("vfs-d1 feature not enabled");
+                eprintln!("[vfs-shim] D1Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
+                let delta = MemoryDelta::new();
+                let overlay = OverlayFileSystem::new(base, delta);
+                VfsRuntime { fs: DynFs::new(Arc::new(overlay)), guard: None }
             }
             super::config::DeltaBackend::R2 => {
-                // R2Delta implementation pending — types scaffolded in shared/vfs/r2_delta/
-                #[cfg(feature = "vfs-r2")]
-                {
-                    use crate::shared::vfs::r2_delta::types::R2FsConfig;
-                    let account_id = std::env::var("FOUNDATION_VFS_R2_ACCOUNT_ID")
-                        .unwrap_or_else(|_| "your-account-id".to_string());
-                    let access_key = std::env::var("FOUNDATION_VFS_R2_ACCESS_KEY")
-                        .unwrap_or_else(|_| "your-access-key".to_string());
-                    let secret_key = std::env::var("FOUNDATION_VFS_R2_SECRET_KEY")
-                        .unwrap_or_else(|_| "your-secret-key".to_string());
-                    let bucket = std::env::var("FOUNDATION_VFS_R2_BUCKET")
-                        .unwrap_or_else(|_| "your-bucket".to_string());
-                    let _config = R2FsConfig {
-                        account_id, bucket, access_key, secret_key,
-                        chunk_size: 4096,
-                    };
-                    eprintln!("[vfs-shim] R2Delta: types scaffolded, implementation pending — using memory delta");
-                    let delta = MemoryDelta::new();
-                    let overlay = OverlayFileSystem::new(base, delta);
-                    VfsRuntime {
-                        fs: DynFs::new(Arc::new(overlay)),
-                        guard: None,
-                    }
-                }
-                #[cfg(not(feature = "vfs-r2"))]
-                mem_fallback!("vfs-r2 feature not enabled");
+                eprintln!("[vfs-shim] R2Delta: VfsFileSystem+DeltaStore impls pending — using memory delta");
+                let delta = MemoryDelta::new();
+                let overlay = OverlayFileSystem::new(base, delta);
+                VfsRuntime { fs: DynFs::new(Arc::new(overlay)), guard: None }
             }
         }
     });

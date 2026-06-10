@@ -27,6 +27,7 @@ foundation_core = { workspace = true }
 foundation_nostd = { workspace = true, optional = true }
 foundation_errstacks = { workspace = true }
 derive_more = { workspace = true }
+serde_json = { version = "1", optional = true }
 foundation_db = { workspace = true, optional = true }
 foundation_netio = { workspace = true, optional = true }
 libsql = { version = "0.9", optional = true }
@@ -265,10 +266,10 @@ vfs-sqlite = ["vfs", "dep:libsql", "dep:scru128", "dep:blake3"]
 vfs-turso = ["vfs", "dep:turso", "dep:scru128", "dep:blake3"]
 
 # Cloudflare D1 edge SQLite DeltaStore — uses foundation_db's D1 HTTP client
-vfs-d1 = ["vfs", "dep:foundation_db"]
+vfs-d1 = ["vfs", "dep:foundation_db", "dep:serde_json", "foundation_db/d1"]
 
 # Cloudflare R2 S3-compatible DeltaStore — uses foundation_db's R2 HTTP client
-vfs-r2 = ["vfs", "dep:foundation_db"]
+vfs-r2 = ["vfs", "dep:foundation_db", "dep:serde_json", "foundation_db/r2"]
 
 # Arrow serialization for VFS types
 vfs-arrow = ["vfs", "dep:foundation_arrow"]

@@ -3070,6 +3070,7 @@ dependencies = [
  "scru128",
  "serde",
  "serde_bytes",
+ "serde_json",
  "serial_test",
  "tempfile",
  "thiserror 2.0.17",
