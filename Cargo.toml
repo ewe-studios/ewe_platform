@@ -20,7 +20,7 @@ exclude = [
   "backends/docs/*",
   # tests members
   "integrations/nodejs/integrations/*",
-  "integrations/nodejs/foundation-wasm/module",
+  "backends/foundation_wasm/integration/module",
   # devserver
   "crates/*",
 ]

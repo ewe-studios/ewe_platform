@@ -1,0 +1,10 @@
+{
+  "name": "foundation-wasm-tests",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "description": "Zero-dependency node:test harness for the foundation-wasm.js core ABI runtime.",
+  "scripts": {
+    "test": "node --test"
+  }
+}

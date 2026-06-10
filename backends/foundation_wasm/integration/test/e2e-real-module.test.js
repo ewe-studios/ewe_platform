@@ -12,7 +12,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-import { FoundationWasm } from "../../../../backends/foundation_wasm/runtime/foundation-wasm.js";
+import { FoundationWasm } from "../../runtime/foundation-wasm.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const wasmPath = join(here, "..", "fixtures", "foundation_wasm_e2e.wasm");

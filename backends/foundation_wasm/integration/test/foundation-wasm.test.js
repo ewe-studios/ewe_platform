@@ -8,7 +8,7 @@ import {
   WasmEnvelope,
   ProtocolDispatcher,
   FoundationWasm,
-} from "../../../../backends/foundation_wasm/runtime/foundation-wasm.js";
+} from "../../runtime/foundation-wasm.js";
 import { makeMockWasm } from "../mock-wasm.js";
 
 /** Build a FoundationWasm wired to a mock instance. */

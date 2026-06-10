@@ -8,17 +8,17 @@ import { readFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
-import { FoundationWasm } from "../../../../backends/foundation_wasm/runtime/foundation-wasm.js";
+import { FoundationWasm } from "../../../foundation_wasm/runtime/foundation-wasm.js";
 import {
   ArrowParser,
   ArrowDomApplicator,
   NodeRegistry,
   Op,
-} from "../../../../backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js";
+} from "../../runtimes/foundation-wasm-ui.js";
 import { MockDocument } from "../mock-dom.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
-const wasmPath = join(here, "..", "fixtures", "foundation_wasm_e2e.wasm");
+const wasmPath = join(here, "..", "..", "..", "foundation_wasm", "integration", "fixtures", "foundation_wasm_e2e.wasm");
 
 test("ArrowDomApplicator applies create/attribute/class/append ops", () => {
   const doc = new MockDocument();
