@@ -1,7 +1,7 @@
 ---
 feature_name: "Examples Showcase — Programmatic API Walkthroughs"
 description: "Restructure existing examples and add comprehensive new ones for every VFS and IPC API. Each example lives in its own directory with an extensive README.md covering purpose, usage, architecture, and expected output. Covers MemoryFs, NativeFs, OverlayFs, ObservableFs, DeltaStore variants, Arrow serialization, FUSE mount, IPC bus, scaffold macro, and async/sync bridge patterns."
-status: "in-progress"
+status: "done"
 priority: "low"
 phase: 6
 created: 2026-06-07
