@@ -35,5 +35,7 @@ mod module;
 pub mod sections;
 pub mod types;
 pub mod visit;
+#[cfg(feature = "wat")]
+pub mod wat;
 
 pub use module::Module;

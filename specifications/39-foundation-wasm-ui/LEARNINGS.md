@@ -583,3 +583,19 @@ cross-check megatron's parser source (or the Rust encoder) when writing strict a
   injection (F10 path) proven in tests/wasm_roundtrip_tests.rs.
 - Remaining F15: WAT ⇄ binary layer (net-new design), CLI in foundation_codegentools
   (inspect/edit/convert/validate), then the deferred reference auto-cleanup enhancement.
+
+## F15 complete: WAT layer + CLI (2026-06-11)
+
+- `foundation_codegen::wasm::wat` (feature `wat`): from_wat/to_wat via the `wat` +
+  `wasmprinter` boundary crates (small/isolated/opt-in per the F14 rules the spec
+  authorizes). CRITICAL pairing: `wat` 1.NNN ↔ `wasmprinter` 0.NNN must match — a newer
+  printer (0.224) emits `$"…"` quoted identifiers the older parser (1.207) rejects on
+  real rustc-built modules (Rust-mangled element-segment names). Byte-identity through
+  TEXT is not expected (name section re-derived); the right property is a BINARY FIXPOINT
+  after one text round-trip.
+- CLI: `foundation_codegentools::cli::wasm` — inspect / validate / convert / edit
+  (add-custom-section, rename-export). `validate` uses a deep `Visit` traversal, which
+  forces every `Lazy` payload (function bodies) to decode — Lazy makes a plain decode
+  succeed even on payloads that are internally corrupt.
+- Feature 15: ALL success criteria met (status.md). Follow-ups recorded: owned WAT
+  printer; deferred reference auto-cleanup; F16 stays deferred.

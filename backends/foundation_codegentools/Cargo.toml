@@ -14,7 +14,7 @@ cli = ["dep:clap"]
 
 [dependencies]
 clap = { version = "4", features = ["derive"], optional = true }
-foundation_codegen = { workspace = true }
+foundation_codegen = { workspace = true, features = ["wat"] }
 toml = { workspace = true }
 toml_edit = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }

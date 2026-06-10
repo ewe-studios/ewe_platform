@@ -154,3 +154,71 @@ fn custom_section_injection_is_a_minimal_diff_edit() {
         .any(|custom| custom.name() == "ewe.metadata");
     assert!(found, "injected custom section is present after re-parse");
 }
+
+#[cfg(feature = "wat")]
+mod wat_conversion {
+    use super::{fixture_paths, workspace_root};
+    use foundation_codegen::wasm::sections::payload;
+    use foundation_codegen::wasm::{wat, Module};
+
+    #[test]
+    fn wat_text_round_trips_through_the_typed_model() {
+        let module = wat::from_wat(
+            r#"(module
+                (memory (export "memory") 1)
+                (func (export "answer") (result i32)
+                    i32.const 42))"#,
+        )
+        .expect("WAT parses into the model");
+
+        // The typed model sees the parsed structure…
+        let exports = module
+            .find_std_section::<payload::Export>()
+            .expect("export section")
+            .try_contents()
+            .expect("decodes");
+        assert_eq!(exports.len(), 2);
+        assert!(exports.iter().any(|e| e.name == "answer"));
+
+        // …and prints back to WAT containing the same structure.
+        let text = wat::to_wat(&module).expect("prints");
+        assert!(text.contains(r#"(export "answer""#), "got: {text}");
+        assert!(text.contains("i32.const 42"), "got: {text}");
+
+        // Text → model → text is stable (canonical printer output).
+        let reparsed = wat::from_wat(&text).expect("printed WAT reparses");
+        let text2 = wat::to_wat(&reparsed).expect("prints again");
+        assert_eq!(text, text2, "WAT printing is canonical/stable");
+    }
+
+    #[test]
+    fn real_modules_convert_to_wat_and_reach_a_binary_fixpoint() {
+        // Representative real module: binary → WAT → binary. Byte-identity through
+        // TEXT is not expected (the name custom section is re-derived from the
+        // printed identifiers), but the conversion must reach a FIXPOINT after one
+        // text round-trip: parse(print(m)) re-prints and re-parses to the SAME
+        // binary — i.e. nothing is lost or mangled further.
+        let path = workspace_root()
+            .join("backends/foundation_wasm/integration/fixtures/foundation_wasm_e2e.wasm");
+        if !path.is_file() {
+            eprintln!("fixture not built — skipping");
+            return;
+        }
+        let bytes = std::fs::read(&path).expect("read fixture");
+        let module = Module::decode_from(bytes.as_slice()).expect("decode");
+
+        let text1 = wat::to_wat(&module).expect("to WAT");
+        let module2 = wat::from_wat(&text1).expect("from WAT");
+        let binary2 = module2.encode_into(Vec::new()).expect("encode");
+
+        let text2 = wat::to_wat(&module2).expect("to WAT again");
+        let module3 = wat::from_wat(&text2).expect("from WAT again");
+        let binary3 = module3.encode_into(Vec::new()).expect("encode again");
+
+        assert_eq!(
+            binary2, binary3,
+            "binary ⇄ WAT reaches a fixpoint after one text round-trip"
+        );
+        let _ = fixture_paths(); // shared helper stays exercised under this feature
+    }
+}
