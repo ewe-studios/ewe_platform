@@ -310,8 +310,9 @@ backends/
 | [14-wasm-bindgen-interop-boundary](features/14-wasm-bindgen-interop-boundary/) | The ONLY sanctioned wasm-bindgen usage: minimal, isolated, opt-in (Cloudflare worker-rs, foundation_db); never in the owned runtime/build/test backbone | 1 | pending |
 | [15-typesafe-wasm-wat](features/15-typesafe-wasm-wat/) | Port wasmbin (Apache-2.0) into foundation_codegen for type-safe, minimal-diff (`Lazy<T>`) wasm editing + WAT support + a foundation_codegentools CLI; full attribution to the upstream project | 1 | pending |
 | [16-walrus-transform-port](features/16-walrus-transform-port/) | **DEFERRED** — port walrus (MIT/Apache-2.0) transformation IR into foundation_codegen for heavy structural rewrites; large + dep-heavy, overlaps wasmbin. Intent recorded; revisit when heavy rewrites are needed | 1 | deferred |
+| [17-abi-function-call-codec](features/17-abi-function-call-codec/) | WASM↔JS function-call ABI codec (`host_invoke_function`/`host_register_function`): faithful TWO-WAY port — Rust `Params::to_binary` (flat) ↔ JS `ParameterParserV1`; see `research.md` mapping both sides. Completes F00's FunctionRegistry | 1 | pending |
 
-> Note: the index rows 01–08 above are the original phase-1 plan; the authoritative feature set lives in `features/00`–`features/16` (see those dirs). Features 12–16 + decision 031 were added 2026-06-10 (own WASM infra end-to-end; wasm-bindgen only at explicit integration points; wasmbin ported for type-safe edits; walrus port deferred).
+> Note: the index rows 01–08 above are the original phase-1 plan; the authoritative feature set lives in `features/00`–`features/17` (see those dirs). Features 12–17 + decision 031 were added 2026-06-10 (own WASM infra end-to-end; wasm-bindgen only at explicit integration points; wasmbin ported for type-safe edits; walrus port deferred; feature 17 maps the function-call ABI codec for a faithful two-way port).
 
 
 ## Module References
