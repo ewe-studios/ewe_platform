@@ -82,7 +82,7 @@ The central composition primitive is `OverlayFileSystem<B, D>` — an overlay th
 | [10-valtron-integration](features/10-valtron-integration/) | VfsTask — event emission via Broadcaster, spec-34 watcher integration | 5 | done |
 | [15-observable-fs](features/15-observable-fs/) | ObservableFs — decorator wrapping any VfsFileSystem, full audit event emission for ALL operations | 5 | done |
 | [24-scaffold-macro-clippy](features/24-scaffold-macro-clippy/) | scaffold!() clippy warning suppression — never-type technique from todo!() | 5 | done |
-| [19-fjall-cacache-vfs](features/19-fjall-cacache-vfs/) | FjallFs/FjallDelta — fjall LSM-tree + cacache CAS, SCRU128 keys, hierarchical prefix index | 3 | pending |
+| [19-fjall-cacache-vfs](features/19-fjall-cacache-vfs/) | FjallFs/FjallDelta — fjall LSM-tree + cacache CAS | 3 | done |
 | [08-nfs-adapter](features/08-nfs-adapter/) | NfsMount — NFS v3 loopback adapter (macOS, Linux) | 4 | pending |
 | [16-ld-preload-shim](features/16-ld-preload-shim/) | LD_PRELOAD/DYLD_INSERT_LIBRARIES shim — libc interception, redirects to VFS daemon | 5 | done |
 | [13-cloudflare-d1-delta](features/13-cloudflare-d1-delta/) | D1Delta — Cloudflare D1 (edge SQLite) as DeltaStore | 5 | done |

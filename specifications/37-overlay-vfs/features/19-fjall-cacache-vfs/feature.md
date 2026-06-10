@@ -1,7 +1,7 @@
 ---
 feature_name: "FjallFs / FjallDelta — LSM-tree + CAS VFS Backend"
 description: "VfsFileSystem and DeltaStore backed by fjall (LSM-tree metadata with SCRU128 keys, hierarchical prefix indexing) + cacache (content-addressed blob storage). Inspired by xs project patterns. Four keyspaces: inodes, idx_path, chunks, whiteouts. Small-file inline optimization. Version-tagged chunks with lazy GC."
-status: "pending"
+status: "done"
 priority: "medium"
 phase: 3
 created: 2026-06-05
