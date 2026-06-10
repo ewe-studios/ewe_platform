@@ -10,6 +10,9 @@ pub mod ptrace;
 #[cfg(all(feature = "vfs-ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 pub mod ipc_bus;
 
+#[cfg(feature = "vfs-fjall")]
+pub mod fjall_fs;
+
 #[cfg(feature = "vfs-preload")]
 pub mod shim;
 

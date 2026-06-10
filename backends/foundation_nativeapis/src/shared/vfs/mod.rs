@@ -39,10 +39,6 @@ pub use types::{
     VfsMetadata,
 };
 
-#[cfg(feature = "vfs-fjall")]
 
-#[cfg(feature = "vfs-fjall")]
 
-#[cfg(feature = "vfs-fjall")]
 
-#[cfg(feature = "vfs-fjall")]

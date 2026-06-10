@@ -32,6 +32,8 @@ foundation_db = { workspace = true, optional = true }
 foundation_netio = { workspace = true, optional = true }
 libsql = { version = "0.9", optional = true }
 turso = { version = "0.5.3", optional = true }
+fjall = { version = "2", optional = true }
+hex = { version = "0.4", optional = true }
 blake3 = { version = "1", optional = true }
 async-trait = "0.1"
 foundation_arrow = { workspace = true, optional = true }
@@ -284,6 +286,7 @@ vfs-ptrace = ["vfs-ptrace-nix"]
 
 # FUSE mount adapter (Linux only)
 vfs-fuse = ["vfs-native", "dep:fuser"]
+vfs-fjall = ["vfs", "dep:fjall", "dep:hex"]
 # Fjall LSM-tree + cacache CAS VFS backend
 
 # LD_PRELOAD VFS shim — produces a .so that intercepts libc calls
