@@ -232,6 +232,7 @@ name = "vfs_turso_delta"
 path = "examples/vfs_turso_delta/main.rs"
 required-features = ["vfs-turso"]
 
+
 [features]
 # Default: full platform-native stack.
 default = ["native"]
@@ -283,6 +284,7 @@ vfs-ptrace = ["vfs-ptrace-nix"]
 
 # FUSE mount adapter (Linux only)
 vfs-fuse = ["vfs-native", "dep:fuser"]
+# Fjall LSM-tree + cacache CAS VFS backend
 
 # LD_PRELOAD VFS shim — produces a .so that intercepts libc calls
 vfs-preload = ["vfs-native", "dep:once_cell"]
@@ -310,3 +312,5 @@ required-features = ["vfs-native", "vfs-r2"]
 name = "vfs_shim_vfs"
 path = "tests/vfs_shim_vfs/mod.rs"
 required-features = ["vfs-preload"]
+
+# Fjall LSM-tree + cacache CAS VFS backend

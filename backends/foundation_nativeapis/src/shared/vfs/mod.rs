@@ -38,3 +38,7 @@ pub use types::{
     Checksum, OpenMode, SeekFrom, VfsCapabilities, VfsDirEntry, VfsEntryState, VfsFileType,
     VfsMetadata,
 };
+
+#[cfg(feature = "vfs-fjall")]
+
+#[cfg(feature = "vfs-fjall")]
