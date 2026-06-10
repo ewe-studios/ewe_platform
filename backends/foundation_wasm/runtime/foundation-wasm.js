@@ -4,13 +4,16 @@
 // messaging, callbacks, timers) with DOM concerns. This file is the ABI half only —
 // no DOM, no window — matching the `foundation_wasm` crate split (decision 015).
 //
-// WHAT: the core classes the spec's Part D lists for foundation-wasm.js:
-//   - WasmEnvelope      : the 14-byte [protocol][version][memory_id][length] header
-//   - ProtocolDispatcher: reads the envelope, routes to a protocol handler by byte
-//   - MemoryAllocations : JS view over the WASM arena (create/get/write/dispose/clear)
-//   - TimerRegistry     : schedule_timeout/interval host imports ↔ run_*_callback exports
-//   - CallbackRegistry  : async JS→WASM responses via invoke_callback
-//   - FoundationWasm    : owns the bridge, exposes `web_abi` (import object) + `init()`
+// WHAT — ONE self-contained file (no internal imports, browser-loadable without a
+// bundler: `<script type="module">` for the ESM exports, or the
+// `globalThis.FoundationWasmRuntime` mirror for classic scripts), in three sections:
+//   1. Function-call ABI codec: ParameterParser (flat/V1), ReturnHintParser,
+//      ReplyEncoder, FunctionRegistry, ExternalHeap
+//   2. V2 quantized batch codec: Operations, TypeOptimization, BatchParameterParser,
+//      BatchInstructions (the custom protocol backbone)
+//   3. Core runtime: WasmEnvelope (14-byte [protocol][version][memory_id][length]),
+//      ProtocolDispatcher, MemoryAllocations, TimerRegistry, CallbackRegistry,
+//      StringCache, AnimationDriver, FoundationWasm (bridge + `web_abi` + `init()`)
 //
 // HOW: bootstrap mirrors the proven integration pattern —
 //   const rt = new FoundationWasm();
@@ -22,8 +25,1059 @@
 //
 // Protocol bytes (decision 014/022): 0 = Custom Binary, 1 = Arrow, 2 = JSON.
 
-import { ExternalHeap, FunctionRegistry } from "./function-registry.js";
-import { BatchInstructions } from "./batch-instructions.js";
+
+// ════════════════════════════════════════════════════════════════════════════════
+// SECTION 1: function-call ABI codec (formerly function-registry.js)
+// ════════════════════════════════════════════════════════════════════════════════
+
+// Function-call ABI codec — WASM↔JS function-call ABI codec (ported from megatron's
+// ParameterParserV1 + ReturnHintParser + Reply, per feature 17 research docs).
+//
+// FAITHFULNESS: this is the FLAT invoke encoding — `[ParamTypeId:u8][value]` per param,
+// concatenated (Rust `Params::to_binary` ↔ this `ParameterParser`). The marker/quantized
+// batch encoding (V2) is a SEPARATE codec. Discriminants and byte layouts mirror
+// `foundation_wasm/src/{base.rs, ops.rs, protocol.rs}` exactly — see research-core-types.md.
+
+// Move-by widths (megatron's MOVE_BY_N_BYTES counts BITS for 16/32/64): bytes consumed.
+const B1 = 1, B2 = 2, B4 = 4, B8 = 8;
+
+// ─── Reference wrappers (RefPointer family) ─────────────────────────────────────
+export class RefPointer {
+  constructor(id) { this.id = id; }
+  get value() { return this.id; }
+}
+export class ExternalPointer extends RefPointer {}
+export class InternalPointer extends RefPointer {}
+export class CachePointer extends RefPointer {}
+export class ErrorCodeValue { constructor(code) { this.code = code; } }
+export class TypedArraySliceValue {
+  constructor(sliceType, content) { this.sliceType = sliceType; this.content = content; }
+}
+
+// ─── Shared discriminants (the cross-language contract) ─────────────────────────
+export const ParamType = Object.freeze({
+  Null: 0, Undefined: 1, Bool: 2, Text8: 3, Text16: 4, Int8: 5, Int16: 6, Int32: 7,
+  Int64: 8, Uint8: 9, Uint16: 10, Uint32: 11, Uint64: 12, Float32: 13, Float64: 14,
+  ExternalReference: 15, Uint8Array: 16, Uint16Array: 17, Uint32Array: 18, Uint64Array: 19,
+  Int8Array: 20, Int16Array: 21, Int32Array: 22, Int64Array: 23, Float32Array: 24,
+  Float64Array: 25, InternalReference: 26, Int128: 27, Uint128: 28, CachedText: 29,
+  TypedArraySlice: 30, ErrorCode: 31,
+});
+
+export const ReturnType = Object.freeze({
+  Bool: 1, Text8: 2, Int8: 3, Int16: 4, Int32: 5, Int64: 6, Uint8: 7, Uint16: 8, Uint32: 9,
+  Uint64: 10, Float32: 11, Float64: 12, Int128: 13, Uint128: 14, MemorySlice: 15,
+  ExternalReference: 16, InternalReference: 17, Object: 28, DOMObject: 29, None: 30,
+  ErrorCode: 31, TypedArraySlice: 32,
+});
+
+const RETURN_NAKED = new Set([
+  ReturnType.Bool, ReturnType.Uint8, ReturnType.Uint16, ReturnType.Uint32, ReturnType.Uint64,
+  ReturnType.Int8, ReturnType.Int16, ReturnType.Int32, ReturnType.Int64, ReturnType.Float32,
+  ReturnType.Float64, ReturnType.Object, ReturnType.DOMObject, ReturnType.ErrorCode,
+  ReturnType.MemorySlice, ReturnType.InternalReference, ReturnType.ExternalReference,
+]);
+
+export const ReturnIds = Object.freeze({ None: 0, One: 1, Multi: 2, List: 3 });
+export const ThreeStateId = Object.freeze({ One: 70, Two: 80, Three: 90 });
+export const ReturnHintMarker = Object.freeze({ Start: 200, Stop: 201 });
+// The reply ReturnValues binary is framed Begin..End (Rust `FromBinary for ReturnTypeHints`).
+export const ReturnValueMarker = Object.freeze({ Begin: 100, End: 101 });
+export const TypedSliceArray = {
+  1: Int8Array, 2: Int16Array, 3: Int32Array, 4: BigInt64Array, 5: Uint8Array,
+  6: Uint16Array, 7: Uint32Array, 8: BigUint64Array, 9: Float32Array, 10: Float64Array,
+};
+
+// ─── ExternalHeap (generation-based arena, = megatron ArenaAllocator) ───────────
+
+/**
+ * Host-side heap for objects referenced across the ABI by `ExternalPointer` ids.
+ * Ids pack `(index << 32) | generation` (bigint) — same scheme as the Rust arena —
+ * so stale ids fail the generation check instead of resolving to a reused slot.
+ * `create(null)` pre-allocates a handle (the `*_allocate_external_pointer` imports);
+ * `update` fills it later (e.g. batch MakeFunction).
+ */
+export class ExternalHeap {
+  constructor() {
+    this.items = []; // { item, generation, active }
+    this.free = [];
+  }
+
+  #unpack(uid) {
+    const v = BigInt(uid);
+    return { index: Number(v >> 32n), generation: v & 0xffffffffn };
+  }
+
+  /** Allocate a slot for `item` (may be null) → packed uid (bigint). */
+  create(item) {
+    let index;
+    if (this.free.length > 0) {
+      index = this.free.pop();
+      const slot = this.items[index];
+      slot.generation += 1n;
+      slot.active = true;
+      slot.item = item;
+    } else {
+      index = this.items.length;
+      this.items.push({ item, generation: 0n, active: true });
+    }
+    return (BigInt(index) << 32n) | this.items[index].generation;
+  }
+
+  /** Resolve a uid → item (undefined when stale/missing). */
+  get(uid) {
+    const { index, generation } = this.#unpack(uid);
+    const slot = this.items[index];
+    if (!slot || !slot.active || slot.generation !== generation) return undefined;
+    return slot.item;
+  }
+
+  /** Replace the item at a live uid (pre-allocated handles). False when stale. */
+  update(uid, item) {
+    const { index, generation } = this.#unpack(uid);
+    const slot = this.items[index];
+    if (!slot || slot.generation !== generation) return false;
+    slot.item = item;
+    slot.active = true;
+    return true;
+  }
+
+  /** Retire a uid; its slot is recycled with a bumped generation. */
+  destroy(uid) {
+    const { index, generation } = this.#unpack(uid);
+    const slot = this.items[index];
+    if (!slot || !slot.active || slot.generation !== generation) return false;
+    slot.item = null;
+    slot.active = false;
+    this.free.push(index);
+    return true;
+  }
+}
+
+/**
+ * Normalize a typed-slice return value: a `TypedArraySliceValue` keeps its declared
+ * slice type; a bare TypedArray maps to its `TypedSlice` id (megatron check_for_type
+ * accepted both). Returns the slice id + a byte view over the content.
+ */
+function asTypedSlice(value) {
+  if (value instanceof TypedArraySliceValue) {
+    const content = value.content;
+    return {
+      sliceType: value.sliceType,
+      u8: new Uint8Array(content.buffer, content.byteOffset, content.byteLength),
+    };
+  }
+  for (const [id, Ctor] of Object.entries(TypedSliceArray)) {
+    if (value instanceof Ctor && value.constructor === Ctor) {
+      return {
+        sliceType: Number(id),
+        u8: new Uint8Array(value.buffer, value.byteOffset, value.byteLength),
+      };
+    }
+  }
+  throw new Error("TypedArraySlice return: expected a TypedArray or TypedArraySliceValue");
+}
+
+/**
+ * Best-effort map from a concrete JS value to a `ReturnType`, used only to resolve a
+ * union ThreeState (Two/Three) where the hint allows several types. Non-union states
+ * never call this. The Rust `ReturnValueParserIter` validates the choice.
+ */
+function inferReturnType(value) {
+  switch (typeof value) {
+    case "boolean": return ReturnType.Bool;
+    case "string": return ReturnType.Text8;
+    case "bigint": return ReturnType.Int64;
+    case "number": return Number.isInteger(value) ? ReturnType.Int32 : ReturnType.Float64;
+    default:
+      if (value instanceof ErrorCodeValue) return ReturnType.ErrorCode;
+      if (value instanceof ExternalPointer) return ReturnType.ExternalReference;
+      if (value instanceof InternalPointer) return ReturnType.InternalReference;
+      return ReturnType.MemorySlice;
+  }
+}
+
+// ─── ParameterParser (FLAT, = ParameterParserV1) ────────────────────────────────
+
+/**
+ * Decode `host_invoke_function` params: `[ParamType:u8][value]` repeated until the
+ * buffer is consumed. Text/arrays carry `[ptr:u64][len:u64]` into WASM memory.
+ */
+export class ParameterParser {
+  /** @param {{memory:WebAssembly.Memory}} bridge @param {StringCache} strings */
+  constructor(bridge, strings) {
+    this.bridge = bridge;
+    this.strings = strings;
+  }
+
+  /** @returns {any[]} decoded positional args */
+  parse(ptr, len) {
+    const start = Number(ptr);
+    const total = Number(len);
+    const view = new DataView(this.bridge.memory.buffer, start, total);
+    const args = [];
+    let i = 0;
+    while (i < total) {
+      const type = view.getUint8(i);
+      i += B1;
+      i = this.#one(type, i, view, args);
+    }
+    return args;
+  }
+
+  #slice(view, i) {
+    // [ptr:u64 LE][len:u64 LE] → (byteStart, byteLen) into WASM memory
+    const ptr = Number(view.getBigUint64(i, true));
+    i += B8;
+    const len = Number(view.getBigUint64(i, true));
+    i += B8;
+    return [i, ptr, len];
+  }
+
+  #one(type, i, view, args) {
+    const mem = this.bridge.memory.buffer;
+    switch (type) {
+      case ParamType.Null: args.push(null); return i;
+      case ParamType.Undefined: args.push(undefined); return i;
+      case ParamType.Bool: args.push(view.getUint8(i) === 1); return i + B1;
+      case ParamType.Int8: args.push(view.getInt8(i)); return i + B1;
+      case ParamType.Uint8: args.push(view.getUint8(i)); return i + B1;
+      case ParamType.Int16: args.push(view.getInt16(i, true)); return i + B2;
+      case ParamType.Uint16: args.push(view.getUint16(i, true)); return i + B2;
+      case ParamType.ErrorCode: args.push(new ErrorCodeValue(view.getUint16(i, true))); return i + B2;
+      case ParamType.Int32: args.push(view.getInt32(i, true)); return i + B4;
+      case ParamType.Uint32: args.push(view.getUint32(i, true)); return i + B4;
+      case ParamType.Float32: args.push(view.getFloat32(i, true)); return i + B4;
+      case ParamType.Float64: args.push(view.getFloat64(i, true)); return i + B8;
+      case ParamType.Int64: args.push(view.getBigInt64(i, true)); return i + B8;
+      case ParamType.Uint64: args.push(view.getBigUint64(i, true)); return i + B8;
+      case ParamType.ExternalReference: args.push(new ExternalPointer(view.getBigUint64(i, true))); return i + B8;
+      case ParamType.InternalReference: args.push(new InternalPointer(view.getBigUint64(i, true))); return i + B8;
+      case ParamType.CachedText: {
+        const handle = view.getBigUint64(i, true);
+        const text = this.strings.get(handle);
+        if (text === undefined) throw new Error(`CachedText: no string for handle ${handle}`);
+        args.push(text);
+        return i + B8;
+      }
+      case ParamType.Int128: {
+        const msb = view.getBigInt64(i, true), lsb = view.getBigUint64(i + B8, true);
+        args.push((msb << 64n) | lsb);
+        return i + B8 + B8;
+      }
+      case ParamType.Uint128: {
+        const msb = view.getBigUint64(i, true), lsb = view.getBigUint64(i + B8, true);
+        args.push((msb << 64n) | lsb);
+        return i + B8 + B8;
+      }
+      case ParamType.Text8: {
+        const [ni, p, l] = this.#slice(view, i);
+        args.push(new TextDecoder().decode(new Uint8Array(mem, p, l)));
+        return ni;
+      }
+      case ParamType.Text16: {
+        const [ni, p, l] = this.#slice(view, i);
+        args.push(new TextDecoder("utf-16le").decode(new Uint8Array(mem, p, l)));
+        return ni;
+      }
+      case ParamType.TypedArraySlice: {
+        const sliceType = view.getUint8(i);
+        const [ni, p, l] = this.#slice(view, i + B1);
+        const Ctor = TypedSliceArray[sliceType] ?? Uint8Array;
+        args.push(new TypedArraySliceValue(sliceType, new Ctor(mem.slice(p, p + l * Ctor.BYTES_PER_ELEMENT))));
+        return ni;
+      }
+      default: {
+        // *ArrayBuffer (16–25): [ptr][len] → a copy in the matching typed array.
+        const Ctor = ARRAY_BUFFER_CTORS[type];
+        if (!Ctor) throw new Error(`ParameterParser: unknown ParamType ${type}`);
+        const [ni, p, l] = this.#slice(view, i);
+        args.push(new Ctor(mem.slice(p, p + l * Ctor.BYTES_PER_ELEMENT)));
+        return ni;
+      }
+    }
+  }
+}
+
+const ARRAY_BUFFER_CTORS = {
+  [ParamType.Uint8Array]: Uint8Array, [ParamType.Uint16Array]: Uint16Array,
+  [ParamType.Uint32Array]: Uint32Array, [ParamType.Uint64Array]: BigUint64Array,
+  [ParamType.Int8Array]: Int8Array, [ParamType.Int16Array]: Int16Array,
+  [ParamType.Int32Array]: Int32Array, [ParamType.Int64Array]: BigInt64Array,
+  [ParamType.Float32Array]: Float32Array, [ParamType.Float64Array]: Float64Array,
+};
+
+// ─── ReturnHintParser ────────────────────────────────────────────────────────────
+
+/** Decode `[Start][ReturnIds][ThreeState…][Stop]` → { id, states:[{ stateId, types:[] }] }. */
+export class ReturnHintParser {
+  constructor(bridge) { this.bridge = bridge; }
+
+  parse(ptr, len) {
+    const view = new DataView(this.bridge.memory.buffer, Number(ptr), Number(len));
+    const [, hint] = ReturnHintParser.parseFrom(view, 0);
+    return hint;
+  }
+
+  /**
+   * Offset-based variant shared with the batch codec (hints are embedded mid-stream
+   * there). Returns `[indexAfterStop, hint]`.
+   */
+  static parseFrom(view, i) {
+    if (view.getUint8(i) !== ReturnHintMarker.Start) throw new Error("hint: missing Start");
+    i += B1;
+    const id = view.getUint8(i);
+    i += B1;
+    const states = [];
+    if (id !== ReturnIds.None) {
+      // One/List carry exactly one ThreeState; Multi carries several, concatenated.
+      // Each ThreeState is [ThreeStateId][ReturnType×n]; read until the Stop marker.
+      while (view.getUint8(i) !== ReturnHintMarker.Stop) {
+        const stateId = view.getUint8(i);
+        i += B1;
+        const n = stateId === ThreeStateId.One ? 1 : stateId === ThreeStateId.Two ? 2 : 3;
+        const types = [];
+        for (let k = 0; k < n; k++) { types.push(view.getUint8(i)); i += B1; }
+        states.push({ stateId, types });
+      }
+    }
+    if (view.getUint8(i) !== ReturnHintMarker.Stop) throw new Error("hint: missing Stop");
+    i += B1;
+    return [i, { id, states }];
+  }
+}
+
+// ─── ReplyEncoder (= Reply) ─────────────────────────────────────────────────────
+
+/** Encodes a JS return value as `[ReturnType:u8][value]` and (when needed) into an arena slot. */
+export class ReplyEncoder {
+  /** @param {MemoryAllocations} memory */
+  constructor(memory) {
+    this.memory = memory;
+    // Heaps for reference-returning types; the runtime wires `objects`, the DOM layer
+    // wires `dom` (megatron threaded object_heap/dom_heap into Reply.transform).
+    this.objects = null; // ExternalHeap | null
+    this.dom = null; // ExternalHeap | null
+  }
+
+  /**
+   * Mirror of megatron `Reply.immediate`. `hint` is the parsed return-hint
+   * ({id, states}); returns either a naked scalar (typed fast-paths, !alwaysEncoded)
+   * or a MemoryId (bigint) for an encoded slot, or -1n for None+undefined.
+   */
+  immediate(hint, value, alwaysEncoded) {
+    if (hint.id === ReturnIds.None) {
+      if (value === undefined || value === null) return -1n;
+      throw new Error(`Expected NoReturn but got ${value}`);
+    }
+    const containers = this.#containers(hint, value);
+    if (
+      hint.id === ReturnIds.One && containers.length === 1 &&
+      RETURN_NAKED.has(containers[0].type) && !alwaysEncoded
+    ) {
+      return value; // naked scalar — typed fast-path
+    }
+    return this.encodeIntoMemory(containers);
+  }
+
+  /**
+   * Build the `{type, value}` containers for a return hint, mirroring the Rust
+   * `ReturnValueParserIter` shape:
+   *   One  → exactly 1 value typed by the single ThreeState;
+   *   List → N homogeneous values, each typed by the same ThreeState;
+   *   Multi → one value per ThreeState (value `k` ↔ `states[k]`).
+   * A union ThreeState (Two/Three) is resolved per concrete value (see #pickType).
+   */
+  #containers(hint, value) {
+    switch (hint.id) {
+      case ReturnIds.One:
+        return [{ type: this.#pickType(hint.states[0], value), value }];
+      case ReturnIds.List: {
+        const state = hint.states[0];
+        return Array.from(value).map((v) => ({ type: this.#pickType(state, v), value: v }));
+      }
+      case ReturnIds.Multi: {
+        const arr = Array.from(value);
+        return hint.states.map((state, k) => ({ type: this.#pickType(state, arr[k]), value: arr[k] }));
+      }
+      default:
+        return [];
+    }
+  }
+
+  /**
+   * Resolve a single declared ThreeState to the concrete ReturnType for `value`.
+   * Non-union (`One(t)`) states use their one type directly; union states pick the
+   * member that matches the JS value's runtime type (Rust validates the match).
+   */
+  #pickType(state, value) {
+    const { types } = state;
+    if (types.length === 1) return types[0];
+    const inferred = inferReturnType(value);
+    return types.includes(inferred) ? inferred : types[0];
+  }
+
+  /** Encode containers `{type, value}` as `[type][value]…` into one arena slot → MemoryId. */
+  encodeIntoMemory(containers) {
+    const bytes = this.encode(containers);
+    const id = this.memory.create(bytes.length);
+    this.memory.write(id, bytes);
+    return id;
+  }
+
+  /**
+   * Mirror of megatron `Reply.callback_success`: an async JS result resolved — encode it
+   * (always framed Begin..End) and deliver it to WASM callback `callbackId` via the
+   * `CallbackRegistry` (which writes a slot + calls `invoke_callback`). `None`-hinted
+   * async calls are fire-and-forget and never reach here.
+   * @param {CallbackRegistry} callbacks
+   * @param {bigint} callbackId  the WASM `InternalPointer` value
+   * @param {{id:number, states:Array<{types:number[]}>}} hint
+   */
+  callbackSuccess(callbacks, callbackId, hint, value) {
+    const bytes = this.encode(this.#containers(hint, value));
+    callbacks.invoke(callbackId, bytes);
+  }
+
+  /**
+   * Mirror of megatron `Reply.callback_failure`: a rejected async result — frame it as an
+   * `ErrorCode` ReturnValue and deliver it (Rust decodes `ReturnValues::ErrorCode`).
+   * @param {CallbackRegistry} callbacks
+   * @param {bigint} callbackId
+   */
+  callbackFailure(callbacks, callbackId, error) {
+    const code = error instanceof ErrorCodeValue
+      ? error.code
+      : (error && Number.isInteger(error.code) ? error.code : 1);
+    const bytes = this.encode([{ type: ReturnType.ErrorCode, value: code }]);
+    callbacks.invoke(callbackId, bytes);
+  }
+
+  /** Encode containers as `[Begin][ReturnType][value]…[End]` (Rust FromBinary expects the frame). */
+  encode(containers) {
+    const out = [ReturnValueMarker.Begin];
+    const push = (n, bytes) => { for (let k = 0; k < bytes; k++) out.push(Number((BigInt(n) >> BigInt(8 * k)) & 0xffn)); };
+    for (const { type, value } of containers) {
+      out.push(type);
+      switch (type) {
+        case ReturnType.None: break;
+        case ReturnType.Bool: out.push(value ? 1 : 0); break;
+        case ReturnType.Uint8: case ReturnType.Int8: push(value, 1); break;
+        case ReturnType.Uint16: case ReturnType.Int16: case ReturnType.ErrorCode: push(value, 2); break;
+        case ReturnType.Uint32: case ReturnType.Int32: push(value, 4); break;
+        case ReturnType.Uint64: case ReturnType.Int64: push(BigInt(value), 8); break;
+        case ReturnType.Float32: { const b = new Uint8Array(4); new DataView(b.buffer).setFloat32(0, value, true); out.push(...b); break; }
+        case ReturnType.Float64: { const b = new Uint8Array(8); new DataView(b.buffer).setFloat64(0, value, true); out.push(...b); break; }
+        case ReturnType.Int128: case ReturnType.Uint128: { const v = BigInt(value); push((v >> 64n) & 0xffffffffffffffffn, 8); push(v & 0xffffffffffffffffn, 8); break; }
+        // Reference returns: the id is sent inline (Rust resolves it host-side).
+        case ReturnType.ExternalReference:
+        case ReturnType.InternalReference:
+          push(BigInt(value instanceof RefPointer ? value.value : value), 8);
+          break;
+        // Text8: write the UTF-8 bytes into a fresh slot, send [type][slot_id:u64].
+        // Rust's ReturnValueParserIter Text8 arm takes + frees that slot.
+        case ReturnType.Text8: {
+          const bytes = new TextEncoder().encode(String(value));
+          const slot = this.memory.create(bytes.length);
+          this.memory.write(slot, bytes);
+          push(slot, 8);
+          break;
+        }
+        // MemorySlice / array buffers: write the raw bytes into a slot, send [type][slot_id].
+        case ReturnType.MemorySlice: {
+          const u8 = value instanceof Uint8Array ? value : new Uint8Array(value.buffer ?? value);
+          const slot = this.memory.create(u8.length);
+          this.memory.write(slot, u8);
+          push(slot, 8);
+          break;
+        }
+        // Object/DOMObject: intern in the matching host heap, send [type][heap_handle:u64]
+        // (megatron Reply.asObject/asDOMObject). A RefPointer passes its existing id through.
+        case ReturnType.Object: {
+          if (!this.objects) throw new Error("ReplyEncoder: no object heap wired");
+          push(value instanceof RefPointer ? value.value : this.objects.create(value), 8);
+          break;
+        }
+        case ReturnType.DOMObject: {
+          if (!this.dom) throw new Error("ReplyEncoder: no DOM heap wired");
+          push(value instanceof RefPointer ? value.value : this.dom.create(value), 8);
+          break;
+        }
+        // TypedArraySlice: stage the bytes in a slot and send the slot's LIVE address —
+        // [type][slice_type:u8][ptr:u64][len:u64] (Rust ReturnValues::TypedArraySlice
+        // carries a raw MemoryLocation; consume it before the next allocation).
+        case ReturnType.TypedArraySlice: {
+          const { sliceType, u8 } = asTypedSlice(value);
+          const slot = this.memory.create(u8.length);
+          this.memory.write(slot, u8);
+          out.push(sliceType);
+          push(this.memory.get(slot).ptr, 8);
+          push(u8.length, 8);
+          break;
+        }
+        default: throw new Error(`ReplyEncoder: unsupported return type ${type}`);
+      }
+    }
+    out.push(ReturnValueMarker.End);
+    return Uint8Array.from(out);
+  }
+}
+
+// ─── FunctionRegistry ────────────────────────────────────────────────────────────
+
+/**
+ * Implements `host_register_function` + `host_invoke_function(+_as_*)`. Registered JS
+ * functions are stored by handle and called with `this` = `context` (so they can use
+ * runtime helpers), args spread positionally (mirrors megatron).
+ */
+export class FunctionRegistry {
+  /**
+   * @param {{exports:object, memory:WebAssembly.Memory}} bridge
+   * @param {MemoryAllocations} memory
+   * @param {StringCache} strings
+   * @param {CallbackRegistry} callbacks  delivers async replies
+   */
+  constructor(bridge, memory, strings, callbacks) {
+    this.bridge = bridge;
+    this.params = new ParameterParser(bridge, strings);
+    this.hints = new ReturnHintParser(bridge);
+    this.reply = new ReplyEncoder(memory);
+    this.callbacks = callbacks;
+    // Generation-arena heap shared by ALL function-handle paths: host_register_function,
+    // function_allocate_external_pointer pre-allocation, and batch MakeFunction (megatron
+    // used one function_heap for all three — handles must be interchangeable).
+    this.heap = new ExternalHeap();
+    this.context = this; // `this` for registered fns; override to expose helpers
+  }
+
+  /** Compile a registered-function source string into a callable. */
+  static compile(source) {
+    return Function(`"use strict"; return(${source})`)();
+  }
+
+  /** host_register_function(start, len, utf) → handle. Evals the source string. */
+  register(start, len, utf) {
+    const enc = Number(utf) === 16 ? "utf-16le" : "utf-8";
+    const bytes = new Uint8Array(this.bridge.memory.buffer, Number(start), Number(len));
+    const source = new TextDecoder(enc).decode(bytes);
+    return this.heap.create(FunctionRegistry.compile(source));
+  }
+
+  /** function_allocate_external_pointer → an empty handle MakeFunction fills later. */
+  allocate() {
+    return this.heap.create(null);
+  }
+
+  /** host_unregister_function. */
+  unregister(handle) {
+    this.heap.destroy(BigInt(handle));
+  }
+
+  #call(handle, pPtr, pLen) {
+    const fn = this.heap.get(BigInt(handle));
+    if (!fn) throw new Error(`invoke: no function for handle ${handle}`);
+    return fn.apply(this.context, this.params.parse(pPtr, pLen));
+  }
+
+  /** Generic host_invoke_function → MemoryId of the encoded ReturnValues (or -1n). */
+  invoke(handle, pPtr, pLen, rPtr, rLen) {
+    const hint = this.hints.parse(rPtr, rLen);
+    const result = this.#call(handle, pPtr, pLen);
+    const reply = this.reply.immediate(hint, result, true);
+    if (result === undefined || result === null) return -1n;
+    return typeof reply === "bigint" ? reply : BigInt(reply);
+  }
+
+  #invokeNaked(handle, pPtr, pLen, returnTypeId) {
+    const hint = { id: ReturnIds.One, states: [{ stateId: ThreeStateId.One, types: [returnTypeId] }] };
+    return this.reply.immediate(hint, this.#call(handle, pPtr, pLen), false);
+  }
+
+  /**
+   * `host_invoke_async_function`: call a fn that returns a Promise. Params + return hint
+   * are read from WASM memory SYNCHRONOUSLY (before any await); when the promise settles
+   * the framed reply is delivered to WASM via `invoke_callback`. A `None` hint is
+   * fire-and-forget (mirror of megatron — the promise result is discarded).
+   */
+  invokeAsync(handle, callbackHandle, pPtr, pLen, rPtr, rLen) {
+    const hint = this.hints.parse(rPtr, rLen);
+    const result = this.#call(handle, pPtr, pLen);
+    if (hint.id === ReturnIds.None) return; // fire-and-forget
+    const callbackId = BigInt(callbackHandle);
+    Promise.resolve(result).then(
+      (value) => this.reply.callbackSuccess(this.callbacks, callbackId, hint, value),
+      (error) => this.reply.callbackFailure(this.callbacks, callbackId, error),
+    );
+  }
+
+  invokeAsBool(handle, pPtr, pLen) { return this.#invokeNaked(handle, pPtr, pLen, ReturnType.Bool) ? 1 : 0; }
+  invokeAsFloat(handle, pPtr, pLen) { return Number(this.#invokeNaked(handle, pPtr, pLen, ReturnType.Float64)); }
+  invokeAsInt(handle, pPtr, pLen) { const v = this.#invokeNaked(handle, pPtr, pLen, ReturnType.Int64); return typeof v === "bigint" ? Number(v) : v; }
+  invokeAsBigInt(handle, pPtr, pLen) { const v = this.#invokeNaked(handle, pPtr, pLen, ReturnType.Uint64); return typeof v === "bigint" ? v : BigInt(v); }
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// SECTION 2: V2 quantized batch codec (formerly batch-instructions.js)
+// ════════════════════════════════════════════════════════════════════════════════
+
+// V2 batch codec — the V2 quantized batch codec (ported from megatron's
+// ParameterParserV2 + BatchInstructions + BatchOperation, per feature 17 research docs).
+//
+// This is the backbone of the custom binary protocol: WASM builds an instruction batch
+// (Rust `Instructions`, ops.rs) in TWO arena slots — an OPS buffer of opcodes/markers
+// and a TEXTS buffer of raw UTF-8 — and ships both via `host_batch_apply` (no results)
+// or `host_batch_returning_apply` (group-return slot id). DISTINCT from the flat invoke
+// codec (V1, section 1): batch params are marker-framed AND quantized.
+//
+// Wire layout (Rust `Batchable` impls are the source of truth):
+//   ops    = [Operations.Begin=0] (op…)* [Operations.Stop=255]
+//   op     = [opId:u8] [payload…] [Operations.End=254]
+//   MakeFunction payload = [ParamType.ExternalReference=15][TQ][handle]
+//                          [ParamType.Text8=3][index:u64 raw][len:u64 raw]  (into TEXTS)
+//   Invoke payload       = [15][TQ][handle] [return-hint frame 200..201] [args]
+//   InvokeAsync payload  = [15][TQ][handle] [26][TQ][callback] [hint] [args]
+//   args   = [ArgStart=1] ([ArgBegin=2][ParamType][TQ?][value][ArgEnd=3])* [ArgStop=4]
+// Quantized values carry a TypeOptimization byte; Bool/Int8/Uint8/Float32 never do.
+
+
+
+// ─── Shared discriminants (cross-language contract, base.rs) ────────────────────
+export const Operations = Object.freeze({
+  Begin: 0, MakeFunction: 1, Invoke: 2, InvokeAsync: 3, End: 254, Stop: 255,
+});
+
+export const ArgumentOperations = Object.freeze({ Start: 1, Begin: 2, End: 3, Stop: 4 });
+
+export const TypeOptimization = Object.freeze({
+  None: 0,
+  QuantizedInt16AsI8: 1, QuantizedInt32AsI8: 2, QuantizedInt32AsI16: 3,
+  QuantizedInt64AsI8: 4, QuantizedInt64AsI16: 5, QuantizedInt64AsI32: 6,
+  QuantizedUint16AsU8: 7, QuantizedUint32AsU8: 8, QuantizedUint32AsU16: 9,
+  QuantizedUint64AsU8: 10, QuantizedUint64AsU16: 11, QuantizedUint64AsU32: 12,
+  QuantizedF64AsF32: 13, QuantizedF128AsF32: 14, QuantizedF128AsF64: 15,
+  QuantizedInt128AsI8: 16, QuantizedInt128AsI16: 17, QuantizedInt128AsI32: 18,
+  QuantizedInt128AsI64: 19, QuantizedUint128AsU8: 20, QuantizedUint128AsU16: 21,
+  QuantizedUint128AsU32: 22, QuantizedUint128AsU64: 23,
+  QuantizedPtrAsU8: 24, QuantizedPtrAsU16: 25, QuantizedPtrAsU32: 26, QuantizedPtrAsU64: 27,
+});
+
+// Group-return frame (Rust GroupReturnHintMarker; protocol.rs GroupReturnTypeHints).
+const GroupReturnHintMarker = Object.freeze({ Start: 111, Stop: 222 });
+
+/**
+ * Read one TQ-prefixed value: `[TypeOptimization:u8][bytes…]`. `none` reads the value
+ * at full width when no quantization was applied; every Quantized* case reads the
+ * narrowed width (the Rust `value_quantitization::q*` inverse). → `[newIndex, value]`.
+ */
+function readQuantized(view, i, none) {
+  const tq = view.getUint8(i);
+  i += B1;
+  switch (tq) {
+    case TypeOptimization.None:
+      return none(view, i);
+    case TypeOptimization.QuantizedInt16AsI8:
+    case TypeOptimization.QuantizedInt32AsI8:
+    case TypeOptimization.QuantizedInt64AsI8:
+    case TypeOptimization.QuantizedInt128AsI8:
+      return [i + B1, view.getInt8(i)];
+    case TypeOptimization.QuantizedInt32AsI16:
+    case TypeOptimization.QuantizedInt64AsI16:
+    case TypeOptimization.QuantizedInt128AsI16:
+      return [i + B2, view.getInt16(i, true)];
+    case TypeOptimization.QuantizedInt64AsI32:
+    case TypeOptimization.QuantizedInt128AsI32:
+      return [i + B4, view.getInt32(i, true)];
+    case TypeOptimization.QuantizedInt128AsI64:
+      return [i + B8, view.getBigInt64(i, true)];
+    case TypeOptimization.QuantizedUint16AsU8:
+    case TypeOptimization.QuantizedUint32AsU8:
+    case TypeOptimization.QuantizedUint64AsU8:
+    case TypeOptimization.QuantizedUint128AsU8:
+    case TypeOptimization.QuantizedPtrAsU8:
+      return [i + B1, view.getUint8(i)];
+    case TypeOptimization.QuantizedUint32AsU16:
+    case TypeOptimization.QuantizedUint64AsU16:
+    case TypeOptimization.QuantizedUint128AsU16:
+    case TypeOptimization.QuantizedPtrAsU16:
+      return [i + B2, view.getUint16(i, true)];
+    case TypeOptimization.QuantizedUint64AsU32:
+    case TypeOptimization.QuantizedUint128AsU32:
+    case TypeOptimization.QuantizedPtrAsU32:
+      return [i + B4, view.getUint32(i, true)];
+    case TypeOptimization.QuantizedUint128AsU64:
+    case TypeOptimization.QuantizedPtrAsU64:
+      return [i + B8, view.getBigUint64(i, true)];
+    case TypeOptimization.QuantizedF64AsF32:
+    case TypeOptimization.QuantizedF128AsF32:
+      return [i + B4, view.getFloat32(i, true)];
+    case TypeOptimization.QuantizedF128AsF64:
+      return [i + B8, view.getFloat64(i, true)];
+    default:
+      throw new Error(`readQuantized: unknown TypeOptimization ${tq}`);
+  }
+}
+
+// Full-width readers for the TypeOptimization.None case, one per declared type.
+const noneI16 = (v, i) => [i + B2, v.getInt16(i, true)];
+const noneU16 = (v, i) => [i + B2, v.getUint16(i, true)];
+const noneI32 = (v, i) => [i + B4, v.getInt32(i, true)];
+const noneU32 = (v, i) => [i + B4, v.getUint32(i, true)];
+const noneI64 = (v, i) => [i + B8, v.getBigInt64(i, true)];
+const noneU64 = (v, i) => [i + B8, v.getBigUint64(i, true)];
+const noneF64 = (v, i) => [i + B8, v.getFloat64(i, true)];
+// 128-bit: [msb:8][lsb:8] little-endian halves, msb first (ops.rs Int128/Uint128 arms).
+const noneI128 = (v, i) => [i + 16, (v.getBigInt64(i, true) << 64n) | v.getBigUint64(i + B8, true)];
+const noneU128 = (v, i) => [i + 16, (v.getBigUint64(i, true) << 64n) | v.getBigUint64(i + B8, true)];
+
+// ─── BatchParameterParser (= ParameterParserV2) ─────────────────────────────────
+
+/**
+ * Decode the marker-framed, quantized argument list of a batch Invoke/InvokeAsync.
+ * Reads from the OPS view; Text8 indexes the TEXTS string; pointer-carrying params
+ * (Text16 / TypedArraySlice / *ArrayBuffer) dereference WASM linear memory.
+ */
+export class BatchParameterParser {
+  /** @param {{memory:WebAssembly.Memory}} bridge @param {StringCache} strings */
+  constructor(bridge, strings) {
+    this.bridge = bridge;
+    this.strings = strings;
+  }
+
+  /**
+   * Parse `[ArgBegin][param][ArgEnd]…[ArgStop]` starting AFTER ArgStart.
+   * @returns {[number, any[]]} `[indexAfterStop, args]`
+   */
+  parseParams(view, i, texts) {
+    const args = [];
+    while (view.getUint8(i) !== ArgumentOperations.Stop) {
+      if (view.getUint8(i) !== ArgumentOperations.Begin) {
+        throw new Error(`batch args: expected Begin marker, got ${view.getUint8(i)}`);
+      }
+      i += B1;
+      let value;
+      [i, value] = this.parseParam(view, i, texts);
+      args.push(value);
+      if (view.getUint8(i) !== ArgumentOperations.End) {
+        throw new Error(`batch args: expected End marker, got ${view.getUint8(i)}`);
+      }
+      i += B1;
+    }
+    i += B1; // consume ArgStop
+    return [i, args];
+  }
+
+  /** Parse one `[ParamType][TQ?][value]` (after the Begin marker). */
+  parseParam(view, i, texts) {
+    const type = view.getUint8(i);
+    i += B1;
+    switch (type) {
+      case ParamType.Null: return [i, null];
+      case ParamType.Undefined: return [i, undefined];
+      case ParamType.Bool: return [i + B1, view.getUint8(i) === 1];
+      case ParamType.Int8: return [i + B1, view.getInt8(i)];
+      case ParamType.Uint8: return [i + B1, view.getUint8(i)];
+      case ParamType.Float32: return [i + B4, view.getFloat32(i, true)];
+      case ParamType.Int16: return readQuantized(view, i, noneI16);
+      case ParamType.Uint16: return readQuantized(view, i, noneU16);
+      case ParamType.Int32: return readQuantized(view, i, noneI32);
+      case ParamType.Uint32: return readQuantized(view, i, noneU32);
+      case ParamType.Int64: return readQuantized(view, i, noneI64);
+      case ParamType.Uint64: return readQuantized(view, i, noneU64);
+      case ParamType.Float64: return readQuantized(view, i, noneF64);
+      case ParamType.Int128: return readQuantized(view, i, noneI128);
+      case ParamType.Uint128: return readQuantized(view, i, noneU128);
+      case ParamType.ErrorCode: {
+        // Rust encodes via qu16 ([TQ][u8|u16]); megatron's parseErrorCode misread this
+        // as a u64 — we decode per the Rust encoder (see LEARNINGS).
+        const [ni, code] = readQuantized(view, i, noneU16);
+        return [ni, new ErrorCodeValue(Number(code))];
+      }
+      case ParamType.CachedText: {
+        const [ni, handle] = readQuantized(view, i, noneU64);
+        const text = this.strings.get(BigInt(handle));
+        if (text === undefined) throw new Error(`batch CachedText: no string for handle ${handle}`);
+        return [ni, text];
+      }
+      case ParamType.ExternalReference: {
+        const [ni, id] = readQuantized(view, i, noneU64);
+        return [ni, new ExternalPointer(BigInt(id))];
+      }
+      case ParamType.InternalReference: {
+        const [ni, id] = readQuantized(view, i, noneU64);
+        return [ni, new InternalPointer(BigInt(id))];
+      }
+      case ParamType.Text8: {
+        // Two TQ'd u64s: (index, length) into the TEXTS string (NOT WASM memory).
+        let index, length;
+        [i, index] = readQuantized(view, i, noneU64);
+        [i, length] = readQuantized(view, i, noneU64);
+        return [i, texts.substr(Number(index), Number(length))];
+      }
+      case ParamType.Text16: {
+        // TQ'd pointer into WASM memory + TQ'd u16-unit count (megatron ×2 multiplier).
+        let ptr, length;
+        [i, ptr] = readQuantized(view, i, noneU64);
+        [i, length] = readQuantized(view, i, noneU64);
+        const bytes = new Uint8Array(this.bridge.memory.buffer, Number(ptr), Number(length) * 2);
+        return [i, new TextDecoder("utf-16le").decode(bytes)];
+      }
+      case ParamType.TypedArraySlice: {
+        const sliceType = view.getUint8(i);
+        i += B1;
+        let ptr, length; // length is in BYTES (Rust passes a byte slice)
+        [i, ptr] = readQuantized(view, i, noneU64);
+        [i, length] = readQuantized(view, i, noneU64);
+        const copy = this.bridge.memory.buffer.slice(Number(ptr), Number(ptr) + Number(length));
+        const Ctor = TypedSliceArray[sliceType] ?? Uint8Array;
+        return [i, new TypedArraySliceValue(sliceType, new Ctor(copy))];
+      }
+      default: {
+        // *ArrayBuffer (16–25): TQ'd pointer + TQ'd ELEMENT count into WASM memory.
+        const Ctor = BATCH_ARRAY_CTORS[type];
+        if (!Ctor) throw new Error(`batch param: unknown ParamType ${type}`);
+        let ptr, length;
+        [i, ptr] = readQuantized(view, i, noneU64);
+        [i, length] = readQuantized(view, i, noneU64);
+        const start = Number(ptr);
+        const copy = this.bridge.memory.buffer.slice(start, start + Number(length) * Ctor.BYTES_PER_ELEMENT);
+        return [i, new Ctor(copy)];
+      }
+    }
+  }
+}
+
+const BATCH_ARRAY_CTORS = {
+  [ParamType.Uint8Array]: Uint8Array, [ParamType.Uint16Array]: Uint16Array,
+  [ParamType.Uint32Array]: Uint32Array, [ParamType.Uint64Array]: BigUint64Array,
+  [ParamType.Int8Array]: Int8Array, [ParamType.Int16Array]: Int16Array,
+  [ParamType.Int32Array]: Int32Array, [ParamType.Int64Array]: BigInt64Array,
+  [ParamType.Float32Array]: Float32Array, [ParamType.Float64Array]: Float64Array,
+};
+
+// ─── BatchInstructions ───────────────────────────────────────────────────────────
+
+const MAKE_FUNCTION_HINT = Object.freeze({
+  id: ReturnIds.One,
+  states: [{ stateId: ThreeStateId.One, types: [ReturnType.ExternalReference] }],
+});
+
+/**
+ * Parses + executes instruction batches (the `host_batch_apply` /
+ * `host_batch_returning_apply` imports). Mirrors megatron's two-phase design:
+ * a parse pass turns each op into a thunk, then the thunks run in order — so a
+ * MakeFunction earlier in the batch is visible to an Invoke later in it.
+ *
+ * Extension point: `registerOperation(opId, handler)` adds custom opcodes (the DOM
+ * layer registers its own). A handler is `(batch, opId, i, view, texts) => [newIndex,
+ * thunk|null]`; a thunk is `(batch) => ({hint, value} | null)`.
+ */
+export class BatchInstructions {
+  /**
+   * @param {{exports:object, memory:WebAssembly.Memory}} bridge
+   * @param {MemoryAllocations} memory
+   * @param {StringCache} strings
+   * @param {FunctionRegistry} functions
+   * @param {CallbackRegistry} callbacks
+   */
+  constructor(bridge, memory, strings, functions, callbacks) {
+    this.bridge = bridge;
+    this.memory = memory;
+    this.functions = functions;
+    this.callbacks = callbacks;
+    this.reply = functions.reply; // share the ReturnValues encoder (one contract)
+    this.params = new BatchParameterParser(bridge, strings);
+    this.operations = new Map([
+      [Operations.MakeFunction, BatchInstructions.makeFunction],
+      [Operations.Invoke, BatchInstructions.invoke],
+      [Operations.InvokeAsync, BatchInstructions.invokeAsync],
+    ]);
+  }
+
+  registerOperation(opId, handler) {
+    this.operations.set(opId, handler);
+    return this;
+  }
+
+  /** host_batch_apply: parse + run every op; results are discarded. */
+  applyNoReturn(opsPtr, opsLen, textPtr, textLen) {
+    for (const thunk of this.#parse(opsPtr, opsLen, textPtr, textLen)) {
+      thunk(this);
+    }
+  }
+
+  /**
+   * host_batch_returning_apply: run every op, encode each non-null result into its own
+   * framed ReturnValues slot, then write the group-return frame
+   * `[Start=111]([ReturnIds][Multi: count:u16][ThreeStates…][slot_id:u64])*[Stop=222]`
+   * into a fresh slot → its id (or -1n when nothing returned). Decoded by Rust
+   * `GroupReturnTypeHints::from_binary`.
+   */
+  applyReturning(opsPtr, opsLen, textPtr, textLen) {
+    const results = [];
+    for (const thunk of this.#parse(opsPtr, opsLen, textPtr, textLen)) {
+      const result = thunk(this);
+      if (result === null || result === undefined) continue;
+      const memId = this.reply.immediate(result.hint, result.value, true);
+      results.push({ hint: result.hint, memId: BigInt(memId) });
+    }
+    if (results.length === 0) return -1n;
+
+    const out = [GroupReturnHintMarker.Start];
+    for (const { hint, memId } of results) {
+      out.push(hint.id);
+      if (hint.id === ReturnIds.Multi) {
+        out.push(Number(hint.states.length & 0xff), Number((hint.states.length >> 8) & 0xff));
+      }
+      for (const state of hint.states) {
+        out.push(state.stateId, ...state.types);
+      }
+      for (let k = 0; k < 8; k++) out.push(Number((memId >> BigInt(8 * k)) & 0xffn));
+    }
+    out.push(GroupReturnHintMarker.Stop);
+
+    const bytes = Uint8Array.from(out);
+    const slot = this.memory.create(bytes.length);
+    this.memory.write(slot, bytes);
+    return slot;
+  }
+
+  /** Read both buffers (ops as a detached copy — thunks may grow WASM memory), parse all ops. */
+  #parse(opsPtr, opsLen, textPtr, textLen) {
+    const opsStart = Number(opsPtr);
+    const ops = this.bridge.memory.buffer.slice(opsStart, opsStart + Number(opsLen));
+    const textStart = Number(textPtr);
+    const textBytes = new Uint8Array(this.bridge.memory.buffer, textStart, Number(textLen));
+    const texts = new TextDecoder().decode(textBytes);
+
+    const view = new DataView(ops);
+    let i = 0;
+    if (view.getUint8(i) !== Operations.Begin) {
+      throw new Error(`batch: expected Operations.Begin, got ${view.getUint8(i)}`);
+    }
+    i += B1;
+
+    const thunks = [];
+    while (i < view.byteLength && view.getUint8(i) !== Operations.Stop) {
+      const opId = view.getUint8(i);
+      i += B1;
+      const handler = this.operations.get(opId);
+      if (!handler) throw new Error(`batch: unhandled operation ${opId}`);
+      let thunk;
+      [i, thunk] = handler(this, opId, i, view, texts);
+      if (thunk) thunks.push(thunk);
+    }
+    return thunks;
+  }
+
+  /** Read `[ParamType.ExternalReference][TQ][handle]` → bigint handle. */
+  static readExternalHandle(view, i) {
+    const vt = view.getUint8(i);
+    if (vt !== ParamType.ExternalReference) {
+      throw new Error(`batch: expected ExternalReference param, got ${vt}`);
+    }
+    const [ni, raw] = readQuantized(view, i + B1, noneU64);
+    return [ni, BigInt(raw)];
+  }
+
+  /** MakeFunction: compile TEXTS[index..len] and bind it at the pre-allocated handle. */
+  static makeFunction(batch, _opId, i, view, texts) {
+    let handle;
+    [i, handle] = BatchInstructions.readExternalHandle(view, i);
+
+    if (view.getUint8(i) !== ParamType.Text8) {
+      throw new Error(`batch MakeFunction: expected Text8, got ${view.getUint8(i)}`);
+    }
+    i += B1;
+    // Raw (unquantized) u64 pair — register_function writes plain to_le_bytes.
+    const index = Number(view.getBigUint64(i, true));
+    i += B8;
+    const length = Number(view.getBigUint64(i, true));
+    i += B8;
+
+    if (view.getUint8(i) !== Operations.End) {
+      throw new Error(`batch MakeFunction: expected Operations.End, got ${view.getUint8(i)}`);
+    }
+    i += B1;
+
+    const source = texts.substr(index, length);
+    const thunk = (b) => {
+      const fn = b.functions.constructor.compile(source);
+      b.functions.heap.update(handle, fn);
+      return { hint: MAKE_FUNCTION_HINT, value: new ExternalPointer(handle) };
+    };
+    return [i, thunk];
+  }
+
+  /** Shared head of Invoke/InvokeAsync: handle, (callback), hint, args, End. */
+  static parseCallParts(batch, i, view, texts, hasCallback) {
+    let handle;
+    [i, handle] = BatchInstructions.readExternalHandle(view, i);
+
+    let callbackId = null;
+    if (hasCallback) {
+      const vt = view.getUint8(i);
+      if (vt !== ParamType.InternalReference) {
+        throw new Error(`batch: expected InternalReference param, got ${vt}`);
+      }
+      let raw;
+      [i, raw] = readQuantized(view, i + B1, noneU64);
+      callbackId = BigInt(raw);
+    }
+
+    let hint;
+    [i, hint] = ReturnHintParser.parseFrom(view, i);
+
+    if (view.getUint8(i) !== ArgumentOperations.Start) {
+      throw new Error(`batch args: expected Start marker, got ${view.getUint8(i)}`);
+    }
+    i += B1;
+    let args;
+    [i, args] = batch.params.parseParams(view, i, texts);
+
+    if (view.getUint8(i) !== Operations.End) {
+      throw new Error(`batch: expected Operations.End, got ${view.getUint8(i)}`);
+    }
+    i += B1;
+
+    return [i, handle, callbackId, hint, args];
+  }
+
+  static invoke(batch, _opId, i, view, texts) {
+    let handle, hint, args;
+    [i, handle, , hint, args] = BatchInstructions.parseCallParts(batch, i, view, texts, false);
+
+    const thunk = (b) => {
+      const fn = b.functions.heap.get(handle);
+      if (!fn) throw new Error(`batch invoke: no function for handle ${handle}`);
+      const result = fn.apply(b.functions.context, args);
+      if (hint.id === ReturnIds.None) return null;
+      return { hint, value: result };
+    };
+    return [i, thunk];
+  }
+
+  static invokeAsync(batch, _opId, i, view, texts) {
+    let handle, callbackId, hint, args;
+    [i, handle, callbackId, hint, args] = BatchInstructions.parseCallParts(batch, i, view, texts, true);
+
+    const thunk = (b) => {
+      const fn = b.functions.heap.get(handle);
+      if (!fn) throw new Error(`batch invokeAsync: no function for handle ${handle}`);
+      const result = fn.apply(b.functions.context, args);
+      if (hint.id === ReturnIds.None) return null; // fire-and-forget
+      Promise.resolve(result).then(
+        (value) => b.reply.callbackSuccess(b.callbacks, callbackId, hint, value),
+        (error) => b.reply.callbackFailure(b.callbacks, callbackId, error),
+      );
+      return null; // delivery happens via invoke_callback, never inline
+    };
+    return [i, thunk];
+  }
+}
+
+// ════════════════════════════════════════════════════════════════════════════════
+// SECTION 3: core runtime
+// ════════════════════════════════════════════════════════════════════════════════
 
 // ─── WasmEnvelope ──────────────────────────────────────────────────────────────
 
@@ -468,3 +1522,39 @@ export class FoundationWasm {
     return this;
   }
 }
+
+// ─── Global registration ──────────────────────────────────────────────────────────
+//
+// The ESM exports above are canonical (`<script type="module">` / import). This
+// mirror lets classic (non-module) scripts on the same page reach the runtime as
+// `globalThis.FoundationWasmRuntime` once the module has loaded.
+globalThis.FoundationWasmRuntime = Object.freeze({
+  FoundationWasm,
+  WasmEnvelope,
+  ProtocolDispatcher,
+  MemoryAllocations,
+  TimerRegistry,
+  CallbackRegistry,
+  StringCache,
+  AnimationDriver,
+  FunctionRegistry,
+  ParameterParser,
+  ReturnHintParser,
+  ReplyEncoder,
+  ExternalHeap,
+  BatchInstructions,
+  BatchParameterParser,
+  Operations,
+  ArgumentOperations,
+  TypeOptimization,
+  ParamType,
+  ReturnType,
+  ReturnIds,
+  ThreeStateId,
+  ExternalPointer,
+  InternalPointer,
+  CachePointer,
+  ErrorCodeValue,
+  TypedArraySliceValue,
+  TypedSliceArray,
+});

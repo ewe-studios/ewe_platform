@@ -382,3 +382,21 @@ export function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) 
 function jsonEncodeEventData(eventData) {
   return new TextEncoder().encode(JSON.stringify(eventData));
 }
+
+// ─── Global registration ──────────────────────────────────────────────────────────
+//
+// The ESM exports above are canonical (`<script type="module">` / import). This
+// mirror lets classic (non-module) scripts on the same page reach the DOM runtime as
+// `globalThis.FoundationWasmUiRuntime` once the module has loaded.
+globalThis.FoundationWasmUiRuntime = Object.freeze({
+  Op,
+  RESERVED,
+  ArrowParser,
+  NodeRegistry,
+  ArrowDomApplicator,
+  arrowHandler,
+  buildEventData,
+  parseCallbackId,
+  EventDispatcher,
+  callbackDeliver,
+});

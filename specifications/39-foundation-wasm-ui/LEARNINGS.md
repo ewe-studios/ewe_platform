@@ -462,3 +462,13 @@ Pinned contract (Rust `ops.rs`/`base.rs` are the byte-level source of truth):
 - **Async-in-batch**: InvokeAsync thunk returns null (never an inline result); reply delivered via
   the shared `ReplyEncoder.callbackSuccess` → `CallbackRegistry.invoke` → `invoke_callback`.
   None-hint = fire-and-forget (promise unwatched).
+
+## Single-file browser-safe runtimes (2026-06-11)
+
+`runtime/foundation-wasm.js` is now ONE self-contained file (function-call codec +
+V2 batch codec + core runtime merged; `function-registry.js`/`batch-instructions.js`
+deleted). No internal imports → loads in-browser without a bundler:
+`<script type="module">` for the ESM exports, plus a `globalThis.FoundationWasmRuntime`
+frozen mirror for classic scripts. `foundation-wasm-ui.js` (already single-file) gets the
+matching `globalThis.FoundationWasmUiRuntime` mirror. All 34 + 10 node tests green
+against the merged files — future runtime work edits these single files directly.
