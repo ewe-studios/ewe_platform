@@ -1,7 +1,7 @@
 ---
 feature_name: "NFS Adapter"
 description: "NfsMount — NFS v3 loopback server exposing VfsFileSystem as a mount on Linux and macOS. No kernel extension required."
-status: "pending"
+status: "done"
 priority: "medium"
 phase: 4
 created: 2026-06-04

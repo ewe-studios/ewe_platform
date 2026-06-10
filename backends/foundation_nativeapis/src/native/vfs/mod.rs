@@ -10,6 +10,9 @@ pub mod ptrace;
 #[cfg(all(feature = "vfs-ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 pub mod ipc_bus;
 
+#[cfg(feature = "vfs-nfs")]
+pub mod nfs;
+
 #[cfg(feature = "vfs-fjall")]
 pub mod fjall_fs;
 
@@ -20,6 +23,7 @@ pub mod shim;
 pub mod libsql_delta;
 
 #[cfg(feature = "vfs-turso")]
+pub use nfs::VfsNfs;
 pub mod turso_delta;
 
 #[cfg(feature = "vfs-d1")]
@@ -41,4 +45,5 @@ pub use ipc_bus::{ClientTransport, DaemonTransport, VFS_BUS_IDENTIFIER, run_daem
 pub use libsql_delta::{LibsqlDelta, SyncLibsqlDelta};
 
 #[cfg(feature = "vfs-turso")]
+pub use nfs::VfsNfs;
 pub use turso_delta::TursoDelta;
