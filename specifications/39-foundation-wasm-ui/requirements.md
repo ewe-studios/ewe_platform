@@ -305,9 +305,11 @@ backends/
 | [06-js-runtime-core](features/06-js-runtime-core/) | Split JS SDK: foundation-wasm.js (rewritten standard comm) + foundation-wasm-ui.js (DOM, animation, components) | 1 | pending |
 | [07-auth-ui-package](features/07-auth-ui-package/) | foundation_auth_ui — login form, register form, MFA challenge, session status, user profile, auth layout | 3 | pending |
 | [08-headless-ui-components](features/08-headless-ui-components/) | foundation_ui_components — headless accessible components: button, dialog, menu, tabs, popover, combobox, etc. | 4 | pending |
-| [12-testbed-native-harness](features/12-testbed-native-harness/) | foundation_wasm_testbed owns a native wasm test harness on our own runtime (foundation-wasm.js) — replaces spec-31's wasm-bindgen/wasm-pack reliance with `#[wasm_test]` + `__fwt_` discovery and owned node/deno/browser runners | 1 | pending |
+| [12-testbed-native-harness](features/12-testbed-native-harness/) | foundation_wasm_testbed owns the native wasm test runners/orchestration on our own runtime (foundation-wasm.js) — replaces spec-31's wasm-bindgen/wasm-pack reliance | 1 | pending |
+| [13-wasm-test-native](features/13-wasm-test-native/) | Owned test execution: `#[wasm_test]` macro + `__fwt_` discovery (walrus, our prefix) + result protocol over our ABI — replaces `#[wasm_bindgen_test]`/`__wbgt_` | 1 | pending |
+| [14-wasm-bindgen-interop-boundary](features/14-wasm-bindgen-interop-boundary/) | The ONLY sanctioned wasm-bindgen usage: minimal, isolated, opt-in (Cloudflare worker-rs, foundation_db); never in the owned runtime/build/test backbone | 1 | pending |
 
-> Note: the index rows 01–08 above are the original phase-1 plan; the authoritative feature set lives in `features/00`–`features/12` (see those dirs). Feature 12 was added 2026-06-10 from the spec-31 review.
+> Note: the index rows 01–08 above are the original phase-1 plan; the authoritative feature set lives in `features/00`–`features/14` (see those dirs). Features 12–14 + decision 031 were added 2026-06-10 from the spec-31 review (own WASM infra end-to-end; wasm-bindgen only at explicit integration points).
 
 
 ## Module References

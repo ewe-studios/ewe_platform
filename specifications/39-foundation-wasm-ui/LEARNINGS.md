@@ -240,7 +240,19 @@ via `{ abi: rt.web_abi }`, with OUR `#[wasm_test]` macro + `__fwt_` discovery + 
 node/deno/browser runners; wasm-bindgen kept only as an explicit opt-in. Proven seed already in-tree:
 `integrations/nodejs/foundation-wasm/` (15 node tests incl. real-module e2e, zero wasm-bindgen).
 Registered in requirements.md Feature Index (rows 01-08 there are the stale original plan; authoritative
-set is features/00-12).
+set is features/00-14).
+
+**Refined into a policy + focused features (2026-06-10, per user):** own WASM infra end-to-end;
+wasm-bindgen permitted ONLY at small, explicit, opt-in integration points (Cloudflare worker-rs which
+is heavily wasm-bindgen, foundation_db/SDKs); walrus is fine (wasm-format tool, incl. parsing
+wasm-bindgen output + our own discovery). Added:
+- **decision 031** — owned WASM infrastructure policy (the principle + permitted boundaries).
+- **feature 12** — testbed runners/orchestration (build→stage→run→report).
+- **feature 13** — owned test execution: `#[wasm_test]` (foundation_macros) + `__fwt_` discovery
+  (walrus, our prefix) + result protocol over our ABI. Replaces `#[wasm_bindgen_test]`/`__wbgt_`.
+- **feature 14** — the sanctioned, opt-in wasm-bindgen boundary; never in the owned backbone.
+Shared wasm build primitive (cargo→wasm32, LLVM backend via CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm)
+factored across F10 (ewe-wasm) and F12 (testbed).
 
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,

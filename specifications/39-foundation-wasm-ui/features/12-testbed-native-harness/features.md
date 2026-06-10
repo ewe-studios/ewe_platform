@@ -2,8 +2,13 @@
 
 **Crate:** `foundation_wasm_testbed` (extended)
 **Runtime:** `foundation-wasm.js` + `foundation-wasm-ui.js` (this spec's owned runtime)
-**Decisions:** 014 (execution modes), 016 (build pipeline)
+**Decisions:** 014 (execution modes), 016 (build pipeline), **031 (owned WASM infrastructure)**
 **Builds on / supersedes:** `specifications/completed/31-wasm-testbed`
+
+> **Scope split (added 2026-06-10):** this feature is the testbed **runners/orchestration**
+> (build → stage → run → report). The test-execution model (`#[wasm_test]` + `__fwt_` discovery
+> + result protocol) is **Feature 13**. The sanctioned, opt-in wasm-bindgen usage is **Feature
+> 14**. The ownership policy is **decision 031**.
 
 ---
 
