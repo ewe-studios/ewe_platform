@@ -50,6 +50,11 @@ LLVM codegen backend on a Cranelift-default workspace).
 at the boundary above, and our own `__fwt_` export discovery. It is a wasm-format tool, not
 a wasm-bindgen dependency.
 
+**`wasmbin`** (Apache-2.0) is ported into `foundation_codegen` (F15) for type-safe,
+minimal-diff (`Lazy<T>`) wasm editing — owned, preferred where precise/auditable edits matter;
+`walrus` stays for general rewrites and the wasm-bindgen-output boundary. Both coexist; pick per
+task. Attribution to the upstream project is mandatory (F15).
+
 ### Boundary rules
 
 1. wasm-bindgen usage is **isolated to the integrating crate/mode** and never leaks into the
@@ -65,3 +70,4 @@ a wasm-bindgen dependency.
 - F12 (testbed-native-harness) — owned runners; bindgen-* becomes opt-in.
 - F13 (`#[wasm_test]` native discovery) — owned test execution.
 - F14 (wasm-bindgen interop boundary) — the only sanctioned wasm-bindgen usage.
+- F15 (type-safe WASM/WAT) — `wasmbin` ported into `foundation_codegen` for owned, type-safe edits.

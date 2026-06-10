@@ -254,6 +254,16 @@ wasm-bindgen output + our own discovery). Added:
 Shared wasm build primitive (cargo→wasm32, LLVM backend via CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm)
 factored across F10 (ewe-wasm) and F12 (testbed).
 
+**Feature 15 added (2026-06-10):** port `wasmbin` (https://github.com/RReverser/wasmbin, Apache-2.0,
+© Ingvar Stepanyan, v0.9.2 — source at `/home/darkvoid/Boxxed/@formulas/src.rust/src.wasm/src.tsgen/wasmbin/`)
+into `foundation_codegen::wasm` for type-safe, minimal-diff (`Lazy<T>`) wasm editing; its derive
+macros → `foundation_macros` (per macros-location rule); CLI binary → `foundation_codegentools`
+(beside `wasm_bins`). Extend with WAT (text) ⇄ binary. Workspace is also Apache-2.0 → compatible;
+attribution MANDATORY (vendored LICENSE, NOTICE, per-file credit headers, README links, upstream
+version, stated modifications — Apache-2.0 §4). Complements walrus (decision 031): wasmbin =
+type-safe/minimal-diff (preferred for precise edits); walrus = general rewrites + wasm-bindgen-output
+boundary.
+
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
   `ReturnHintParser`) — the big host_invoke_* surface.
