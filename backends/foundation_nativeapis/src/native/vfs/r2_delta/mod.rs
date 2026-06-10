@@ -15,7 +15,7 @@ pub use types::{KeyLayout, KeyLayoutAdapter, PathKeyLayout, R2FsConfig, R2Object
 
 use foundation_core::valtron::collect_one;
 use foundation_db::R2Store;
-use foundation_db::core::storage_provider::BlobStore;
+use foundation_db::core::storage_provider::{AsyncBlobStore, BlobStore};
 
 use crate::shared::vfs::error::{VfsError, VfsResult};
 use crate::shared::vfs::traits::{DeltaStore, VfsFile, VfsFileSystem};
@@ -197,24 +197,24 @@ impl VfsFileSystem for R2Delta {
         Ok(R2SeekableFile { file: self.open(path, mode)?, pos: std::sync::Arc::new(std::sync::RwLock::new(0)) })
     }
     fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
-        self.get_meta(path)?; Ok(R2Directory { path: path.to_string(), delta: self.clone_arc() })
+        self.get_meta(&path)?; Ok(R2Directory { path: path.to_string(), delta: self.clone_arc() })
     }
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
-        if let Some(m) = self.get_meta(path)? { return Ok(m); }
+        if let Some(m) = self.get_meta(&path)? { return Ok(m); }
         let s = self.store.get_blob(&Self::data_key(path)).map_err(serr)?;
         let d: Option<Vec<u8>> = collect_blob(s)?;
         match d { Some(c) => Ok(new_meta(path, c.len() as u64, VfsFileType::Regular)), None => Err(VfsError::Backend { message: format!("not found: {path}") }.into()) }
     }
     fn exists(&self, path: &str) -> VfsResult<bool> {
         if whiteout_exists(self, path)? { return Ok(false); }
-        if self.get_meta(path)?.is_some() { return Ok(true); }
+        if self.get_meta(&path)?.is_some() { return Ok(true); }
         let s = self.store.blob_exists(&Self::data_key(path)).map_err(serr)?;
         if collect_bool(s).unwrap_or(false) { return Ok(true); }
         let s = self.store.blob_exists(&Self::meta_key(path)).map_err(serr)?;
         Ok(collect_bool(s).unwrap_or(false))
     }
     fn chmod(&self, path: &str, mode: u32) -> VfsResult<()> {
-        if let Some(mut m) = self.get_meta(path)? { m.permissions = mode; self.store_meta(path, &m) }
+        if let Some(mut m) = self.get_meta(&path)? { m.permissions = mode; self.store_meta(path, &m) }
         else { Err(VfsError::Backend { message: format!("not found: {path}") }.into()) }
     }
     fn symlink(&self, _t: &str, _l: &str) -> VfsResult<()> { Err(VfsError::Backend { message: "unsupported".into() }.into()) }
@@ -238,7 +238,7 @@ impl VfsFileSystem for R2Delta {
     }
     fn write_file(&self, path: &str, data: &[u8]) -> VfsResult<()> {
         let s = self.store.put_blob(&Self::data_key(path), data).map_err(serr)?; drain_ok(s)?;
-        let mut m = self.get_meta(path)?.unwrap_or_else(|| new_meta(path, data.len() as u64, VfsFileType::Regular));
+        let mut m = self.get_meta(&path)?.unwrap_or_else(|| new_meta(path, data.len() as u64, VfsFileType::Regular));
         m.size = data.len() as u64; m.modified = Some(std::time::SystemTime::now());
         self.store_meta(path, &m)
     }
@@ -304,3 +304,122 @@ fn collect_blob(stream: impl Iterator<Item = foundation_core::valtron::Stream<Re
     }
 }
 fn serr(e: foundation_db::StorageError) -> VfsError { VfsError::Backend { message: e.to_string() } }
+
+
+// ── Async trait implementations ──
+// R2Store's async methods are ?Send, so we delegate to sync methods instead.
+
+use crate::shared::vfs::async_traits::{
+    AsyncVfsFile, AsyncVfsDirectory, AsyncVfsFileSystem, AsyncDeltaStore,
+    AsyncSeekableVfsFile,
+};
+use async_trait::async_trait;
+
+pub struct AsyncR2File { path: String, mode: OpenMode, delta: std::sync::Arc<R2Delta> }
+
+#[async_trait]
+impl AsyncVfsFile for AsyncR2File {
+    async fn read_at_async(&self, len: usize, offset: u64) -> VfsResult<Vec<u8>> {
+        let data = self.delta.read_file(&self.path)?;
+        let off = offset as usize;
+        if off >= data.len() { return Ok(Vec::new()); }
+        Ok(data[off..(off + len).min(data.len())].to_vec())
+    }
+    async fn write_at_async(&self, data: Vec<u8>, offset: u64) -> VfsResult<usize> {
+        self.delta.write_file(&self.path, &data)?; Ok(data.len())
+    }
+    async fn sync_data_async(&self) -> VfsResult<()> { Ok(()) }
+    async fn size_async(&self) -> VfsResult<u64> {
+        let meta = self.delta.stat(&self.path)?; Ok(meta.size)
+    }
+    async fn truncate_async(&self, size: u64) -> VfsResult<()> {
+        let data = self.delta.read_file(&self.path)?;
+        let mut data = data; data.truncate(size as usize);
+        self.delta.write_file(&self.path, &data)
+    }
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> { self.delta.stat(&self.path) }
+}
+
+#[async_trait]
+impl AsyncSeekableVfsFile for AsyncR2File {
+    async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> { self.read_at_async(len, 0).await }
+    async fn write_async(&mut self, data: Vec<u8>) -> VfsResult<usize> { self.write_at_async(data, 0).await }
+    async fn seek_async(&mut self, _pos: std::io::SeekFrom) -> VfsResult<u64> { Ok(0) }
+    fn position_async(&self) -> u64 { 0 }
+}
+
+pub struct AsyncR2Directory { path: String, delta: std::sync::Arc<R2Delta> }
+
+#[async_trait]
+impl AsyncVfsDirectory for AsyncR2Directory {
+    type File = AsyncR2File; type SeekableFile = AsyncR2File;
+    fn path(&self) -> String { self.path.clone() }
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> { self.delta.stat(&self.path) }
+    async fn list_async(&self) -> VfsResult<Vec<VfsDirEntry>> { Ok(Vec::new()) }
+    async fn get_entry_async(&self, _name: String) -> VfsResult<Option<VfsDirEntry>> { Ok(None) }
+    async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> {
+        let p = if self.path.ends_with('/') { format!("{}{}", self.path, name) } else { format!("{}/{}", self.path, name) };
+        self.delta.create(&p, mode).map(|_| AsyncR2File { path: p, mode: OpenMode::ReadWrite, delta: self.delta.clone() })
+    }
+    async fn create_dir_async(&self, name: String) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
+        let p = if self.path.ends_with('/') { format!("{}{}", self.path, name) } else { format!("{}/{}", self.path, name) };
+        self.delta.mkdir(&p)?;
+        Ok(Box::new(AsyncR2Directory { path: p, delta: self.delta.clone() }))
+    }
+    async fn remove_entry_async(&self, name: String) -> VfsResult<()> {
+        let p = if self.path.ends_with('/') { format!("{}{}", self.path, name) } else { format!("{}/{}", self.path, name) };
+        self.delta.remove(&p)
+    }
+    async fn rename_entry_async(&self, old: String, new: String) -> VfsResult<()> {
+        let f = if self.path.ends_with('/') { format!("{}{}", self.path, old) } else { format!("{}/{}", self.path, old) };
+        let t = if self.path.ends_with('/') { format!("{}{}", self.path, new) } else { format!("{}/{}", self.path, new) };
+        self.delta.rename(&f, &t)
+    }
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        self.delta.open(&path, mode).map(|_| AsyncR2File { path, mode, delta: self.delta.clone() })
+    }
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        self.delta.open(&path, mode).map(|_| AsyncR2File { path, mode, delta: self.delta.clone() })
+    }
+    async fn open_directory_async(&self, path: String) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
+        self.delta.open_directory(&path).map(|_| Box::new(AsyncR2Directory { path, delta: self.delta.clone() }) as Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>)
+    }
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> { self.delta.stat(&path) }
+    async fn exists_async(&self, path: String) -> VfsResult<bool> { self.delta.exists(&path) }
+}
+
+#[async_trait]
+impl AsyncVfsFileSystem for R2Delta {
+    type File = AsyncR2File; type SeekableFile = AsyncR2File; type Directory = AsyncR2Directory;
+    fn capabilities(&self) -> VfsCapabilities { VfsCapabilities { seekable: true, symlinks: false, permissions_enforced: false, event_emission: false, persistent: true } }
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> {
+        self.create(&path, mode).map(|_| AsyncR2File { path, mode: OpenMode::ReadWrite, delta: self.clone_arc() })
+    }
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> { self.mkdir(&path) }
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> {
+        self.open(&path, mode).map(|_| AsyncR2File { path, mode, delta: self.clone_arc() })
+    }
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
+        self.open(&path, mode).map(|_| AsyncR2File { path, mode, delta: self.clone_arc() })
+    }
+    async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> {
+        self.open_directory(&path).map(|_| AsyncR2Directory { path, delta: self.clone_arc() })
+    }
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> { self.stat(&path) }
+    async fn exists_async(&self, path: String) -> VfsResult<bool> { self.exists(&path) }
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> { self.chmod(&path, mode) }
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> { self.symlink(&target, &link) }
+    async fn readlink_async(&self, path: String) -> VfsResult<String> { self.readlink(&path) }
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> { self.rename(&from, &to) }
+    async fn remove_async(&self, path: String) -> VfsResult<()> { self.remove(&path) }
+}
+
+#[async_trait]
+impl AsyncDeltaStore for R2Delta {
+    async fn add_whiteout_async(&self, path: String, version: u64) -> VfsResult<()> { self.add_whiteout(&path, version) }
+    async fn is_whiteout_async(&self, path: String) -> VfsResult<Option<u64>> { self.is_whiteout(&path) }
+    async fn remove_whiteout_async(&self, path: String) -> VfsResult<()> { self.remove_whiteout(&path) }
+    async fn list_whiteouts_async(&self, dir: String) -> VfsResult<Vec<(String, u64)>> { self.list_whiteouts(&dir) }
+    async fn flush_async(&self) -> VfsResult<()> { self.flush() }
+    async fn reset_async(&self) -> VfsResult<()> { self.reset() }
+}
