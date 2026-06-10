@@ -13,8 +13,8 @@ use foundation_wasm::abi::web::{
     host_apply, invoke_as_bool, invoke_as_f64, invoke_as_i32, register_function,
 };
 use foundation_wasm::{
-    exposed_runtime, internal_api, MemoryId, Params, ReturnTypeHints, ReturnTypeId, ReturnValues,
-    ThreeState, WasmEnvelope,
+    exposed_runtime, internal_api, InternalPointer, MemoryId, Params, ReturnTypeHints,
+    ReturnTypeId, ReturnValues, ThreeState, WasmEnvelope,
 };
 
 /// Build a 2-op Arrow batch and ship it to JS via `host_apply`.
@@ -106,6 +106,20 @@ pub extern "C" fn roundtrip_string_echo_len() -> i32 {
     f.invoke_for_str(&[Params::Text8("ab")])
         .map(|s| s.len() as i32)
         .unwrap_or(-1)
+}
+
+/// ASYNC return: registers an `async` JS fn (`x + 1`) and invokes it through the async
+/// ABI with a caller-supplied callback id. JS resolves the Promise, frames the reply
+/// (`[Begin][Int32][value][End]`), and calls `invoke_callback(callback_id, mem)` — the
+/// JS test asserts that delivery by spying on the runtime's callback registry.
+#[no_mangle]
+pub extern "C" fn invoke_async_test(callback_id: u64) {
+    let f = register_function("async function(x){ return x + 1; }");
+    f.invoke_async(
+        InternalPointer::pointer(callback_id),
+        &[Params::Int32(41)],
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Int32)),
+    );
 }
 
 /// Registers a fn that records all decoded args onto `this` (JS-side capture), invoked

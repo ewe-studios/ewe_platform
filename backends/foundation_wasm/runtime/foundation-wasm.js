@@ -360,7 +360,7 @@ export class FoundationWasm {
     this.callbacks = new CallbackRegistry(this.bridge, this.memory);
     this.animation = new AnimationDriver(this.bridge, opts.rafHost);
     this.strings = new StringCache(this.bridge);
-    this.functions = new FunctionRegistry(this.bridge, this.memory, this.strings);
+    this.functions = new FunctionRegistry(this.bridge, this.memory, this.strings, this.callbacks);
     this.dispatcher = new ProtocolDispatcher();
   }
 
@@ -407,6 +407,10 @@ export class FoundationWasm {
       },
       host_invoke_function(handle, pPtr, pLen, rPtr, rLen) {
         return functions.invoke(handle, pPtr, pLen, rPtr, rLen);
+      },
+      // Async fn: result Promise → framed reply delivered later via invoke_callback.
+      host_invoke_async_function(handle, callbackHandle, pPtr, pLen, rPtr, rLen) {
+        functions.invokeAsync(handle, callbackHandle, pPtr, pLen, rPtr, rLen);
       },
       // Typed fast-paths: return the naked scalar directly.
       host_invoke_function_as_bool: (h, p, l) => functions.invokeAsBool(h, p, l),

@@ -226,6 +226,35 @@ export class ReplyEncoder {
     return id;
   }
 
+  /**
+   * Mirror of megatron `Reply.callback_success`: an async JS result resolved — encode it
+   * (always framed Begin..End) and deliver it to WASM callback `callbackId` via the
+   * `CallbackRegistry` (which writes a slot + calls `invoke_callback`). `None`-hinted
+   * async calls are fire-and-forget and never reach here.
+   * @param {import('./foundation-wasm.js').CallbackRegistry} callbacks
+   * @param {bigint} callbackId  the WASM `InternalPointer` value
+   * @param {{id:number, states:Array<{types:number[]}>}} hint
+   */
+  callbackSuccess(callbacks, callbackId, hint, value) {
+    const type = hint.states[0].types[0]; // SingleReturn: the one declared type
+    const bytes = this.encode([{ type, value }]);
+    callbacks.invoke(callbackId, bytes);
+  }
+
+  /**
+   * Mirror of megatron `Reply.callback_failure`: a rejected async result — frame it as an
+   * `ErrorCode` ReturnValue and deliver it (Rust decodes `ReturnValues::ErrorCode`).
+   * @param {import('./foundation-wasm.js').CallbackRegistry} callbacks
+   * @param {bigint} callbackId
+   */
+  callbackFailure(callbacks, callbackId, error) {
+    const code = error instanceof ErrorCodeValue
+      ? error.code
+      : (error && Number.isInteger(error.code) ? error.code : 1);
+    const bytes = this.encode([{ type: ReturnType.ErrorCode, value: code }]);
+    callbacks.invoke(callbackId, bytes);
+  }
+
   /** Encode containers as `[Begin][ReturnType][value]…[End]` (Rust FromBinary expects the frame). */
   encode(containers) {
     const out = [ReturnValueMarker.Begin];
@@ -284,12 +313,14 @@ export class FunctionRegistry {
    * @param {{exports:object, memory:WebAssembly.Memory}} bridge
    * @param {import('./foundation-wasm.js').MemoryAllocations} memory
    * @param {import('./foundation-wasm.js').StringCache} strings
+   * @param {import('./foundation-wasm.js').CallbackRegistry} callbacks  delivers async replies
    */
-  constructor(bridge, memory, strings) {
+  constructor(bridge, memory, strings, callbacks) {
     this.bridge = bridge;
     this.params = new ParameterParser(bridge, strings);
     this.hints = new ReturnHintParser(bridge);
     this.reply = new ReplyEncoder(memory);
+    this.callbacks = callbacks;
     this.heap = new Map(); // handle(bigint) -> fn
     this.next = 1n;
     this.context = this; // `this` for registered fns; override to expose helpers
@@ -325,6 +356,23 @@ export class FunctionRegistry {
   #invokeNaked(handle, pPtr, pLen, returnTypeId) {
     const hint = { id: ReturnIds.One, states: [{ stateId: ThreeStateId.One, types: [returnTypeId] }] };
     return this.reply.immediate(hint, this.#call(handle, pPtr, pLen), false);
+  }
+
+  /**
+   * `host_invoke_async_function`: call a fn that returns a Promise. Params + return hint
+   * are read from WASM memory SYNCHRONOUSLY (before any await); when the promise settles
+   * the framed reply is delivered to WASM via `invoke_callback`. A `None` hint is
+   * fire-and-forget (mirror of megatron — the promise result is discarded).
+   */
+  invokeAsync(handle, callbackHandle, pPtr, pLen, rPtr, rLen) {
+    const hint = this.hints.parse(rPtr, rLen);
+    const result = this.#call(handle, pPtr, pLen);
+    if (hint.id === ReturnIds.None) return; // fire-and-forget
+    const callbackId = BigInt(callbackHandle);
+    Promise.resolve(result).then(
+      (value) => this.reply.callbackSuccess(this.callbacks, callbackId, hint, value),
+      (error) => this.reply.callbackFailure(this.callbacks, callbackId, error),
+    );
   }
 
   invokeAsBool(handle, pPtr, pLen) { return this.#invokeNaked(handle, pPtr, pLen, ReturnType.Bool) ? 1 : 0; }

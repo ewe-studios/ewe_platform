@@ -58,6 +58,27 @@ test("roundtrip_string_echo_len: Text8 param in + string out", { skip }, () => {
   assert.equal(instance.exports.roundtrip_string_echo_len(), 4); // "ab"+"ab"
 });
 
+test("invoke_async_test: async fn result framed + delivered via invoke_callback", { skip }, async () => {
+  const { rt, instance } = boot();
+  // Spy on the callback registry so we observe the encoded reply WITHOUT calling back
+  // into WASM at an unregistered id. invokeAsync delivers through rt.callbacks.invoke.
+  const calls = [];
+  rt.callbacks.invoke = (id, data) => calls.push({ id, data: Uint8Array.from(data) });
+
+  instance.exports.invoke_async_test(7n); // callback id = 7
+  await Promise.resolve(); // drain the .then() microtask
+  await Promise.resolve();
+
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].id, 7n);
+  const d = calls[0].data; // [Begin=100][Int32=5][42 LE u32][End=101]
+  assert.equal(d[0], 100); // ReturnValueMarker.Begin
+  assert.equal(d[1], 5); // ReturnType.Int32
+  const dv = new DataView(d.buffer, d.byteOffset, d.byteLength);
+  assert.equal(dv.getInt32(2, true), 42); // 41 + 1
+  assert.equal(d[6], 101); // ReturnValueMarker.End
+});
+
 test("capture_mixed_params: flat decode of Int32/Text8/Bool/Float64", { skip }, () => {
   const { rt, instance } = boot();
   const ctx = {};
