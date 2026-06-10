@@ -217,13 +217,25 @@ and the old megatron.js — their SOURCE is stale after the rename, but they're 
 committed .wasm so nothing rebuilds them. They'll be superseded as the new harness grows; revisit if
 we keep them.
 
+### Task 5 — foundation-wasm-ui.js: ArrowDomApplicator increment DONE — 2026-06-10
+
+`backends/foundation_wasm_ui/runtimes/foundation-wasm-ui.js` (ES module): `ArrowParser`
+(decodes the columnar layout — exact mirror of `foundation_ui_traits::ArrowEncoder`),
+`NodeRegistry` (primal-id→node, reserved 0-2 = head/body/html per G1), `ArrowDomApplicator`
+(applies all decision-010 op codes to a `document`), `arrowHandler()` factory for the dispatcher.
+Tested in the same harness (`test/foundation-wasm-ui.test.js` + `mock-dom.js`): synthetic
+create/attr/class/append batch, unknown-node-id throw, and **full WASM→JS→DOM e2e** — the real
+module's Arrow batch is parsed (nodeIds=[5,6], ops=[SET_TEXT,REMOVE], textVal[0]="hi") and applied
+to the mock DOM. **15 JS tests green total.**
+
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
-  `ReturnHintParser`) — the big host_invoke_* surface. Deferred from the core increment.
-- `foundation-wasm-ui.js` (DOM layer): ArrowParser/ArrowDomApplicator, NodeRegistry, SignalBridge,
-  ComponentRegistry, EventDispatcher, SSEClient, Patcher, Hydrator, MorphDom, transports.
-- End-to-end: wire foundation-wasm.js as the runtime in foundation_wasm_testbed (deno can run
-  wasm32 headlessly) for real-module verification, then retire megatron.js.
+  `ReturnHintParser`) — the big host_invoke_* surface.
+- foundation-wasm-ui.js rest: SignalBridge, ComponentRegistry (islands/mount), EventDispatcher +
+  Hydrator (primal:on* wiring, decision 018), SSEClient, transports (decision 028), MorphDom
+  (decision 027 — applicator currently has an innerHTML fallback for MORPH_NODE).
+- Retire megatron.js once the new pair reaches parity; optionally wire into foundation_wasm_testbed
+  (deno) for browser-shaped e2e.
 
 ### Open integration seam (still): `InstructionReceiver` owns its OWN `MemoryAllocations`, but JS
 `dispose_allocation` (exposed_runtime) frees the GLOBAL `ALLOCATIONS` static — reconcile when wiring
