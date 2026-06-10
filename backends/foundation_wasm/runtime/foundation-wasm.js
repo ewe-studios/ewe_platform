@@ -644,6 +644,17 @@ export class FunctionRegistry {
   invokeAsBigInt(handle, pPtr, pLen) { const v = this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Uint64); return typeof v === "bigint" ? v : BigInt(v); }
   /** Object fast-path: the result interns into the object heap; its handle crosses naked. */
   invokeAsObject(handle, pPtr, pLen) { const v = this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Object); return typeof v === "bigint" ? v : BigInt(v); }
+
+  /**
+   * String fast-path (megatron `as_str`): the result string's RAW UTF-8 bytes go into
+   * a fresh arena slot (no reply framing) and the slot id crosses.
+   */
+  invokeAsString(handle, pPtr, pLen) {
+    const bytes = new TextEncoder().encode(String(this.#call(handle, pPtr, pLen)));
+    const slot = this.reply.memory.create(bytes.length);
+    this.reply.memory.write(slot, bytes);
+    return slot;
+  }
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -1530,6 +1541,16 @@ export class FoundationWasm {
       host_invoke_function_as_i64: (h, p, l) => functions.invokeAsBigInt(h, p, l),
       host_unregister_function(handle) {
         functions.unregister(handle);
+      },
+      // megatron-era aliases/extras, kept so megatron-built modules instantiate:
+      host_function_drop_external_pointer(handle) {
+        functions.unregister(handle);
+      },
+      // String fast-path: raw UTF-8 into a fresh slot, slot id crosses.
+      host_invoke_function_as_str: (h, p, l) => functions.invokeAsString(h, p, l),
+      // WASM-side fatal: surface it as a JS exception (megatron parity).
+      host_abort() {
+        throw new Error("WasmInstance called abort");
       },
 
       // Pre-allocate empty heap handles for later binding (batch MakeFunction / objects).
