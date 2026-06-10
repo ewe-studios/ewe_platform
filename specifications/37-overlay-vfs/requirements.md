@@ -84,10 +84,10 @@ The central composition primitive is `OverlayFileSystem<B, D>` — an overlay th
 | [24-scaffold-macro-clippy](features/24-scaffold-macro-clippy/) | scaffold!() clippy warning suppression — never-type technique from todo!() | 5 | done |
 | [19-fjall-cacache-vfs](features/19-fjall-cacache-vfs/) | FjallFs/FjallDelta — fjall LSM-tree + cacache CAS, SCRU128 keys, hierarchical prefix index | 3 | pending |
 | [08-nfs-adapter](features/08-nfs-adapter/) | NfsMount — NFS v3 loopback adapter (macOS, Linux) | 4 | pending |
-| [16-ld-preload-shim](features/16-ld-preload-shim/) | LD_PRELOAD/DYLD_INSERT_LIBRARIES shim — libc interception, redirects to VFS daemon | 5 | in-progress |
-| [13-cloudflare-d1-delta](features/13-cloudflare-d1-delta/) | D1Delta — Cloudflare D1 (edge SQLite) as DeltaStore | 5 | in-progress |
-| [14-cloudflare-r2-delta](features/14-cloudflare-r2-delta/) | R2Delta — Cloudflare R2 (S3-compatible) as DeltaStore | 5 | in-progress |
-| [25-examples-showcase](features/25-examples-showcase/) | Examples showcase — programmatic API walkthroughs for every VFS and IPC API | 6 | in-progress |
+| [16-ld-preload-shim](features/16-ld-preload-shim/) | LD_PRELOAD/DYLD_INSERT_LIBRARIES shim — libc interception, redirects to VFS daemon | 5 | done |
+| [13-cloudflare-d1-delta](features/13-cloudflare-d1-delta/) | D1Delta — Cloudflare D1 (edge SQLite) as DeltaStore | 5 | done |
+| [14-cloudflare-r2-delta](features/14-cloudflare-r2-delta/) | R2Delta — Cloudflare R2 (S3-compatible) as DeltaStore | 5 | done |
+| [25-examples-showcase](features/25-examples-showcase/) | Examples showcase — programmatic API walkthroughs for every VFS and IPC API | 6 | done |
 | [17-projfs-windows](features/17-projfs-windows/) | ProjFS — Windows 10+ native projection, provider callbacks, auto-promote on write | 6 | deferred |
 | [26-reverie-backend](features/26-reverie-backend/) | Reverie ptrace backend — Meta's experimental framework, not on crates.io | 4 | deferred |
 | [27-kernel-compatibility-tests](features/27-kernel-compatibility-tests/) | Resolve PTRACE_EVENT_STOP deadlock on kernel 7.0.9, re-enable ignored fork tracing tests | 5 | deferred |
