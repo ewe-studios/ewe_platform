@@ -277,14 +277,40 @@ rewrites. The one capability worth having (reference cleanup on delete) is recor
 **future enhancement**: cache deleted refs/tombstones, run a cleanup+relocation pass before serialize
 (design ref: walrus `tombstone_arena.rs` + `passes/used.rs`+`gc.rs`) — cherry-pick, not full port.
 
+### Task 5 — EventDispatcher increment DONE — 2026-06-10
+
+`foundation-wasm-ui.js` gained `EventDispatcher` (decision 018): `scanAndWire` finds `primal:on*`
+attributes (via `getAttributeNames`, descends children), wires direct listeners (default binding —
+works for non-bubbling events), idempotent rewiring (G2 — `off` before re-add), `removeListeners`
+cleanup. On an event it builds EventData {type, primalId, value, checked, keyCode, modifiers} (G4)
+and calls an injected `deliver(callbackId, eventData)`. `parseCallbackId` accepts `"7"`/`"callback-7"`
+(numeric → WASM callback), returns null for JS function refs (`controller.delete` — later increment).
+`callbackDeliver(callbackRegistry, encode=JSON)` is the default deliver — ships EventData via the
+`CallbackRegistry` (foundation-wasm.js); the EventData wire format stays swappable (F08 owns it).
+Tests: `foundation_wasm_ui/integration/test/event-dispatcher.test.js` (7) + mock-dom event support.
+**foundation_wasm_ui/integration: 10 node tests green** (3 DOM applicator + 7 event).
+
+### Integration harness RELOCATED — 2026-06-10 (new skill rule)
+
+Per the new rust-clean-code rule (crate-owned integration harnesses), the node harness moved from
+top-level `integrations/nodejs/foundation-wasm/` into the crates:
+`backends/foundation_wasm/integration/` (12 tests: ABI core + e2e module + fixture + build-module.sh)
+and `backends/foundation_wasm_ui/integration/` (10 tests). Run per crate: `cd <crate>/integration &&
+node --test`. The e2e module is a standalone `[workspace]` crate at
+`foundation_wasm/integration/module` (workspace-excluded). Rule added to
+`.agents/skills/rust-clean-code/testing/skill.md` §3 (`.agents` is a submodule — the rule edit is
+committed there separately by the user).
+
 ### Task 5 REMAINING:
 - `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
   `ReturnHintParser`) — the big host_invoke_* surface.
-- foundation-wasm-ui.js rest: SignalBridge, ComponentRegistry (islands/mount), EventDispatcher +
-  Hydrator (primal:on* wiring, decision 018), SSEClient, transports (decision 028), MorphDom
-  (decision 027 — applicator currently has an innerHTML fallback for MORPH_NODE).
+- foundation-wasm-ui.js rest: SignalBridge, ComponentRegistry (islands/mount), Hydrator
+  (styles/scripts; events now via EventDispatcher), MutationObserver auto-wire/cleanup (decision 018
+  §3, browser-only), SSEClient, transports (decision 028), MorphDom (decision 027 — applicator has an
+  innerHTML fallback for MORPH_NODE).
 - Retire megatron.js once the new pair reaches parity; optionally wire into foundation_wasm_testbed
   (deno) for browser-shaped e2e.
+- Per user's plan ordering: finish F00 → F15 (wasmbin, grounds F14) → F14 → then testable wasm.
 
 ### Open integration seam (still): `InstructionReceiver` owns its OWN `MemoryAllocations`, but JS
 `dispose_allocation` (exposed_runtime) frees the GLOBAL `ALLOCATIONS` static — reconcile when wiring

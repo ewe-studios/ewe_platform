@@ -246,3 +246,139 @@ export function arrowHandler(applicator) {
     },
   };
 }
+
+// ─── EventDispatcher (primal:on* → WASM callbacks) ───────────────────────────────
+
+const PRIMAL_ON = "primal:on";
+
+/**
+ * Build the EventData object handed to a WASM callback (decision 018 / G4):
+ * type, the element's primal-id, current value/checked, key code, and modifier keys.
+ */
+export function buildEventData(eventType, event, el) {
+  return {
+    type: eventType,
+    primalId: el.getAttribute ? el.getAttribute("primal-id") : null,
+    value: el.value ?? null,
+    checked: el.checked ?? null,
+    keyCode: event.keyCode ?? null,
+    modifiers: {
+      alt: !!event.altKey,
+      ctrl: !!event.ctrlKey,
+      shift: !!event.shiftKey,
+      meta: !!event.metaKey,
+    },
+  };
+}
+
+/**
+ * Parse a `primal:on*` attribute value into a WASM callback id.
+ * Accepts `"7"` or `"callback-7"`. Returns `null` for non-callback refs (e.g. a
+ * stimulus-style `"controller.delete"`), which a later increment will resolve as a
+ * JS function ref.
+ */
+export function parseCallbackId(ref) {
+  if (ref == null) return null;
+  const s = String(ref).trim();
+  const body = s.startsWith("callback-") ? s.slice("callback-".length) : s;
+  return /^\d+$/.test(body) ? Number(body) : null;
+}
+
+/**
+ * WHY: DOM events have to cross back into WASM. The event runtime wires
+ * `primal:on{event}` attributes to direct listeners (decision 018 — direct binding
+ * is the default, works for non-bubbling events too) that serialise EventData and
+ * invoke the WASM callback.
+ *
+ * WHAT: scan/wire/unwire + programmatic helpers, with idempotent rewiring (G2).
+ *
+ * HOW: `deliver(callbackId, eventData)` is injected so the EventData *wire format*
+ * (F08) stays swappable — see {@link callbackDeliver} for the default that ships it
+ * through a `CallbackRegistry`.
+ */
+export class EventDispatcher {
+  /** @param {(callbackId:number, eventData:object) => void} deliver */
+  constructor(deliver) {
+    this.deliver = deliver;
+    // element -> Map<eventType, listenerFn>, so rewiring/cleanup is exact.
+    this.listeners = new WeakMap();
+  }
+
+  /** Wire every `primal:on*` attribute on `root` and its descendants. */
+  scanAndWire(root) {
+    this.#visit(root, (el) => {
+      for (const name of el.getAttributeNames()) {
+        if (name.startsWith(PRIMAL_ON)) {
+          this.wire(el, name.slice(PRIMAL_ON.length), el.getAttribute(name));
+        }
+      }
+    });
+  }
+
+  #visit(node, fn) {
+    if (typeof node.getAttributeNames === "function") fn(node);
+    for (const child of node.children || []) this.#visit(child, fn);
+  }
+
+  /**
+   * Wire one `eventType` on `el` to `handlerRef`. Idempotent (G2): removes any prior
+   * listener for that event first, so re-scans (or MutationObserver re-fires) don't
+   * stack duplicates.
+   */
+  wire(el, eventType, handlerRef) {
+    this.off(el, eventType);
+    const listener = (event) => {
+      const callbackId = parseCallbackId(handlerRef);
+      if (callbackId !== null) {
+        this.deliver(callbackId, buildEventData(eventType, event, el));
+      }
+    };
+    el.addEventListener(eventType, listener);
+    let map = this.listeners.get(el);
+    if (!map) {
+      map = new Map();
+      this.listeners.set(el, map);
+    }
+    map.set(eventType, listener);
+  }
+
+  /** Remove the listener for `eventType` on `el` (if any). */
+  off(el, eventType) {
+    const map = this.listeners.get(el);
+    const listener = map?.get(eventType);
+    if (listener) {
+      el.removeEventListener(eventType, listener);
+      map.delete(eventType);
+    }
+  }
+
+  /** Remove all listeners on `el` and its descendants (cleanup on node removal). */
+  removeListeners(root) {
+    this.#visit(root, (el) => {
+      const map = this.listeners.get(el);
+      if (map) {
+        for (const [eventType, listener] of map) el.removeEventListener(eventType, listener);
+        this.listeners.delete(el);
+      }
+    });
+  }
+}
+
+/**
+ * Default `deliver` for {@link EventDispatcher}: serialise EventData and ship it to
+ * the WASM callback via a `CallbackRegistry` (from foundation-wasm.js).
+ *
+ * `encode(eventData) -> Uint8Array` is injectable; the default is UTF-8 JSON. The
+ * authoritative EventData wire format is defined by feature 08 (event-runtime) — this
+ * keeps the seam swappable without changing the dispatcher.
+ *
+ * @param {{invoke:(id:number, bytes:Uint8Array)=>void}} callbackRegistry
+ * @param {(eventData:object)=>Uint8Array} [encode]
+ */
+export function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
+  return (callbackId, eventData) => callbackRegistry.invoke(callbackId, encode(eventData));
+}
+
+function jsonEncodeEventData(eventData) {
+  return new TextEncoder().encode(JSON.stringify(eventData));
+}
