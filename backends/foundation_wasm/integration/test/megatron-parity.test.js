@@ -202,9 +202,11 @@ test("legacy tests_instructions_none_return_callback: batch async fire-and-forge
 test("legacy return_big_int: 14 mixed params incl. 128-bit + naked big-int return", { skip: bootLegacy("tests_js_invoke_function_and_return_big_int") ? false : missing }, () => {
   const { rt, mock, instance } = bootLegacy("tests_js_invoke_function_and_return_big_int");
   instance.exports.main();
+  // V1 64/128-bit params surface as BigInt (megatron parseBigInt64 parity — the old
+  // suite's non-strict deepEqual hid this; positions: Int64, Uint64, Uint128, Int128).
   assert.deepEqual(mock.calls, [{
     method: "calculateAge",
-    arguments: [5, 5, 10, 10, 5, 5, 10, 10, 10, 10, true, false, 10.2, 10.4],
+    arguments: [5, 5n, 10, 10, 5, 5n, 10, 10, 10n, 10n, true, false, 10.2, 10.4],
   }]);
   assert.equal(rt.objects.items.length, 0);
   assert.equal(rt.functions.heap.items.length, 1);

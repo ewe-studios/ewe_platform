@@ -61,3 +61,31 @@ test("dom_drop: host_dom_drop_external_pointer retires the handle", { skip }, ()
   instance.exports.dom_drop(BigInt(handle));
   assert.equal(dom.get(BigInt(handle)), undefined);
 });
+
+// ── Legacy megatron fixture: DOM return path (parity oracle) ──────────────────────
+
+const legacyWasm = join(
+  here, "..", "..", "..", "..", "integrations", "nodejs", "integrations",
+  "tests_js_invoke_function_and_return_dom", "module.wasm",
+);
+
+test("legacy return_dom: asFakeNode interns into the DOM heap, module self-asserts", { skip: existsSync(legacyWasm) ? false : "legacy fixture not present" }, () => {
+  const rt = new FoundationWasm();
+  const dom = new DomHeap({ window: null, document: null });
+  const mock = { calls: [] };
+  mock.createDom = (message) => {
+    const domIndex = dom.items.length + 1;
+    mock.calls.push({ method: "createDom", arguments: [message], returns: domIndex });
+    return domIndex;
+  };
+  rt.functions.mock = mock;
+  const abi = { ...rt.web_abi, ...domAbi(rt, dom) };
+  const instance = new WebAssembly.Instance(new WebAssembly.Module(readFileSync(legacyWasm)), { abi });
+  rt.init(instance);
+
+  instance.exports.main(); // wasm self-asserts the returned DOM handle (trap = fail)
+  assert.deepEqual(mock.calls, [{ method: "createDom", arguments: ["div"], returns: 6 }]);
+  assert.equal(dom.items.length, 6); // 5 reserved + the FakeNode
+  const node = dom.items[5].item;
+  assert.equal(node.tag, "div"); // the interned FakeNode
+});

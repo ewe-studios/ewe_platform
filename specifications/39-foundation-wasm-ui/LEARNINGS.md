@@ -499,3 +499,34 @@ Feature-00's Rust port had dropped megatron-era externs; restored for 1:1 parity
   excluded from the root workspace like the core one. 37 core + 14 UI tests green.
 - `foundation_wasm` now re-exports `raw_parts` (lib.rs) so dependent crates can hand param
   buffers to their own host FFI the same way the core crate does.
+
+## Megatron drop-in parity proven on legacy fixtures (2026-06-11)
+
+`integration/test/megatron-parity.test.js` runs ALL 20 megatron-era compiled fixtures
+(integrations/nodejs/integrations/*/module.wasm, referenced in place read-only) on the NEW
+runtime — 21 parity tests green (the DOM one lives in foundation_wasm_ui's suite with
+DomHeap+domAbi). The modules SELF-ASSERT decoded values in Rust (panic→trap), so green =
+byte-level drop-in parity. What it took beyond the codecs:
+
+- **Context `as*` helper API**: registered fns call `this.mock.*` AND `this.asUint8(10)`,
+  `this.asMemorySlice(0)`, `this.asFakeNode('div')` etc. — the megatron middleware was their
+  `this`. Ported the full helper family onto FunctionRegistry (the default context):
+  ReplyContainer (pre-typed return slot, passes through #containers untouched), FakeNode,
+  ReplyError (Error with .code), asNone/asBool/ints/floats/128s/asText8/asErrorCode/
+  asObject (interns)/asDOMObject/asFakeNode/asMemorySlice (numeric = EXISTING slot id!)/
+  asTypedArraySlice/as*Array (ride MemorySlice bytes)/asInternal+ExternalReference.
+- **Union ThreeState resolution = megatron check_for_type ORDER**: candidates tried in
+  declared order, first whose RUNTIME TYPE matches wins (`1` vs Three(Bool,Int8,Uint8) →
+  Int8, NOT Bool). The old infer-then-fallback encoded wrong types (caught by the module's
+  own assert_eq in tests_instructions_multi_return).
+- **invoke() -1 bug**: only a None HINT yields -1n; an undefined result under a One(None)
+  hint still encodes a framed None reply whose slot id the module dereferences
+  (tests_…_return_types trapped with InvalidAllocationId before the fix).
+- **ErrorCode unwrap**: echoed ErrorCodeValue params / ReplyError must encode their u16
+  `.code` (errorCodeOf helper; encode arm + #naked arm + callbackFailure).
+- **V1 64/128-bit params surface as BigInt** (megatron parseBigInt64). The OLD suite used
+  NON-strict deepEqual (5n == 5 passes) — don't import its literal expectations into
+  strict asserts.
+- Old fixtures' import set is a strict subset of the new web_abi (verified via
+  WebAssembly.Module.imports across all 21 modules), so megatron.js retirement (F12/F13)
+  is unblocked.

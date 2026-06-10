@@ -204,6 +204,18 @@ function asTypedSlice(value) {
 }
 
 /**
+ * The u16 code behind any error representation: an `ErrorCodeValue` (echoed param),
+ * a `ReplyError`/Error carrying `.code`, or a bare integer. Unknown shapes → 1.
+ */
+function errorCodeOf(value) {
+  if (value instanceof ErrorCodeValue) return value.code;
+  if (value && Number.isInteger(value.code)) return value.code;
+  if (Number.isInteger(value)) return value;
+  if (typeof value === "bigint") return Number(value);
+  return 1;
+}
+
+/**
  * Does `value`'s JS runtime type satisfy the candidate `ReturnType`? Used to resolve
  * a union ThreeState (Two/Three): candidates are tried IN DECLARED ORDER and the
  * first match wins (megatron `Reply.check_for_type` parity — e.g. `1` against
@@ -449,6 +461,8 @@ export class ReplyEncoder {
       case ReturnType.ExternalReference:
       case ReturnType.InternalReference:
         return value instanceof RefPointer ? value.value : value;
+      case ReturnType.ErrorCode:
+        return errorCodeOf(value);
       default:
         return value;
     }
@@ -529,10 +543,7 @@ export class ReplyEncoder {
    * @param {bigint} callbackId
    */
   callbackFailure(callbacks, callbackId, error) {
-    const code = error instanceof ErrorCodeValue
-      ? error.code
-      : (error && Number.isInteger(error.code) ? error.code : 1);
-    const bytes = this.encode([{ type: ReturnType.ErrorCode, value: code }]);
+    const bytes = this.encode([{ type: ReturnType.ErrorCode, value: errorCodeOf(error) }]);
     callbacks.invoke(callbackId, bytes);
   }
 
@@ -546,7 +557,10 @@ export class ReplyEncoder {
         case ReturnType.None: break;
         case ReturnType.Bool: out.push(value ? 1 : 0); break;
         case ReturnType.Uint8: case ReturnType.Int8: push(value, 1); break;
-        case ReturnType.Uint16: case ReturnType.Int16: case ReturnType.ErrorCode: push(value, 2); break;
+        case ReturnType.Uint16: case ReturnType.Int16: push(value, 2); break;
+        // ErrorCode values may arrive wrapped (an echoed ErrorCodeValue param or a
+        // ReplyError) — the u16 code is what crosses.
+        case ReturnType.ErrorCode: push(errorCodeOf(value), 2); break;
         case ReturnType.Uint32: case ReturnType.Int32: push(value, 4); break;
         case ReturnType.Uint64: case ReturnType.Int64: push(BigInt(value), 8); break;
         case ReturnType.Float32: { const b = new Uint8Array(4); new DataView(b.buffer).setFloat32(0, value, true); out.push(...b); break; }
@@ -671,8 +685,10 @@ export class FunctionRegistry {
   invoke(handle, pPtr, pLen, rPtr, rLen) {
     const hint = this.hints.parse(rPtr, rLen);
     const result = this.#call(handle, pPtr, pLen);
+    // immediate() owns the no-value convention: only a None HINT yields -1n. An
+    // undefined result under a One(None) hint still encodes a framed None reply —
+    // the module dereferences the returned slot id (megatron with_return parity).
     const reply = this.reply.immediate(hint, result, true);
-    if (result === undefined || result === null) return -1n;
     return typeof reply === "bigint" ? reply : BigInt(reply);
   }
 
