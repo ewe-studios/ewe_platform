@@ -3,21 +3,29 @@
 
 use alloc::string::String;
 use alloc::vec::Vec;
-use foundation_nostd::{comp::basic::Mutex, raw_parts::RawParts};
+use foundation_nostd::comp::basic::Mutex;
 
 use crate::{
-    BinaryReadError, BinaryReaderResult, CompletedInstructions, DoTask, ExternalPointer, FnDoTask,
-    FnFrameCallback, FnIntervalCallback, FrameCallback, FrameCallbackList, FromBinary,
-    GroupReturnHintMarker, Instructions, InternalCallback, InternalPointer,
-    InternalReferenceRegistry, IntervalCallback, IntervalRegistry, JSEncoding, MemoryAllocation,
-    MemoryAllocationError, MemoryAllocations, MemoryId, MemoryReaderError, Params, ReturnIds,
-    ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValueMarker, ReturnValues, Returns,
-    ScheduleRegistry, TaskErrorCode, TaskResult, ThreeState, ThreeStateId, TickState, ToBinary,
-    TypedSlice, MOVE_ONE_BYTE, MOVE_SIXTEEN_BYTES, MOVE_SIXTY_FOUR_BYTES, MOVE_THIRTY_TWO_BYTES,
+    DoTask, FnDoTask, FnFrameCallback, FnIntervalCallback, FrameCallback, FrameCallbackList,
+    FromBinary, Instructions, InternalCallback, InternalPointer, InternalReferenceRegistry,
+    IntervalCallback, IntervalRegistry, MemoryAllocation, MemoryAllocationError, MemoryAllocations,
+    MemoryId, MemoryReaderError, ReturnTypeHints, ReturnTypeId, Returns, ScheduleRegistry,
+    TaskErrorCode, TaskResult, ThreeState, TickState,
+};
+
+// Imports only the `web` ABI module needs (gated to keep non-web builds warning-free).
+#[cfg(feature = "web")]
+use foundation_nostd::raw_parts::RawParts;
+#[cfg(feature = "web")]
+use crate::{
+    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, JSEncoding, Params,
+    ReturnValueError, ReturnValues, ToBinary,
 };
 
 // Allocations for the memory management.
-static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::create());
+// `pub(crate)` so the relocated return-value parser in `protocol.rs` can read/free
+// arena slots for array-buffer return values (feature 00 Layer 2).
+pub(crate) static ALLOCATIONS: Mutex<MemoryAllocations> = Mutex::new(MemoryAllocations::create());
 
 // All registered animation callback, a registered function must indicate when it should
 // be removed and hence no direct removal/deletion is supported.
@@ -37,7 +45,7 @@ static SCHEDULED_CALLBACKS: Mutex<ScheduleRegistry> = ScheduleRegistry::create()
 /// that we support or that allows making or preparing data to be sent-out or sent-across the API.
 ///
 /// You should never place a function in here that needs to be exposed to the host or host function
-/// we want to define but instead use the [`exposed_runtime`] or [`host_runtime`] modules.
+/// we want to define but instead use the [`exposed_runtime`] or [`abi`] modules.
 pub mod internal_api {
     use alloc::boxed::Box;
 
@@ -573,36 +581,43 @@ pub mod exposed_runtime {
     }
 }
 
-/// [`host_runtime`] is the expected interface which the JS/Host
+/// [`abi`] is the expected interface which the JS/Host
 /// must provide for use with wrapper functions that make it simple
 /// and easier to interact with.
+///
+/// Gated behind the `web` feature: it declares the `wasm_import_module = "abi"` host
+/// imports, so only consumers talking to a JS/web host compile it in. Non-web hosts
+/// (WASI, native, custom WASM hosts) use the rest of the ABI (memory, encoding,
+/// registries, WASM exports) without being forced to supply these imports.
+#[cfg(feature = "web")]
 #[allow(unused)]
-pub mod host_runtime {
+pub mod abi {
     use super::{
-        host_runtime, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
-        DoTask, ExternalPointer, FrameCallback, FromBinary, GroupReturnTypeHints, InternalCallback,
+        abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
+        DoTask, ExternalPointer, FrameCallback, FromBinary, InternalCallback,
         InternalPointer, IntervalCallback, JSEncoding, MemoryAllocationError, MemoryId, Params,
         RawParts, ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValues, Returns, String,
         ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
     };
+    // GroupReturnTypeHints now lives in `protocol.rs` (feature 00 Layer 2).
+    use crate::GroupReturnTypeHints;
 
-    pub const DOM_SELF: ExternalPointer = ExternalPointer::pointer(0);
-    pub const DOM_THIS: ExternalPointer = ExternalPointer::pointer(1);
-    pub const DOM_WINDOW: ExternalPointer = ExternalPointer::pointer(2);
-    pub const DOM_DOCUMENT: ExternalPointer = ExternalPointer::pointer(3);
-    pub const DOM_BODY: ExternalPointer = ExternalPointer::pointer(4);
+    // DOM reference constants (DOM_SELF/THIS/WINDOW/DOCUMENT/BODY) moved to
+    // `foundation_wasm_ui::wasm::dom::constants` (feature 00 — no DOM in the ABI crate).
 
     // -- Functions (Invocation & Registration)
     pub mod web {
         use crate::{CachedText, MemoryAllocationResult, MemoryReaderError, WasmRequestResult};
 
         use super::{
-            host_runtime, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
-            DoTask, ExternalPointer, FrameCallback, FromBinary, GroupReturnTypeHints,
+            abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
+            DoTask, ExternalPointer, FrameCallback, FromBinary,
             InternalCallback, InternalPointer, IntervalCallback, JSEncoding, MemoryAllocationError,
             MemoryId, Params, RawParts, ReturnTypeHints, ReturnTypeId, ReturnValueError,
             ReturnValues, Returns, String, ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
         };
+        // GroupReturnTypeHints now lives in `protocol.rs` (feature 00 Layer 2).
+        use crate::GroupReturnTypeHints;
 
         #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
         #[link(wasm_import_module = "abi")]
@@ -656,6 +671,14 @@ pub mod host_runtime {
                 text_length: u64,
             ) -> u64;
 
+            /// [`host_apply`] is the uniform, protocol-agnostic transport import: it
+            /// applies the message held in arena slot `mem_id` at `(ptr, len)`. The
+            /// slot's payload begins with the 14-byte `WasmEnvelope`
+            /// (`[protocol][version][memory_id][length]`), so JS reads the protocol
+            /// byte to dispatch and `dispose_allocation(mem_id)` to ACK. One slot, one
+            /// ACK, for Arrow / Custom Binary / JSON alike (decision 028, G44).
+            pub fn host_apply(mem_id: u64, ptr: u64, len: u64);
+
             /// [`function_allocate_external_pointer`] allows you to ahead of time request the
             /// allocation of an external reference id unique for a function and unreusable by anyone else
             /// you the owner. This allows you get an id you would use later in the future to register
@@ -668,11 +691,8 @@ pub mod host_runtime {
             /// for usage later.
             pub fn object_allocate_external_pointer() -> u64;
 
-            /// [`dom_allocate_external_pointer`] allows you to ahead of time request the
-            /// allocation of an external reference id unique for a dom node and unreusable by anyone else
-            /// you the owner. This allows you get an id you would use later in the future to register
-            /// for usage later.
-            pub fn dom_allocate_external_pointer() -> u64;
+            // `dom_allocate_external_pointer` moved to
+            // `foundation_wasm_ui::wasm::dom::element` (DOM-specific FFI, feature 00).
 
             /// [`host_cache_string`] provides a way to cache dynamic utf8 strings that
             /// will be interned into a map of a u64 key representing the string, this allows
@@ -888,15 +908,15 @@ pub mod host_runtime {
             ) -> u64 {
                 0
             }
+            pub fn host_apply(_mem_id: u64, _ptr: u64, _len: u64) {}
             pub fn function_allocate_external_pointer() -> u64 {
                 0
             }
             pub fn object_allocate_external_pointer() -> u64 {
                 0
             }
-            pub fn dom_allocate_external_pointer() -> u64 {
-                0
-            }
+            // `dom_allocate_external_pointer` stub moved with its FFI to
+            // `foundation_wasm_ui::wasm::dom::element` (feature 00).
             pub fn host_cache_string(_start: u64, _len: u64, _encoding: u8) -> u64 {
                 0
             }
@@ -1005,17 +1025,14 @@ pub mod host_runtime {
         #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
         pub use stubs::*;
 
-        /// [`allocate_dom_reference`] requests the host runtime to pre-allocate
-        /// a target external reference for usage by the caller for a dom node.
-        pub fn allocate_dom_reference() -> ExternalPointer {
-            unsafe { ExternalPointer::pointer(host_runtime::web::dom_allocate_external_pointer()) }
-        }
+        // `allocate_dom_reference` moved to `foundation_wasm_ui::wasm::dom::element`
+        // (DOM concept — keeps the ABI crate DOM-free, feature 00).
 
         /// [`allocate_function_reference`] requests the host runtime to pre-allocate
         /// a target external reference for usage by the caller for a function.
         pub fn allocate_function_reference() -> ExternalPointer {
             unsafe {
-                ExternalPointer::pointer(host_runtime::web::function_allocate_external_pointer())
+                ExternalPointer::pointer(abi::web::function_allocate_external_pointer())
             }
         }
 
@@ -1023,7 +1040,7 @@ pub mod host_runtime {
         /// a target external reference for usage by the caller for an object.
         pub fn allocate_object_reference() -> ExternalPointer {
             unsafe {
-                ExternalPointer::pointer(host_runtime::web::object_allocate_external_pointer())
+                ExternalPointer::pointer(abi::web::object_allocate_external_pointer())
             }
         }
 
@@ -1038,7 +1055,7 @@ pub mod host_runtime {
             let (text_pointer, text_length) = text_memory.as_address().expect("get text address");
 
             unsafe {
-                host_runtime::web::host_batch_apply(
+                abi::web::host_batch_apply(
                     ops_pointer as u64,
                     ops_length,
                     text_pointer as u64,
@@ -1066,7 +1083,7 @@ pub mod host_runtime {
             let (text_pointer, text_length) = text_memory.as_address().expect("get text address");
 
             let return_id = unsafe {
-                host_runtime::web::host_batch_returning_apply(
+                abi::web::host_batch_returning_apply(
                     ops_pointer as u64,
                     ops_length,
                     text_pointer as u64,
@@ -1124,7 +1141,7 @@ pub mod host_runtime {
             // notify the host we are interested in animation frames
             // generally host should ignore if we are already registered.
             unsafe {
-                host_runtime::web::hook_up_animation_frames();
+                abi::web::hook_up_animation_frames();
             };
         }
 
@@ -1140,7 +1157,7 @@ pub mod host_runtime {
             // notify the host we are interested in animation frames
             // generally host should ignore if we are already registered.
             unsafe {
-                host_runtime::web::hook_up_animation_frames();
+                abi::web::hook_up_animation_frames();
             };
         }
 
@@ -1156,7 +1173,7 @@ pub mod host_runtime {
             // notify the host we are interested in animation frames
             // generally host should ignore if we are already registered.
             unsafe {
-                host_runtime::web::hook_up_animation_frames();
+                abi::web::hook_up_animation_frames();
             };
         }
 
@@ -1172,7 +1189,7 @@ pub mod host_runtime {
             // notify the host we are interested in animation frames
             // generally host should ignore if we are already registered.
             unsafe {
-                host_runtime::web::hook_up_animation_frames();
+                abi::web::hook_up_animation_frames();
             };
         }
 
@@ -1180,7 +1197,7 @@ pub mod host_runtime {
 
         pub fn unregister_schedule<F>(id: InternalPointer) {
             unsafe {
-                host_runtime::web::unschedule_timeout(id.into_inner());
+                abi::web::unschedule_timeout(id.into_inner());
             };
             internal_api::unregister_schedule_callback(id);
         }
@@ -1194,7 +1211,7 @@ pub mod host_runtime {
         {
             let id = internal_api::register_schedule(f);
             unsafe {
-                host_runtime::web::schedule_timeout(timing, id.into_inner());
+                abi::web::schedule_timeout(timing, id.into_inner());
             };
             id
         }
@@ -1208,7 +1225,7 @@ pub mod host_runtime {
         {
             let id = internal_api::register_schedule(f);
             unsafe {
-                host_runtime::web::schedule_timeout(timing, id.into_inner());
+                abi::web::schedule_timeout(timing, id.into_inner());
             };
             id
         }
@@ -1222,7 +1239,7 @@ pub mod host_runtime {
         {
             let id = internal_api::register_schedule_callback(f);
             unsafe {
-                host_runtime::web::schedule_timeout(timing, id.into_inner());
+                abi::web::schedule_timeout(timing, id.into_inner());
             };
             id
         }
@@ -1236,7 +1253,7 @@ pub mod host_runtime {
         {
             let id = internal_api::register_schedule_callback(f);
             unsafe {
-                host_runtime::web::schedule_timeout(timing, id.into_inner());
+                abi::web::schedule_timeout(timing, id.into_inner());
             };
             id
         }
@@ -1245,7 +1262,7 @@ pub mod host_runtime {
 
         pub fn unregister_interval<F>(id: InternalPointer) {
             unsafe {
-                host_runtime::web::unschedule_interval(id.into_inner());
+                abi::web::unschedule_interval(id.into_inner());
             };
             internal_api::unregister_interval_callback(id);
         }
@@ -1259,7 +1276,7 @@ pub mod host_runtime {
         {
             let id = internal_api::register_interval(f);
             unsafe {
-                host_runtime::web::schedule_interval(timing, id.into_inner());
+                abi::web::schedule_interval(timing, id.into_inner());
             };
             id
         }
@@ -1273,7 +1290,7 @@ pub mod host_runtime {
         {
             let id = internal_api::register_interval(f);
             unsafe {
-                host_runtime::web::schedule_interval(timing, id.into_inner());
+                abi::web::schedule_interval(timing, id.into_inner());
             };
             id
         }
@@ -1287,7 +1304,7 @@ pub mod host_runtime {
         {
             let id = internal_api::register_interval_callback(f);
             unsafe {
-                host_runtime::web::schedule_interval(timing, id.into_inner());
+                abi::web::schedule_interval(timing, id.into_inner());
             };
             id
         }
@@ -1301,7 +1318,7 @@ pub mod host_runtime {
         {
             let id = internal_api::register_interval_callback(f);
             unsafe {
-                host_runtime::web::schedule_interval(timing, id.into_inner());
+                abi::web::schedule_interval(timing, id.into_inner());
             };
             id
         }
@@ -1328,7 +1345,7 @@ pub mod host_runtime {
             let start = code.as_ptr() as usize;
             let len = code.len();
             unsafe {
-                CachedText::pointer(host_runtime::web::host_cache_string(
+                CachedText::pointer(abi::web::host_cache_string(
                     start as u64,
                     len as u64,
                     JSEncoding::UTF8.into(),
@@ -1344,7 +1361,7 @@ pub mod host_runtime {
             let len = code.len();
             unsafe {
                 HostFunction {
-                    handler: host_runtime::web::host_register_function(
+                    handler: abi::web::host_register_function(
                         start as u64,
                         len as u64,
                         JSEncoding::UTF8.into(),
@@ -1362,7 +1379,7 @@ pub mod host_runtime {
             let len = code.len();
             unsafe {
                 HostFunction {
-                    handler: host_runtime::web::host_register_function(
+                    handler: abi::web::host_register_function(
                         start as u64,
                         len as u64,
                         JSEncoding::UTF16.into(),
@@ -1380,7 +1397,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_f64(
+                abi::web::host_invoke_function_as_f64(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1397,7 +1414,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_f32(
+                abi::web::host_invoke_function_as_f32(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1414,7 +1431,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_i64(
+                abi::web::host_invoke_function_as_i64(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1431,7 +1448,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_i32(
+                abi::web::host_invoke_function_as_i32(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1448,7 +1465,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_i16(
+                abi::web::host_invoke_function_as_i16(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1465,7 +1482,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_i8(
+                abi::web::host_invoke_function_as_i8(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1482,7 +1499,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_u64(
+                abi::web::host_invoke_function_as_u64(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1499,7 +1516,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_u32(
+                abi::web::host_invoke_function_as_u32(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1516,7 +1533,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_u16(
+                abi::web::host_invoke_function_as_u16(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1533,7 +1550,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_u8(
+                abi::web::host_invoke_function_as_u8(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1549,7 +1566,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function_as_bool(
+                abi::web::host_invoke_function_as_bool(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1583,7 +1600,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_async_function(
+                abi::web::host_invoke_async_function(
                     handler,
                     callback.into_inner(),
                     param_raw.ptr,
@@ -1598,7 +1615,7 @@ pub mod host_runtime {
         /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
         /// which represents the allocation id of the contents.
         pub fn invoke_for_str(handler: u64, params: &[Params]) -> WasmRequestResult<String> {
-            match host_runtime::web::invoke_for_replies(
+            match abi::web::invoke_for_replies(
                 handler,
                 params,
                 ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Text8)),
@@ -1626,7 +1643,7 @@ pub mod host_runtime {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                host_runtime::web::host_invoke_function(
+                abi::web::host_invoke_function(
                     handler,
                     param_raw.ptr,
                     param_raw.length,
@@ -1645,7 +1662,7 @@ pub mod host_runtime {
             params: &[Params],
             returns: ReturnTypeHints,
         ) -> WasmRequestResult<Vec<ReturnValues>> {
-            let value = host_runtime::web::invoke(handler, params, returns.clone());
+            let value = abi::web::invoke(handler, params, returns.clone());
             let memory_id = MemoryId::from_u64(value);
 
             let memory = internal_api::get_memory(memory_id);
@@ -1698,14 +1715,14 @@ pub mod host_runtime {
             /// The `js_abi` will handle necessary conversion and execution of the function
             /// with the passed arguments.
             pub fn invoke(&self, params: &[Params], returns: ReturnTypeHints) -> MemoryId {
-                MemoryId::from_u64(host_runtime::web::invoke(self.handler, params, returns))
+                MemoryId::from_u64(abi::web::invoke(self.handler, params, returns))
             }
 
             /// [`invoke_for_memory`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
             /// which represents the allocation id of the contents.
             pub fn invoke_no_return(&self, params: &[Params]) {
-                _ = host_runtime::web::invoke(self.handler, params, ReturnTypeHints::None);
+                _ = abi::web::invoke(self.handler, params, ReturnTypeHints::None);
             }
 
             /// [`invoke_for_none`] invokes a host function registered at the given handle
@@ -1713,7 +1730,7 @@ pub mod host_runtime {
             /// that it's return value is of type [`ReturnTypeId::None`] by applying
             /// return type checks.
             pub fn invoke_for_none(&self, params: &[Params]) -> bool {
-                host_runtime::web::invoke_for_replies(
+                abi::web::invoke_for_replies(
                     self.handler,
                     params,
                     ReturnTypeHints::One(ThreeState::One(ReturnTypeId::None)),
@@ -1726,7 +1743,7 @@ pub mod host_runtime {
                 params: &[Params],
                 expected: ReturnTypeHints,
             ) -> WasmRequestResult<Vec<ReturnValues>> {
-                host_runtime::web::invoke_for_replies(self.handler, params, expected)
+                abi::web::invoke_for_replies(self.handler, params, expected)
             }
 
             /// [`invoke_for_bool`] invokes a host function registered at the given handle
@@ -1735,25 +1752,25 @@ pub mod host_runtime {
             ///
             /// Internal true is when the returned number is >= 1 and False if 0.
             pub fn invoke_for_bool(&self, params: &[Params]) -> bool {
-                host_runtime::web::invoke_as_bool(self.handler, params)
+                abi::web::invoke_as_bool(self.handler, params)
             }
 
             /// [`invoke_for_i8`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u8.
             pub fn invoke_for_i8(&self, params: &[Params]) -> i8 {
-                unsafe { host_runtime::web::invoke_as_i8(self.handler, params) }
+                unsafe { abi::web::invoke_as_i8(self.handler, params) }
             }
 
             /// [`invoke_for_i16`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u16.
             pub fn invoke_for_i16(&self, params: &[Params]) -> i16 {
-                host_runtime::web::invoke_as_i16(self.handler, params)
+                abi::web::invoke_as_i16(self.handler, params)
             }
 
             /// [`invoke_for_i32`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u32.
             pub fn invoke_for_i32(&self, params: &[Params]) -> i32 {
-                host_runtime::web::invoke_as_i32(self.handler, params)
+                abi::web::invoke_as_i32(self.handler, params)
             }
 
             /// [`invoke_for_i64`] invokes a host function registered at the given handle
@@ -1761,25 +1778,25 @@ pub mod host_runtime {
             /// representing the DOM node instance via an `ExternalPointer` that points to that object in the
             /// hosts object heap.
             pub fn invoke_for_i64(&self, params: &[Params]) -> i64 {
-                host_runtime::web::invoke_as_i64(self.handler, params)
+                abi::web::invoke_as_i64(self.handler, params)
             }
 
             /// [`invoke_for_u8`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u8.
             pub fn invoke_for_u8(&self, params: &[Params]) -> u8 {
-                unsafe { host_runtime::web::invoke_as_u8(self.handler, params) }
+                unsafe { abi::web::invoke_as_u8(self.handler, params) }
             }
 
             /// [`invoke_for_u16`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u16.
             pub fn invoke_for_u16(&self, params: &[Params]) -> u16 {
-                host_runtime::web::invoke_as_u16(self.handler, params)
+                abi::web::invoke_as_u16(self.handler, params)
             }
 
             /// [`invoke_for_u32`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a u32.
             pub fn invoke_for_u32(&self, params: &[Params]) -> u32 {
-                host_runtime::web::invoke_as_u32(self.handler, params)
+                abi::web::invoke_as_u32(self.handler, params)
             }
 
             /// [`invoke_for_u64`] invokes a host function registered at the given handle
@@ -1787,46 +1804,37 @@ pub mod host_runtime {
             /// representing the DOM node instance via an `ExternalPointer` that points to that object in the
             /// hosts object heap.
             pub fn invoke_for_u64(&self, params: &[Params]) -> u64 {
-                host_runtime::web::invoke_as_u64(self.handler, params)
+                abi::web::invoke_as_u64(self.handler, params)
             }
 
             /// [`invoke_for_float64`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a f64.
             pub fn invoke_for_f64(&self, params: &[Params]) -> f64 {
-                host_runtime::web::invoke_as_f64(self.handler, params)
+                abi::web::invoke_as_f64(self.handler, params)
             }
 
             /// [`invoke_for_float32`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a f32.
             pub fn invoke_for_f32(&self, params: &[Params]) -> f32 {
-                host_runtime::web::invoke_as_f32(self.handler, params)
+                abi::web::invoke_as_f32(self.handler, params)
             }
 
             /// [`invoke_for_str`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`u64`]
             /// which represents the allocation id of the contents.
             pub fn invoke_for_str(&self, params: &[Params]) -> WasmRequestResult<String> {
-                host_runtime::web::invoke_for_str(self.handler, params)
+                abi::web::invoke_for_str(self.handler, params)
             }
 
-            /// [`invoke_for_dom`] invokes a host function registered at the given handle
-            /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
-            /// representing the DOM node instance via an `ExternalPointer` that points to that object in the
-            /// hosts object heap.
-            pub fn invoke_for_dom(&self, params: &[Params]) -> ExternalPointer {
-                ExternalPointer::pointer(host_runtime::web::invoke(
-                    self.handler,
-                    params,
-                    ReturnTypeHints::One(ThreeState::One(ReturnTypeId::DOMObject)),
-                ))
-            }
+            // `invoke_for_dom` moved to `foundation_wasm_ui::wasm::dom::element` as the
+            // `DomInvoke` extension trait on `HostFunction` (DOM concept, feature 00).
 
             /// [`invoke_for_object`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
             /// representing the object via an `ExternalPointer` that points to that object in the
             /// hosts object heap.
             pub fn invoke_for_object(&self, params: &[Params]) -> ExternalPointer {
-                ExternalPointer::pointer(host_runtime::web::invoke(
+                ExternalPointer::pointer(abi::web::invoke(
                     self.handler,
                     params,
                     ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Object)),
@@ -1842,1333 +1850,15 @@ pub mod host_runtime {
                 params: &[Params],
                 returns: ReturnTypeHints,
             ) {
-                host_runtime::web::invoke_as_async(self.handler, callback_id, params, returns);
+                abi::web::invoke_as_async(self.handler, callback_id, params, returns);
             }
 
             /// [`unregister_function`] calls the JS ABI on the host to de-register
             /// the target function.
             pub fn unregister(self) {
-                unsafe { host_runtime::web::host_unregister_function(self.handler) }
+                unsafe { abi::web::host_unregister_function(self.handler) }
             }
         }
     }
 }
 
-struct ReturnValueParserIter<'a> {
-    hint: ReturnTypeHints,
-    item_index: usize,
-    index: usize,
-    src: &'a [u8],
-}
-
-impl<'a> ReturnValueParserIter<'a> {
-    fn new(hint: ReturnTypeHints, src: &'a [u8]) -> Self {
-        Self {
-            src,
-            hint,
-            index: 0,
-            item_index: 0,
-        }
-    }
-}
-
-// -- Parsing
-
-impl ReturnValueParserIter<'_> {
-    fn parse_next(&mut self) -> Option<BinaryReaderResult<ReturnValues>> {
-        let bin = &self.src;
-        let mut index = self.index;
-
-        if self.index >= self.src.len() {
-            return None;
-        }
-
-        let return_id: ReturnTypeId = bin[index].into();
-
-        // move by 1 byte
-        index += MOVE_ONE_BYTE;
-
-        let result = match return_id {
-            ReturnTypeId::None => {
-                self.index = index;
-                Ok(ReturnValues::None)
-            }
-            ReturnTypeId::ErrorCode => {
-                let end = index + MOVE_SIXTEEN_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 2] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u16::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::ErrorCode(item))
-            }
-            ReturnTypeId::Bool => {
-                let value = if bin[index] == 1 {
-                    ReturnValues::Bool(true)
-                } else {
-                    ReturnValues::Bool(false)
-                };
-
-                index += MOVE_ONE_BYTE;
-
-                self.index = index;
-
-                Ok(value)
-            }
-            ReturnTypeId::Uint8 => {
-                let item = u8::from_le(bin[index]);
-                index += MOVE_ONE_BYTE;
-
-                self.index = index;
-                Ok(ReturnValues::Uint8(item))
-            }
-            ReturnTypeId::Uint16 => {
-                let end = index + MOVE_SIXTEEN_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 2] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u16::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Uint16(item))
-            }
-            ReturnTypeId::Uint32 => {
-                let end = index + MOVE_THIRTY_TWO_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 4] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u32::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Uint32(item))
-            }
-            ReturnTypeId::Uint64 => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u64::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Uint64(item))
-            }
-            ReturnTypeId::Uint128 => {
-                let msb_end = index + MOVE_SIXTY_FOUR_BYTES;
-                let msb_portion = &bin[index..msb_end];
-                let mut msb_section: [u8; 8] = Default::default();
-                msb_section.copy_from_slice(msb_portion);
-
-                let lsb_end = msb_end + MOVE_SIXTY_FOUR_BYTES;
-                let lsb_portion = &bin[msb_end..lsb_end];
-                let mut lsb_section: [u8; 8] = Default::default();
-                lsb_section.copy_from_slice(lsb_portion);
-
-                let value_msb = u64::from_le_bytes(msb_section);
-                let value_lsb = u64::from_le_bytes(lsb_section);
-
-                let mut value: u128 = u128::from(value_msb) << 64;
-                value |= u128::from(value_lsb);
-
-                self.index = lsb_end;
-
-                Ok(ReturnValues::Uint128(value))
-            }
-            ReturnTypeId::Int8 => {
-                let item = i8::from_le(bin[index] as i8);
-                index += MOVE_ONE_BYTE;
-
-                self.index = index;
-
-                Ok(ReturnValues::Int8(item))
-            }
-            ReturnTypeId::Int16 => {
-                let end = index + MOVE_SIXTEEN_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 2] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = i16::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Int16(item))
-            }
-            ReturnTypeId::Int32 => {
-                let end = index + MOVE_THIRTY_TWO_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 4] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = i32::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Int32(item))
-            }
-            ReturnTypeId::Int64 => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = i64::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Int64(item))
-            }
-            ReturnTypeId::Int128 => {
-                let msb_end = index + MOVE_SIXTY_FOUR_BYTES;
-                let msb_portion = &bin[index..msb_end];
-                let mut msb_section: [u8; 8] = Default::default();
-                msb_section.copy_from_slice(msb_portion);
-
-                let lsb_end = msb_end + MOVE_SIXTY_FOUR_BYTES;
-                let lsb_portion = &bin[msb_end..lsb_end];
-                let mut lsb_section: [u8; 8] = Default::default();
-                lsb_section.copy_from_slice(lsb_portion);
-
-                let value_msb = i64::from_le_bytes(msb_section);
-                let value_lsb = i64::from_le_bytes(lsb_section);
-
-                let mut value: i128 = i128::from(value_msb) << 64;
-                value |= i128::from(value_lsb);
-
-                index = lsb_end;
-
-                self.index = index;
-
-                Ok(ReturnValues::Int128(value))
-            }
-            ReturnTypeId::Float32 => {
-                let end = index + MOVE_THIRTY_TWO_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 4] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = f32::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Float32(item))
-            }
-            ReturnTypeId::Float64 => {
-                let end = index + MOVE_THIRTY_TWO_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = f64::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Float64(item))
-            }
-            ReturnTypeId::TypedArraySlice => {
-                let item_type: TypedSlice = u8::from_le(bin[index]).into();
-                index += MOVE_ONE_BYTE;
-
-                let ptr_end = index + MOVE_SIXTY_FOUR_BYTES;
-                let ptr_portion = &bin[index..ptr_end];
-                let mut ptr_section: [u8; 8] = Default::default();
-                ptr_section.copy_from_slice(ptr_portion);
-
-                index = ptr_end;
-
-                let address_as_u64 = u64::from_le_bytes(ptr_section);
-                let address_as_ptr = address_as_u64 as *const u8;
-
-                let length_end = index + MOVE_SIXTY_FOUR_BYTES;
-                let len_portion = &bin[index..length_end];
-                let mut len_section: [u8; 8] = Default::default();
-                len_section.copy_from_slice(len_portion);
-
-                let length_as_u64 = u64::from_le_bytes(len_section);
-
-                self.index = length_end;
-
-                Ok(ReturnValues::TypedArraySlice(
-                    item_type,
-                    crate::MemoryLocation(address_as_ptr, length_as_u64),
-                ))
-            }
-            ReturnTypeId::MemorySlice => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(item);
-
-                self.index = end;
-
-                Ok(ReturnValues::MemorySlice(mem_id))
-            }
-            ReturnTypeId::Object => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u64::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::Object(item.into()))
-            }
-            ReturnTypeId::DOMObject => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u64::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::DOMObject(item.into()))
-            }
-            ReturnTypeId::ExternalReference => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u64::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::ExternalReference(item.into()))
-            }
-            ReturnTypeId::InternalReference => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let item = u64::from_le_bytes(section);
-
-                self.index = end;
-
-                Ok(ReturnValues::InternalReference(item.into()))
-            }
-            ReturnTypeId::Uint8ArrayBuffer => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec = memory.take();
-                if memory_vec.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Uint8Array(memory_vec.unwrap()))
-            }
-            ReturnTypeId::Uint16ArrayBuffer => {
-                const TOTAL_U8_IN_U18: usize = 2;
-
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let memory_size = memory_vec.len();
-
-                // if the mode of 2 (size in bytes/u8) is not zero then
-                // then its an invalid u16 array converted to u8
-                if !memory_size.is_multiple_of(TOTAL_U8_IN_U18) {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
-                        ))));
-                }
-
-                let arr_size = memory_size / TOTAL_U8_IN_U18;
-                let mut arr_content: Vec<u16> = Vec::with_capacity(arr_size);
-
-                let mut move_index = 0;
-                while move_index < arr_size {
-                    let portion_end = move_index + TOTAL_U8_IN_U18;
-                    let portion = &memory_vec[move_index..portion_end];
-                    let mut arr: [u8; TOTAL_U8_IN_U18] = Default::default();
-                    arr.copy_from_slice(portion);
-                    arr_content.push(u16::from_le_bytes(arr));
-                    move_index = portion_end;
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Uint16Array(arr_content))
-            }
-            ReturnTypeId::Uint32ArrayBuffer => {
-                const TOTAL_U8_IN_U32: usize = 4;
-
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let memory_size = memory_vec.len();
-
-                // if the mode of 2 (size in bytes/u8) is not zero then
-                // then its an invalid u32 array converted to u8
-                if !memory_size.is_multiple_of(TOTAL_U8_IN_U32) {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                            "Vec<u8> of u32 send as u8 should have even lengths, because u32 in u8 is four u8",
-                        ))));
-                }
-
-                let arr_size = memory_size / TOTAL_U8_IN_U32;
-                let mut arr_content: Vec<u32> = Vec::with_capacity(arr_size);
-
-                let mut move_index = 0;
-                while move_index < arr_size {
-                    let portion_end = move_index + TOTAL_U8_IN_U32;
-                    let portion = &memory_vec[move_index..portion_end];
-                    let mut arr: [u8; TOTAL_U8_IN_U32] = Default::default();
-                    arr.copy_from_slice(portion);
-                    arr_content.push(u32::from_le_bytes(arr));
-                    move_index = portion_end;
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Uint32Array(arr_content))
-            }
-            ReturnTypeId::Uint64ArrayBuffer => {
-                const TOTAL_U8_IN_U64: usize = 8;
-
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let memory_size = memory_vec.len();
-
-                // if the mode of 2 (size in bytes/u8) is not zero then
-                // then its an invalid u64 array converted to u8
-                if !memory_size.is_multiple_of(TOTAL_U8_IN_U64) {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                            "Vec<u8> of u64 send as u8 should have even lengths, because u64 in u8 is eight's u8",
-                        ))));
-                }
-
-                let arr_size = memory_size / TOTAL_U8_IN_U64;
-                let mut arr_content: Vec<u64> = Vec::with_capacity(arr_size);
-
-                let mut move_index = 0;
-                while move_index < arr_size {
-                    let portion_end = move_index + TOTAL_U8_IN_U64;
-                    let portion = &memory_vec[move_index..portion_end];
-                    let mut arr: [u8; TOTAL_U8_IN_U64] = Default::default();
-                    arr.copy_from_slice(portion);
-                    arr_content.push(u64::from_le_bytes(arr));
-                    move_index = portion_end;
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Uint64Array(arr_content))
-            }
-            ReturnTypeId::Int8ArrayBuffer => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let mut arr_content: Vec<i8> = Vec::with_capacity(memory_vec.len());
-
-                for value in memory_vec {
-                    arr_content.push(i8::from_le(value as i8));
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Int8Array(arr_content))
-            }
-            ReturnTypeId::Int16ArrayBuffer => {
-                const TOTAL_U8_IN_U16: usize = 2;
-
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let memory_size = memory_vec.len();
-
-                // if the mode of 2 (size in bytes/u8) is not zero then
-                // then its an invalid u16 array converted to u8
-                if !memory_size.is_multiple_of(TOTAL_U8_IN_U16) {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is two u8",
-                        ))));
-                }
-
-                let arr_size = memory_size / TOTAL_U8_IN_U16;
-                let mut arr_content: Vec<i16> = Vec::with_capacity(arr_size);
-
-                let mut move_index = 0;
-                while move_index < arr_size {
-                    let portion_end = move_index + TOTAL_U8_IN_U16;
-                    let portion = &memory_vec[move_index..portion_end];
-                    let mut arr: [u8; TOTAL_U8_IN_U16] = Default::default();
-                    arr.copy_from_slice(portion);
-                    arr_content.push(i16::from_le_bytes(arr));
-                    move_index = portion_end;
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Int16Array(arr_content))
-            }
-            ReturnTypeId::Int32ArrayBuffer => {
-                const TOTAL_U8_IN_U32: usize = 4;
-
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let memory_size = memory_vec.len();
-
-                // if the mode of 2 (size in bytes/u8) is not zero then
-                // then its an invalid u16 array converted to u8
-                if !memory_size.is_multiple_of(TOTAL_U8_IN_U32) {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is four u8",
-                        ))));
-                }
-
-                let arr_size = memory_size / TOTAL_U8_IN_U32;
-                let mut arr_content: Vec<i32> = Vec::with_capacity(arr_size);
-
-                let mut move_index = 0;
-                while move_index < arr_size {
-                    let portion_end = move_index + TOTAL_U8_IN_U32;
-                    let portion = &memory_vec[move_index..portion_end];
-                    let mut arr: [u8; TOTAL_U8_IN_U32] = Default::default();
-                    arr.copy_from_slice(portion);
-                    arr_content.push(i32::from_le_bytes(arr));
-                    move_index = portion_end;
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Int32Array(arr_content))
-            }
-            ReturnTypeId::Int64ArrayBuffer => {
-                const TOTAL_U8_IN_U64: usize = 8;
-
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let memory_size = memory_vec.len();
-
-                // if the mode of 2 (size in bytes/u8) is not zero then
-                // then its an invalid u16 array converted to u8
-                if !memory_size.is_multiple_of(TOTAL_U8_IN_U64) {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is eight's u8",
-                        ))));
-                }
-
-                let arr_size = memory_size / TOTAL_U8_IN_U64;
-                let mut arr_content: Vec<i64> = Vec::with_capacity(arr_size);
-
-                let mut move_index = 0;
-                while move_index < arr_size {
-                    let portion_end = move_index + TOTAL_U8_IN_U64;
-                    let portion = &memory_vec[move_index..portion_end];
-                    let mut arr: [u8; TOTAL_U8_IN_U64] = Default::default();
-                    arr.copy_from_slice(portion);
-                    arr_content.push(i64::from_le_bytes(arr));
-                    move_index = portion_end;
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Int64Array(arr_content))
-            }
-            ReturnTypeId::Float32ArrayBuffer => {
-                const TOTAL_U8_IN_F32: usize = 4;
-
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let memory_size = memory_vec.len();
-
-                // if the mode of 2 (size in bytes/u8) is not zero then
-                // then its an invalid u16 array converted to u8
-                if !memory_size.is_multiple_of(TOTAL_U8_IN_F32) {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is four's u8",
-                        ))));
-                }
-
-                let arr_size = memory_size / TOTAL_U8_IN_F32;
-                let mut arr_content: Vec<f32> = Vec::with_capacity(arr_size);
-
-                let mut move_index = 0;
-                while move_index < arr_size {
-                    let portion_end = move_index + TOTAL_U8_IN_F32;
-                    let portion = &memory_vec[move_index..portion_end];
-                    let mut arr: [u8; TOTAL_U8_IN_F32] = Default::default();
-                    arr.copy_from_slice(portion);
-                    arr_content.push(f32::from_le_bytes(arr));
-                    move_index = portion_end;
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Float32Array(arr_content))
-            }
-            ReturnTypeId::Float64ArrayBuffer => {
-                const TOTAL_U8_IN_F64: usize = 8;
-
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-                let memory_size = memory_vec.len();
-
-                // if the mode of 2 (size in bytes/u8) is not zero then
-                // then its an invalid u16 array converted to u8
-                if !memory_size.is_multiple_of(TOTAL_U8_IN_F64) {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                            "Vec<u8> of u16 send as u8 should have even lengths, because u16 in u8 is eight's u8",
-                        ))));
-                }
-
-                let arr_size = memory_size / TOTAL_U8_IN_F64;
-                let mut arr_content: Vec<f64> = Vec::with_capacity(arr_size);
-
-                let mut move_index = 0;
-                while move_index < arr_size {
-                    let portion_end = move_index + TOTAL_U8_IN_F64;
-                    let portion = &memory_vec[move_index..portion_end];
-                    let mut arr: [u8; TOTAL_U8_IN_F64] = Default::default();
-                    arr.copy_from_slice(portion);
-                    arr_content.push(f64::from_le_bytes(arr));
-                    move_index = portion_end;
-                }
-
-                self.index = end;
-
-                Ok(ReturnValues::Float64Array(arr_content))
-            }
-            ReturnTypeId::Text8 => {
-                let end = index + MOVE_SIXTY_FOUR_BYTES;
-                let portion = &bin[index..end];
-
-                let mut section: [u8; 8] = Default::default();
-                section.copy_from_slice(portion);
-
-                let alloc_id = u64::from_le_bytes(section);
-                let mem_id = MemoryId::from_u64(alloc_id);
-
-                let memory_result = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .get(mem_id);
-                if let Err(err) = memory_result {
-                    return Some(Err(err.into()));
-                }
-                let mut memory = memory_result.unwrap();
-                let memory_vec_container = memory.take();
-                if memory_vec_container.is_none() {
-                    return Some(Err(BinaryReadError::MemoryError(String::from(
-                        "No Vec<u8> not found, big problem",
-                    ))));
-                }
-
-                if let Err(err) = ALLOCATIONS
-                    .lock()
-                    .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                    .deallocate(mem_id)
-                {
-                    return Some(Err(err.into()));
-                }
-
-                let memory_vec = memory_vec_container.unwrap();
-
-                let value = match String::from_utf8(memory_vec) {
-                    Ok(content) => ReturnValues::Text8(content),
-                    Err(_) => {
-                        return Some(Err(BinaryReadError::ExpectedStringInCode(
-                            ReturnTypeId::Text8 as u8,
-                        )));
-                    }
-                };
-
-                self.index = end;
-
-                Ok(value)
-            }
-        };
-
-        Some(result)
-    }
-}
-
-// -- As an iterator
-
-impl Iterator for ReturnValueParserIter<'_> {
-    type Item = BinaryReaderResult<ReturnValues>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.parse_next()? {
-            Ok(item) => {
-                let item_value_type_id = item.to_return_value_type();
-
-                match self.hint.clone() {
-                    ReturnTypeHints::One(state) => match state {
-                        crate::ThreeState::One(return_type_id) => {
-                            if item_value_type_id != return_type_id {
-                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                    state,
-                                    item_value_type_id,
-                                )));
-                            }
-                        }
-                        crate::ThreeState::Two(p1, p2) => {
-                            if item_value_type_id != p1 && item_value_type_id != p2 {
-                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                    state,
-                                    item_value_type_id,
-                                )));
-                            }
-                        }
-                        crate::ThreeState::Three(p1, p2, p3) => {
-                            if item_value_type_id != p1
-                                && item_value_type_id != p2
-                                && item_value_type_id != p3
-                            {
-                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                    state,
-                                    item_value_type_id,
-                                )));
-                            }
-                        }
-                    },
-                    ReturnTypeHints::Multi(states) => {
-                        let state = states[self.item_index].clone();
-                        match state {
-                            crate::ThreeState::One(return_type_id) => {
-                                if item_value_type_id != return_type_id {
-                                    return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                        state,
-                                        item_value_type_id,
-                                    )));
-                                }
-                            }
-                            crate::ThreeState::Two(p1, p2) => {
-                                if item_value_type_id != p1 && item_value_type_id != p2 {
-                                    return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                        state,
-                                        item_value_type_id,
-                                    )));
-                                }
-                            }
-                            crate::ThreeState::Three(p1, p2, p3) => {
-                                if item_value_type_id != p1
-                                    && item_value_type_id != p2
-                                    && item_value_type_id != p3
-                                {
-                                    return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                        state,
-                                        item_value_type_id,
-                                    )));
-                                }
-                            }
-                        }
-                        self.item_index += 1;
-                    }
-                    ReturnTypeHints::List(state) => match state {
-                        crate::ThreeState::One(return_type_id) => {
-                            if item_value_type_id != return_type_id {
-                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                    state,
-                                    item_value_type_id,
-                                )));
-                            }
-                        }
-                        crate::ThreeState::Two(p1, p2) => {
-                            if item_value_type_id != p1 && item_value_type_id != p2 {
-                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                    state,
-                                    item_value_type_id,
-                                )));
-                            }
-                        }
-                        crate::ThreeState::Three(p1, p2, p3) => {
-                            if item_value_type_id != p1
-                                && item_value_type_id != p2
-                                && item_value_type_id != p3
-                            {
-                                return Some(Err(BinaryReadError::NotMatchingTypeHint(
-                                    state,
-                                    item_value_type_id,
-                                )));
-                            }
-                        }
-                    },
-                    ReturnTypeHints::None => unreachable!("Should never be called"),
-                }
-
-                Some(Ok(item))
-            }
-            Err(err) => Some(Err(err)),
-        }
-    }
-}
-
-impl FromBinary for ReturnTypeHints {
-    type T = Vec<ReturnValues>;
-
-    fn from_binary(self, input_bin: &[u8]) -> BinaryReaderResult<Self::T> {
-        if input_bin[0] != (ReturnValueMarker::Begin as u8) {
-            return Err(BinaryReadError::WrongStarterCode(input_bin[0]));
-        }
-
-        let length = input_bin.len();
-        if input_bin[length - 1] != (ReturnValueMarker::End as u8) {
-            return Err(BinaryReadError::WrongEndingCode(input_bin[length - 1]));
-        }
-
-        let value_start = 1;
-        let value_end = length - 1;
-
-        let bin = &input_bin[value_start..value_end];
-
-        let mut decoded = Vec::with_capacity(1);
-        let parser = ReturnValueParserIter::new(self, bin);
-        for parsed_item in parser {
-            match parsed_item {
-                Ok(item) => {
-                    decoded.push(item);
-                    continue;
-                }
-                Err(err) => {
-                    return Err(err);
-                }
-            }
-        }
-
-        Ok(decoded)
-    }
-}
-
-/// [`GroupReturnTypeHints`] represents conversion of
-/// underlying type which is a grouping of return values
-/// from the host where it represent a batch of return values
-/// that should be generated/materialized.
-#[derive(Default)]
-pub struct GroupReturnTypeHints;
-
-impl FromBinary for GroupReturnTypeHints {
-    type T = Vec<Returns>;
-
-    fn from_binary(self, input_bin: &[u8]) -> BinaryReaderResult<Self::T> {
-        if input_bin[0] != (GroupReturnHintMarker::Start as u8) {
-            return Err(BinaryReadError::WrongStarterCode(input_bin[0]));
-        }
-
-        let length = input_bin.len();
-        if input_bin[length - 1] != (GroupReturnHintMarker::Stop as u8) {
-            return Err(BinaryReadError::WrongEndingCode(input_bin[length - 1]));
-        }
-
-        let value_start = 1;
-        let value_end = length - 1;
-
-        let bin = &input_bin[value_start..value_end];
-        // panic!("Received binary info: {:?}", bin);
-
-        let mut decoded = Vec::with_capacity(2);
-
-        let mut index = 0;
-
-        while index < bin.len() {
-            let reply_type: ReturnIds = u8::from_le(bin[index]).into();
-            index += MOVE_ONE_BYTE;
-
-            let return_hint: ReturnTypeHints = match reply_type {
-                ReturnIds::One => {
-                    let state_type: ThreeStateId = u8::from_le(bin[index]).into();
-                    index += MOVE_ONE_BYTE;
-
-                    ReturnTypeHints::One(match state_type {
-                        ThreeStateId::One => {
-                            let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            ThreeState::One(value_type)
-                        }
-                        ThreeStateId::Two => {
-                            let p1: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            let p2: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            ThreeState::Two(p1, p2)
-                        }
-                        ThreeStateId::Three => {
-                            let p1: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            let p2: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            let p3: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            ThreeState::Three(p1, p2, p3)
-                        }
-                    })
-                }
-                ReturnIds::List => {
-                    let state_type: ThreeStateId = u8::from_le(bin[index]).into();
-                    index += MOVE_ONE_BYTE;
-
-                    ReturnTypeHints::List(match state_type {
-                        ThreeStateId::One => {
-                            let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            ThreeState::One(value_type)
-                        }
-                        ThreeStateId::Two => {
-                            let p1: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            let p2: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            ThreeState::Two(p1, p2)
-                        }
-                        ThreeStateId::Three => {
-                            let p1: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            let p2: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            let p3: ReturnTypeId = u8::from_le(bin[index]).into();
-                            index += MOVE_ONE_BYTE;
-
-                            ThreeState::Three(p1, p2, p3)
-                        }
-                    })
-                }
-                ReturnIds::Multi => {
-                    let item_count_start = index;
-                    let item_count_end = index + MOVE_SIXTEEN_BYTES;
-                    index = item_count_end;
-
-                    let item_count_slice = &bin[item_count_start..item_count_end];
-                    let mut item_count_arr: [u8; 2] = Default::default();
-                    item_count_arr.copy_from_slice(item_count_slice);
-
-                    let item_count = u16::from_le_bytes(item_count_arr);
-
-                    let mut value_types = Vec::with_capacity(item_count as usize);
-                    for _ in 0..item_count {
-                        let state_type: ThreeStateId = u8::from_le(bin[index]).into();
-                        index += MOVE_ONE_BYTE;
-
-                        value_types.push(match state_type {
-                            ThreeStateId::One => {
-                                let value_type: ReturnTypeId = u8::from_le(bin[index]).into();
-                                index += MOVE_ONE_BYTE;
-
-                                ThreeState::One(value_type)
-                            }
-                            ThreeStateId::Two => {
-                                let p1: ReturnTypeId = u8::from_le(bin[index]).into();
-                                index += MOVE_ONE_BYTE;
-
-                                let p2: ReturnTypeId = u8::from_le(bin[index]).into();
-                                index += MOVE_ONE_BYTE;
-
-                                ThreeState::Two(p1, p2)
-                            }
-                            ThreeStateId::Three => {
-                                let p1: ReturnTypeId = u8::from_le(bin[index]).into();
-                                index += MOVE_ONE_BYTE;
-
-                                let p2: ReturnTypeId = u8::from_le(bin[index]).into();
-                                index += MOVE_ONE_BYTE;
-
-                                let p3: ReturnTypeId = u8::from_le(bin[index]).into();
-                                index += MOVE_ONE_BYTE;
-
-                                ThreeState::Three(p1, p2, p3)
-                            }
-                        });
-                    }
-
-                    ReturnTypeHints::Multi(value_types)
-                }
-                ReturnIds::None => unreachable!("should never get type of value from host"),
-            };
-
-            let end = index + MOVE_SIXTY_FOUR_BYTES;
-            let portion = &bin[index..end];
-
-            index = end;
-
-            let mut section: [u8; 8] = Default::default();
-            section.copy_from_slice(portion);
-
-            let alloc_id = u64::from_le_bytes(section);
-            let mem_id = MemoryId::from_u64(alloc_id);
-
-            let memory_result = ALLOCATIONS
-                .lock()
-                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                .get(mem_id);
-            assert!(
-                memory_result.is_ok(),
-                "GroupReturnTypeHints: Received memoryId: {:?} -> {:?} -- result: {:?}",
-                &mem_id,
-                &return_hint,
-                &memory_result
-            );
-            if let Err(err) = memory_result {
-                return Err(err.into());
-            }
-            let memory = memory_result.unwrap();
-
-            match memory.into_with(|mem| return_hint.clone().from_binary(mem.as_ref())) {
-                Some(item_result) => {
-                    let mut item = item_result?;
-
-                    let value_item = match return_hint {
-                        ReturnTypeHints::One(_) => {
-                            if item.len() != 1 {
-                                return Err(BinaryReadError::MemoryError(String::from(
-                                    "more than one item for ReturnIds::One(_)",
-                                )));
-                            }
-                            Returns::One(item.pop().expect("valid index"))
-                        }
-                        ReturnTypeHints::List(_) => Returns::List(item),
-                        ReturnTypeHints::Multi(_) => Returns::Multi(item),
-                        ReturnTypeHints::None => {
-                            unreachable!("should never get return type from group")
-                        }
-                    };
-
-                    decoded.push(value_item);
-                }
-                None => {
-                    return Err(BinaryReadError::MemoryError(String::from(
-                        "expected a valid returned value not None",
-                    )));
-                }
-            }
-
-            if let Err(err) = ALLOCATIONS
-                .lock()
-                .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner)
-                .deallocate(mem_id)
-            {
-                return Err(err.into());
-            }
-        }
-
-        Ok(decoded)
-    }
-}

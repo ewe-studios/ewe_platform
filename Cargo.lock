@@ -3297,6 +3297,10 @@ dependencies = [
 [[package]]
 name = "foundation_wasm_ui"
 version = "0.1.0"
+dependencies = [
+ "foundation_ui_traits",
+ "foundation_wasm",
+]
 
 [[package]]
 name = "foundation_webwasm"

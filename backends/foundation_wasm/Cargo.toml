@@ -15,6 +15,12 @@ foundation_macros = { workspace = true }
 
 [features]
 f128 = []
+# The `web` feature enables the JS/web host ABI (`abi` module): the
+# `wasm_import_module = "abi"` FFI imports, `HostFunction`, function invocation,
+# timers, and the uniform `host_apply` transport. Off by default so non-web hosts
+# (WASI, native, custom WASM hosts) aren't forced to supply those imports. Consumers
+# that talk to a JS host (e.g. `foundation_wasm_ui`) enable it.
+web = []
 
 [lints]
 workspace = true

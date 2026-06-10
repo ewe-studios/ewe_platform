@@ -4,6 +4,9 @@
 
 extern crate alloc;
 
+mod protocol;
+pub use protocol::*;
+
 use alloc::string::String;
 use alloc::vec::Vec;
 
@@ -99,9 +102,7 @@ macro_rules! impl_into_html_for_display {
     };
 }
 
-impl_into_html_for_display!(
-    usize, isize, u8, u16, u32, u64, i8, i16, i32, i64, bool, f32, f64
-);
+impl_into_html_for_display!(usize, isize, u8, u16, u32, u64, i8, i16, i32, i64, bool, f32, f64);
 
 // ─── Html struct ─────────────────────────────────────────────────────────────
 
@@ -278,7 +279,7 @@ mod tests {
         let html = true.into_html();
         assert_eq!(html.text.as_deref(), Some("true"));
 
-        let html = 3.14f64.into_html();
+        let html = f64::consts::PI.into_html();
         assert_eq!(html.text.as_deref(), Some("3.14"));
     }
 

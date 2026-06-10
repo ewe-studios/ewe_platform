@@ -73,7 +73,7 @@ multi = ["std", "alloc"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
 js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "foundation_nostd/js-event-loop"]
-js-foundation-wasm = []
+js-foundation-wasm = ["foundation_wasm/web"]
 
 # default flags
 default = ["standard", "std"]

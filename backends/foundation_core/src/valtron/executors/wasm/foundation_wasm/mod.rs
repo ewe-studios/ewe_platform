@@ -1,6 +1,6 @@
 //! foundation_wasm FFI backend for JS event loop yielding.
 //!
-//! Uses `foundation_wasm::host_runtime::web::register_schedule` for timer scheduling.
+//! Uses `foundation_wasm::abi::web::register_schedule` for timer scheduling.
 
 use crate::valtron::{ProgressIndicator, State};
 use foundation_nostd::primitives::cooperative_spin_waiter::{
@@ -36,7 +36,7 @@ fn js_yield_and_continue() {
 fn foundation_wasm_schedule_resume(dur: time::Duration, resume: Box<dyn FnOnce()>) {
     // Wrap FnOnce in Mutex<Option> so it can satisfy Fn bound
     let resume = Mutex::new(Some(resume));
-    foundation_wasm::host_runtime::web::register_schedule(
+    foundation_wasm::abi::web::register_schedule(
         dur.as_millis() as f64,
         move || {
             if let Some(r) = resume.lock().unwrap().take() {

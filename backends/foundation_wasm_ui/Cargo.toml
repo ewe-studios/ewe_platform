@@ -7,8 +7,17 @@ license.workspace = true
 authors.workspace = true
 repository.workspace = true
 keywords.workspace = true
+description = "DOM/window/animation bindings + WASM protocol implementations built on foundation_wasm (ABI) and foundation_ui_traits (encoding)."
 
 [dependencies]
+# foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
+foundation_wasm = { workspace = true, features = ["web"] }
+foundation_ui_traits = { workspace = true }
+
+[features]
+default = []
+# Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
+embedded-js = []
 
 [lints]
 workspace = true

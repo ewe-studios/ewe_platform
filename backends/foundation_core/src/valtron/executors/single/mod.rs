@@ -67,12 +67,20 @@ impl ProcessController for NoThreadController {
 }
 
 // Default controller: JSThreadYielder on wasm32 (JS event loop aware),
-// NoThreadController on native (iteration-based spinning).
-#[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
+// NoThreadController on native (iteration-based spinning). The JS yielder is
+// wasm-only, so the selection is gated on the target too — a native build with a
+// `js-*` feature still uses NoThreadController.
+#[cfg(all(
+    any(target_arch = "wasm32", target_arch = "wasm64"),
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+))]
 use crate::valtron::wasm::JSThreadYielder as DefaultController;
 
 // NoThreadController is defined in this same file below — no import needed for native.
-#[cfg(not(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")))]
+#[cfg(not(all(
+    any(target_arch = "wasm32", target_arch = "wasm64"),
+    any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
+)))]
 type DefaultController = NoThreadController;
 
 thread_local! {
