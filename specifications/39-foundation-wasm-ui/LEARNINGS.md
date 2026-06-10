@@ -472,3 +472,30 @@ deleted). No internal imports → loads in-browser without a bundler:
 frozen mirror for classic scripts. `foundation-wasm-ui.js` (already single-file) gets the
 matching `globalThis.FoundationWasmUiRuntime` mirror. All 34 + 10 node tests green
 against the merged files — future runtime work edits these single files directly.
+
+## Naked object/DOM fast-paths + heap drops restored (2026-06-11)
+
+Feature-00's Rust port had dropped megatron-era externs; restored for 1:1 parity:
+- **`host_invoke_function_as_object`** (core) / **`host_invoke_function_as_dom`** (UI crate's own
+  FFI, like `dom_allocate_external_pointer`): the JS fn's result interns into the object/DOM heap
+  and the HANDLE crosses naked — no reply encoding. `invoke_for_object`/`invoke_for_dom` previously
+  mis-wrapped the generic `invoke()` result (an encoded MemoryId) as an ExternalPointer — fixed to
+  ride the naked externs. JS: `ReplyEncoder.#naked` transforms BEFORE the naked check (megatron
+  `Reply.immediate` order): Object/DOMObject → heap.create → handle; refs → raw id; scalars as-is.
+- **Drops**: `host_object_drop_external_pointer` + `drop_object_reference`,
+  `host_string_cache_drop_external_pointer` + `drop_cached_string` (core);
+  `host_dom_drop_external_pointer` + `drop_dom_reference` (UI). JS heaps destroy by generation;
+  StringCache.drop evicts both maps. (`host_function_drop_external_pointer`'s role is served by
+  `host_unregister_function`.)
+- **DomHeap** (foundation-wasm-ui.js, import-free duplicate of the arena): reserved slots 0–4 =
+  self/heap/window/document/body (megatron DOMArena parity; destroy refuses). CRITICAL: the Rust
+  constants DOM_SELF..DOM_BODY are the RAW values 0–4, not packed uids — DomHeap resolves
+  uid < 5 directly to the reserved slots (safe: reserved slots never bump generation, and packed
+  index-n uids are n<<32). `domAbi(rt, dom)` returns the import fragment
+  ({dom_allocate_external_pointer, host_dom_drop_external_pointer, host_invoke_function_as_dom})
+  and wires `rt.functions.reply.dom`.
+- **UI crate e2e harness**: `foundation_wasm_ui/integration/{module,fixtures,build-module.sh,
+  test/dom-abi.test.js}` — standalone uat-profile wasm fixture (depends on foundation_wasm_ui),
+  excluded from the root workspace like the core one. 37 core + 14 UI tests green.
+- `foundation_wasm` now re-exports `raw_parts` (lib.rs) so dependent crates can hand param
+  buffers to their own host FFI the same way the core crate does.

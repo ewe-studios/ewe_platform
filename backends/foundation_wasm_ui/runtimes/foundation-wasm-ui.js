@@ -383,6 +383,123 @@ function jsonEncodeEventData(eventData) {
   return new TextEncoder().encode(JSON.stringify(eventData));
 }
 
+// ─── DomHeap (DOM external-pointer arena, = megatron DOMArena) ────────────────────
+
+/**
+ * Generation-arena heap for DOM nodes referenced across the ABI by `ExternalPointer`
+ * ids (uid = `(index << 32) | generation`, bigint — same scheme as the core runtime's
+ * ExternalHeap; implemented here so this file stays import-free for the browser).
+ *
+ * Slots 0–4 are RESERVED at construction (megatron DOMArena parity):
+ * 0 = self (or this heap when no `self`), 1 = the heap itself, 2 = window,
+ * 3 = document, 4 = document.body. Reserved slots refuse `destroy`.
+ */
+export class DomHeap {
+  static RESERVED_SLOTS = 5;
+
+  /** @param {{window?:object, document?:object}} [host] overrides for tests/SSR */
+  constructor(host = globalThis) {
+    this.items = []; // { item, generation, active }
+    this.free = [];
+    const doc = host.document ?? null;
+    this.create(typeof self !== "undefined" ? self : this);
+    this.create(this);
+    this.create(host.window ?? null);
+    this.create(doc);
+    this.create(doc && doc.body ? doc.body : null);
+  }
+
+  #unpack(uid) {
+    const v = BigInt(uid);
+    // The well-known DOM handles (Rust DOM_SELF..DOM_BODY) are the RAW values 0–4,
+    // not packed uids. Reserved slots are never destroyed, so their generation stays
+    // 0 and small raw values stay unambiguous (a packed index-n uid is n<<32).
+    if (v < BigInt(DomHeap.RESERVED_SLOTS)) return { index: Number(v), generation: 0n };
+    return { index: Number(v >> 32n), generation: v & 0xffffffffn };
+  }
+
+  /** Allocate a slot for `item` (may be null) → packed uid (bigint). */
+  create(item) {
+    let index;
+    if (this.free.length > 0) {
+      index = this.free.pop();
+      const slot = this.items[index];
+      slot.generation += 1n;
+      slot.active = true;
+      slot.item = item;
+    } else {
+      index = this.items.length;
+      this.items.push({ item, generation: 0n, active: true });
+    }
+    return (BigInt(index) << 32n) | this.items[index].generation;
+  }
+
+  /** Resolve a uid → node (undefined when stale/missing). */
+  get(uid) {
+    const { index, generation } = this.#unpack(uid);
+    const slot = this.items[index];
+    if (!slot || !slot.active || slot.generation !== generation) return undefined;
+    return slot.item;
+  }
+
+  /** Fill a pre-allocated uid. False when stale. */
+  update(uid, item) {
+    const { index, generation } = this.#unpack(uid);
+    const slot = this.items[index];
+    if (!slot || slot.generation !== generation) return false;
+    slot.item = item;
+    slot.active = true;
+    return true;
+  }
+
+  /** Retire a uid (reserved slots 0–4 refuse, megatron parity). */
+  destroy(uid) {
+    const { index, generation } = this.#unpack(uid);
+    if (index < DomHeap.RESERVED_SLOTS) return false;
+    const slot = this.items[index];
+    if (!slot || !slot.active || slot.generation !== generation) return false;
+    slot.item = null;
+    slot.active = false;
+    this.free.push(index);
+    return true;
+  }
+}
+
+// ─── DOM ABI extension ─────────────────────────────────────────────────────────────
+
+/**
+ * Wire the DOM layer onto a core `FoundationWasm` runtime: creates the DomHeap,
+ * registers it as the ReplyEncoder's DOM heap (DOMObject returns intern here), and
+ * returns the DOM-specific import fragment to spread into the import object:
+ *
+ *   const rt = new FoundationWasm();
+ *   const dom = new DomHeap();
+ *   const abi = { ...rt.web_abi, ...domAbi(rt, dom) };
+ *   const instance = new WebAssembly.Instance(module, { abi });
+ *
+ * @param {{functions:{reply:{dom:object}}}} rt  the core runtime
+ * @param {DomHeap} dom
+ * @returns {object} import fragment (`dom_allocate_external_pointer`, …)
+ */
+export function domAbi(rt, dom) {
+  rt.functions.reply.dom = dom;
+  return {
+    // Pre-allocate an external-pointer slot earmarked for a DOM node
+    // (foundation_wasm_ui's allocate_dom_reference).
+    dom_allocate_external_pointer: () => dom.create(null),
+    // Retire a DOM handle (reserved slots 0–4 refuse; stale ids no-op).
+    host_dom_drop_external_pointer: (handle) => {
+      dom.destroy(BigInt(handle));
+    },
+    // DOM fast-path: the returned node interns into the DOM heap; its handle
+    // crosses naked (29 = ReturnTypeId.DOMObject, the shared contract value).
+    host_invoke_function_as_dom: (h, p, l) => {
+      const v = rt.functions.invokeNakedAs(h, p, l, 29);
+      return typeof v === "bigint" ? v : BigInt(v);
+    },
+  };
+}
+
 // ─── Global registration ──────────────────────────────────────────────────────────
 //
 // The ESM exports above are canonical (`<script type="module">` / import). This
@@ -399,4 +516,6 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   parseCallbackId,
   EventDispatcher,
   callbackDeliver,
+  DomHeap,
+  domAbi,
 });

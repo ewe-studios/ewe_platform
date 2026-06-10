@@ -43,3 +43,7 @@ pub use protocol::*;
 pub use registry::*;
 pub use schedule::*;
 pub use wrapped::*;
+
+// Re-export the raw-parts helper so dependent crates (e.g. foundation_wasm_ui)
+// can hand param buffers to their own host FFI the same way this crate does.
+pub use foundation_nostd::raw_parts;

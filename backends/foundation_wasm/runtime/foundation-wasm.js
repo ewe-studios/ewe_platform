@@ -375,9 +375,32 @@ export class ReplyEncoder {
       hint.id === ReturnIds.One && containers.length === 1 &&
       RETURN_NAKED.has(containers[0].type) && !alwaysEncoded
     ) {
-      return value; // naked scalar — typed fast-path
+      return this.#naked(containers[0]); // typed fast-path — value crosses raw
     }
     return this.encodeIntoMemory(containers);
+  }
+
+  /**
+   * The naked form of one container (megatron transforms BEFORE the naked check):
+   * Object/DOMObject intern into their heap and the HANDLE crosses; reference
+   * pointers cross as their raw id; scalars cross as-is.
+   */
+  #naked({ type, value }) {
+    switch (type) {
+      case ReturnType.Object: {
+        if (!this.objects) throw new Error("ReplyEncoder: no object heap wired");
+        return value instanceof RefPointer ? value.value : this.objects.create(value);
+      }
+      case ReturnType.DOMObject: {
+        if (!this.dom) throw new Error("ReplyEncoder: no DOM heap wired");
+        return value instanceof RefPointer ? value.value : this.dom.create(value);
+      }
+      case ReturnType.ExternalReference:
+      case ReturnType.InternalReference:
+        return value instanceof RefPointer ? value.value : value;
+      default:
+        return value;
+    }
   }
 
   /**
@@ -588,7 +611,12 @@ export class FunctionRegistry {
     return typeof reply === "bigint" ? reply : BigInt(reply);
   }
 
-  #invokeNaked(handle, pPtr, pLen, returnTypeId) {
+  /**
+   * Naked typed invoke: call the fn and return the value raw per `returnTypeId`
+   * (Object/DOMObject intern into their heap and the handle crosses). Public so the
+   * DOM layer can wire `host_invoke_function_as_dom` (ReturnType.DOMObject).
+   */
+  invokeNakedAs(handle, pPtr, pLen, returnTypeId) {
     const hint = { id: ReturnIds.One, states: [{ stateId: ThreeStateId.One, types: [returnTypeId] }] };
     return this.reply.immediate(hint, this.#call(handle, pPtr, pLen), false);
   }
@@ -610,10 +638,12 @@ export class FunctionRegistry {
     );
   }
 
-  invokeAsBool(handle, pPtr, pLen) { return this.#invokeNaked(handle, pPtr, pLen, ReturnType.Bool) ? 1 : 0; }
-  invokeAsFloat(handle, pPtr, pLen) { return Number(this.#invokeNaked(handle, pPtr, pLen, ReturnType.Float64)); }
-  invokeAsInt(handle, pPtr, pLen) { const v = this.#invokeNaked(handle, pPtr, pLen, ReturnType.Int64); return typeof v === "bigint" ? Number(v) : v; }
-  invokeAsBigInt(handle, pPtr, pLen) { const v = this.#invokeNaked(handle, pPtr, pLen, ReturnType.Uint64); return typeof v === "bigint" ? v : BigInt(v); }
+  invokeAsBool(handle, pPtr, pLen) { return this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Bool) ? 1 : 0; }
+  invokeAsFloat(handle, pPtr, pLen) { return Number(this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Float64)); }
+  invokeAsInt(handle, pPtr, pLen) { const v = this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Int64); return typeof v === "bigint" ? Number(v) : v; }
+  invokeAsBigInt(handle, pPtr, pLen) { const v = this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Uint64); return typeof v === "bigint" ? v : BigInt(v); }
+  /** Object fast-path: the result interns into the object heap; its handle crosses naked. */
+  invokeAsObject(handle, pPtr, pLen) { const v = this.invokeNakedAs(handle, pPtr, pLen, ReturnType.Object); return typeof v === "bigint" ? v : BigInt(v); }
 }
 
 // ════════════════════════════════════════════════════════════════════════════════
@@ -1333,6 +1363,16 @@ export class StringCache {
   get(handle) {
     return this.byHandle.get(BigInt(handle));
   }
+
+  /** Evict an interned string (host_string_cache_drop_external_pointer). */
+  drop(handle) {
+    const key = BigInt(handle);
+    const str = this.byHandle.get(key);
+    if (str === undefined) return false;
+    this.byHandle.delete(key);
+    this.byString.delete(str);
+    return true;
+  }
 }
 
 // ─── AnimationDriver ─────────────────────────────────────────────────────────────
@@ -1485,6 +1525,8 @@ export class FoundationWasm {
       host_invoke_function_as_i16: (h, p, l) => functions.invokeAsInt(h, p, l),
       host_invoke_function_as_i32: (h, p, l) => functions.invokeAsInt(h, p, l),
       host_invoke_function_as_u64: (h, p, l) => functions.invokeAsBigInt(h, p, l),
+      // Object fast-path: interned in the object heap, handle crosses naked.
+      host_invoke_function_as_object: (h, p, l) => functions.invokeAsObject(h, p, l),
       host_invoke_function_as_i64: (h, p, l) => functions.invokeAsBigInt(h, p, l),
       host_unregister_function(handle) {
         functions.unregister(handle);
@@ -1493,6 +1535,14 @@ export class FoundationWasm {
       // Pre-allocate empty heap handles for later binding (batch MakeFunction / objects).
       function_allocate_external_pointer: () => functions.allocate(),
       object_allocate_external_pointer: () => objects.create(null),
+
+      // Retire host-heap handles (generation-checked; stale ids no-op).
+      host_object_drop_external_pointer(handle) {
+        objects.destroy(BigInt(handle));
+      },
+      host_string_cache_drop_external_pointer(handle) {
+        strings.drop(handle);
+      },
 
       // V2 quantized batch transport: ops + texts buffers in WASM memory.
       host_batch_apply(opsPtr, opsLen, textPtr, textLen) {

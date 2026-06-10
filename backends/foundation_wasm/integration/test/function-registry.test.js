@@ -101,6 +101,26 @@ test("roundtrip_typed_slice_sum: TypedArray return via raw memory location", { s
   assert.equal(instance.exports.roundtrip_typed_slice_sum(), 6); // 1+2+3
 });
 
+test("roundtrip_object_naked: as_object fast-path returns the heap handle raw", { skip }, () => {
+  const { rt, instance } = boot();
+  const handle = instance.exports.roundtrip_object_naked();
+  assert.deepEqual(rt.objects.get(BigInt(handle)), { b: 2 });
+});
+
+test("drop_object_test: host_object_drop_external_pointer retires the handle", { skip }, () => {
+  const { rt, instance } = boot();
+  const handle = instance.exports.roundtrip_object_naked();
+  assert.deepEqual(rt.objects.get(BigInt(handle)), { b: 2 });
+  instance.exports.drop_object_test(BigInt(handle));
+  assert.equal(rt.objects.get(BigInt(handle)), undefined);
+});
+
+test("cache_and_drop_string: string-cache eviction round-trip", { skip }, () => {
+  const { rt, instance } = boot();
+  const handle = instance.exports.cache_and_drop_string();
+  assert.equal(rt.strings.get(BigInt(handle)), undefined);
+});
+
 test("batch_register_invoke_i32: V2 MakeFunction+Invoke, quantized param, group return", { skip }, () => {
   const { instance } = boot();
   assert.equal(instance.exports.batch_register_invoke_i32(14), 42); // x*3

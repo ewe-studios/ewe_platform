@@ -10,12 +10,13 @@
 
 use foundation_ui_traits::{ArrowEncoder, DomOp, ProtocolEncoder};
 use foundation_wasm::abi::web::{
-    allocate_function_reference, batch, batch_response, host_apply, invoke_as_bool, invoke_as_f64,
-    invoke_as_i32, register_function,
+    allocate_function_reference, batch, batch_response, cache_text, drop_cached_string,
+    drop_object_reference, host_apply, invoke_as_bool, invoke_as_f64, invoke_as_i32,
+    register_function,
 };
 use foundation_wasm::{
-    exposed_runtime, internal_api, InternalPointer, MemoryId, Params, ReturnTypeHints,
-    ReturnTypeId, ReturnValues, Returns, ThreeState, WasmEnvelope,
+    exposed_runtime, internal_api, ExternalPointer, InternalPointer, MemoryId, Params,
+    ReturnTypeHints, ReturnTypeId, ReturnValues, Returns, ThreeState, WasmEnvelope,
 };
 
 /// Build a 2-op Arrow batch and ship it to JS via `host_apply`.
@@ -205,6 +206,29 @@ pub extern "C" fn roundtrip_typed_slice_sum() -> i32 {
         },
         Err(_) => -2,
     }
+}
+
+/// NAKED object fast-path: `invoke_for_object` rides `host_invoke_function_as_object`
+/// — the host interns the result in its object heap and the HANDLE crosses raw (no
+/// reply encoding). Returns the handle for the JS test to resolve.
+#[no_mangle]
+pub extern "C" fn roundtrip_object_naked() -> i64 {
+    let f = register_function("function(){ return { b: 2 }; }");
+    f.invoke_for_object(&[]).clone_inner() as i64
+}
+
+/// Retires an object-heap handle (host_object_drop_external_pointer round-trip).
+#[no_mangle]
+pub extern "C" fn drop_object_test(handle: u64) {
+    drop_object_reference(ExternalPointer::pointer(handle));
+}
+
+/// Interns a string, drops it, returns the handle — the JS test asserts eviction.
+#[no_mangle]
+pub extern "C" fn cache_and_drop_string() -> i64 {
+    let handle = cache_text("drop-me").clone_inner();
+    drop_cached_string(handle);
+    handle as i64
 }
 
 // ── V2 batch codec round-trips (Operations + quantized params + group returns) ──

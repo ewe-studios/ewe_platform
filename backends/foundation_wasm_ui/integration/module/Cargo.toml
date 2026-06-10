@@ -1,0 +1,20 @@
+# Standalone crate (own [workspace]) so it doesn't pull the `web` feature into the
+# main workspace's feature unification. Built only for the e2e JS tests.
+[package]
+name = "foundation_wasm_ui_e2e"
+version = "0.0.1"
+publish = false
+edition = "2021"
+
+[dependencies]
+foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
+foundation_wasm_ui = { path = "../.." }
+
+[lib]
+crate-type = ["cdylib"]
+
+[workspace]
+
+[profile.uat]
+inherits = "release"
+codegen-backend = "llvm"

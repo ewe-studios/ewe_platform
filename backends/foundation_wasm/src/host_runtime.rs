@@ -694,6 +694,15 @@ pub mod abi {
             // `dom_allocate_external_pointer` moved to
             // `foundation_wasm_ui::wasm::dom::element` (DOM-specific FFI, feature 00).
 
+            /// [`host_object_drop_external_pointer`] retires an object-heap external
+            /// reference (allocated via [`object_allocate_external_pointer`] or returned
+            /// by an Object-hinted invocation), letting the host free the slot.
+            pub fn host_object_drop_external_pointer(handle: u64);
+
+            /// [`host_string_cache_drop_external_pointer`] evicts an interned string
+            /// (a handle from [`host_cache_string`]) from the host string cache.
+            pub fn host_string_cache_drop_external_pointer(handle: u64);
+
             /// [`host_cache_string`] provides a way to cache dynamic utf8 strings that
             /// will be interned into a map of a u64 key representing the string, this allows
             /// us to pay the cost of conversion once for these types of strings
@@ -711,6 +720,16 @@ pub mod abi {
             // length to be registered in the shared
             // function registry.
             pub fn host_register_function(start: u64, len: u64, encoding: u8) -> u64;
+
+            /// [`host_invoke_function_as_object`] invokes a Host function across the WASM/RUST
+            /// ABI expecting the result to be a host OBJECT: the host interns the returned
+            /// value in its object heap and returns the heap handle (an external reference id)
+            /// NAKED — no reply encoding (megatron `as_object` parity).
+            pub fn host_invoke_function_as_object(
+                handler: u64,
+                parameters_start: *const u8,
+                parameters_length: u64,
+            ) -> u64;
 
             /// [`host_invoke_function_as_i64`] invokes a Host function across the WASM/RUST ABI
             /// allowing you to specify the arguments to be read from specified memory location
@@ -917,6 +936,15 @@ pub mod abi {
             }
             // `dom_allocate_external_pointer` stub moved with its FFI to
             // `foundation_wasm_ui::wasm::dom::element` (feature 00).
+            pub fn host_object_drop_external_pointer(_handle: u64) {}
+            pub fn host_string_cache_drop_external_pointer(_handle: u64) {}
+            pub fn host_invoke_function_as_object(
+                _handler: u64,
+                _parameters_start: *const u8,
+                _parameters_length: u64,
+            ) -> u64 {
+                0
+            }
             pub fn host_cache_string(_start: u64, _len: u64, _encoding: u8) -> u64 {
                 0
             }
@@ -1507,6 +1535,35 @@ pub mod abi {
             }
         }
 
+        /// [`invoke_as_object`] invokes a host function registered at the given handle
+        /// expecting the host to intern the returned value in its OBJECT heap and hand
+        /// back the heap handle naked (no reply encoding) — wrapped as an
+        /// [`ExternalPointer`] into that heap.
+        pub fn invoke_as_object(handler: u64, params: &[Params]) -> ExternalPointer {
+            let param_bytes = params.to_binary();
+            let param_raw = RawParts::from_vec(param_bytes);
+
+            ExternalPointer::pointer(unsafe {
+                abi::web::host_invoke_function_as_object(
+                    handler,
+                    param_raw.ptr,
+                    param_raw.length,
+                )
+            })
+        }
+
+        /// [`drop_object_reference`] retires an object-heap external reference so the
+        /// host can free the slot (stale handles fail the generation check host-side).
+        pub fn drop_object_reference(handle: ExternalPointer) {
+            unsafe { abi::web::host_object_drop_external_pointer(handle.into_inner()) };
+        }
+
+        /// [`drop_cached_string`] evicts an interned string (a [`host_cache_string`]
+        /// handle) from the host string cache.
+        pub fn drop_cached_string(handle: u64) {
+            unsafe { abi::web::host_string_cache_drop_external_pointer(handle) };
+        }
+
         /// [`invoke_as_u32`] invokes a host function registered at the given handle
         /// which points to a registered function on the host side.
         ///
@@ -1832,13 +1889,10 @@ pub mod abi {
             /// [`invoke_for_object`] invokes a host function registered at the given handle
             /// defined by the [`HostFunction::handler`] which then returns a [`ExternalPointer`]
             /// representing the object via an `ExternalPointer` that points to that object in the
-            /// hosts object heap.
+            /// hosts object heap (the naked `as_object` fast-path — the handle crosses raw,
+            /// no reply encoding).
             pub fn invoke_for_object(&self, params: &[Params]) -> ExternalPointer {
-                ExternalPointer::pointer(abi::web::invoke(
-                    self.handler,
-                    params,
-                    ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Object)),
-                ))
+                abi::web::invoke_as_object(self.handler, params)
             }
 
             /// [`invoke_async`] invokes an async function which is registered and will be
