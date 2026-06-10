@@ -278,6 +278,123 @@ impl VfsFileSystem for FjallFs {
     }
 }
 
+// ── Async trait implementations ──
+// fjall is synchronous — async wrappers delegate to sync methods
+
+use crate::shared::vfs::async_traits::{
+    AsyncVfsFile, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFileSystem, AsyncDeltaStore,
+};
+use async_trait::async_trait;
+
+#[async_trait]
+impl AsyncVfsFile for FjallFile {
+    async fn read_at_async(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
+        self.read_at(buf, offset)
+    }
+    async fn write_at_async(&self, data: &[u8], offset: u64) -> VfsResult<usize> {
+        self.write_at(data, offset)
+    }
+    async fn sync_data_async(&self) -> VfsResult<()> { self.sync_data() }
+    async fn size_async(&self) -> VfsResult<u64> { self.size() }
+    async fn truncate_async(&self, size: u64) -> VfsResult<()> { self.truncate(size) }
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> { self.metadata() }
+}
+
+#[async_trait]
+impl AsyncSeekableVfsFile for SeekableFjallFile {
+    async fn read_async(&mut self, len: usize) -> VfsResult<Vec<u8>> {
+        let pos = *self.pos.read().unwrap();
+        let mut buf = vec![0u8; len];
+        let n = self.read_at(&mut buf, pos)?;
+        *self.pos.write().unwrap() = pos + n as u64;
+        buf.truncate(n);
+        Ok(buf)
+    }
+    async fn write_async(&mut self, data: Vec<u8>) -> VfsResult<usize> {
+        let pos = *self.pos.read().unwrap();
+        let n = self.write_at(&data, pos)?;
+        *self.pos.write().unwrap() = pos + n as u64;
+        Ok(n)
+    }
+    async fn seek_async(&mut self, pos: std::io::SeekFrom) -> VfsResult<u64> { self.seek(pos) }
+    fn position_async(&self) -> u64 { self.position() }
+}
+
+#[async_trait]
+impl AsyncVfsDirectory for FjallDirectory {
+    type File = FjallFile;
+    type SeekableFile = SeekableFjallFile;
+    fn path(&self) -> String { self.path.clone() }
+    async fn metadata_async(&self) -> VfsResult<VfsMetadata> { self.metadata() }
+    async fn list_async(&self) -> VfsResult<Vec<crate::shared::vfs::types::VfsDirEntry>> { self.list() }
+    async fn get_entry_async(&self, name: String) -> VfsResult<Option<crate::shared::vfs::types::VfsDirEntry>> { self.get_entry(&name) }
+    async fn create_file_async(&self, name: String, mode: u32) -> VfsResult<Self::File> { self.create_file(&name, mode) }
+    async fn create_dir_async(&self, name: String) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
+        self.create_dir(&name).map(|d| Box::new(*d) as Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>)
+    }
+    async fn remove_entry_async(&self, name: String) -> VfsResult<()> { self.remove_entry(&name) }
+    async fn rename_entry_async(&self, old_name: String, new_name: String) -> VfsResult<()> { self.rename_entry(&old_name, &new_name) }
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> { self.open(&path, mode) }
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> { self.open_seekable(&path, mode) }
+    async fn open_directory_async(&self, path: String) -> VfsResult<Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
+        self.open_directory(&path).map(|d| Box::new(*d) as Box<dyn AsyncVfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>)
+    }
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> { self.stat(&path) }
+    async fn exists_async(&self, path: String) -> VfsResult<bool> { self.exists(&path) }
+}
+
+#[async_trait]
+impl AsyncVfsFileSystem for FjallFs {
+    type File = FjallFile;
+    type SeekableFile = SeekableFjallFile;
+    type Directory = FjallDirectory;
+
+    fn capabilities(&self) -> VfsCapabilities { self.capabilities() }
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> { self.stat(&path) }
+    async fn exists_async(&self, path: String) -> VfsResult<bool> { self.exists(&path) }
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> { self.chmod(&path, mode) }
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> { self.symlink(&target, &link) }
+    async fn readlink_async(&self, path: String) -> VfsResult<String> { self.readlink(&path) }
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> { self.rename(&from, &to) }
+    async fn remove_async(&self, path: String) -> VfsResult<()> { self.remove(&path) }
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> { self.open(&path, mode) }
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> { self.open_seekable(&path, mode) }
+    async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> { self.open_directory(&path) }
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> { self.create(&path, mode) }
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> { self.mkdir(&path) }
+}
+
+#[async_trait]
+impl AsyncVfsFileSystem for FjallDelta {
+    type File = FjallFile;
+    type SeekableFile = SeekableFjallFile;
+    type Directory = FjallDirectory;
+
+    fn capabilities(&self) -> VfsCapabilities { self.inner.capabilities() }
+    async fn stat_async(&self, path: String) -> VfsResult<VfsMetadata> { self.inner.stat(&path) }
+    async fn exists_async(&self, path: String) -> VfsResult<bool> { self.exists(&path) }
+    async fn chmod_async(&self, path: String, mode: u32) -> VfsResult<()> { self.inner.chmod(&path, mode) }
+    async fn symlink_async(&self, target: String, link: String) -> VfsResult<()> { self.inner.symlink(&target, &link) }
+    async fn readlink_async(&self, path: String) -> VfsResult<String> { self.inner.readlink(&path) }
+    async fn rename_async(&self, from: String, to: String) -> VfsResult<()> { self.inner.rename(&from, &to) }
+    async fn remove_async(&self, path: String) -> VfsResult<()> { self.inner.remove(&path) }
+    async fn open_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::File> { self.inner.open(&path, mode) }
+    async fn open_seekable_async(&self, path: String, mode: OpenMode) -> VfsResult<Self::SeekableFile> { self.inner.open_seekable(&path, mode) }
+    async fn open_directory_async(&self, path: String) -> VfsResult<Self::Directory> { self.inner.open_directory(&path) }
+    async fn create_async(&self, path: String, mode: u32) -> VfsResult<Self::File> { self.inner.create(&path, mode) }
+    async fn mkdir_async(&self, path: String) -> VfsResult<()> { self.inner.mkdir(&path) }
+}
+
+#[async_trait]
+impl AsyncDeltaStore for FjallDelta {
+    async fn add_whiteout_async(&self, path: String, version: u64) -> VfsResult<()> { self.add_whiteout(&path, version) }
+    async fn is_whiteout_async(&self, path: String) -> VfsResult<Option<u64>> { self.is_whiteout(&path) }
+    async fn remove_whiteout_async(&self, path: String) -> VfsResult<()> { self.remove_whiteout(&path) }
+    async fn list_whiteouts_async(&self, dir: String) -> VfsResult<Vec<(String, u64)>> { self.list_whiteouts(&dir) }
+    async fn flush_async(&self) -> VfsResult<()> { self.flush() }
+    async fn reset_async(&self) -> VfsResult<()> { self.reset() }
+}
+
 /// FjallDelta — DeltaStore extension of FjallFs with whiteout support.
 pub struct FjallDelta {
     inner: FjallFs,

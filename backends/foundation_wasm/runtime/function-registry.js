@@ -46,15 +46,81 @@ const RETURN_NAKED = new Set([
   ReturnType.MemorySlice, ReturnType.InternalReference, ReturnType.ExternalReference,
 ]);
 
-const ReturnIds = Object.freeze({ None: 0, One: 1, Multi: 2, List: 3 });
-const ThreeStateId = Object.freeze({ One: 70, Two: 80, Three: 90 });
-const ReturnHintMarker = Object.freeze({ Start: 200, Stop: 201 });
+export const ReturnIds = Object.freeze({ None: 0, One: 1, Multi: 2, List: 3 });
+export const ThreeStateId = Object.freeze({ One: 70, Two: 80, Three: 90 });
+export const ReturnHintMarker = Object.freeze({ Start: 200, Stop: 201 });
 // The reply ReturnValues binary is framed Begin..End (Rust `FromBinary for ReturnTypeHints`).
-const ReturnValueMarker = Object.freeze({ Begin: 100, End: 101 });
-const TypedSliceArray = {
+export const ReturnValueMarker = Object.freeze({ Begin: 100, End: 101 });
+export const TypedSliceArray = {
   1: Int8Array, 2: Int16Array, 3: Int32Array, 4: BigInt64Array, 5: Uint8Array,
   6: Uint16Array, 7: Uint32Array, 8: BigUint64Array, 9: Float32Array, 10: Float64Array,
 };
+
+// ─── ExternalHeap (generation-based arena, = megatron ArenaAllocator) ───────────
+
+/**
+ * Host-side heap for objects referenced across the ABI by `ExternalPointer` ids.
+ * Ids pack `(index << 32) | generation` (bigint) — same scheme as the Rust arena —
+ * so stale ids fail the generation check instead of resolving to a reused slot.
+ * `create(null)` pre-allocates a handle (the `*_allocate_external_pointer` imports);
+ * `update` fills it later (e.g. batch MakeFunction).
+ */
+export class ExternalHeap {
+  constructor() {
+    this.items = []; // { item, generation, active }
+    this.free = [];
+  }
+
+  #unpack(uid) {
+    const v = BigInt(uid);
+    return { index: Number(v >> 32n), generation: v & 0xffffffffn };
+  }
+
+  /** Allocate a slot for `item` (may be null) → packed uid (bigint). */
+  create(item) {
+    let index;
+    if (this.free.length > 0) {
+      index = this.free.pop();
+      const slot = this.items[index];
+      slot.generation += 1n;
+      slot.active = true;
+      slot.item = item;
+    } else {
+      index = this.items.length;
+      this.items.push({ item, generation: 0n, active: true });
+    }
+    return (BigInt(index) << 32n) | this.items[index].generation;
+  }
+
+  /** Resolve a uid → item (undefined when stale/missing). */
+  get(uid) {
+    const { index, generation } = this.#unpack(uid);
+    const slot = this.items[index];
+    if (!slot || !slot.active || slot.generation !== generation) return undefined;
+    return slot.item;
+  }
+
+  /** Replace the item at a live uid (pre-allocated handles). False when stale. */
+  update(uid, item) {
+    const { index, generation } = this.#unpack(uid);
+    const slot = this.items[index];
+    if (!slot || slot.generation !== generation) return false;
+    slot.item = item;
+    slot.active = true;
+    return true;
+  }
+
+  /** Retire a uid; its slot is recycled with a bumped generation. */
+  destroy(uid) {
+    const { index, generation } = this.#unpack(uid);
+    const slot = this.items[index];
+    if (!slot || !slot.active || slot.generation !== generation) return false;
+    slot.item = null;
+    slot.active = false;
+    this.free.push(index);
+    return true;
+  }
+}
 
 /**
  * Best-effort map from a concrete JS value to a `ReturnType`, used only to resolve a
@@ -193,7 +259,15 @@ export class ReturnHintParser {
 
   parse(ptr, len) {
     const view = new DataView(this.bridge.memory.buffer, Number(ptr), Number(len));
-    let i = 0;
+    const [, hint] = ReturnHintParser.parseFrom(view, 0);
+    return hint;
+  }
+
+  /**
+   * Offset-based variant shared with the batch codec (hints are embedded mid-stream
+   * there). Returns `[indexAfterStop, hint]`.
+   */
+  static parseFrom(view, i) {
     if (view.getUint8(i) !== ReturnHintMarker.Start) throw new Error("hint: missing Start");
     i += B1;
     const id = view.getUint8(i);
@@ -212,7 +286,8 @@ export class ReturnHintParser {
       }
     }
     if (view.getUint8(i) !== ReturnHintMarker.Stop) throw new Error("hint: missing Stop");
-    return { id, states };
+    i += B1;
+    return [i, { id, states }];
   }
 }
 
@@ -382,9 +457,16 @@ export class FunctionRegistry {
     this.hints = new ReturnHintParser(bridge);
     this.reply = new ReplyEncoder(memory);
     this.callbacks = callbacks;
-    this.heap = new Map(); // handle(bigint) -> fn
-    this.next = 1n;
+    // Generation-arena heap shared by ALL function-handle paths: host_register_function,
+    // function_allocate_external_pointer pre-allocation, and batch MakeFunction (megatron
+    // used one function_heap for all three — handles must be interchangeable).
+    this.heap = new ExternalHeap();
     this.context = this; // `this` for registered fns; override to expose helpers
+  }
+
+  /** Compile a registered-function source string into a callable. */
+  static compile(source) {
+    return Function(`"use strict"; return(${source})`)();
   }
 
   /** host_register_function(start, len, utf) → handle. Evals the source string. */
@@ -392,11 +474,17 @@ export class FunctionRegistry {
     const enc = Number(utf) === 16 ? "utf-16le" : "utf-8";
     const bytes = new Uint8Array(this.bridge.memory.buffer, Number(start), Number(len));
     const source = new TextDecoder(enc).decode(bytes);
-    const fn = Function(`"use strict"; return(${source})`)();
-    const handle = this.next;
-    this.next += 1n;
-    this.heap.set(handle, fn);
-    return handle;
+    return this.heap.create(FunctionRegistry.compile(source));
+  }
+
+  /** function_allocate_external_pointer → an empty handle MakeFunction fills later. */
+  allocate() {
+    return this.heap.create(null);
+  }
+
+  /** host_unregister_function. */
+  unregister(handle) {
+    this.heap.destroy(BigInt(handle));
   }
 
   #call(handle, pPtr, pLen) {
