@@ -12,7 +12,10 @@ use foundation_ui_traits::{ArrowEncoder, DomOp, ProtocolEncoder};
 use foundation_wasm::abi::web::{
     host_apply, invoke_as_bool, invoke_as_f64, invoke_as_i32, register_function,
 };
-use foundation_wasm::{exposed_runtime, internal_api, MemoryId, Params, WasmEnvelope};
+use foundation_wasm::{
+    exposed_runtime, internal_api, MemoryId, Params, ReturnTypeHints, ReturnTypeId, ReturnValues,
+    ThreeState, WasmEnvelope,
+};
 
 /// Build a 2-op Arrow batch and ship it to JS via `host_apply`.
 ///
@@ -68,6 +71,41 @@ pub extern "C" fn roundtrip_f64(input: f64) -> f64 {
 pub extern "C" fn roundtrip_bool_and(a: i32, b: i32) -> i32 {
     let f = register_function("function(a, b){ return a && b; }");
     i32::from(invoke_as_bool(f.handler, &[Params::Bool(a != 0), Params::Bool(b != 0)]))
+}
+
+/// TRUE generic-encoded path: `invoke_for_replies` forces host_invoke_function →
+/// JS encode_into_memory (Begin..End framed) → MemoryId → Rust `from_binary` decode.
+/// Validates the marker-wrapped slot-based ReturnValues encode/decode parity.
+#[no_mangle]
+pub extern "C" fn roundtrip_via_reply_i32(input: i32) -> i32 {
+    let f = register_function("function(x){ return x + 7; }");
+    match f.invoke_for_replies(
+        &[Params::Int32(input)],
+        ReturnTypeHints::One(ThreeState::One(ReturnTypeId::Int32)),
+    ) {
+        Ok(values) => match values.into_iter().next() {
+            Some(ReturnValues::Int32(v)) => v,
+            _ => -1,
+        },
+        Err(_) => -2,
+    }
+}
+
+/// STRING return: the JS fn returns a string; ReplyEncoder writes it to a slot and sends
+/// [Text8][slot_id]; Rust `invoke_for_str` decodes it back. Returns the length to assert.
+#[no_mangle]
+pub extern "C" fn roundtrip_string_len() -> i32 {
+    let f = register_function("function(){ return 'hello world'; }");
+    f.invoke_for_str(&[]).map(|s| s.len() as i32).unwrap_or(-1)
+}
+
+/// STRING in (Text8 param) + STRING out: `s + s`, returns the result length.
+#[no_mangle]
+pub extern "C" fn roundtrip_string_echo_len() -> i32 {
+    let f = register_function("function(s){ return s + s; }");
+    f.invoke_for_str(&[Params::Text8("ab")])
+        .map(|s| s.len() as i32)
+        .unwrap_or(-1)
 }
 
 /// Registers a fn that records all decoded args onto `this` (JS-side capture), invoked

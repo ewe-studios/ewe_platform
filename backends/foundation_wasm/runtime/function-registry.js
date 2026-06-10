@@ -49,6 +49,8 @@ const RETURN_NAKED = new Set([
 const ReturnIds = Object.freeze({ None: 0, One: 1, Multi: 2, List: 3 });
 const ThreeStateId = Object.freeze({ One: 70, Two: 80, Three: 90 });
 const ReturnHintMarker = Object.freeze({ Start: 200, Stop: 201 });
+// The reply ReturnValues binary is framed Begin..End (Rust `FromBinary for ReturnTypeHints`).
+const ReturnValueMarker = Object.freeze({ Begin: 100, End: 101 });
 const TypedSliceArray = {
   1: Int8Array, 2: Int16Array, 3: Int32Array, 4: BigInt64Array, 5: Uint8Array,
   6: Uint16Array, 7: Uint32Array, 8: BigUint64Array, 9: Float32Array, 10: Float64Array,
@@ -224,9 +226,9 @@ export class ReplyEncoder {
     return id;
   }
 
-  /** Encode containers into a flat `[ReturnType][value]` byte array (LE). */
+  /** Encode containers as `[Begin][ReturnType][value]…[End]` (Rust FromBinary expects the frame). */
   encode(containers) {
-    const out = [];
+    const out = [ReturnValueMarker.Begin];
     const push = (n, bytes) => { for (let k = 0; k < bytes; k++) out.push(Number((BigInt(n) >> BigInt(8 * k)) & 0xffn)); };
     for (const { type, value } of containers) {
       out.push(type);
@@ -240,9 +242,32 @@ export class ReplyEncoder {
         case ReturnType.Float32: { const b = new Uint8Array(4); new DataView(b.buffer).setFloat32(0, value, true); out.push(...b); break; }
         case ReturnType.Float64: { const b = new Uint8Array(8); new DataView(b.buffer).setFloat64(0, value, true); out.push(...b); break; }
         case ReturnType.Int128: case ReturnType.Uint128: { const v = BigInt(value); push((v >> 64n) & 0xffffffffffffffffn, 8); push(v & 0xffffffffffffffffn, 8); break; }
-        default: throw new Error(`ReplyEncoder: unsupported return type ${type} (extend for arrays/text/refs)`);
+        // Reference returns: the id is sent inline (Rust resolves it host-side).
+        case ReturnType.ExternalReference:
+        case ReturnType.InternalReference:
+          push(BigInt(value instanceof RefPointer ? value.value : value), 8);
+          break;
+        // Text8: write the UTF-8 bytes into a fresh slot, send [type][slot_id:u64].
+        // Rust's ReturnValueParserIter Text8 arm takes + frees that slot.
+        case ReturnType.Text8: {
+          const bytes = new TextEncoder().encode(String(value));
+          const slot = this.memory.create(bytes.length);
+          this.memory.write(slot, bytes);
+          push(slot, 8);
+          break;
+        }
+        // MemorySlice / array buffers: write the raw bytes into a slot, send [type][slot_id].
+        case ReturnType.MemorySlice: {
+          const u8 = value instanceof Uint8Array ? value : new Uint8Array(value.buffer ?? value);
+          const slot = this.memory.create(u8.length);
+          this.memory.write(slot, u8);
+          push(slot, 8);
+          break;
+        }
+        default: throw new Error(`ReplyEncoder: unsupported return type ${type} (Object/DOMObject/typed arrays need heaps — extend when needed)`);
       }
     }
+    out.push(ReturnValueMarker.End);
     return Uint8Array.from(out);
   }
 }

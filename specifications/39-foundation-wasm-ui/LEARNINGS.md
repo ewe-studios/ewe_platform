@@ -349,7 +349,18 @@ host_invoke_function, host_invoke_function_as_*, host_unregister_function).
 bool_and + capture_mixed_params): Rust `Params::to_binary` → JS decode → fn → JS encode → Rust
 `invoke_as_*` decode, all green. **foundation_wasm/integration: 22 node tests.**
 
-REMAINING on the codec (carry-forward): string return (`invoke_as_str` + writeUTF8ToMemory),
+**CRITICAL parity finding (2026-06-10):** the reply ReturnValues binary written by `encode_into_memory`
+MUST be framed `[ReturnValueMarker::Begin=100]…[ReturnValueMarker::End=101]` — `FromBinary for
+ReturnTypeHints` (protocol.rs) rejects anything else (`WrongStarterCode`/`WrongEndingCode`) and strips
+the frame before `ReturnValueParserIter`. Initially omitted → string returns failed. Also: the
+`invoke_for_{bool,i8..u64,f32,f64}` HostFunction methods are NAKED aliases (call `invoke_as_*`), NOT
+the from_binary path — only `invoke_for_replies` / `invoke_for_str` / `invoke_for_none` /
+`invoke_for_object` go through `from_binary`. So a TRUE generic-return test uses `invoke_for_replies`.
+String return = inner slot of UTF-8 bytes + `[Text8=2][inner_slot_id:u64]`; Rust Text8 arm
+`take()`s + frees that slot. Validated: roundtrip_via_reply_i32 (invoke_for_replies, framed scalar),
+roundtrip_string_len / _echo_len (Text8 in + string out). **foundation_wasm/integration: 25 tests.**
+
+REMAINING on the codec (carry-forward): string return DONE; remaining:
 ReplyEncoder for arrays/MemorySlice/Object/DOMObject/refs (slot semantics), validating the generic
 MemoryId-return path + List/Multi hints, and the async-callback path (`invoke_callback` replies).
 The marker/quantized V2 batch codec remains separate (host_apply/instructions path).

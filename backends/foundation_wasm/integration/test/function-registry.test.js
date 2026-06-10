@@ -43,6 +43,21 @@ test("roundtrip_bool_and: two Bool params + bool return", { skip }, () => {
   assert.equal(instance.exports.roundtrip_bool_and(0, 1), 0);
 });
 
+test("roundtrip_via_reply_i32: generic encoded return (Begin..End frame → from_binary)", { skip }, () => {
+  const { instance } = boot();
+  assert.equal(instance.exports.roundtrip_via_reply_i32(35), 42); // x+7 via slot+from_binary
+});
+
+test("roundtrip_string_len: string return via Text8 slot", { skip }, () => {
+  const { instance } = boot();
+  assert.equal(instance.exports.roundtrip_string_len(), 11); // "hello world"
+});
+
+test("roundtrip_string_echo_len: Text8 param in + string out", { skip }, () => {
+  const { instance } = boot();
+  assert.equal(instance.exports.roundtrip_string_echo_len(), 4); // "ab"+"ab"
+});
+
 test("capture_mixed_params: flat decode of Int32/Text8/Bool/Float64", { skip }, () => {
   const { rt, instance } = boot();
   const ctx = {};
