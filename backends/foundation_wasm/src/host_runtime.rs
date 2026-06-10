@@ -81,6 +81,18 @@ pub mod internal_api {
             .expect("should fetch related memory allocation")
     }
 
+    /// [`with_global_allocations`] runs `f` with exclusive access to the GLOBAL
+    /// arena — the one the `dispose_allocation`/`allocation_start_pointer` WASM
+    /// exports operate on. Anything shipping message slots to the JS host MUST
+    /// allocate them here: ids from a private [`super::MemoryAllocations`] are
+    /// meaningless to JS's ACK path and would fail its generation check.
+    pub fn with_global_allocations<R>(f: impl FnOnce(&mut super::MemoryAllocations) -> R) -> R {
+        let mut guard = ALLOCATIONS
+            .lock()
+            .unwrap_or_else(foundation_nostd::comp::basic::PoisonError::into_inner);
+        f(&mut guard)
+    }
+
     // Callback return parsers
 
     /// [`parse_replies`] will attempt to parse the replies encoded into the giving

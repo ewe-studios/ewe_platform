@@ -6,17 +6,31 @@
 //! and on [`flush`](InstructionReceiver::flush) encodes + ships them once through the
 //! configured protocol.
 //!
-//! HOW: Holds a `Box<dyn ProtocolMethods<Vec<DomOp>>>` and its own
-//! `MemoryAllocations` arena. `flush` drains the queued ops with `core::mem::take`
-//! and hands them to the protocol's `encode_and_send`.
+//! HOW: Holds a `Box<dyn ProtocolMethods<Vec<DomOp>>>` and an [`Arena`] — either an
+//! OWNED `MemoryAllocations` (tests, custom hosts) or the GLOBAL arena that the JS
+//! host's `dispose_allocation` export frees (the live loop). `flush` drains the
+//! queued ops with `core::mem::take` and hands them to the protocol's
+//! `encode_and_send`.
 
 use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use foundation_ui_traits::DomOp;
-use foundation_wasm::{MemoryAllocations, MemoryId};
+use foundation_wasm::{internal_api, MemoryAllocations, MemoryId};
 
 use crate::protocol::{ProtocolMethods, SendResult};
+
+/// Where the receiver allocates outgoing message slots. The live JS loop MUST use
+/// [`Arena::Global`]: JS ACKs by calling the `dispose_allocation` WASM export, which
+/// frees the GLOBAL arena — a slot id from a private arena would fail its generation
+/// check there (the feature-00 arena seam).
+enum Arena {
+    /// A receiver-owned arena — for native tests and custom (non-JS) hosts that
+    /// route ACKs back through [`InstructionReceiver::ack`].
+    Owned(MemoryAllocations),
+    /// The process-wide arena shared with the `exposed_runtime` WASM exports.
+    Global,
+}
 
 /// WHY: One place owns the pending DOM ops, the protocol, and the arena, so effects
 /// can `queue` without knowing anything about encoding or the FFI.
@@ -24,21 +38,34 @@ use crate::protocol::{ProtocolMethods, SendResult};
 /// WHAT: A per-Runtime batching receiver for `DomOp`s.
 ///
 /// HOW: `queue` appends; `flush` drains + encodes + ships once; `ack` releases a
-/// slot after JS confirms it has applied the batch.
+/// slot after the host confirms it has applied the batch.
 pub struct InstructionReceiver {
     ops: Vec<DomOp>,
     protocol: Box<dyn ProtocolMethods<Vec<DomOp>>>,
-    memory: MemoryAllocations,
+    memory: Arena,
 }
 
 impl InstructionReceiver {
-    /// Build a receiver from the default protocol and an arena.
+    /// Build a receiver with its OWN arena (native tests / custom hosts). For the
+    /// live JS loop use [`InstructionReceiver::with_global_arena`] instead.
     #[must_use]
     pub fn new(protocol: Box<dyn ProtocolMethods<Vec<DomOp>>>, memory: MemoryAllocations) -> Self {
         Self {
             ops: Vec::new(),
             protocol,
-            memory,
+            memory: Arena::Owned(memory),
+        }
+    }
+
+    /// Build a receiver that allocates message slots in the GLOBAL arena — the one
+    /// JS's `dispose_allocation` export ACKs into. This is the constructor for any
+    /// runtime actually talking to the JS host.
+    #[must_use]
+    pub fn with_global_arena(protocol: Box<dyn ProtocolMethods<Vec<DomOp>>>) -> Self {
+        Self {
+            ops: Vec::new(),
+            protocol,
+            memory: Arena::Global,
         }
     }
 
@@ -64,18 +91,35 @@ impl InstructionReceiver {
             return None;
         }
         let ops = core::mem::take(&mut self.ops);
-        Some(self.protocol.encode_and_send(ops, &mut self.memory))
+        let protocol = &mut self.protocol;
+        Some(match &mut self.memory {
+            Arena::Owned(memory) => protocol.encode_and_send(ops, memory),
+            Arena::Global => {
+                internal_api::with_global_allocations(|memory| protocol.encode_and_send(ops, memory))
+            }
+        })
     }
 
-    /// Release an arena slot back to the receiver's arena (the WASM-side ACK that
-    /// mirrors JS's `dispose_allocation`).
+    /// Release an arena slot (the WASM-side ACK that mirrors JS's
+    /// `dispose_allocation`). For a global-arena receiver JS normally ACKs directly
+    /// via the export; this covers host-side error paths.
     pub fn ack(&mut self, memory_id: MemoryId) {
-        self.protocol.ack(memory_id, &mut self.memory);
+        let protocol = &mut self.protocol;
+        match &mut self.memory {
+            Arena::Owned(memory) => protocol.ack(memory_id, memory),
+            Arena::Global => {
+                internal_api::with_global_allocations(|memory| protocol.ack(memory_id, memory));
+            }
+        }
     }
 
-    /// Borrow the underlying arena (e.g. to inspect slot bytes in tests).
+    /// Borrow the receiver-OWNED arena (e.g. to inspect slot bytes in tests).
+    /// `None` for a global-arena receiver — inspect via `internal_api` instead.
     #[must_use]
-    pub fn memory(&self) -> &MemoryAllocations {
-        &self.memory
+    pub fn memory(&self) -> Option<&MemoryAllocations> {
+        match &self.memory {
+            Arena::Owned(memory) => Some(memory),
+            Arena::Global => None,
+        }
     }
 }

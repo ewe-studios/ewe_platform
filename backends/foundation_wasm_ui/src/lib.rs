@@ -21,6 +21,9 @@ pub mod instruction;
 pub mod protocol;
 pub mod wasm;
 
+#[cfg(feature = "embedded-js")]
+pub mod embedded;
+
 pub use instruction::InstructionReceiver;
 pub use protocol::{
     ArrowV1, CustomBinaryV1, HandleResult, JsonV1, ProtocolMethods, SendResult,

@@ -17,7 +17,7 @@ foundation_ui_traits = { workspace = true }
 [features]
 default = []
 # Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
-embedded-js = []
+embedded-js = ["foundation_wasm/embedded-js"]
 
 [lints]
 workspace = true

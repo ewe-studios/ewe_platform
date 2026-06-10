@@ -82,7 +82,7 @@ fn instruction_receiver_batches_and_flushes_once() {
 
     // Empty flush is a no-op: no encoding, no slot.
     assert!(receiver.flush().is_none());
-    assert_eq!(receiver.memory().total_allocated(), 0);
+    assert_eq!(receiver.memory().expect("owned arena").total_allocated(), 0);
 
     for op in &ops {
         receiver.queue(op.clone());
@@ -92,13 +92,13 @@ fn instruction_receiver_batches_and_flushes_once() {
     let result = receiver.flush().expect("flush ships a batch");
     assert_eq!(receiver.pending(), 0, "queue drained after flush");
     assert_eq!(
-        receiver.memory().total_allocated(),
+        receiver.memory().expect("owned arena").total_allocated(),
         1,
         "one slot for the whole batch"
     );
 
     // The single slot decodes back to all queued ops.
-    let slot = receiver.memory().get(result.memory_id).expect("slot live");
+    let slot = receiver.memory().expect("owned arena").get(result.memory_id).expect("slot live");
     let bytes = slot.clone_memory().expect("read bytes");
     let (envelope, payload) = WasmEnvelope::parse(&bytes);
     assert_eq!(envelope.protocol, 1); // Arrow
@@ -108,7 +108,7 @@ fn instruction_receiver_batches_and_flushes_once() {
     assert_eq!(decoded, ops);
 
     receiver.ack(result.memory_id);
-    assert!(receiver.memory().get(result.memory_id).is_err());
+    assert!(receiver.memory().expect("owned arena").get(result.memory_id).is_err());
 }
 
 #[test]
@@ -116,5 +116,48 @@ fn instruction_receiver_empty_flush_does_nothing() {
     let mut receiver = InstructionReceiver::new(Box::new(JsonV1::new()), MemoryAllocations::new());
     assert!(receiver.flush().is_none());
     assert_eq!(receiver.pending(), 0);
-    assert_eq!(receiver.memory().total_allocated(), 0);
+    assert_eq!(receiver.memory().expect("owned arena").total_allocated(), 0);
+}
+
+#[test]
+fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() {
+    // The live-loop constructor: slots must land in the GLOBAL arena — the one JS's
+    // `dispose_allocation` export frees (the feature-00 arena seam). We verify the
+    // shipped slot resolves through `internal_api::get_memory` (same arena the
+    // exposed_runtime exports use) and decodes back to the queued ops.
+    let ops = sample_ops();
+    let mut receiver = InstructionReceiver::with_global_arena(Box::new(ArrowV1::new()));
+    assert!(receiver.memory().is_none(), "global receiver owns no arena");
+
+    for op in &ops {
+        receiver.queue(op.clone());
+    }
+    let result = receiver.flush().expect("flush ships a batch");
+
+    let slot = foundation_wasm::internal_api::get_memory(result.memory_id);
+    let bytes = slot.clone_memory().expect("read slot bytes from the GLOBAL arena");
+    let (envelope, payload) = WasmEnvelope::parse(&bytes);
+    assert_eq!(envelope.protocol, 1);
+    assert_eq!(envelope.memory_id, result.memory_id.as_u64());
+
+    let decoded = ArrowV1::new()
+        .handle_received(result.memory_id, payload.as_ptr(), payload.len())
+        .expect("payload decodes");
+    assert_eq!(decoded, ops);
+
+    // ACK through the receiver (host-side path) — the global slot is freed.
+    receiver.ack(result.memory_id);
+    foundation_wasm::internal_api::with_global_allocations(|memory| {
+        assert!(memory.get(result.memory_id).is_err(), "global slot freed after ack");
+    });
+}
+
+#[cfg(feature = "embedded-js")]
+#[test]
+fn embedded_js_assets_carry_both_runtimes() {
+    use foundation_wasm_ui::embedded::{FOUNDATION_WASM_JS, FOUNDATION_WASM_UI_JS};
+    assert!(FOUNDATION_WASM_JS.contains("class FoundationWasm"));
+    assert!(FOUNDATION_WASM_JS.contains("globalThis.FoundationWasmRuntime"));
+    assert!(FOUNDATION_WASM_UI_JS.contains("globalThis.FoundationWasmUiRuntime"));
+    assert!(FOUNDATION_WASM_UI_JS.contains("class DomHeap"));
 }

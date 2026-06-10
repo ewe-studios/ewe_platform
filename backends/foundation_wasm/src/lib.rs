@@ -32,6 +32,9 @@ mod registry;
 mod schedule;
 mod wrapped;
 
+#[cfg(feature = "embedded-js")]
+pub mod embedded;
+
 pub use base::*;
 pub use error::*;
 pub use frames::*;
