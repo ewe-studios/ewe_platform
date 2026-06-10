@@ -319,3 +319,13 @@ path = "tests/vfs_shim_vfs/mod.rs"
 required-features = ["vfs-preload"]
 
 # Fjall LSM-tree + cacache CAS VFS backend
+
+[[test]]
+name = "fjall_vfs"
+path = "tests/fjall_vfs/mod.rs"
+required-features = ["vfs-fjall", "vfs-native"]
+
+[[test]]
+name = "nfs_vfs"
+path = "tests/nfs_vfs/mod.rs"
+required-features = ["vfs-nfs", "vfs-native"]
