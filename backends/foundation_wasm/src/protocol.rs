@@ -91,14 +91,18 @@ impl WasmEnvelope {
     /// Frame a payload as `[protocol][version][memory_id:8 LE][length:4 LE][payload]`.
     ///
     /// # Panics
-    /// Never panics.
+    /// Panics if `payload` is larger than `u32::MAX` (~4 GiB) — the length field is a
+    /// `u32`, so a bigger payload can't be framed. This never happens for a DOM batch.
     #[must_use]
     pub fn write(protocol: u8, version: u8, memory_id: u64, payload: &[u8]) -> Vec<u8> {
+        // Checked so the length can't silently truncate on a 64-bit target.
+        let length =
+            u32::try_from(payload.len()).expect("WasmEnvelope payload exceeds u32::MAX (~4 GiB)");
         let mut buf = Vec::with_capacity(Self::HEADER_LEN + payload.len());
         buf.push(protocol);
         buf.push(version);
         buf.extend_from_slice(&memory_id.to_le_bytes());
-        buf.extend_from_slice(&(payload.len() as u32).to_le_bytes());
+        buf.extend_from_slice(&length.to_le_bytes());
         buf.extend_from_slice(payload);
         buf
     }
