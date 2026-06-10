@@ -163,7 +163,38 @@ and `js-foundation-wasm = ["foundation_wasm/web"]`. Verified: foundation_core bu
 `--features js-foundation-wasm`, AND `--features js-wasmbindgen`. (wasm32 target build blocked by this
 env's nightly std for wasm32-unknown-unknown — toolchain limitation, not code.)
 
-### Next: Task 5 — JS runtime split (megatron.js 7181 lines → foundation-wasm.js + foundation-wasm-ui.js).
-Note open seam for integration: `InstructionReceiver` owns its OWN `MemoryAllocations`, but JS
-`dispose_allocation` (exposed_runtime) frees the GLOBAL `ALLOCATIONS` static — these two arenas must
-be reconciled when wiring the real WASM↔JS loop (likely the receiver should use the global arena).
+### Task 5 — JS runtime split (in progress): foundation-wasm.js CORE done — 2026-06-10
+
+New file `backends/foundation_wasm/runtime/foundation-wasm.js` (ES module, megatron.js left
+intact per the new-file rule). Core ABI classes, clean rewrite aligned to the CURRENT Rust
+exports (not a mechanical copy of megatron's 7181-line tangle):
+- `WasmEnvelope` (14-byte header, mirrors Rust), `ProtocolDispatcher` (routes by protocol byte,
+  throws on unknown — mirrors `dispatch_message`), `MemoryAllocations` (arena view), `TimerRegistry`
+  (schedule_*/run_*_callback), `CallbackRegistry` (invoke_callback), and `FoundationWasm` runtime
+  that exposes `web_abi` (the `{ abi: {...} }` import object) + `init(module)`.
+
+**Bootstrap contract (learned from foundation_wasm_testbed + integrations/nodejs/integrations):**
+instantiate with `{ abi: rt.web_abi }`; the WASM module EXPORTS its own memory, so memory =
+`instance.exports.memory` (set in `init()`, NOT a JS-provided `WebAssembly.Memory`). Import
+closures read a lazily-populated `bridge` so they work before the instance exists. `node:test` is
+the established convention.
+
+**Fresh test harness** (user said the old `integrations/nodejs/integrations` tests need a compiled
+.wasm per case and are heavy → new one): `integrations/nodejs/foundation-wasm/` — zero-dep
+`node --test`, `mock-wasm.js` simulates the arena in a JS ArrayBuffer + records export calls. 11
+tests green (envelope round-trip/layout/bounds, dispatcher routing + unknown-throw, memory
+create/write/get/dispose, timer fire + interval-stop, callback invoke, host_apply dispatch+dispose
+incl. dispose-on-throw). Added `runtime/package.json {"type":"module"}` to silence Node's
+typeless-module warning.
+
+### Task 5 REMAINING:
+- `FunctionRegistry` + the parameter/return codec (megatron's `ParameterParserV2` ~1000 lines,
+  `ReturnHintParser`) — the big host_invoke_* surface. Deferred from the core increment.
+- `foundation-wasm-ui.js` (DOM layer): ArrowParser/ArrowDomApplicator, NodeRegistry, SignalBridge,
+  ComponentRegistry, EventDispatcher, SSEClient, Patcher, Hydrator, MorphDom, transports.
+- End-to-end: wire foundation-wasm.js as the runtime in foundation_wasm_testbed (deno can run
+  wasm32 headlessly) for real-module verification, then retire megatron.js.
+
+### Open integration seam (still): `InstructionReceiver` owns its OWN `MemoryAllocations`, but JS
+`dispose_allocation` (exposed_runtime) frees the GLOBAL `ALLOCATIONS` static — reconcile when wiring
+the live loop (likely the receiver should use the global arena).
