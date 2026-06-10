@@ -108,6 +108,50 @@ pub extern "C" fn roundtrip_string_echo_len() -> i32 {
         .unwrap_or(-1)
 }
 
+/// LIST return: JS returns `[1, 2, 3]`; a `List(One(Int32))` hint decodes a homogeneous
+/// `Vec<ReturnValues::Int32>`. Returns the sum (6) to assert the multi-value frame.
+#[no_mangle]
+pub extern "C" fn roundtrip_list_sum() -> i32 {
+    let f = register_function("function(){ return [1, 2, 3]; }");
+    match f.invoke_for_replies(&[], ReturnTypeHints::List(ThreeState::One(ReturnTypeId::Int32))) {
+        Ok(values) => values
+            .into_iter()
+            .map(|v| match v {
+                ReturnValues::Int32(n) => n,
+                _ => 0,
+            })
+            .sum(),
+        Err(_) => -1,
+    }
+}
+
+/// MULTI return: JS returns the tuple `[7, true]`; a `Multi[One(Int32), One(Bool)]` hint
+/// decodes `(Int32, Bool)` (value k ↔ states[k]). Returns the int when the bool is true.
+#[no_mangle]
+pub extern "C" fn roundtrip_multi() -> i32 {
+    let f = register_function("function(){ return [7, true]; }");
+    match f.invoke_for_replies(
+        &[],
+        ReturnTypeHints::Multi(vec![
+            ThreeState::One(ReturnTypeId::Int32),
+            ThreeState::One(ReturnTypeId::Bool),
+        ]),
+    ) {
+        Ok(values) => {
+            let mut it = values.into_iter();
+            let n = match it.next() {
+                Some(ReturnValues::Int32(n)) => n,
+                _ => return -1,
+            };
+            match it.next() {
+                Some(ReturnValues::Bool(true)) => n,
+                _ => -1,
+            }
+        }
+        Err(_) => -2,
+    }
+}
+
 /// ASYNC return: registers an `async` JS fn (`x + 1`) and invokes it through the async
 /// ABI with a caller-supplied callback id. JS resolves the Promise, frames the reply
 /// (`[Begin][Int32][value][End]`), and calls `invoke_callback(callback_id, mem)` — the

@@ -56,6 +56,25 @@ const TypedSliceArray = {
   6: Uint16Array, 7: Uint32Array, 8: BigUint64Array, 9: Float32Array, 10: Float64Array,
 };
 
+/**
+ * Best-effort map from a concrete JS value to a `ReturnType`, used only to resolve a
+ * union ThreeState (Two/Three) where the hint allows several types. Non-union states
+ * never call this. The Rust `ReturnValueParserIter` validates the choice.
+ */
+function inferReturnType(value) {
+  switch (typeof value) {
+    case "boolean": return ReturnType.Bool;
+    case "string": return ReturnType.Text8;
+    case "bigint": return ReturnType.Int64;
+    case "number": return Number.isInteger(value) ? ReturnType.Int32 : ReturnType.Float64;
+    default:
+      if (value instanceof ErrorCodeValue) return ReturnType.ErrorCode;
+      if (value instanceof ExternalPointer) return ReturnType.ExternalReference;
+      if (value instanceof InternalPointer) return ReturnType.InternalReference;
+      return ReturnType.MemorySlice;
+  }
+}
+
 // ─── ParameterParser (FLAT, = ParameterParserV1) ────────────────────────────────
 
 /**
@@ -181,13 +200,16 @@ export class ReturnHintParser {
     i += B1;
     const states = [];
     if (id !== ReturnIds.None) {
-      // One state for One/List; the value is a ThreeState: [ThreeStateId][ReturnType×n]
-      const stateId = view.getUint8(i);
-      i += B1;
-      const n = stateId === ThreeStateId.One ? 1 : stateId === ThreeStateId.Two ? 2 : 3;
-      const types = [];
-      for (let k = 0; k < n; k++) { types.push(view.getUint8(i)); i += B1; }
-      states.push({ stateId, types });
+      // One/List carry exactly one ThreeState; Multi carries several, concatenated.
+      // Each ThreeState is [ThreeStateId][ReturnType×n]; read until the Stop marker.
+      while (view.getUint8(i) !== ReturnHintMarker.Stop) {
+        const stateId = view.getUint8(i);
+        i += B1;
+        const n = stateId === ThreeStateId.One ? 1 : stateId === ThreeStateId.Two ? 2 : 3;
+        const types = [];
+        for (let k = 0; k < n; k++) { types.push(view.getUint8(i)); i += B1; }
+        states.push({ stateId, types });
+      }
     }
     if (view.getUint8(i) !== ReturnHintMarker.Stop) throw new Error("hint: missing Stop");
     return { id, states };
@@ -211,11 +233,51 @@ export class ReplyEncoder {
       if (value === undefined || value === null) return -1n;
       throw new Error(`Expected NoReturn but got ${value}`);
     }
-    const type = hint.states[0].types[0]; // SingleReturn/List: first declared type
-    if (hint.id === ReturnIds.One && RETURN_NAKED.has(type) && !alwaysEncoded) {
+    const containers = this.#containers(hint, value);
+    if (
+      hint.id === ReturnIds.One && containers.length === 1 &&
+      RETURN_NAKED.has(containers[0].type) && !alwaysEncoded
+    ) {
       return value; // naked scalar — typed fast-path
     }
-    return this.encodeIntoMemory([{ type, value }]);
+    return this.encodeIntoMemory(containers);
+  }
+
+  /**
+   * Build the `{type, value}` containers for a return hint, mirroring the Rust
+   * `ReturnValueParserIter` shape:
+   *   One  → exactly 1 value typed by the single ThreeState;
+   *   List → N homogeneous values, each typed by the same ThreeState;
+   *   Multi → one value per ThreeState (value `k` ↔ `states[k]`).
+   * A union ThreeState (Two/Three) is resolved per concrete value (see #pickType).
+   */
+  #containers(hint, value) {
+    switch (hint.id) {
+      case ReturnIds.One:
+        return [{ type: this.#pickType(hint.states[0], value), value }];
+      case ReturnIds.List: {
+        const state = hint.states[0];
+        return Array.from(value).map((v) => ({ type: this.#pickType(state, v), value: v }));
+      }
+      case ReturnIds.Multi: {
+        const arr = Array.from(value);
+        return hint.states.map((state, k) => ({ type: this.#pickType(state, arr[k]), value: arr[k] }));
+      }
+      default:
+        return [];
+    }
+  }
+
+  /**
+   * Resolve a single declared ThreeState to the concrete ReturnType for `value`.
+   * Non-union (`One(t)`) states use their one type directly; union states pick the
+   * member that matches the JS value's runtime type (Rust validates the match).
+   */
+  #pickType(state, value) {
+    const { types } = state;
+    if (types.length === 1) return types[0];
+    const inferred = inferReturnType(value);
+    return types.includes(inferred) ? inferred : types[0];
   }
 
   /** Encode containers `{type, value}` as `[type][value]…` into one arena slot → MemoryId. */
@@ -236,8 +298,7 @@ export class ReplyEncoder {
    * @param {{id:number, states:Array<{types:number[]}>}} hint
    */
   callbackSuccess(callbacks, callbackId, hint, value) {
-    const type = hint.states[0].types[0]; // SingleReturn: the one declared type
-    const bytes = this.encode([{ type, value }]);
+    const bytes = this.encode(this.#containers(hint, value));
     callbacks.invoke(callbackId, bytes);
   }
 

@@ -58,6 +58,16 @@ test("roundtrip_string_echo_len: Text8 param in + string out", { skip }, () => {
   assert.equal(instance.exports.roundtrip_string_echo_len(), 4); // "ab"+"ab"
 });
 
+test("roundtrip_list_sum: List(One(Int32)) → homogeneous multi-value frame", { skip }, () => {
+  const { instance } = boot();
+  assert.equal(instance.exports.roundtrip_list_sum(), 6); // [1,2,3] summed
+});
+
+test("roundtrip_multi: Multi[Int32, Bool] → tuple decoded value-by-state", { skip }, () => {
+  const { instance } = boot();
+  assert.equal(instance.exports.roundtrip_multi(), 7); // [7, true] → 7 when bool true
+});
+
 test("invoke_async_test: async fn result framed + delivered via invoke_callback", { skip }, async () => {
   const { rt, instance } = boot();
   // Spy on the callback registry so we observe the encoded reply WITHOUT calling back
