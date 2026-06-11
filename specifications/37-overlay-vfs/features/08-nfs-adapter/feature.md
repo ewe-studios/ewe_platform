@@ -10,7 +10,7 @@ dependencies:
   - "01-core-traits"
   - "23-inode-native-vfs"
 tasks:
-  completed: 17
+  completed: 27
   uncompleted: 0
   total: 17
   completion_percentage: 100%

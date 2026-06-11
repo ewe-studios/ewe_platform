@@ -65,6 +65,7 @@ windows-sys = { version = "0.59", features = [
 foundation_core = { workspace = true, features = ["multi"] }
 
 [dev-dependencies]
+tokio = { version = "1", features = ["rt", "macros"] }
 foundation_arrow = { workspace = true }
 foundation_macros = { workspace = true }
 tracing-test.workspace = true
@@ -317,3 +318,8 @@ required-features = ["vfs-native", "vfs-r2"]
 name = "fjall_vfs"
 path = "tests/fjall_vfs/mod.rs"
 required-features = ["vfs-fjall"]
+
+[[test]]
+name = "nfs_vfs"
+path = "tests/nfs_vfs/mod.rs"
+required-features = ["vfs-native", "vfs-nfs"]
