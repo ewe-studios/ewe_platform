@@ -1,0 +1,24 @@
+[package]
+name = "foundation_signals"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Standalone reactive signal system: R3-style height-ordered graph, bucket-queue stabilize, version-based stale detection. No DOM, no WASM coupling."
+
+[dependencies]
+foundation_ui_traits = { workspace = true }
+serde = { version = "1", features = ["derive"] }
+serde_json = { workspace = true }
+tracing = { version = "0.1" }
+
+[features]
+# G15: WASM is single-threaded; storage cells are RefCell. The off-state would
+# swap in Mutex-backed cells — unimplemented until a consumer needs it.
+default = ["single_threaded"]
+single_threaded = []
+
+[lints]
+workspace = true

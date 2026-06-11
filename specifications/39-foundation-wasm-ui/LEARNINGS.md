@@ -734,3 +734,26 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
 - **PROTOCOL_VERSION 0 → 1** was safe to bump: JS reads the byte but never
   enforced it; all Rust consumers reference the const.
 
+## Feature 02 (foundation_signals, 2026-06-12)
+
+- **Borrow discipline IS the architecture**: the whole graph sits in one
+  `RefCell`; correctness comes from never holding the borrow across user code.
+  Pattern: snapshot (short borrow) -> clone the node's `Rc` eval closure ->
+  drop borrow -> run closure (getters/setters take their own short borrows) ->
+  re-borrow to commit. `process()` is deliberately one long fn so the
+  discipline is visible in one place.
+- **Typed storage beats `Box<dyn Any>` nodes**: graph nodes hold only
+  topology + a `FnMut() -> bool` ("changed?") closure that captures the typed
+  `Rc<...Storage<T>>`. No downcasts anywhere; spec G18 becomes unreachable.
+- **Re-entrant set just works with a growable bucket queue**: the stabilize
+  loop re-checks `dirty.len()` each iteration and pops one node at a time, so
+  effects writing signals mid-pass schedule observers into the SAME pass when
+  their height is still ahead. No recursion, no guard.
+- **Default G17 callbacks via TypeId dispatch**: `ctx.signal::<T>` registers an
+  EventData->T conversion callback when T is String/bool/numeric (Box<dyn Any>
+  round-trip per type); other T get theirs from the macro. Keeps `signal()`
+  generic without specialization.
+- **`invoke_callback` removes the entry while running** (re-entrancy: callback
+  sets a signal whose default callback is itself registered) and reinstates it
+  after — unless disposal removed it meanwhile.
+
