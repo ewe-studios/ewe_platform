@@ -1,9 +1,13 @@
 #![cfg(feature = "vfs-r2")]
 
+use foundation_core::valtron::{initialize_pool, PoolGuard};
 use foundation_nativeapis::native::vfs::r2_delta::R2Delta;
-use foundation_nativeapis::shared::vfs::{
-    DeltaStore, OpenMode, VfsFile, VfsFileSystem,
-};
+use foundation_nativeapis::shared::vfs::sync_bridge::SyncFs;
+use foundation_nativeapis::shared::vfs::{DeltaStore, VfsFileSystem};
+
+fn init_pool() -> PoolGuard {
+    initialize_pool(42, Some(3))
+}
 
 /// Check if local CF emulator is available
 fn is_local_cf_available() -> bool {
@@ -24,28 +28,18 @@ fn is_local_cf_available() -> bool {
     }
 }
 
-/// Initialize valtron pool for tests
-static POOL_GUARD: std::sync::Mutex<Option<foundation_core::valtron::PoolGuard>> =
-    std::sync::Mutex::new(None);
-
-fn init_valtron() {
-    let mut guard = POOL_GUARD.lock().unwrap();
-    if guard.is_none() {
-        *guard = Some(foundation_core::valtron::initialize_pool(42, None));
-    }
-}
-
-/// Create R2Delta pointed at local emulator, or None if unavailable
-fn make_r2_delta() -> Option<R2Delta> {
+/// Create a SyncFs<R2Delta> pointed at local emulator, or None if unavailable
+fn make_sync_r2() -> Option<SyncFs<R2Delta>> {
     if !is_local_cf_available() {
         return None;
     }
     let base = std::env::var("LOCAL_CF_API_BASE").unwrap_or_else(|_| "http://localhost:8789".to_string());
     let bucket = std::env::var("LOCAL_R2_BUCKET").unwrap_or_else(|_| "test-bucket".to_string());
-    R2Delta::new_with_base_url("test-token", "test-account", &bucket, Some(&base)).ok()
+    let delta = R2Delta::new_with_base_url("test-token", "test-account", &bucket, Some(&base)).ok()?;
+    Some(SyncFs::new(delta))
 }
 
-// ── API Surface Tests (always run) ──
+// ── API Surface Tests (always run, no valtron needed) ──
 
 #[test]
 fn test_r2_delta_new_with_credentials() {
@@ -71,63 +65,91 @@ fn test_r2_delta_is_delta_store() {
     assert_delta::<R2Delta>();
 }
 
-// ── Integration Tests (require local CF emulator) ──
+// ── Integration Tests through valtron sync bridge ──
 
 #[test]
-fn test_r2_kvstore_put_get() {
-    init_valtron();
-    let Some(delta) = make_r2_delta() else {
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn syncfs_r2_kvstore_put_get() {
+    let _guard = init_pool();
+    let Some(sync) = make_sync_r2() else {
         println!("Skipping R2 test - miniflare not available (set CF_INTEGRATION_TEST=1)");
         return;
     };
 
-    delta.create("/test_kv.txt", 0o644).unwrap();
-    delta.write_file("/test_kv.txt", b"Hello, R2!").unwrap();
-    let data = delta.read_file("/test_kv.txt").unwrap();
+    sync.create("/test_kv.txt", 0o644).unwrap();
+    sync.write_file("/test_kv.txt", b"Hello, R2!").unwrap();
+    let data = sync.read_file("/test_kv.txt").unwrap();
     assert_eq!(&data, b"Hello, R2!");
 }
 
 #[test]
-fn test_r2_delta_exists() {
-    init_valtron();
-    let Some(delta) = make_r2_delta() else {
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn syncfs_r2_exists() {
+    let _guard = init_pool();
+    let Some(sync) = make_sync_r2() else {
         println!("Skipping R2 test - miniflare not available");
         return;
     };
 
-    delta.create("/exists_test.txt", 0o644).unwrap();
-    assert!(delta.exists("/exists_test.txt").unwrap());
-    assert!(!delta.exists("/nonexistent.txt").unwrap());
+    sync.create("/exists_test.txt", 0o644).unwrap();
+    assert!(sync.exists("/exists_test.txt").unwrap());
+    assert!(!sync.exists("/nonexistent.txt").unwrap());
 }
 
 #[test]
-fn test_r2_delta_whiteout() {
-    init_valtron();
-    let Some(delta) = make_r2_delta() else {
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn syncfs_r2_whiteout() {
+    let _guard = init_pool();
+    let Some(sync) = make_sync_r2() else {
         println!("Skipping R2 test - miniflare not available");
         return;
     };
 
-    delta.add_whiteout("/whiteout_test.txt", 1).unwrap();
-    assert!(delta.is_whiteout("/whiteout_test.txt").unwrap().is_some());
-    delta.remove_whiteout("/whiteout_test.txt").unwrap();
-    assert!(delta.is_whiteout("/whiteout_test.txt").unwrap().is_none());
+    sync.add_whiteout("/whiteout_test.txt", 1).unwrap();
+    assert!(sync.is_whiteout("/whiteout_test.txt").unwrap().is_some());
+    sync.remove_whiteout("/whiteout_test.txt").unwrap();
+    assert!(sync.is_whiteout("/whiteout_test.txt").unwrap().is_none());
 }
 
 #[test]
-fn test_r2_delta_read_write() {
-    init_valtron();
-    let Some(delta) = make_r2_delta() else {
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn syncfs_r2_read_write() {
+    let _guard = init_pool();
+    let Some(sync) = make_sync_r2() else {
         println!("Skipping R2 test - miniflare not available");
         return;
     };
 
-    let file = delta.create("/rw_test.txt", 0o644).unwrap();
-    file.write_at(b"test content", 0).unwrap();
+    sync.create("/rw_test.txt", 0o644).unwrap();
+    sync.write_file("/rw_test.txt", b"test content").unwrap();
+    let data = sync.read_file("/rw_test.txt").unwrap();
+    assert_eq!(&data, b"test content");
+}
 
-    let file = delta.open("/rw_test.txt", OpenMode::Read).unwrap();
-    let mut buf = [0u8; 12];
-    let n = file.read_at(&mut buf, 0).unwrap();
-    assert_eq!(n, 12);
-    assert_eq!(&buf, b"test content");
+#[test]
+#[ntest::timeout(60_000)]
+#[serial_test::serial]
+#[tracing_test::traced_test]
+fn syncfs_r2_flush_and_reset() {
+    let _guard = init_pool();
+    let Some(sync) = make_sync_r2() else {
+        println!("Skipping R2 test - miniflare not available");
+        return;
+    };
+
+    sync.create("/reset_test.txt", 0o644).unwrap();
+    sync.write_file("/reset_test.txt", b"data").unwrap();
+    sync.flush().unwrap();
+    assert!(sync.exists("/reset_test.txt").unwrap());
+
+    sync.reset().unwrap();
+    assert!(!sync.exists("/reset_test.txt").unwrap());
 }

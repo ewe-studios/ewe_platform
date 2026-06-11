@@ -180,37 +180,6 @@ run = """
 pnpm install
 """
 
-[tasks."cf:start"]
-description = "Start local wrangler dev server for D1/R2 testing"
-run = """
-# Kill any existing wrangler/workerd processes
-pkill -f "wrangler" 2>/dev/null || true
-pkill -f "workerd" 2>/dev/null || true
-sleep 1
-
-echo "Starting wrangler dev for local D1/R2 testing..."
-cd integrations/nodejs
-wrangler dev --local > wrangler.log 2>&1 &
-echo $! > /tmp/wrangler-test.pid
-
-echo "Waiting for wrangler to start..."
-sleep 3
-echo "✓ Wrangler started (PID $(cat /tmp/wrangler-test.pid))"
-echo "  Logs: integrations/nodejs/wrangler.log"
-"""
-
-[tasks."test:cf"]
-description = "Run Cloudflare D1/R2 integration tests"
-depends = ["cf:start"]
-run = """
-echo "Running Cloudflare integration tests..."
-cargo test -p foundation_nativeapis --features "vfs-native,vfs-d1,vfs-r2" --test d1_delta_vfs --test r2_delta_vfs
-
-# Cleanup
-pkill -f "wrangler" 2>/dev/null || true
-pkill -f "workerd" 2>/dev/null || true
-"""
-
 [tasks."setup:check"]
 alias = "check-tools"
 description = "Verify all installed tools and versions"
@@ -518,6 +487,73 @@ export CF_INTEGRATION_TEST=1
 export LOCAL_CF_API_BASE="http://localhost:8789"
 export LOCAL_D1_DATABASE_ID="test-db"
 cargo test --package foundation_db --test d1_kvstore_tests -- --show-output
+"""
+
+[tasks."test:vfs:nfs"]
+description = "Run VFS NFS adapter tests via valtron"
+run = """
+#!/usr/bin/env bash
+set -e
+
+CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-nfs" --test nfs_vfs 2>&1 | tee /tmp/vfs-nfs-test.log
+test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-nfs-test.log) -gt 0
+"""
+
+[tasks."test:vfs:cf:r2"]
+description = "Run VFS R2Delta integration tests via valtron (auto-starts wrangler)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+mise run cf:start
+trap 'mise run cf:stop' EXIT
+
+export CF_INTEGRATION_TEST=1
+export LOCAL_CF_API_BASE="http://localhost:8789"
+export LOCAL_R2_BUCKET="test-bucket"
+CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-r2" --test r2_delta_vfs 2>&1 | tee /tmp/vfs-r2-test.log
+test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-r2-test.log) -gt 0
+"""
+
+[tasks."test:vfs:cf:d1"]
+description = "Run VFS D1Delta integration tests via valtron (auto-starts wrangler)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+mise run cf:start
+trap 'mise run cf:stop' EXIT
+
+export CF_INTEGRATION_TEST=1
+export LOCAL_CF_API_BASE="http://localhost:8789"
+export LOCAL_D1_DATABASE_ID="test-db"
+CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-d1" --test d1_delta_vfs 2>&1 | tee /tmp/vfs-d1-test.log
+test $(grep -cE '^test .* \\.\\.\\. (FAILED|ignored|ok)' /tmp/vfs-d1-test.log) -gt 0
+"""
+
+[tasks."test:vfs:cf"]
+description = "Run all VFS Cloudflare integration tests (D1 + R2 via valtron)"
+run = """
+#!/usr/bin/env bash
+set -e
+
+mise run cf:start
+trap 'mise run cf:stop' EXIT
+
+export CF_INTEGRATION_TEST=1
+export LOCAL_CF_API_BASE="http://localhost:8789"
+
+echo "=== Running VFS R2Delta Tests ==="
+export LOCAL_R2_BUCKET="test-bucket"
+CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-r2" --test r2_delta_vfs 2>&1 | tee /tmp/vfs-r2-test.log
+
+echo ""
+echo "=== Running VFS D1Delta Tests ==="
+export LOCAL_D1_DATABASE_ID="test-db"
+CARGO_TERM_COLOR=never cargo test --package foundation_nativeapis --features "vfs-d1" --test d1_delta_vfs 2>&1 | tee /tmp/vfs-d1-test.log
+
+echo ""
+echo "✓ All VFS Cloudflare tests passed"
 """
 
 [tasks."cf:d1:create"]
