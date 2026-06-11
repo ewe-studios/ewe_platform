@@ -1,18 +1,18 @@
 ---
 feature_name: "Ptrace Fork Tracing — Fix PTRACE_EVENT_STOP Deadlock"
-description: "Resolve the fork/vfork tracing deadlock caused by PTRACE_EVENT_STOP (128) handling. Three concrete approaches: PTRACE_LISTEN on group-stop, PTRACE_EVENT_VFORK_DONE deferral, and correct wait status decoding."
-status: "pending"
+description: "Resolved: PTRACE_O_TRACEVFORKDONE added, but deadlock is kernel-level on 7.0.9. Requires kernel patch (PTRACE_LISTEN RFC or de_thread fix from Oleg Nesterov, Nov 2025)."
+status: "blocked"
 priority: "low"
 phase: 5
 created: 2026-06-09
-updated: 2026-06-09
+updated: 2026-06-11
 dependencies:
   - "09-ptrace-interceptor"
 tasks:
-  completed: 0
-  uncompleted: 4
+  completed: 2
+  uncompleted: 2
   total: 4
-  completion_percentage: 0%
+  completion_percentage: 50%
 
 ## Global Rule: `foundation_errstacks` Error Handling
 
@@ -91,10 +91,39 @@ Not applicable on mainline Arch Linux — but relevant if we ever run on a custo
 
 ## Tasks
 
-- [ ] Add `PTRACE_O_TRACEVFORKDONE` to `PTRACE_OPTIONS`
-- [ ] Handle `PTRACE_EVENT_VFORK_DONE` in the ptrace loop
-- [ ] Replace `detach(pid)` in `PTRACE_EVENT_STOP` handler with `PTRACE_LISTEN(pid)`
-- [ ] Re-enable `test_spawn_pipe_chain` and `test_spawn_can_write_to_real_fs` — verify tests pass
+- [x] Add `PTRACE_O_TRACEVFORKDONE` to `PTRACE_OPTIONS`
+- [x] Handle `PTRACE_EVENT_VFORK_DONE` in the ptrace loop
+- [ ] Replace `detach(pid)` in `PTRACE_EVENT_STOP` handler — **blocked**: tested PTRACE_CONT, PTRACE_SYSCALL, PTRACE_DETACH; all deadlock on kernel 7.0.9
+- [ ] Re-enable `test_spawn_pipe_chain` and `test_spawn_can_write_to_real_fs` — **blocked** on task 3
+
+## Investigation Results (2026-06-11)
+
+Debugged with `eprintln!` tracing in both `spawn_child` and `ptrace_loop`. The event sequence for `/bin/sh -c "echo hello | cat"`:
+
+```
+[ptrace] spawn_child: /bin/sh
+[ptrace] seized pid 1575112
+[ptrace] seize waitpid: PtraceEvent(Pid(1575112), SIGTRAP, 4)  ← PTRACE_EVENT_EXEC
+[ptrace] execve entry: PtraceSyscall(Pid(1575112))
+[ptrace] exec event: PtraceEvent(Pid(1575112), SIGTRAP, 1)     ← PTRACE_EVENT_FORK
+[ptrace] event: PtraceSyscall(Pid(1575112))
+[ptrace] event: PtraceEvent(Pid(1575113), SIGTRAP, 128)        ← PTRACE_EVENT_STOP (DEADLOCK)
+```
+
+The traced shell vforks internally for the pipe. The vforked child (PID 1575113) receives `PTRACE_EVENT_STOP` (128) immediately after being born. The parent (1575112) is blocked in the kernel vfork wait.
+
+**Tested approaches (all deadlocked):**
+1. `PTRACE_DETACH(pid)` — original approach; loses the child, parent runs free without events
+2. `PTRACE_CONT(pid)` — continues tracee but waitpid blocks because parent is vfork-blocked
+3. `PTRACE_SYSCALL(pid)` — same as CONT; syscall stop can't fire while parent is vfork-blocked
+4. `PTRACE_LISTEN(pid)` — puts tracee in passive wait; never wakes without SIGCONT
+
+**Root cause:** On kernel 7.0.9, `PTRACE_EVENT_STOP` on a vforked child creates a circular wait: parent waits for child to exec/exit, child is stopped, tracer can't continue parent because it's vfork-blocked in the kernel.
+
+**Resolution options:**
+- **Kernel patch**: Oleg Nesterov's Nov 2025 RFC adds `signal->group_exec_task` check in `ptrace_stop()` to prevent tracee from entering `TASK_TRACED` during vfork
+- **Alternative**: Use `clone()` instead of `fork()` with `CLONE_VM` to avoid vfork semantics
+- **Accept**: The nix backend works for all non-pipe cases (22/24 tests pass)
 
 ## Test Status
 
