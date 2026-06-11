@@ -1,0 +1,37 @@
+[package]
+name = "foundation_rng"
+version = "0.1.0"
+edition = "2024"
+description = "RNG (getrandom) + scru128 IDs for foundation_ai, with WASM support"
+
+[features]
+default = ["std", "native"]
+std = ["dep:serde", "fstr/std"]
+global_gen = ["std", "dep:forkguard", "dep:reseeding_rng"]
+native = ["std", "global_gen", "rand010", "dep:getrandom"]
+# Feature aliases (copied source uses these names)
+rand010 = ["scru128_rand010"]
+rand09 = []
+serde = ["dep:serde"]
+sys_rng = []
+scru128_rand010 = ["dep:rand_core"]
+js-wasmbindgen = ["std", "dep:wasm-bindgen", "dep:js-sys"]
+wasm-runtime = ["std", "dep:foundation_wasm"]
+
+[dependencies]
+cfg-if = "1.0"
+fstr = { version = "0.2.20", default-features = false }
+getrandom = { version = "0.3", optional = true, features = ["wasm_js"] }
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+foundation_wasm = { path = "../foundation_wasm", optional = true }
+rand_core = { version = "0.10", optional = true, package = "rand_core" }
+rand_core09 = { version = "0.9", optional = true, package = "rand_core" }
+rand = "0.10"
+serde = { version = "1.0", default-features = false, features = ["derive"], optional = true }
+forkguard = { version = "0.1", optional = true }
+reseeding_rng = { version = "0.10.5", features = ["std_rng"], optional = true }
+
+[dev-dependencies]
+regex = { version = "1", default-features = false, features = ["std"] }
+serde_test = "1.0"

@@ -1,0 +1,35 @@
+//! Integration with `rand` (v0.10) crate.
+
+#![cfg(feature = "rand010")]
+
+use super::{Generator, RandSource, StdSystemTime};
+use rand_core::Rng;
+
+/// An adapter that implements [`RandSource`] for [`Rng`] types.
+#[derive(Clone, Debug, Default)]
+pub struct Adapter<T>(/** The wrapped [`Rng`] type. */ pub T);
+
+impl<T: Rng> RandSource for Adapter<T> {
+    fn next_u32(&mut self) -> u32 {
+        self.0.next_u32()
+    }
+}
+
+impl<T: Rng> Generator<Adapter<T>> {
+    /// Creates a generator object with a specified random number generator that implements [`Rng`]
+    /// from `rand` (v0.10) crate. The specified random number generator should be
+    /// cryptographically strong and securely seeded.
+    ///
+    /// # Examples
+    ///
+    /// ```rust
+    /// # #[cfg(feature = "std")]
+    /// # {
+    /// let mut g = scru128::Generator::with_rand010(rand::rng());
+    /// println!("{}", g.generate());
+    /// # }
+    /// ```
+    pub const fn with_rand010(rng: T) -> Self {
+        Self::with_rand_and_time_sources(Adapter(rng), StdSystemTime)
+    }
+}
