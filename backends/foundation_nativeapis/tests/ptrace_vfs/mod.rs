@@ -381,7 +381,7 @@ fn test_spawn_nonexistent_fails() {
 }
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on kernel 7.0.9 causes deadlock in parent's vfork wait"]
+#[ignore = "fork tracing: PTRACE_EVENT_STOP on kernel 7.0.9 causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
 fn test_spawn_pipe_chain() {
     // Verify non-fs syscalls (pipe, dup, etc.) pass through normally
     let i = NixInterceptor::new();
@@ -391,7 +391,7 @@ fn test_spawn_pipe_chain() {
 }
 
 #[test]
-#[ignore = "fork tracing: PTRACE_EVENT_STOP on kernel 7.0.9 causes deadlock in parent's vfork wait"]
+#[ignore = "fork tracing: PTRACE_EVENT_STOP on kernel 7.0.9 causes deadlock — requires kernel-level fix (PTRACE_LISTEN or de_thread patch)"]
 fn test_spawn_can_write_to_real_fs() {
     // Verify the child can write to the real filesystem (passthrough)
     let i = NixInterceptor::new();

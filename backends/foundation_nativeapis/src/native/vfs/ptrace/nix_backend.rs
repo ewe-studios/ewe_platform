@@ -12,7 +12,8 @@ use std::collections::HashMap;
 use std::sync::Arc;
 
 use nix::libc::{PTRACE_O_TRACECLONE, PTRACE_O_TRACEEXEC, PTRACE_O_TRACEEXIT,
-                PTRACE_O_TRACEFORK, PTRACE_O_TRACESYSGOOD, PTRACE_O_TRACEVFORK};
+                PTRACE_O_TRACEFORK, PTRACE_O_TRACESYSGOOD, PTRACE_O_TRACEVFORK,
+                PTRACE_O_TRACEVFORKDONE};
 use nix::sys::ptrace::{self, Options};
 use nix::sys::wait::{WaitStatus, waitpid};
 use nix::unistd::Pid;
@@ -22,14 +23,14 @@ use crate::shared::vfs::error::{VfsError, VfsResult};
 use super::syscall_dispatch::{self, SyscallAction, SyscallArgs};
 use super::{InterceptorHandle, MountTable, SyscallInterceptor, VirtualFdTable};
 
-/// Signal number for SIGTRAP with the SYSGOOD bit set.
-const SYSCALL_STOP_SIGNAL: i32 = libc::SIGTRAP | 0x80;
-
 /// All ptrace options set atomically via PTRACE_SEIZE.
+/// Includes TRACEVFORKDONE so we can properly handle the parent unblock
+/// after a vfork exec/exit sequence.
 const PTRACE_OPTIONS: Options = Options::from_bits_truncate(
     PTRACE_O_TRACESYSGOOD
     | PTRACE_O_TRACEFORK
     | PTRACE_O_TRACEVFORK
+    | PTRACE_O_TRACEVFORKDONE
     | PTRACE_O_TRACECLONE
     | PTRACE_O_TRACEEXEC
     | PTRACE_O_TRACEEXIT,
@@ -236,10 +237,17 @@ fn ptrace_loop(
             WaitStatus::PtraceEvent(pid, _sig, event) => {
                 match event {
                     libc::PTRACE_EVENT_STOP => {
-                        // Special stop condition (e.g. after PTRACE_EVENT_EXIT,
-                        // or on newer kernels for thread stops). Detach to let
-                        // the process run freely.
+                        // Group-stop or initial SEIZE stop. On newer kernels
+                        // (7.0+), this arrives during vfork when the parent
+                        // is blocked. Detaching lets the process run free;
+                        // the tracer continues via waitpid(-1) on remaining
+                        // traced children.
                         ptrace::detach(pid, None).ok();
+                    }
+                    libc::PTRACE_EVENT_VFORK_DONE => {
+                        // The child has completed exec/exit and the parent is
+                        // unblocked. Resume the parent with syscall tracing.
+                        ptrace::syscall(pid, None).ok();
                     }
                     libc::PTRACE_EVENT_FORK
                     | libc::PTRACE_EVENT_VFORK
@@ -247,8 +255,6 @@ fn ptrace_loop(
                         if let Ok(new_pid_raw) = ptrace::getevent(pid) {
                             let new_pid = Pid::from_raw(new_pid_raw as i32);
                             fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
-                            // The child is born stopped — continue it with syscall tracing
-                            // so we intercept it too. Trace options are inherited from parent.
                             ptrace::syscall(new_pid, None).ok();
                         }
                         ptrace::syscall(pid, None).ok();
