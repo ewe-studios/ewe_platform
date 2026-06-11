@@ -323,7 +323,7 @@ required-features = ["vfs-preload"]
 [[test]]
 name = "fjall_vfs"
 path = "tests/fjall_vfs/mod.rs"
-required-features = ["vfs-fjall", "vfs-native"]
+required-features = ["vfs-fjall"]
 
 [[test]]
 name = "nfs_vfs"

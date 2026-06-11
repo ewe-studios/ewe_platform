@@ -42,3 +42,9 @@ pub use types::{
 
 
 
+
+#[cfg(feature = "vfs-fjall")]
+pub mod fjall_fs;
+
+#[cfg(feature = "vfs-fjall")]
+pub use fjall_fs::{FjallFs, FjallDelta, FjallVfsConfig};
