@@ -22,7 +22,7 @@ use crate::error::{Result, ToTrace, WasmTestbedError};
 struct TemplateDirectory;
 
 /// Read a template file by its path within the templates directory.
-fn read_template(path: &str) -> Result<String> {
+pub(crate) fn read_template(path: &str) -> Result<String> {
     let bytes = TemplateDirectory.read_utf8_for(path)
         .ok_or_else(|| WasmTestbedError::TemplateNotFound(path.to_string()).trace())?;
     String::from_utf8(bytes)
@@ -136,11 +136,37 @@ pub fn run(args: InitArgs) -> Result<()> {
 
     let types = match args.r#type {
         Some(t) => vec![t],
-        None => vec![InitType::Web, InitType::Deno, InitType::Wrangler],
+        None => vec![
+            InitType::Node,
+            InitType::Web,
+            InitType::Deno,
+            InitType::Wrangler,
+        ],
     };
 
     for init_type in &types {
+        // The owned mode scaffolds a Rust cases file, not a JS harness dir — the
+        // harness is generated at run time (`wasm-testbed node <crate>`).
+        if matches!(init_type, InitType::Node) {
+            let dest = crate_path.join("src").join("wasm_tests.rs");
+            if dest.exists() {
+                info!("{} already exists — skipping", dest.display());
+            } else {
+                let content = read_template("fwt/sample_wasm_test.rs")?;
+                std::fs::write(&dest, content)
+                    .map_err(|e| WasmTestbedError::Io(e).trace())?;
+                info!(
+                    "wrote {} — add `mod wasm_tests;` to lib.rs, set crate-type = [\"cdylib\"], \
+                     and depend on foundation_wasm (feature \"web\") + foundation_macros; \
+                     then run: wasm-testbed node {}",
+                    dest.display(),
+                    crate_path.display()
+                );
+            }
+            continue;
+        }
         let dir_name = match init_type {
+            InitType::Node => unreachable!("handled above"),
             InitType::Web => "web",
             InitType::Deno => "deno",
             InitType::Wrangler => "wrangler",
@@ -151,6 +177,7 @@ pub fn run(args: InitArgs) -> Result<()> {
             .map_err(|e| WasmTestbedError::CratePathNotFound(format!("{e}")).trace())?;
 
         let templates = match init_type {
+            InitType::Node => unreachable!("handled above"),
             InitType::Web => vec!["web/index.html", "web/index.js", "web/loader.js"],
             InitType::Deno => vec!["deno/index.js", "deno/loader.js"],
             InitType::Wrangler => {

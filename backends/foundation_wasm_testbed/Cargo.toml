@@ -12,6 +12,7 @@ description = "CLI-driven test harness for wasm32-unknown-unknown"
 clap = { version = "4", features = ["derive"] }
 walrus = { workspace = true }
 foundation_codegen = { workspace = true }
+foundation_wasm_ui = { workspace = true, features = ["embedded-js"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 foundation_http = { workspace = true }

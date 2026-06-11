@@ -664,3 +664,29 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   re-declaring the module tree) surfaced ~30 pre-existing pedantic lints — fixed.
   foundation_netio (238), foundation_core (15), foundation_http (13) carry their own
   pre-existing warnings, OUTSIDE this spec's surface — flagged, not fixed here.
+
+## F12+F14 landed: owned runners + interop boundary enforced (2026-06-11)
+
+- **Owned runner** (`wasm-testbed node|deno|web <crate>`): build → `fwt` discovery →
+  stage a SELF-CONTAINED temp harness (embedded runtime via `embedded-js` + one generic
+  `runner.mjs` + `cases.json` + module) → run → exit code. ONE plain-ESM runner script
+  serves node, deno (`deno run -A`), and the browser (index.html mirrors output into
+  `#output` for the existing Playwright poller). Fresh instance per case (trapped
+  instances are dead); `--filter` for substring selection.
+- **spec-31 feature-02 migration**: the four valtron JS-yield integration tests ported
+  to `#[wasm_test]` on `js-foundation-wasm` (`foundation_core/integration/wasm_tests`)
+  — ALL GREEN through `wasm-testbed node`. Owned replacements for the bindgen bits:
+  timing = a REGISTERED host fn (`Date.now()` over the ABI); safety timeouts = an
+  awaited `WaitUntil` future on the owned re-poll loop (each Pending poll IS an executor
+  re-entry, which is the thing under test). Originals retained as the F14 opt-in.
+- **CRITICAL leak found+fixed**: foundation_core unconditionally enabled getrandom's
+  `wasm_js`/`js` (wasm-bindgen) backends for wasm32 — EVERY owned module carried
+  `__wbindgen_*` imports and could not instantiate on the owned runtime. Library rand
+  is seeded-only now (`default-features = false`; all non-test usage is
+  ChaCha8Rng/SeedableRng); getrandom backends tied to the `js-wasmbindgen` opt-in;
+  native tests get full rand via dev-dependencies. Rule: check
+  `WebAssembly.Module.imports` — an owned module imports ONLY the `abi` module.
+- **F14**: bindgen modes log an `INTEROP MODE` warning; framework grep clean;
+  foundation_db's optional `worker`/wasm-bindgen deps are the conformant seam example.
+- foundation_core carries ~21 PRE-EXISTING pedantic lints (type_uuid, url/query,
+  valtron builders) — outside this feature's surface, flagged not fixed.

@@ -6,6 +6,7 @@
 pub mod browser;
 pub mod build;
 pub mod fwt;
+pub mod fwt_runner;
 pub mod cli;
 pub mod deno;
 pub mod error;

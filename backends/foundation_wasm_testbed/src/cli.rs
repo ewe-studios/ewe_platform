@@ -16,8 +16,42 @@ pub struct Cli {
 pub enum Command {
     /// Scaffold integration test directories for a wasm crate
     Init(InitArgs),
-    /// Build, stage, and run tests for a wasm crate
+    /// Build, stage, and run tests for a wasm crate (legacy/interop modes —
+    /// the bindgen-* modes are the explicit wasm-bindgen OPT-IN, decision 031)
     Test(TestArgs),
+    /// OWNED default: build → discover `#[wasm_test]` cases → run under node
+    Node(OwnedRunArgs),
+    /// OWNED: same loop under Deno (headless wasm, no browser)
+    Deno(OwnedRunArgs),
+    /// OWNED: same loop served + run under Playwright on our runtime
+    Web(OwnedRunArgs),
+}
+
+/// Arguments shared by the owned `node`/`deno`/`web` runners (features 12/13).
+#[derive(Parser)]
+pub struct OwnedRunArgs {
+    /// Path to the Cargo crate containing `#[wasm_test]` cases
+    pub crate_path: PathBuf,
+
+    /// Build in release mode (default: debug)
+    #[arg(long)]
+    pub release: bool,
+
+    /// Cargo features to enable during build
+    #[arg(long)]
+    pub features: Option<String>,
+
+    /// Only run cases whose name contains this substring
+    #[arg(long)]
+    pub filter: Option<String>,
+
+    /// Browser to use (web mode only)
+    #[arg(long, default_value = "chrome")]
+    pub browser: Browser,
+
+    /// Run the browser headless (web mode only)
+    #[arg(long)]
+    pub headless: bool,
 }
 
 /// Arguments for the `init` subcommand.
@@ -34,6 +68,8 @@ pub struct InitArgs {
 /// Integration type for the `init` subcommand.
 #[derive(Clone, ValueEnum)]
 pub enum InitType {
+    /// OWNED `#[wasm_test]` scaffolding (a sample cases file — features 12/13)
+    Node,
     /// Browser test scaffolding
     Web,
     /// Deno test scaffolding

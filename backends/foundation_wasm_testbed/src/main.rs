@@ -7,7 +7,7 @@ use clap::Parser;
 use foundation_errstacks::ErrorTrace;
 use tracing::error;
 
-use foundation_wasm_testbed::{browser, build, cli, deno, error, init, server, wasm, wasm_test, wrangler};
+use foundation_wasm_testbed::{browser, build, cli, deno, error, fwt_runner, init, server, wasm, wasm_test, wrangler};
 
 use cli::{Cli, Command};
 use error::WasmTestbedError;
@@ -25,12 +25,27 @@ fn main() {
     let result = match cli.command {
         Command::Init(args) => init::run(args),
         Command::Test(args) => run_test(&args),
+        Command::Node(args) => run_owned(fwt_runner::run_node(&args)),
+        Command::Deno(args) => run_owned(fwt_runner::run_deno(&args)),
+        Command::Web(args) => run_owned(fwt_runner::run_web(&args)),
     };
 
     if let Err(e) = result {
         error!("{:?}", e);
         std::process::exit(1);
     }
+}
+
+/// Surface an owned-harness outcome as the process verdict.
+fn run_owned(
+    outcome: foundation_wasm_testbed::error::Result<fwt_runner::RunOutcome>,
+) -> Result<(), ErrorTrace<WasmTestbedError>> {
+    use error::ToTrace;
+    let outcome = outcome?;
+    if outcome.exit_code != 0 {
+        return Err(WasmTestbedError::OwnedRunFailed(outcome.exit_code).trace());
+    }
+    Ok(())
 }
 
 fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
@@ -88,6 +103,13 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
             }
         }
         Mode::BindgenWeb | Mode::BindgenDeno | Mode::BindgenWrangler => {
+            // F14 boundary: this is the EXPLICIT wasm-bindgen interop opt-in — not
+            // the owned default. Our crates test via `wasm-testbed node/deno/web`.
+            tracing::warn!(
+                "INTEROP MODE: running the wasm-bindgen (non-owned) path — \
+                 sanctioned only for crates that themselves use wasm-bindgen \
+                 (decision 031 / feature 14)"
+            );
             // Bindgen modes: need --tests for #[wasm_bindgen_test] exports
             let build = build::run_with_tests(&crate_path, args.release, args.features.as_deref())?;
             match args.mode {

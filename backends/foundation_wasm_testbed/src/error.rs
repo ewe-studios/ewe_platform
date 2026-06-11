@@ -81,6 +81,19 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     WasmParseFailed(String),
 
+    // --- fwt_runner.rs (owned harness) ---
+    #[display("no #[wasm_test] cases (`__fwt_` exports) found in: {_0}")]
+    #[error(ignore)]
+    NoFwtCases(String),
+
+    #[display("JS host runtime not found on PATH: {_0}")]
+    #[error(ignore)]
+    HostRuntimeNotFound(String),
+
+    #[display("owned harness run failed with exit code {_0}")]
+    #[error(ignore)]
+    OwnedRunFailed(i32),
+
     // --- deno.rs ---
     #[display(
         "deno not found on PATH.\n\

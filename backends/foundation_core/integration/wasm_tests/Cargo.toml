@@ -1,0 +1,23 @@
+# Standalone crate (own [workspace]) — the OWNED port of spec-31 feature-02's
+# JS-yield integration tests: #[wasm_test] on js-foundation-wasm instead of
+# #[wasm_bindgen_test] on js-wasmbindgen. Run with:
+#   wasm-testbed node backends/foundation_core/integration/wasm_tests
+[package]
+name = "foundation_core_wasm_tests"
+version = "0.0.1"
+publish = false
+edition = "2021"
+
+[dependencies]
+foundation_core = { path = "../..", features = ["js-foundation-wasm"] }
+foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
+foundation_macros = { path = "../../../foundation_macros" }
+
+[lib]
+crate-type = ["cdylib"]
+
+[workspace]
+
+[profile.uat]
+inherits = "release"
+codegen-backend = "llvm"
