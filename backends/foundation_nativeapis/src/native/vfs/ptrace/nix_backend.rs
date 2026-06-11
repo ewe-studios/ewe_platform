@@ -237,11 +237,8 @@ fn ptrace_loop(
             WaitStatus::PtraceEvent(pid, _sig, event) => {
                 match event {
                     libc::PTRACE_EVENT_STOP => {
-                        // Group-stop or initial SEIZE stop. On newer kernels
-                        // (7.0+), this arrives during vfork when the parent
-                        // is blocked. Detaching lets the process run free;
-                        // the tracer continues via waitpid(-1) on remaining
-                        // traced children.
+                        // Vforked child receives EVENT_STOP immediately after birth.
+                        // Detach lets it run free to unblock the parent's vfork wait.
                         ptrace::detach(pid, None).ok();
                     }
                     libc::PTRACE_EVENT_VFORK_DONE => {
@@ -250,8 +247,18 @@ fn ptrace_loop(
                         ptrace::syscall(pid, None).ok();
                     }
                     libc::PTRACE_EVENT_FORK
-                    | libc::PTRACE_EVENT_VFORK
                     | libc::PTRACE_EVENT_CLONE => {
+                        if let Ok(new_pid_raw) = ptrace::getevent(pid) {
+                            let new_pid = Pid::from_raw(new_pid_raw as i32);
+                            fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
+                            ptrace::syscall(new_pid, None).ok();
+                        }
+                        ptrace::syscall(pid, None).ok();
+                    }
+                    libc::PTRACE_EVENT_VFORK => {
+                        // During vfork the parent is blocked in the kernel.
+                        // Continue with SYSCALL; when the child execs the
+                        // parent resumes and hits syscall boundaries.
                         if let Ok(new_pid_raw) = ptrace::getevent(pid) {
                             let new_pid = Pid::from_raw(new_pid_raw as i32);
                             fd_table.clone_for_child(pid.as_raw() as u32, new_pid.as_raw() as u32);
