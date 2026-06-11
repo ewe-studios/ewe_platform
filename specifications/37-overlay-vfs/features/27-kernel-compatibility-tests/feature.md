@@ -113,10 +113,15 @@ Debugged with `eprintln!` tracing in both `spawn_child` and `ptrace_loop`. The e
 The traced shell vforks internally for the pipe. The vforked child (PID 1575113) receives `PTRACE_EVENT_STOP` (128) immediately after being born. The parent (1575112) is blocked in the kernel vfork wait.
 
 **Tested approaches (all deadlocked):**
-1. `PTRACE_DETACH(pid)` — original approach; loses the child, parent runs free without events
-2. `PTRACE_CONT(pid)` — continues tracee but waitpid blocks because parent is vfork-blocked
-3. `PTRACE_SYSCALL(pid)` — same as CONT; syscall stop can't fire while parent is vfork-blocked
-4. `PTRACE_LISTEN(pid)` — puts tracee in passive wait; never wakes without SIGCONT
+
+| EVENT_STOP handler | VFORK parent handler | Result |
+|---|---|---|
+| `PTRACE_DETACH` | `PTRACE_SYSCALL` | Deadlock — parent runs free, no events |
+| `PTRACE_CONT` | `PTRACE_SYSCALL` | Deadlock — parent vfork-blocked |
+| `PTRACE_SYSCALL` | `PTRACE_SYSCALL` | Deadlock — syscall stop can't fire during vfork |
+| `PTRACE_LISTEN` | `PTRACE_SYSCALL` | Deadlock — passive wait, never wakes |
+| `PTRACE_CONT` | `PTRACE_CONT` | Deadlock — parent runs free, no events |
+| `PTRACE_DETACH` | `PTRACE_CONT` | Deadlock — parent runs free, no events |
 
 **Root cause:** On kernel 7.0.9, `PTRACE_EVENT_STOP` on a vforked child creates a circular wait: parent waits for child to exec/exit, child is stopped, tracer can't continue parent because it's vfork-blocked in the kernel.
 
