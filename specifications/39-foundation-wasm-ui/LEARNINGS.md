@@ -635,3 +635,32 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   (ANSI codes precede the word) — every earlier "clippy clean" check this session was
   vacuous. Use `CARGO_TERM_COLOR=never` + tee to a file, and `touch` lib.rs first
   (clippy caches per-crate results and prints nothing on re-runs).
+
+## F13 landed: owned #[wasm_test] execution model (2026-06-11)
+
+- **`#[wasm_test]`** (foundation_macros): keeps the fn, emits `__fwt_<name>() -> u32`
+  (0 = reported sync, 1 = report pending/async) + a `name|flags\n` line into the
+  `__fwt_manifest` CUSTOM SECTION via `#[link_section]` + `#[used]` statics (lld
+  concatenates same-section statics — the wasm-bindgen trick, on our prefix). Flags:
+  a/p/i. Gated `#[cfg(wasm32/64)]` so native builds skip the export + section.
+- **Result protocol** = `host_report(status, ptr, len)` import (0 pass / 1 fail /
+  2 ignored + optional UTF-8 message). JS: `TestReports` collector with promise-based
+  `next()` so runners await async outcomes.
+- **wasm32 panics ABORT** — `catch_unwind` is useless there. Capture order: the macro
+  installs a `std` panic hook IN THE USER CRATE (foundation_wasm is no_std) that calls
+  `testing::fail_current(panic_text)` BEFORE the trap; the runner catches the
+  `WebAssembly.RuntimeError` and re-instantiates (a trapped instance is dead — fresh
+  instance per case is the robust runner shape). `should_panic` is therefore a
+  MANIFEST flag the runner inverts on; the module can't observe its own panic.
+- **Async cases** ride an owned re-poll loop: poll with `Waker::noop()`; on `Pending`,
+  `abi::web::register_schedule(0.0, …)` re-polls on the next host timer tick (the
+  schedule registry takes `Fn`, so the closure re-arms by cloning an `Rc<RefCell<…>>`
+  future slot). Validated e2e: a Pending-once future resolves through node's timer.
+- **Discovery** (`testbed::fwt::discover_cases`) uses OUR wasmbin port
+  (foundation_codegen::wasm) — export scan for `__fwt_` + manifest section for flags.
+  Spec said walrus; F15 was built with this use case as a success criterion (031:
+  owned preferred). The old `__wbgt_` walrus discovery remains for the F14 opt-in.
+- Publishing the testbed lib modules (so main.rs consumes the lib instead of
+  re-declaring the module tree) surfaced ~30 pre-existing pedantic lints — fixed.
+  foundation_netio (238), foundation_core (15), foundation_http (13) carry their own
+  pre-existing warnings, OUTSIDE this spec's surface — flagged, not fixed here.

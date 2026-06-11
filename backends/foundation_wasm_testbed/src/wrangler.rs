@@ -27,11 +27,11 @@ pub struct WranglerOutput {
     pub wrangler_stderr: String,
 }
 
-/// Simple HTTP GET via raw TcpStream.
+/// Simple HTTP GET via raw `TcpStream`.
 ///
 /// WHY: We only need a single GET to poll if wrangler dev is ready.
 /// WHAT: Writes raw HTTP bytes, reads the response.
-/// HOW: Opens a TcpStream, writes "GET / HTTP/1.1\r\nHost: ...\r\n\r\n",
+/// HOW: Opens a `TcpStream`, writes `GET / HTTP/1.1` + host headers,
 ///      reads until EOF or timeout.
 fn http_get(host: &str, port: u16) -> Result<(u16, String)> {
     let addr = format!("{host}:{port}");
@@ -60,8 +60,7 @@ fn http_get(host: &str, port: u16) -> Result<(u16, String)> {
     // Split headers from body
     let body = response
         .split_once("\r\n\r\n")
-        .map(|(_, body)| body)
-        .unwrap_or(&response)
+        .map_or(response.as_str(), |(_, body)| body)
         .to_string();
 
     Ok((status_code, body))

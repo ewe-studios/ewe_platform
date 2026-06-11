@@ -13,6 +13,7 @@ use tracing::{debug, info};
 use crate::error::{Result, ToTrace, WasmTestbedError};
 
 /// Target platform for wasm-bindgen output.
+#[derive(Clone, Copy, Debug)]
 pub enum BindgenTarget {
     /// Web browser (default, no --target flag needed).
     Web,
@@ -24,7 +25,7 @@ pub enum BindgenTarget {
 
 impl BindgenTarget {
     /// Returns the CLI argument for this target, or None for the default.
-    fn cli_arg(&self) -> Option<&'static str> {
+    fn cli_arg(self) -> Option<&'static str> {
         match self {
             BindgenTarget::Web => None,
             BindgenTarget::Deno => Some("deno"),
@@ -52,6 +53,9 @@ pub fn run_wasm_bindgen(
 }
 
 /// Run wasm-bindgen CLI with an optional output name override.
+///
+/// # Errors
+/// Returns an error when the wasm-bindgen CLI is missing or its run fails.
 pub fn run_wasm_bindgen_with_name(
     wasm_path: &Path,
     output_dir: &Path,

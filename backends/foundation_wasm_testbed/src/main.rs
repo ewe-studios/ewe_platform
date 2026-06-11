@@ -24,7 +24,7 @@ fn main() {
 
     let result = match cli.command {
         Command::Init(args) => init::run(args),
-        Command::Test(args) => run_test(args),
+        Command::Test(args) => run_test(&args),
     };
 
     if let Err(e) = result {
@@ -33,7 +33,7 @@ fn main() {
     }
 }
 
-fn run_test(args: cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
+fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use cli::Mode;
     use error::{ToTrace, WasmTestbedError};
 
