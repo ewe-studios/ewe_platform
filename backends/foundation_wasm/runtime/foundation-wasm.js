@@ -1629,6 +1629,44 @@ function defaultRaf() {
   };
 }
 
+// ─── TestReports (feature 13 — owned #[wasm_test] result protocol) ─────────────────
+
+/**
+ * Collects `#[wasm_test]` case outcomes delivered by the `host_report` import:
+ * `{ status, message }` with status 0 = pass, 1 = fail, 2 = ignored. A runner
+ * resolves async cases by awaiting `next()` — one report per executed case.
+ */
+export class TestReports {
+  static PASS = 0;
+  static FAIL = 1;
+  static IGNORED = 2;
+
+  constructor() {
+    this.reports = [];
+    this.waiters = [];
+  }
+
+  /** Record a report (called by the host_report import). */
+  push(status, message) {
+    const report = { status, message };
+    const waiter = this.waiters.shift();
+    if (waiter) waiter(report);
+    else this.reports.push(report);
+  }
+
+  /** Resolve with the next report — already-buffered or yet to arrive. */
+  next() {
+    const buffered = this.reports.shift();
+    if (buffered) return Promise.resolve(buffered);
+    return new Promise((resolve) => this.waiters.push(resolve));
+  }
+
+  /** Number of buffered (unconsumed) reports. */
+  get pending() {
+    return this.reports.length;
+  }
+}
+
 // ─── Batch protocol handler (protocol byte 0 = Custom Binary) ──────────────────────
 
 /**
@@ -1705,6 +1743,8 @@ export class FoundationWasm {
     // Pending async-invocation promises (off by default; rt.tasks.enable() to track).
     this.tasks = new AsyncTaskCollector(false);
     this.functions.tasks = this.tasks;
+    // #[wasm_test] case outcomes (host_report import — feature 13).
+    this.testReports = new TestReports();
     // V2 quantized batch codec (host_batch_apply / host_batch_returning_apply).
     this.batches = new BatchInstructions(
       this.bridge, this.memory, this.strings, this.functions, this.callbacks,
@@ -1750,6 +1790,16 @@ export class FoundationWasm {
       // Intern a UTF-8/UTF-16 string from WASM memory; returns a stable handle.
       host_cache_string(ptr, len, encoding) {
         return strings.cache(ptr, len, Number(encoding));
+      },
+      // #[wasm_test] outcome (feature 13): status 0/1/2 + optional UTF-8 message.
+      host_report: (status, ptr, len) => {
+        const length = Number(len);
+        const message = length
+          ? new TextDecoder().decode(
+              new Uint8Array(this.bridge.memory.buffer, Number(ptr), length),
+            )
+          : "";
+        this.testReports.push(Number(status), message);
       },
 
       // Function registry: register a JS fn (source string) → handle; invoke it.
@@ -1945,6 +1995,7 @@ globalThis.FoundationWasmRuntime = Object.freeze({
   WasmLoader,
   WasmWebScripts,
   AsyncTaskCollector,
+  TestReports,
   WasmEnvelope,
   ProtocolDispatcher,
   MemoryAllocations,

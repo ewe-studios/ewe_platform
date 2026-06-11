@@ -32,6 +32,9 @@ mod registry;
 mod schedule;
 mod wrapped;
 
+#[cfg(feature = "web")]
+pub mod testing;
+
 #[cfg(feature = "embedded-js")]
 pub mod embedded;
 

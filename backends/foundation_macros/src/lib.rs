@@ -12,6 +12,7 @@ mod schema_fields;
 mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
+mod wasm_test;
 mod wasmbin_codec;
 
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
@@ -490,4 +491,17 @@ pub fn wasmbin_countable_derive(item: TokenStream) -> TokenStream {
 #[proc_macro_derive(Visit)]
 pub fn wasmbin_visit_derive(item: TokenStream) -> TokenStream {
     run_synstructure(item, wasmbin_codec::wasmbin_visit_derive)
+}
+
+/// Compiles a test case into the owned wasm test model (feature 13, decision 031 —
+/// no wasm-bindgen): keeps the fn, adds a discoverable `__fwt_<name>` export that
+/// reports its outcome over the `foundation_wasm` ABI (`host_report`), and writes a
+/// `name|flags` line into the `__fwt_manifest` custom section for the testbed.
+///
+/// Flags: `#[wasm_test(should_panic)]` (runner inverts on the trap),
+/// `#[wasm_test(ignore)]` (reported as skipped). `async fn` cases run on the owned
+/// `schedule_timeout` re-poll loop.
+#[proc_macro_attribute]
+pub fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_test::wasm_test(attr.into(), item.into()).into()
 }

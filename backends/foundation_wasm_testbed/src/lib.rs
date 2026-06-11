@@ -3,13 +3,14 @@
 //! Supports browser (Playwright), Deno, and Cloudflare Workers (wrangler) execution,
 //! with both custom harness and auto-generated wasm-bindgen test modes.
 
-mod browser;
-mod build;
-mod cli;
-mod deno;
-mod error;
-mod init;
-mod server;
-mod wasm;
-mod wasm_test;
-mod wrangler;
+pub mod browser;
+pub mod build;
+pub mod fwt;
+pub mod cli;
+pub mod deno;
+pub mod error;
+pub mod init;
+pub mod server;
+pub mod wasm;
+pub mod wasm_test;
+pub mod wrangler;

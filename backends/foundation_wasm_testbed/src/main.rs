@@ -7,16 +7,7 @@ use clap::Parser;
 use foundation_errstacks::ErrorTrace;
 use tracing::error;
 
-mod browser;
-mod build;
-mod cli;
-mod deno;
-mod error;
-mod init;
-mod server;
-mod wasm;
-mod wasm_test;
-mod wrangler;
+use foundation_wasm_testbed::{browser, build, cli, deno, error, init, server, wasm, wasm_test, wrangler};
 
 use cli::{Cli, Command};
 use error::WasmTestbedError;

@@ -46,7 +46,14 @@ impl D1Delta {
     }
 
     pub fn new(api_token: &str, account_id: &str, database_id: &str) -> VfsResult<Self> {
-        let store = D1Store::new_kv(api_token, account_id, database_id, "vfs");
+        Self::new_with_base_url(api_token, account_id, database_id, None)
+    }
+
+    pub fn new_with_base_url(api_token: &str, account_id: &str, database_id: &str, base_url: Option<&str>) -> VfsResult<Self> {
+        let store = match base_url {
+            Some(url) => D1Store::new_kv_with_base_url(api_token, account_id, database_id, "vfs", url),
+            None => D1Store::new_kv(api_token, account_id, database_id, "vfs"),
+        };
         Ok(Self { store })
     }
 

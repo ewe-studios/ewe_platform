@@ -721,6 +721,12 @@ pub mod abi {
             /// whilst limiting the overall cost since only a reference is ever passed around.
             pub fn host_cache_string(start: u64, len: u64, encoding: u8) -> u64;
 
+            /// [`host_report`] delivers a `#[wasm_test]` case outcome to the host
+            /// runner (feature 13's result protocol): `status` ∈ {0 = pass, 1 = fail,
+            /// 2 = ignored}; `(ptr, len)` an optional UTF-8 message (assertion /
+            /// panic text) read directly from linear memory.
+            pub fn host_report(status: u32, ptr: u64, len: u64);
+
             // [`host_unregister_function`] provides a means to unregister a target function
             // from the WASM - Host runtime boundary.
             pub fn host_unregister_function(handle: u64);
@@ -960,6 +966,7 @@ pub mod abi {
             pub fn host_cache_string(_start: u64, _len: u64, _encoding: u8) -> u64 {
                 0
             }
+            pub fn host_report(_status: u32, _ptr: u64, _len: u64) {}
             pub fn host_unregister_function(_handle: u64) {}
             pub fn host_register_function(_start: u64, _len: u64, _encoding: u8) -> u64 {
                 0

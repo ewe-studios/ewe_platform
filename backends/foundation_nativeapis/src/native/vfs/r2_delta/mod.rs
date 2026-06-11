@@ -38,7 +38,14 @@ impl R2Delta {
     }
 
     pub fn new(api_token: &str, account_id: &str, bucket: &str) -> VfsResult<Self> {
-        let store = R2Store::new_blob(api_token, account_id, bucket, "vfs");
+        Self::new_with_base_url(api_token, account_id, bucket, None)
+    }
+
+    pub fn new_with_base_url(api_token: &str, account_id: &str, bucket: &str, base_url: Option<&str>) -> VfsResult<Self> {
+        let store = match base_url {
+            Some(url) => R2Store::new_blob_with_base_url(api_token, account_id, bucket, "vfs", url),
+            None => R2Store::new_blob(api_token, account_id, bucket, "vfs"),
+        };
         Ok(Self { store })
     }
 
