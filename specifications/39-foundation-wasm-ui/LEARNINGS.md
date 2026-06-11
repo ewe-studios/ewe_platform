@@ -710,3 +710,27 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   crate root AND declare an explicit `fn main` (the implicit wrapper would move the
   `use` inside a function where `crate::` paths can't see it). See
   `foundation_core::type_uuid` module docs.
+
+## Feature 01 (foundation-ui-traits, 2026-06-11)
+
+- **One Row mapping to rule every format**: Arrow columns, flat JSON objects, and
+  the byte-0 batch stream all serialise through `Row::from_op`/`into_op`. Adding
+  the 9 new ops touched exactly one mapping — the encoders stayed mechanical.
+- **`id:` prefix wire convention**: known tags/attrs encode as `"id:<n>"` in the
+  string columns; `TAG_NAMES`/`ATTR_NAMES` index+1 == id, order is ABI. The JS
+  mirror tables are GENERATED from html.rs (python extraction), not hand-copied —
+  regenerate when appending.
+- **Registry staging model**: CreateElement/CreateTextNode park nodes in a
+  `pending` map; REGISTER_NODE promotes (or resolves `[primal-id]` in the
+  document); ReplaceNode is the one op allowed to consume a staged node directly
+  (its implicit registration). Referencing a staged id any other way throws —
+  producer bugs surface immediately.
+- **Spec-internal conflicts resolved by layer**: F01's "uses the arrow crate"
+  collides with its own "no dependencies / any Rust target" constraint — the
+  no_std columnar layout stays (the shipped JS ArrowParser pins it) and F05 owns
+  real Arrow IPC. Byte-0's CustomBinaryEncoder placement was superseded by
+  decision 022 (BatchInstructions need the arena ⇒ wasm_ui layer). Deviations
+  table in the feature's status.md.
+- **PROTOCOL_VERSION 0 → 1** was safe to bump: JS reads the byte but never
+  enforced it; all Rust consumers reference the const.
+

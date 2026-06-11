@@ -56,6 +56,28 @@ export class MockNode {
     return child;
   }
 
+  removeChild(child) {
+    const i = this.children.indexOf(child);
+    if (i >= 0) {
+      this.children.splice(i, 1);
+      child.parent = null;
+    }
+    return child;
+  }
+
+  /** DOM-alias so code written against `parentNode` works on mocks too. */
+  get parentNode() {
+    return this.parent;
+  }
+
+  /**
+   * Records adjacent-HTML insertions for assertions (real parsing/morphing is
+   * feature 07); `position` is one of beforebegin/afterbegin/beforeend/afterend.
+   */
+  insertAdjacentHTML(position, html) {
+    (this.adjacentHTML ??= []).push({ position, html });
+  }
+
   insertBefore(child, ref) {
     const i = this.children.indexOf(ref);
     child.parent = this;
@@ -85,10 +107,38 @@ export class MockNode {
 }
 
 export class MockDocument {
+  constructor() {
+    // Root for querySelector walks; tests append what they want findable.
+    this.root = new MockNode("#document");
+  }
+
   createElement(tag) { return new MockNode(tag); }
   createTextNode(text) {
     const n = new MockNode("#text");
     n.textContent = text;
     return n;
+  }
+
+  /**
+   * Minimal selector engine over `root`: `[primal-id="N"]`, `#id`, `.class`,
+   * or a bare tag name — exactly what REGISTER_NODE and MORPH_NODE use.
+   */
+  querySelector(selector) {
+    const matches = (node) => {
+      const attr = /^\[primal-id="(.+)"\]$/.exec(selector);
+      if (attr) return String(node.getAttribute("primal-id")) === attr[1];
+      if (selector.startsWith("#")) return node.getAttribute("id") === selector.slice(1);
+      if (selector.startsWith(".")) return node.classList.contains(selector.slice(1));
+      return node.tag === selector;
+    };
+    const walk = (node) => {
+      if (matches(node)) return node;
+      for (const child of node.children) {
+        const hit = walk(child);
+        if (hit) return hit;
+      }
+      return null;
+    };
+    return walk(this.root);
   }
 }

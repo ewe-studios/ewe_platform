@@ -51,12 +51,15 @@ impl BatchMessage for DomOpsBatch<'_> {
         for op in self.0 {
             let row = Row::from_op(op);
             batch.data(&[BATCH_OP_APPLY_DOM])?;
+            // The batch stream has no null marker — absent cells ride as empty
+            // strings, which `Row::into_op` treats identically (the op code
+            // alone determines which slots are meaningful).
             batch.encode_params(Some(&[
                 Params::Uint8(row.operation),
                 Params::Uint32(row.node_id),
-                Params::Text8(&row.attribute),
-                Params::Text8(&row.value),
-                Params::Text8(&row.text_val),
+                Params::Text8(row.attribute.as_deref().unwrap_or("")),
+                Params::Text8(row.value.as_deref().unwrap_or("")),
+                Params::Text8(row.text_val.as_deref().unwrap_or("")),
             ]))?;
             batch.end()?;
         }
@@ -194,19 +197,37 @@ struct Reader<'a> {
     at: usize,
 }
 
+/// Structural corruption in the byte-0 stream (bad marker, bad length field).
+fn malformed(detail: alloc::string::String) -> DecodeError {
+    DecodeError::Other { detail }
+}
+
 impl<'a> Reader<'a> {
+    fn truncated(&self, needed: usize) -> DecodeError {
+        DecodeError::TruncatedBuffer {
+            expected_min: needed,
+            actual: self.bytes.len(),
+        }
+    }
+
     fn u8(&mut self) -> Result<u8, DecodeError> {
-        let b = *self.bytes.get(self.at).ok_or(DecodeError::UnexpectedEnd)?;
+        let b = *self
+            .bytes
+            .get(self.at)
+            .ok_or_else(|| self.truncated(self.at + 1))?;
         self.at += 1;
         Ok(b)
     }
 
     fn take(&mut self, n: usize) -> Result<&'a [u8], DecodeError> {
-        let end = self.at.checked_add(n).ok_or(DecodeError::InvalidLength)?;
+        let end = self
+            .at
+            .checked_add(n)
+            .ok_or_else(|| malformed("length overflow".into()))?;
         let slice = self
             .bytes
             .get(self.at..end)
-            .ok_or(DecodeError::UnexpectedEnd)?;
+            .ok_or_else(|| self.truncated(end))?;
         self.at = end;
         Ok(slice)
     }
@@ -216,7 +237,9 @@ impl<'a> Reader<'a> {
         if b == marker {
             Ok(())
         } else {
-            Err(DecodeError::UnknownOperation(b))
+            Err(malformed(alloc::format!(
+                "unexpected stream marker {b} (wanted {marker})"
+            )))
         }
     }
 
@@ -243,9 +266,9 @@ impl<'a> Reader<'a> {
                 // Width depends on the declared param type; DomOpsBatch only emits
                 // Uint32 (4) and Text8 locations (u64, 8) unquantized. The caller
                 // passes the width through `quantized_uint_none_width`.
-                return Err(DecodeError::InvalidLength);
+                return Err(malformed("unquantized value with unknown width".into()));
             }
-            _ => return Err(DecodeError::InvalidLength),
+            _ => return Err(malformed("unsupported quantization marker".into())),
         };
         Ok(value)
     }
@@ -253,7 +276,10 @@ impl<'a> Reader<'a> {
     /// Like [`Reader::quantized_uint`], but with the full width for
     /// `TypeOptimization::None` known from the declared param type.
     fn quantized_uint_with_width(&mut self, none_width: usize) -> Result<u64, DecodeError> {
-        let tq_byte = *self.bytes.get(self.at).ok_or(DecodeError::UnexpectedEnd)?;
+        let tq_byte = *self
+            .bytes
+            .get(self.at)
+            .ok_or_else(|| self.truncated(self.at + 1))?;
         if TypeOptimization::from(tq_byte) == TypeOptimization::None {
             self.at += 1;
             let b = self.take(none_width)?;
@@ -271,31 +297,38 @@ impl<'a> Reader<'a> {
 /// [`DomOpsBatch`] back into `DomOp`s.
 fn decode_dom_batch(payload: &[u8]) -> HandleResult {
     if payload.len() < 8 {
-        return Err(DecodeError::UnexpectedEnd);
+        return Err(DecodeError::TruncatedBuffer {
+            expected_min: 8,
+            actual: payload.len(),
+        });
     }
     let texts_off = u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]) as usize;
     let texts_len = u32::from_le_bytes([payload[4], payload[5], payload[6], payload[7]]) as usize;
     let ops = payload
         .get(8..texts_off)
-        .ok_or(DecodeError::InvalidLength)?;
+        .ok_or_else(|| malformed("texts_off outside payload".into()))?;
     let texts_end = texts_off
         .checked_add(texts_len)
-        .ok_or(DecodeError::InvalidLength)?;
+        .ok_or_else(|| malformed("texts_len overflow".into()))?;
     let texts = payload
         .get(texts_off..texts_end)
-        .ok_or(DecodeError::InvalidLength)?;
+        .ok_or_else(|| malformed("texts pool outside payload".into()))?;
 
     let mut r = Reader { bytes: ops, at: 0 };
     r.expect(Operations::Begin as u8)?;
 
     let mut decoded = Vec::new();
     loop {
+        let row_index = decoded.len();
         let opcode = r.u8()?;
         if opcode == Operations::Stop as u8 {
             break;
         }
         if opcode != BATCH_OP_APPLY_DOM {
-            return Err(DecodeError::UnknownOperation(opcode));
+            return Err(DecodeError::UnknownOperation {
+                op_id: opcode,
+                row_index,
+            });
         }
 
         r.expect(ArgumentOperations::Start as u8)?;
@@ -306,7 +339,9 @@ fn decode_dom_batch(payload: &[u8]) -> HandleResult {
                 break;
             }
             if marker != ArgumentOperations::Begin as u8 {
-                return Err(DecodeError::UnknownOperation(marker));
+                return Err(malformed(alloc::format!(
+                    "unexpected argument marker {marker} at row {row_index}"
+                )));
             }
             let ty = r.u8()?;
             let field = if ty == ParamTypeId::Uint8 as u8 {
@@ -315,22 +350,36 @@ fn decode_dom_batch(payload: &[u8]) -> HandleResult {
                 ParamField::Uint(r.quantized_uint_with_width(4)?)
             } else if ty == ParamTypeId::Text8 as u8 {
                 let index = usize::try_from(r.quantized_uint_with_width(8)?)
-                    .map_err(|_| DecodeError::InvalidLength)?;
+                    .map_err(|_| malformed("text index exceeds usize".into()))?;
                 let len = usize::try_from(r.quantized_uint_with_width(8)?)
-                    .map_err(|_| DecodeError::InvalidLength)?;
-                let end = index.checked_add(len).ok_or(DecodeError::InvalidLength)?;
-                let bytes = texts.get(index..end).ok_or(DecodeError::InvalidLength)?;
-                let text = core::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8)?;
+                    .map_err(|_| malformed("text length exceeds usize".into()))?;
+                let end = index
+                    .checked_add(len)
+                    .ok_or_else(|| malformed("text span overflow".into()))?;
+                let bytes = texts
+                    .get(index..end)
+                    .ok_or_else(|| malformed("text span outside texts pool".into()))?;
+                let text = core::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8 {
+                    // Slots arrive in row order: 2=attribute, 3=value, 4=text_val.
+                    column_name: match fields.len() {
+                        2 => "attribute",
+                        3 => "value",
+                        _ => "text_val",
+                    },
+                    row_index,
+                })?;
                 ParamField::Text(String::from(text))
             } else {
-                return Err(DecodeError::UnknownOperation(ty));
+                return Err(malformed(alloc::format!(
+                    "unsupported param type {ty} at row {row_index}"
+                )));
             };
             fields.push(field);
             r.expect(ArgumentOperations::End as u8)?;
         }
         r.expect(Operations::End as u8)?;
 
-        decoded.push(row_from_fields(fields)?.into_op()?);
+        decoded.push(row_from_fields(fields, row_index)?.into_op(row_index)?);
     }
 
     Ok(decoded)
@@ -341,25 +390,26 @@ enum ParamField {
     Text(String),
 }
 
-fn row_from_fields(fields: Vec<ParamField>) -> Result<Row, DecodeError> {
+fn row_from_fields(fields: Vec<ParamField>, row_index: usize) -> Result<Row, DecodeError> {
+    let bad = |what: &str| malformed(alloc::format!("row {row_index}: {what}"));
     let mut it = fields.into_iter();
     let operation = match it.next() {
-        Some(ParamField::Uint(v)) => u8::try_from(v).map_err(|_| DecodeError::InvalidNumber)?,
-        _ => return Err(DecodeError::UnexpectedEnd),
+        Some(ParamField::Uint(v)) => u8::try_from(v).map_err(|_| bad("operation exceeds u8"))?,
+        _ => return Err(bad("missing operation field")),
     };
     let node_id = match it.next() {
-        Some(ParamField::Uint(v)) => u32::try_from(v).map_err(|_| DecodeError::InvalidNumber)?,
-        _ => return Err(DecodeError::UnexpectedEnd),
+        Some(ParamField::Uint(v)) => u32::try_from(v).map_err(|_| bad("node_id exceeds u32"))?,
+        _ => return Err(bad("missing node_id field")),
     };
-    let text = |slot: Option<ParamField>| match slot {
-        Some(ParamField::Text(t)) => Ok(t),
-        _ => Err(DecodeError::UnexpectedEnd),
+    let mut text = |slot_name: &str| match it.next() {
+        Some(ParamField::Text(t)) => Ok(Some(t)),
+        _ => Err(bad(&alloc::format!("missing {slot_name} field"))),
     };
     Ok(Row {
         operation,
         node_id,
-        attribute: text(it.next())?,
-        value: text(it.next())?,
-        text_val: text(it.next())?,
+        attribute: text("attribute")?,
+        value: text("value")?,
+        text_val: text("text_val")?,
     })
 }

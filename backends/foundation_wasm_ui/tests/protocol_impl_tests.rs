@@ -15,11 +15,12 @@ use foundation_wasm_ui::{ArrowV1, BatchInstructionsV1, InstructionReceiver, Json
 
 fn sample_ops() -> Vec<DomOp> {
     vec![
-        DomOp::CreateEl {
+        DomOp::CreateElement {
             node_id: 1000,
-            tag: "div".into(),
+            tag: "div".into(), // known tag -> rides the wire as `id:1`
             class: "card".into(),
         },
+        DomOp::RegisterNode { node_id: 1000 },
         DomOp::SetText {
             node_id: 1001,
             text: "hello — café".into(),
@@ -82,6 +83,120 @@ fn batch_instructions_v1_encode_send_round_trip() {
 #[test]
 fn json_v1_encode_send_round_trip() {
     assert_protocol_round_trip(&JsonV1::new(), 2);
+}
+
+// ─── Feature 01 spec tests 22-24: byte-0 (Custom Binary) round-trips ───────────
+// The CustomBinaryEncoder of the spec IS BatchInstructionsV1 (decision 022), so
+// the spec's encoder tests live here rather than in foundation_ui_traits.
+
+/// Test 23 — an empty batch ships and decodes to an empty vec.
+#[test]
+fn batch_instructions_empty_batch_round_trips() {
+    let mut mem = MemoryAllocations::new();
+    let proto = BatchInstructionsV1::new();
+    let result = proto.encode_and_send(vec![], &mut mem);
+    let slot = mem.get(result.memory_id).expect("slot live");
+    let bytes = slot.clone_memory().expect("read bytes");
+    let (_, payload) = WasmEnvelope::parse(&bytes);
+    let decoded = proto
+        .handle_received(result.memory_id, payload.as_ptr(), payload.len())
+        .expect("decode");
+    assert_eq!(decoded, vec![]);
+}
+
+/// Test 24 — every `DomOp` variant survives the byte-0 instruction stream.
+#[test]
+fn batch_instructions_round_trips_all_nineteen_variants() {
+    use foundation_ui_traits::{MorphAction, TargetSelector};
+    use std::borrow::Cow;
+
+    let ops = vec![
+        DomOp::CreateElement {
+            node_id: 1,
+            tag: "custom-widget".into(),
+            class: "".into(),
+        },
+        DomOp::CreateTextNode {
+            node_id: 2,
+            content: "text".into(),
+        },
+        DomOp::SetText {
+            node_id: 3,
+            text: "new".into(),
+        },
+        DomOp::SetAttribute {
+            node_id: 4,
+            name: "class".into(),
+            value: "x".into(),
+        },
+        DomOp::RemoveAttribute {
+            node_id: 5,
+            name: "style".into(),
+        },
+        DomOp::SetProperty {
+            node_id: 6,
+            name: "value".into(),
+            value: "\"v\"".into(),
+        },
+        DomOp::AddEventListener {
+            node_id: 7,
+            event_name: "click".into(),
+        },
+        DomOp::RemoveEventListener {
+            node_id: 8,
+            event_name: "click".into(),
+        },
+        DomOp::AppendChild {
+            parent_id: 9,
+            child_id: 10,
+        },
+        DomOp::RemoveChild {
+            parent_id: 11,
+            child_id: 12,
+        },
+        DomOp::RemoveNode { node_id: 13 },
+        DomOp::InsertBefore {
+            parent_id: 14,
+            child_id: 15,
+            ref_id: 16,
+        },
+        DomOp::ReplaceNode {
+            old_id: 17,
+            new_id: 18,
+        },
+        DomOp::SetStyle {
+            node_id: 19,
+            prop: "color".into(),
+            value: "red".into(),
+        },
+        DomOp::AddClass {
+            node_id: 20,
+            class: "on".into(),
+        },
+        DomOp::RemoveClass {
+            node_id: 21,
+            class: "off".into(),
+        },
+        DomOp::MorphNode {
+            target: TargetSelector::Query(Cow::Borrowed("main > p:last-child")),
+            action: MorphAction::InsertAfter,
+            content: "<b>m</b>".into(),
+        },
+        DomOp::RegisterNode { node_id: 22 },
+        DomOp::UnregisterNode { node_id: 23 },
+    ];
+    assert_eq!(ops.len(), 19);
+
+    let mut mem = MemoryAllocations::new();
+    let proto = BatchInstructionsV1::new();
+    let result = proto.encode_and_send(ops.clone(), &mut mem);
+    let slot = mem.get(result.memory_id).expect("slot live");
+    let bytes = slot.clone_memory().expect("read bytes");
+    let (_, payload) = WasmEnvelope::parse(&bytes);
+    let decoded = proto
+        .handle_received(result.memory_id, payload.as_ptr(), payload.len())
+        .expect("decode");
+    assert_eq!(decoded, ops);
 }
 
 #[test]

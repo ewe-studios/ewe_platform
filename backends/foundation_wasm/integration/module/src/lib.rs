@@ -28,9 +28,9 @@ pub extern "C" fn emit_arrow_batch() {
     let ops = vec![
         DomOp::SetText {
             node_id: 5,
-            text: "hi".to_string(),
+            text: "hi".into(),
         },
-        DomOp::Remove { node_id: 6 },
+        DomOp::RemoveNode { node_id: 6 },
     ];
     let payload = ArrowEncoder.encode(ops);
 

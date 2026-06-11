@@ -45,8 +45,8 @@ pub extern "C" fn emit_batch_dom_ops() {
     let mut receiver = InstructionReceiver::with_global_arena(Box::new(BatchInstructionsV1::new()));
     receiver.queue(DomOp::SetText {
         node_id: 5,
-        text: "batch hi".to_string(),
+        text: "batch hi".into(),
     });
-    receiver.queue(DomOp::Remove { node_id: 6 });
+    receiver.queue(DomOp::RemoveNode { node_id: 6 });
     receiver.flush();
 }

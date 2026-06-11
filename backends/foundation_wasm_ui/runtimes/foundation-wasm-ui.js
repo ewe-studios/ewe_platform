@@ -24,7 +24,11 @@ export const Op = Object.freeze({
   SET_TEXT_CONTENT: 2,
   SET_ATTRIBUTE: 3,
   REMOVE_ATTRIBUTE: 4,
+  SET_PROPERTY: 5,
+  ADD_EVENT_LISTENER: 6,
+  REMOVE_EVENT_LISTENER: 7,
   APPEND_CHILD: 8,
+  REMOVE_CHILD: 9,
   REMOVE_NODE: 10,
   INSERT_BEFORE: 11,
   REPLACE_NODE: 12,
@@ -32,10 +36,60 @@ export const Op = Object.freeze({
   ADD_CLASS: 14,
   REMOVE_CLASS: 15,
   MORPH_NODE: 16,
+  REGISTER_NODE: 17,
+  UNREGISTER_NODE: 18,
 });
 
 // Reserved node ids (gap inventory G1): 0=<head>, 1=<body>, 2=<html>. Macro ids ≥ 1000.
 export const RESERVED = Object.freeze({ HEAD: 0, BODY: 1, HTML: 2 });
+
+// ─── Known tag/attribute id tables (decision G12/G13/G14) ───────────────────
+//
+// EXACT mirrors of `foundation_ui_traits::html::TAG_NAMES` / `ATTR_NAMES`:
+// index + 1 == wire id, `"id:<n>"` strings in the columns resolve here.
+// Append-only — ORDER IS ABI. Regenerate from html.rs when extending.
+
+export const TAG_NAMES = Object.freeze([
+  "div", "span", "input", "button", "html", "head", "body", "title", "base",
+  "link", "meta", "style", "script", "noscript", "template", "slot", "main", "section",
+  "nav", "article", "aside", "header", "footer", "address", "h1", "h2", "h3",
+  "h4", "h5", "h6", "hgroup", "p", "hr", "pre", "blockquote", "ol",
+  "ul", "menu", "li", "dl", "dt", "dd", "figure", "figcaption", "search",
+  "a", "em", "strong", "small", "s", "cite", "q", "dfn", "abbr",
+  "ruby", "rt", "rp", "data", "time", "code", "var", "samp", "kbd",
+  "sub", "sup", "i", "b", "u", "mark", "bdi", "bdo", "br",
+  "wbr", "ins", "del", "picture", "source", "img", "iframe", "embed", "object",
+  "video", "audio", "track", "map", "area", "svg", "math", "canvas", "table",
+  "caption", "colgroup", "col", "tbody", "thead", "tfoot", "tr", "td", "th",
+  "form", "label", "select", "datalist", "optgroup", "option", "textarea", "output", "progress",
+  "meter", "fieldset", "legend", "details", "summary", "dialog",
+]);
+
+export const ATTR_NAMES = Object.freeze([
+  "class", "id", "style", "value", "title", "lang", "dir", "hidden", "tabindex",
+  "accesskey", "draggable", "contenteditable", "spellcheck", "translate", "role", "slot", "part", "is",
+  "href", "src", "srcset", "sizes", "alt", "rel", "target", "download", "referrerpolicy",
+  "crossorigin", "integrity", "loading", "media", "type", "name", "placeholder", "disabled", "readonly",
+  "required", "checked", "selected", "multiple", "min", "max", "step", "pattern", "minlength",
+  "maxlength", "autocomplete", "autofocus", "for", "form", "action", "method", "enctype", "novalidate",
+  "accept", "rows", "cols", "wrap", "list", "size", "colspan", "rowspan", "headers",
+  "scope", "width", "height", "controls", "autoplay", "loop", "muted", "preload", "poster",
+  "playsinline", "charset", "content", "http-equiv", "open", "label", "datetime", "cite", "data",
+]);
+
+/**
+ * Resolve a decision-010 string-column name: `"id:<n>"` looks up `table`
+ * (1-based), anything else is already the literal name.
+ * @param {string} wire @param {readonly string[]} table
+ */
+export function resolveWireName(wire, table) {
+  if (wire.startsWith("id:")) {
+    const id = Number(wire.slice(3));
+    if (Number.isInteger(id) && id >= 1 && id <= table.length) return table[id - 1];
+  }
+  return wire;
+}
+
 
 // ─── ArrowParser ─────────────────────────────────────────────────────────────
 
@@ -114,6 +168,9 @@ export class ArrowParser {
 export class NodeRegistry {
   constructor() {
     this.nodes = new Map();
+    // Created-but-not-yet-registered nodes (CreateElement/CreateTextNode do NOT
+    // auto-register — feature 01): REGISTER_NODE promotes them into `nodes`.
+    this.pending = new Map();
   }
 
   /** Seed the reserved ambient nodes from a document (browser) — optional in tests. */
@@ -144,6 +201,44 @@ export class NodeRegistry {
     this.nodes.delete(id);
   }
 
+  /** Park a freshly created node until an explicit REGISTER_NODE promotes it. */
+  stage(id, node) {
+    this.pending.set(id, node);
+    return node;
+  }
+
+  /**
+   * REGISTER_NODE semantics: promote a staged node, keep an existing
+   * registration (no-op), or find a pre-existing element in the document via
+   * `[primal-id="<id>"]`. Throws if the id is nowhere to be found.
+   */
+  applyRegister(id, document) {
+    if (this.nodes.has(id)) return this.nodes.get(id); // re-register = no-op
+    const staged = this.pending.get(id);
+    if (staged !== undefined) {
+      this.pending.delete(id);
+      return this.register(id, staged);
+    }
+    const found = document.querySelector?.(`[primal-id="${id}"]`);
+    if (found) return this.register(id, found);
+    throw new Error(`NodeRegistry: REGISTER_NODE ${id} matches no staged node or [primal-id]`);
+  }
+
+  /**
+   * Resolve an id that is allowed to still be staged — REPLACE_NODE's `new_id`
+   * (its implicit registration) is the one consumer. Promotes staged nodes.
+   */
+  expectOrStaged(id) {
+    const node = this.nodes.get(id);
+    if (node !== undefined) return node;
+    const staged = this.pending.get(id);
+    if (staged !== undefined) {
+      this.pending.delete(id);
+      return staged;
+    }
+    throw new Error(`NodeRegistry: unknown node id ${id}`);
+  }
+
   get size() {
     return this.nodes.size;
   }
@@ -157,10 +252,16 @@ export class NodeRegistry {
  * stub (tests) or a real `document` both work.
  */
 export class ArrowDomApplicator {
-  /** @param {NodeRegistry} registry @param {Document} document */
-  constructor(registry, document) {
+  /**
+   * @param {NodeRegistry} registry @param {Document} document
+   * @param {(eventName:string, nodeId:number, event:Event, el:Element)=>void} [onEvent]
+   *   dispatch hook for ADD_EVENT_LISTENER-bound listeners (feature 08 wires WASM).
+   */
+  constructor(registry, document, onEvent) {
     this.registry = registry;
     this.document = document;
+    this.onEvent = onEvent;
+    this.listeners = new Map(); // `${nodeId}:${event}` -> bound handler
   }
 
   /** Apply a full batch (output of {@link ArrowParser.parse}). */
@@ -175,26 +276,65 @@ export class ArrowDomApplicator {
     const reg = this.registry;
     switch (op) {
       case Op.CREATE_ELEMENT: {
-        const el = this.document.createElement(attribute); // attribute = tag
-        if (value) el.className = value; // value = class
-        reg.register(nodeId, el);
+        // attribute = tag (id: form or literal), value = class.
+        const el = this.document.createElement(resolveWireName(attribute, TAG_NAMES));
+        if (value) el.className = value;
+        reg.stage(nodeId, el); // NO auto-register — REGISTER_NODE promotes.
         break;
       }
-      case Op.CREATE_TEXT_NODE: {
-        reg.register(nodeId, this.document.createTextNode(textVal));
+      case Op.CREATE_TEXT_NODE:
+        reg.stage(nodeId, this.document.createTextNode(textVal));
         break;
-      }
       case Op.SET_TEXT_CONTENT:
         reg.expect(nodeId).textContent = textVal;
         break;
       case Op.SET_ATTRIBUTE:
-        reg.expect(nodeId).setAttribute(attribute, value);
+        reg.expect(nodeId).setAttribute(resolveWireName(attribute, ATTR_NAMES), value);
         break;
       case Op.REMOVE_ATTRIBUTE:
-        reg.expect(nodeId).removeAttribute(attribute);
+        reg.expect(nodeId).removeAttribute(resolveWireName(attribute, ATTR_NAMES));
         break;
+      case Op.SET_PROPERTY: {
+        // value is the SERIALIZED property value; JSON covers the primitive
+        // cases (numbers, booleans, quoted strings) with raw-string fallback.
+        let parsed = value;
+        try {
+          parsed = JSON.parse(value);
+        } catch {
+          /* raw string property */
+        }
+        reg.expect(nodeId)[resolveWireName(attribute, ATTR_NAMES)] = parsed;
+        break;
+      }
+      case Op.ADD_EVENT_LISTENER: {
+        // value = event name. The bound listener forwards into the runtime's
+        // event dispatch hook (feature 08 wires the WASM callback path).
+        const eventName = resolveWireName(value, ATTR_NAMES);
+        const el = reg.expect(nodeId);
+        const key = `${nodeId}:${eventName}`;
+        if (!this.listeners.has(key)) {
+          const handler = (event) => this.onEvent?.(eventName, nodeId, event, el);
+          this.listeners.set(key, handler);
+          el.addEventListener(eventName, handler);
+        }
+        break;
+      }
+      case Op.REMOVE_EVENT_LISTENER: {
+        const eventName = resolveWireName(value, ATTR_NAMES);
+        const el = reg.expect(nodeId);
+        const key = `${nodeId}:${eventName}`;
+        const handler = this.listeners.get(key);
+        if (handler) {
+          el.removeEventListener(eventName, handler);
+          this.listeners.delete(key);
+        }
+        break;
+      }
       case Op.APPEND_CHILD:
         reg.expect(nodeId).appendChild(reg.expect(Number(attribute))); // attribute = child id
+        break;
+      case Op.REMOVE_CHILD:
+        reg.expect(nodeId).removeChild(reg.expect(Number(attribute)));
         break;
       case Op.INSERT_BEFORE:
         reg
@@ -204,17 +344,22 @@ export class ArrowDomApplicator {
       case Op.REMOVE_NODE: {
         const node = reg.expect(nodeId);
         node.remove();
-        reg.unregister(nodeId);
+        reg.unregister(nodeId); // implicit unregister
         break;
       }
       case Op.REPLACE_NODE: {
+        // attribute = new id. Implicitly unregisters old, registers new — the
+        // replacement may still be staged (no REGISTER_NODE needed for it).
+        const newId = Number(attribute);
         const oldNode = reg.expect(nodeId);
-        oldNode.replaceWith(reg.expect(Number(value))); // value = new id
+        const newNode = reg.expectOrStaged(newId);
+        oldNode.replaceWith(newNode);
         reg.unregister(nodeId);
+        reg.register(newId, newNode);
         break;
       }
       case Op.SET_STYLE:
-        reg.expect(nodeId).style[attribute] = value; // attribute = prop
+        reg.expect(nodeId).style[resolveWireName(attribute, ATTR_NAMES)] = value;
         break;
       case Op.ADD_CLASS:
         reg.expect(nodeId).classList.add(value); // value = class
@@ -223,11 +368,62 @@ export class ArrowDomApplicator {
         reg.expect(nodeId).classList.remove(value);
         break;
       case Op.MORPH_NODE:
-        // Full morph (decision 027) is a later increment; minimal fallback for now.
-        reg.expect(nodeId).innerHTML = textVal;
+        this.applyMorph(nodeId, attribute, textVal);
+        break;
+      case Op.REGISTER_NODE:
+        reg.applyRegister(nodeId, this.document);
+        break;
+      case Op.UNREGISTER_NODE:
+        reg.unregister(nodeId); // registry only — DOM untouched
         break;
       default:
         throw new Error(`ArrowDomApplicator: unknown operation ${op}`);
+    }
+  }
+
+  /**
+   * MORPH_NODE (op 16): `packed` is `"<action>:<kind>:<selector>"` (split only
+   * the first two colons — CSS queries contain `:`); `nodeId` carries the
+   * target for kind 0. Minimal application — full Datastar-style morphing with
+   * state preservation is feature 07 (decision 027).
+   */
+  applyMorph(nodeId, packed, content) {
+    const first = packed.indexOf(":");
+    const second = packed.indexOf(":", first + 1);
+    if (first < 0 || second < 0) {
+      throw new Error(`ArrowDomApplicator: malformed morph packing \`${packed}\``);
+    }
+    const action = Number(packed.slice(0, first));
+    const kind = packed.slice(first + 1, second);
+    const selector = packed.slice(second + 1);
+
+    let target;
+    if (kind === "0") target = this.registry.expect(nodeId);
+    else if (kind === "1") target = this.document.querySelector(`#${selector}`);
+    else if (kind === "2") target = this.document.querySelector(`.${selector}`);
+    else if (kind === "3") target = this.document.querySelector(selector);
+    else throw new Error(`ArrowDomApplicator: unknown morph selector kind ${kind}`);
+    if (!target) throw new Error(`ArrowDomApplicator: morph target not found (${kind}:${selector})`);
+
+    switch (action) {
+      case 0: // ReplaceChildren
+        target.innerHTML = content;
+        break;
+      case 1: // ReplaceElement
+        target.insertAdjacentHTML("afterend", content);
+        target.remove();
+        break;
+      case 2: // InsertBefore
+        target.insertAdjacentHTML("beforebegin", content);
+        break;
+      case 3: // InsertAfter
+        target.insertAdjacentHTML("afterend", content);
+        break;
+      case 4: // AppendSibling — last child of the target's parent
+        (target.parent ?? target.parentNode)?.insertAdjacentHTML("beforeend", content);
+        break;
+      default:
+        throw new Error(`ArrowDomApplicator: unknown morph action ${action}`);
     }
   }
 }
