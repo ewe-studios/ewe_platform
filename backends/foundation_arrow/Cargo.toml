@@ -7,7 +7,7 @@ description = "Arrow-based zero-copy serialization for any Rust type. Works on n
 [dependencies]
 arrow-array = { version = "55", default-features = false, features = ["chrono-tz"] }
 arrow-schema = { version = "55", default-features = false }
-arrow-ipc = { version = "55", default-features = false }
+arrow-ipc = { version = "59", default-features = false }
 arrow-data = { version = "55", default-features = false }
 arrow-buffer = { version = "55", default-features = false }
 chrono = { version = "0.4", default-features = false, features = ["std"] }
