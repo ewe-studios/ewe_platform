@@ -326,6 +326,4 @@ path = "tests/fjall_vfs/mod.rs"
 required-features = ["vfs-fjall"]
 
 [[test]]
-name = "nfs_vfs"
-path = "tests/nfs_vfs/mod.rs"
 required-features = ["vfs-nfs", "vfs-native"]
