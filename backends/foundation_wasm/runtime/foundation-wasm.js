@@ -1629,6 +1629,33 @@ function defaultRaf() {
   };
 }
 
+// ─── Batch protocol handler (protocol byte 0 = Custom Binary) ──────────────────────
+
+/**
+ * Build a ProtocolDispatcher handler for protocol byte 0 — the batch-instructions
+ * format (decision 022). The envelope payload is
+ * `[texts_off:u32 LE][texts_len:u32 LE][ops stream][texts pool]`; since the payload
+ * is a LIVE view over WASM memory, the handler just computes absolute pointers and
+ * feeds the existing BatchInstructions machinery (no re-parse, no copy).
+ *
+ * @param {BatchInstructions} batches
+ */
+export function batchProtocolHandler(batches) {
+  return {
+    apply(_memoryId, payload) {
+      if (payload.byteLength < 8) throw new Error("batch payload: missing header");
+      const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+      const textsOff = view.getUint32(0, true);
+      const textsLen = view.getUint32(4, true);
+      if (textsOff < 8 || textsOff + textsLen > payload.byteLength) {
+        throw new Error("batch payload: header out of range");
+      }
+      const base = payload.byteOffset; // absolute position in WASM linear memory
+      batches.applyNoReturn(base + 8, textsOff - 8, base + textsOff, textsLen);
+    },
+  };
+}
+
 // ─── AsyncTaskCollector ────────────────────────────────────────────────────────────
 
 /**
@@ -1683,6 +1710,9 @@ export class FoundationWasm {
       this.bridge, this.memory, this.strings, this.functions, this.callbacks,
     );
     this.dispatcher = new ProtocolDispatcher();
+    // Protocol byte 0 (Custom Binary) IS the batch-instructions format (decision
+    // 022) — pre-wire its handler so batch messages route without extra setup.
+    this.dispatcher.setHandler(0, batchProtocolHandler(this.batches));
   }
 
   /**
@@ -1911,6 +1941,7 @@ export class WasmWebScripts {
 // `globalThis.FoundationWasmRuntime` once the module has loaded.
 globalThis.FoundationWasmRuntime = Object.freeze({
   FoundationWasm,
+  batchProtocolHandler,
   WasmLoader,
   WasmWebScripts,
   AsyncTaskCollector,

@@ -56,7 +56,4 @@ impl ProtocolMethods<Vec<DomOp>> for JsonV1 {
         decode_payload(&self.encoder, ptr, len)
     }
 
-    fn ack(&self, memory_id: MemoryId, memory: &mut MemoryAllocations) {
-        let _ = memory.deallocate(memory_id);
-    }
 }

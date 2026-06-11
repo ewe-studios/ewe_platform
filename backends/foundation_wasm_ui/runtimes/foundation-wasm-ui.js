@@ -383,6 +383,50 @@ function jsonEncodeEventData(eventData) {
   return new TextEncoder().encode(JSON.stringify(eventData));
 }
 
+// ─── DomOps over the batch protocol (Custom Binary, byte 0) ────────────────────────
+
+/**
+ * The registered batch opcode carrying one DomOp row:
+ * `[BATCH_OP_APPLY_DOM][ArgStart (operation, nodeId, attribute, value, textVal)
+ * ArgStop][Operations.End]` — params quantized (V2), strings via the texts pool.
+ * Mirrors `foundation_wasm_ui::BATCH_OP_APPLY_DOM` on the Rust side.
+ */
+export const BATCH_OP_APPLY_DOM = 10;
+
+/**
+ * Register the DomOp batch operation on a core runtime: byte-0 batch messages
+ * carrying [`BATCH_OP_APPLY_DOM`] ops apply straight to the DOM through the same
+ * applicator Arrow uses. This is the selective-opt-in pattern of the batch system
+ * (`BatchInstructions.registerOperation`) — other processes register their own
+ * opcodes the same way.
+ *
+ * @param {{batches:{registerOperation:Function, params:object}}} rt  core runtime
+ * @param {ArrowDomApplicator} applicator
+ */
+export function registerDomBatchOperation(rt, applicator) {
+  rt.batches.registerOperation(BATCH_OP_APPLY_DOM, (batch, _opId, i, view, texts) => {
+    // Markers are the shared cross-language contract: ArgumentOperations.Start = 1,
+    // Operations.End = 254 (foundation_wasm base.rs).
+    if (view.getUint8(i) !== 1) {
+      throw new Error(`dom batch op: expected ArgumentOperations.Start, got ${view.getUint8(i)}`);
+    }
+    i += 1;
+    let args;
+    [i, args] = batch.params.parseParams(view, i, texts);
+    if (view.getUint8(i) !== 254) {
+      throw new Error(`dom batch op: expected Operations.End, got ${view.getUint8(i)}`);
+    }
+    i += 1;
+    const [operation, nodeId, attribute, value, textVal] = args;
+    const thunk = () => {
+      applicator.applyOne(operation, nodeId, attribute, value, textVal);
+      return null;
+    };
+    return [i, thunk];
+  });
+  return rt;
+}
+
 // ─── DomHeap (DOM external-pointer arena, = megatron DOMArena) ────────────────────
 
 /**
@@ -518,4 +562,6 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   callbackDeliver,
   DomHeap,
   domAbi,
+  BATCH_OP_APPLY_DOM,
+  registerDomBatchOperation,
 });

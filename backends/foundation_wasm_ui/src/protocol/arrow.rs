@@ -57,7 +57,4 @@ impl ProtocolMethods<Vec<DomOp>> for ArrowV1 {
         decode_payload(&self.encoder, ptr, len)
     }
 
-    fn ack(&self, memory_id: MemoryId, memory: &mut MemoryAllocations) {
-        let _ = memory.deallocate(memory_id);
-    }
 }

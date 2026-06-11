@@ -37,7 +37,7 @@ use crate::{
 /// same loan pattern — the producer allocates an arena slot, the consumer ACKs by
 /// calling `dispose_allocation`.
 ///
-/// HOW: Implementors (in `foundation_wasm_ui`: `ArrowV1`, `CustomBinaryV1`,
+/// HOW: Implementors (in `foundation_wasm_ui`: `ArrowV1`, `BatchInstructionsV1`,
 /// `JsonV1`) wrap the uniform 3-param `host_apply` FFI for `send_to_js`, and read
 /// + deallocate the arena slot for `handle_from_js`.
 pub trait ProtocolHandler {
@@ -57,6 +57,16 @@ pub trait ProtocolHandler {
     ///
     /// The handler copies what it needs into owned storage, then releases the slot.
     fn handle_from_js(&self, memory_id: MemoryId, ptr: *const u8, len: usize);
+
+    /// Release arena slot `memory_id` back to `memory` — the WASM-side ACK that
+    /// mirrors JS's `dispose_allocation`.
+    ///
+    /// Part of the transport contract (every handler ships through arena slots, so
+    /// every handler can release one). The default deallocates and ignores a stale
+    /// id — generation-checked ids make double-ACKs safe to drop.
+    fn ack(&self, memory_id: MemoryId, memory: &mut crate::MemoryAllocations) {
+        let _ = memory.deallocate(memory_id);
+    }
 }
 
 // ─── WasmEnvelope (14-byte WASM-specific header) ───────────────────────────────

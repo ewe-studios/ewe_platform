@@ -11,7 +11,7 @@
 //!
 //! HOW: Depends on `foundation_wasm` (ABI + transport) and `foundation_ui_traits`
 //! (encoders). Adds `wasm::dom` (DOM references), and — in later feature work —
-//! protocol impls (`ArrowV1`/`CustomBinaryV1`/`JsonV1`) and the `InstructionReceiver`.
+//! protocol impls (`ArrowV1`/`BatchInstructionsV1`/`JsonV1`) and the `InstructionReceiver`.
 
 #![no_std]
 
@@ -26,5 +26,6 @@ pub mod embedded;
 
 pub use instruction::InstructionReceiver;
 pub use protocol::{
-    ArrowV1, CustomBinaryV1, HandleResult, JsonV1, ProtocolMethods, SendResult,
+    ArrowV1, BatchInstructionsV1, DomOpsBatch, HandleResult, JsonV1, ProtocolMethods,
+    SendResult, BATCH_OP_APPLY_DOM,
 };

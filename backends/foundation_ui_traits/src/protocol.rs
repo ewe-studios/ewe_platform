@@ -6,7 +6,8 @@
 //! WHAT: Layer 1 of the three-layer protocol architecture (decisions 014/022/028/030).
 //! Defines the [`ProtocolEncoder`] trait plus three concrete encoders — [`ArrowEncoder`]
 //! (Arrow-inspired columnar layout), [`JsonEncoder`] (UTF-8 JSON), and
-//! [`CustomBinaryEncoder`] (tag-per-op binary) — and the 6-byte [`Envelope`] header.
+//! and the 6-byte [`Envelope`] header. (Protocol byte 0 — Custom Binary — is the
+//! foundation_wasm Instructions format; see the note above `PROTOCOL_CUSTOM_BINARY`.)
 //!
 //! HOW: Each encoder is a pure `Vec<DomOp> -> Vec<u8>` (and back) transform. No
 //! `MemoryAllocations`, no FFI, no `host_apply`. The WASM transport layer
@@ -269,16 +270,27 @@ fn parse_ref(s: &str) -> Result<u32, DecodeError> {
 // text_val)` shape defined by decision 010. Centralising the mapping keeps the two
 // binary encoders bug-for-bug consistent with each other and with the JS side.
 
-struct Row {
-    operation: u8,
-    node_id: u32,
-    attribute: String,
-    value: String,
-    text_val: String,
+/// The canonical decision-010 row form of a [`DomOp`]: one operation byte, the
+/// target node id, and the three string slots. Public so protocol impls (Arrow's
+/// columns, the batch-instructions custom protocol) share ONE DomOp ⇄ row mapping.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Row {
+    /// Operation code (decision 010 table).
+    pub operation: u8,
+    /// Target node id (primal id).
+    pub node_id: u32,
+    /// Attribute name slot (empty when unused).
+    pub attribute: String,
+    /// Value slot (empty when unused).
+    pub value: String,
+    /// Text-content slot (empty when unused).
+    pub text_val: String,
 }
 
 impl Row {
-    fn from_op(op: &DomOp) -> Self {
+    /// Map a [`DomOp`] to its row form.
+    #[must_use]
+    pub fn from_op(op: &DomOp) -> Self {
         let (operation, node_id, attribute, value, text_val) = match op {
             DomOp::CreateEl {
                 node_id,
@@ -379,7 +391,11 @@ impl Row {
         }
     }
 
-    fn into_op(self) -> Result<DomOp, DecodeError> {
+    /// Map the row form back to a [`DomOp`].
+    ///
+    /// # Errors
+    /// Returns [`DecodeError`] for an unknown operation code.
+    pub fn into_op(self) -> Result<DomOp, DecodeError> {
         let op = match self.operation {
             OP_CREATE_ELEMENT => DomOp::CreateEl {
                 node_id: self.node_id,
@@ -430,66 +446,14 @@ impl Row {
     }
 }
 
-// ─── CustomBinaryEncoder ───────────────────────────────────────────────────────
-
-/// WHY: A compact, allocation-free-to-parse binary format for callers that don't
-/// need Arrow's columnar layout or JSON's readability.
-///
-/// WHAT: Encodes a `DomOp` batch as a tag-per-op stream.
-///
-/// HOW: `[row_count: u32][ for each op: [operation:1][node_id:4][attribute lp]
-/// [value lp][text_val lp] ]`, where `lp` is `[len:4][utf8]`. Mirrors decision 010
-/// row semantics so the canonical [`Row`] mapping is reused.
-#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct CustomBinaryEncoder;
-
-impl ProtocolEncoder<Vec<DomOp>> for CustomBinaryEncoder {
-    fn protocol_byte(&self) -> u8 {
-        PROTOCOL_CUSTOM_BINARY
-    }
-
-    fn version(&self) -> u8 {
-        PROTOCOL_VERSION
-    }
-
-    fn encode(&self, data: Vec<DomOp>) -> Vec<u8> {
-        let mut buf = Vec::new();
-        buf.extend_from_slice(&to_u32(data.len()).to_le_bytes());
-        for op in &data {
-            let row = Row::from_op(op);
-            buf.push(row.operation);
-            buf.extend_from_slice(&row.node_id.to_le_bytes());
-            push_lp_string(&mut buf, &row.attribute);
-            push_lp_string(&mut buf, &row.value);
-            push_lp_string(&mut buf, &row.text_val);
-        }
-        buf
-    }
-
-    fn decode(&self, payload: &[u8]) -> DecodeResult {
-        let mut cur = Cursor::new(payload);
-        let count = cur.u32()? as usize;
-        let mut ops = Vec::with_capacity(count);
-        for _ in 0..count {
-            let operation = cur.u8()?;
-            let node_id = cur.u32()?;
-            let attribute = cur.lp_string()?;
-            let value = cur.lp_string()?;
-            let text_val = cur.lp_string()?;
-            ops.push(
-                Row {
-                    operation,
-                    node_id,
-                    attribute,
-                    value,
-                    text_val,
-                }
-                .into_op()?,
-            );
-        }
-        Ok(ops)
-    }
-}
+// ─── Protocol byte 0 (Custom Binary) ───────────────────────────────────────────
+//
+// Protocol byte 0 is the foundation_wasm INSTRUCTIONS format (decision 022) — the
+// batch-operations system (`Operations` opcodes + quantized params + texts pool),
+// implemented by `foundation_wasm::ops::Instructions` (encode) and the JS
+// `BatchInstructions` runtime (execute). It is an instruction STREAM, not a value
+// encoding, so it has no `ProtocolEncoder` here; `foundation_wasm_ui` exposes it
+// through the transport traits as `BatchInstructionsV1`.
 
 // ─── ArrowEncoder (Arrow-inspired columnar layout) ─────────────────────────────
 

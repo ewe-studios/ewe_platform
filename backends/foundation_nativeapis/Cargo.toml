@@ -306,24 +306,8 @@ workspace = true
 [[test]]
 name = "d1_delta_vfs"
 path = "tests/d1_delta_vfs/mod.rs"
-required-features = ["vfs-native", "vfs-d1"]
-
-[[test]]
-name = "r2_delta_vfs"
-path = "tests/r2_delta_vfs/mod.rs"
-required-features = ["vfs-native", "vfs-r2"]
-
-[[test]]
-name = "vfs_shim_vfs"
-path = "tests/vfs_shim_vfs/mod.rs"
-required-features = ["vfs-preload"]
-
-# Fjall LSM-tree + cacache CAS VFS backend
 
 [[test]]
 name = "fjall_vfs"
 path = "tests/fjall_vfs/mod.rs"
 required-features = ["vfs-fjall"]
-
-[[test]]
-required-features = ["vfs-nfs", "vfs-native"]

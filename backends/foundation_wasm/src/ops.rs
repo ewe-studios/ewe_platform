@@ -2483,6 +2483,21 @@ impl<'a> Batchable<'a> for ExternalPointer {
     }
 }
 
+/// [`BatchMessage`] is the contract for payload types that ride the batch
+/// instructions system (the Custom Binary protocol, byte 0 — decision 022):
+/// implementors encode themselves INTO an [`Instructions`] batch (registered
+/// operations, invokes, custom opcodes + quantized params, strings via the texts
+/// pool). Processes opt their message types into the batching system selectively
+/// by implementing this on the Rust side and registering the matching operation
+/// handler on the JS side (`BatchInstructions.registerOperation`).
+pub trait BatchMessage {
+    /// Encode this message into the (already-begun) batch.
+    ///
+    /// # Errors
+    /// Returns [`MemoryWriterError`] when the batch buffers reject a write.
+    fn encode_batch(&self, batch: &Instructions) -> MemoryWriterResult<()>;
+}
+
 impl Instructions {
     /// [`register_function`] allows you register a function to
     /// a specific `ExternalPointer` that is allocated for it's use.

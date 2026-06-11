@@ -8,7 +8,7 @@
 //! HOW: Build a representative `Vec<DomOp>`, encode, decode, assert equality.
 
 use foundation_ui_traits::{
-    ArrowEncoder, CustomBinaryEncoder, DecodeError, DomOp, Envelope, JsonEncoder, ProtocolEncoder,
+    ArrowEncoder, DecodeError, DomOp, Envelope, JsonEncoder, ProtocolEncoder,
     PROTOCOL_ARROW, PROTOCOL_CUSTOM_BINARY, PROTOCOL_JSON,
 };
 
@@ -83,25 +83,10 @@ fn json_round_trip_is_lossless_and_valid_utf8() {
 }
 
 #[test]
-fn custom_binary_round_trip_is_lossless() {
-    let ops = sample_ops();
-    let encoder = CustomBinaryEncoder;
-    let bytes = encoder.encode(ops.clone());
-    let decoded = encoder.decode(&bytes).expect("custom binary decode");
-    assert_eq!(decoded, ops);
-}
-
-#[test]
 fn empty_batch_round_trips_for_all_encoders() {
     let ops: Vec<DomOp> = Vec::new();
     assert_eq!(ArrowEncoder.decode(&ArrowEncoder.encode(ops.clone())).unwrap(), ops);
     assert_eq!(JsonEncoder.decode(&JsonEncoder.encode(ops.clone())).unwrap(), ops);
-    assert_eq!(
-        CustomBinaryEncoder
-            .decode(&CustomBinaryEncoder.encode(ops.clone()))
-            .unwrap(),
-        ops
-    );
 }
 
 #[test]
@@ -110,8 +95,10 @@ fn protocol_bytes_match_spec() {
     assert_eq!(ArrowEncoder.protocol_byte(), 1);
     assert_eq!(JsonEncoder.protocol_byte(), PROTOCOL_JSON);
     assert_eq!(JsonEncoder.protocol_byte(), 2);
-    assert_eq!(CustomBinaryEncoder.protocol_byte(), PROTOCOL_CUSTOM_BINARY);
-    assert_eq!(CustomBinaryEncoder.protocol_byte(), 0);
+    // Protocol byte 0 (Custom Binary) is the foundation_wasm Instructions format
+    // (decision 022) — an instruction stream, not a Layer-1 value encoder; its
+    // transport impl (BatchInstructionsV1) lives in foundation_wasm_ui.
+    assert_eq!(PROTOCOL_CUSTOM_BINARY, 0);
 }
 
 #[test]
@@ -146,44 +133,16 @@ fn encoders_can_be_enveloped_and_recovered() {
     for (proto, bytes) in [
         (PROTOCOL_ARROW, ArrowEncoder.encode(ops.clone())),
         (PROTOCOL_JSON, JsonEncoder.encode(ops.clone())),
-        (PROTOCOL_CUSTOM_BINARY, CustomBinaryEncoder.encode(ops.clone())),
     ] {
         let framed = Envelope::write(proto, 0, &bytes);
         let (env, payload) = Envelope::parse(&framed).unwrap();
         assert_eq!(env.protocol, proto);
         let decoded = match proto {
             PROTOCOL_ARROW => ArrowEncoder.decode(payload).unwrap(),
-            PROTOCOL_JSON => JsonEncoder.decode(payload).unwrap(),
-            _ => CustomBinaryEncoder.decode(payload).unwrap(),
+            _ => JsonEncoder.decode(payload).unwrap(),
         };
         assert_eq!(decoded, ops);
     }
-}
-
-#[test]
-fn custom_binary_decode_rejects_unknown_operation() {
-    // row_count = 1, operation = 99 (unknown), node_id = 0, three empty strings
-    let mut bytes = Vec::new();
-    bytes.extend_from_slice(&1u32.to_le_bytes());
-    bytes.push(99);
-    bytes.extend_from_slice(&0u32.to_le_bytes());
-    for _ in 0..3 {
-        bytes.extend_from_slice(&0u32.to_le_bytes());
-    }
-    assert_eq!(
-        CustomBinaryEncoder.decode(&bytes),
-        Err(DecodeError::UnknownOperation(99))
-    );
-}
-
-#[test]
-fn custom_binary_decode_rejects_truncated_payload() {
-    // claims 5 rows but provides no row data
-    let bytes = 5u32.to_le_bytes();
-    assert_eq!(
-        CustomBinaryEncoder.decode(&bytes),
-        Err(DecodeError::UnexpectedEnd)
-    );
 }
 
 #[test]

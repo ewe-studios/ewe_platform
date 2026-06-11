@@ -3,7 +3,7 @@
 //! `WasmEnvelope`, that the payload round-trips, that `ack` frees the slot, and that
 //! `InstructionReceiver` batches/flushes per decision 030.
 //!
-//! WHAT: `ArrowV1`/`CustomBinaryV1`/`JsonV1` `encode_and_send` + `handle_received` +
+//! WHAT: `ArrowV1`/`BatchInstructionsV1`/`JsonV1` `encode_and_send` + `handle_received` +
 //! `ack`, and `InstructionReceiver` queue/flush/ack behaviour.
 //!
 //! HOW: Native build — `host_apply` is a no-op stub, so we inspect the arena slot the
@@ -11,7 +11,7 @@
 
 use foundation_ui_traits::DomOp;
 use foundation_wasm::{MemoryAllocations, WasmEnvelope};
-use foundation_wasm_ui::{ArrowV1, CustomBinaryV1, InstructionReceiver, JsonV1, ProtocolMethods};
+use foundation_wasm_ui::{ArrowV1, BatchInstructionsV1, InstructionReceiver, JsonV1, ProtocolMethods};
 
 fn sample_ops() -> Vec<DomOp> {
     vec![
@@ -66,8 +66,11 @@ fn arrow_v1_encode_send_round_trip() {
 }
 
 #[test]
-fn custom_binary_v1_encode_send_round_trip() {
-    assert_protocol_round_trip(&CustomBinaryV1::new(), 0);
+fn batch_instructions_v1_encode_send_round_trip() {
+    // Byte 0 = the foundation_wasm Instructions format (decision 022): the payload
+    // is [texts_off][texts_len][Operations stream][texts pool]; handle_received
+    // decodes the BATCH_OP_APPLY_DOM opcodes + quantized params back to DomOps.
+    assert_protocol_round_trip(&BatchInstructionsV1::new(), 0);
 }
 
 #[test]

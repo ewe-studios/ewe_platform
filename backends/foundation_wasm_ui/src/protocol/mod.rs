@@ -4,8 +4,9 @@
 //! single "encode these ops and ship them" call. That is Layer 3.
 //!
 //! WHAT: The [`ProtocolMethods`] trait plus the three concrete protocol
-//! implementations — [`ArrowV1`], [`CustomBinaryV1`], [`JsonV1`] — and the uniform
-//! `host_apply` FFI they all ship through (decision 028/030).
+//! implementations — [`ArrowV1`], [`BatchInstructionsV1`] (Custom Binary, byte 0 —
+//! the foundation_wasm Instructions format per decision 022), [`JsonV1`] — and the
+//! uniform `host_apply` FFI they all ship through (decision 028/030).
 //!
 //! HOW: Each impl pairs a Layer-1 encoder with the Layer-2 [`ProtocolHandler`]
 //! transport. `encode_and_send` encodes the ops, frames them in a 14-byte
@@ -14,11 +15,11 @@
 //! and `dispose_allocation`s the slot by `memory_id`.
 
 mod arrow;
-mod custom_binary;
+mod batch_instructions;
 mod json;
 
 pub use arrow::ArrowV1;
-pub use custom_binary::CustomBinaryV1;
+pub use batch_instructions::{BatchInstructionsV1, DomOpsBatch, BATCH_OP_APPLY_DOM};
 pub use json::JsonV1;
 
 use alloc::vec::Vec;
@@ -64,8 +65,9 @@ pub type HandleResult = Result<Vec<DomOp>, DecodeError>;
 /// receive-and-decode operations over a payload type `T`.
 ///
 /// HOW: `encode_and_send` composes a Layer-1 encoder with the Layer-2 transport
-/// through one arena slot; `handle_received` decodes an incoming payload; `ack`
-/// releases a slot.
+/// through one arena slot; `handle_received` decodes an incoming payload. Slot
+/// release (`ack`) comes from the [`ProtocolHandler`] supertrait — it is part of
+/// the transport contract, shared by every handler.
 pub trait ProtocolMethods<T>: ProtocolHandler {
     /// Encode `data`, frame it in one arena slot, and ship it to JS.
     fn encode_and_send(&self, data: T, memory: &mut MemoryAllocations) -> SendResult;
@@ -77,9 +79,6 @@ pub trait ProtocolMethods<T>: ProtocolHandler {
     /// # Errors
     /// Returns [`DecodeError`] if the bytes are malformed for this protocol.
     fn handle_received(&self, memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult;
-
-    /// Release arena slot `memory_id` back to `memory` (the WASM-side ACK).
-    fn ack(&self, memory_id: MemoryId, memory: &mut MemoryAllocations);
 }
 
 // ─── Shared composition helpers ────────────────────────────────────────────────
@@ -103,6 +102,24 @@ where
     E: ProtocolEncoder<Vec<DomOp>>,
 {
     let payload = encoder.encode(ops);
+    ship_payload(handler, &payload, memory)
+}
+
+/// Frame an already-encoded `payload` in a [`WasmEnvelope`] inside one arena slot
+/// and ship it — the tail every protocol shares, whether the payload came from a
+/// Layer-1 encoder (Arrow/JSON) or an Instructions batch (Custom Binary).
+///
+/// # Panics
+/// Panics if the arena cannot allocate or address the slot — an allocation failure
+/// at this point means a fundamental arena leak (decision 028, Error Cases).
+pub(crate) fn ship_payload<H>(
+    handler: &H,
+    payload: &[u8],
+    memory: &mut MemoryAllocations,
+) -> SendResult
+where
+    H: ProtocolHandler,
+{
     let total = WasmEnvelope::HEADER_LEN + payload.len();
 
     // Allocate first so the envelope can carry the real memory_id, then fill the slot.
@@ -111,7 +128,7 @@ where
         handler.protocol_byte(),
         handler.version(),
         mem_id.as_u64(),
-        &payload,
+        payload,
     );
     let slot = memory.get(mem_id).expect("arena get failed");
     slot.apply(|mem| {
