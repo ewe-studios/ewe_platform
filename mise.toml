@@ -180,6 +180,37 @@ run = """
 pnpm install
 """
 
+[tasks."cf:start"]
+description = "Start local wrangler dev server for D1/R2 testing"
+run = """
+# Kill any existing wrangler/workerd processes
+pkill -f "wrangler" 2>/dev/null || true
+pkill -f "workerd" 2>/dev/null || true
+sleep 1
+
+echo "Starting wrangler dev for local D1/R2 testing..."
+cd integrations/nodejs
+wrangler dev --local > wrangler.log 2>&1 &
+echo $! > /tmp/wrangler-test.pid
+
+echo "Waiting for wrangler to start..."
+sleep 3
+echo "✓ Wrangler started (PID $(cat /tmp/wrangler-test.pid))"
+echo "  Logs: integrations/nodejs/wrangler.log"
+"""
+
+[tasks."test:cf"]
+description = "Run Cloudflare D1/R2 integration tests"
+depends = ["cf:start"]
+run = """
+echo "Running Cloudflare integration tests..."
+cargo test -p foundation_nativeapis --features "vfs-native,vfs-d1,vfs-r2" --test d1_delta_vfs --test r2_delta_vfs
+
+# Cleanup
+pkill -f "wrangler" 2>/dev/null || true
+pkill -f "workerd" 2>/dev/null || true
+"""
+
 [tasks."setup:check"]
 alias = "check-tools"
 description = "Verify all installed tools and versions"
