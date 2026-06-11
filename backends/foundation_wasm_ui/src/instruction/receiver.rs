@@ -95,7 +95,15 @@ impl InstructionReceiver {
         Some(match &mut self.memory {
             Arena::Owned(memory) => protocol.encode_and_send(ops, memory),
             Arena::Global => {
-                internal_api::with_global_allocations(|memory| protocol.encode_and_send(ops, memory))
+                // Write under the lock; SHIP after releasing it. `host_apply`
+                // synchronously re-enters WASM (JS ACKs via the dispose_allocation
+                // export, which locks the global arena) — shipping under the lock
+                // would deadlock/panic on that re-entry.
+                let (result, ptr, len) = internal_api::with_global_allocations(|memory| {
+                    protocol.encode_and_write(ops, memory)
+                });
+                protocol.send_to_js(result.memory_id, ptr, len);
+                result
             }
         })
     }

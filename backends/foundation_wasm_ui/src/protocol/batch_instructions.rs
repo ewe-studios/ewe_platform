@@ -30,7 +30,7 @@ use foundation_wasm::{
     ParamTypeId, Params, ProtocolHandler, TypeOptimization,
 };
 
-use super::{ship, ship_payload, HandleResult, ProtocolMethods, SendResult};
+use super::{ship, write_framed, HandleResult, ProtocolMethods, SendResult};
 
 /// The registered batch opcode carrying one `DomOp` row
 /// (`[opcode][ArgStart (params…) ArgStop][Operations::End]`). Outside the core
@@ -46,10 +46,7 @@ pub const BATCH_OP_APPLY_DOM: u8 = 10;
 pub struct DomOpsBatch<'a>(pub &'a [DomOp]);
 
 impl BatchMessage for DomOpsBatch<'_> {
-    fn encode_batch(
-        &self,
-        batch: &Instructions,
-    ) -> foundation_wasm::MemoryWriterResult<()> {
+    fn encode_batch(&self, batch: &Instructions) -> foundation_wasm::MemoryWriterResult<()> {
         use foundation_wasm::BatchEncodable;
         for op in self.0 {
             let row = Row::from_op(op);
@@ -80,20 +77,19 @@ impl BatchInstructionsV1 {
         Self
     }
 
-    /// Build an [`Instructions`] batch from `message`, pack it into ONE envelope
-    /// slot (`[texts_off:u32][texts_len:u32][ops][texts]`), and ship it.
-    ///
-    /// This is the generic entry any [`BatchMessage`] type uses; `DomOp` batches
-    /// go through it via [`ProtocolMethods::encode_and_send`].
+    /// Build an [`Instructions`] batch from `message` and pack it into ONE envelope
+    /// slot (`[texts_off:u32][texts_len:u32][ops][texts]`) WITHOUT shipping —
+    /// the write half of [`ProtocolMethods::encode_and_write`], generic over any
+    /// [`BatchMessage`] type.
     ///
     /// # Panics
     /// Panics if the arena cannot allocate or address a slot — an allocation
     /// failure here means a fundamental arena leak (decision 028, Error Cases).
-    pub fn send_message<T: BatchMessage>(
+    pub fn write_message<T: BatchMessage>(
         &self,
         message: &T,
         memory: &mut MemoryAllocations,
-    ) -> SendResult {
+    ) -> (SendResult, *const u8, usize) {
         let batch = memory
             .batch_for(64, 64, true)
             .expect("arena batch_for failed");
@@ -115,13 +111,34 @@ impl BatchInstructionsV1 {
 
         let texts_off = 8 + ops_bytes.len();
         let mut payload = Vec::with_capacity(texts_off + text_bytes.len());
-        payload.extend_from_slice(&u32::try_from(texts_off).expect("ops too large").to_le_bytes());
-        payload
-            .extend_from_slice(&u32::try_from(text_bytes.len()).expect("texts too large").to_le_bytes());
+        payload.extend_from_slice(
+            &u32::try_from(texts_off)
+                .expect("ops too large")
+                .to_le_bytes(),
+        );
+        payload.extend_from_slice(
+            &u32::try_from(text_bytes.len())
+                .expect("texts too large")
+                .to_le_bytes(),
+        );
         payload.extend_from_slice(&ops_bytes);
         payload.extend_from_slice(&text_bytes);
 
-        ship_payload(self, &payload, memory)
+        write_framed(self, &payload, memory)
+    }
+
+    /// One-call build + ship for OWNED arenas. Do NOT call while holding the
+    /// global arena lock — `host_apply` re-enters WASM (JS ACK path); use
+    /// [`write_message`](Self::write_message) under the lock and `send_to_js`
+    /// outside it instead.
+    pub fn send_message<T: BatchMessage>(
+        &self,
+        message: &T,
+        memory: &mut MemoryAllocations,
+    ) -> SendResult {
+        let (result, ptr, len) = self.write_message(message, memory);
+        self.send_to_js(result.memory_id, ptr, len);
+        result
     }
 }
 
@@ -144,15 +161,25 @@ impl ProtocolHandler for BatchInstructionsV1 {
 }
 
 impl ProtocolMethods<Vec<DomOp>> for BatchInstructionsV1 {
-    fn encode_and_send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) -> SendResult {
-        self.send_message(&DomOpsBatch(&ops), memory)
+    fn encode_and_write(
+        &self,
+        ops: Vec<DomOp>,
+        memory: &mut MemoryAllocations,
+    ) -> (SendResult, *const u8, usize) {
+        self.write_message(&DomOpsBatch(&ops), memory)
     }
 
     fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {
-        // SAFETY: the caller guarantees (ptr, len) describe a readable region.
-        let payload = unsafe { core::slice::from_raw_parts(ptr, len) };
-        decode_dom_batch(payload)
+        decode_dom_batch(read_payload(ptr, len))
     }
+}
+
+/// View the received region as a byte slice. Private so the public trait method
+/// itself never dereferences its raw argument (the `ProtocolMethods` contract
+/// guarantees `(ptr, len)` describe a valid readable region for the call).
+fn read_payload<'a>(ptr: *const u8, len: usize) -> &'a [u8] {
+    // SAFETY: guaranteed readable by the `handle_received` contract.
+    unsafe { core::slice::from_raw_parts(ptr, len) }
 }
 
 // ─── Native decoder for the byte-0 DomOp payload ─────────────────────────────────
@@ -176,7 +203,10 @@ impl<'a> Reader<'a> {
 
     fn take(&mut self, n: usize) -> Result<&'a [u8], DecodeError> {
         let end = self.at.checked_add(n).ok_or(DecodeError::InvalidLength)?;
-        let slice = self.bytes.get(self.at..end).ok_or(DecodeError::UnexpectedEnd)?;
+        let slice = self
+            .bytes
+            .get(self.at..end)
+            .ok_or(DecodeError::UnexpectedEnd)?;
         self.at = end;
         Ok(slice)
     }
@@ -245,8 +275,12 @@ fn decode_dom_batch(payload: &[u8]) -> HandleResult {
     }
     let texts_off = u32::from_le_bytes([payload[0], payload[1], payload[2], payload[3]]) as usize;
     let texts_len = u32::from_le_bytes([payload[4], payload[5], payload[6], payload[7]]) as usize;
-    let ops = payload.get(8..texts_off).ok_or(DecodeError::InvalidLength)?;
-    let texts_end = texts_off.checked_add(texts_len).ok_or(DecodeError::InvalidLength)?;
+    let ops = payload
+        .get(8..texts_off)
+        .ok_or(DecodeError::InvalidLength)?;
+    let texts_end = texts_off
+        .checked_add(texts_len)
+        .ok_or(DecodeError::InvalidLength)?;
     let texts = payload
         .get(texts_off..texts_end)
         .ok_or(DecodeError::InvalidLength)?;
@@ -280,12 +314,13 @@ fn decode_dom_batch(payload: &[u8]) -> HandleResult {
             } else if ty == ParamTypeId::Uint32 as u8 {
                 ParamField::Uint(r.quantized_uint_with_width(4)?)
             } else if ty == ParamTypeId::Text8 as u8 {
-                let index = r.quantized_uint_with_width(8)? as usize;
-                let len = r.quantized_uint_with_width(8)? as usize;
+                let index = usize::try_from(r.quantized_uint_with_width(8)?)
+                    .map_err(|_| DecodeError::InvalidLength)?;
+                let len = usize::try_from(r.quantized_uint_with_width(8)?)
+                    .map_err(|_| DecodeError::InvalidLength)?;
                 let end = index.checked_add(len).ok_or(DecodeError::InvalidLength)?;
                 let bytes = texts.get(index..end).ok_or(DecodeError::InvalidLength)?;
-                let text =
-                    core::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8)?;
+                let text = core::str::from_utf8(bytes).map_err(|_| DecodeError::InvalidUtf8)?;
                 ParamField::Text(String::from(text))
             } else {
                 return Err(DecodeError::UnknownOperation(ty));
@@ -316,7 +351,7 @@ fn row_from_fields(fields: Vec<ParamField>) -> Result<Row, DecodeError> {
         Some(ParamField::Uint(v)) => u32::try_from(v).map_err(|_| DecodeError::InvalidNumber)?,
         _ => return Err(DecodeError::UnexpectedEnd),
     };
-    let mut text = |slot: Option<ParamField>| match slot {
+    let text = |slot: Option<ParamField>| match slot {
         Some(ParamField::Text(t)) => Ok(t),
         _ => Err(DecodeError::UnexpectedEnd),
     };

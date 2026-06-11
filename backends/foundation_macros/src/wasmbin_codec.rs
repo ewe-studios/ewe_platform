@@ -4,13 +4,13 @@
 //! from the type shape, so adding a wasm proposal = adding Rust types (feature 15,
 //! decision 031).
 //!
-//! WHAT: The synstructure bodies behind `#[derive(Wasmbin)]` (Encode + Decode +
-//! DecodeWithDiscriminant), `#[derive(WasmbinCountable)]`, and `#[derive(Visit)]`.
+//! WHAT: The synstructure bodies behind `#[derive(Wasmbin)]` (`Encode` + `Decode` +
+//! `DecodeWithDiscriminant`), `#[derive(WasmbinCountable)]`, and `#[derive(Visit)]`.
 //! Entry points live in `lib.rs` (proc-macro fns must sit at the crate root).
 //!
 //! HOW: Ported & adapted from `wasmbin-derive` v0.2.4
-//! (https://github.com/RReverser/wasmbin), © Google Inc. / Ingvar Stepanyan,
-//! licensed Apache-2.0. Modifications for ewe_platform: trait paths resolve through
+//! (<https://github.com/RReverser/wasmbin>), © Google Inc. / Ingvar Stepanyan,
+//! licensed Apache-2.0. Modifications for `ewe_platform`: trait paths resolve through
 //! `proc-macro-crate` to `foundation_codegen::wasm::{io,builtins,visit}` (upstream
 //! hardcoded `crate::…` since the derives only ran inside wasmbin itself), and the
 //! `decl_derive!` wrappers are replaced by plain `#[proc_macro_derive]` entry points
@@ -29,6 +29,16 @@
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
+
+// Ported code is kept STRUCTURALLY faithful to upstream v0.2.4 for syncability:
+// `Structure` flows by value (the synstructure convention), the codegen match keeps
+// upstream's single-function shape, and helper items sit where upstream placed them.
+#![allow(
+    clippy::needless_pass_by_value,
+    clippy::single_match_else,
+    clippy::too_many_lines,
+    clippy::items_after_statements
+)]
 
 use quote::{quote, ToTokens};
 use std::borrow::Cow;
@@ -170,7 +180,7 @@ fn parse_repr(s: &Structure) -> syn::Result<syn::Type> {
 }
 
 /// `#[derive(Wasmbin)]` body: Encode for everything; enums with `#[repr(N)]` +
-/// per-variant discriminants get DecodeWithDiscriminant (catch-all variants without
+/// per-variant discriminants get `DecodeWithDiscriminant` (catch-all variants without
 /// a discriminant delegate to their single field's own discriminant decoding).
 pub(crate) fn wasmbin_derive(s: Structure) -> proc_macro2::TokenStream {
     let root = foundation_codegen_path();

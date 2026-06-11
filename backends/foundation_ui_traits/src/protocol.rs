@@ -7,7 +7,7 @@
 //! Defines the [`ProtocolEncoder`] trait plus three concrete encoders — [`ArrowEncoder`]
 //! (Arrow-inspired columnar layout), [`JsonEncoder`] (UTF-8 JSON), and
 //! and the 6-byte [`Envelope`] header. (Protocol byte 0 — Custom Binary — is the
-//! foundation_wasm Instructions format; see the note above `PROTOCOL_CUSTOM_BINARY`.)
+//! `foundation_wasm` Instructions format; see the note above `PROTOCOL_CUSTOM_BINARY`.)
 //!
 //! HOW: Each encoder is a pure `Vec<DomOp> -> Vec<u8>` (and back) transform. No
 //! `MemoryAllocations`, no FFI, no `host_apply`. The WASM transport layer
@@ -224,14 +224,6 @@ impl<'a> Cursor<'a> {
         Ok(slice)
     }
 
-    /// Read a length-prefixed UTF-8 string: `[len: u32 LE][bytes]`.
-    fn lp_string(&mut self) -> Result<String, DecodeError> {
-        let len = self.u32()? as usize;
-        let raw = self.bytes(len)?;
-        core::str::from_utf8(raw)
-            .map(ToString::to_string)
-            .map_err(|_| DecodeError::InvalidUtf8)
-    }
 }
 
 /// Convert a `usize` length / count / offset into the `u32` the wire format uses.
@@ -252,11 +244,6 @@ fn to_u32(value: usize) -> u32 {
     u32::try_from(value).expect("wire-format field exceeds u32::MAX (~4 GiB)")
 }
 
-/// Append `[len: u32 LE][bytes]` for a string.
-fn push_lp_string(buf: &mut Vec<u8>, s: &str) {
-    buf.extend_from_slice(&to_u32(s.len()).to_le_bytes());
-    buf.extend_from_slice(s.as_bytes());
-}
 
 /// Parse a stringified `u32` reference (child/ref/new id).
 fn parse_ref(s: &str) -> Result<u32, DecodeError> {
@@ -272,7 +259,7 @@ fn parse_ref(s: &str) -> Result<u32, DecodeError> {
 
 /// The canonical decision-010 row form of a [`DomOp`]: one operation byte, the
 /// target node id, and the three string slots. Public so protocol impls (Arrow's
-/// columns, the batch-instructions custom protocol) share ONE DomOp ⇄ row mapping.
+/// columns, the batch-instructions custom protocol) share ONE `DomOp` ⇄ row mapping.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct Row {
     /// Operation code (decision 010 table).

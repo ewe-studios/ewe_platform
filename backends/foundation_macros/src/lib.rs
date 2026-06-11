@@ -468,7 +468,7 @@ fn run_synstructure(
 /// `DecodeWithDiscriminant` for `#[repr(N)]` enums / `#[wasmbin(discriminant = N)]`
 /// structs) for `foundation_codegen::wasm` model types.
 ///
-/// Ported from `wasmbin-derive` (https://github.com/RReverser/wasmbin), Apache-2.0.
+/// Ported from `wasmbin-derive` (<https://github.com/RReverser/wasmbin>), Apache-2.0.
 #[proc_macro_derive(Wasmbin, attributes(wasmbin))]
 pub fn wasmbin_derive(item: TokenStream) -> TokenStream {
     run_synstructure(item, wasmbin_codec::wasmbin_derive)
@@ -477,7 +477,7 @@ pub fn wasmbin_derive(item: TokenStream) -> TokenStream {
 /// Marks a `foundation_codegen::wasm` model type as countable — serializable inside
 /// LEB128 length-prefixed collections.
 ///
-/// Ported from `wasmbin-derive` (https://github.com/RReverser/wasmbin), Apache-2.0.
+/// Ported from `wasmbin-derive` (<https://github.com/RReverser/wasmbin>), Apache-2.0.
 #[proc_macro_derive(WasmbinCountable)]
 pub fn wasmbin_countable_derive(item: TokenStream) -> TokenStream {
     run_synstructure(item, wasmbin_codec::wasmbin_countable_derive)
@@ -486,7 +486,7 @@ pub fn wasmbin_countable_derive(item: TokenStream) -> TokenStream {
 /// Derives typed deep-traversal (`Visit::visit_children` / `visit_children_mut`)
 /// over every field of a `foundation_codegen::wasm` model type.
 ///
-/// Ported from `wasmbin-derive` (https://github.com/RReverser/wasmbin), Apache-2.0.
+/// Ported from `wasmbin-derive` (<https://github.com/RReverser/wasmbin>), Apache-2.0.
 #[proc_macro_derive(Visit)]
 pub fn wasmbin_visit_derive(item: TokenStream) -> TokenStream {
     run_synstructure(item, wasmbin_codec::wasmbin_visit_derive)

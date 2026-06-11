@@ -599,3 +599,39 @@ cross-check megatron's parser source (or the Rust encoder) when writing strict a
   succeed even on payloads that are internally corrupt.
 - Feature 15: ALL success criteria met (status.md). Follow-ups recorded: owned WAT
   printer; deferred reference auto-cleanup; F16 stays deferred.
+
+## Custom protocol (byte 0) re-based on BatchInstructions (2026-06-11)
+
+User caught a protocol mismatch: a scaffolded `CustomBinaryEncoder` row codec had claimed
+protocol byte 0, but decision 022 defines byte 0 as "Custom binary (foundation_wasm
+Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correction landed:
+
+- **Row codec DELETED**; `Row` (the canonical decision-010 DomOp ⇄ row mapping) made public
+  in foundation_ui_traits so all protocol impls share one mapping.
+- **`BatchMessage` trait** (foundation_wasm, next to Instructions): payload types encode
+  themselves INTO an Instructions batch — the selective opt-in contract. JS twin =
+  `BatchInstructions.registerOperation`.
+- **`BatchInstructionsV1`** (foundation_wasm_ui, byte 0): packs `[texts_off:u32][texts_len:
+  u32][Operations stream][texts pool]` into ONE envelope slot via the uniform host_apply.
+  `DomOpsBatch` = DomOps as registered opcode `BATCH_OP_APPLY_DOM = 10` (outside the core
+  0–3/254/255 table) with Row fields as quantized params, strings via the texts pool.
+  Arrow/JSON remain DomOp's default transports. A scoped native V2 reader (Uint8/Uint32/
+  Text8 + their quantizations) keeps byte-0 round-trips testable without a JS host.
+- **JS**: `batchProtocolHandler` (core, PRE-WIRED for byte 0 in the FoundationWasm
+  constructor) computes absolute pointers from the live payload view and reuses
+  `rt.batches.applyNoReturn` — no new parser. `registerDomBatchOperation(rt, applicator)`
+  (UI) registers the DOM opcode feeding the same applicator as Arrow.
+- **CRITICAL re-entrancy fix**: shipping while holding the global arena lock
+  deadlock-panics — `host_apply` synchronously re-enters WASM (JS ACKs via the
+  `dispose_allocation` export, which locks the global arena). `ProtocolMethods` gained
+  `encode_and_write` (write the framed slot, return its live address) with
+  `encode_and_send` as a provided one-call wrapper for OWNED arenas; the receiver's
+  Global arm and any global-arena sender MUST write under the lock and `send_to_js`
+  AFTER releasing it. e2e fixture goes through the real live loop
+  (`InstructionReceiver::with_global_arena` → flush → byte-0 → JS batch runtime → DOM).
+- **`ack` moved to `ProtocolHandler`** (Layer 2) with a stale-safe default — every
+  handler ships through arena slots, so every handler can release one.
+- **Tooling lesson**: `grep -cE '^(warning|error)'` NEVER matches cargo's colored output
+  (ANSI codes precede the word) — every earlier "clippy clean" check this session was
+  vacuous. Use `CARGO_TERM_COLOR=never` + tee to a file, and `touch` lib.rs first
+  (clippy caches per-crate results and prints nothing on re-runs).

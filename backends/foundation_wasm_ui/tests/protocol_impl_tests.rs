@@ -38,8 +38,14 @@ fn assert_protocol_round_trip<P: ProtocolMethods<Vec<DomOp>>>(proto: &P, expecte
 
     let result = proto.encode_and_send(ops.clone(), &mut mem);
 
-    // Exactly one arena slot was allocated for the batch.
-    assert_eq!(mem.total_allocated(), 1, "expected exactly one arena slot");
+    // Exactly one LIVE arena slot holds the shipped message. (`total_allocated`
+    // counts slots ever created — the batch protocol recycles two scratch slots
+    // for its ops/texts buffers, so live = allocated - free is the invariant.)
+    assert_eq!(
+        mem.total_allocated() - mem.total_free(),
+        1,
+        "expected exactly one LIVE arena slot"
+    );
 
     // The slot begins with a WasmEnvelope carrying this protocol byte + memory_id.
     let slot = mem.get(result.memory_id).expect("slot is live");

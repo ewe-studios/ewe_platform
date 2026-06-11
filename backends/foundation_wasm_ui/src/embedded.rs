@@ -10,7 +10,7 @@
 //! `foundation_wasm/embedded-js` so one flag embeds the pair.
 
 /// The single-file DOM runtime (`runtimes/foundation-wasm-ui.js`): Arrow DOM
-/// applicator, event dispatcher, DomHeap + the `domAbi` import fragment.
+/// applicator, event dispatcher, `DomHeap` + the `domAbi` import fragment.
 /// Self-contained — serve alongside [`FOUNDATION_WASM_JS`].
 pub const FOUNDATION_WASM_UI_JS: &str = include_str!("../runtimes/foundation-wasm-ui.js");
 

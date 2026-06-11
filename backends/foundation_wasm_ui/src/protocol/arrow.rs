@@ -12,7 +12,7 @@ use alloc::vec::Vec;
 use foundation_ui_traits::{ArrowEncoder, DomOp, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, MemoryId, ProtocolHandler};
 
-use super::{decode_payload, encode_and_ship, ship, HandleResult, ProtocolMethods, SendResult};
+use super::{decode_payload, encode_and_write_framed, ship, HandleResult, ProtocolMethods, SendResult};
 
 /// Arrow v1 protocol (protocol byte `1`).
 #[derive(Clone, Copy, Debug, Default)]
@@ -49,8 +49,12 @@ impl ProtocolHandler for ArrowV1 {
 }
 
 impl ProtocolMethods<Vec<DomOp>> for ArrowV1 {
-    fn encode_and_send(&self, ops: Vec<DomOp>, memory: &mut MemoryAllocations) -> SendResult {
-        encode_and_ship(self, &self.encoder, ops, memory)
+    fn encode_and_write(
+        &self,
+        ops: Vec<DomOp>,
+        memory: &mut MemoryAllocations,
+    ) -> (SendResult, *const u8, usize) {
+        encode_and_write_framed(self, &self.encoder, ops, memory)
     }
 
     fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {

@@ -5,7 +5,7 @@
 //!
 //! WHAT: The [`ProtocolMethods`] trait plus the three concrete protocol
 //! implementations — [`ArrowV1`], [`BatchInstructionsV1`] (Custom Binary, byte 0 —
-//! the foundation_wasm Instructions format per decision 022), [`JsonV1`] — and the
+//! the `foundation_wasm` Instructions format per decision 022), [`JsonV1`] — and the
 //! uniform `host_apply` FFI they all ship through (decision 028/030).
 //!
 //! HOW: Each impl pairs a Layer-1 encoder with the Layer-2 [`ProtocolHandler`]
@@ -69,8 +69,29 @@ pub type HandleResult = Result<Vec<DomOp>, DecodeError>;
 /// release (`ack`) comes from the [`ProtocolHandler`] supertrait — it is part of
 /// the transport contract, shared by every handler.
 pub trait ProtocolMethods<T>: ProtocolHandler {
+    /// Encode `data` and WRITE the framed message into one arena slot WITHOUT
+    /// shipping. Returns the slot + its live address for a later `send_to_js`.
+    ///
+    /// This split exists for the GLOBAL-arena path: `host_apply` synchronously
+    /// re-enters WASM (JS ACKs via the `dispose_allocation` export, which locks the
+    /// global arena), so the ship MUST happen after the arena lock is released —
+    /// write under the lock, send outside it.
+    fn encode_and_write(
+        &self,
+        data: T,
+        memory: &mut MemoryAllocations,
+    ) -> (SendResult, *const u8, usize);
+
     /// Encode `data`, frame it in one arena slot, and ship it to JS.
-    fn encode_and_send(&self, data: T, memory: &mut MemoryAllocations) -> SendResult;
+    ///
+    /// One-call convenience for OWNED arenas (native tests / custom hosts). Do NOT
+    /// call this while holding the global arena lock — use
+    /// [`encode_and_write`](Self::encode_and_write) + `send_to_js` instead.
+    fn encode_and_send(&self, data: T, memory: &mut MemoryAllocations) -> SendResult {
+        let (result, ptr, len) = self.encode_and_write(data, memory);
+        self.send_to_js(result.memory_id, ptr, len);
+        result
+    }
 
     /// Decode an incoming payload (envelope already stripped) at `(ptr, len)`.
     ///
@@ -91,32 +112,33 @@ pub trait ProtocolMethods<T>: ProtocolHandler {
 /// # Panics
 /// Panics if the arena cannot allocate or address the slot — an allocation failure
 /// at this point means a fundamental arena leak (decision 028, Error Cases).
-pub(crate) fn encode_and_ship<H, E>(
+pub(crate) fn encode_and_write_framed<H, E>(
     handler: &H,
     encoder: &E,
     ops: Vec<DomOp>,
     memory: &mut MemoryAllocations,
-) -> SendResult
+) -> (SendResult, *const u8, usize)
 where
     H: ProtocolHandler,
     E: ProtocolEncoder<Vec<DomOp>>,
 {
     let payload = encoder.encode(ops);
-    ship_payload(handler, &payload, memory)
+    write_framed(handler, &payload, memory)
 }
 
 /// Frame an already-encoded `payload` in a [`WasmEnvelope`] inside one arena slot
-/// and ship it — the tail every protocol shares, whether the payload came from a
-/// Layer-1 encoder (Arrow/JSON) or an Instructions batch (Custom Binary).
+/// and return the slot + its live address — WITHOUT shipping. The caller sends via
+/// `send_to_js` once it no longer holds the arena lock (see
+/// [`ProtocolMethods::encode_and_write`]).
 ///
 /// # Panics
 /// Panics if the arena cannot allocate or address the slot — an allocation failure
 /// at this point means a fundamental arena leak (decision 028, Error Cases).
-pub(crate) fn ship_payload<H>(
+pub(crate) fn write_framed<H>(
     handler: &H,
     payload: &[u8],
     memory: &mut MemoryAllocations,
-) -> SendResult
+) -> (SendResult, *const u8, usize)
 where
     H: ProtocolHandler,
 {
@@ -140,8 +162,7 @@ where
     // The slot length came from a `usize` (`total`), so this never truncates; use a
     // checked conversion so a 32-bit target can't silently lose the high bits.
     let len = usize::try_from(len).expect("arena slot length exceeds usize::MAX");
-    handler.send_to_js(mem_id, ptr, len);
-    SendResult { memory_id: mem_id }
+    (SendResult { memory_id: mem_id }, ptr, len)
 }
 
 /// Decode a payload slice at `(ptr, len)` with `encoder`.
