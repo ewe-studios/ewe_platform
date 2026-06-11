@@ -1,3 +1,7 @@
+// Derive-macro fixtures: fields exist to drive ArrowSchema generation and
+// are asserted via the emitted schema, never read directly at runtime.
+#![allow(dead_code)]
+
 use foundation_arrow::arrow_schema::DataType;
 use foundation_arrow::ArrowSchema;
 use foundation_macros::ArrowSchema;

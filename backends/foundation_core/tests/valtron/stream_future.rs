@@ -64,7 +64,7 @@ mod sync_tests {
                 tracing::info!("collected: {:?}", v);
                 assert_eq!(v, vec![1, 2, 3]);
             }
-            _ => panic!("expected Ready"),
+            Poll::Pending => panic!("expected Ready"),
         }
     }
 
@@ -87,7 +87,7 @@ mod sync_tests {
                 tracing::info!("second poll collected: {:?}", v);
                 assert_eq!(v, vec![1, 2]);
             }
-            _ => panic!("expected Ready"),
+            Poll::Pending => panic!("expected Ready"),
         }
     }
 
@@ -107,7 +107,7 @@ mod sync_tests {
                 tracing::info!("collected: {:?}", v);
                 assert_eq!(v, vec![42]);
             }
-            _ => panic!("expected Ready"),
+            Poll::Pending => panic!("expected Ready"),
         }
     }
 
@@ -122,7 +122,7 @@ mod sync_tests {
                 tracing::info!("empty iterator produced empty vec: {:?}", v);
                 assert!(v.is_empty());
             }
-            _ => panic!("expected Ready"),
+            Poll::Pending => panic!("expected Ready"),
         }
     }
 
@@ -147,7 +147,7 @@ mod sync_tests {
                 assert!(matches!(remaining.next(), Some(Stream::Next(99))));
                 tracing::info!("remaining iterator yields Next(99) as expected");
             }
-            other => panic!("expected Some, got {:?}", other),
+            other => panic!("expected Some, got {other:?}"),
         }
     }
 
@@ -171,7 +171,7 @@ mod sync_tests {
                 tracing::info!("got value={}", value);
                 assert_eq!(value, 1);
             }
-            other => panic!("expected Some, got {:?}", other),
+            other => panic!("expected Some, got {other:?}"),
         }
     }
 
@@ -191,7 +191,7 @@ mod sync_tests {
             Poll::Ready(None) => {
                 tracing::info!("exhausted without Next, returned None");
             }
-            other => panic!("expected None, got {:?}", other),
+            other => panic!("expected None, got {other:?}"),
         }
     }
 
@@ -218,7 +218,7 @@ mod sync_tests {
                 tracing::info!("got pending context: {}", ctx);
                 assert_eq!(ctx, "waiting");
             }
-            other => panic!("expected Some, got {:?}", other),
+            other => panic!("expected Some, got {other:?}"),
         }
     }
 
@@ -238,7 +238,7 @@ mod sync_tests {
             Poll::Ready(None) => {
                 tracing::info!("exhausted without Pending, returned None");
             }
-            other => panic!("expected None, got {:?}", other),
+            other => panic!("expected None, got {other:?}"),
         }
     }
 
@@ -284,7 +284,7 @@ mod sync_tests {
 #[cfg(not(target_arch = "wasm32"))]
 mod smol_ext_tests {
     use super::*;
-    use smol;
+    
     use tracing_test::traced_test;
 
     #[test]
@@ -348,8 +348,8 @@ mod smol_ext_tests {
 #[cfg(not(target_arch = "wasm32"))]
 mod tokio_tests {
     use super::*;
-    use tokio;
-    use smol;
+    
+    
     use tracing_test::traced_test;
 
 #[tokio::test]
@@ -499,7 +499,7 @@ fn test_combinator_then_ready_future() {
             Stream::<i32, &str>::Pending("a"),
             Stream::Next(42),
         ].into_iter()
-            .map_pending(|p| p.len())
+            .map_pending(str::len)
             .into_ready_future()
             .await
             .unwrap()

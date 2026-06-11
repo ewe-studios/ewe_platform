@@ -1,3 +1,8 @@
+// Scaffold-macro fixtures: methods exist to be forwarded by the generated
+// scaffolding (some are intentionally unused or self-less in spirit) — the
+// tests assert the GENERATED delegations compile and dispatch correctly.
+#![allow(dead_code, clippy::unused_self)]
+
 // Tests for scaffold macros: #[scaffoldable], #[derive(Scaffold)], #[scaffold_impl]
 //
 // Since proc macros run at compile time, we test them by defining types

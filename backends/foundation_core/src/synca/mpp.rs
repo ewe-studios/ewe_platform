@@ -392,6 +392,67 @@ pub fn unbounded<T>() -> (Sender<T>, Receiver<T>) {
     (sender, receiver)
 }
 
+/// Multi-subscriber broadcaster built on top of mpp channels.
+///
+/// Each subscriber gets an independent `Receiver<T>`.
+/// When `broadcast()` is called, the event is pushed to every subscriber's queue.
+/// Dead subscriber channels (Receiver dropped) are cleaned up automatically.
+pub struct Broadcaster<T: Clone + Send + 'static> {
+    subscribers: Vec<Sender<T>>,
+    capacity: usize,
+}
+
+impl<T: Clone + Send + 'static> Broadcaster<T> {
+    /// Create a new broadcaster with the given per-subscriber channel capacity.
+    pub fn new(capacity: usize) -> Self {
+        Self {
+            subscribers: Vec::new(),
+            capacity,
+        }
+    }
+
+    /// Subscribe — returns a `Receiver<T>`.
+    pub fn subscribe(&mut self) -> Receiver<T> {
+        let (tx, rx) = bounded(self.capacity);
+        self.subscribers.push(tx);
+        rx
+    }
+
+    /// Send an event to all subscribers.
+    ///
+    /// Dead subscriber channels (Receiver dropped) are cleaned up automatically.
+    /// Uses `force_send` to drop oldest events if a subscriber's queue is full.
+    pub fn broadcast(&mut self, event: T) {
+        self.subscribers.retain(|tx| {
+            match tx.send(event.clone()) {
+                Ok(()) => true,
+                Err(_) => {
+                    match tx.force_send(event.clone()) {
+                        Ok(_dropped) => true,
+                        Err(_) => false,
+                    }
+                }
+            }
+        });
+    }
+
+    /// Clean up dead subscribers (Receiver dropped).
+    pub fn cleanup(&mut self) {
+        self.subscribers.retain(|tx| !tx.is_closed());
+    }
+
+    /// Number of active subscribers.
+    pub fn subscriber_count(&self) -> usize {
+        self.subscribers.len()
+    }
+}
+
+impl<T: Clone + Send + 'static> Default for Broadcaster<T> {
+    fn default() -> Self {
+        Self::new(64)
+    }
+}
+
 #[cfg(test)]
 mod test_channels {
     use std::{sync::Arc, thread, time::Duration};
@@ -467,66 +528,5 @@ mod test_channels {
         dbg!("Received values: {:?}", &items);
 
         assert_eq!(items, vec![42]);
-    }
-}
-
-/// Multi-subscriber broadcaster built on top of mpp channels.
-///
-/// Each subscriber gets an independent `Receiver<T>`.
-/// When `broadcast()` is called, the event is pushed to every subscriber's queue.
-/// Dead subscriber channels (Receiver dropped) are cleaned up automatically.
-pub struct Broadcaster<T: Clone + Send + 'static> {
-    subscribers: Vec<Sender<T>>,
-    capacity: usize,
-}
-
-impl<T: Clone + Send + 'static> Broadcaster<T> {
-    /// Create a new broadcaster with the given per-subscriber channel capacity.
-    pub fn new(capacity: usize) -> Self {
-        Self {
-            subscribers: Vec::new(),
-            capacity,
-        }
-    }
-
-    /// Subscribe — returns a `Receiver<T>`.
-    pub fn subscribe(&mut self) -> Receiver<T> {
-        let (tx, rx) = bounded(self.capacity);
-        self.subscribers.push(tx);
-        rx
-    }
-
-    /// Send an event to all subscribers.
-    ///
-    /// Dead subscriber channels (Receiver dropped) are cleaned up automatically.
-    /// Uses `force_send` to drop oldest events if a subscriber's queue is full.
-    pub fn broadcast(&mut self, event: T) {
-        self.subscribers.retain(|tx| {
-            match tx.send(event.clone()) {
-                Ok(()) => true,
-                Err(_) => {
-                    match tx.force_send(event.clone()) {
-                        Ok(_dropped) => true,
-                        Err(_) => false,
-                    }
-                }
-            }
-        });
-    }
-
-    /// Clean up dead subscribers (Receiver dropped).
-    pub fn cleanup(&mut self) {
-        self.subscribers.retain(|tx| !tx.is_closed());
-    }
-
-    /// Number of active subscribers.
-    pub fn subscriber_count(&self) -> usize {
-        self.subscribers.len()
-    }
-}
-
-impl<T: Clone + Send + 'static> Default for Broadcaster<T> {
-    fn default() -> Self {
-        Self::new(64)
     }
 }

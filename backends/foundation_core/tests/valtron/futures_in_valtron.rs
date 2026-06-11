@@ -1,7 +1,7 @@
 use foundation_core::valtron::{FutureTask, FuturePollState, TaskStatus, from_future};
 use foundation_core::valtron::TaskIterator;
 
-/// WHY: FutureTask must poll and complete a simple future
+/// WHY: `FutureTask` must poll and complete a simple future
 /// WHAT: Future that returns Ready immediately should complete on first poll
 #[test]
 fn test_future_task_immediate_ready() {
@@ -11,14 +11,14 @@ fn test_future_task_immediate_ready() {
     // First poll should return Ready(42)
     match task.next_status() {
         Some(TaskStatus::Ready(42)) => {}
-        other => panic!("Expected Ready(42), got {:?}", other),
+        other => panic!("Expected Ready(42), got {other:?}"),
     }
 
     // Task is complete
     assert!(task.next_status().is_none());
 }
 
-/// WHY: FutureTask must handle pending futures correctly
+/// WHY: `FutureTask` must handle pending futures correctly
 /// WHAT: Future that returns Pending should yield Pending status
 #[test]
 fn test_future_task_pending() {
@@ -49,21 +49,21 @@ fn test_future_task_pending() {
     // First poll should be Pending
     match task.next_status() {
         Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
-        other => panic!("Expected Pending, got {:?}", other),
+        other => panic!("Expected Pending, got {other:?}"),
     }
 
     // Second poll should be Ready
     match task.next_status() {
         Some(TaskStatus::Ready(100)) => {}
-        other => panic!("Expected Ready(100), got {:?}", other),
+        other => panic!("Expected Ready(100), got {other:?}"),
     }
 
     // Task is complete
     assert!(task.next_status().is_none());
 }
 
-/// WHY: from_future() convenience function must work
-/// WHAT: Creates FutureTask correctly
+/// WHY: `from_future()` convenience function must work
+/// WHAT: Creates `FutureTask` correctly
 #[test]
 fn test_from_future_convenience() {
     let future = core::future::ready("hello");
@@ -71,6 +71,6 @@ fn test_from_future_convenience() {
 
     match task.next_status() {
         Some(TaskStatus::Ready("hello")) => {}
-        other => panic!("Expected Ready(hello), got {:?}", other),
+        other => panic!("Expected Ready(hello), got {other:?}"),
     }
 }

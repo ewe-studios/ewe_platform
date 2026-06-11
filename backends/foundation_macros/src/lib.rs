@@ -35,7 +35,10 @@ mod wasmbin_codec;
 ///
 /// Examples:
 ///
-/// ```
+/// (`ignore`: the derive embeds the referenced files at expansion time, so the
+/// example only compiles in a crate that actually has these directories.)
+///
+/// ```ignore
 ///  use foundation_macros::EmbedDirectoryAs;
 ///
 ///  // Use root crate directory to better ensure consistent path
@@ -88,7 +91,10 @@ pub fn embed_directory_as(item: TokenStream) -> TokenStream {
 ///
 /// Examples:
 ///
-/// ```
+/// (`ignore`: the derive embeds the referenced files at expansion time, so the
+/// example only compiles in a crate that actually has these files.)
+///
+/// ```ignore
 ///  use foundation_macros::EmbedFileAs;
 ///
 ///  // Use root crate directory to better ensure consistent path
@@ -207,7 +213,11 @@ pub fn json_hash_derive(item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```rust
+/// (`ignore`: the expansion references `foundation_core::type_uuid`, which this
+/// proc-macro crate cannot depend on — see the runnable doctest on
+/// `foundation_core::type_uuid` instead.)
+///
+/// ```ignore
 /// use foundation_macros::TypeUuid;
 ///
 /// #[derive(TypeUuid)]
@@ -228,7 +238,10 @@ pub fn type_uuid_derive(item: TokenStream) -> TokenStream {
 ///
 /// # Example
 ///
-/// ```rust
+/// (`ignore`: the expansion references `foundation_core::type_uuid`, which this
+/// proc-macro crate cannot depend on.)
+///
+/// ```ignore
 /// foundation_macros::external_type_uuid!(std::time::Duration, "449a4224-4665-47ce-88a2-8d0310d20572");
 /// ```
 #[proc_macro]

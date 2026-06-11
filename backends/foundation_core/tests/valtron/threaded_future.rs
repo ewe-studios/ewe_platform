@@ -18,8 +18,7 @@ fn test_threaded_future_basic() {
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
-            ThreadedValue::Value(_) => None,
-            ThreadedValue::Waiting => None,
+            ThreadedValue::Value(Err(())) | ThreadedValue::Waiting => None,
         })
         .collect();
 
@@ -80,8 +79,7 @@ fn test_threaded_future_custom_queue_size() {
     let results: Vec<i32> = iter
         .filter_map(|v| match v {
             ThreadedValue::Value(Ok(val)) => Some(val),
-            ThreadedValue::Value(_) => None,
-            ThreadedValue::Waiting => None,
+            ThreadedValue::Value(Err(())) | ThreadedValue::Waiting => None,
         })
         .collect();
 

@@ -471,7 +471,7 @@ fn test_collect_future_next_values_collected() {
 
     match poll_once(&mut future) {
         Poll::Ready(v) => assert_eq!(v, vec![1, 2, 3]),
-        _ => panic!("expected Ready"),
+        Poll::Pending => panic!("expected Ready"),
     }
 }
 
@@ -491,7 +491,7 @@ fn test_collect_future_spread_pending_returns_pending() {
     // After re-wake, Next(2) is collected, then iterator exhausted
     match poll_once(&mut future) {
         Poll::Ready(v) => assert_eq!(v, vec![1, 2]),
-        _ => panic!("expected Ready"),
+        Poll::Pending => panic!("expected Ready"),
     }
 }
 
@@ -512,7 +512,7 @@ fn test_collect_future_spread_done_returns_pending() {
     // After re-wake, iterator is exhausted
     match poll_once(&mut future) {
         Poll::Ready(v) => assert_eq!(v, vec![1]),
-        _ => panic!("expected Ready"),
+        Poll::Pending => panic!("expected Ready"),
     }
 }
 
@@ -535,7 +535,7 @@ fn test_ready_future_spread_done_returns_first_value() {
         Poll::Ready(Some((value, _))) => {
             assert_eq!(value, 42);
         }
-        other => panic!("expected Some, got {:?}", other),
+        other => panic!("expected Some, got {other:?}"),
     }
 }
 
@@ -548,7 +548,7 @@ fn test_ready_future_spread_done_empty_returns_pending() {
     // Empty Spread: no value to return, iterator exhausted → None
     match poll_once(&mut future) {
         Poll::Ready(None) => {}
-        other => panic!("expected None, got {:?}", other),
+        other => panic!("expected None, got {other:?}"),
     }
 }
 
@@ -566,7 +566,7 @@ fn test_ready_future_spread_pending_returns_pending() {
     // finds no Done values, continues the loop, and immediately finds Next(42).
     match poll_once(&mut future) {
         Poll::Ready(Some((value, _))) => assert_eq!(value, 42),
-        other => panic!("expected Some(42), got {:?}", other),
+        other => panic!("expected Some(42), got {other:?}"),
     }
 }
 
@@ -590,7 +590,7 @@ fn test_pending_future_spread_pending_returns_first_value() {
         Poll::Ready(Some((ctx, _))) => {
             assert_eq!(ctx, "a");
         }
-        other => panic!("expected Some, got {:?}", other),
+        other => panic!("expected Some, got {other:?}"),
     }
 }
 
@@ -603,7 +603,7 @@ fn test_pending_future_spread_pending_empty_returns_pending() {
     // Empty Spread: no value to return, iterator exhausted → None
     match poll_once(&mut future) {
         Poll::Ready(None) => {}
-        other => panic!("expected None, got {:?}", other),
+        other => panic!("expected None, got {other:?}"),
     }
 }
 
@@ -621,7 +621,7 @@ fn test_pending_future_spread_done_returns_pending() {
     // finds no Pending values, continues the loop, and immediately finds Pending("x").
     match poll_once(&mut future) {
         Poll::Ready(Some((ctx, _))) => assert_eq!(ctx, "x"),
-        other => panic!("expected Some(x), got {:?}", other),
+        other => panic!("expected Some(x), got {other:?}"),
     }
 }
 
@@ -710,7 +710,7 @@ fn test_future_stream_empty_spread() {
 #[cfg(not(target_arch = "wasm32"))]
 mod tokio_tests {
     use super::*;
-    use tokio;
+    
     use tracing_test::traced_test;
 
 #[tokio::test]
@@ -882,7 +882,7 @@ fn test_task_map_ready_then_collect_with_spread_done() {
                 .into_iter()
                 .filter_map(|s| match s {
                     TaskSpread::Ready(v) => Some(v),
-                    _ => None,
+                    TaskSpread::Pending(_) => None,
                 })
                 .collect();
             assert_eq!(ready_items, vec![10, 20, 30]);

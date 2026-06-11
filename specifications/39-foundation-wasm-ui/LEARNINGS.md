@@ -688,5 +688,25 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   `WebAssembly.Module.imports` — an owned module imports ONLY the `abi` module.
 - **F14**: bindgen modes log an `INTEROP MODE` warning; framework grep clean;
   foundation_db's optional `worker`/wasm-bindgen deps are the conformant seam example.
-- foundation_core carries ~21 PRE-EXISTING pedantic lints (type_uuid, url/query,
-  valtron builders) — outside this feature's surface, flagged not fixed.
+- foundation_core's pre-existing pedantic lints are now FIXED (lib + all test
+  targets + doctests; foundation_macros test fixtures too). Two gotchas worth keeping:
+  `--all-targets` clippy surfaces test-target lints that lib-only checks never show,
+  and broken doctests don't fail `cargo test` unless `--doc` targets actually compile.
+- **`#[valtron]` / `#[valtron_test]`** (foundation_macros, re-exported from
+  `foundation_core::valtron`): tokio-style wrappers around
+  `initialize_pool(seed, threads)` — body moves into an inner fn (preserves `return`/`?`
+  and the return type), the PoolGuard is a named local dropped explicitly AFTER the
+  body. Test variant adds `#[test]`, defaults threads to `Some(3)` and clamps explicit
+  values to >= 3. Default seed derives from `RandomState` (no rand dep in user crates).
+- **Dev-dep feature unification trap**: `cargo test -p foundation_core` builds with
+  `multi` ON even though it's not a default feature — the dev-dependency chain
+  (foundation_testing -> foundation_deployment -> foundation_db default) re-enters
+  foundation_core with `multi`. Tests of unified entry points must use the
+  feature-agnostic surface (`sync_one`, `execute`, ...) — `single::spawn` panics
+  "Thread pool not initialized" because the unified init routed to the multi pool.
+- **proc-macro-crate doctest gotcha**: inside the defining crate's own doctests,
+  `FoundCrate::Itself` makes derives expand to `crate::...`, which points at the
+  DOCTEST binary. Fix in the doctest itself: import the needed module at the doctest
+  crate root AND declare an explicit `fn main` (the implicit wrapper would move the
+  `use` inside a function where `crate::` paths can't see it). See
+  `foundation_core::type_uuid` module docs.

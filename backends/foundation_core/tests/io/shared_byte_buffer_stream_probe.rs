@@ -89,7 +89,7 @@ fn probe_multiple_chunks_until_exhausted() {
         let mut buf = vec![0u8; available];
         let n = stream.read_exact(&mut buf);
         match n {
-            Ok(_) => {}
+            Ok(()) => {}
             Err(_) => break,
         }
     }

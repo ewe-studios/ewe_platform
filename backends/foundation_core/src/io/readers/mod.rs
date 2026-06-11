@@ -852,12 +852,12 @@ mod tests {
         })
         .batch_size(5);
 
-        let mut stream = BatchStreamReader::new(batch);
+        let stream = BatchStreamReader::new(batch);
 
         let mut got_retry = false;
         let mut got_bytes = false;
 
-        while let Some(result) = stream.next() {
+        for result in stream {
             match result.unwrap() {
                 Data::Retry => got_retry = true,
                 Data::Bytes(_) => got_bytes = true,
@@ -951,7 +951,7 @@ mod tests {
 
         let results: Vec<Result<Data, Box<dyn std::error::Error + 'static>>> = reader.collect();
         println!("Results generarted from reader: {:?}", &results);
-        assert!(results.len() > 0);
+        assert!(!results.is_empty());
     }
 
     #[test]
@@ -1102,9 +1102,9 @@ mod tests {
         })
         .batch_size(5);
         let data_stream = BatchStreamReader::new(batch);
-        let mut wrapped = DataBytesIterator::new(data_stream);
+        let wrapped = DataBytesIterator::new(data_stream);
 
-        while let Some(result) = wrapped.next() {
+        for result in wrapped {
             assert!(result.is_ok());
         }
     }
@@ -1227,10 +1227,10 @@ mod tests {
     fn limited_eof_stream_reader_enforces_max() {
         let data = b"hello world this is long";
         let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(10);
-        let mut limited = LimitedEOFStreamReader::new(batch, 10);
+        let limited = LimitedEOFStreamReader::new(batch, 10);
 
         let mut collected = Vec::new();
-        while let Some(result) = limited.next() {
+        for result in limited {
             match result {
                 Ok(Data::Bytes(bytes)) => collected.extend(bytes),
                 Ok(Data::Retry) => continue,
@@ -1241,7 +1241,7 @@ mod tests {
                 }
             }
         }
-        assert!(collected.len() > 0)
+        assert!(!collected.is_empty())
     }
 
     #[test]
@@ -1274,10 +1274,10 @@ mod tests {
     fn limited_batch_stream_reader_hint_prevents_overshoot() {
         let data = b"hello world";
         let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(100);
-        let mut limited = LimitedBatchStreamReader::new(batch, 7);
+        let limited = LimitedBatchStreamReader::new(batch, 7);
 
         let mut collected = Vec::new();
-        while let Some(result) = limited.next() {
+        for result in limited {
             match result {
                 Ok(Data::Bytes(bytes)) => collected.extend(bytes),
                 Ok(Data::Retry) => continue,
@@ -1299,10 +1299,10 @@ mod tests {
     fn limited_eof_stream_reader_hint_prevents_overshoot() {
         let data = b"hello world";
         let batch = BatchReader::new(Cursor::new(data.to_vec())).batch_size(100);
-        let mut limited = LimitedEOFStreamReader::new(batch, 7);
+        let limited = LimitedEOFStreamReader::new(batch, 7);
 
         let mut collected = Vec::new();
-        while let Some(result) = limited.next() {
+        for result in limited {
             match result {
                 Ok(Data::Bytes(bytes)) => collected.extend(bytes),
                 Ok(Data::Retry) => continue,
@@ -1393,9 +1393,9 @@ mod tests {
         let batch = BatchReader::new(Cursor::new(b"test".to_vec()));
         let stream = BatchStreamReader::new(batch);
 
-        let mut wrapped = stream.into_bytes();
+        let wrapped = stream.into_bytes();
 
-        while let Some(result) = wrapped.next() {
+        for result in wrapped {
             let bytes: Vec<u8> = result.unwrap();
             assert!(!bytes.is_empty());
         }

@@ -29,9 +29,7 @@ struct SimpleStream<D, P> {
 
 impl<D, P> SimpleStream<D, P> {
     fn from_vec(vec: Vec<D>) -> Self {
-        let items = <Vec<_> as std::iter::FromIterator<_>>::from_iter(
-            vec.into_iter().map(Stream::Next)
-        );
+        let items: Vec<_> = vec.into_iter().map(Stream::Next).collect();
         let items = items.into_iter();
         Self { items }
     }
@@ -772,7 +770,7 @@ fn test_concurrent_queue_stream_iterator_yields_ignore_after_max_turns() {
     let mut ignore_count = 0;
     for _ in 0..5 {
         if let Some(Stream::Ignore) = iter.next() {
-            ignore_count += 1
+            ignore_count += 1;
         }
     }
 
@@ -801,7 +799,7 @@ fn test_concurrent_queue_stream_iterator_returns_none_when_closed() {
 }
 
 #[test]
-#[should_panic]
+#[should_panic(expected = "max_turns must be greater than 0")]
 fn test_concurrent_queue_stream_iterator_panics_on_zero_max_turns() {
     let queue: Arc<ConcurrentQueue<Stream<u32, &str>>> = Arc::new(ConcurrentQueue::bounded(10));
     let _ = ConcurrentQueueStreamIterator::new(queue.clone(), 0, Duration::from_nanos(20));

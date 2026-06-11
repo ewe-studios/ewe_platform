@@ -184,7 +184,7 @@ impl Uri {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::simple_http::url::{Uri, Host};
+    /// use foundation_core::url::{Uri, Host};
     ///
     /// let uri = Uri::parse("http://192.168.1.1").unwrap();
     /// match uri.host_enum() {
@@ -359,14 +359,14 @@ impl Uri {
 /// # Examples
 ///
 /// ```
-/// use foundation_core::url::{UriBuilder, Scheme, Query};
+/// use foundation_core::url::{UriBuilder, Scheme};
 ///
 /// let uri = UriBuilder::new()
 ///     .scheme(Scheme::HTTPS)
-///     .authority_str("auth.example.com")
+///     .authority_str("auth.example.com").unwrap()
 ///     .path("/oauth/authorize")
 ///     .query_str("response_type=code&client_id=abc")
-///     .build();
+///     .build().unwrap();
 ///
 /// assert!(uri.to_string().contains("https://auth.example.com"));
 /// assert!(uri.to_string().contains("response_type=code"));

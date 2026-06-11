@@ -6,6 +6,12 @@
 //! # Example
 //!
 //! ```rust
+//! # // Inside foundation_core's own doctests the derive expands to
+//! # // `crate::type_uuid::…` (proc-macro-crate resolves Itself), so the module
+//! # // must be importable at the doctest crate root — which also requires an
+//! # // explicit `main` (rustdoc's implicit wrapper would move the `use` inside
+//! # // a function where `crate::…` paths cannot see it).
+//! # use foundation_core::type_uuid;
 //! use foundation_macros::TypeUuid;
 //! use foundation_core::type_uuid::{TypeUuid, Bytes};
 //!
@@ -13,7 +19,9 @@
 //! #[uuid = "d4adfc76-f5f4-40b0-8e28-8a51a12f5e46"]
 //! struct MyType;
 //!
+//! # fn main() {
 //! assert_eq!(MyType::UUID.len(), 16);
+//! # }
 //! ```
 
 /// A 128-bit (16 byte) buffer containing the type's UUID.
@@ -184,6 +192,9 @@ mod tests {
     fn derive_macro_on_enum() {
         use foundation_macros::TypeUuid;
 
+        // Fixture: variants exist only to prove the derive handles unit and
+        // tuple variants — the test reads the generated UUID, not the values.
+        #[allow(dead_code)]
         #[derive(TypeUuid)]
         #[uuid = "aabbccdd-1122-3344-5566-778899aabbcc"]
         enum TestEnum {

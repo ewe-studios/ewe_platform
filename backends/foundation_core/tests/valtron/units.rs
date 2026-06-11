@@ -340,11 +340,8 @@ fn test_execute_map_all_pending_and_done() {
         let mut values: Vec<Stream<u32, ()>> = Vec::new();
 
         for state in states {
-            match state {
-                Stream::Next(n) => {
-                    values.push(Stream::Next(n));
-                }
-                _ => {}
+            if let Stream::Next(n) = state {
+                values.push(Stream::Next(n));
             }
         }
 

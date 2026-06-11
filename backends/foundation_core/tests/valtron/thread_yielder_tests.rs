@@ -1,7 +1,7 @@
-//! Tests for ThreadYielder interruptibility
+//! Tests for `ThreadYielder` interruptibility
 //!
-//! These tests verify that ThreadYielder properly uses CondVar::wait_timeout
-//! instead of park_timeout, allowing threads to be interrupted during shutdown.
+//! These tests verify that `ThreadYielder` properly uses `CondVar::wait_timeout`
+//! instead of `park_timeout`, allowing threads to be interrupted during shutdown.
 
 #![cfg(feature = "multi")]
 
@@ -79,8 +79,7 @@ fn shutdown_interrupts_delayed_tasks() {
     // Should complete quickly (< 1s), not wait 10s
     assert!(
         elapsed < Duration::from_secs(1),
-        "Shutdown took too long: {:?}",
-        elapsed
+        "Shutdown took too long: {elapsed:?}"
     );
 }
 
@@ -114,8 +113,7 @@ fn multiple_delayed_tasks_shutdown_quickly() {
     // Should still complete quickly
     assert!(
         elapsed < Duration::from_secs(2),
-        "Shutdown with multiple delayed tasks took too long: {:?}",
-        elapsed
+        "Shutdown with multiple delayed tasks took too long: {elapsed:?}"
     );
 }
 
@@ -163,8 +161,7 @@ fn new_work_interrupts_sleep() {
     let elapsed = start.elapsed();
     assert!(
         elapsed < Duration::from_secs(1),
-        "Test took too long: {:?}",
-        elapsed
+        "Test took too long: {elapsed:?}"
     );
 }
 

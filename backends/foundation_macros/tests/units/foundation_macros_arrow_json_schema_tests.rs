@@ -1,4 +1,9 @@
-use foundation_arrow::{ArrowJsonSchema, ArrowSchema};
+// Derive-macro fixtures: fields exist to drive ArrowSchema/ArrowJsonSchema
+// generation (their NAMES are asserted in the emitted schema), so they are
+// never read at runtime and must not be renamed to dodge the prefix lint.
+#![allow(dead_code, clippy::struct_field_names)]
+
+use foundation_arrow::ArrowJsonSchema;
 use foundation_macros::{ArrowJsonSchema, ArrowSchema};
 
 #[derive(ArrowSchema, ArrowJsonSchema)]

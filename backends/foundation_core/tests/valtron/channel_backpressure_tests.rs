@@ -33,7 +33,7 @@ impl ProcessController for NoYielder {
 // Bounded NotifyQueue Tests (Channel-level backpressure)
 // ============================================================================
 
-/// Test that bounded NotifyQueue correctly applies backpressure.
+/// Test that bounded `NotifyQueue` correctly applies backpressure.
 /// When the queue is full, push should fail with Full error.
 #[test]
 fn test_bounded_notify_queue_push_error_full() {
@@ -73,15 +73,11 @@ fn test_store_and_retry_pattern() {
 
     // Try to push another - should fail
     let result = queue.push(99);
-    let stored_value;
-
-    match result {
-        Err(concurrent_queue::PushError::Full(val)) => {
-            stored_value = val;
-        }
-        Ok(_) => panic!("Expected PushError::Full"),
+    let stored_value = match result {
+        Err(concurrent_queue::PushError::Full(val)) => val,
+        Ok(()) => panic!("Expected PushError::Full"),
         Err(concurrent_queue::PushError::Closed(_)) => panic!("Unexpected PushError::Closed"),
-    }
+    };
 
     // Make space by popping
     assert_eq!(queue.pop().unwrap(), 42);
@@ -97,10 +93,13 @@ fn test_store_and_retry_pattern() {
     assert_eq!(queue.pop().unwrap(), 99);
 }
 
-/// Test that NotifyQueue with bounded capacity properly coordinates
+/// Test that `NotifyQueue` with bounded capacity properly coordinates
 /// producer and consumer through backpressure.
 #[test]
 #[traced_test]
+// producer/produced/consumer/consumed are the domain vocabulary here — renaming
+// them to satisfy similar_names would make the test harder to follow.
+#[allow(clippy::similar_names)]
 fn test_bounded_queue_producer_consumer_coordination() {
     use std::thread;
 
@@ -229,12 +228,12 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 
     // Verify all values are present
     for i in 1..=10 {
-        assert!(final_results.contains(&i), "Should contain value {}", i);
+        assert!(final_results.contains(&i), "Should contain value {i}");
     }
 }
 
-/// Test that ready_iter with bounded channel produces all values without loss.
-/// This verifies the ReadyConsumingIter store-and-retry pattern works correctly.
+/// Test that `ready_iter` with bounded channel produces all values without loss.
+/// This verifies the `ReadyConsumingIter` store-and-retry pattern works correctly.
 #[test]
 #[traced_test]
 fn test_executor_ready_iter_no_message_loss() {
@@ -282,7 +281,7 @@ fn test_executor_ready_iter_no_message_loss() {
 
     // Collect all results after executor completes
     let mut receiver = receiver.lock().unwrap();
-    while let Some(item) = receiver.next() {
+    for item in receiver.by_ref() {
         if let NotificationItem::Ready(TaskStatus::Ready(val)) = item {
             results.lock().unwrap().push(val);
         }
