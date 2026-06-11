@@ -2076,21 +2076,21 @@ where
                 Stream::Ignore => Some(Stream::Ignore),
                 Stream::Wait => Some(Stream::Wait),
                 Stream::Spread(items) => {
-                    // Prefer Done over Pending — returning Pending first loses Done items
-                    for item in items {
-                        match item {
-                            StreamSpread::Done(d) => {
-                                // Return this Done item. Any subsequent Pending items
-                                // in the spread will be handled on the next poll.
-                                return Some(Stream::Next(d));
-                            }
-                            StreamSpread::Pending(p) => {
-                                self.current_inner = Some((self.mapper)(p));
-                                return Some(Stream::Ignore);
-                            }
+                    // Prefer Done over Pending — returning Pending first loses Done
+                    // items. Only the FIRST item decides (every arm returns), so
+                    // this is a plain first-element inspection, not a loop.
+                    match items.into_iter().next() {
+                        Some(StreamSpread::Done(d)) => {
+                            // Return this Done item. Any subsequent Pending items
+                            // in the spread will be handled on the next poll.
+                            Some(Stream::Next(d))
                         }
+                        Some(StreamSpread::Pending(p)) => {
+                            self.current_inner = Some((self.mapper)(p));
+                            Some(Stream::Ignore)
+                        }
+                        None => Some(Stream::Ignore),
                     }
-                    Some(Stream::Ignore)
                 }
             },
             None => None,
@@ -3280,14 +3280,14 @@ where
                 }
                 Some(Stream::Spread(items)) => {
                     self.current_index = (self.current_index + 1) % self.sources.len();
-                    // Return first Done item if any, otherwise treat as pending
-                    for item in items {
-                        match item {
-                            StreamSpread::Done(d) => return Some(Stream::Next(d)),
-                            StreamSpread::Pending(_) => {
-                                return Some(Stream::Pending(self.sources.len()));
-                            }
+                    // Only the FIRST item decides (every arm returns): a Done item
+                    // is forwarded, anything else counts as pending.
+                    match items.into_iter().next() {
+                        Some(StreamSpread::Done(d)) => return Some(Stream::Next(d)),
+                        Some(StreamSpread::Pending(_)) => {
+                            return Some(Stream::Pending(self.sources.len()));
                         }
+                        None => {}
                     }
                 }
                 None => {

@@ -13,6 +13,9 @@ keywords = ["foundations_core", "ewe-platform-core"]
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
+# Proc macros this crate re-exports (#[valtron], #[valtron_test] from
+# foundation_core::valtron) — compile-time only.
+foundation_macros = { workspace = true }
 
 # -- Workspace dependencies
 foundation_wasm = { workspace = true }
@@ -50,7 +53,6 @@ getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"], opti
 [dev-dependencies]
 # Full rand (thread_rng/os_rng) for native tests' `rand::rng()` seeding.
 rand = "0.9"
-foundation_macros = { workspace = true }
 wasm-bindgen-test = "0.3"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tracing-subscriber = "0.3"

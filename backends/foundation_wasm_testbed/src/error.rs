@@ -90,6 +90,10 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     HostRuntimeNotFound(String),
 
+    #[display("required tool `{tool}` not found on PATH — needed because it {why}")]
+    #[error(ignore)]
+    MissingTool { tool: String, why: String },
+
     #[display("owned harness run failed with exit code {_0}")]
     #[error(ignore)]
     OwnedRunFailed(i32),

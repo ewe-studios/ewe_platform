@@ -1,20 +1,20 @@
-/// Stable, unique identifiers for Rust types.
-///
-/// Provides the [`TypeUuid`] trait which assigns a compile-time UUID to a type.
-/// Use `#[derive(TypeUuid)]` from `foundation_macros` to generate implementations.
-///
-/// # Example
-///
-/// ```rust
-/// use foundation_macros::TypeUuid;
-/// use foundation_core::type_uuid::{TypeUuid, Bytes};
-///
-/// #[derive(TypeUuid)]
-/// #[uuid = "d4adfc76-f5f4-40b0-8e28-8a51a12f5e46"]
-/// struct MyType;
-///
-/// assert_eq!(MyType::UUID.len(), 16);
-/// ```
+//! Stable, unique identifiers for Rust types.
+//!
+//! Provides the [`TypeUuid`] trait which assigns a compile-time UUID to a type.
+//! Use `#[derive(TypeUuid)]` from `foundation_macros` to generate implementations.
+//!
+//! # Example
+//!
+//! ```rust
+//! use foundation_macros::TypeUuid;
+//! use foundation_core::type_uuid::{TypeUuid, Bytes};
+//!
+//! #[derive(TypeUuid)]
+//! #[uuid = "d4adfc76-f5f4-40b0-8e28-8a51a12f5e46"]
+//! struct MyType;
+//!
+//! assert_eq!(MyType::UUID.len(), 16);
+//! ```
 
 /// A 128-bit (16 byte) buffer containing the type's UUID.
 pub type Bytes = [u8; 16];

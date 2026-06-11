@@ -117,6 +117,36 @@ fn read_package_name(cargo_toml: &std::path::Path) -> Result<String> {
     Err(WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())
 }
 
+/// Print a loud warning for every tool the scaffolded mode will need that is
+/// missing from PATH — scaffolding still succeeds (the user may install later),
+/// but they find out NOW instead of at first run.
+fn warn_missing_tools(init_type: &InitType) {
+    let needed: &[(&str, &str)] = match init_type {
+        InitType::Node => &[
+            ("cargo", "builds #[wasm_test] crates to wasm32"),
+            ("node", "runs the owned harness (https://nodejs.org)"),
+        ],
+        InitType::Web => &[
+            ("cargo", "builds the wasm module"),
+            ("node", "drives Playwright"),
+            ("npm", "installs Playwright (`mise run setup:playwright`)"),
+        ],
+        InitType::Deno => &[
+            ("cargo", "builds the wasm module"),
+            ("deno", "runs the harness (https://deno.land)"),
+        ],
+        InitType::Wrangler => &[
+            ("cargo", "builds the wasm module"),
+            ("npx", "launches wrangler dev"),
+        ],
+    };
+    for (tool, why) in needed {
+        if which::which(tool).is_err() {
+            tracing::warn!("missing tool `{tool}` — needed because it {why}");
+        }
+    }
+}
+
 /// Entry point for the `init` command.
 ///
 /// # Errors
@@ -145,6 +175,7 @@ pub fn run(args: InitArgs) -> Result<()> {
     };
 
     for init_type in &types {
+        warn_missing_tools(init_type);
         // The owned mode scaffolds a Rust cases file, not a JS harness dir — the
         // harness is generated at run time (`wasm-testbed node <crate>`).
         if matches!(init_type, InitType::Node) {

@@ -12,6 +12,7 @@ mod schema_fields;
 mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
+mod valtron_entry;
 mod wasm_test;
 mod wasmbin_codec;
 
@@ -504,4 +505,26 @@ pub fn wasmbin_visit_derive(item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_test::wasm_test(attr.into(), item.into()).into()
+}
+
+/// Runs a function with the valtron execution engine live around it (the
+/// `#[tokio::main]` analogue): initializes the pool via
+/// `foundation_core::valtron::initialize_pool(seed, threads)` and holds the
+/// returned `PoolGuard` until the function body has fully returned.
+///
+/// Arguments (both optional): `#[valtron(seed = 42, threads = 4)]`. Without
+/// `seed`, a `RandomState`-derived u64 is used; without `threads`, the engine
+/// default applies. Also exported as `foundation_core::valtron::valtron`.
+#[proc_macro_attribute]
+pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
+    valtron_entry::valtron(attr.into(), item.into()).into()
+}
+
+/// `#[test]` + a live valtron engine around the case (the `#[tokio::test]`
+/// analogue). Defaults to `Some(3)` pool threads and clamps an explicit
+/// `threads = N` to a minimum of 3 — scheduling-sensitive tests need real
+/// interleaving. Also exported as `foundation_core::valtron::valtron_test`.
+#[proc_macro_attribute]
+pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    valtron_entry::valtron_test(attr.into(), item.into()).into()
 }

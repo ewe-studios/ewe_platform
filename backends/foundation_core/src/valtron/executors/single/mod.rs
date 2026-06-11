@@ -110,7 +110,7 @@ impl SingleExecutorSingleton {
         initialize_pool(seed);
         let mut guard = VALTRON_SINGLETON.lock().unwrap();
         if guard.is_none() {
-            *guard = Some(PoolGuard::default());
+            *guard = Some(PoolGuard);
         }
         setup(guard.as_ref().unwrap());
         guard.clone().unwrap()
@@ -144,6 +144,11 @@ impl SingleExecutorSingleton {
 pub fn initialize_pool(seed_for_rng: u64) {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| {
         let _ = pool.get_or_init(|| {
+            // `SharedTaskQueue` is `Arc<…>` in BOTH cfgs so one alias serves the
+            // multi-threaded (Send) and single-threaded (non-Send) executors; in
+            // this thread-local engine the Arc never crosses a thread, so the
+            // non-Send contents are fine.
+            #[allow(clippy::arc_with_non_send_sync)]
             let tasks: SharedTaskQueue = Arc::new(ConcurrentQueue::unbounded());
             LocalThreadExecutor::from_seed(
                 seed_for_rng,

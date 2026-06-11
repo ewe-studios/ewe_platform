@@ -162,7 +162,6 @@ impl<
     ///
     /// Following our naming: `schedule_iter` calls the `schedule` method to deliver
     /// a task to the bottom of the thread-local execution queue.
-    #[must_use]
     pub fn schedule_iter(
         self,
         wait_cycle: time::Duration,
@@ -185,7 +184,6 @@ impl<
     }
 
     /// `schedule` delivers a task to the bottom of the thread-local execution queue.
-    #[must_use]
     pub fn schedule(self) -> AnyResult<SpawnInfo, ExecutorError> {
         match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -216,7 +214,6 @@ impl<
     ///
     /// Following our naming: `lift_iter` calls the `lift` method to deliver
     /// a task to the top of the thread-local execution queue.
-    #[must_use]
     pub fn lift_iter(
         self,
         wait_cycle: time::Duration,
@@ -286,7 +283,6 @@ impl<
     }
 
     /// `lift` delivers a task to the top of the thread-local execution queue.
-    #[must_use]
     pub fn lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let parent = self.parent;
         match self.task {
@@ -311,7 +307,6 @@ impl<
 
     /// `sequenced_iter` creates a iterator from a sequenced task allowing you
     /// to use that to get the result.
-    #[must_use]
     pub fn sequenced_iter(
         self,
         wait_cycle: time::Duration,
@@ -389,7 +384,6 @@ impl<
     /// Places a task at the head of the thread-local execution queue with the given parent.
     ///
     /// Returns: The `SpawnInfo` for the result of the operation, or an error.
-    #[must_use]
     pub fn sequenced(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let Some(parent) = self.parent else {
             return Err(ExecutorError::ParentMustBeSupplied);
@@ -419,7 +413,6 @@ impl<
     /// - `multi=on`: broadcasts to the global queue so another worker picks it up
     /// - `multi=off`: lifts the task to the top of the local queue for priority execution
     #[cfg(not(feature = "multi"))]
-    #[must_use]
     pub fn broadcast_or_lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
         self.lift()
     }
@@ -429,7 +422,6 @@ impl<
     ///
     /// Delegates to `lift_iter` in single-threaded mode.
     #[cfg(not(feature = "multi"))]
-    #[must_use]
     pub fn broadcast_or_lift_iter(
         self,
         wait_cycle: time::Duration,
@@ -477,7 +469,6 @@ impl<
     /// - `multi=on`: broadcasts to the global queue so another worker picks it up
     /// - `multi=off`: sequences the task with the parent for single-threaded execution
     #[cfg(not(feature = "multi"))]
-    #[must_use]
     pub fn broadcast_or_sequence(self) -> AnyResult<SpawnInfo, ExecutorError> {
         self.sequenced()
     }
@@ -487,7 +478,6 @@ impl<
     ///
     /// Delegates to `sequenced_iter` in single-threaded mode.
     #[cfg(not(feature = "multi"))]
-    #[must_use]
     pub fn broadcast_or_sequence_iter(
         self,
         wait_cycle: time::Duration,
@@ -545,7 +535,6 @@ impl<
     /// - `multi=on`: broadcasts to the global queue so another worker picks it up
     /// - `multi=off`: lifts the task to the top of the local queue for priority execution
     #[cfg(feature = "multi")]
-    #[must_use]
     pub fn broadcast_or_lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
         self.broadcast()
     }
@@ -555,7 +544,6 @@ impl<
     ///
     /// Delegates to `broadcast_iter` in multi-threaded mode.
     #[cfg(feature = "multi")]
-    #[must_use]
     pub fn broadcast_or_lift_iter(
         self,
         wait_cycle: time::Duration,
@@ -603,7 +591,6 @@ impl<
     /// - `multi=on`: broadcasts to the global queue so another worker picks it up
     /// - `multi=off`: sequences the task with the parent for single-threaded execution
     #[cfg(feature = "multi")]
-    #[must_use]
     pub fn broadcast_or_sequence(self) -> AnyResult<SpawnInfo, ExecutorError> {
         self.broadcast()
     }
@@ -613,7 +600,6 @@ impl<
     ///
     /// Delegates to `broadcast_iter` in multi-threaded mode.
     #[cfg(feature = "multi")]
-    #[must_use]
     pub fn broadcast_or_sequence_iter(
         self,
         wait_cycle: time::Duration,
@@ -658,7 +644,6 @@ impl<
     }
 
     /// `broadcast` delivers a task to the bottom of the global execution queue.
-    #[must_use]
     pub fn broadcast(self) -> AnyResult<SpawnInfo, ExecutorError> {
         let task: AnyResult<GlobalTask, ExecutorError> = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -732,7 +717,6 @@ impl<
     ///
     /// Following our naming: `broadcast_iter` calls the `broadcast` method to deliver
     /// a task to the bottom of the global execution queue.
-    #[must_use]
     pub fn broadcast_iter(
         self,
         wait_cycle: time::Duration,

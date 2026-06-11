@@ -1,5 +1,11 @@
 {
   "name": "foundation-wasm-testbed-integration",
   "private": true,
-  "type": "module"
+  "type": "module",
+  "devDependencies": {
+    "playwright": "^1.49.0"
+  },
+  "scripts": {
+    "setup:web": "playwright install --with-deps chromium"
+  }
 }

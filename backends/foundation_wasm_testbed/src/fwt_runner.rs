@@ -26,6 +26,22 @@ use crate::fwt::FwtCase;
 use crate::init::read_template;
 use crate::{build, fwt, server};
 
+/// Verify every tool a runner needs is on PATH BEFORE doing any work, so a
+/// missing prerequisite is one clear actionable error rather than a mid-run
+/// failure after a multi-minute wasm build.
+fn preflight(tools: &[(&str, &str)]) -> Result<()> {
+    for (tool, why) in tools {
+        if which::which(tool).is_err() {
+            return Err(WasmTestbedError::MissingTool {
+                tool: (*tool).to_string(),
+                why: (*why).to_string(),
+            }
+            .trace());
+        }
+    }
+    Ok(())
+}
+
 /// Outcome of an owned-harness run.
 #[derive(Debug)]
 pub struct RunOutcome {
@@ -128,6 +144,10 @@ fn run_host(host: &str, host_args: &[&str], cwd: &Path) -> Result<(String, i32)>
 /// # Errors
 /// Fails on build/discovery/staging errors or when node is unavailable.
 pub fn run_node(args: &OwnedRunArgs) -> Result<RunOutcome> {
+    preflight(&[
+        ("cargo", "builds the test crate to wasm32"),
+        ("node", "executes the staged runner (install from https://nodejs.org)"),
+    ])?;
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
     let (output, exit_code) = run_host("node", &["runner.mjs"], dir.path())?;
@@ -143,6 +163,10 @@ pub fn run_node(args: &OwnedRunArgs) -> Result<RunOutcome> {
 /// # Errors
 /// Fails on build/discovery/staging errors or when deno is unavailable.
 pub fn run_deno(args: &OwnedRunArgs) -> Result<RunOutcome> {
+    preflight(&[
+        ("cargo", "builds the test crate to wasm32"),
+        ("deno", "executes the staged runner (install from https://deno.land)"),
+    ])?;
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
     let (output, exit_code) = run_host("deno", &["run", "-A", "runner.mjs"], dir.path())?;
@@ -159,6 +183,12 @@ pub fn run_deno(args: &OwnedRunArgs) -> Result<RunOutcome> {
 /// # Errors
 /// Fails on build/discovery/staging errors or when the browser run fails.
 pub fn run_web(args: &OwnedRunArgs) -> Result<RunOutcome> {
+    preflight(&[
+        ("cargo", "builds the test crate to wasm32"),
+        ("node", "runs the Playwright driver script"),
+        ("npm", "installs Playwright for the driver (or run `mise run setup:playwright` once)"),
+        ("npx", "launches the Playwright browser installer"),
+    ])?;
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
 

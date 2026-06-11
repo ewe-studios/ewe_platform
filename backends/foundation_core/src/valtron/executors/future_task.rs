@@ -476,10 +476,10 @@ where
                 if let Some(iter) = &mut self.inner_iter {
                     return iter.next().map(ThreadedValue::Value);
                 }
-                return None;
+                None
             }
-            Poll::Ready(Err(e)) => return Some(ThreadedValue::Value(Err(e))),
-            Poll::Pending => return Some(ThreadedValue::Waiting),
+            Poll::Ready(Err(e)) => Some(ThreadedValue::Value(Err(e))),
+            Poll::Pending => Some(ThreadedValue::Waiting),
         }
     }
 }

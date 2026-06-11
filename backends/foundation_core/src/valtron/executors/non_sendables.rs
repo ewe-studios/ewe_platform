@@ -38,7 +38,7 @@ pub fn initialize_pool(
 ) -> super::single::PoolGuard {
     tracing::debug!("Starting under not(feature=multi), so single threaded");
     single::initialize_pool(seed_for_rng);
-    return single::PoolGuard::default();
+    single::PoolGuard
 }
 
 /// Submit a blocking closure for execution on the appropriate background executor.

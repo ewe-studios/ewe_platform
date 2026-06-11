@@ -186,7 +186,6 @@ impl Query {
     }
 
     /// Returns an iterator over key-value pairs.
-    #[must_use]
     pub fn iter(&self) -> impl Iterator<Item = (&str, &str)> {
         self.pairs.iter().map(|(k, v)| (k.as_str(), v.as_str()))
     }

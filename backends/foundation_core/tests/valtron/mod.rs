@@ -20,3 +20,4 @@ mod threaded_future;
 mod units;
 mod wasm_js_yield_integration;
 mod wasm_yielder_tests;
+mod valtron_macro_tests;

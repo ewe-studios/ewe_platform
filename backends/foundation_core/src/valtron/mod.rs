@@ -14,6 +14,13 @@ mod types;
 pub mod delayed_iterators;
 pub mod multi_iterator;
 
+// The engine entry-point macros (#[valtron] / #[valtron_test]) — defined in
+// foundation_macros, re-exported here so users reach everything valtron from one
+// path: `use foundation_core::valtron::{valtron_test, initialize_pool, spawn};`.
+// Their expansions call `foundation_core::valtron::initialize_pool` and hold the
+// returned PoolGuard until the wrapped fn exits (tokio-main style).
+pub use foundation_macros::{valtron, valtron_test};
+
 pub use branches::*;
 pub use drain::*;
 pub use executors::*;
