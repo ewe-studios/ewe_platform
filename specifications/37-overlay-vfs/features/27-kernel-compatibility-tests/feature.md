@@ -121,9 +121,25 @@ The traced shell vforks internally for the pipe. The vforked child (PID 1575113)
 **Root cause:** On kernel 7.0.9, `PTRACE_EVENT_STOP` on a vforked child creates a circular wait: parent waits for child to exec/exit, child is stopped, tracer can't continue parent because it's vfork-blocked in the kernel.
 
 **Resolution options:**
-- **Kernel patch**: Oleg Nesterov's Nov 2025 RFC adds `signal->group_exec_task` check in `ptrace_stop()` to prevent tracee from entering `TASK_TRACED` during vfork
-- **Alternative**: Use `clone()` instead of `fork()` with `CLONE_VM` to avoid vfork semantics
-- **Accept**: The nix backend works for all non-pipe cases (22/24 tests pass)
+
+1. **Kernel patch: de_thread/ptrace deadlock fix** — Ongoing patch series
+   "[PATCH v17] exec: Fix dead-lock in de_thread with ptrace_attach" by Bernd Edlinger,
+   with Oleg Nesterov review. Reached v17 in November 2025:
+   - [v15 discussion (Jan 2024)](https://lkml.iu.edu/2401.2/06988.html)
+   - [v17 discussion (Nov 2025)](https://lists.openwall.net/linux-kernel/2025/11/05/1013)
+   
+   This patch addresses deadlock between `ptrace_attach` and `de_thread()` during exec,
+   which overlaps with our vfork deadlock scenario. Not yet merged into mainline as of kernel 7.0.9.
+
+2. **PTRACE_LISTEN RFC** — Proposed by Oleg Nesterov for group-stop handling during vfork.
+   The `PTRACE_LISTEN` operation (available since Linux 3.4) restarts a tracee without executing,
+   but its interaction with vfork remains problematic. See [PTRACE_LISTEN discussion](https://lkml.iu.edu/1109.2/02686.html).
+
+3. **Accept limitation** — The nix backend works for all non-pipe cases (22/24 tests pass).
+   The reverie backend (feature 26) may handle fork differently via its thread-based tracing model.
+
+4. **Alternative approach** — Use `clone()` with custom flags instead of raw `fork()` to avoid
+   vfork semantics entirely, or intercept at the syscall level before the shell's internal vfork.
 
 ## Test Status
 
@@ -142,6 +158,10 @@ The traced shell vforks internally for the pipe. The vforked child (PID 1575113)
 - `PTRACE_EVENT_STOP` defined as 128 in `/usr/include/linux/ptrace.h`
 - nix_backend: `backends/foundation_nativeapis/src/native/vfs/ptrace/nix_backend.rs`
 - Tests: `backends/foundation_nativeapis/tests/ptrace_vfs/mod.rs`
+- Kernel patch series: [exec: Fix dead-lock in de_thread with ptrace_attach (v17, Nov 2025)](https://lists.openwall.net/linux-kernel/2025/11/05/1013)
+- PTRACE_LISTEN discussion: [lkml.iu.edu/1109.2/02686.html](https://lkml.iu.edu/1109.2/02686.html)
+- ptrace man page: [man7.org/linux/man-pages/man2/ptrace.2.html](https://man7.org/linux/man-pages/man2/ptrace.2.html)
+- Oleg Nesterov ptrace analysis: [ptrace,signal: sane interaction](https://lwn.net/Articles/417492/)
 
 ---
 
