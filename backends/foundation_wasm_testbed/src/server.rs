@@ -26,11 +26,13 @@ pub struct TestServer {
 
 impl TestServer {
     /// Returns the bound port.
+    #[must_use]
     pub fn port(&self) -> u16 {
         self.port
     }
 
     /// Returns the URL for a given path on this server.
+    #[must_use]
     pub fn url(&self, path: &str) -> String {
         format!("http://localhost:{}/{}", self.port, path.trim_start_matches('/'))
     }

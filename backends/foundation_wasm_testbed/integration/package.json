@@ -1,0 +1,5 @@
+{
+  "name": "foundation-wasm-testbed-integration",
+  "private": true,
+  "type": "module"
+}

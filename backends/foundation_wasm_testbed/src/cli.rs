@@ -88,6 +88,7 @@ pub enum Mode {
 
 impl Mode {
     /// Whether this mode uses auto-generated wasm-bindgen harness.
+    #[must_use]
     pub fn is_bindgen(&self) -> bool {
         matches!(
             self,
@@ -96,6 +97,7 @@ impl Mode {
     }
 
     /// Returns the integration directory name for this mode.
+    #[must_use]
     pub fn integration_dir(&self) -> &str {
         match self {
             Mode::Web => "web",
@@ -108,16 +110,19 @@ impl Mode {
     }
 
     /// Whether this mode requires a browser (Playwright).
+    #[must_use]
     pub fn needs_browser(&self) -> bool {
         matches!(self, Mode::Web | Mode::BindgenWeb)
     }
 
     /// Whether this mode runs via Deno.
+    #[must_use]
     pub fn needs_deno(&self) -> bool {
         matches!(self, Mode::Deno | Mode::BindgenDeno)
     }
 
     /// Whether this mode runs via wrangler dev.
+    #[must_use]
     pub fn needs_wrangler(&self) -> bool {
         matches!(self, Mode::Wrangler | Mode::BindgenWrangler)
     }

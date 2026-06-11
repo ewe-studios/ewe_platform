@@ -2,7 +2,7 @@
 //!
 //! WHY: We need to compile the user's crate to wasm32-unknown-unknown before testing.
 //! WHAT: Invokes cargo as a subprocess, captures output, locates the resulting .wasm.
-//! HOW: Uses std::process::Command with inherited stdout/stderr so the user
+//! HOW: Uses `std::process::Command` with inherited stdout/stderr so the user
 //!      sees build output in real time.
 
 use std::path::{Path, PathBuf};
@@ -49,7 +49,7 @@ fn read_package_name(cargo_toml: &Path) -> Result<String> {
     Err(WasmTestbedError::MissingPackageName(cargo_toml.display().to_string()).trace())
 }
 
-/// Find the workspace root Cargo.toml by walking up from crate_path.
+/// Find the workspace root Cargo.toml by walking up from `crate_path`.
 /// Returns the workspace root if the crate is part of a workspace,
 /// or None if it's a standalone crate.
 fn find_workspace_root(crate_path: &Path) -> Option<PathBuf> {
@@ -94,6 +94,10 @@ pub fn run(
 ///
 /// Includes dev-dependencies so that `#[wasm_bindgen_test]` macros are expanded
 /// and `__wbgt_` test exports are present in the wasm binary.
+///
+/// # Errors
+/// Returns an error when cargo fails, the package name can't be read, or the
+/// built wasm artifact can't be located.
 pub fn run_with_tests(
     crate_path: &Path,
     release: bool,
@@ -119,8 +123,7 @@ fn run_impl(
 
     // Determine target directory: workspace members use workspace root's target.
     let target_dir = find_workspace_root(crate_path)
-        .map(|root| root.join("target"))
-        .unwrap_or_else(|| crate_path.join("target"));
+        .map_or_else(|| crate_path.join("target"), |root| root.join("target"));
 
     let mut cmd = Command::new("cargo");
     cmd.arg("build")
@@ -168,8 +171,8 @@ fn run_impl(
     // which contains the __wbgt_ exports. Look for mod-*.wasm in deps/.
     if include_tests && deps_dir.exists() {
         // Find the test wasm binary (mod-*.wasm or package_name_test-*.wasm)
-        for entry in std::fs::read_dir(&deps_dir).ok().into_iter().flatten() {
-            if let Ok(entry) = entry {
+        for entry in std::fs::read_dir(&deps_dir).ok().into_iter().flatten().flatten() {
+            {
                 let name = entry.file_name();
                 let name = name.to_string_lossy();
                 // Test binaries start with "mod-" or "{package_name}-" with a hash

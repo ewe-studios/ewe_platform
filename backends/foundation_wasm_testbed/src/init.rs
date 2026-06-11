@@ -29,10 +29,13 @@ fn read_template(path: &str) -> Result<String> {
         .map_err(|e| WasmTestbedError::TemplateNotUtf8(e).trace())
 }
 
-/// Write a template to a target directory, replacing PACKAGE_NAME.
+/// Write a template to a target directory, replacing `PACKAGE_NAME`.
 ///
 /// The `template_path` is relative to the templates root (e.g. "web/index.html").
 /// The `target_dir` is the integration directory where the file will be written.
+///
+/// # Errors
+/// Returns an error when the template is missing/not UTF-8 or the write fails.
 pub fn write_template_to(
     template_path: &str,
     package_name: &str,
@@ -52,11 +55,14 @@ pub fn write_template_to(
     Ok(())
 }
 
-/// Write a bindgen run.js template, replacing PACKAGE_NAME and TEST_NAMES.
+/// Write a bindgen run.js template, replacing `PACKAGE_NAME` and `TEST_NAMES`.
 ///
-/// Reads the template from the given path, replaces PACKAGE_NAME with the
+/// Reads the template from the given path, replaces `PACKAGE_NAME` with the
 /// actual package name, and replaces the `/* TEST_NAMES */` comment with
 /// a comma-separated list of quoted test names.
+///
+/// # Errors
+/// Returns an error when the template is missing/not UTF-8 or the write fails.
 pub fn write_bindgen_runjs_to(
     template_path: &str,
     package_name: &str,
@@ -112,6 +118,9 @@ fn read_package_name(cargo_toml: &std::path::Path) -> Result<String> {
 }
 
 /// Entry point for the `init` command.
+///
+/// # Errors
+/// Returns an error when the crate path is missing or scaffolding writes fail.
 pub fn run(args: InitArgs) -> Result<()> {
     let crate_path = args.crate_path.canonicalize().map_err(|_| {
         WasmTestbedError::CratePathNotFound(args.crate_path.display().to_string()).trace()

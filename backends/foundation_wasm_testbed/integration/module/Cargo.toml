@@ -1,0 +1,20 @@
+# Standalone crate (own [workspace]) so it doesn't pull the `web` feature into the
+# main workspace's feature unification. Built only for the owned-harness e2e tests.
+[package]
+name = "fwt_sample"
+version = "0.0.1"
+publish = false
+edition = "2021"
+
+[dependencies]
+foundation_wasm = { path = "../../../foundation_wasm", features = ["web"] }
+foundation_macros = { path = "../../../foundation_macros" }
+
+[lib]
+crate-type = ["cdylib"]
+
+[workspace]
+
+[profile.uat]
+inherits = "release"
+codegen-backend = "llvm"

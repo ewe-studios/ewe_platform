@@ -3,299 +3,292 @@
 //! NFS v3 loopback server exposing any VfsFileSystem as an NFS mount.
 //!
 //! Uses the `nfsserve` crate for NFS protocol handling.
-//! Mount on Linux: `mount -t nfs localhost:/ /mnt -o port=PORT,mountport=PORT,nolocks,tcp`
-//! Mount on macOS: `mount_nfs -o resvport,port=PORT,mountport=PORT,nolocks,tcp localhost:/ /mnt`
 
 use std::collections::HashMap;
-use std::sync::Arc;
-use std::sync::RwLock;
+use std::sync::{Arc, RwLock};
 
-use nfsserve::nfs::{
-    attrstat3, createhook3, createverf3, entry3, fattr3, fileid3, filename3, fileid3,
-    nfsstat3, post_op_attr, post_op_fh3, pre_op_attr, readlink3res, readlink3resok,
-    readdir3args, readdir3res, readdir3resok, remove3args, rename3args, rename3res,
-    sattr3, sattrguard3, setattrs, symlinkdata3, write3args, write3res, write3resok,
-    specdata3, nfstime3, FSF3_LINK, FSF3_SYMLINK, FSF3_HOMOGENEOUS, FSF3_CANSETTIME,
-};
-use nfsserve::xdr::XdrError;
-use nfsserve::vfs::{NFSFileSystem, VFSCapabilities, LookupRes};
+use nfsserve::nfs::*;
+use nfsserve::vfs::{NFSFileSystem, VFSCapabilities, ReadDirResult, DirEntry};
 
-use crate::shared::vfs::traits::VfsFileSystem;
-use crate::shared::vfs::types::{OpenMode, VfsFileType, VfsMetadata};
+use crate::shared::vfs::traits::{VfsFileSystem, VfsFile, VfsDirectory};
+use crate::shared::vfs::types::{OpenMode, VfsFileType};
 
-/// NFS file handle — encodes an inode number.
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-struct NfsHandle {
-    ino: u64,
+struct IdMapper {
+    next_id: std::sync::atomic::AtomicU64,
+    id_to_path: RwLock<HashMap<u64, String>>,
+    path_to_id: RwLock<HashMap<String, u64>>,
 }
 
-impl nfsserve::xdr::XDR for NfsHandle {
-    fn serialize<W: std::io::Write>(&self, _: &mut W) -> Result<(), XdrError> {
-        Ok(())
+impl IdMapper {
+    fn new() -> Self {
+        let m = Self {
+            next_id: std::sync::atomic::AtomicU64::new(1),
+            id_to_path: RwLock::new(HashMap::new()),
+            path_to_id: RwLock::new(HashMap::new()),
+        };
+        m.register("/", 1);
+        m
     }
-    fn deserialize<R: std::io::Read>(_: &mut R) -> Result<Self, XdrError> {
-        Ok(NfsHandle { ino: 0 })
+
+    fn register(&self, path: &str, id: u64) {
+        self.id_to_path.write().unwrap().insert(id, path.to_string());
+        self.path_to_id.write().unwrap().insert(path.to_string(), id);
+    }
+
+    fn get_id(&self, path: &str) -> Option<u64> {
+        self.path_to_id.read().unwrap().get(path).copied()
+    }
+
+    fn get_path(&self, id: u64) -> Option<String> {
+        self.id_to_path.read().unwrap().get(&id).cloned()
+    }
+
+    fn next_id(&self) -> u64 {
+        self.next_id.fetch_add(1, std::sync::atomic::Ordering::Relaxed)
     }
 }
 
-impl From<u64> for NfsHandle {
-    fn from(ino: u64) -> Self { NfsHandle { ino } }
+fn to_nfs_ftype(ft: VfsFileType) -> ftype3 {
+    match ft {
+        VfsFileType::Regular => ftype3::NF3REG,
+        VfsFileType::Directory => ftype3::NF3DIR,
+        VfsFileType::Symlink => ftype3::NF3LNK,
+    }
 }
 
-impl From<NfsHandle> for fileid3 {
-    fn from(h: NfsHandle) -> Self { h.ino }
+fn now_ns() -> nfstime3 {
+    nfstime3 { seconds: 0, nseconds: 0 }
+}
+
+fn to_fattr3(fs: &impl VfsFileSystem, path: &str, id: u64) -> Result<fattr3, nfsstat3> {
+    let meta = fs.stat(path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+    Ok(fattr3 {
+        ftype: to_nfs_ftype(meta.file_type),
+        mode: meta.permissions,
+        nlink: 1,
+        uid: meta.owner.0,
+        gid: meta.owner.1,
+        size: meta.size,
+        used: meta.size,
+        rdev: specdata3 { specdata1: 0, specdata2: 0 },
+        fsid: 1,
+        fileid: id,
+        atime: now_ns(),
+        mtime: now_ns(),
+        ctime: now_ns(),
+    })
 }
 
 /// VfsNfs — NFS v3 server backed by any VfsFileSystem.
 pub struct VfsNfs<F: VfsFileSystem + 'static> {
-    fs: Arc<F>,
-    handles: RwLock<HashMap<u64, String>>, // ino → path
-    next_handle: std::sync::atomic::AtomicU64,
+    fs: F,
+    mapper: Arc<IdMapper>,
 }
 
-impl<F: VfsFileSystem + 'static> VfsNfs<F> {
+impl<F: VfsFileSystem> VfsNfs<F> {
     pub fn new(fs: F) -> Self {
-        let fs = Arc::new(fs);
-        let mut handles = HashMap::new();
-        handles.insert(1, "/".to_string());
-        Self {
-            fs,
-            handles: RwLock::new(handles),
-            next_handle: std::sync::atomic::AtomicU64::new(2),
-        }
-    }
-
-    fn resolve_path(&self, handle: NfsHandle) -> Option<String> {
-        self.handles.read().unwrap().get(&handle.ino).cloned()
-    }
-
-    fn register_path(&self, ino: u64, path: String) {
-        self.handles.write().unwrap().insert(ino, path);
-    }
-
-    fn to_fattr(&self, meta: &VfsMetadata) -> fattr3 {
-        let ftype = match meta.file_type {
-            VfsFileType::Regular => nfsserve::nfs::ftype3::NF3REG,
-            VfsFileType::Directory => nfsserve::nfs::ftype3::NF3DIR,
-            VfsFileType::Symlink => nfsserve::nfs::ftype3::NF3LNK,
-        };
-        fattr3 {
-            ftype,
-            mode: meta.permissions,
-            nlink: 1,
-            uid: meta.owner.0,
-            gid: meta.owner.1,
-            size: meta.size,
-            used: meta.size,
-            rdev: specdata3 { specdata1: 0, specdata2: 0 },
-            fsid: 1,
-            fileid: meta.inode,
-            atime: nfstime3 { seconds: 0, nseconds: 0 },
-            mtime: nfstime3 { seconds: 0, nseconds: 0 },
-            ctime: nfstime3 { seconds: 0, nseconds: 0 },
-        }
+        Self { fs, mapper: Arc::new(IdMapper::new()) }
     }
 }
 
 #[async_trait::async_trait]
-impl<F: VfsFileSystem + Send + Sync + 'static> NFSFileSystem<NfsHandle> for VfsNfs<F> {
+impl<F: VfsFileSystem + Send + Sync> NFSFileSystem for VfsNfs<F> {
     fn capabilities(&self) -> VFSCapabilities {
         VFSCapabilities::ReadWrite
     }
 
-    fn fs_info(&self) -> nfsserve::nfs::fsinfo3 {
-        nfsserve::nfs::fsinfo3 {
+    fn root_dir(&self) -> fileid3 { 1 }
+
+    async fn lookup(&self, dirid: fileid3, filename: &filename3) -> Result<fileid3, nfsstat3> {
+        let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let name = String::from_utf8_lossy(filename).to_string();
+        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
+        if self.fs.exists(&child_path).unwrap_or(false) {
+            let id = self.mapper.get_id(&child_path).unwrap_or_else(|| {
+                let id = self.mapper.next_id();
+                self.mapper.register(&child_path, id);
+                id
+            });
+            Ok(id)
+        } else {
+            Err(nfsstat3::NFS3ERR_NOENT)
+        }
+    }
+
+    async fn getattr(&self, id: fileid3) -> Result<fattr3, nfsstat3> {
+        let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        to_fattr3(&self.fs, &path, id)
+    }
+
+    async fn setattr(&self, id: fileid3, setattr: sattr3) -> Result<fattr3, nfsstat3> {
+        let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        if let set_mode3::mode(m) = setattr.mode {
+            self.fs.chmod(&path, m).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        }
+        to_fattr3(&self.fs, &path, id)
+    }
+
+    async fn read(&self, id: fileid3, offset: u64, count: u32) -> Result<(Vec<u8>, bool), nfsstat3> {
+        let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let file = self.fs.open(&path, OpenMode::Read).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let size = file.size().map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let to_read = std::cmp::min(count as usize, (size.saturating_sub(offset)) as usize);
+        let mut buf = vec![0u8; to_read];
+        file.read_at(&mut buf, offset).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        Ok((buf, offset + to_read as u64 >= size))
+    }
+
+    async fn write(&self, id: fileid3, offset: u64, data: &[u8]) -> Result<fattr3, nfsstat3> {
+        let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let file = self.fs.open(&path, OpenMode::ReadWrite).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        file.write_at(data, offset).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        to_fattr3(&self.fs, &path, id)
+    }
+
+    async fn create(&self, dirid: fileid3, filename: &filename3, _attr: sattr3) -> Result<(fileid3, fattr3), nfsstat3> {
+        let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let name = String::from_utf8_lossy(filename).to_string();
+        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
+        self.fs.create(&child_path, 0o644).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let id = self.mapper.next_id();
+        self.mapper.register(&child_path, id);
+        Ok((id, to_fattr3(&self.fs, &child_path, id)?))
+    }
+
+    async fn create_exclusive(&self, dirid: fileid3, filename: &filename3) -> Result<fileid3, nfsstat3> {
+        let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let name = String::from_utf8_lossy(filename).to_string();
+        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
+        if self.fs.exists(&child_path).unwrap_or(false) {
+            return Err(nfsstat3::NFS3ERR_EXIST);
+        }
+        self.fs.create(&child_path, 0o644).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let id = self.mapper.next_id();
+        self.mapper.register(&child_path, id);
+        Ok(id)
+    }
+
+    async fn mkdir(&self, dirid: fileid3, dirname: &filename3) -> Result<(fileid3, fattr3), nfsstat3> {
+        let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let name = String::from_utf8_lossy(dirname).to_string();
+        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
+        self.fs.mkdir(&child_path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let id = self.mapper.next_id();
+        self.mapper.register(&child_path, id);
+        Ok((id, to_fattr3(&self.fs, &child_path, id)?))
+    }
+
+    async fn remove(&self, dirid: fileid3, filename: &filename3) -> Result<(), nfsstat3> {
+        let _ = dirid;
+        let name = String::from_utf8_lossy(filename).to_string();
+        self.fs.remove(&name).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        if let Some(id) = self.mapper.get_id(&name) {
+            self.mapper.id_to_path.write().unwrap().remove(&id);
+        }
+        self.mapper.path_to_id.write().unwrap().remove(&name);
+        Ok(())
+    }
+
+    async fn rename(&self, from_dirid: fileid3, from_name: &filename3, _to_dirid: fileid3, to_name: &filename3) -> Result<(), nfsstat3> {
+        let _ = from_dirid;
+        let from_name = String::from_utf8_lossy(from_name).to_string();
+        let to_name = String::from_utf8_lossy(to_name).to_string();
+        self.fs.rename(&from_name, &to_name).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        if let Some(id) = self.mapper.get_id(&from_name) {
+            self.mapper.register(&to_name, id);
+            self.mapper.path_to_id.write().unwrap().remove(&from_name);
+        }
+        Ok(())
+    }
+
+    async fn readdir(&self, dirid: fileid3, _start_after: fileid3, max_entries: usize) -> Result<ReadDirResult, nfsstat3> {
+        let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let dir = self.fs.open_directory(&dir_path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let entries = dir.list().map_err(|_| nfsstat3::NFS3ERR_IO)?;
+
+        let mut result = Vec::new();
+        let mut eof = true;
+
+        for entry in entries.iter().take(max_entries) {
+            let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, entry.name) } else { format!("{}/{}", dir_path, entry.name) };
+            let id = self.mapper.get_id(&child_path).unwrap_or_else(|| {
+                let id = self.mapper.next_id();
+                self.mapper.register(&child_path, id);
+                id
+            });
+            let attr = to_fattr3(&self.fs, &child_path, id)?;
+            result.push(DirEntry {
+                fileid: id,
+                name: nfsstring(entry.name.clone().into_bytes()),
+                attr,
+            });
+        }
+
+        if entries.len() > max_entries {
+            eof = false;
+        }
+
+        Ok(ReadDirResult { entries: result, end: eof })
+    }
+
+    async fn symlink(&self, dirid: fileid3, linkname: &filename3, symlink: &nfspath3, _attr: &sattr3) -> Result<(fileid3, fattr3), nfsstat3> {
+        let dir_path = self.mapper.get_path(dirid).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let name = String::from_utf8_lossy(linkname).to_string();
+        let child_path = if dir_path.ends_with('/') { format!("{}{}", dir_path, name) } else { format!("{}/{}", dir_path, name) };
+        let target = String::from_utf8_lossy(symlink).to_string();
+        self.fs.symlink(&target, &child_path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        let id = self.mapper.next_id();
+        self.mapper.register(&child_path, id);
+        let attr = to_fattr3(&self.fs, &child_path, id)?;
+        Ok((id, attr))
+    }
+
+    async fn readlink(&self, id: fileid3) -> Result<nfspath3, nfsstat3> {
+        let path = self.mapper.get_path(id).ok_or(nfsstat3::NFS3ERR_STALE)?;
+        let target = self.fs.readlink(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
+        Ok(target.into_bytes().into())
+    }
+
+    async fn fsinfo(&self, _root_fileid: fileid3) -> Result<fsinfo3, nfsstat3> {
+        Ok(fsinfo3 {
+            obj_attributes: post_op_attr::Void,
             rtmax: 1048576, rtpref: 1048576, rtmult: 4096,
             wtmax: 1048576, wtpref: 1048576, wtmult: 4096,
             dtpref: 4096,
             maxfilesize: 0xffffffffffffffff,
             time_delta: nfstime3 { seconds: 1, nseconds: 0 },
-            properties: FSF3_LINK | FSF3_SYMLINK | FSF3_HOMOGENEOUS | FSF3_CANSETTIME,
+            properties: 0x0001 | 0x0002 | 0x0008 | 0x0010, // FSF3_LINK | SYMLINK | HOMOGENEOUS | CANSETTIME
+        })
+    }
+
+    fn id_to_fh(&self, id: fileid3) -> nfs_fh3 {
+        nfs_fh3 { data: id.to_le_bytes().to_vec() }
+    }
+
+    fn fh_to_id(&self, fh: &nfs_fh3) -> Result<fileid3, nfsstat3> {
+        if fh.data.len() == 8 {
+            let mut bytes = [0u8; 8];
+            bytes.copy_from_slice(&fh.data);
+            Ok(u64::from_le_bytes(bytes))
+        } else {
+            Err(nfsstat3::NFS3ERR_BADHANDLE)
         }
     }
 
-    async fn root_dir(&self) -> Result<NfsHandle, nfsstat3> {
-        Ok(NfsHandle { ino: 1 })
-    }
-
-    async fn lookup(&self, parent: NfsHandle, name: filename3) -> Result<LookupRes<NfsHandle>, nfsstat3> {
-        let parent_path = self.resolve_path(parent).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let child_path = if parent_path.ends_with('/') {
-            format!("{}{}", parent_path, String::from_utf8_lossy(&name))
+    async fn path_to_id(&self, path: &[u8]) -> Result<fileid3, nfsstat3> {
+        let path_str = String::from_utf8_lossy(path).to_string();
+        if let Some(id) = self.mapper.get_id(&path_str) {
+            Ok(id)
+        } else if self.fs.exists(&path_str).unwrap_or(false) {
+            let id = self.mapper.next_id();
+            self.mapper.register(&path_str, id);
+            Ok(id)
         } else {
-            format!("{}/{}", parent_path, String::from_utf8_lossy(&name))
-        };
-        match self.fs.stat(&child_path) {
-            Ok(meta) => {
-                self.register_path(meta.inode, child_path.clone());
-                Ok(LookupRes {
-                    handle: NfsHandle { ino: meta.inode },
-                    post_attr: Some(self.to_fattr(&meta)),
-                })
-            }
-            Err(_) => Err(nfsstat3::NFS3ERR_NOENT),
+            Err(nfsstat3::NFS3ERR_NOENT)
         }
     }
 
-    async fn getattr(&self, handle: NfsHandle) -> Result<fattr3, nfsstat3> {
-        let path = self.resolve_path(handle).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let meta = self.fs.stat(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        Ok(self.to_fattr(&meta))
-    }
-
-    async fn readlink(&self, handle: NfsHandle) -> Result<readlink3res, nfsstat3> {
-        let path = self.resolve_path(handle).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let target = self.fs.readlink(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        Ok(readlink3res::Ok(readlink3resok { data: target.into_bytes() }))
-    }
-
-    async fn read(
-        &self, handle: NfsHandle, offset: u64, count: u32,
-    ) -> Result<nfsserve::nfs::read3res, nfsstat3> {
-        let path = self.resolve_path(handle).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let file = self.fs.open(&path, OpenMode::Read).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let mut buf = vec![0u8; count as usize];
-        let n = file.read_at(&mut buf, offset).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        buf.truncate(n);
-        Ok(nfsserve::nfs::read3res::Ok(nfsserve::nfs::read3resok {
-            file_attributes: post_op_attr { attributes_follow: false, attributes: None },
-            count: n as u32,
-            eof: true,
-            data: buf,
-        }))
-    }
-
-    async fn write(&self, handle: NfsHandle, offset: u64, data: Vec<u8>, stable: nfsserve::nfs::stable_how) -> Result<write3res, nfsstat3> {
-        let path = self.resolve_path(handle).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let file = self.fs.open(&path, OpenMode::Write).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let n = file.write_at(&data, offset).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        Ok(write3res::Ok(write3resok {
-            file_attributes: post_op_attr { attributes_follow: false, attributes: None },
-            count: n as u32,
-            committed: match stable {
-                nfsserve::nfs::stable_how::FILE_SYNC => nfsserve::nfs::stable_how::FILE_SYNC,
-                _ => nfsserve::nfs::stable_how::UNSTABLE,
-            },
-            verf: createverf3 { data: [0; 8] },
-        }))
-    }
-
-    async fn create(&self, parent: NfsHandle, name: filename3, attrs: sattr3) -> Result<nfsserve::nfs::create3res, nfsstat3> {
-        let parent_path = self.resolve_path(parent).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let path = if parent_path.ends_with('/') {
-            format!("{}{}", parent_path, String::from_utf8_lossy(&name))
-        } else {
-            format!("{}/{}", parent_path, String::from_utf8_lossy(&name))
-        };
-        let mode = attrs.mode.unwrap_or(0o644);
-        let file = self.fs.create(&path, mode).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let meta = file.metadata().map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        self.register_path(meta.inode, path.clone());
-        Ok(nfsserve::nfs::create3res::Ok(nfsserve::nfs::create3resok {
-            handle: NfsHandle { ino: meta.inode },
-            post_op_dir_attributes: post_op_attr { attributes_follow: false, attributes: None },
-            post_op_file_attributes: post_op_attr { attributes_follow: true, attributes: Some(self.to_fattr(&meta)) },
-        }))
-    }
-
-    async fn mkdir(&self, parent: NfsHandle, name: filename3, attrs: sattr3) -> Result<nfsserve::nfs::mkdir3res, nfsstat3> {
-        let parent_path = self.resolve_path(parent).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let path = if parent_path.ends_with('/') {
-            format!("{}{}", parent_path, String::from_utf8_lossy(&name))
-        } else {
-            format!("{}/{}", parent_path, String::from_utf8_lossy(&name))
-        };
-        self.fs.mkdir(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let meta = self.fs.stat(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        self.register_path(meta.inode, path.clone());
-        Ok(nfsserve::nfs::mkdir3res::Ok(nfsserve::nfs::mkdir3resok {
-            handle: NfsHandle { ino: meta.inode },
-            post_op_dir_attributes: post_op_attr { attributes_follow: true, attributes: Some(self.to_fattr(&meta)) },
-            post_op_parent_attributes: post_op_attr { attributes_follow: false, attributes: None },
-        }))
-    }
-
-    async fn remove(&self, parent: NfsHandle, name: filename3) -> Result<remove3args, nfsstat3> {
-        let parent_path = self.resolve_path(parent).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let path = if parent_path.ends_with('/') {
-            format!("{}{}", parent_path, String::from_utf8_lossy(&name))
-        } else {
-            format!("{}/{}", parent_path, String::from_utf8_lossy(&name))
-        };
-        self.fs.remove(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        Ok(remove3args { dir_attributes: post_op_attr { attributes_follow: false, attributes: None } })
-    }
-
-    async fn rename(&self, from_parent: NfsHandle, from_name: filename3, to_parent: NfsHandle, to_name: filename3) -> Result<rename3res, nfsstat3> {
-        let from_parent_path = self.resolve_path(from_parent).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let from = if from_parent_path.ends_with('/') {
-            format!("{}{}", from_parent_path, String::from_utf8_lossy(&from_name))
-        } else {
-            format!("{}/{}", from_parent_path, String::from_utf8_lossy(&from_name))
-        };
-        let to_parent_path = self.resolve_path(to_parent).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let to = if to_parent_path.ends_with('/') {
-            format!("{}{}", to_parent_path, String::from_utf8_lossy(&to_name))
-        } else {
-            format!("{}/{}", to_parent_path, String::from_utf8_lossy(&to_name))
-        };
-        self.fs.rename(&from, &to).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        Ok(rename3res::Ok(nfsserve::nfs::rename3resok {
-            from_dir_attributes: post_op_attr { attributes_follow: false, attributes: None },
-            to_dir_attributes: post_op_attr { attributes_follow: false, attributes: None },
-        }))
-    }
-
-    async fn symlink(&self, parent: NfsHandle, name: filename3, symlink: symlinkdata3) -> Result<nfsserve::nfs::symlink3res, nfsstat3> {
-        let parent_path = self.resolve_path(parent).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let path = if parent_path.ends_with('/') {
-            format!("{}{}", parent_path, String::from_utf8_lossy(&name))
-        } else {
-            format!("{}/{}", parent_path, String::from_utf8_lossy(&name))
-        };
-        let target = String::from_utf8_lossy(&symlink.symlink_data);
-        self.fs.symlink(&target, &path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let meta = self.fs.stat(&path).ok();
-        Ok(nfsserve::nfs::symlink3res::Ok(nfsserve::nfs::symlink3resok {
-            handle: NfsHandle { ino: meta.as_ref().map(|m| m.inode).unwrap_or(0) },
-            post_op_dir_attributes: post_op_attr { attributes_follow: false, attributes: None },
-        }))
-    }
-
-    async fn readdir(&self, dir: NfsHandle, cookie: u64, cookieverf: createverf3, count: u32) -> Result<readdir3res, nfsstat3> {
-        let path = self.resolve_path(dir).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        let dir_handle = self.fs.open_directory(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let entries = dir_handle.list().map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        let mut nfs_entries = Vec::new();
-        for (i, entry) in entries.iter().enumerate().skip(cookie as usize) {
-            self.register_path(entry.inode, {
-                if path.ends_with('/') { format!("{}{}", path, entry.name) } else { format!("{}/{}", path, entry.name) }
-            });
-            nfs_entries.push(entry3 {
-                fileid: entry.inode,
-                name: entry.name.clone().into_bytes(),
-                cookie: (cookie + i as u64 + 1),
-                name_handle: post_op_fh3 { handle_follows: true, handle: Some(NfsHandle { ino: entry.inode }) },
-            });
-        }
-        if nfs_entries.len() >= count as usize {
-            nfs_entries.pop();
-        }
-        let eof = nfs_entries.len() < entries.len();
-        Ok(readdir3res::Ok(readdir3resok {
-            cookieverf,
-            entries: nfs_entries,
-            reply_eof: eof,
-            dir_attributes: post_op_attr { attributes_follow: false, attributes: None },
-        }))
-    }
-
-    async fn setattr(&self, handle: NfsHandle, attrs: sattr3, guard: sattrguard3) -> Result<attrstat3, nfsstat3> {
-        let path = self.resolve_path(handle).ok_or(nfsstat3::NFS3ERR_STALE)?;
-        if let Some(mode) = attrs.mode {
-            self.fs.chmod(&path, mode).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        }
-        let meta = self.fs.stat(&path).map_err(|_| nfsstat3::NFS3ERR_IO)?;
-        Ok(attrstat3 { status: nfsstat3::NFS3_OK, obj_attributes: post_op_attr { attributes_follow: true, attributes: Some(self.to_fattr(&meta)) } })
+    fn serverid(&self) -> cookieverf3 {
+        [0; 8]
     }
 }

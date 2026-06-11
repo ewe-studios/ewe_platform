@@ -71,7 +71,7 @@ pub fn discover_cases(wasm_path: &Path) -> Result<Vec<FwtCase>> {
             let Some(name) = export.name.strip_prefix(FWT_PREFIX) else {
                 continue;
             };
-            let case_flags = flags.get(name).map(String::as_str).unwrap_or("");
+            let case_flags = flags.get(name).map_or("", String::as_str);
             cases.push(FwtCase {
                 name: name.to_string(),
                 export: export.name.clone(),

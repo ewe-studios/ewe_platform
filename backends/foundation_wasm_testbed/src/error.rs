@@ -170,10 +170,10 @@ pub enum WasmTestbedError {
     Io(std::io::Error),
 }
 
-/// Shorthand for Result<T, ErrorTrace<WasmTestbedError>>.
+/// Shorthand for `Result<T, ErrorTrace<WasmTestbedError>>`.
 pub type Result<T> = std::result::Result<T, ErrorTrace<WasmTestbedError>>;
 
-/// Extension trait to convert a plain error into an ErrorTrace.
+/// Extension trait to convert a plain error into an `ErrorTrace`.
 pub trait ToTrace {
     fn trace(self) -> ErrorTrace<WasmTestbedError>;
 }

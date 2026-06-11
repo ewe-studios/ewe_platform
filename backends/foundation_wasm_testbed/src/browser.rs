@@ -20,6 +20,9 @@ pub struct BrowserOutput {
 }
 
 /// Run a browser test via Playwright.
+///
+/// # Errors
+/// Returns an error when node/Playwright are unavailable or the browser run fails.
 pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput> {
     which::which("node").map_err(|_| WasmTestbedError::NodeNotFound.trace())?;
 
@@ -124,7 +127,7 @@ fn generate_playwright_script(url: &str, browser: &Browser, headless: bool) -> S
     };
 
     format!(
-        r#"
+        r"
 const {{ {browser_module} }} = require('playwright');
 
 (async () => {{
@@ -156,6 +159,6 @@ const {{ {browser_module} }} = require('playwright');
     await browser.close();
   }}
 }})();
-"#,
+",
     )
 }

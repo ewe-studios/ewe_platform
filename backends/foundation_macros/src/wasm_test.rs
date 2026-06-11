@@ -26,16 +26,19 @@ struct Flags {
     ignore: bool,
 }
 
+/// Comma-separated bare idents — the `#[wasm_test(...)]` argument grammar.
+struct FlagList(syn::punctuated::Punctuated<syn::Ident, syn::Token![,]>);
+
+impl syn::parse::Parse for FlagList {
+    fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
+        Ok(Self(syn::punctuated::Punctuated::parse_terminated(input)?))
+    }
+}
+
 fn parse_flags(attr: TokenStream) -> Result<Flags, syn::Error> {
     let mut flags = Flags::default();
     if attr.is_empty() {
         return Ok(flags);
-    }
-    struct FlagList(syn::punctuated::Punctuated<syn::Ident, syn::Token![,]>);
-    impl syn::parse::Parse for FlagList {
-        fn parse(input: syn::parse::ParseStream) -> syn::Result<Self> {
-            Ok(Self(syn::punctuated::Punctuated::parse_terminated(input)?))
-        }
     }
     let FlagList(idents) = syn::parse2::<FlagList>(attr).map_err(|err| {
         syn::Error::new(

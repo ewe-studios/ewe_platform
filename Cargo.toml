@@ -22,6 +22,7 @@ exclude = [
   "integrations/nodejs/integrations/*",
   "backends/foundation_wasm/integration/module",
   "backends/foundation_wasm_ui/integration/module",
+  "backends/foundation_wasm_testbed/integration/module",
   # devserver
   "crates/*",
 ]
