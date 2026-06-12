@@ -14,11 +14,20 @@ serde = { version = "1", features = ["derive"] }
 serde_json = { workspace = true }
 tracing = { version = "0.1" }
 
+[dependencies.foundation_core]
+# Feature 18 (valtron signals bridge): TaskIterator impls for SignalStream /
+# HubDriver. Optional — the core crate stays dependency-light.
+workspace = true
+optional = true
+
 [features]
 # G15: WASM is single-threaded; storage cells are RefCell. The off-state would
 # swap in Mutex-backed cells — unimplemented until a consumer needs it.
 default = ["single_threaded"]
 single_threaded = []
+# Feature 18: cross-thread signal access over the SignalHub actor (native
+# only — the hub module is cfg'd off wasm32).
+valtron = ["dep:foundation_core"]
 
 [lints]
 workspace = true

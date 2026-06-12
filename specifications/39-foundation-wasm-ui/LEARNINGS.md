@@ -878,3 +878,15 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   translated to attribute-carried equivalents — same semantics, valid Rust,
   recorded as deviations.
 
+## Feature 18 (valtron signals bridge, 2026-06-12)
+
+- **Glitch-freedom is provable across threads**: a watcher thread hammering
+  snapshot() of a diamond mirror through hundreds of pumps never sees a torn
+  value — because publication IS an effect, it inherits the graph's ordering.
+- **Sender lifetime != publisher lifetime**: subscriber senders lived in an
+  Arc the RemoteGetter also held, so streams never ended. Hub-context
+  on_cleanup clears them — streams end exactly when the hub dies.
+- Values cross threads; Rc handles never do: a u64-keyed registry of
+  type-erased apply fns on the hub side keeps RemoteSetter Send+Sync without
+  any locking of the graph.
+

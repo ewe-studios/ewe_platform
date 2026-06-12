@@ -3327,6 +3327,7 @@ dependencies = [
 name = "foundation_signals"
 version = "0.0.1"
 dependencies = [
+ "foundation_core",
  "foundation_ui_traits",
  "serde",
  "serde_json",
