@@ -2824,6 +2824,7 @@ dependencies = [
  "arrow-schema",
  "chrono",
  "foundation_errstacks",
+ "foundation_ui_traits",
  "serde_json",
 ]
 

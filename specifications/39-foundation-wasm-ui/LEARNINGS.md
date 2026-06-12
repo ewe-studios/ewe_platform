@@ -798,3 +798,15 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   (no_std callers) or `::alloc::vec!` (std callers without extern alloc);
   re-exporting alloc types through foundation_ui_traits::__macro works in both.
 
+## Feature 05 (Arrow IPC encoder, 2026-06-12)
+
+- **The version byte earned its keep**: protocol byte 1 now demuxes by envelope
+  VERSION — v1 owned columnar (wasm loop) vs v2 real Arrow IPC
+  (foundation_arrow::ArrowIpcEncoder, servers/analytics). Same Row mapping,
+  same ProtocolEncoder face; arrow-rs stays OUT of wasm binaries.
+- Real nulls vs empty strings: v2 uses Arrow validity bitmaps for absent
+  cells; Row's Option<String> mapped onto both conventions without changes.
+- Invalid-UTF-8 testing is unreachable through arrow-rs (it validates at read)
+  — spec rows demanding it should be marked N/A rather than force unsafe
+  fixture construction.
+
