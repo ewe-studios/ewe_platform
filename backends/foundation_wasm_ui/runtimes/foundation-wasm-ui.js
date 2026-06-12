@@ -273,6 +273,330 @@ export class NodeRegistry {
   }
 }
 
+// ─── MorphDom (feature 07 — decision 027, Datastar-style morphing) ───────────
+
+/**
+ * WHY: Server/WASM HTML patches (MORPH_NODE, op 16) must update a live subtree
+ * WITHOUT destroying user state — focus, form values, CSS animations, element
+ * identity. Hard replacement (op 12) loses all of it; morphing reconciles.
+ *
+ * WHAT: A morphdom/idiomorph-style reconciler: persistent-ID tracking with
+ * tag-mismatch and duplicate exclusion, bottom-up ID maps, best-match scanning
+ * with pantry retrieval and equality-lookahead anti-churn, a pantry for parked
+ * nodes (retrievable within the same morph), form-state preservation, script
+ * re-execution with a WeakSet guard, and the `data-ignore-morph` /
+ * `data-preserve-attr` escape hatches.
+ *
+ * HOW: All per-morph state lives on a fresh MorphContext (G31 — re-entrant
+ * morphs can't corrupt each other); `cleanup()` runs in `finally` (G33 — the
+ * pantry never leaks). Node access is duck-typed (tagName/tag,
+ * children/childNodes, getAttribute…) so the algorithm runs identically on
+ * the real DOM and the test mock.
+ */
+
+const morphIsElement = (n) => {
+  if (!n) return false;
+  if (n.nodeType !== undefined) return n.nodeType === 1; // real DOM
+  // Mocks: text nodes carry tag "#text" but still expose attribute methods.
+  return typeof n.getAttributeNames === "function" && (n.tag ?? "") !== "#text";
+};
+const morphTag = (n) => (n.tagName ?? n.tag ?? "").toUpperCase();
+const morphKids = (n) => Array.from(n.childNodes ?? n.children ?? []);
+const morphText = (n) => (n.nodeValue !== undefined && n.nodeValue !== null ? n.nodeValue : n.textContent);
+const morphSetText = (n, v) => {
+  if (n.nodeValue !== undefined && n.nodeValue !== null) n.nodeValue = v;
+  else n.textContent = v;
+};
+const morphAttr = (n, name) => (n.getAttribute ? n.getAttribute(name) : null);
+
+/** Walk every element in a subtree (root included), depth-first. */
+function morphWalk(root, fn) {
+  if (morphIsElement(root)) fn(root);
+  for (const child of morphKids(root)) morphWalk(child, fn);
+}
+
+/**
+ * `moveBefore` keeps focus/animations/lifecycle when the platform has it
+ * (G32 — Chromium 115+, Firefox 125+, Safari TP 185); the fallback is
+ * structurally correct but loses that state.
+ */
+export function moveBefore(parent, node, ref) {
+  if (typeof parent.moveBefore === "function") parent.moveBefore(node, ref);
+  else {
+    node.parentNode?.removeChild?.(node);
+    parent.insertBefore(node, ref);
+  }
+}
+
+class MorphContext {
+  constructor(doc) {
+    this.doc = doc;
+    this.idMap = new Map(); // Node -> Set<string> (persistent ids in subtree)
+    this.persistentIds = new Set();
+    this.oldIdTagMap = new Map(); // id -> tagName (old tree)
+    this.duplicates = new Set();
+    this.pantry = null; // created lazily on first park
+  }
+
+  // Phase 1 — ids that exist in BOTH trees with the SAME tag, no duplicates.
+  computePersistentIds(oldRoot, newRoot) {
+    morphWalk(oldRoot, (el) => {
+      const id = morphAttr(el, "id");
+      if (!id) return;
+      if (this.oldIdTagMap.has(id)) this.duplicates.add(id);
+      else this.oldIdTagMap.set(id, morphTag(el));
+    });
+    morphWalk(newRoot, (el) => {
+      const id = morphAttr(el, "id");
+      if (!id || this.duplicates.has(id)) return;
+      if (this.oldIdTagMap.get(id) === morphTag(el)) this.persistentIds.add(id);
+    });
+  }
+
+  // Phase 2 — bottom-up: each node -> the persistent ids inside its subtree.
+  populateIdMap(root) {
+    const build = (node) => {
+      const ids = new Set();
+      const own = morphIsElement(node) ? morphAttr(node, "id") : null;
+      if (own && this.persistentIds.has(own)) ids.add(own);
+      for (const child of morphKids(node)) {
+        for (const id of build(child)) ids.add(id);
+      }
+      if (ids.size > 0) this.idMap.set(node, ids);
+      return ids;
+    };
+    build(root);
+  }
+
+  hasConflictingId(node) {
+    const id = morphIsElement(node) ? morphAttr(node, "id") : null;
+    return !!id && !this.persistentIds.has(id);
+  }
+
+  // §3 — priority 1: ID-set intersection. The scan is UNBOUNDED over the
+  // remaining siblings AND the pantry: an id match is an anchor, and anchors
+  // are always worth moving for (the spec's own reorder test demands it; its
+  // displacement-limit example is the newIds-EMPTY case, which never enters
+  // this scan at all). Priority 2: soft match guarded by anti-churn.
+  findBestMatch(oldCursor, newChild) {
+    if (!morphIsElement(newChild)) {
+      // Text/comment: soft-match a same-kind node at the cursor.
+      return oldCursor && !morphIsElement(oldCursor) ? oldCursor : null;
+    }
+    const newIds = this.idMap.get(newChild) ?? new Set();
+
+    if (newIds.size > 0) {
+      const intersects = (candidate) => {
+        if (
+          !morphIsElement(candidate) ||
+          morphTag(candidate) !== morphTag(newChild) ||
+          !this.idMap.has(candidate)
+        ) {
+          return false;
+        }
+        const ids = this.idMap.get(candidate);
+        for (const id of newIds) {
+          if (ids.has(id)) return true;
+        }
+        return false;
+      };
+      for (let candidate = oldCursor; candidate; candidate = candidate.nextSibling) {
+        if (intersects(candidate)) return candidate;
+      }
+      // Parked earlier in THIS morph — retrievable (§4).
+      if (this.pantry) {
+        for (const candidate of morphKids(this.pantry)) {
+          if (intersects(candidate)) return candidate;
+        }
+      }
+    }
+
+    if (
+      oldCursor &&
+      morphIsElement(oldCursor) === morphIsElement(newChild) &&
+      morphTag(oldCursor) === morphTag(newChild) &&
+      !this.hasConflictingId(oldCursor)
+    ) {
+      // Anti-churn: the spec's future-sibling counter blocks EVERY element of
+      // a homogeneous list (its own narrative contradicts it). The rule that
+      // satisfies both spec examples is an equality lookahead: if the NEXT new
+      // sibling is structurally equal to the cursor, `newChild` is an
+      // INSERTION before it — create fresh instead of morphing the cursor
+      // into its successor (prepend churn) or dragging anchors (displacement).
+      if (typeof oldCursor.isEqualNode === "function") {
+        if (oldCursor.isEqualNode(newChild)) return oldCursor;
+        const nextNew = newChild.nextSibling ?? null;
+        if (nextNew && oldCursor.isEqualNode(nextNew)) return null;
+      }
+      return oldCursor;
+    }
+    return null;
+  }
+
+  // §4 — park id-bearing nodes (retrievable this morph), drop the rest.
+  removeNode(node) {
+    if (this.idMap.has(node)) {
+      if (!this.pantry) this.pantry = this.doc.createElement("div");
+      moveBefore(this.pantry, node, null);
+    } else {
+      node.parentNode?.removeChild?.(node);
+    }
+  }
+
+  morphChildren(oldParent, newParent) {
+    let oldCursor = oldParent.firstChild ?? null;
+    for (const newChild of morphKids(newParent)) {
+      // Escape hatch: BOTH sides carry data-ignore-morph -> leave untouched.
+      if (
+        oldCursor &&
+        morphAttr(oldCursor, "data-ignore-morph") !== null &&
+        morphAttr(newChild, "data-ignore-morph") !== null
+      ) {
+        oldCursor = oldCursor.nextSibling;
+        continue;
+      }
+
+      const match = this.findBestMatch(oldCursor, newChild);
+      if (match) {
+        // Park/remove everything between the cursor and the match.
+        while (oldCursor && oldCursor !== match) {
+          const next = oldCursor.nextSibling;
+          this.removeNode(oldCursor);
+          oldCursor = next;
+        }
+        if (match !== oldCursor) moveBefore(oldParent, match, oldCursor);
+        this.morphNode(match, newChild);
+        oldCursor = match.nextSibling;
+      } else {
+        const clone = cloneNode(this.doc, newChild);
+        oldParent.insertBefore(clone, oldCursor);
+      }
+    }
+    while (oldCursor) {
+      const next = oldCursor.nextSibling;
+      this.removeNode(oldCursor);
+      oldCursor = next;
+    }
+  }
+
+  morphNode(oldNode, newNode) {
+    if (!morphIsElement(oldNode) || !morphIsElement(newNode)) {
+      if (morphText(oldNode) !== morphText(newNode)) {
+        morphSetText(oldNode, morphText(newNode));
+      }
+      return;
+    }
+    if (typeof oldNode.isEqualNode === "function" && oldNode.isEqualNode(newNode)) {
+      return; // identical subtree — skip entirely
+    }
+    this.syncAttributes(oldNode, newNode);
+    preserveFormState(oldNode, newNode);
+    const tag = morphTag(oldNode);
+    if (tag === "INPUT" || tag === "TEXTAREA" || tag === "SELECT") return; // leaves
+    this.morphChildren(oldNode, newNode);
+  }
+
+  syncAttributes(oldEl, newEl) {
+    const preserved = (morphAttr(oldEl, "data-preserve-attr") || "")
+      .split(",")
+      .map((sliver) => sliver.trim())
+      .filter(Boolean);
+    for (const name of newEl.getAttributeNames()) {
+      if (!preserved.includes(name)) oldEl.setAttribute(name, newEl.getAttribute(name));
+    }
+    for (const name of oldEl.getAttributeNames()) {
+      if (!preserved.includes(name) && newEl.getAttribute(name) === null) {
+        oldEl.removeAttribute(name);
+      }
+    }
+  }
+
+  cleanup() {
+    if (this.pantry) {
+      while (this.pantry.firstChild) this.pantry.removeChild(this.pantry.firstChild);
+    }
+    this.idMap.clear();
+    this.persistentIds.clear();
+    this.oldIdTagMap.clear();
+    this.duplicates.clear();
+  }
+}
+
+/** §5 — keep what the USER did to form controls across the morph. */
+function preserveFormState(oldEl, newEl) {
+  if (morphTag(oldEl) !== morphTag(newEl)) return;
+  switch (morphTag(oldEl)) {
+    case "INPUT": {
+      const type = morphAttr(oldEl, "type");
+      if (type === "checkbox" || type === "radio") newEl.checked = oldEl.checked;
+      else if (type !== "file") newEl.value = oldEl.value;
+      break;
+    }
+    case "TEXTAREA":
+      newEl.value = oldEl.value;
+      break;
+    case "SELECT":
+      newEl.selectedIndex = oldEl.selectedIndex;
+      break;
+    default:
+  }
+}
+
+/** Deep clone for newly created content (mock-aware). */
+function cloneNode(doc, node) {
+  if (typeof node.cloneNode === "function") return node.cloneNode(true);
+  if (!morphIsElement(node)) return doc.createTextNode(morphText(node) ?? "");
+  const el = doc.createElement(node.tag ?? node.tagName);
+  for (const name of node.getAttributeNames()) el.setAttribute(name, node.getAttribute(name));
+  if (node.value != null) el.value = node.value;
+  if (node.checked != null) el.checked = node.checked;
+  for (const child of morphKids(node)) el.appendChild(cloneNode(doc, child));
+  return el;
+}
+
+export class MorphDom {
+  /** Executed scripts — never re-run across morphs (browser concern). */
+  static scripts = new WeakSet();
+
+  /**
+   * Morph `target`'s children to mirror `newContent`'s children.
+   * @param {Element} target  live element
+   * @param {Element|DocumentFragment} newContent  desired tree (its CHILDREN)
+   * @param {Document} [doc]  owning document (defaults to target's)
+   */
+  static morph(
+    target,
+    newContent,
+    doc = target.ownerDocument ?? (typeof document === "undefined" ? null : document),
+  ) {
+    const ctx = new MorphContext(doc);
+    try {
+      ctx.computePersistentIds(target, newContent);
+      ctx.populateIdMap(target);
+      ctx.populateIdMap(newContent);
+      ctx.morphChildren(target, newContent);
+      MorphDom.executeNewScripts(target, doc);
+    } finally {
+      ctx.cleanup(); // G33 — pantry never leaks, even on throw
+    }
+  }
+
+  /** §7 — re-create injected <script>s so the browser executes them, once. */
+  static executeNewScripts(root, doc) {
+    if (!doc || typeof root.querySelectorAll !== "function") return; // browser-only
+    for (const script of root.querySelectorAll("script")) {
+      if (MorphDom.scripts.has(script)) continue;
+      const clone = doc.createElement("script");
+      for (const name of script.getAttributeNames()) {
+        clone.setAttribute(name, script.getAttribute(name));
+      }
+      clone.textContent = script.textContent;
+      script.parentNode?.replaceChild?.(clone, script);
+      MorphDom.scripts.add(clone);
+    }
+  }
+}
+
 // ─── DomOpApplicator ──────────────────────────────────────────────────────
 
 /**
@@ -435,8 +759,14 @@ export class DomOpApplicator {
     if (!target) throw new Error(`DomOpApplicator: morph target not found (${kind}:${selector})`);
 
     switch (action) {
-      case 0: // ReplaceChildren
-        target.innerHTML = content;
+      case 0: // ReplaceChildren — full morph (decision 027) when the document
+        // can parse HTML; innerHTML fallback otherwise (test mocks).
+        if (typeof this.document.createRange === "function") {
+          const fragment = this.document.createRange().createContextualFragment(content);
+          MorphDom.morph(target, fragment, this.document);
+        } else {
+          target.innerHTML = content;
+        }
         break;
       case 1: // ReplaceElement
         target.insertAdjacentHTML("afterend", content);
@@ -991,6 +1321,8 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   NodeRegistry,
   DomOpApplicator,
   columnarHandler,
+  MorphDom,
+  moveBefore,
   buildEventData,
   parseCallbackId,
   EventDispatcher,

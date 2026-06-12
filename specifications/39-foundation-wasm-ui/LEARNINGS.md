@@ -854,3 +854,15 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   only assert placement + delegateTarget stamping; implement to the tests and
   say so, rather than inventing semantics the spec didn't pin.
 
+## Feature 07 (MorphDom, 2026-06-12)
+
+- **When a spec's algorithm contradicts its own tests, the tests encode the
+  intent**: the §3 displacement limit blocks the spec's reorder test, and the
+  future-sibling anti-churn counter blocks every homogeneous list it was
+  meant to protect. Fixes: unbounded ID scans (anchors are always worth
+  moving for; pantry included) and equality-LOOKAHEAD anti-churn (next new
+  sibling equals the cursor => current child is an insertion).
+- **Duck-typing the DOM surface pays off**: mock text nodes exposing
+  getAttributeNames masqueraded as elements — explicit nodeType/#text
+  detection in ONE helper fixed the whole algorithm for both DOMs.
+

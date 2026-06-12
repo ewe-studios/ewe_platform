@@ -307,7 +307,7 @@ is the at-a-glance view (kept in sync as features complete).
 | [04-instruction-receiver](features/04-instruction-receiver/) | InstructionReceiver: DomOp queue/flush/ack over the protocol layer (decision 030) | 1 | **COMPLETE** (2026-06-12) |
 | [05-arrow-encoding](features/05-arrow-encoding/) | Real Arrow IPC RecordBatch encoding behind ProtocolEncoder (no_std columnar layout shipped in F01 as the interim) | 1 | **COMPLETE** (2026-06-12) — v2 wire form in foundation_arrow; wasm loop keeps v1 (see status.md) |
 | [06-web-components](features/06-web-components/) | Island/mount web components, execution modes (decisions 013/014/021/023/024) | 2 | pending |
-| [07-dom-morphing](features/07-dom-morphing/) | Datastar-style morphing (decision 027) behind MorphNode (minimal application shipped in F01 JS) | 2 | pending |
+| [07-dom-morphing](features/07-dom-morphing/) | Datastar-style morphing (decision 027) behind MorphNode — MorphDom with pantry, form preservation, escape hatches | 2 | **COMPLETE** (2026-06-12) |
 | [08-event-runtime](features/08-event-runtime/) | primal:on* wiring → EventData → invoke_signal_callback → stabilize; delegation, dot-path handlers, island-boundary MutationObserver | 2 | **COMPLETE** (2026-06-12) |
 | [09-scoped-styles-theme](features/09-scoped-styles-theme/) | Scoped script/style tags + theme system (decisions 019/020) | 3 | pending |
 | [10-build-pipeline](features/10-build-pipeline/) | Build pipeline (decision 016) | 3 | pending |

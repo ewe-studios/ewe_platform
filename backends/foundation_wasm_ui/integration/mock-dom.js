@@ -70,6 +70,36 @@ export class MockNode {
     return this.parent;
   }
 
+  /** Sibling/child traversal aliases for the morph engine. */
+  get childNodes() {
+    return this.children;
+  }
+
+  get firstChild() {
+    return this.children[0] ?? null;
+  }
+
+  get nextSibling() {
+    if (!this.parent) return null;
+    const i = this.parent.children.indexOf(this);
+    return i >= 0 ? this.parent.children[i + 1] ?? null : null;
+  }
+
+  /** Structural equality (DOM's isEqualNode, mock edition). */
+  isEqualNode(other) {
+    if (!other || other.tag !== this.tag) return false;
+    if (this.tag === "#text") return this.textContent === other.textContent;
+    const mine = this.getAttributeNames().sort();
+    const theirs = (other.getAttributeNames?.() ?? []).sort();
+    if (mine.length !== theirs.length) return false;
+    for (let i = 0; i < mine.length; i++) {
+      if (mine[i] !== theirs[i]) return false;
+      if (this.getAttribute(mine[i]) !== other.getAttribute(mine[i])) return false;
+    }
+    if (this.children.length !== other.children.length) return false;
+    return this.children.every((child, i) => child.isEqualNode(other.children[i]));
+  }
+
   /** DOM-alias for the event runtime's delegate resolution. */
   get parentElement() {
     return this.parent;
