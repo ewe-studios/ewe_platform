@@ -23,12 +23,12 @@ Two separate queue-backed delivery mechanisms with distinct semantics:
 
 ### Queue Types
 
-Both use `Arc<ConcurrentQueue<SteeringMessage>>` — the Agent task holds references to both, passed as shared state:
+Both use `Arc<ConcurrentQueue<Messages>>` — the Agent task holds references to both. Steering messages are **always** `Messages::User` — whether from a human user, system prompt, or another LLM agent:
 
 ```rust
 pub struct AgentSession {
-    pub priority_queue: Arc<ConcurrentQueue<SteeringMessage>>,
-    pub followup_queue: Arc<ConcurrentQueue<SteeringMessage>>,
+    pub priority_queue: Arc<ConcurrentQueue<Messages>>,  // Messages::User from any source
+    pub followup_queue: Arc<ConcurrentQueue<Messages>>,  // Messages::User from any source
     pub cancel_signal: Arc<AtomicU32>,  // signal codes for LLM task
     // ... other shared state
 }
@@ -39,6 +39,13 @@ pub enum CancelCode: u32 {
     Abort = 2,              // LLM should abort entirely
 }
 ```
+
+A `Messages::User` can come from:
+- **Human user** → `role: MessageRole::User` — direct input
+- **System** → `role: MessageRole::System` — instructions, loop redirect
+- **Another LLM agent** → `role: MessageRole::Agent` — inter-agent steering/guidance
+
+The **queue determines urgency**, not the message type. Same `Messages::User` routed to PriorityQueue interrupts immediately; routed to FollowUpQueue, it waits for the outer loop boundary.
 
 ### How PriorityQueue Interrupts the LLM
 
@@ -133,22 +140,6 @@ Agent.prompt("Fix the bug")
    │   └─ Check FollowUpQueue → if messages, continue outer loop
    │
    └─ emit(AgentEvent::SessionEnd)
-```
-
-### SteeringMessage Structure
-
-```rust
-pub struct SteeringMessage {
-    pub content: String,
-    pub source: MessageSource,  // user, system, external
-    pub enqueued_at: u128,      // scru128 timestamp
-    pub urgency: Urgency,       // Priority or FollowUp
-}
-
-pub enum Urgency {
-    Priority,   // Goes to PriorityQueue — interrupts LLM
-    FollowUp,   // Goes to FollowUpQueue — waits for outer loop boundary
-}
 ```
 
 ### Rationale

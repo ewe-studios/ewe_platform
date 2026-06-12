@@ -19,18 +19,95 @@ The Message API is the authoritative record of every interaction within a sessio
 
 The Message API is an `Arc<MessageInner>`-backed store with write buffering, pub/sub broadcasting, and pluggable persistence. Messages are **never compacted** — the store is an append-only audit trail.
 
+### Foundation_ai Message Types
+
+All message content uses foundation_ai's existing types from `foundation_ai::types`, with `role` changed from `String` to a typed enum:
+
+```rust
+/// Source of a message — distinguishes human, agent, system, and tool origins.
+pub enum MessageRole {
+    User,           // human user input
+    Agent,          // another LLM agent providing guidance/steering
+    System,         // system prompt/instructions
+    Tool,           // tool result context
+    Custom(String), // extensibility for unknown/custom roles
+}
+
+pub enum Messages {
+    User {
+        role: MessageRole,           // enum, not String
+        content: UserModelContent,   // Text(TextContent) | Image(ImageContent)
+        signature: Option<String>,
+    },
+    Assistant {
+        model: ModelId,
+        timestamp: SystemTime,
+        usage: UsageReport,
+        content: ModelOutput,        // Text | Image | ThinkingContent | ToolCall | Embedding
+        stop_reason: StopReason,
+        provider: ModelProviders,
+        error_detail: Option<String>,
+        signature: Option<String>,
+        metadata: Option<Vec<GenerationMetadata>>,
+    },
+    ToolResult {
+        id: String,
+        name: String,
+        timestamp: SystemTime,
+        details: Option<String>,
+        content: UserModelContent,
+        error_detail: Option<String>,
+        signature: Option<String>,
+    },
+}
+```
+
+This means:
+- **Human user input** → `Messages::User { role: MessageRole::User, ... }`
+- **Agent-to-agent steering** → `Messages::User { role: MessageRole::Agent, ... }`
+- **System instructions** → `Messages::User { role: MessageRole::System, ... }`
+- **LLM response** → `Messages::Assistant { ... }`
+- **Tool output** → `Messages::ToolResult { ... }`
+
+### Agentic-Extended Message Types
+
+The agentic API adds these variants to the `Messages` enum for internal session management:
+
+```rust
+// Agentic additions to Messages enum — for internal session management.
+// Steering and System messages use Messages::User with MessageRole::Agent/System.
+pub enum Messages {
+    // ... existing variants (User, Assistant, ToolResult) ...
+    
+    WorkingMemory {
+        facts: Vec<MemoryFact>,
+        version: u64,
+        timestamp: SystemTime,
+    },
+    Observation {
+        observations: Vec<ObservationEntry>,
+        token_count: u64,
+        timestamp: SystemTime,
+    },
+    Reflection {
+        reflections: Vec<ReflectionEntry>,
+        generated_at: SystemTime,
+        observation_token_count_before: u64,
+        reflection_token_count_after: u64,
+    },
+}
+```
+
 ### Core Architecture
 
 ```
 Message { inner: Arc<MessageInner> }
 ├── write_buffer: Arc<ConcurrentQueue<QueuedMessage>>  // in-memory buffer
-├── flush_task: Arc<MessageTask>                        // valtron task that flushes to disk 
-├── broadcaster: Arc<Broadcaster<MessageEvent>>         // pub/sub for listeners
-├── vector_index: Arc<VectorStore>                      // semantic search
+├── flush_task: Arc<MessageTask>                        // valtron task that flushes to disk
+├── broadcaster: Arc<ConcurrentQueue<MessageEvent>>     // pub/sub for listeners (Decision 01 pattern)
+├── vector_index: Arc<dyn VectorStore>                  // semantic search
 └── session_id: SessionId                               // owns this store
 ```
-
-1. Having a valtron task to flush to disl is ok, should create a new wrapper for ConccurrentQueue that wraps it in Arc<T> and has a related type that takes a duration and a max items which a valtron tasks can use to report a TaskStatus::Depends(T) which will keep saying NO till either the duration elapsed (which we update after) or the total items in the queue is >= to max account which will wake up the task to flush to disk.
 
 ### Write Buffering Strategy
 
@@ -44,47 +121,26 @@ Messages are **never written directly to disk**. Instead:
 3. **Flush task** is a dedicated valtron task that drains the queue and persists to disk
 4. **Before agent stop**, the flush task is awaited — all messages guaranteed persisted
 
-### Message Types (Append-Only Audit Trail)
-
-Every interaction is a JSON-serializable record:
-
-| message_type | Content | Used By |
-|-------------|---------|---------|
-| `user` | User text input | Agent loop, context assembly |
-| `assistant` | LLM text response | Agent loop, context assembly |
-| `tool_call` | Tool invocation request | ToolCallManager, agent loop |
-| `tool_result` | Tool execution result | Agent loop, context assembly |
-| `thinking` | LLM reasoning/thinking block | Agent loop (may be skipped in compacted views) |
-| `steering` | User interrupt/redirect | PriorityQueue, agent loop |
-| `observation` | ObservationMemory snapshot | Context memory (skipped by agent by default) |
-| `reflection` | ReflectionMemory summary | Context memory (skipped by agent by default) |
-| `working_memory` | WorkingMemory snapshot | Context memory (hydrated on session resume) |
-| `system` | System prompt / instructions | Agent loop (first message) |
-| `error` | Error/retry/failure record | Agent loop, debugging |
-
 ### Message Ordering
 
-Messages use **scru128 IDs** (same as SessionId) for natural time ordering:
+Messages use **scru128 IDs** (from `foundation_rng`) for natural time ordering:
 
 ```rust
-pub struct Message {
-    pub id: Scru128,          // time-ordered unique ID
+pub struct StoredMessage {
+    pub id: Scru128,              // time-ordered unique ID
     pub session_id: SessionId,
-    pub message_type: MessageType,
-    pub role: MessageRole,    // user, assistant, system, tool
-    pub content: MessageContent, // text, tool_calls, thinking, etc.
-    pub metadata: MessageMeta,   // timestamps, token counts, etc.
-    pub created_at: u128,        // scru128 timestamp (redundant but queryable)
+    pub message: Messages,         // foundation_ai::types::Messages
+    pub created_at: u128,          // scru128 timestamp (redundant but queryable)
 }
 ```
 
 ### Pub/Sub Integration
 
-The `Broadcaster` from `foundation_core::synca` allows any valtron task to subscribe to message events:
+The broadcaster uses `Arc<ConcurrentQueue<MessageEvent>>` (Decision 01 pattern):
 
 ```rust
 pub enum MessageEvent {
-    Appended { message_id: Scru128, message_type: MessageType },
+    Appended { message_id: Scru128, message_variant: &'static str },
     Flushed { count: usize },
     Error { error: String },
 }
@@ -107,7 +163,7 @@ Messages are indexed in a **vector store** for semantic search:
 ### Serialization
 
 All messages are serializable to:
-- **JSON** — human-readable, compatible with external tools
+- **JSON** — via `serde` on foundation_ai's `Messages` enum (already `Serialize + Deserialize`)
 - **Arrow** — columnar format for batch processing, analytics, and efficient transport
 
 ### API Contract
@@ -115,22 +171,22 @@ All messages are serializable to:
 ```rust
 pub trait MessageStore {
     /// Get the last N messages (for immediate context, no semantic search)
-    fn recent(&self, n: usize) -> Vec<Message>;
+    fn recent(&self, n: usize) -> Vec<StoredMessage>;
     
     /// Get all messages from session start (full replay)
-    fn all(&self) -> impl Iterator<Item = Message>;
+    fn all(&self) -> impl Iterator<Item = StoredMessage>;
     
     /// Semantic search — find messages relevant to query
-    fn semantic_search(&self, query: &str, limit: usize) -> Vec<Message>;
+    fn semantic_search(&self, query: &str, limit: usize) -> Vec<StoredMessage>;
     
     /// Append a message (buffered, not immediately persisted)
-    fn append(&self, message: Message);
+    fn append(&self, message: Messages);
     
     /// Flush all buffered messages to disk (blocking)
     fn flush(&self) -> Result<()>;
     
     /// Subscribe to message events
-    fn subscribe(&self) -> Receiver<MessageEvent>;
+    fn subscribe(&self) -> Arc<ConcurrentQueue<MessageEvent>>;
 }
 ```
 

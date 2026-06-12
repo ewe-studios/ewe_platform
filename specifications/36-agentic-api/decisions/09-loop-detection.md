@@ -39,7 +39,7 @@ Loop Detector Task
 ```rust
 pub struct LoopDetector {
     /// Sliding window of recent assistant messages
-    window: VecDeque<MessageContent>,
+    window: VecDeque<ModelOutput>,  // foundation_ai::types::ModelOutput
     
     /// Window size (number of messages to track)
     window_size: usize,
@@ -53,6 +53,7 @@ pub struct LoopDetector {
     /// Tool call pattern tracker
     tool_call_history: VecDeque<Vec<ToolCallSignature>>,
 }
+```
 
 pub struct ToolCallSignature {
     pub tool_name: String,
@@ -65,7 +66,7 @@ pub struct ToolCallSignature {
 ```rust
 impl LoopDetector {
     /// Check if the latest assistant message indicates a loop
-    pub fn check(&mut self, message: &MessageContent) -> LoopDetection {
+    pub fn check(&mut self, message: &ModelOutput) -> LoopDetection {
         self.window.push_back(message.clone());
         while self.window.len() > self.window_size {
             self.window.pop_front();
@@ -144,7 +145,7 @@ impl LoopDetector {
         working_memory: &WorkingMemory,
         reflection_memory: &ReflectionMemory,
         observation_memory: &ObservationMemory,
-    ) -> Message {
+    ) -> Messages {
         let context = format!(
             "Based on the session context:\n\
              Working memory: {}\n\
@@ -156,11 +157,13 @@ impl LoopDetector {
             observation_memory.latest_summary(),
         );
 
-        Message {
+        Messages::User {
             role: MessageRole::System,
-            message_type: MessageType::Steering,
-            content: MessageContent::Text(context),
-            ..Default::default()
+            content: UserModelContent::Text(TextContent {
+                content,
+                signature: None,
+            }),
+            signature: None,
         }
     }
 }

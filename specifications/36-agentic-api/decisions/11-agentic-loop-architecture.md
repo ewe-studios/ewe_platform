@@ -146,9 +146,9 @@ The agent loop emits progress via `Stream<AgentEvent, AgentProgress>`:
 pub enum AgentEvent {
     SessionStart { session_id: SessionId },
     TurnStart { turn: usize },
-    MessageStart { message_type: MessageType },
+    MessageStart { message_variant: &'static str },
     MessageUpdate { content: String },    // streaming token chunks
-    MessageEnd { message_type: MessageType, full_content: String },
+    MessageEnd { message_variant: &'static str, full_content: String },
     ToolCallStart { tool_name: String, arguments: String },
     ToolCallUpdate { progress: String },
     ToolCallEnd { tool_name: String, result: String },

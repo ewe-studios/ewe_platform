@@ -193,9 +193,9 @@ The agent loop emits events via the valtron `Stream` protocol:
 pub enum AgentEvent {
     SessionStart { session_id: SessionId },
     TurnStart { turn: usize },
-    MessageStart { message_type: MessageType },
+    MessageStart { message_variant: &'static str },
     MessageUpdate { content: String },
-    MessageEnd { message_type: MessageType },
+    MessageEnd { message_variant: &'static str },
     ToolCallStart { tool_call: ToolCallRequest },
     ToolCallUpdate { progress: String },
     ToolCallEnd { result: ToolCallResult },
