@@ -3378,6 +3378,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_ui_components"
+version = "0.1.0"
+dependencies = [
+ "foundation_signals",
+ "foundation_ui_traits",
+ "foundation_wasm_ui",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_ui_traits"
 version = "0.0.1"
 
