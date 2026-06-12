@@ -53,6 +53,14 @@ impl App {
     pub fn json() -> App;
     /// MockProtocol — tests; pairs with `sent_batches()` access.
     pub fn mock() -> (App, SentBatches);
+    /// SERVER preset (review addition): on native, host_apply is a no-op
+    /// stub — these capture every flushed batch as envelope-framed Vec<u8>
+    /// in a shared queue (FrameSink<E>), ready for WS binary frames / SSE
+    /// toward a client mount-stream. server() = arrow v1; server_with takes
+    /// ANY Layer-1 encoder (JsonEncoder, foundation_arrow::ArrowIpcEncoder —
+    /// no cargo feature needed server-side).
+    pub fn server() -> (App, CollectedFrames);
+    pub fn server_with<E: ProtocolEncoder<Vec<DomOp>> + 'static>(e: E) -> (App, CollectedFrames);
     /// Escape hatch: any ProtocolMethods impl.
     pub fn with_protocol(p: impl ProtocolMethods<Vec<DomOp>> + 'static) -> App;
 
@@ -97,7 +105,17 @@ Notes (settled):
 - Memory defaults to `MemoryAllocations::new()`; an `App::builder()` is NOT
   added until a real need appears (don't speculate API).
 
-## 3. Testing
+## 3. Server rendering (review addition)
+
+First-paint HTML needs NO App (`html!{…}.to_markup()` — feature 00). Live
+server-driven UI = `App::server()` + ship the frames; one App per
+connection/session; drop on disconnect. README §10 is the user-facing
+walkthrough. `Context` gains handle-counted `Clone` (clone = another handle
+to the SAME scope; disposal at the last handle — `Rc::strong_count` can't
+decide it because parents hold child inners) so `app.context()` can hand
+out an owned pair.
+
+## 4. Testing
 
 Construction per preset; `context()` pair drives a reactive template
 end-to-end (mock preset asserts the op stream); `stabilize` flushes;

@@ -27,6 +27,8 @@ foundation_signals = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_nostd = { workspace = true }
 tracing = { version = "0.1", default-features = false }
+# Arrow IPC v2 over the loop (the `arrow` feature).
+foundation_arrow = { workspace = true, optional = true }
 
 # Build tooling (feature 20): JS wrappers + bundles over foundation_wasm's
 # build_tools — a std, native-only concern, so target-gated rather than
@@ -38,6 +40,10 @@ tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]
 default = []
+# Arrow family wire VERSION 2: real Apache Arrow IPC over the loop
+# (ArrowIpcV2 + App::arrow_ipc). Optional — arrow-rs is heavyweight; the
+# default loop protocol stays the v1 compact columnar.
+arrow = ["dep:foundation_arrow"]
 # Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
 embedded-js = ["foundation_wasm/embedded-js"]
 

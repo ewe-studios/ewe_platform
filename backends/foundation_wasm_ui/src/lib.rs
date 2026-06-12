@@ -27,6 +27,7 @@ pub mod build_tools;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod cli;
 
+pub mod app;
 pub mod events;
 pub mod html_macro;
 pub mod slots;
@@ -41,6 +42,7 @@ pub mod embedded;
 
 pub use events::{install_event_bridge, invoke_signal_callback, uninstall_event_bridge};
 pub use html_macro::MaybeCallback;
+pub use app::{App, SentBatches};
 pub use slots::{mount_fragment, mount_into, Render, Slot};
 pub use instruction::{ColumnarReceiver, InstructionReceiver};
 // The html! proc macro itself — re-exported so users write
@@ -49,6 +51,8 @@ pub use foundation_macros::{html, ThemeTokens};
 pub use theme::{inject_theme_css, HEAD_NODE_ID, THEME_STYLE_NODE_ID};
 pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use protocol::{
-    ColumnarV1, BatchInstructionsV1, DomOpsBatch, HandleResult, JsonV1, MockProtocol,
-    ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
+    ColumnarV1, BatchInstructionsV1, CollectedFrames, DomOpsBatch, FrameSinkV1, HandleResult,
+    JsonV1, MockProtocol, ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
 };
+#[cfg(feature = "arrow")]
+pub use protocol::ArrowIpcV2;

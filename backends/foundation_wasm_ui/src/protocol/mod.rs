@@ -14,12 +14,18 @@
 //! single uniform `host_apply` import — so JS reads the protocol byte from the buffer
 //! and `dispose_allocation`s the slot by `memory_id`.
 
+#[cfg(feature = "arrow")]
+mod arrow_ipc;
 mod columnar;
+mod frame_sink;
 mod batch_instructions;
 mod json;
 mod mock;
 
+#[cfg(feature = "arrow")]
+pub use arrow_ipc::ArrowIpcV2;
 pub use columnar::ColumnarV1;
+pub use frame_sink::{CollectedFrames, FrameSink, FrameSinkV1};
 pub use batch_instructions::{BatchInstructionsV1, DomOpsBatch, BATCH_OP_APPLY_DOM};
 pub use json::JsonV1;
 pub use mock::MockProtocol;

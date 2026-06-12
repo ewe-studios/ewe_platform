@@ -33,6 +33,11 @@ struct ContextInner {
     /// Context-level cleanups (`on_cleanup` called OUTSIDE any effect); run
     /// once at disposal, before owned nodes are removed.
     cleanups: Vec<Box<dyn FnOnce()>>,
+    /// Live `Context` HANDLES over this scope (clones). Disposal happens
+    /// when the LAST handle drops — `Rc::strong_count` can't be used because
+    /// a parent's `children` list also holds the inner `Rc` without being a
+    /// handle.
+    handles: usize,
 }
 
 impl Context {
@@ -46,6 +51,7 @@ impl Context {
                 owned: Vec::new(),
                 children: Vec::new(),
                 cleanups: Vec::new(),
+                handles: 1,
             })),
         }
     }
@@ -218,9 +224,29 @@ impl Context {
     }
 }
 
+/// Handle semantics (spec-42 feature 03): a clone is ANOTHER HANDLE to the
+/// SAME scope — signals/effects created through either belong to the one
+/// scope, which is disposed when the last handle drops.
+impl Clone for Context {
+    fn clone(&self) -> Self {
+        self.inner.borrow_mut().handles += 1;
+        Self {
+            runtime: Rc::clone(&self.runtime),
+            inner: Rc::clone(&self.inner),
+        }
+    }
+}
+
 impl Drop for Context {
     fn drop(&mut self) {
-        dispose_inner(&self.runtime, &self.inner);
+        let last_handle = {
+            let mut inner = self.inner.borrow_mut();
+            inner.handles = inner.handles.saturating_sub(1);
+            inner.handles == 0
+        };
+        if last_handle {
+            dispose_inner(&self.runtime, &self.inner);
+        }
     }
 }
 

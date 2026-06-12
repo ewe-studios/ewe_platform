@@ -69,9 +69,31 @@ write, and the wire format is documented bytes you can parse yourself.
 
 ---
 
-## 2. Wiring a program (the five objects)
+## 2. Wiring a program
 
-Every app builds the same five things once, at startup:
+The one-liner (spec-42 feature 03):
+
+```rust
+use foundation_wasm_ui::App;
+
+let app = App::new();                 // THE DEFAULT: arrow-family wire v1 (zero-copy columnar)
+let (ctx, receiver) = app.context();  // the pair every reactive html!/component call needs
+// … mount templates …
+app.stabilize();
+```
+
+Presets: `App::new()`/`columnar()` (arrow v1 — we always default to arrow),
+`App::json()` (debugging), `App::mock()` (tests — returns the captured-ops
+handle), `App::server()`/`server_with(encoder)` (see §server below),
+`App::arrow_ipc()` (wire v2 real Arrow IPC, `arrow` cargo feature), and
+`App::with_protocol(...)` as the escape hatch. `app.scope()` gives a child
+`Context` for component-scoped teardown; dropping the `App` disposes the
+root scope. `Context` clones are HANDLES to one scope (disposal at the last
+handle).
+
+### What `App` builds (the five objects)
+
+Under the hood every program is the same five things:
 
 ```rust
 use std::rc::Rc;
@@ -420,7 +442,81 @@ node --test backends/foundation_wasm_ui/integration/test/
 
 ---
 
-## 10. Shipping: from `#[wasm_bin]` to a deployable directory
+## 10. Rendering on the server
+
+The macro expands to target-agnostic code (no `cfg(target_arch)` anywhere
+in the expansion), so EVERYTHING here runs on a plain native server. Two
+distinct server roles:
+
+### 10.1 First-paint HTML — no runtime at all
+
+The pure form + `to_markup()` serialize the same trees that drive the DomOp
+channel (the morph contract — server markup and live DOM come from ONE
+renderer, slot spans and all):
+
+```rust
+fn page(user: &str) -> String {
+    let body = html! {
+        <main class="app">
+            <h1>{user}</h1>
+            <mount-stream api="/live" target="#feed"></mount-stream>
+            <div id="feed"></div>
+        </main>
+    };
+    body.to_markup()   // → serve as text/html
+}
+```
+
+Escaping, void elements, and the slot-`<span>` shape are handled; no
+signals, no `App`, no allocation arena.
+
+### 10.2 Live server-driven UI — `App::server()`
+
+A server can run the FULL reactive loop and stream DOM updates to the
+browser. On native, the FFI ship is a no-op stub, so the server presets
+capture every flushed batch as a complete envelope-framed `Vec<u8>`
+instead:
+
+```rust
+let (app, frames) = App::server();        // arrow-family wire v1 (default)
+let (ctx, receiver) = app.context();
+let (status, set_status) = ctx.signal(String::from("ready"));
+let _ui = html! { ctx, receiver, <p class="status">{status.get()}</p> };
+app.stabilize();
+
+// Each frame is ready-to-ship wire bytes:
+while let Some(frame) = frames.borrow_mut().pop_front() {
+    // WebSocket: send as ONE BINARY frame (the envelope's protocol byte
+    //   tells the client runtime what it is — feature 04 negotiation).
+    // SSE: base64 the bytes under `event: arrow`.
+    websocket.send_binary(&frame);
+}
+```
+
+The client side is the existing `<mount-stream>`: it routes `arrow`-typed
+results into `DomOpApplicator`, so the server's signal writes become DOM
+mutations in the page — same loop, different side of the wire.
+
+**Encoder choice** mirrors client negotiation: `App::server()` = arrow v1;
+`App::server_with(JsonEncoder)` = readable `primal-json` streams;
+`App::server_with(foundation_arrow::ArrowIpcEncoder)` = wire v2 real Arrow
+IPC for standard tooling (server side needs no cargo feature — the encoder
+comes from `foundation_arrow` directly).
+
+**Lifecycle note:** one `App` per connection/session (its id space and
+registry mirror one client DOM). Drop the `App` when the connection
+closes — the root scope disposes every effect.
+
+### 10.3 HTML patches
+
+For morph-style updates without a wasm/runtime client, serve `text/html`
+fragments (from `to_markup()`) to `mount-data`/`mount-stream` — the client
+morphs them in (`html` / `html-morph` routing), preserving id-bearing
+elements including slot spans.
+
+---
+
+## 11. Shipping: from `#[wasm_bin]` to a deployable directory
 
 Annotate entrypoints, then let the build pipeline do discovery → compile →
 wrappers → bundles:
@@ -458,7 +554,7 @@ use foundation_wasm_ui::embedded::{FOUNDATION_WASM_UI_JS, APACHE_ARROW_JS, FOUND
 
 ---
 
-## 11. Cargo features & targets
+## 12. Cargo features & targets
 
 | feature       | default | effect                                                            |
 |---------------|---------|-------------------------------------------------------------------|
@@ -471,7 +567,7 @@ degrades to a stub there).
 
 ---
 
-## 12. Current limits (honest edition)
+## 13. Current limits (honest edition)
 
 - **There is deliberately no `Component` lifecycle trait** — "it's all just
   functions" (spec-42 decision). Composition is `Render`/`Slot` +
