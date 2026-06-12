@@ -91,8 +91,11 @@ fn child_slot_emits_text_part() {
     let h = html! { <div>{name}</div> };
     assert_eq!(h.parts.len(), 1);
     assert!(matches!(&h.parts[0], Part::Text(t) if t.node_id == 0));
-    // The slot evaluated through IntoHtml into a text child.
-    assert_eq!(h.children[0].text.as_deref(), Some("world"));
+    // Text-shaped slot values render as the slot <span> (feature-00 §4,
+    // morph parity with the reactive form) wrapping the text child.
+    let slot_span = &h.children[0];
+    assert_eq!(tag_name(slot_span), Some("span"));
+    assert_eq!(slot_span.children[0].text.as_deref(), Some("world"));
 }
 
 /// Test 6.
@@ -248,11 +251,11 @@ fn two_setters_distinct_callback_ids() {
 #[test]
 fn primitive_slots_become_text_nodes() {
     let h = html! { <div>{42u32}</div> };
-    assert_eq!(h.children[0].text.as_deref(), Some("42"));
-    assert_eq!(h.children[0].tag, None);
+    assert_eq!(tag_name(&h.children[0]), Some("span"));
+    assert_eq!(h.children[0].children[0].text.as_deref(), Some("42"));
 
     let h = html! { <div>{"hello"}</div> };
-    assert_eq!(h.children[0].text.as_deref(), Some("hello"));
+    assert_eq!(h.children[0].children[0].text.as_deref(), Some("hello"));
 }
 
 /// Tests 32 + 33.
@@ -262,8 +265,11 @@ fn option_slots() {
     let h = html! { <div>{some}</div> };
     assert_eq!(tag_name(&h.children[0]), Some("b"));
 
+    // None renders the empty slot <span> (same shape the reactive form
+    // mounts — feature-00 parity).
     let h = html! { <div>{None::<Html>}</div> };
-    assert_eq!(h.children[0], Html::new());
+    assert_eq!(tag_name(&h.children[0]), Some("span"));
+    assert_eq!(h.children[0].children[0], Html::new());
 }
 
 /// Test 34.
@@ -307,7 +313,8 @@ fn bare_text_runs() {
     let n = 5;
     let h = html! { <button>Count: {n}</button> };
     assert_eq!(h.children[0].text.as_deref(), Some("Count:"));
-    assert_eq!(h.children[1].text.as_deref(), Some("5"));
+    assert_eq!(tag_name(&h.children[1]), Some("span"));
+    assert_eq!(h.children[1].children[0].text.as_deref(), Some("5"));
 }
 
 // ─── Mount integration (tests 40-42, reactive form) ────────────────────────────

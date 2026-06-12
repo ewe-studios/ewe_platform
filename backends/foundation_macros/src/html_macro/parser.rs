@@ -53,6 +53,11 @@ pub(crate) enum ParsedNode {
     Text(String),
     /// A `{ ... }` slot — the expression tokens, untouched.
     Slot(TokenStream),
+    /// `<Fragment>{expr}…</Fragment>` (spec-42 feature 00 §6): a compile-time
+    /// directive, no DOM node of its own. Each expression evaluates ONCE at
+    /// mount and splices into the PARENT element (pure form: inline, like
+    /// today's `{expr}`; reactive form: `mount_fragment`).
+    Fragment { exprs: Vec<TokenStream> },
 }
 
 /// One parsed attribute.
@@ -246,6 +251,24 @@ fn parse_element(cursor: &mut Cursor) -> ParseResult<ParsedNode> {
     assert!(cursor.eat_punct('<'), "caller guaranteed '<'");
 
     let (tag, tag_span) = parse_tag_name(cursor, open_span)?;
+
+    // Capitalized tags are RESERVED compile-time built-ins (spec-42
+    // feature 00 §6) — never DOM elements (real tags are lowercase; custom
+    // elements require a dash).
+    if tag.chars().next().is_some_and(|c| c.is_ascii_uppercase()) {
+        if tag == "Fragment" {
+            return parse_fragment(cursor, tag_span);
+        }
+        return Err(ParseError::new(
+            tag_span,
+            format!(
+                "html!: unknown built-in '<{tag}>' — capitalized tags are reserved \
+                 (available: Fragment); custom elements need a dash (e.g. <my-{}>)",
+                tag.to_lowercase()
+            ),
+        ));
+    }
+
     let attrs = parse_attributes(cursor, &tag, tag_span)?;
 
     // `/>` or `>`.
@@ -283,6 +306,59 @@ fn parse_element(cursor: &mut Cursor) -> ParseResult<ParsedNode> {
         attrs,
         children,
     })
+}
+
+/// Parse `<Fragment> {expr}… </Fragment>` after its tag name. Fragments take
+/// no attributes; their children must be `{ }` expressions (static content
+/// belongs directly in the parent — the directive only marks once-at-mount
+/// splice points).
+fn parse_fragment(cursor: &mut Cursor, tag_span: Span) -> ParseResult<ParsedNode> {
+    // `<Fragment/>` (pointless but harmless) or `<Fragment>`.
+    if cursor.eat_punct('/') {
+        if !cursor.eat_punct('>') {
+            return Err(ParseError::new(
+                cursor.span(),
+                "html!: missing '>' after '<Fragment/'",
+            ));
+        }
+        return Ok(ParsedNode::Fragment { exprs: Vec::new() });
+    }
+    if !cursor.eat_punct('>') {
+        return Err(ParseError::new(
+            tag_span,
+            "html!: <Fragment> takes no attributes — expected '>'",
+        ));
+    }
+
+    let mut exprs = Vec::new();
+    loop {
+        if cursor.at_closing_tag() {
+            break;
+        }
+        match cursor.peek() {
+            Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace => {
+                let Some(TokenTree::Group(group)) = cursor.next() else {
+                    unreachable!("peeked")
+                };
+                exprs.push(group.stream());
+            }
+            Some(other) => {
+                return Err(ParseError::new(
+                    other.span(),
+                    "html!: <Fragment> children must be { } expressions \
+                     (static content goes directly in the parent element)",
+                ));
+            }
+            None => {
+                return Err(ParseError::new(
+                    tag_span,
+                    "html!: missing '</Fragment>'",
+                ));
+            }
+        }
+    }
+    consume_closing_tag(cursor, "Fragment", tag_span)?;
+    Ok(ParsedNode::Fragment { exprs })
 }
 
 /// Tag and attribute names: `ident(('-'|':')ident)*` — covers `div`,

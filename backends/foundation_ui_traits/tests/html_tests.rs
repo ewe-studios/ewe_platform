@@ -23,6 +23,7 @@ fn html_into_html_is_identity() {
         children: vec![Html::text("hi")],
         text: None,
         parts: vec![],
+        runtime_id: None,
     };
     assert_eq!(html.clone().into_html(), html);
 }

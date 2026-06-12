@@ -118,7 +118,7 @@ fn extract_styles_walk(
                                 }
                             }
                         }
-                        ParsedNode::Element { .. } => {
+                        ParsedNode::Element { .. } | ParsedNode::Fragment { .. } => {
                             return Err(ParseError {
                                 span: *style_span,
                                 message: String::from(
@@ -197,8 +197,11 @@ struct Plan {
 /// the walk happens here rather than inside `Plan::number`.
 fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
     fn walk(plan: &mut Plan, node: ParsedNode, parent_element: Option<u32>) -> Numbered {
+        // Fragments are directives, not nodes — they consume no ids.
         let runtime_index = plan.next_runtime;
-        plan.next_runtime += 1;
+        if !matches!(node, ParsedNode::Fragment { .. }) {
+            plan.next_runtime += 1;
+        }
 
         match node {
             ParsedNode::Element {
@@ -260,6 +263,12 @@ fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
                 runtime_index,
                 children: Vec::new(),
             },
+            ParsedNode::Fragment { exprs } => Numbered {
+                node: ParsedNode::Fragment { exprs },
+                element_id: None,
+                runtime_index,
+                children: Vec::new(),
+            },
         }
     }
 
@@ -293,6 +302,7 @@ pub(crate) fn generate_pure(mut root: ParsedNode) -> TokenStream {
         let css = &style.css;
         quote! {
             __html.children.push(#ui::Html {
+                runtime_id: ::core::option::Option::None,
                 tag: ::core::option::Option::Some(#ui::HtmlTag::from_static("style")),
                 attributes: #ui::__macro::vec![(
                     #ui::AttrName::from_static("data-primal-scoped"),
@@ -385,6 +395,9 @@ pub(crate) fn generate_reactive(
         #prelude
         let mut __html = #html;
         __html.parts = #parts;
+        // The root's registered wire id — how mount_fragment recognizes an
+        // already-mounted fragment (spec-42 feature 00).
+        __html.runtime_id = ::core::option::Option::Some(__base);
         #ops
         #(#style_ops)*
         #effects
@@ -423,6 +436,9 @@ fn collect_handler_bindings(node: &Numbered, out: &mut TokenStream, index: &mut 
 }
 
 /// The `Html` literal for one node.
+// One arm per node kind × mode — splitting would obscure the generated-tree
+// layout this function exists to define (same justification as gen_mount_ops).
+#[allow(clippy::too_many_lines)]
 fn gen_html_node(
     node: &Numbered,
     ui: &TokenStream,
@@ -526,14 +542,56 @@ fn gen_html_node(
                     children: #ui::__macro::vec![#(#children),*],
                     text: ::core::option::Option::None,
                     parts: #ui::__macro::Vec::new(),
+                    runtime_id: ::core::option::Option::None,
                 }
             }}
         }
         ParsedNode::Text(text) => quote! { #ui::Html::text(#text) },
         ParsedNode::Slot(tokens) => match mode {
-            Mode::Pure => quote! { #ui::IntoHtml::into_html((#tokens)) },
-            // Reactive: placeholder — the slot effect renders the content.
-            Mode::Reactive => quote! { #ui::Html::text("") },
+            // Pure: text-shaped values wrap in the slot <span> (the morph
+            // contract — spec-42 feature 00 §4: BOTH forms render text slots
+            // as spans); element/fragment values inline as before.
+            Mode::Pure => quote! {{
+                let __v = #ui::IntoHtml::into_html((#tokens));
+                if __v.tag.is_none() && __v.children.is_empty() {
+                    #ui::Html {
+                        tag: ::core::option::Option::Some(#ui::HtmlTag::from_static("span")),
+                        attributes: #ui::__macro::Vec::new(),
+                        children: #ui::__macro::vec![__v],
+                        text: ::core::option::Option::None,
+                        parts: #ui::__macro::Vec::new(),
+                        runtime_id: ::core::option::Option::None,
+                    }
+                } else {
+                    __v
+                }
+            }},
+            // Reactive: span placeholder — the slot effect renders into it.
+            Mode::Reactive => quote! { #ui::Html {
+                tag: ::core::option::Option::Some(#ui::HtmlTag::from_static("span")),
+                attributes: #ui::__macro::Vec::new(),
+                children: #ui::__macro::Vec::new(),
+                text: ::core::option::Option::None,
+                parts: #ui::__macro::Vec::new(),
+                runtime_id: ::core::option::Option::None,
+            } },
+        },
+        ParsedNode::Fragment { exprs } => match mode {
+            // Pure: inline — a tagless wrapper, same shape Vec<Html> slots
+            // produce (to_markup flattens it transparently).
+            Mode::Pure => quote! { #ui::Html {
+                tag: ::core::option::Option::None,
+                attributes: #ui::__macro::Vec::new(),
+                children: #ui::__macro::vec![
+                    #(#ui::IntoHtml::into_html((#exprs))),*
+                ],
+                text: ::core::option::Option::None,
+                parts: #ui::__macro::Vec::new(),
+                runtime_id: ::core::option::Option::None,
+            } },
+            // Reactive: the content mounts through ops; the VALUE side is an
+            // empty grouping node.
+            Mode::Reactive => quote! { #ui::Html::new() },
         },
     }
 }
@@ -684,14 +742,24 @@ fn gen_mount_ops(
         }
         ParsedNode::Slot(tokens) => {
             let parent = parent_runtime.expect("slot under root element");
-            // Dedicated text node per slot — SetText targets IT, so sibling
-            // content (other slots, elements) is never clobbered.
+            // Dedicated <span primal-id> per slot (spec-42 feature 00 §4):
+            // SetText targets IT, so siblings are never clobbered, and —
+            // unlike a bare text node — the span carries an id, so MorphDom
+            // preserves the slot's wiring across server patches.
             ops.extend(quote! {
-                __rcv.queue(#ui::DomOp::CreateTextNode {
+                __rcv.queue(#ui::DomOp::CreateElement {
                     node_id: __base + #ridx,
-                    content: #ui::__macro::Cow::Borrowed(""),
+                    tag: #ui::HtmlTag::from_static("span"),
+                    class: #ui::__macro::Cow::Borrowed(""),
                 });
                 __rcv.queue(#ui::DomOp::RegisterNode { node_id: __base + #ridx });
+                __rcv.queue(#ui::DomOp::SetAttribute {
+                    node_id: __base + #ridx,
+                    name: #ui::AttrName::from_static("primal-id"),
+                    value: #ui::__macro::Cow::Owned(
+                        #ui::__macro::ToString::to_string(&(__base + #ridx))
+                    ),
+                });
                 __rcv.queue(#ui::DomOp::AppendChild {
                     parent_id: __base + #parent,
                     child_id: __base + #ridx,
@@ -711,6 +779,24 @@ fn gen_mount_ops(
                     });
                 });
             }});
+        }
+        ParsedNode::Fragment { exprs } => {
+            let parent = parent_runtime.expect("Fragment under root element");
+            // Once at mount, never in an effect: already-mounted fragments
+            // (runtime_id set) splice by AppendChild; pure fragments are
+            // built with a fresh id block (mount_fragment, feature 00 §6).
+            let wui = foundation_wasm_ui_path();
+            for tokens in exprs {
+                ops.extend(quote! {{
+                    let __fragment = #ui::IntoHtml::into_html((#tokens));
+                    let _ = #wui::mount_fragment(
+                        __ctx,
+                        &__rcv,
+                        __fragment,
+                        __base + #parent,
+                    );
+                }});
+            }
         }
     }
 }

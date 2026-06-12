@@ -26,6 +26,7 @@ mod encoder;
 mod envelope;
 mod html;
 mod json_encoder;
+mod markup;
 mod parts;
 
 pub use columnar_encoder::{ColumnarBatch, ColumnarEncoder};

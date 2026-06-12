@@ -241,6 +241,11 @@ pub struct Html {
     pub text: Option<Cow<'static, str>>,
     /// Reactive binding descriptors emitted by the `html!` macro.
     pub parts: Vec<Part>,
+    /// The root's REGISTERED wire id when this tree was mounted by the
+    /// reactive `html!` form (spec-42 feature 00) — how `mount_fragment`
+    /// recognizes an already-mounted fragment and splices it by reference
+    /// (`AppendChild`) instead of rebuilding it. Pure trees carry `None`.
+    pub runtime_id: Option<u32>,
 }
 
 impl Html {
@@ -253,6 +258,7 @@ impl Html {
             children: Vec::new(),
             text: None,
             parts: Vec::new(),
+            runtime_id: None,
         }
     }
 

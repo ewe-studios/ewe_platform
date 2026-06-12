@@ -29,6 +29,7 @@ pub mod cli;
 
 pub mod events;
 pub mod html_macro;
+pub mod slots;
 pub mod instruction;
 pub mod protocol;
 pub mod runtime;
@@ -40,6 +41,7 @@ pub mod embedded;
 
 pub use events::{install_event_bridge, invoke_signal_callback, uninstall_event_bridge};
 pub use html_macro::MaybeCallback;
+pub use slots::{mount_fragment, mount_into, Render, Slot};
 pub use instruction::{ColumnarReceiver, InstructionReceiver};
 // The html! proc macro itself — re-exported so users write
 // `use foundation_wasm_ui::html;`.

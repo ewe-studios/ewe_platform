@@ -4,6 +4,8 @@
 
 We should also look that the UI bundled with rauthy which this is supposed to be based on to clealy break down all the UI, components, color, design tokens we need to make this complete.
 
+lets review every UI page in /home/darkvoid/Boxxed/@formulas/src.rust/src.auth/src.rauthy/rauthy/frontend/ to ensure we capture everything properly that we need to build.
+
 ## Description
 
 Create `foundation_auth_ui` — a crate of auth-specific UI components built on `foundation_wasm_ui`. These components connect to the foundation_auth server's JSON API (spec 38) and provide the frontend for authentication flows.

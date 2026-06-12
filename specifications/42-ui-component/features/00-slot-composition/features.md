@@ -171,7 +171,7 @@ html! { ctx, receiver,
     create/register/append ops.
 - Reactivity INSIDE spliced content keeps working through its own effects;
   the splice itself NEVER re-runs. Signal-driven placement (conditional,
-  keyed lists) is OUT OF SCOPE → feature 05 (`<Show>`/`<For>`), which will
+  keyed lists) is OUT OF SCOPE → feature 01 (`<Show>`/`<For>`), which will
   reuse `mount_fragment` + scope disposal as building blocks. Until then,
   visibility toggling via reactive class/style covers dialog/accordion/
   popover patterns.

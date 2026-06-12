@@ -26,7 +26,7 @@ model. See [plan.md](plan.md) for the originating notes.
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| [00-slot-composition](features/00-slot-composition/) | `Render` trait, `Slot`, typed slot structs, `<Fragment>` splice, span text slots, `mount_fragment`, `Html::to_markup` — fixes the three confirmed reactive-composition failure modes | SPEC'D |
+| [00-slot-composition](features/00-slot-composition/) | `Render` trait, `Slot`, typed slot structs, `<Fragment>` splice, span text slots, `mount_fragment`, `Html::to_markup` — fixes the three confirmed reactive-composition failure modes | **COMPLETE** (2026-06-13) |
 | 01-reactive-structure | `<Show>` / `<For>` built-ins: signal-driven conditional + keyed-list mounting (deliberately deferred out of feature 00; required by the F6 pickers and toast lists in feature 05) | PLANNED |
 | [03-app-bootstrap](features/03-app-bootstrap/) | `App` — one-line wiring of signals/context/runtime/receiver with protocol presets; `app.context() -> (Context, SharedInstructionReceiver)` | SPEC'D |
 | [04-mount-protocol-negotiation](features/04-mount-protocol-negotiation/) | `protocol` attribute on mounts + WS binary-frame envelope sniffing; documents the existing HTTP content-type / SSE event-name negotiation | SPEC'D |

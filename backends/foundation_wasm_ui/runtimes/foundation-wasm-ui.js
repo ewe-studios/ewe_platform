@@ -308,6 +308,11 @@ const morphSetText = (n, v) => {
   else n.textContent = v;
 };
 const morphAttr = (n, name) => (n.getAttribute ? n.getAttribute(name) : null);
+// Morph identity: `id` wins, else `primal-id` (spec-42 feature 00 §4 — slot
+// spans and template nodes carry primal-id; server re-renders of the same
+// template have STABLE primal-ids, so they anchor preservation exactly like
+// user ids do).
+const morphIdentity = (n) => morphAttr(n, "id") ?? morphAttr(n, "primal-id");
 
 /** Walk every element in a subtree (root included), depth-first. */
 function morphWalk(root, fn) {
@@ -341,13 +346,13 @@ class MorphContext {
   // Phase 1 — ids that exist in BOTH trees with the SAME tag, no duplicates.
   computePersistentIds(oldRoot, newRoot) {
     morphWalk(oldRoot, (el) => {
-      const id = morphAttr(el, "id");
+      const id = morphIdentity(el);
       if (!id) return;
       if (this.oldIdTagMap.has(id)) this.duplicates.add(id);
       else this.oldIdTagMap.set(id, morphTag(el));
     });
     morphWalk(newRoot, (el) => {
-      const id = morphAttr(el, "id");
+      const id = morphIdentity(el);
       if (!id || this.duplicates.has(id)) return;
       if (this.oldIdTagMap.get(id) === morphTag(el)) this.persistentIds.add(id);
     });
@@ -357,7 +362,7 @@ class MorphContext {
   populateIdMap(root) {
     const build = (node) => {
       const ids = new Set();
-      const own = morphIsElement(node) ? morphAttr(node, "id") : null;
+      const own = morphIsElement(node) ? morphIdentity(node) : null;
       if (own && this.persistentIds.has(own)) ids.add(own);
       for (const child of morphKids(node)) {
         for (const id of build(child)) ids.add(id);
@@ -369,7 +374,7 @@ class MorphContext {
   }
 
   hasConflictingId(node) {
-    const id = morphIsElement(node) ? morphAttr(node, "id") : null;
+    const id = morphIsElement(node) ? morphIdentity(node) : null;
     return !!id && !this.persistentIds.has(id);
   }
 

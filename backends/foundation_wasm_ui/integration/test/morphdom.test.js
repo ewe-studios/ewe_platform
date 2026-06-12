@@ -310,3 +310,33 @@ test("empty content clears the target", () => {
   MorphDom.morph(target, el(d, "div"), d);
   assert.equal(target.children.length, 0);
 });
+
+/// Spec-42 feature 00 §4 — slot spans (id-bearing) SURVIVE server morphs:
+/// the registered element keeps its identity, so later SetText ops from the
+/// signal side still land on a live node. (This is WHY text slots are spans
+/// — a bare text node has no id and would be replaced.)
+test("slot span with primal-id survives a morph", () => {
+  const d = doc();
+  const target = el(d, "div", {}, [
+    el(d, "h2", {}, ["title"]),
+    el(d, "span", { "primal-id": "18" }, ["7"]),
+  ]);
+  const slotSpan = target.children[1];
+
+  // Server patch: same structure, new surrounding content, reordered.
+  MorphDom.morph(
+    target,
+    el(d, "div", {}, [
+      el(d, "span", { "primal-id": "18" }, ["7"]),
+      el(d, "h2", {}, ["new title"]),
+      el(d, "p", {}, ["added"]),
+    ]),
+    d,
+  );
+
+  const after = target.children.find((c) => c.getAttribute?.("primal-id") === "18");
+  assert.equal(after, slotSpan, "the SAME span node — registry stays valid");
+  // The signal side can still write into it (SetText = textContent).
+  slotSpan.textContent = "8";
+  assert.equal(slotSpan.textContent, "8");
+});

@@ -473,14 +473,19 @@ degrades to a stub there).
 
 ## 12. Current limits (honest edition)
 
-- **No `Component` trait yet.** Components are plain functions; static
-  composition is full-featured (§3.1), but an embedded function cannot carry
-  its *own* reactive slots into a parent template — reactivity comes from
-  the outer `html! { ctx, receiver, … }` invocation. The
-  `mount()`/`render() -> Html` contract is the planned follow-up
-  (specification 42).
+- **There is deliberately no `Component` lifecycle trait** — "it's all just
+  functions" (spec-42 decision). Composition is `Render`/`Slot` +
+  `<Fragment>`: a component takes a typed slot struct (`Slot` /
+  `Option<Slot>` / `Vec<Slot>`), renders each slot where it wants it, and
+  splices fragments with `<Fragment>{slots.menu.render(ctx, receiver)}
+  </Fragment>` — including already-mounted reactive fragments (spliced by
+  reference via `Html.runtime_id`). Text slots render as id-bearing
+  `<span>`s in both forms (the morph contract), and `Html::to_markup()`
+  serializes pure trees for server first-paint. Signal-driven placement
+  (`<Show>`/`<For>`) is spec-42 feature 01.
 - Pure-form `{slot}` values are evaluated once — they are values, not
-  bindings.
+  bindings; `<Fragment>` placement is once-at-mount (interiors stay
+  reactive).
 - The signal runtime is single-threaded by design; cross-thread access goes
   through `SignalHub`, not `Send` signals.
 
