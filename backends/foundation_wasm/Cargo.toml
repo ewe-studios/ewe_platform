@@ -9,6 +9,13 @@ repository.workspace = true
 description = "Implements the nostd interface runtime for WASM and JS interoperability"
 include = ["/src", "/runtime"]
 
+[[bin]]
+name = "ewe-wasm-bins"
+path = "src/bin/ewe_wasm_bins.rs"
+# The binary only exists when the CLI feature set is enabled — default
+# (runtime/no_std) builds are untouched.
+required-features = ["cli"]
+
 [dependencies]
 foundation_nostd = { workspace = true }
 foundation_macros = { workspace = true }

@@ -1485,47 +1485,276 @@ export class FetchTransport {
   disconnect() {}
 }
 
-export class SSETransport {
-  constructor(config = {}) {
-    this.config = config;
-    this.eventSource = null;
-    this.attempt = 0;
-    this.closed = false;
+// ─── Owned SSE: parser + fetch-based EventSource (feature 21) ─────────────────
+//
+// The browser EventSource API is GET-only — no bodies, no custom verbs, no
+// headers. Datastar's answer (and ours): fetch() the stream with ANY method
+// and parse the SSE protocol from the response ReadableStream. The parser
+// MIRRORS foundation_netio's Rust SseParser semantics exactly (id rejects
+// NUL, one leading value space stripped, multi-line data joined with \n,
+// comments surfaced, empty line dispatches only with data, EOF flushes,
+// no-colon lines ignored), plus the byte-stream concerns the Rust reader
+// doesn't face here: UTF-8 sequences and CRLF pairs split across chunks, and
+// partial trailing lines buffered until their terminator arrives.
+
+export class SseParser {
+  constructor() {
+    this.decoder = new TextDecoder("utf-8"); // {stream:true} handles split runes
+    this.textBuffer = "";
+    this.sawCarriageReturn = false; // CRLF split across chunks
+    this.lastEventId = null;
+    this.#resetBuilder();
   }
 
-  connect(url, _data, onResult) {
-    if (typeof EventSource === "undefined") {
-      throw new Error("SSETransport: EventSource unavailable in this environment");
+  #resetBuilder() {
+    this.id = null;
+    this.eventType = null;
+    this.data = [];
+    this.retry = null;
+  }
+
+  /** Feed one byte chunk; returns the COMPLETE events it finished. */
+  push(chunk) {
+    let text = this.decoder.decode(chunk, { stream: true });
+    // A \r at a previous chunk's end: swallow a leading \n (split CRLF).
+    if (this.sawCarriageReturn) {
+      this.sawCarriageReturn = false;
+      if (text.startsWith("\n")) text = text.slice(1);
     }
-    this.closed = false;
+    if (text.endsWith("\r")) {
+      this.sawCarriageReturn = true;
+    }
+    this.textBuffer += text;
+
+    const events = [];
+    for (;;) {
+      const cut = this.#nextLineEnd();
+      if (cut === null) break;
+      const [line, rest] = cut;
+      this.textBuffer = rest;
+      const event = this.#processLine(line);
+      if (event) events.push(event);
+    }
+    return events;
+  }
+
+  /** EOF: flush any accumulated data as a final event (Rust parity). */
+  end() {
+    const tail = this.decoder.decode(); // flush a dangling partial rune
+    if (tail) this.textBuffer += tail;
+    const events = [];
+    if (this.textBuffer.length > 0) {
+      const event = this.#processLine(this.textBuffer.replace(/\r$/, ""));
+      this.textBuffer = "";
+      if (event) events.push(event);
+    }
+    const flushed = this.#dispatch();
+    if (flushed) events.push(flushed);
+    return events;
+  }
+
+  /** Find the next complete line, honoring \r\n, \n, and lone \r. */
+  #nextLineEnd() {
+    const buf = this.textBuffer;
+    for (let i = 0; i < buf.length; i++) {
+      const ch = buf[i];
+      if (ch === "\n") return [buf.slice(0, i), buf.slice(i + 1)];
+      if (ch === "\r") {
+        if (i + 1 < buf.length) {
+          const skip = buf[i + 1] === "\n" ? 2 : 1;
+          return [buf.slice(0, i), buf.slice(i + skip)];
+        }
+        return null; // lone \r at buffer end — wait for the next chunk
+      }
+    }
+    return null;
+  }
+
+  #processLine(line) {
+    if (line.length === 0) {
+      return this.#dispatch(); // empty line — dispatch IF data accumulated
+    }
+    if (line.startsWith(":")) {
+      // Comments surface immediately (Rust parity).
+      return { type: "comment", comment: line.slice(1).replace(/^ /, "").trimStart(), lastEventId: this.lastEventId };
+    }
+    const colon = line.indexOf(":");
+    if (colon === -1) return null; // no-colon lines ignored (Rust parity)
+    const field = line.slice(0, colon);
+    let value = line.slice(colon + 1);
+    if (value.startsWith(" ")) value = value.slice(1); // exactly ONE space
+
+    switch (field) {
+      case "id":
+        if (!value.includes("\0")) this.id = value;
+        break;
+      case "event":
+        this.eventType = value;
+        break;
+      case "data":
+        this.data.push(value);
+        break;
+      case "retry": {
+        const ms = Number(value);
+        if (Number.isInteger(ms) && ms >= 0 && /^\d+$/.test(value)) this.retry = ms;
+        break;
+      }
+      default: // unknown fields ignored
+    }
+    return null;
+  }
+
+  #dispatch() {
+    if (this.data.length === 0) {
+      this.#resetBuilder(); // reset even without an event (Rust parity)
+      return null;
+    }
+    if (this.id !== null) this.lastEventId = this.id;
+    const event = {
+      type: "message",
+      event: this.eventType,
+      data: this.data.join("\n"),
+      id: this.id,
+      lastEventId: this.lastEventId,
+      retry: this.retry,
+    };
+    this.#resetBuilder();
+    return event;
+  }
+}
+
+/**
+ * EventSource over fetch (feature 21): ANY method, headers, body; streams the
+ * response through {@link SseParser}; reconnects (F06 backoff, server
+ * `retry:` override, `Last-Event-ID` carried) until {@link FetchEventSource#close}.
+ */
+export class FetchEventSource {
+  /**
+   * @param {string} url
+   * @param {{ method?:string, headers?:object, body?:any, fetchFn?:Function,
+   *           onOpen?:Function, onEvent?:Function, onComment?:Function,
+   *           onError?:Function }} [options]
+   */
+  constructor(url, options = {}) {
     this.url = url;
-    this.onResult = onResult;
-    this.eventSource = new EventSource(url);
-    // G46: the HTTP content type is text/event-stream; each event's `event:`
-    // field names the payload kind (html/arrow/json).
-    for (const kind of ["html", "arrow", "json"]) {
-      this.eventSource.addEventListener(kind, (event) => {
-        onResult(streamEventResult(kind, event.data));
-      });
-    }
-    this.eventSource.onmessage = (event) => onResult(streamEventResult("html", event.data));
-    this.eventSource.onerror = () => this.reconnect();
+    this.options = options;
+    this.fetchFn = options.fetchFn ?? ((...args) => globalThis.fetch(...args));
+    this.closed = false;
+    this.attempt = 0;
+    this.retryOverride = null; // server `retry:` field
+    this.lastEventId = null;
+    this.abort = null;
   }
 
-  reconnect() {
+  /** Open the stream (returns when the FIRST connection attempt settles). */
+  async connect() {
+    this.closed = false;
+    await this.#attemptOnce();
+  }
+
+  async #attemptOnce() {
     if (this.closed) return;
-    this.eventSource?.close?.();
-    const delay = reconnectDelay(this.attempt);
+    this.abort = typeof AbortController === "undefined" ? null : new AbortController();
+    const headers = {
+      accept: "text/event-stream",
+      ...(this.options.headers ?? {}),
+    };
+    if (this.lastEventId !== null) headers["last-event-id"] = this.lastEventId;
+
+    let response;
+    try {
+      response = await this.fetchFn(this.url, {
+        method: this.options.method ?? "GET",
+        headers,
+        body: this.options.body,
+        signal: this.abort?.signal,
+      });
+      if (!response.ok) throw new Error(`FetchEventSource: ${response.status}`);
+    } catch (error) {
+      this.options.onError?.(error);
+      this.#scheduleReconnect();
+      return;
+    }
+
+    this.options.onOpen?.(response);
+    this.attempt = 0; // a successful open resets the backoff
+    const parser = new SseParser();
+    const reader = response.body.getReader();
+    try {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        for (const event of parser.push(value)) this.#deliver(event);
+      }
+      for (const event of parser.end()) this.#deliver(event);
+    } catch (error) {
+      if (!this.closed) this.options.onError?.(error);
+    }
+    this.lastEventId = parser.lastEventId ?? this.lastEventId;
+    // Stream ended — SSE semantics: reconnect unless closed.
+    this.#scheduleReconnect();
+  }
+
+  #deliver(event) {
+    if (event.type === "comment") {
+      this.options.onComment?.(event);
+      return;
+    }
+    if (event.retry !== null && event.retry !== undefined) {
+      this.retryOverride = event.retry;
+    }
+    if (event.id !== null) this.lastEventId = event.id;
+    this.options.onEvent?.(event);
+  }
+
+  #scheduleReconnect() {
+    if (this.closed) return;
+    const delay = this.retryOverride ?? reconnectDelay(this.attempt);
     this.attempt += 1;
-    setTimeout(() => {
-      if (!this.closed) this.connect(this.url, undefined, this.onResult);
+    this.reconnectTimer = setTimeout(() => {
+      if (!this.closed) this.#attemptOnce();
     }, delay);
   }
 
-  disconnect() {
+  /** Stop: abort the in-flight fetch and cancel reconnection. */
+  close() {
     this.closed = true;
-    this.eventSource?.close?.();
-    this.eventSource = null;
+    clearTimeout(this.reconnectTimer);
+    this.abort?.abort?.();
+  }
+}
+
+export class SSETransport {
+  constructor(config = {}) {
+    this.config = config;
+    this.source = null;
+  }
+
+  /**
+   * Open an SSE stream with ANY method (feature 21 — the browser EventSource
+   * is GET-only; this rides {@link FetchEventSource}). `config.method`
+   * defaults to POST when `data` is given, GET otherwise.
+   */
+  connect(url, data, onResult) {
+    const method = this.config.method ?? (data === undefined ? "GET" : "POST");
+    this.source = new FetchEventSource(url, {
+      method,
+      headers: {
+        ...(data === undefined ? {} : { "content-type": "application/json" }),
+        ...(this.config.headers ?? {}),
+      },
+      body: data === undefined ? undefined : JSON.stringify(data),
+      fetchFn: this.config.fetchFn,
+      // G46: the `event:` field names the payload kind; unnamed = html.
+      onEvent: (event) => onResult(streamEventResult(event.event ?? "html", event.data)),
+      onError: this.config.onError,
+    });
+    return this.source.connect();
+  }
+
+  disconnect() {
+    this.source?.close?.();
+    this.source = null;
   }
 }
 
@@ -2007,6 +2236,8 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   Hydrator,
   scopeCss,
   RequestQueue,
+  SseParser,
+  FetchEventSource,
   WSBatchQueue,
   WorkerBatchQueue,
   probeBatching,

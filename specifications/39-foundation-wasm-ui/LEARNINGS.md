@@ -899,3 +899,17 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
 - Build tooling belongs to the crate whose artifacts it builds: versioning,
   templates, and CLI defaults evolve with the runtime, not a tools crate.
 
+## Features 20-addendum + 21 (2026-06-12)
+
+- **CLI binaries ride required-features**: src/bin/*.rs in the no_std runtime
+  crates with `required-features = ["cli"]` — `cargo install --features cli`
+  yields ewe-wasm-bins / ewe-wasm-bundle; default builds never see them.
+- **Mirror the wire-peer's parser, not the spec**: the JS SseParser copies
+  the Rust impl's semantics (incl. its ignore-no-colon-lines deviation from
+  W3C) so both ends of OUR wire agree; divergences from W3C are documented,
+  not accidental.
+- **Byte streams add parser states text readers never see**: split UTF-8
+  runes (streaming TextDecoder), CRLF pairs split across chunks (carry a
+  saw-CR flag), partial trailing lines. The one-byte-at-a-time test catches
+  all three at once.
+

@@ -318,6 +318,7 @@ is the at-a-glance view (kept in sync as features complete).
 | [15-typesafe-wasm-wat](features/15-typesafe-wasm-wat/) | wasmbin port → foundation_codegen::wasm + WAT + CLI | 1 | **COMPLETE** (2026-06-11) |
 | [16-walrus-transform-port](features/16-walrus-transform-port/) | **DEFERRED** — walrus IR port; revisit when heavy structural rewrites are needed | 1 | deferred |
 | [17-abi-function-call-codec](features/17-abi-function-call-codec/) | WASM↔JS function-call ABI codec, two-way port | 1 | **COMPLETE** (2026-06-11) |
+| [21-fetch-event-source](features/21-fetch-event-source/) | Owned SSE: chunk-safe SseParser mirroring the Rust foundation_netio parser + FetchEventSource (any-method SSE over fetch) replacing browser EventSource | 3 | **COMPLETE** (2026-06-12) |
 | [20-crate-ownership-realignment](features/20-crate-ownership-realignment/) | wasm_bins→foundation_wasm, wasm_bundle→foundation_wasm_ui (each owns its CLI); apache-arrow.js embedded | 3 | **COMPLETE** (2026-06-12) |
 | [19-columnar-zero-copy](features/19-columnar-zero-copy/) | Columnar v1.1: aligned buffers (true zero-copy JS TypedArray views) + columnar-native accumulation (ColumnarBatch builder, no row→column pass at flush); cached-string columns recorded as future work | 1 | **COMPLETE** (2026-06-12) |
 | [18-valtron-signals-bridge](features/18-valtron-signals-bridge/) | Cross-thread signals over valtron: SignalHub actor, RemoteGetter/RemoteSetter, post-stabilize snapshot visibility (glitch-freedom across threads) | LAST | **COMPLETE** (2026-06-12) — §6 defaults adopted, see status.md |

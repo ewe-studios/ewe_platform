@@ -9,6 +9,13 @@ repository.workspace = true
 keywords.workspace = true
 description = "DOM/window/animation bindings + WASM protocol implementations built on foundation_wasm (ABI) and foundation_ui_traits (encoding)."
 
+[[bin]]
+name = "ewe-wasm-bundle"
+path = "src/bin/ewe_wasm_bundle.rs"
+# The binary only exists when the CLI feature set is enabled — default
+# (runtime/no_std) builds are untouched.
+required-features = ["cli"]
+
 [dependencies]
 # foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
 foundation_wasm = { workspace = true, features = ["web"] }
