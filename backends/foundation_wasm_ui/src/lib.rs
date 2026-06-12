@@ -22,6 +22,7 @@ pub mod html_macro;
 pub mod instruction;
 pub mod protocol;
 pub mod runtime;
+pub mod theme;
 pub mod wasm;
 
 #[cfg(feature = "embedded-js")]
@@ -32,7 +33,8 @@ pub use html_macro::MaybeCallback;
 pub use instruction::{ColumnarReceiver, InstructionReceiver};
 // The html! proc macro itself — re-exported so users write
 // `use foundation_wasm_ui::html;`.
-pub use foundation_macros::html;
+pub use foundation_macros::{html, ThemeTokens};
+pub use theme::{inject_theme_css, HEAD_NODE_ID, THEME_STYLE_NODE_ID};
 pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use protocol::{
     ColumnarV1, BatchInstructionsV1, DomOpsBatch, HandleResult, JsonV1, MockProtocol,

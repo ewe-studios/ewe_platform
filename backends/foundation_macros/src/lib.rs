@@ -13,6 +13,7 @@ mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
 mod html_macro;
+mod theme_tokens;
 mod valtron_entry;
 mod wasm_test;
 mod wasmbin_codec;
@@ -558,3 +559,14 @@ pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 pub fn html(input: TokenStream) -> TokenStream {
     html_macro::html(input.into()).into()
 }
+
+/// `#[derive(ThemeTokens)]` — compile-time theme CSS from `#[token(...)]`
+/// fields (feature 09, decision 020): custom properties, dark-mode overrides
+/// (explicit or ~80%-luminance auto-derived for colors), per-token utility
+/// classes, and the built-in utility set, all as one `'static` string
+/// (`Theme::CSS` / `theme.css_string()`).
+#[proc_macro_derive(ThemeTokens, attributes(token))]
+pub fn theme_tokens(item: TokenStream) -> TokenStream {
+    theme_tokens::theme_tokens_derive(item.into()).into()
+}
+

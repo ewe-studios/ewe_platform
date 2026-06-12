@@ -866,3 +866,15 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   getAttributeNames masqueraded as elements — explicit nodeType/#text
   detection in ONE helper fixed the whole algorithm for both DOMs.
 
+## Feature 09 (scoped styles + theme, 2026-06-12)
+
+- **Raw CSS cannot live bare inside html!**: hex colors and `20px` don't
+  tokenize as Rust — scoped style content must be a quoted string literal;
+  the macro says so with a spanned error.
+- **Reserved-id collision found**: instance id blocks started at 0, colliding
+  with the JS registry's ambient seeds (0=head/1=body/2=html). allocate_id_block
+  now starts at 16; head-injection ops target literal 0 safely.
+- Spec sketches in non-Rust syntax (ThemeTokens nested literals) get
+  translated to attribute-carried equivalents — same semantics, valid Rust,
+  recorded as deviations.
+

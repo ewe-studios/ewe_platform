@@ -83,7 +83,9 @@ impl Runtime {
                 stabilizing: false,
                 callbacks: BTreeMap::new(),
                 next_callback_id: 0,
-                next_instance_id: 0,
+                // Ids 0-15 are RESERVED for ambient nodes the JS registry
+                // seeds (0=head, 1=body, 2=html) + future wellknowns.
+                next_instance_id: 16,
                 managers: Vec::new(),
             }),
         }

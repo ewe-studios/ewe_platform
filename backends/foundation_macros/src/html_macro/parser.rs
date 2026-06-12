@@ -352,6 +352,13 @@ fn parse_attributes(cursor: &mut Cursor, tag: &str, tag_span: Span) -> ParseResu
                 });
                 continue;
             }
+            if rest == "style" || rest == "script" {
+                attrs.push(ParsedAttr::Static {
+                    name,
+                    value: String::from("true"),
+                });
+                continue;
+            }
             return Err(ParseError::new(
                 name_span,
                 format!("html!: unknown primal attribute '{name}'"),

@@ -31,6 +31,7 @@
 
 mod codegen;
 mod parser;
+pub(crate) mod scoped_css;
 
 use proc_macro2::{TokenStream, TokenTree};
 

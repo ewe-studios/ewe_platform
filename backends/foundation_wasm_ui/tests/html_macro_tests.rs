@@ -359,10 +359,10 @@ fn reactive_slot_renders_and_updates() {
 
     // The build created div + span + the slot's dedicated text node, with
     // explicit registration (F01 registry semantics).
-    assert!(matches!(ops[0], DomOp::CreateElement { node_id, .. } if node_id == 0));
+    assert!(matches!(ops[0], DomOp::CreateElement { node_id, .. } if node_id == 16));
     assert!(ops
         .iter()
-        .any(|op| matches!(op, DomOp::RegisterNode { node_id: 0 })));
+        .any(|op| matches!(op, DomOp::RegisterNode { node_id: 16 })));
     let initial = ops
         .iter()
         .filter_map(|op| match op {
@@ -370,7 +370,7 @@ fn reactive_slot_renders_and_updates() {
             _ => None,
         })
         .collect::<Vec<_>>();
-    assert_eq!(initial, vec![(2, "7".into())], "initial render targets the slot text node");
+    assert_eq!(initial, vec![(18, "7".into())], "initial render targets the slot text node");
 
     // Signal change re-renders exactly the slot.
     set_count.set(8);
@@ -378,7 +378,7 @@ fn reactive_slot_renders_and_updates() {
     let after = all_ops(&m.sent);
     let last = after.last().unwrap();
     assert!(
-        matches!(last, DomOp::SetText { node_id: 2, text } if text == "8"),
+        matches!(last, DomOp::SetText { node_id: 18, text } if text == "8"),
         "got {last:?}"
     );
 }
@@ -397,11 +397,11 @@ fn reactive_event_wiring() {
 
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::AddEventListener { node_id: 0, event_name } if event_name.name() == Some("change")
+        DomOp::AddEventListener { node_id: 16, event_name } if event_name.name() == Some("change")
     )));
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::SetAttribute { node_id: 0, name, value }
+        DomOp::SetAttribute { node_id: 16, name, value }
             if name.name() == Some("primal:setter") && *value == expected_cb
     )));
 }
@@ -432,7 +432,7 @@ fn reactive_dynamic_attribute() {
     let ops = all_ops(&m.sent);
     assert!(ops.iter().any(|op| matches!(
         op,
-        DomOp::SetAttribute { node_id: 0, name, value }
+        DomOp::SetAttribute { node_id: 16, name, value }
             if name.name() == Some("class") && *value == "on"
     )));
 
@@ -441,6 +441,6 @@ fn reactive_dynamic_attribute() {
     let ops = all_ops(&m.sent);
     assert!(matches!(
         ops.last().unwrap(),
-        DomOp::SetAttribute { node_id: 0, value, .. } if *value == "off"
+        DomOp::SetAttribute { node_id: 16, value, .. } if *value == "off"
     ));
 }

@@ -34,8 +34,139 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 
-use super::parser::{ParsedAttr, ParsedNode};
+use super::parser::{ParseError, ParsedAttr, ParsedNode};
+use super::scoped_css::transform_scoped_css;
 use crate::crate_paths::{foundation_ui_traits_path, foundation_wasm_ui_path};
+
+/// A compile-time-transformed scoped style block (feature 09, decision 019):
+/// extracted from `<style primal:style>` children, combined per parent (§4),
+/// `:parent` resolved against the parent's identity.
+struct ScopedStyle {
+    css: String,
+}
+
+/// Extract + transform `<style primal:style>` children (recursively). The
+/// style elements are REMOVED from the tree; their CSS — which must be quoted
+/// string content, since raw CSS does not tokenize as Rust — is transformed
+/// NOW and returned for the mode-specific emission (pure: an inline scoped
+/// <style> child; reactive: head-injection ops).
+fn extract_scoped_styles(node: &mut ParsedNode) -> Result<Vec<ScopedStyle>, ParseError> {
+    let mut styles = Vec::new();
+    extract_styles_walk(node, &mut styles)?;
+    Ok(styles)
+}
+
+fn extract_styles_walk(
+    node: &mut ParsedNode,
+    out: &mut Vec<ScopedStyle>,
+) -> Result<(), ParseError> {
+    let ParsedNode::Element {
+        attrs,
+        children,
+        tag_span,
+        ..
+    } = node
+    else {
+        return Ok(());
+    };
+    let span = *tag_span;
+
+    // Identity of THIS element, used when its style children scope to it.
+    let identity = parent_identity(attrs);
+
+    let mut kept = Vec::with_capacity(children.len());
+    let mut combined = String::new();
+    for child in children.drain(..) {
+        if let ParsedNode::Element {
+            tag,
+            attrs: style_attrs,
+            children: style_children,
+            tag_span: style_span,
+        } = &child
+        {
+            let is_scoped_style = tag == "style"
+                && style_attrs.iter().any(|a| {
+                    matches!(a, ParsedAttr::Static { name, .. } if name == "primal:style")
+                });
+            if is_scoped_style {
+                // Guard only — the combined CSS uses the outer binding below.
+                let Some(_identity) = &identity else {
+                    return Err(ParseError {
+                        span,
+                        message: String::from(
+                            "html!: scoped <style primal:style> requires the parent \
+                             to have an id or class attribute",
+                        ),
+                    });
+                };
+                for piece in style_children {
+                    match piece {
+                        ParsedNode::Text(text) => combined.push_str(text),
+                        // `{"css"}` slots: a single string literal, taken at
+                        // compile time (raw CSS does not tokenize as Rust).
+                        ParsedNode::Slot(tokens) => {
+                            match syn::parse2::<syn::LitStr>(tokens.clone()) {
+                                Ok(lit) => combined.push_str(&lit.value()),
+                                Err(_) => {
+                                    return Err(ParseError {
+                                        span: *style_span,
+                                        message: String::from(
+                                            "html!: <style primal:style> content must be a \
+                                             quoted string literal",
+                                        ),
+                                    })
+                                }
+                            }
+                        }
+                        ParsedNode::Element { .. } => {
+                            return Err(ParseError {
+                                span: *style_span,
+                                message: String::from(
+                                    "html!: <style primal:style> content must be a \
+                                     quoted string literal",
+                                ),
+                            })
+                        }
+                    }
+                    combined.push('\n');
+                }
+                continue; // style element removed from the tree
+            }
+        }
+        kept.push(child);
+    }
+    if !combined.is_empty() {
+        let identity = identity.as_deref().unwrap_or("#?");
+        out.push(ScopedStyle {
+            css: transform_scoped_css(&combined, identity),
+        });
+    }
+    *children = kept;
+    for child in children.iter_mut() {
+        extract_styles_walk(child, out)?;
+    }
+    Ok(())
+}
+
+/// `#id`, else `.first-class`, else None (feature 09 §2 — id wins).
+fn parent_identity(attrs: &[ParsedAttr]) -> Option<String> {
+    for attr in attrs {
+        if let ParsedAttr::Static { name, value } = attr {
+            if name == "id" {
+                return Some(format!("#{value}"));
+            }
+        }
+    }
+    for attr in attrs {
+        if let ParsedAttr::Static { name, value } = attr {
+            if name == "class" {
+                let first = value.split_whitespace().next()?;
+                return Some(format!(".{first}"));
+            }
+        }
+    }
+    None
+}
 
 /// What the expansion needs to know about one node, after numbering.
 struct Numbered {
@@ -138,7 +269,15 @@ fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
 }
 
 /// Generate the PURE form: one `Html` expression.
-pub(crate) fn generate_pure(root: ParsedNode) -> TokenStream {
+pub(crate) fn generate_pure(mut root: ParsedNode) -> TokenStream {
+    let styles = match extract_scoped_styles(&mut root) {
+        Ok(styles) => styles,
+        Err(err) => {
+            let message = err.message;
+            let span = err.span;
+            return quote::quote_spanned! {span=> compile_error!(#message) };
+        }
+    };
     let (plan, numbered) = build_plan(root);
     let ui = foundation_ui_traits_path();
 
@@ -150,10 +289,27 @@ pub(crate) fn generate_pure(root: ParsedNode) -> TokenStream {
     let html = gen_html_node(&numbered, &ui, Mode::Pure, &mut handler_cursor);
     let parts = gen_parts(&plan.parts, &ui);
 
+    let style_children = styles.iter().map(|style| {
+        let css = &style.css;
+        quote! {
+            __html.children.push(#ui::Html {
+                tag: ::core::option::Option::Some(#ui::HtmlTag::from_static("style")),
+                attributes: #ui::__macro::vec![(
+                    #ui::AttrName::from_static("data-primal-scoped"),
+                    #ui::__macro::Cow::Borrowed("true"),
+                )],
+                children: #ui::__macro::vec![#ui::Html::text(#css)],
+                text: ::core::option::Option::None,
+                parts: #ui::__macro::Vec::new(),
+            });
+        }
+    });
+
     quote! {{
         #prelude
         let mut __html = #html;
         __html.parts = #parts;
+        #(#style_children)*
         __html
     }}
 }
@@ -162,11 +318,22 @@ pub(crate) fn generate_pure(root: ParsedNode) -> TokenStream {
 pub(crate) fn generate_reactive(
     ctx: &TokenStream,
     receiver: &TokenStream,
-    root: ParsedNode,
+    mut root: ParsedNode,
 ) -> TokenStream {
+    let styles = match extract_scoped_styles(&mut root) {
+        Ok(styles) => styles,
+        Err(err) => {
+            let message = err.message;
+            let span = err.span;
+            return quote::quote_spanned! {span=> compile_error!(#message) };
+        }
+    };
     let (plan, numbered) = build_plan(root);
     let ui = foundation_ui_traits_path();
-    let total = plan.next_runtime;
+    // Scoped styles take ids past the node block (feature 09 §8.3 — they ship
+    // to <head>, reserved ambient id 0, as part of the same batch).
+    let style_count = u32::try_from(styles.len()).expect("style count");
+    let total = plan.next_runtime + style_count;
 
     let mut handler_index = 0usize;
     let mut prelude = TokenStream::new();
@@ -188,6 +355,29 @@ pub(crate) fn generate_reactive(
         &mut handler_cursor,
     );
 
+    let node_total = plan.next_runtime;
+    let style_ops = styles.iter().enumerate().map(|(i, style)| {
+        let css = &style.css;
+        let idx = node_total + u32::try_from(i).expect("style index");
+        quote! {
+            __rcv.queue(#ui::DomOp::CreateElement {
+                node_id: __base + #idx,
+                tag: #ui::HtmlTag::from_static("style"),
+                class: #ui::__macro::Cow::Borrowed(""),
+            });
+            __rcv.queue(#ui::DomOp::RegisterNode { node_id: __base + #idx });
+            __rcv.queue(#ui::DomOp::SetText {
+                node_id: __base + #idx,
+                text: #ui::__macro::Cow::Borrowed(#css),
+            });
+            // Reserved ambient id 0 = <head> (JS NodeRegistry seed).
+            __rcv.queue(#ui::DomOp::AppendChild {
+                parent_id: 0,
+                child_id: __base + #idx,
+            });
+        }
+    });
+
     quote! {{
         let __ctx = &(#ctx);
         let __rcv = (#receiver).clone();
@@ -196,6 +386,7 @@ pub(crate) fn generate_reactive(
         let mut __html = #html;
         __html.parts = #parts;
         #ops
+        #(#style_ops)*
         #effects
         __html
     }}
