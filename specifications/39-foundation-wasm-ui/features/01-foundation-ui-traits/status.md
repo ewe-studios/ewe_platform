@@ -72,3 +72,23 @@ flat from `lib.rs`. Still `no_std`, still zero dependencies.
 | `Envelope::parse -> Option` | `Result<_, DecodeError>` | Strictly more diagnostic; existing consumers already use it. |
 | `CustomBinaryEncoder` in this crate | `BatchInstructionsV1` in foundation_wasm_ui | Decision 022 (later) re-based byte-0 on the batch-instructions stream; it needs the WASM arena, which this crate must not depend on. Spec tests 22-24 live with it. |
 | ArrowEncoder uses the `arrow` crate (IPC) | `no_std` Arrow-style columnar layout (F17 lineage) | The crate's own constraint ("no dependencies, any Rust target") and the shipped JS `ArrowParser` both pin this layout. Feature 05 owns the swap to real Arrow IPC behind the same `ProtocolEncoder` face. |
+
+## Q&A: why was `ChildPart` removed? (2026-06-12)
+
+The spec removed it (section 1 note); rationale confirmed during review:
+
+- A `Part` is a dynamic-slot descriptor that becomes one effect. With
+  `IntoHtml` on everything (decision 007), `{count}`, `{some_html}` and
+  `{vec_of_html}` all flow through `into_html()` — a `Vec<Html>` wraps as a
+  tagless grouping node — so the PRODUCED VALUE classifies the slot content;
+  the descriptor doesn't need to. One descriptor (`Part::Text { node_id }`)
+  means one macro codegen path and one effect-wiring pattern.
+- `ChildPart.parent_id` duplicated `TextPart.node_id` (both: the element
+  containing the slot).
+- Trade-off acknowledged: slot updates are wholesale replacement at the Part
+  level. Keyed/minimal list reconciliation is deliberately relocated to the
+  DOM layer — decision 027 morphing behind `MorphNode` (feature 07) — which
+  also serves server-rendered HTML patches, which Part-level diffing could
+  not. If F03/F07 later show Rust-side state must survive reorders, a new
+  variant can be added with exactly the fields those features prove they need.
+

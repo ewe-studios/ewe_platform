@@ -295,24 +295,31 @@ backends/
 
 ## Feature Index
 
+Authoritative per-feature status lives in `features/NN-*/status.md`; this table
+is the at-a-glance view (kept in sync as features complete).
+
 | Feature | Description | Phase | Status |
 |---------|-------------|-------|--------|
-| [01-wasm-ui-core](features/01-wasm-ui-core/) | Crate split: foundation_wasm DOM removed, foundation_wasm_ui created with all UI bindings | 1 | pending |
-| [02-signal-system](features/02-signal-system/) | Signal<T> reactive system — Rust signals, DOM signals, bidirectional bridge, fine-grained subscriptions | 1 | pending |
-| [03-html-templates](features/03-html-templates/) | html! macro, template compilation, Part system (ChildPart, AttributePart, PropertyPart, EventPart), directive support | 2 | pending |
-| [04-dom-batching-arrow](features/04-dom-batching-arrow/) | Arrow-format DOM batching — schema, encoding (Rust -> Arrow), decoding + DOM apply (JS), zero-copy transfer | 1 | pending |
-| [05-web-component-base](features/05-web-component-base/) | Web component base class, shadow DOM, lifecycle (connected, disconnected, attributeChanged), custom element registration | 2 | pending |
-| [06-js-runtime-core](features/06-js-runtime-core/) | Split JS SDK: foundation-wasm.js (rewritten standard comm) + foundation-wasm-ui.js (DOM, animation, components) | 1 | pending |
-| [07-auth-ui-package](features/07-auth-ui-package/) | foundation_auth_ui — login form, register form, MFA challenge, session status, user profile, auth layout | 3 | pending |
-| [08-headless-ui-components](features/08-headless-ui-components/) | foundation_ui_components — headless accessible components: button, dialog, menu, tabs, popover, combobox, etc. | 4 | pending |
-| [12-testbed-native-harness](features/12-testbed-native-harness/) | foundation_wasm_testbed owns the native wasm test runners/orchestration on our own runtime (foundation-wasm.js) — replaces spec-31's wasm-bindgen/wasm-pack reliance | 1 | pending |
-| [13-wasm-test-native](features/13-wasm-test-native/) | Owned test execution: `#[wasm_test]` macro + `__fwt_` discovery (walrus, our prefix) + result protocol over our ABI — replaces `#[wasm_bindgen_test]`/`__wbgt_` | 1 | pending |
-| [14-wasm-bindgen-interop-boundary](features/14-wasm-bindgen-interop-boundary/) | The ONLY sanctioned wasm-bindgen usage: minimal, isolated, opt-in (Cloudflare worker-rs, foundation_db); never in the owned runtime/build/test backbone | 1 | pending |
-| [15-typesafe-wasm-wat](features/15-typesafe-wasm-wat/) | Port wasmbin (Apache-2.0) into foundation_codegen for type-safe, minimal-diff (`Lazy<T>`) wasm editing + WAT support + a foundation_codegentools CLI; full attribution to the upstream project | 1 | pending |
-| [16-walrus-transform-port](features/16-walrus-transform-port/) | **DEFERRED** — port walrus (MIT/Apache-2.0) transformation IR into foundation_codegen for heavy structural rewrites; large + dep-heavy, overlaps wasmbin. Intent recorded; revisit when heavy rewrites are needed | 1 | deferred |
-| [17-abi-function-call-codec](features/17-abi-function-call-codec/) | WASM↔JS function-call ABI codec (`host_invoke_function`/`host_register_function`): faithful TWO-WAY port — Rust `Params::to_binary` (flat) ↔ JS `ParameterParserV1`; see `research.md` mapping both sides. Completes F00's FunctionRegistry | 1 | pending |
+| [00-foundation-wasm-refactor](features/00-foundation-wasm-refactor/) | megatron.js 1:1 port → foundation-wasm.js / foundation-wasm-ui.js; crate split (pure ABI vs UI) | 1 | **COMPLETE** (2026-06-11) |
+| [01-foundation-ui-traits](features/01-foundation-ui-traits/) | Shared types crate: IntoHtml/Html/Part, 19-op DomOp, HtmlTag/AttrName wire ids, ProtocolEncoder + Arrow/JSON encoders, Envelope | 1 | **COMPLETE** (2026-06-11) |
+| [02-signal-system](features/02-signal-system/) | foundation_signals: R3-style reactive graph — height-ordered bucket queue, ThreeState + Check short-circuit, (getter, setter) tuples, Context disposal, callback registry | 1 | **COMPLETE** (2026-06-12) |
+| [03-html-macro](features/03-html-macro/) | html! macro: pure-Rust parse, Part emission, primal-id assignment, setter callback wiring | 2 | pending |
+| [04-instruction-receiver](features/04-instruction-receiver/) | InstructionReceiver: DomOp queue/flush/ack over the protocol layer (decision 030) | 1 | partial — core receiver shipped with F01/F17 plumbing; see features.md for remainder |
+| [05-arrow-encoding](features/05-arrow-encoding/) | Real Arrow IPC RecordBatch encoding behind ProtocolEncoder (no_std columnar layout shipped in F01 as the interim) | 1 | pending |
+| [06-web-components](features/06-web-components/) | Island/mount web components, execution modes (decisions 013/014/021/023/024) | 2 | pending |
+| [07-dom-morphing](features/07-dom-morphing/) | Datastar-style morphing (decision 027) behind MorphNode (minimal application shipped in F01 JS) | 2 | pending |
+| [08-event-runtime](features/08-event-runtime/) | primal:on* wiring → EventData → invoke_callback → stabilize (JS side partially shipped: scanAndWire/EventDispatcher) | 2 | pending |
+| [09-scoped-styles-theme](features/09-scoped-styles-theme/) | Scoped script/style tags + theme system (decisions 019/020) | 3 | pending |
+| [10-build-pipeline](features/10-build-pipeline/) | Build pipeline (decision 016) | 3 | pending |
+| [11-request-batching](features/11-request-batching/) | Fetch bundling (decision 026) | 3 | pending |
+| [12-testbed-native-harness](features/12-testbed-native-harness/) | wasm-testbed node/deno/web runners on the owned runtime | 1 | **COMPLETE** (2026-06-11) |
+| [13-wasm-test-native](features/13-wasm-test-native/) | `#[wasm_test]` + `__fwt_` discovery + host_report protocol | 1 | **COMPLETE** (2026-06-11) |
+| [14-wasm-bindgen-interop-boundary](features/14-wasm-bindgen-interop-boundary/) | wasm-bindgen quarantined to explicit opt-ins; owned modules import only `abi` | 1 | **COMPLETE** (2026-06-11) |
+| [15-typesafe-wasm-wat](features/15-typesafe-wasm-wat/) | wasmbin port → foundation_codegen::wasm + WAT + CLI | 1 | **COMPLETE** (2026-06-11) |
+| [16-walrus-transform-port](features/16-walrus-transform-port/) | **DEFERRED** — walrus IR port; revisit when heavy structural rewrites are needed | 1 | deferred |
+| [17-abi-function-call-codec](features/17-abi-function-call-codec/) | WASM↔JS function-call ABI codec, two-way port | 1 | **COMPLETE** (2026-06-11) |
 
-> Note: the index rows 01–08 above are the original phase-1 plan; the authoritative feature set lives in `features/00`–`features/17` (see those dirs). Features 12–17 + decision 031 were added 2026-06-10 (own WASM infra end-to-end; wasm-bindgen only at explicit integration points; wasmbin ported for type-safe edits; walrus port deferred; feature 17 maps the function-call ABI codec for a faithful two-way port).
+> Features 12–17 + decision 031 were added 2026-06-10 (own WASM infra end-to-end; wasm-bindgen only at explicit integration points; wasmbin ported for type-safe edits; walrus port deferred).
 
 
 ## Module References
