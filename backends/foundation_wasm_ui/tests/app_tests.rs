@@ -6,14 +6,14 @@
 //!
 //! WHAT: Preset construction, `context()` driving the reactive loop
 //! end-to-end, drop-disposal, child scopes, and the server frame queue
-//! (arrow-family v1 default + encoder override incl. JSON; Arrow IPC v2
-//! under the `arrow` feature).
+//! (compact columnar v1 default + encoder override incl. JSON; Apache
+//! Arrow IPC v2 under the `arrow` feature, ON by default).
 
 use foundation_ui_traits::DomOp;
 use foundation_wasm_ui::{html, App};
 
 #[test]
-fn default_is_arrow_family_and_drives_the_loop() {
+fn default_is_compact_columnar_and_drives_the_loop() {
     let (app, sent) = App::mock();
     let (ctx, receiver) = app.context();
     let (count, set_count) = ctx.signal(1i64);
@@ -88,7 +88,7 @@ fn child_scope_disposes_independently() {
 // ─── The server presets (frames, not FFI) ─────────────────────────────────────
 
 #[test]
-fn server_preset_collects_arrow_v1_frames() {
+fn server_preset_collects_columnar_v1_frames() {
     let (app, frames) = App::server();
     let (ctx, receiver) = app.context();
     let (count, _set) = ctx.signal(7i64);
@@ -98,7 +98,7 @@ fn server_preset_collects_arrow_v1_frames() {
     let mut queue = frames.borrow_mut();
     assert!(!queue.is_empty(), "flushes landed as frames");
     let frame = queue.pop_front().expect("first frame");
-    assert_eq!(frame[0], 1, "protocol byte: arrow family");
+    assert_eq!(frame[0], 1, "protocol byte 1 (columnar family)");
     assert_eq!(frame[1], 1, "wire VERSION 1 (compact columnar)");
     assert!(frame.len() > 6, "envelope + payload");
 }
@@ -129,8 +129,8 @@ fn server_with_arrow_ipc_emits_version_2() {
     app.stabilize();
 
     let frame = frames.borrow_mut().pop_front().expect("frame");
-    assert_eq!(frame[0], 1, "protocol byte: arrow family");
-    assert_eq!(frame[1], 2, "wire VERSION 2 (Arrow IPC)");
+    assert_eq!(frame[0], 1, "protocol byte 1 (columnar family)");
+    assert_eq!(frame[1], 2, "wire VERSION 2 (Apache Arrow IPC)");
 }
 
 #[cfg(feature = "arrow")]

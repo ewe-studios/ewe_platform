@@ -5,7 +5,11 @@ edition = "2021"
 description = "Arrow-based zero-copy serialization for any Rust type. Works on native, WASI, and WASM."
 
 [dependencies]
-arrow-array = { version = "55", default-features = false, features = ["chrono-tz"] }
+# Slim by construction: the split arrow crates with default-features=false
+# pull exactly what the wire needs (ipc framing, arrays, schema) — no csv/
+# json/prettyprint, and NO chrono-tz (we use plain millisecond timestamps;
+# tz-name parsing and its embedded tz database are never needed).
+arrow-array = { version = "55", default-features = false }
 arrow-schema = { version = "55", default-features = false }
 arrow-ipc = { version = "55", default-features = false }
 arrow-data = { version = "55", default-features = false }

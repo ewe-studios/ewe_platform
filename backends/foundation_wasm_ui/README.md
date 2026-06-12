@@ -76,16 +76,17 @@ The one-liner (spec-42 feature 03):
 ```rust
 use foundation_wasm_ui::App;
 
-let app = App::new();                 // THE DEFAULT: arrow-family wire v1 (zero-copy columnar)
+let app = App::new();                 // THE DEFAULT: compact columnar wire v1 (zero-copy)
 let (ctx, receiver) = app.context();  // the pair every reactive html!/component call needs
 // … mount templates …
 app.stabilize();
 ```
 
-Presets: `App::new()`/`columnar()` (arrow v1 — we always default to arrow),
-`App::json()` (debugging), `App::mock()` (tests — returns the captured-ops
-handle), `App::server()`/`server_with(encoder)` (see §server below),
-`App::arrow_ipc()` (wire v2 real Arrow IPC, `arrow` cargo feature), and
+Presets: `App::new()`/`columnar()` (compact columnar wire v1 — the
+default), `App::json()` (debugging), `App::mock()` (tests — returns the
+captured-ops handle), `App::server()`/`server_with(encoder)` (see §server
+below), `App::arrow_ipc()` (wire v2, real Apache Arrow IPC — same protocol
+byte, version-demuxed; `arrow` feature, ON by default), and
 `App::with_protocol(...)` as the escape hatch. `app.scope()` gives a child
 `Context` for component-scoped teardown; dropping the `App` disposes the
 root scope. `Context` clones are HANDLES to one scope (disposal at the last
@@ -490,7 +491,7 @@ capture every flushed batch as a complete envelope-framed `Vec<u8>`
 instead:
 
 ```rust
-let (app, frames) = App::server();        // arrow-family wire v1 (default)
+let (app, frames) = App::server();        // compact columnar wire v1 (default)
 let (ctx, receiver) = app.context();
 let (status, set_status) = ctx.signal(String::from("ready"));
 let _ui = html! { ctx, receiver, <p class="status">{status.get()}</p> };
@@ -509,7 +510,8 @@ The client side is the existing `<mount-stream>`: it routes `arrow`-typed
 results into `DomOpApplicator`, so the server's signal writes become DOM
 mutations in the page — same loop, different side of the wire.
 
-**Encoder choice** mirrors client negotiation: `App::server()` = arrow v1;
+**Encoder choice** mirrors client negotiation: `App::server()` = compact
+columnar v1;
 `App::server_with(JsonEncoder)` = readable `primal-json` streams;
 `App::server_with(foundation_arrow::ArrowIpcEncoder)` = wire v2 real Arrow
 IPC for standard tooling (server side needs no cargo feature — the encoder

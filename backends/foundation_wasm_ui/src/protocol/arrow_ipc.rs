@@ -1,13 +1,15 @@
-//! WHY: The arrow family's wire VERSION 2 is real Apache Arrow IPC
+//! WHY: Protocol byte 1's wire VERSION 2 is real Apache Arrow IPC
 //! `RecordBatch`es (spec-39 F05) — consumers that want standard Arrow tooling
 //! (the embedded `apache-arrow.js`, server pipelines) pick it over the
-//! compact v1 columnar.
+//! compact columnar (VERSION 1, our owned format — deliberately NOT called
+//! "arrow" anywhere).
 //!
 //! WHAT: [`ArrowIpcV2`] — protocol byte `1`, VERSION `2`, composing
 //! `foundation_arrow::ArrowIpcEncoder` (Layer 1) with the `ProtocolHandler`
-//! transport (Layer 2). Behind the `arrow` cargo feature (spec-42 feature
-//! 03): the arrow-rs dependency is heavyweight, so the loop default stays
-//! v1.
+//! transport (Layer 2). The `arrow` cargo feature (ON by default —
+//! arrow-native support is a project goal; arrow-rs rides
+//! default-features=false and builds for wasm32) lets size-sensitive
+//! artifacts opt out.
 //!
 //! HOW: Identical composition to [`super::JsonV1`]; only the encoder
 //! differs.

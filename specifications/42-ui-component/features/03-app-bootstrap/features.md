@@ -85,12 +85,20 @@ app.stabilize();
 ```
 
 Notes (settled):
-- **Arrow is the default, restated.** The wire taxonomy (spec-39): protocol
-  byte 1 = the ARROW FAMILY; envelope VERSION demuxes v1 (our compact
-  zero-copy columnar — `ColumnarV1`, the F19 rename of the old `Arrow*`
-  names) from v2 (real Apache Arrow IPC, `foundation_arrow`). `App::new()`
-  IS arrow (family, v1); `arrow_ipc()` selects v2. Nothing defaults to
+- **Naming (review correction, 2026-06-13): the v1 wire is the COMPACT
+  COLUMNAR — never "arrow v1".** Calling our owned format "arrow" was
+  confusing (it triggered exactly the feature-flag confusion it was bound
+  to). Taxonomy: protocol byte 1 = the COLUMNAR family; VERSION demuxes
+  our compact columnar (v1) from Apache Arrow IPC (v2). `App::new()` =
+  compact columnar; `arrow_ipc()` = Apache Arrow IPC. Nothing defaults to
   json/mock — those are opt-in debugging/testing presets.
+- **The `arrow` feature is ON by default** (review decision: arrow-native
+  support is a project goal; arrow-rs rides default-features=false and
+  builds for wasm32 — verified). Size-sensitive wasm artifacts opt out
+  with `default-features = false`. Measured (wire_bench, release): v1 vs
+  v2 — 10 ops: 674ns/5.3µs encode, 344B/2378B; 1000 ops: 28µs/45µs,
+  ~1.08x size; v1 dominates small UI deltas, v2 converges on bulk and
+  buys ecosystem interop.
 - `context()` returns CLONES (both are cheap Rc-backed handles) — the tuple
   the user asked for, directly usable by `html!` and component functions.
 - "PlainHtmlApp" from the plan: there is no html-string protocol on the

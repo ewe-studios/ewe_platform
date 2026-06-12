@@ -39,10 +39,11 @@ foundation_codegen = { workspace = true }
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]
-default = []
-# Arrow family wire VERSION 2: real Apache Arrow IPC over the loop
-# (ArrowIpcV2 + App::arrow_ipc). Optional — arrow-rs is heavyweight; the
-# default loop protocol stays the v1 compact columnar.
+# Apache Arrow IPC support is ON by default (arrow-native support is a
+# project goal; arrow-rs rides default-features=false and builds for
+# wasm32). Size-sensitive artifacts opt OUT with default-features = false.
+default = ["arrow"]
+# Wire VERSION 2 over the loop: ArrowIpcV2 + App::arrow_ipc.
 arrow = ["dep:foundation_arrow"]
 # Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
 embedded-js = ["foundation_wasm/embedded-js"]

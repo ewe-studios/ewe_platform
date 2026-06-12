@@ -3,11 +3,12 @@
 //! receiver. Nothing varies but the protocol (spec-42 feature 03).
 //!
 //! WHAT: [`App`] — one struct owning all five, with protocol-named
-//! constructors. THE DEFAULT IS THE ARROW FAMILY (protocol byte 1, wire
-//! VERSION 1 compact columnar): we always default to arrow unless otherwise
-//! stated. `json`/`mock` are opt-in debugging/testing presets, never
-//! defaults; `arrow_ipc` (wire VERSION 2, real Arrow IPC) rides the `arrow`
-//! cargo feature.
+//! constructors. THE DEFAULT is the COMPACT COLUMNAR wire (protocol byte 1,
+//! VERSION 1 — our owned format, NOT Apache Arrow; the misleading
+//! "arrow v1" naming was retired by review). Apache Arrow IPC is the same
+//! protocol byte's VERSION 2: `arrow_ipc()`, on by default via the `arrow`
+//! feature. `json`/`mock` are opt-in debugging/testing presets, never
+//! defaults.
 //!
 //! HOW: One struct, named constructors over `with_protocol` — the protocol
 //! is a VALUE choice behind the `ProtocolMethods` seam, not a type-level
@@ -41,21 +42,22 @@ pub struct App {
 }
 
 impl App {
-    /// THE DEFAULT — the arrow-family wire (protocol byte 1), VERSION 1:
-    /// compact columnar, zero-copy on the JS side.
+    /// THE DEFAULT — the compact columnar wire (protocol byte 1,
+    /// VERSION 1): our owned format, zero-copy on the JS side.
     #[must_use]
     pub fn new() -> Self {
         Self::with_protocol(ColumnarV1::new())
     }
 
-    /// Explicit alias of the default (arrow family, wire VERSION 1).
+    /// Explicit alias of the default (compact columnar, wire VERSION 1).
     #[must_use]
     pub fn columnar() -> Self {
         Self::new()
     }
 
-    /// Arrow family, wire VERSION 2: real Apache Arrow IPC `RecordBatch`es
-    /// (read on the JS side with the embedded `apache-arrow.js`).
+    /// Apache Arrow IPC (protocol byte 1, wire VERSION 2): real
+    /// `RecordBatch`es, read on the JS side with the embedded
+    /// `apache-arrow.js`.
     #[cfg(feature = "arrow")]
     #[must_use]
     pub fn arrow_ipc() -> Self {
@@ -68,7 +70,7 @@ impl App {
         Self::with_protocol(JsonV1::new())
     }
 
-    /// SERVER preset: the same arrow-family v1 wire, but every flushed
+    /// SERVER preset: the same compact columnar v1 wire, but every flushed
     /// batch lands as an envelope-framed `Vec<u8>` in the returned queue —
     /// ship them yourself (WebSocket binary frames, SSE events) toward a
     /// client `mount-stream`. On a native server `host_apply` is a no-op

@@ -5,8 +5,8 @@
 //! batched HTTP responses (`mount-stream` applies them on the client).
 //!
 //! WHAT: [`FrameSink<E>`] — generic over the Layer-1 encoder, so a server
-//! streams WHICHEVER wire its clients negotiate (feature 04): the
-//! arrow-family v1 columnar default ([`FrameSinkV1`]), Arrow IPC v2, or
+//! streams WHICHEVER wire its clients negotiate (feature 04): the compact
+//! columnar v1 default ([`FrameSinkV1`]), Apache Arrow IPC v2, or
 //! JSON. Every flush lands as a complete envelope-framed `Vec<u8>` in a
 //! shared queue instead of going to FFI.
 //!
@@ -37,8 +37,8 @@ pub struct FrameSink<E> {
     next_id: Cell<u32>,
 }
 
-/// The DEFAULT server sink: arrow family, wire VERSION 1 — the same bytes
-/// `ColumnarV1` ships through the arena.
+/// The DEFAULT server sink: compact columnar, wire VERSION 1 — the same
+/// bytes `ColumnarV1` ships through the arena.
 pub type FrameSinkV1 = FrameSink<ColumnarEncoder>;
 
 impl<E: Default> FrameSink<E> {
