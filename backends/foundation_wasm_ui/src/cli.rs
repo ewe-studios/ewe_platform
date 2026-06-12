@@ -8,11 +8,15 @@
 //!
 //! HOW: Thin orchestration over [`crate::wasm_bundle::WasmBundleGenerator`].
 
+// Hosted-prelude import: this module is std-gated inside a no_std crate.
+#[allow(unused_imports)]
+use std::prelude::rust_2021::*;
+
 use std::path::{Path, PathBuf};
 
 use clap::{Arg, ArgAction, ArgMatches, Command};
 
-use crate::wasm_bundle::WasmBundleGenerator;
+use crate::build_tools::WasmBundleGenerator;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 

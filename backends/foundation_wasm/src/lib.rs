@@ -18,6 +18,16 @@
 #![allow(clippy::must_use_candidate)]
 #![no_std]
 
+// Build tooling is a STD, native-only concern (feature 20) — gated so the
+// default (runtime) build stays no_std and wasm-clean.
+#[cfg(feature = "build-tools")]
+extern crate std;
+
+#[cfg(feature = "build-tools")]
+pub mod build_tools;
+#[cfg(feature = "cli")]
+pub mod cli;
+
 extern crate alloc;
 
 mod base;

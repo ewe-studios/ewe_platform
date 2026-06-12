@@ -283,5 +283,8 @@ fn embedded_js_assets_carry_both_runtimes() {
     assert!(FOUNDATION_WASM_JS.contains("class FoundationWasm"));
     assert!(FOUNDATION_WASM_JS.contains("globalThis.FoundationWasmRuntime"));
     assert!(FOUNDATION_WASM_UI_JS.contains("globalThis.FoundationWasmUiRuntime"));
+    // Feature 20: the bundled Apache Arrow JS reader (wire v2 consumers).
+    assert!(foundation_wasm_ui::embedded::APACHE_ARROW_JS.contains("apache-arrow")
+        || foundation_wasm_ui::embedded::APACHE_ARROW_JS.len() > 100_000);
     assert!(FOUNDATION_WASM_UI_JS.contains("class DomHeap"));
 }

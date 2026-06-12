@@ -12,6 +12,9 @@ keywords = ["ewe-platform", "ewe-platform-cli", "ewe-platform-binary"]
 [dependencies]
 # -- workspace dependency
 foundation_codegentools = { workspace = true, features = ["cli"] }
+# Feature 20: each runtime crate owns its build CLI.
+foundation_wasm = { workspace = true, features = ["cli"] }
+foundation_wasm_ui = { workspace = true, features = ["cli"] }
 foundation_packager = { workspace = true }
 # ewe_watch_utils = { workspace = true }
 # ewe_watchers = { workspace = true }

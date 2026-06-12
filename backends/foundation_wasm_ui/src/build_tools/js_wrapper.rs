@@ -11,6 +11,10 @@
 //! `// __EWE_WASM_LOAD__` marker line is what the single-file bundler
 //! replaces with embedded bytes.
 
+// Hosted-prelude import: this module is std-gated inside a no_std crate.
+#[allow(unused_imports)]
+use std::prelude::rust_2021::*;
+
 /// The fetch-based load block (replaced by the bundler for single-file).
 const FETCH_LOAD: &str = "  // __EWE_WASM_LOAD__\n  const wasmBytes = await (await fetch(WASM_URL)).arrayBuffer();";
 

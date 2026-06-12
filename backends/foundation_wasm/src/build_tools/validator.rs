@@ -1,3 +1,7 @@
+// Hosted-prelude import: this module is std-gated inside a no_std crate.
+#[allow(unused_imports)]
+use std::prelude::rust_2021::*;
+
 use std::path::Path;
 
 use super::error::WasmBinError;

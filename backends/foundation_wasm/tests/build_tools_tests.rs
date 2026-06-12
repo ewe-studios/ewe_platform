@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use foundation_codegentools::wasm_bins::WasmBinGenerator;
+use foundation_wasm::build_tools::WasmBinGenerator;
 
 #[test]
 fn scan_fixture_crate_finds_entrypoints() {

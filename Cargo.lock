@@ -2486,6 +2486,8 @@ dependencies = [
  "foundation_packager",
  "foundation_runtimes",
  "foundation_testbed",
+ "foundation_wasm",
+ "foundation_wasm_ui",
  "http 1.4.0",
  "http-body 1.0.1",
  "http-body-util",
@@ -3394,8 +3396,13 @@ version = "0.0.1"
 name = "foundation_wasm"
 version = "0.0.2"
 dependencies = [
+ "clap",
+ "foundation_codegen",
  "foundation_macros",
  "foundation_nostd",
+ "tempfile",
+ "toml 0.9.8",
+ "toml_edit 0.22.27",
 ]
 
 [[package]]
@@ -3427,6 +3434,8 @@ dependencies = [
 name = "foundation_wasm_ui"
 version = "0.1.0"
 dependencies = [
+ "clap",
+ "foundation_codegen",
  "foundation_macros",
  "foundation_nostd",
  "foundation_signals",

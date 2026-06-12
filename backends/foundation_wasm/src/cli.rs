@@ -1,8 +1,12 @@
+// Hosted-prelude import: this module is std-gated inside a no_std crate.
+#[allow(unused_imports)]
+use std::prelude::rust_2021::*;
+
 use std::path::Path;
 
 use clap::{ArgMatches, Command};
 
-use crate::wasm_bins::WasmBinGenerator;
+use crate::build_tools::WasmBinGenerator;
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 

@@ -22,8 +22,16 @@ foundation_macros = { workspace = true }
 foundation_nostd = { workspace = true }
 tracing = { version = "0.1", default-features = false }
 
+clap = { version = "4", features = ["derive"], optional = true }
+foundation_codegen = { workspace = true, optional = true }
+
 [features]
 default = []
+# The crate OWNS how its runtime ships (feature 20): JS wrappers + bundles
+# over foundation_wasm's build-tools. std-only, native-only, OFF by default.
+build-tools = ["foundation_wasm/build-tools", "dep:foundation_codegen"]
+# The `wasm-bundle` CLI surface.
+cli = ["build-tools", "dep:clap"]
 # Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
 embedded-js = ["foundation_wasm/embedded-js"]
 

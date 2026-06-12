@@ -5,7 +5,7 @@
 //! WHAT: Spec tests 3 (flag conflict), 6-8 (mode macro validation lives
 //! in-macro), 9-14 (wrapper/bundle structure) + attribute mapping.
 
-use foundation_codegentools::wasm_bundle::{
+use foundation_wasm_ui::build_tools::{
     bundler, entrypoint_from_attrs, js_wrapper, BundleMode, Encoding, JsPackaging,
 };
 
@@ -110,7 +110,7 @@ fn attribute_mapping() {
 #[cfg(feature = "cli")]
 #[test]
 fn release_dev_flags_conflict() {
-    let cmd = foundation_codegentools::cli::wasm_bundle::command();
+    let cmd = foundation_wasm_ui::cli::command();
     let err = cmd
         .try_get_matches_from(["wasm-bundle", "build", "--release", "--dev"])
         .unwrap_err();
@@ -121,7 +121,7 @@ fn release_dev_flags_conflict() {
 #[cfg(feature = "cli")]
 #[test]
 fn cli_flags_parse() {
-    let cmd = foundation_codegentools::cli::wasm_bundle::command();
+    let cmd = foundation_wasm_ui::cli::command();
     let matches = cmd
         .try_get_matches_from([
             "wasm-bundle",

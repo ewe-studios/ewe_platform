@@ -14,5 +14,11 @@
 /// Self-contained — serve alongside [`FOUNDATION_WASM_JS`].
 pub const FOUNDATION_WASM_UI_JS: &str = include_str!("../runtimes/foundation-wasm-ui.js");
 
-/// The core ABI runtime, re-exported so consumers embed the pair from one place.
+/// The bundled Apache Arrow JS library (`runtimes/apache-arrow.js`, G3/G25 —
+/// feature 20): the reader for wire VERSION 2 (real Arrow IPC) payloads on
+/// server content types (`application/primal-arrow` v2, SSE). The wasm loop's
+/// compact columnar v1 needs only `ColumnarParser` and never loads this.
+pub const APACHE_ARROW_JS: &str = include_str!("../runtimes/apache-arrow.js");
+
+/// The core ABI runtime, re-exported so consumers embed the set from one place.
 pub use foundation_wasm::embedded::FOUNDATION_WASM_JS;

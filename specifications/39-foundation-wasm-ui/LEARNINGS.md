@@ -890,3 +890,12 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   type-erased apply fns on the hub side keeps RemoteSetter Send+Sync without
   any locking of the graph.
 
+## Feature 20 (crate ownership realignment, 2026-06-12)
+
+- **std features on no_std crates work cleanly**: gated `extern crate std` +
+  an explicit `use std::prelude::rust_2021::*;` in each moved file (the core
+  prelude doesn't provide String/Vec). Default builds stay wasm-clean;
+  build tooling enabling std on wasm32 fails to compile — correctly.
+- Build tooling belongs to the crate whose artifacts it builds: versioning,
+  templates, and CLI defaults evolve with the runtime, not a tools crate.
+

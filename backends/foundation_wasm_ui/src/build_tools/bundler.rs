@@ -8,6 +8,10 @@
 //! HOW: Pure string substitution against the marker `js_wrapper` emits — the
 //! wrappers and the bundler agree on exactly one seam.
 
+// Hosted-prelude import: this module is std-gated inside a no_std crate.
+#[allow(unused_imports)]
+use std::prelude::rust_2021::*;
+
 use super::js_wrapper::load_marker;
 use super::Encoding;
 

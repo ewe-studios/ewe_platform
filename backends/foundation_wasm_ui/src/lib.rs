@@ -17,6 +17,15 @@
 
 extern crate alloc;
 
+// Build tooling is a STD, native-only concern (feature 20).
+#[cfg(feature = "build-tools")]
+extern crate std;
+
+#[cfg(feature = "build-tools")]
+pub mod build_tools;
+#[cfg(feature = "cli")]
+pub mod cli;
+
 pub mod events;
 pub mod html_macro;
 pub mod instruction;

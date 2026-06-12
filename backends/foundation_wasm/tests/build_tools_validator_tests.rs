@@ -1,6 +1,6 @@
 use std::path::Path;
 
-use foundation_codegentools::wasm_bins::validator::validate_crate;
+use foundation_wasm::build_tools::validator::validate_crate;
 
 #[test]
 fn validate_crate_accepts_cdylib_crate() {

@@ -13,6 +13,10 @@
 //! wrappers from the templates in [`js_wrapper`] (pure string fns — unit
 //! testable) and bundles via [`bundler`].
 
+// Hosted-prelude import: this module is std-gated inside a no_std crate.
+#[allow(unused_imports)]
+use std::prelude::rust_2021::*;
+
 pub mod bundler;
 pub mod js_wrapper;
 
@@ -23,8 +27,8 @@ use std::collections::HashMap;
 
 use foundation_codegen::{AttributeValue, CrateScanner, ItemKind, RegistryExt};
 
-use crate::wasm_bins::error::WasmBinError;
-use crate::wasm_bins::WasmBinGenerator;
+use foundation_wasm::build_tools::error::WasmBinError;
+use foundation_wasm::build_tools::WasmBinGenerator;
 
 fn io_err(path: &Path, source: std::io::Error) -> WasmBinError {
     WasmBinError::Io {
