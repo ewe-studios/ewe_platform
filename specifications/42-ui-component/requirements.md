@@ -31,7 +31,7 @@ model. See [plan.md](plan.md) for the originating notes.
 | [03-app-bootstrap](features/03-app-bootstrap/) | `App` — one-line wiring with protocol presets (arrow default) + SERVER presets (FrameSink frames for WS/SSE streaming) + Context handle-Clone | **COMPLETE** (2026-06-13) |
 | [04-mount-protocol-negotiation](features/04-mount-protocol-negotiation/) | `protocol` attribute + WS binary envelope sniffing + SSE base64 arrow decode + the documented negotiation table | **COMPLETE** (2026-06-13) |
 | [05-headless-components](features/05-headless-components/) | THE CATALOG: full base-ui review (38 components, 7 shared machinery modules) merged with the initial headless-ui draft — adopt data-attribute styling/hidden-input/field-state, reject React-isms; every component marked static-vs-signal | SPEC'D |
-| [06-auth-ui-package](features/06-auth-ui-package/) | Auth UI built from the catalog (rauthy-based breakdown; LAST feature per its own TODO) | DRAFT (moved from spec-39) |
+| [06-auth-ui-package](features/06-auth-ui-package/) | Auth UI built from the catalog (rauthy-based breakdown; LAST feature per its own TODO) | SPEC'D |
 
 ## Order of work
 
