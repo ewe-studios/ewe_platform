@@ -71,3 +71,38 @@ lib.rs doctest. Zero clippy warnings (`--all-targets`, uat).
   foundation_wasm_ui, NOT here).
 - F08 (events): JS calls `invoke_callback(id, …)`/`invoke_callback_json`,
   then `stabilize()`.
+
+## Q&A: why `RefCell`/`Rc` instead of `Mutex`/`Arc`? (2026-06-12)
+
+Raised in review: "if others use this library shouldn't it be Send/Sync-safe?"
+
+- **It's the spec's G15 decision, with a seam**: WASM — the primary target — is
+  single-threaded, so `single_threaded` is the DEFAULT feature; the spec keeps
+  a cfg-based cell alias for a future Mutex path. The off-state is currently a
+  `compile_error!` so nobody silently ships an untested locking path.
+- **The hot path is reads**: every effect/computed evaluation calls `get()` on
+  several signals, and handles are cloned into closures constantly. RefCell is
+  a branch; Rc clone is a non-atomic increment. Mutex+Arc puts an atomic CAS on
+  every read and every handle clone — paid even when there is only one thread,
+  which on wasm32 is always.
+- **Send bounds are viral**: `Mutex<Graph>` alone isn't enough — every stored
+  closure (`Box<dyn FnMut>` effects/computeds/callbacks) would need `+ Send`,
+  so user closures could no longer capture `Rc` state, DOM handles, or WASM
+  externals (all `!Send`). That breaks the primary consumer to serve a
+  hypothetical one.
+- **Deadlock replaces panic**: the graph re-enters itself BY DESIGN (effects
+  call getters/setters mid-stabilize). The RefCell discipline (release the
+  borrow around all user code) maps onto a Mutex too — but a violation becomes
+  a silent deadlock instead of a loud borrow panic.
+- **Do the signal PROPERTIES survive Send+Sync?** The algorithms (height order,
+  diamond exactly-once, Check short-circuit, FIFO-within-height) are
+  thread-agnostic — but they're only OBSERVABLE if stabilize is exclusive. Two
+  threads stabilizing concurrently forces either one big graph lock (so you pay
+  atomic costs to get exactly single-threaded behavior) or a fundamentally
+  different lock-free design. Determinism (e.g. DomOp flush order) survives
+  only under the big lock.
+- **The right multi-thread story when it's needed**: route cross-thread writes
+  through valtron/channels INTO the signal thread (actor style) — graph stays
+  single-threaded, zero property loss, no viral bounds. The feature-gated Mutex
+  swap remains the escape hatch for a consumer that truly needs shared handles.
+
