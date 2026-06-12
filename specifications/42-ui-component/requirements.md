@@ -27,14 +27,14 @@ model. See [plan.md](plan.md) for the originating notes.
 | Feature | Description | Status |
 |---------|-------------|--------|
 | [00-slot-composition](features/00-slot-composition/) | `Render` trait, `Slot`, typed slot structs, `<Fragment>` splice, span text slots, `mount_fragment`, `Html::to_markup` — fixes the three confirmed reactive-composition failure modes | SPEC'D |
-| [01-headless-ui-components](features/01-headless-ui-components/) | The component catalog (regenerate from base-ui review per plan.md, on top of feature 00) | DRAFT (moved from spec-39) |
-| [02-auth-ui-package](features/02-auth-ui-package/) | Auth UI built from the catalog | DRAFT (moved from spec-39) |
+| 01-reactive-structure | `<Show>` / `<For>` built-ins: signal-driven conditional + keyed-list mounting (deliberately deferred out of feature 00; required by the F6 pickers and toast lists in feature 05) | PLANNED |
 | [03-app-bootstrap](features/03-app-bootstrap/) | `App` — one-line wiring of signals/context/runtime/receiver with protocol presets; `app.context() -> (Context, SharedInstructionReceiver)` | SPEC'D |
 | [04-mount-protocol-negotiation](features/04-mount-protocol-negotiation/) | `protocol` attribute on mounts + WS binary-frame envelope sniffing; documents the existing HTTP content-type / SSE event-name negotiation | SPEC'D |
-| 05-reactive-structure | `<Show>` / `<For>` built-ins: signal-driven conditional + keyed-list mounting (deliberately deferred out of feature 00) | PLANNED |
+| [05-headless-components](features/05-headless-components/) | THE CATALOG: full base-ui review (38 components, 7 shared machinery modules) merged with the initial headless-ui draft — adopt data-attribute styling/hidden-input/field-state, reject React-isms; every component marked static-vs-signal | SPEC'D |
+| [06-auth-ui-package](features/06-auth-ui-package/) | Auth UI built from the catalog (rauthy-based breakdown; LAST feature per its own TODO) | DRAFT (moved from spec-39) |
 
 ## Order of work
 
-00 → 03 → 04, then the base-ui survey regenerates 01 (component-by-component
-features), 02 builds on the catalog, 05 lands when the catalog demonstrates
-the concrete need (lists, comboboxes).
+00 → 03 → 04 → feature 05's machinery + early families (F1-F4, F7) → 01
+(`<Show>`/`<For>`, needed before the F5/F6 pickers and toast lists) → the
+remaining families → 06 last (its own TODO says so).

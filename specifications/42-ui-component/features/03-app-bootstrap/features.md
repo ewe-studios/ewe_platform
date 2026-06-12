@@ -36,15 +36,24 @@ pub struct App {
 }
 
 impl App {
-    /// Wire-v1 compact columnar (the default loop protocol).
+    /// THE DEFAULT — the arrow-family wire (protocol byte 1), VERSION 1:
+    /// compact columnar, zero-copy on the JS side. We always default to
+    /// arrow unless otherwise stated.
+    pub fn new() -> App;                      // = arrow family, v1 columnar
+    /// Explicit alias of the default (wire VERSION 1).
     pub fn columnar() -> App;
+    /// Arrow family VERSION 2: real Apache Arrow IPC RecordBatches, via a
+    /// NEW `ArrowIpcV2` ProtocolMethods impl wrapping the EXISTING
+    /// `foundation_arrow::ArrowIpcEncoder` (already implements
+    /// `ProtocolEncoder<Vec<DomOp>>`). Behind an `arrow` cargo feature
+    /// (optional foundation_arrow dep); JS side reads it with the embedded
+    /// apache-arrow.js (`APACHE_ARROW_JS`).
+    pub fn arrow_ipc() -> App;
     /// Human-readable JSON DomOps (debugging).
     pub fn json() -> App;
     /// MockProtocol — tests; pairs with `sent_batches()` access.
     pub fn mock() -> (App, SentBatches);
-    /// Escape hatch: any ProtocolMethods impl (incl. future Arrow IPC v2
-    /// once a wasm-loop Arrow protocol lands; today v2 lives in
-    /// foundation_arrow as a server/content-type wire form).
+    /// Escape hatch: any ProtocolMethods impl.
     pub fn with_protocol(p: impl ProtocolMethods<Vec<DomOp>> + 'static) -> App;
 
     /// The pair every reactive html!/component call needs.
@@ -61,21 +70,27 @@ impl App {
 Usage:
 
 ```rust
-let app = App::columnar();
+let app = App::new();        // arrow family by default
 let (ctx, receiver) = app.context();
 let tree = html! { ctx, receiver, <main>…</main> };
 app.stabilize();
 ```
 
 Notes (settled):
+- **Arrow is the default, restated.** The wire taxonomy (spec-39): protocol
+  byte 1 = the ARROW FAMILY; envelope VERSION demuxes v1 (our compact
+  zero-copy columnar — `ColumnarV1`, the F19 rename of the old `Arrow*`
+  names) from v2 (real Apache Arrow IPC, `foundation_arrow`). `App::new()`
+  IS arrow (family, v1); `arrow_ipc()` selects v2. Nothing defaults to
+  json/mock — those are opt-in debugging/testing presets.
 - `context()` returns CLONES (both are cheap Rc-backed handles) — the tuple
   the user asked for, directly usable by `html!` and component functions.
 - "PlainHtmlApp" from the plan: there is no html-string protocol on the
   DomOp loop — the html-as-text story is `Html::to_markup()` (feature 00)
   on the server side, plus the existing `MorphNode` op for html patches. So
-  the preset set is columnar/json/mock (+`with_protocol`); a markup "app"
-  wrapper is not needed — servers call `to_markup` on plain `Html` values
-  with no runtime at all.
+  the preset set is new/columnar/arrow_ipc/json/mock (+`with_protocol`); a
+  markup "app" wrapper is not needed — servers call `to_markup` on plain
+  `Html` values with no runtime at all.
 - `App` owns all five pieces → drop order handled in one place; dropping the
   `App` disposes the root context (tears down effects) with the runtime
   still alive, then the rest in field order.
