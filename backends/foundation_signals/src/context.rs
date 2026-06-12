@@ -74,6 +74,11 @@ impl Context {
         &self.runtime
     }
 
+    /// Run `f` without dependency tracking (see [`Runtime::untracked`]).
+    pub fn untracked<R>(&self, f: impl FnOnce() -> R) -> R {
+        self.runtime.untracked(f)
+    }
+
     /// Allocate a contiguous block of `count` instance ids from the runtime's
     /// monotonic counter (G20 — `html!` gives every mounted template instance
     /// a disjoint id range; loops/conditionals allocate per iteration).

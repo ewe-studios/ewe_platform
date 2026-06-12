@@ -58,6 +58,21 @@ pub(crate) enum ParsedNode {
     /// mount and splices into the PARENT element (pure form: inline, like
     /// today's `{expr}`; reactive form: `mount_fragment`).
     Fragment { exprs: Vec<TokenStream> },
+    /// `<Show when={expr}>{render}</Show>` (spec-42 feature 01): mounts the
+    /// content (an `impl Render`) while the condition holds. Reactive-only.
+    Show {
+        span: Span,
+        when: TokenStream,
+        content: TokenStream,
+    },
+    /// `<For each={expr} key={fn} render={fn} />` (spec-42 feature 01): a
+    /// keyed reactive list. Reactive-only.
+    For {
+        span: Span,
+        each: TokenStream,
+        key: TokenStream,
+        render: TokenStream,
+    },
 }
 
 /// One parsed attribute.
@@ -259,11 +274,17 @@ fn parse_element(cursor: &mut Cursor) -> ParseResult<ParsedNode> {
         if tag == "Fragment" {
             return parse_fragment(cursor, tag_span);
         }
+        if tag == "Show" {
+            return parse_show(cursor, tag_span);
+        }
+        if tag == "For" {
+            return parse_for(cursor, tag_span);
+        }
         return Err(ParseError::new(
             tag_span,
             format!(
                 "html!: unknown built-in '<{tag}>' — capitalized tags are reserved \
-                 (available: Fragment); custom elements need a dash (e.g. <my-{}>)",
+                 (available: Fragment, Show, For); custom elements need a dash (e.g. <my-{}>)",
                 tag.to_lowercase()
             ),
         ));
@@ -359,6 +380,126 @@ fn parse_fragment(cursor: &mut Cursor, tag_span: Span) -> ParseResult<ParsedNode
     }
     consume_closing_tag(cursor, "Fragment", tag_span)?;
     Ok(ParsedNode::Fragment { exprs })
+}
+
+/// Collect the dynamic (`name={expr}`) attributes of a built-in, rejecting
+/// everything else.
+fn parse_builtin_attrs(
+    cursor: &mut Cursor,
+    tag: &str,
+    tag_span: Span,
+    allowed: &[&str],
+) -> ParseResult<Vec<(String, TokenStream)>> {
+    let attrs = parse_attributes(cursor, tag, tag_span)?;
+    let mut out = Vec::new();
+    for attr in attrs {
+        match attr {
+            ParsedAttr::Dynamic { name, tokens } if allowed.contains(&name.as_str()) => {
+                out.push((name, tokens));
+            }
+            ParsedAttr::Dynamic { name, .. }
+            | ParsedAttr::Static { name, .. }
+            | ParsedAttr::Event {
+                event_name: name, ..
+            } => {
+                return Err(ParseError::new(
+                    tag_span,
+                    format!(
+                        "html!: <{tag}> does not take '{name}' — expected {{}}-valued: {}",
+                        allowed.join(", ")
+                    ),
+                ));
+            }
+        }
+    }
+    Ok(out)
+}
+
+fn take_builtin_attr(
+    attrs: &mut Vec<(String, TokenStream)>,
+    name: &str,
+    tag: &str,
+    tag_span: Span,
+) -> ParseResult<TokenStream> {
+    match attrs.iter().position(|(n, _)| n == name) {
+        Some(at) => Ok(attrs.remove(at).1),
+        None => Err(ParseError::new(
+            tag_span,
+            format!("html!: <{tag}> requires the '{name}={{…}}' attribute"),
+        )),
+    }
+}
+
+/// `<Show when={expr}>{render}</Show>` — exactly one `when`, exactly one
+/// `{ }` child.
+fn parse_show(cursor: &mut Cursor, tag_span: Span) -> ParseResult<ParsedNode> {
+    let mut attrs = parse_builtin_attrs(cursor, "Show", tag_span, &["when"])?;
+    let when = take_builtin_attr(&mut attrs, "when", "Show", tag_span)?;
+    if cursor.eat_punct('/') {
+        return Err(ParseError::new(
+            tag_span,
+            "html!: <Show> needs a {content} child (it cannot be self-closing)",
+        ));
+    }
+    if !cursor.eat_punct('>') {
+        return Err(ParseError::new(
+            tag_span,
+            "html!: missing '>' after attributes for '<Show>'",
+        ));
+    }
+    let mut content = None;
+    loop {
+        if cursor.at_closing_tag() {
+            break;
+        }
+        match cursor.peek() {
+            Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Brace && content.is_none() => {
+                let Some(TokenTree::Group(group)) = cursor.next() else {
+                    unreachable!("peeked")
+                };
+                content = Some(group.stream());
+            }
+            Some(other) => {
+                return Err(ParseError::new(
+                    other.span(),
+                    "html!: <Show> takes exactly ONE { } child (an impl Render)",
+                ));
+            }
+            None => return Err(ParseError::new(tag_span, "html!: missing '</Show>'")),
+        }
+    }
+    consume_closing_tag(cursor, "Show", tag_span)?;
+    let Some(content) = content else {
+        return Err(ParseError::new(
+            tag_span,
+            "html!: <Show> takes exactly ONE { } child (an impl Render)",
+        ));
+    };
+    Ok(ParsedNode::Show {
+        span: tag_span,
+        when,
+        content,
+    })
+}
+
+/// `<For each={expr} key={fn} render={fn} />` — self-closing only.
+fn parse_for(cursor: &mut Cursor, tag_span: Span) -> ParseResult<ParsedNode> {
+    let mut attrs = parse_builtin_attrs(cursor, "For", tag_span, &["each", "key", "render"])?;
+    let each = take_builtin_attr(&mut attrs, "each", "For", tag_span)?;
+    let key = take_builtin_attr(&mut attrs, "key", "For", tag_span)?;
+    let render = take_builtin_attr(&mut attrs, "render", "For", tag_span)?;
+    if !(cursor.eat_punct('/') && cursor.eat_punct('>')) {
+        return Err(ParseError::new(
+            tag_span,
+            "html!: <For …/> is self-closing (items render through the `render` closure)",
+        ));
+    }
+    Ok(ParsedNode::For {
+        span: tag_span,
+        each,
+        key,
+        render,
+    })
 }
 
 /// Tag and attribute names: `ident(('-'|':')ident)*` — covers `div`,

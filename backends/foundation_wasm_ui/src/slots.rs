@@ -146,7 +146,7 @@ pub fn mount_fragment(
     }
     let base = ctx.allocate_id_block(count);
     let mut next = base;
-    build_subtree(&fragment, parent_id, rcv, &mut next);
+    build_subtree(&fragment, parent_id, Attach::Append, rcv, &mut next, None);
 
     // A single-root fragment's root got the first id; tagless multi-child
     // wrappers have no single root.
@@ -154,6 +154,70 @@ pub fn mount_fragment(
         base
     } else {
         parent_id
+    }
+}
+
+/// Splice `fragment` under `parent_id` BEFORE `ref_id`, returning EVERY
+/// top-level spliced id (spec-42 feature 01: `<Show>`/`<For>` track them to
+/// unmount multi-root content correctly). Same already-mounted /
+/// pure-build / grouping semantics as [`mount_fragment`].
+#[allow(clippy::needless_pass_by_value)] // same identity argument as mount_fragment
+#[must_use = "the returned ids are how the fragment is later unmounted"]
+pub fn mount_before(
+    ctx: &Context,
+    rcv: &SharedInstructionReceiver,
+    fragment: Html,
+    parent_id: u32,
+    ref_id: u32,
+) -> alloc::vec::Vec<u32> {
+    let mut top_level = alloc::vec::Vec::new();
+    if fragment.runtime_id.is_none() {
+        let count = count_nodes(&fragment);
+        if count == 0 {
+            return top_level;
+        }
+        let base = ctx.allocate_id_block(count);
+        let mut next = base;
+        build_subtree(
+            &fragment,
+            parent_id,
+            Attach::Before(ref_id),
+            rcv,
+            &mut next,
+            Some(&mut top_level),
+        );
+        return top_level;
+    }
+    build_subtree(
+        &fragment,
+        parent_id,
+        Attach::Before(ref_id),
+        rcv,
+        &mut 0,
+        Some(&mut top_level),
+    );
+    top_level
+}
+
+/// How a node joins its parent: appended at the end, or inserted before a
+/// reference sibling (anchored regions).
+#[derive(Clone, Copy)]
+enum Attach {
+    Append,
+    Before(u32),
+}
+
+fn attach_op(parent_id: u32, child_id: u32, attach: Attach) -> DomOp {
+    match attach {
+        Attach::Append => DomOp::AppendChild {
+            parent_id,
+            child_id,
+        },
+        Attach::Before(ref_id) => DomOp::InsertBefore {
+            parent_id,
+            child_id,
+            ref_id,
+        },
     }
 }
 
@@ -167,15 +231,22 @@ fn count_nodes(node: &Html) -> u32 {
     node.children.iter().map(count_nodes).sum::<u32>() + own
 }
 
-fn build_subtree(node: &Html, parent_id: u32, rcv: &SharedInstructionReceiver, next: &mut u32) {
+fn build_subtree(
+    node: &Html,
+    parent_id: u32,
+    attach: Attach,
+    rcv: &SharedInstructionReceiver,
+    next: &mut u32,
+    mut top_level: Option<&mut alloc::vec::Vec<u32>>,
+) {
     // Already-mounted fragments splice by reference at ANY depth (e.g.
     // inside a Vec<Html> grouping wrapper) — rebuilding would duplicate
     // their live nodes.
     if let Some(root) = node.runtime_id {
-        rcv.queue(DomOp::AppendChild {
-            parent_id,
-            child_id: root,
-        });
+        rcv.queue(attach_op(parent_id, root, attach));
+        if let Some(ids) = top_level.as_deref_mut() {
+            ids.push(root);
+        }
         return;
     }
 
@@ -219,12 +290,12 @@ fn build_subtree(node: &Html, parent_id: u32, rcv: &SharedInstructionReceiver, n
             });
         }
         for child in &node.children {
-            build_subtree(child, id, rcv, next);
+            build_subtree(child, id, Attach::Append, rcv, next, None);
         }
-        rcv.queue(DomOp::AppendChild {
-            parent_id,
-            child_id: id,
-        });
+        rcv.queue(attach_op(parent_id, id, attach));
+        if let Some(ids) = top_level.as_deref_mut() {
+            ids.push(id);
+        }
         return;
     }
 
@@ -236,16 +307,17 @@ fn build_subtree(node: &Html, parent_id: u32, rcv: &SharedInstructionReceiver, n
             content: text.clone(),
         });
         rcv.queue(DomOp::RegisterNode { node_id: id });
-        rcv.queue(DomOp::AppendChild {
-            parent_id,
-            child_id: id,
-        });
+        rcv.queue(attach_op(parent_id, id, attach));
+        if let Some(ids) = top_level.as_deref_mut() {
+            ids.push(id);
+        }
         return;
     }
 
-    // Grouping node: children splice directly into the parent.
+    // Grouping node: children splice directly into the parent, each one a
+    // TOP-LEVEL node of this fragment.
     for child in &node.children {
-        build_subtree(child, parent_id, rcv, next);
+        build_subtree(child, parent_id, attach, rcv, next, top_level.as_deref_mut());
     }
 }
 

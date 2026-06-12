@@ -118,7 +118,10 @@ fn extract_styles_walk(
                                 }
                             }
                         }
-                        ParsedNode::Element { .. } | ParsedNode::Fragment { .. } => {
+                        ParsedNode::Element { .. }
+                        | ParsedNode::Fragment { .. }
+                        | ParsedNode::Show { .. }
+                        | ParsedNode::For { .. } => {
                             return Err(ParseError {
                                 span: *style_span,
                                 message: String::from(
@@ -197,9 +200,13 @@ struct Plan {
 /// the walk happens here rather than inside `Plan::number`.
 fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
     fn walk(plan: &mut Plan, node: ParsedNode, parent_element: Option<u32>) -> Numbered {
-        // Fragments are directives, not nodes — they consume no ids.
+        // Fragments/Show/For are directives, not nodes — they consume no
+        // ids (Show/For allocate their own anchors at runtime).
         let runtime_index = plan.next_runtime;
-        if !matches!(node, ParsedNode::Fragment { .. }) {
+        if !matches!(
+            node,
+            ParsedNode::Fragment { .. } | ParsedNode::Show { .. } | ParsedNode::For { .. }
+        ) {
             plan.next_runtime += 1;
         }
 
@@ -265,6 +272,12 @@ fn build_plan(root: ParsedNode) -> (Plan, Numbered) {
             },
             ParsedNode::Fragment { exprs } => Numbered {
                 node: ParsedNode::Fragment { exprs },
+                element_id: None,
+                runtime_index,
+                children: Vec::new(),
+            },
+            node @ (ParsedNode::Show { .. } | ParsedNode::For { .. }) => Numbered {
+                node,
                 element_id: None,
                 runtime_index,
                 children: Vec::new(),
@@ -576,6 +589,16 @@ fn gen_html_node(
                 runtime_id: ::core::option::Option::None,
             } },
         },
+        ParsedNode::Show { span, .. } | ParsedNode::For { span, .. } => match mode {
+            // Structural reactivity needs a receiver to mount through; a
+            // pure tree is a VALUE — conditionals/lists in pure trees are
+            // plain Rust around the macro (feature 01 §4).
+            Mode::Pure => {
+                let message = "html!: <Show>/<For> require the reactive form (html! { ctx, receiver, … })";
+                quote::quote_spanned! {*span=> compile_error!(#message) }
+            }
+            Mode::Reactive => quote! { #ui::Html::new() },
+        },
         ParsedNode::Fragment { exprs } => match mode {
             // Pure: inline — a tagless wrapper, same shape Vec<Html> slots
             // produce (to_markup flattens it transparently).
@@ -779,6 +802,37 @@ fn gen_mount_ops(
                     });
                 });
             }});
+        }
+        ParsedNode::Show {
+            when, content, ..
+        } => {
+            let parent = parent_runtime.expect("Show under root element");
+            let wui = foundation_wasm_ui_path();
+            ops.extend(quote! {
+                #wui::reactive::mount_show(
+                    __ctx,
+                    &__rcv,
+                    __base + #parent,
+                    move || (#when),
+                    (#content),
+                );
+            });
+        }
+        ParsedNode::For {
+            each, key, render, ..
+        } => {
+            let parent = parent_runtime.expect("For under root element");
+            let wui = foundation_wasm_ui_path();
+            ops.extend(quote! {
+                #wui::reactive::mount_for(
+                    __ctx,
+                    &__rcv,
+                    __base + #parent,
+                    move || (#each),
+                    (#key),
+                    (#render),
+                );
+            });
         }
         ParsedNode::Fragment { exprs } => {
             let parent = parent_runtime.expect("Fragment under root element");

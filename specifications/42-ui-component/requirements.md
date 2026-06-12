@@ -27,7 +27,7 @@ model. See [plan.md](plan.md) for the originating notes.
 | Feature | Description | Status |
 |---------|-------------|--------|
 | [00-slot-composition](features/00-slot-composition/) | `Render` trait, `Slot`, typed slot structs, `<Fragment>` splice, span text slots, `mount_fragment`, `Html::to_markup` — fixes the three confirmed reactive-composition failure modes | **COMPLETE** (2026-06-13) |
-| 01-reactive-structure | `<Show>` / `<For>` built-ins: signal-driven conditional + keyed-list mounting (deliberately deferred out of feature 00; required by the F6 pickers and toast lists in feature 05) | PLANNED |
+| [01-reactive-structure](features/01-reactive-structure/) | `<Show>` / `<For>` built-ins: anchored regions, per-instance scopes, keyed reconciliation with a zero-move fast path; `Runtime::untracked` | **COMPLETE** (2026-06-13) |
 | [03-app-bootstrap](features/03-app-bootstrap/) | `App` — one-line wiring with protocol presets (arrow default) + SERVER presets (FrameSink frames for WS/SSE streaming) + Context handle-Clone | **COMPLETE** (2026-06-13) |
 | [04-mount-protocol-negotiation](features/04-mount-protocol-negotiation/) | `protocol` attribute + WS binary envelope sniffing + SSE base64 arrow decode + the documented negotiation table | **COMPLETE** (2026-06-13) |
 | [05-headless-components](features/05-headless-components/) | THE CATALOG: full base-ui review (38 components, 7 shared machinery modules) merged with the initial headless-ui draft — adopt data-attribute styling/hidden-input/field-state, reject React-isms; every component marked static-vs-signal | SPEC'D |
@@ -35,6 +35,5 @@ model. See [plan.md](plan.md) for the originating notes.
 
 ## Order of work
 
-00 → 03 → 04 → feature 05's machinery + early families (F1-F4, F7) → 01
-(`<Show>`/`<For>`, needed before the F5/F6 pickers and toast lists) → the
-remaining families → 06 last (its own TODO says so).
+00, 01, 03, 04 are DONE — feature 05 (machinery M1-M8, then families
+F1→F8) is next, unblocked end to end; 06 last (its own TODO says so).

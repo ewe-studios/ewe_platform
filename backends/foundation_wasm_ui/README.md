@@ -593,7 +593,10 @@ degrades to a stub there).
   (`<Show>`/`<For>`) is spec-42 feature 01.
 - Pure-form `{slot}` values are evaluated once — they are values, not
   bindings; `<Fragment>` placement is once-at-mount (interiors stay
-  reactive).
+  reactive). Signal-driven placement is `<Show when={…}>{impl Render}
+  </Show>` and `<For each={…} key={…} render={…} />` (reactive form only):
+  anchored regions, per-instance scopes, keyed reconciliation with a
+  zero-move fast path for append/remove.
 - The signal runtime is single-threaded by design; cross-thread access goes
   through `SignalHub`, not `Send` signals.
 

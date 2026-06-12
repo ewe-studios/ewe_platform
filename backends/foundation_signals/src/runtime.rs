@@ -242,6 +242,26 @@ impl Runtime {
         out
     }
 
+    /// Run `f` with dependency tracking SUSPENDED: reads inside record
+    /// nothing on the surrounding tracked evaluation, and nested tracked
+    /// evaluations (mounting reactive content from inside an effect —
+    /// spec-42 feature 01's `<Show>`/`<For>` watchers) become legal. The
+    /// active node and its recorded trail are saved and restored around
+    /// `f`, so the outer evaluation's dependency diff is unaffected.
+    pub fn untracked<R>(&self, f: impl FnOnce() -> R) -> R {
+        let (prev_active, prev_trail) = {
+            let mut graph = self.graph();
+            (graph.active.take(), std::mem::take(&mut graph.trail))
+        };
+        let out = f();
+        {
+            let mut graph = self.graph();
+            graph.active = prev_active;
+            graph.trail = prev_trail;
+        }
+        out
+    }
+
     /// Record a dependency read: the ACTIVE node (if any) depends on `read`.
     /// Called by every getter.
     pub(crate) fn track_read(&self, read: NodeId) {
