@@ -14,6 +14,7 @@ mod type_uuid;
 mod wasm_entrypoint;
 mod html_macro;
 mod theme_tokens;
+mod wasm_modes;
 mod valtron_entry;
 mod wasm_test;
 mod wasmbin_codec;
@@ -568,5 +569,25 @@ pub fn html(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(ThemeTokens, attributes(token))]
 pub fn theme_tokens(item: TokenStream) -> TokenStream {
     theme_tokens::theme_tokens_derive(item.into()).into()
+}
+
+/// `#[wasm_bin]` — main-thread WASM entrypoint (feature 10, decision 014).
+/// Marker-validated; the build pipeline reads it from source.
+#[proc_macro_attribute]
+pub fn wasm_bin(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_modes::wasm_bin(attr.into(), item.into()).into()
+}
+
+/// `#[wasm_worker]` — web-worker WASM entrypoint (feature 10).
+#[proc_macro_attribute]
+pub fn wasm_worker(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_modes::wasm_worker(attr.into(), item.into()).into()
+}
+
+/// `#[wasm_service]` — service-worker WASM entrypoint with a route table
+/// (feature 10, decision 017). `routes = ["/api/…"]` is required.
+#[proc_macro_attribute]
+pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_modes::wasm_service(attr.into(), item.into()).into()
 }
 

@@ -310,7 +310,7 @@ is the at-a-glance view (kept in sync as features complete).
 | [07-dom-morphing](features/07-dom-morphing/) | Datastar-style morphing (decision 027) behind MorphNode — MorphDom with pantry, form preservation, escape hatches | 2 | **COMPLETE** (2026-06-12) |
 | [08-event-runtime](features/08-event-runtime/) | primal:on* wiring → EventData → invoke_signal_callback → stabilize; delegation, dot-path handlers, island-boundary MutationObserver | 2 | **COMPLETE** (2026-06-12) |
 | [09-scoped-styles-theme](features/09-scoped-styles-theme/) | Scoped style transform in html! + ThemeTokens derive + first-batch injection | 3 | **COMPLETE** (2026-06-12) |
-| [10-build-pipeline](features/10-build-pipeline/) | Build pipeline (decision 016) | 3 | pending |
+| [10-build-pipeline](features/10-build-pipeline/) | wasm_bin/worker/service macros + WasmBundleGenerator + ewe-wasm CLI | 3 | **COMPLETE** (2026-06-12) |
 | [11-request-batching](features/11-request-batching/) | Fetch bundling (decision 026) | 3 | pending |
 | [12-testbed-native-harness](features/12-testbed-native-harness/) | wasm-testbed node/deno/web runners on the owned runtime | 1 | **COMPLETE** (2026-06-11) |
 | [13-wasm-test-native](features/13-wasm-test-native/) | `#[wasm_test]` + `__fwt_` discovery + host_report protocol | 1 | **COMPLETE** (2026-06-11) |
