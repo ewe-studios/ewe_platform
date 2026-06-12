@@ -206,7 +206,7 @@ pub trait MessageStore {
 
 **Why append-only (no compaction)?**  
 - Compaction destroys audit trail — impossible to replay or debug
-- Memory pressure is managed by the Context memory hierarchy (ObservationMemory → ReflectionMemory), not by compacting messages
+- Memory pressure is managed by the Context memory hierarchy (ObservationMemory → ReflectionMemory), not by compacting messages.
 - The message store is the source of truth — everything else derives from it
 
 **Why scru128 IDs on messages?**  
