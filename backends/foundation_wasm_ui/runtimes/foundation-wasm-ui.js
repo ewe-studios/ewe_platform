@@ -1483,7 +1483,8 @@ export class FetchTransport {
     }
     const response = await this.fetchFn(url, init);
     if (!response.ok) throw new Error(`FetchTransport: ${method} ${url} -> ${response.status}`);
-    const handler = ProtocolHandler.fromContentType(response);
+    const handler =
+      ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
     return handler.process(response);
   }
 
@@ -1751,7 +1752,9 @@ export class SSETransport {
       body: data === undefined ? undefined : JSON.stringify(data),
       fetchFn: this.config.fetchFn,
       // G46: the `event:` field names the payload kind; unnamed = html.
-      onEvent: (event) => onResult(streamEventResult(event.event ?? "html", event.data)),
+      // The mount `protocol` attribute overrides per feature-04 precedence.
+      onEvent: (event) =>
+        onResult(streamEventResult(this.config.protocol ?? event.event ?? "html", event.data)),
       onError: this.config.onError,
     });
     return this.source.connect();
@@ -1772,14 +1775,31 @@ export class WebSocketTransport {
   }
 
   connect(url, _data, onResult) {
-    if (typeof WebSocket === "undefined") {
+    const factory =
+      this.config.wsFactory ??
+      (typeof WebSocket === "undefined" ? null : (target) => new WebSocket(target));
+    if (!factory) {
       throw new Error("WebSocketTransport: WebSocket unavailable in this environment");
     }
     this.closed = false;
     this.url = url;
     this.onResult = onResult;
-    this.ws = new WebSocket(url);
-    this.ws.onmessage = (event) => onResult(streamEventResult("json", event.data));
+    this.ws = factory(url);
+    // Binary frames carry the ENVELOPE — its header tells the protocol
+    // (feature 04); text frames fall back to the declared protocol, else
+    // json (the pre-feature-04 behavior, preserved as the text default).
+    if ("binaryType" in this.ws) this.ws.binaryType = "arraybuffer";
+    this.ws.onmessage = (event) => {
+      const { data } = event;
+      if (data instanceof ArrayBuffer || ArrayBuffer.isView(data)) {
+        const result = decodeEnvelopeFrame(
+          data instanceof ArrayBuffer ? new Uint8Array(data) : new Uint8Array(data.buffer, data.byteOffset, data.byteLength),
+        );
+        if (result) onResult(result);
+        return; // malformed frames already surfaced a typed error
+      }
+      onResult(streamEventResult(this.config.protocol ?? "json", data));
+    };
     this.ws.onclose = () => {
       if (this.closed) return;
       const delay = reconnectDelay(this.attempt);
@@ -1815,7 +1835,8 @@ export class ChunkedTransport {
       body: data === undefined ? undefined : JSON.stringify(data),
       signal: this.abort.signal,
     });
-    const handler = ProtocolHandler.fromContentType(response);
+    const handler =
+      ProtocolHandler.named(this.config.protocol) ?? ProtocolHandler.fromContentType(response);
     const reader = response.body.getReader();
     for (;;) {
       const { done, value } = await reader.read();
@@ -1868,6 +1889,59 @@ export class Transport {
 
 // ─── Protocol handlers (decision 022 content types) ───────────────────────────
 
+/**
+ * Decode one envelope-framed wire message (feature 04): the 6-byte header
+ * `[protocol][version][length:4 LE]` is AUTHORITATIVE — this is how
+ * header-less channels (WebSocket binary frames, base64 SSE `arrow`
+ * events) self-describe. Returns a routed result, or null after surfacing
+ * a typed error (NEVER a silent json attempt).
+ */
+export function decodeEnvelopeFrame(bytes) {
+  if (!(bytes instanceof Uint8Array)) bytes = new Uint8Array(bytes);
+  if (bytes.byteLength < 6) {
+    console.error("decodeEnvelopeFrame: truncated header", bytes.byteLength);
+    return null;
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const protocol = view.getUint8(0);
+  const version = view.getUint8(1);
+  const length = view.getUint32(2, true);
+  const payload = bytes.subarray(6);
+  if (payload.byteLength !== length) {
+    console.error(`decodeEnvelopeFrame: length mismatch (header ${length}, payload ${payload.byteLength})`);
+    return null;
+  }
+  if (protocol === 1 && version === 1) {
+    return { type: "arrow", columns: ColumnarParser.parse(payload) };
+  }
+  if (protocol === 1 && version === 2) {
+    // Real Arrow IPC needs the apache-arrow reader (embedded asset); the
+    // core runtime stays lean — consumers register a reader.
+    if (typeof ProtocolHandler.arrowIpcReader === "function") {
+      return { type: "arrow-ipc", table: ProtocolHandler.arrowIpcReader(payload) };
+    }
+    console.error("decodeEnvelopeFrame: wire v2 (Arrow IPC) frame received but no reader is registered — set ProtocolHandler.arrowIpcReader (e.g. apache-arrow tableFromIPC)");
+    return null;
+  }
+  if (protocol === 2) {
+    try {
+      return routeJson(JSON.parse(new TextDecoder().decode(payload)));
+    } catch (error) {
+      console.error("decodeEnvelopeFrame: json payload did not parse", error);
+      return null;
+    }
+  }
+  console.error(`decodeEnvelopeFrame: unknown protocol ${protocol} v${version}`);
+  return null;
+}
+
+function base64ToBytes(text) {
+  const bin = atob(String(text).trim());
+  const bytes = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i += 1) bytes[i] = bin.charCodeAt(i);
+  return bytes;
+}
+
 function streamEventResult(kind, raw) {
   if (kind === "json") {
     try {
@@ -1876,7 +1950,16 @@ function streamEventResult(kind, raw) {
       return { type: "raw", text: String(raw) };
     }
   }
-  if (kind === "arrow") return { type: "raw", text: String(raw) }; // SSE arrow is base64/firehose — F11 follow-up
+  if (kind === "arrow") {
+    // SSE is text — arrow frames arrive base64'd, envelope included
+    // (feature 04; completes the F11 follow-up note that used to live here).
+    try {
+      return decodeEnvelopeFrame(base64ToBytes(raw)) ?? { type: "raw", text: String(raw) };
+    } catch (error) {
+      console.error("streamEventResult: arrow event was not valid base64", error);
+      return { type: "raw", text: String(raw) };
+    }
+  }
   return routeHtml(String(raw));
 }
 
@@ -1922,7 +2005,34 @@ export class RawHandler {
   }
 }
 
+/**
+ * NEGOTIATION TABLE (feature 04 — the contract, finally written down):
+ *
+ * | channel      | decided by                                                  |
+ * |--------------|--------------------------------------------------------------|
+ * | HTTP fetch   | response `content-type` (`fromContentType` below)            |
+ * | SSE          | per-message `event:` name (html/json/arrow; unnamed = html)  |
+ * | WS binary    | the ENVELOPE header (protocol byte + version — authoritative)|
+ * | WS text      | declared `protocol` attr, else json                          |
+ * | `protocol=`  | mount attribute OVERRIDES headers/event names entirely       |
+ *
+ * Precedence: attribute > headers/event name > channel default.
+ */
 export class ProtocolHandler {
+  /** Explicit handler by name — the mount `protocol` attribute override. */
+  static named(name) {
+    switch (name) {
+      case "arrow":
+        return new ArrowHandler();
+      case "json":
+        return new JsonHandler();
+      case "html":
+        return new HtmlHandler();
+      default:
+        return null;
+    }
+  }
+
   /** Content-type table (spec §3, G46). */
   static fromContentType(response) {
     const ct = response.headers?.get?.("content-type") || "";
@@ -2122,7 +2232,11 @@ function mountSetup(element, defaults = {}) {
   }
   const transport =
     element._transportOverride ??
-    Transport.create({ transport: element.getAttribute("transport") ?? defaults.transport, url: api });
+    Transport.create({
+      transport: element.getAttribute("transport") ?? defaults.transport,
+      protocol: element.getAttribute("protocol") ?? undefined,
+      url: api,
+    });
   return { api, data, transport, target: element.getAttribute("target") };
 }
 

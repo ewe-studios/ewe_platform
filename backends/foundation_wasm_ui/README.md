@@ -382,9 +382,21 @@ Three custom elements ship server-driven islands with zero app JS:
 ```
 
 Attributes: `api` (required), `data` (JSON), `transport`
-(`fetch|sse|ws|chunked|worker`), `target` (CSS selector, `parent`, or omit
-for self-replacement), `method`. Responses route by type — HTML morphs or
-materializes, JSON patches signals, Arrow columns apply as DomOps.
+(`fetch|sse|ws|chunked|worker`), `protocol` (`html|json|arrow` — an explicit
+OVERRIDE when headers/event names are absent or wrong), `target` (CSS
+selector, `parent`, or omit for self-replacement), `method`. Responses route
+by type — HTML morphs or materializes, JSON patches signals, Arrow columns
+apply as DomOps.
+
+**Protocol negotiation** (precedence: attribute > headers/event name >
+channel default): HTTP responses negotiate by `content-type`
+(`primal-arrow`/`primal-json`/`text/html`); SSE messages by their `event:`
+name (unnamed = html; `arrow` events carry base64 envelope frames);
+WebSocket BINARY frames are authoritative — the 6-byte envelope header
+(protocol byte + version) says what they are (v1 columnar applies directly;
+v2 Arrow IPC needs `ProtocolHandler.arrowIpcReader` registered, e.g.
+apache-arrow's `tableFromIPC`); WS text frames default to json. Malformed
+binary surfaces a typed error — never a silent json attempt.
 
 ---
 
