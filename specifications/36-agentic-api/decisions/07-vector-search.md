@@ -58,11 +58,13 @@ pub struct VectorMetadata {
 
 ### Backend Implementations
 
-| Backend | Environment | Persistence | WASM | Use Case |
-|---------|-------------|-------------|------|----------|
-| **InMemoryVectorStore** | All | No | ✅ | Development, testing, short-lived sessions |
-| **TursoVectorStore** | Native + WASM | Yes (libsql) | ✅ | Production sessions with persistence |
-| **FjallVectorStore** | Native | Yes (LSM) | ❌ | Native-only sessions with local persistence |
+| Backend | Location | Notes |
+|---------|----------|-------|
+| **In-Memory** | `foundation_db` | Flat scan with cosine similarity — O(n), fine for < 1k vectors |
+| **Turso/libsql** | `foundation_db` | Uses Turso's native vector extension (`CREATE VEC0`) |
+| **Fjall (LSM)** | `foundation_db` | IVF index on top of fjall key-value store |
+
+**When the VectorStore feature is implemented, ALL backends above are implemented. No partial delivery.**
 
 ### In-Memory Store
 
@@ -123,13 +125,13 @@ pub struct FjallVectorStore {
 
 ### Index Strategy
 
-| Store Size | Index Type | Rationale |
-|------------|------------|-----------|
-| < 1,000 vectors | Flat scan | Index overhead > benefit |
-| 1,000 - 100,000 vectors | IVF (Inverted File Index) | Good balance of accuracy and speed |
-| > 100,000 vectors | HNSW (Hierarchical Navigable Small World) | Best query speed for large datasets |
+| Store Size | Index Type |
+|------------|------------|
+| < 1,000 vectors | Flat scan |
+| 1,000 - 100,000 vectors | IVF (Inverted File Index) |
+| > 100,000 vectors | HNSW (Hierarchical Navigable Small World) |
 
-**Decision:** Start with **flat scan** for all stores. Add IVF indexing when stores exceed 1,000 vectors. This is the simplest correct approach and can be measured and optimized later.
+The in-memory backend starts with flat scan and adds IVF when threshold exceeded. Turso uses its native HNSW index. Fjall uses IVF.
 
 ### Dimension Consistency
 

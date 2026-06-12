@@ -17,6 +17,8 @@ The storage must work across SQLite, Turso/D1, filesystem (via VFS), Cloudflare 
 
 The **DocumentStore** trait is added to `foundation_db` as a cross-platform abstraction for append-only document storage with scan semantics. Each backend implements the trait using its native storage primitives.
 
+**When the DocumentStore feature is implemented, ALL backends below are implemented. No partial delivery.**
+
 ### Trait
 
 ```rust
@@ -41,17 +43,17 @@ pub trait DocumentStore: Send + Sync {
 }
 ```
 
-### Backend Implementations (Status)
+### Backend Implementations
 
-| Backend | Location | Status | Notes |
-|---------|----------|--------|-------|
-| **SQL (SQLite/Turbo/D1)** | `foundation_db` | ✅ Implemented | Uses `QueryStore` — INSERT + SELECT with ORDER BY |
-| **Memory** | `foundation_db` | ✅ Implemented | In-memory HashMap with sequence counter |
-| **VFS (Filesystem)** | `foundation_nativeapis` | 📋 Planned | One NDJSON file per collection; append = write line; scan = read last N lines |
-| **Cloudflare KV** | `foundation_db` (wasm) | 📋 Planned | KV key = `{collection}:{doc_id}`; scan = list keys with prefix, sort, take N |
-| **Cloudflare D1** | `foundation_db` (wasm) | 📋 Planned | Same as SQL backend, uses `AsyncDocumentStore` trait |
+| Backend | Location | Notes |
+|---------|----------|-------|
+| **SQL (SQLite/Turbo/D1)** | `foundation_db` | Uses `QueryStore` — INSERT + SELECT with ORDER BY |
+| **Memory** | `foundation_db` | In-memory HashMap with sequence counter |
+| **VFS (Filesystem)** | `foundation_nativeapis` | One NDJSON file per collection; append = write line; scan = read last N lines |
+| **Cloudflare KV** | `foundation_db` (wasm) | KV key = `{collection}:{doc_id}` → JSON value; list keys with prefix, sort, take N |
+| **Cloudflare D1** | `foundation_db` (wasm) | Same as SQL backend, uses `AsyncDocumentStore` trait |
 
-### VFS-Based DocumentStore (Planned)
+### VFS-Based DocumentStore
 
 When implemented in `foundation_nativeapis`, the VFS-backed DocumentStore will:
 
@@ -69,7 +71,7 @@ vfs_root/
 └── session%3Adef456%3Amessages.jsonl    # Messages for session def456
 ```
 
-### Cloudflare KV DocumentStore (Planned)
+### Cloudflare KV DocumentStore
 
 For WASM/Cloudflare Workers environments:
 

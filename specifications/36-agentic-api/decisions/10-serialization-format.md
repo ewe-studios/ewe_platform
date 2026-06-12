@@ -120,10 +120,10 @@ If Arrow proves problematic in certain environments (e.g., WASM), **FlatBuffers*
 | Format | Pros | Cons | Status |
 |--------|------|------|--------|
 | **JSON** | Human-readable, universal | Verbose, slow to parse | Primary |
-| **Arrow** | Columnar, fast, interoperable | Heavier dependency tree | Preferred for batch |
-| **FlatBuffers** | Zero-copy, WASM-friendly, compact | Schema definition required, codegen | Fallback |
+| **Arrow** | Columnar, fast, interoperable | Heavier dependency tree | Primary for batch |
+| **FlatBuffers** | Zero-copy, WASM-friendly, compact | Schema definition required, codegen | Conditional fallback |
 
-**Decision:** Start with JSON + Arrow. If Arrow's dependency tree causes issues in WASM environments, add FlatBuffers as a fallback for those environments only.
+**Decision:** JSON + Arrow are the primary formats. FlatBuffers is implemented conditionally — if Arrow's dependency tree causes issues in WASM environments, the FlatBuffers path is activated via feature flag. The feature flag and conditional compilation strategy is designed upfront so either path works at compile time.
 
 ### Transport Layer
 
