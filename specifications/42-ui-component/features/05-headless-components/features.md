@@ -207,7 +207,15 @@ backdrop is `::backdrop`, not a DOM part).
 Modeled on base-ui's demo CSS (each demo ships css-modules + tailwind
 variants; the css-modules form is the reference idiom: plain CSS, state
 via attribute selectors — `.Switch[data-checked] { … }`), adapted to our
-stack:
+stack. **The reference stylesheets themselves are VENDORED into
+[styling/](styling/)** (one file per component, MIT, source recorded per
+file) — they are the styling acceptance criteria AND the load-bearing
+geometry (thumb translate distances, transform-origin animations, toast
+stacking transforms) that "headless" would otherwise silently drop; each
+family doc links its files, and [styling/README.md](styling/README.md)
+defines the mechanical adaptation rules (module classes → our part
+classes, oklch literals → ThemeTokens). Adapted files ship as the OPT-IN
+default stylesheet per component.
 
 1. **Stable part classes, overridable.** Every part renders a default
    class (`switch`, `switch-thumb`, `dialog-popup`, `menu-item`…); config
@@ -238,9 +246,9 @@ stack:
 5. **Focus styles are consumer CSS** via `:focus-visible` (the components
    guarantee correct focus TARGETS, never outline styles).
 6. Each family's implementation feature must ship a styled reference
-   example per component (the "headless claim" acceptance test from §6)
-   written in tier-1 plain CSS + tokens, mirroring base-ui's demo so the
-   two can be visually compared.
+   example per component (the "headless claim" acceptance test from §6):
+   the ADAPTED vendored stylesheet from [styling/](styling/), so ours and
+   base-ui's demo can be visually compared rule for rule.
 
 ## 6. Implementation order
 

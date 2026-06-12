@@ -154,3 +154,13 @@ Tests: full keyboard matrix per component (incl. RTL arrow mirroring,
 typeahead, submenu tree Escape), open-intent menubar hover, checkbox/radio
 item state ops, context-menu point positioning, toolbar mixed-widget
 roving, aria role/linkage assertions on the op stream.
+
+## Reference CSS (vendored — the styling acceptance criteria)
+
+[menu](../styling/menu.css) · [context-menu](../styling/context-menu.css) · [menubar](../styling/menubar.css) · [navigation-menu](../styling/navigation-menu.css) · [toolbar](../styling/toolbar.css)
+
+Per [styling/README.md](../styling/README.md): each implementation must
+satisfy its reference stylesheet's selectors (data-attributes, CSS vars)
+with only the mechanical adaptations listed there; the adapted file becomes
+the component's opt-in default stylesheet.
+

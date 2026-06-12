@@ -137,3 +137,13 @@ pub fn avatar(ctx, rcv, cfg: AvatarConfig, slots: AvatarSlots { fallback }) -> H
 Machinery: M5 (toggle-group), M7 (avatar). Acceptance tests per component:
 ARIA attrs on the op stream, data-attribute transitions on state change,
 keyboard contract (group arrows), pure-form parity (`to_markup`).
+
+## Reference CSS (vendored — the styling acceptance criteria)
+
+[button](../styling/button.css) · [toggle](../styling/toggle.css) · [toggle-group](../styling/toggle-group.css) · [separator](../styling/separator.css) · [avatar](../styling/avatar.css)
+
+Per [styling/README.md](../styling/README.md): each implementation must
+satisfy its reference stylesheet's selectors (data-attributes, CSS vars)
+with only the mechanical adaptations listed there; the adapted file becomes
+the component's opt-in default stylesheet.
+

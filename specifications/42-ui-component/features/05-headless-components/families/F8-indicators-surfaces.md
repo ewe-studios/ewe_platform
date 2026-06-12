@@ -112,3 +112,13 @@ style ops per value change incl. RTL, slider keyboard matrix + drag
 (JS suite with synthetic pointer events) + range collision modes +
 hidden-input form serialization, scroll-area attr flips on synthetic
 scroll/overflow, skeleton pure markup via `to_markup`.
+
+## Reference CSS (vendored — the styling acceptance criteria)
+
+[progress](../styling/progress.css) · [meter](../styling/meter.css) · [slider](../styling/slider.css) · [scroll-area](../styling/scroll-area.css)
+
+Per [styling/README.md](../styling/README.md): each implementation must
+satisfy its reference stylesheet's selectors (data-attributes, CSS vars)
+with only the mechanical adaptations listed there; the adapted file becomes
+the component's opt-in default stylesheet.
+

@@ -168,3 +168,13 @@ fallback incl. the documented pure-form constraint; hidden-until-found
 panel responds to `beforematch` (JS suite); indicator var updates on
 activation; `<details>`/`<details name>` recipes rendered via `to_markup`
 and verified as valid alternatives.
+
+## Reference CSS (vendored — the styling acceptance criteria)
+
+[collapsible](../styling/collapsible.css) · [accordion](../styling/accordion.css) · [tabs](../styling/tabs.css)
+
+Per [styling/README.md](../styling/README.md): each implementation must
+satisfy its reference stylesheet's selectors (data-attributes, CSS vars)
+with only the mechanical adaptations listed there; the adapted file becomes
+the component's opt-in default stylesheet.
+

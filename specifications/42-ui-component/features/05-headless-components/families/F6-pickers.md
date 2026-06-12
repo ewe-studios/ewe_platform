@@ -118,3 +118,13 @@ computed correctness incl. locale + limit, server-source swap (items
 signal replaces list — `<For>` keyed correctness), live-region status
 text, hidden-input serialization single/multi, native-select recipe in
 docs verified via `to_markup`.
+
+## Reference CSS (vendored — the styling acceptance criteria)
+
+[select](../styling/select.css) · [combobox](../styling/combobox.css) · [autocomplete](../styling/autocomplete.css)
+
+Per [styling/README.md](../styling/README.md): each implementation must
+satisfy its reference stylesheet's selectors (data-attributes, CSS vars)
+with only the mechanical adaptations listed there; the adapted file becomes
+the component's opt-in default stylesheet.
+

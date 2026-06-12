@@ -144,3 +144,13 @@ Machinery: M5 (radio-group roving+selecting variant), M6 (all), M7
 (indicators). Tests: data-pair flips on the op stream, hidden-input
 name/value/checked ops, parent tri-state computed, radio keyboard contract,
 enclosing vs sibling label forms, morph survival of checked state.
+
+## Reference CSS (vendored — the styling acceptance criteria)
+
+[switch](../styling/switch.css) · [checkbox](../styling/checkbox.css) · [checkbox-group](../styling/checkbox-group.css) · [radio](../styling/radio.css)
+
+Per [styling/README.md](../styling/README.md): each implementation must
+satisfy its reference stylesheet's selectors (data-attributes, CSS vars)
+with only the mechanical adaptations listed there; the adapted file becomes
+the component's opt-in default stylesheet.
+

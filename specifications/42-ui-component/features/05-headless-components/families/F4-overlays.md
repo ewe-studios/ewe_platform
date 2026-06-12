@@ -173,3 +173,13 @@ dialog attrs, positioning data-attrs + CSS vars on the op stream (JS suite
 with a stub layout), tooltip group delay-skip timing, toast manager
 add/limit/timeout-pause semantics, `commandfor`/`popovertarget` attributes
 present in `to_markup` output (the zero-JS server-rendered path).
+
+## Reference CSS (vendored — the styling acceptance criteria)
+
+[dialog](../styling/dialog.css) · [alert-dialog](../styling/alert-dialog.css) · [drawer](../styling/drawer.css) · [popover](../styling/popover.css) · [tooltip](../styling/tooltip.css) · [preview-card](../styling/preview-card.css) · [toast](../styling/toast.css)
+
+Per [styling/README.md](../styling/README.md): each implementation must
+satisfy its reference stylesheet's selectors (data-attributes, CSS vars)
+with only the mechanical adaptations listed there; the adapted file becomes
+the component's opt-in default stylesheet.
+

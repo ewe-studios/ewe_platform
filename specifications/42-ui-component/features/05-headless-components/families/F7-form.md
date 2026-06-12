@@ -146,3 +146,13 @@ ValidityState mapping into errors, number parse/format round-trips per
 locale + modifier stepping, otp typing/paste/backspace choreography,
 autofill distribution, `to_markup` renders working NATIVE form posts
 (progressive enhancement proof).
+
+## Reference CSS (vendored — the styling acceptance criteria)
+
+[field](../styling/field.css) · [fieldset](../styling/fieldset.css) · [form](../styling/form.css) · [input](../styling/input.css) · [number-field](../styling/number-field.css) · [otp-field](../styling/otp-field.css)
+
+Per [styling/README.md](../styling/README.md): each implementation must
+satisfy its reference stylesheet's selectors (data-attributes, CSS vars)
+with only the mechanical adaptations listed there; the adapted file becomes
+the component's opt-in default stylesheet.
+
