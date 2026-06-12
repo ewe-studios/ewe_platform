@@ -1312,6 +1312,581 @@ export function domAbi(rt, dom) {
 // ─── Global registration ──────────────────────────────────────────────────────────
 //
 // The ESM exports above are canonical (`<script type="module">` / import). This
+// ─── Web Components (feature 06 — decisions 021/022/023/024) ─────────────────
+//
+// Three thin custom elements over four shared layers: Transport (how bytes
+// move), ProtocolHandler (what the bytes are, by content type), Patcher (how
+// parsed results land in the DOM), Hydrator (post-insertion styles/scripts —
+// events stay with the F08 EventDispatcher). Browser-only APIs (EventSource,
+// WebSocket, customElements, CSSStyleSheet) are guarded so the logic runs and
+// tests under node.
+
+/** Exponential reconnect backoff: 1s/2s/4s… capped at 30s (spec §12). */
+export function reconnectDelay(attempt) {
+  return Math.min(1000 * 2 ** attempt, 30_000);
+}
+
+/**
+ * Request bundling (G26/decision 026): when the server supports
+ * `/primal/messages`, queued requests flush as ONE batch per microtask tick.
+ */
+export class RequestQueue {
+  constructor(transport) {
+    this.queue = [];
+    this.scheduled = false;
+    this.transport = transport;
+    this.bundlingEnabled = false; // set after the HEAD /primal/messages probe
+  }
+
+  /** Probe once; enable bundling on 200 OK. */
+  async probe(fetchFn = globalThis.fetch) {
+    try {
+      const res = await fetchFn("/primal/messages", { method: "HEAD" });
+      this.bundlingEnabled = !!res && res.ok === true;
+    } catch {
+      this.bundlingEnabled = false;
+    }
+    return this.bundlingEnabled;
+  }
+
+  enqueue(request) {
+    if (!this.bundlingEnabled) {
+      return this.transport.send(request.url, request.method, request.data);
+    }
+    this.queue.push(request);
+    if (!this.scheduled) {
+      this.scheduled = true;
+      queueMicrotask(() => this.flush());
+    }
+    return null;
+  }
+
+  flush() {
+    this.scheduled = false;
+    if (this.queue.length === 0) return;
+    const batch = this.queue.splice(0);
+    this.transport.send("/primal/messages", "POST", batch);
+  }
+}
+
+// ─── Transport layer (G28: send for request-response, connect for streams) ────
+
+export class FetchTransport {
+  constructor(config = {}) {
+    this.config = config;
+    this.fetchFn = config.fetchFn ?? ((...args) => globalThis.fetch(...args));
+  }
+
+  async send(url, method = "POST", data = undefined) {
+    const init = { method, headers: this.config.headers };
+    if (data !== undefined && method !== "GET" && method !== "HEAD") {
+      init.body = typeof data === "string" ? data : JSON.stringify(data);
+    }
+    const response = await this.fetchFn(url, init);
+    if (!response.ok) throw new Error(`FetchTransport: ${method} ${url} -> ${response.status}`);
+    const handler = ProtocolHandler.fromContentType(response);
+    return handler.process(response);
+  }
+
+  disconnect() {}
+}
+
+export class SSETransport {
+  constructor(config = {}) {
+    this.config = config;
+    this.eventSource = null;
+    this.attempt = 0;
+    this.closed = false;
+  }
+
+  connect(url, _data, onResult) {
+    if (typeof EventSource === "undefined") {
+      throw new Error("SSETransport: EventSource unavailable in this environment");
+    }
+    this.closed = false;
+    this.url = url;
+    this.onResult = onResult;
+    this.eventSource = new EventSource(url);
+    // G46: the HTTP content type is text/event-stream; each event's `event:`
+    // field names the payload kind (html/arrow/json).
+    for (const kind of ["html", "arrow", "json"]) {
+      this.eventSource.addEventListener(kind, (event) => {
+        onResult(streamEventResult(kind, event.data));
+      });
+    }
+    this.eventSource.onmessage = (event) => onResult(streamEventResult("html", event.data));
+    this.eventSource.onerror = () => this.reconnect();
+  }
+
+  reconnect() {
+    if (this.closed) return;
+    this.eventSource?.close?.();
+    const delay = reconnectDelay(this.attempt);
+    this.attempt += 1;
+    setTimeout(() => {
+      if (!this.closed) this.connect(this.url, undefined, this.onResult);
+    }, delay);
+  }
+
+  disconnect() {
+    this.closed = true;
+    this.eventSource?.close?.();
+    this.eventSource = null;
+  }
+}
+
+export class WebSocketTransport {
+  constructor(config = {}) {
+    this.config = config;
+    this.ws = null;
+    this.attempt = 0;
+    this.closed = false;
+  }
+
+  connect(url, _data, onResult) {
+    if (typeof WebSocket === "undefined") {
+      throw new Error("WebSocketTransport: WebSocket unavailable in this environment");
+    }
+    this.closed = false;
+    this.url = url;
+    this.onResult = onResult;
+    this.ws = new WebSocket(url);
+    this.ws.onmessage = (event) => onResult(streamEventResult("json", event.data));
+    this.ws.onclose = () => {
+      if (this.closed) return;
+      const delay = reconnectDelay(this.attempt);
+      this.attempt += 1;
+      setTimeout(() => {
+        if (!this.closed) this.connect(this.url, undefined, this.onResult);
+      }, delay);
+    };
+  }
+
+  send(data) {
+    this.ws?.send(typeof data === "string" ? data : JSON.stringify(data));
+  }
+
+  disconnect() {
+    this.closed = true;
+    this.ws?.close?.();
+    this.ws = null;
+  }
+}
+
+export class ChunkedTransport {
+  constructor(config = {}) {
+    this.config = config;
+    this.abort = null;
+    this.fetchFn = config.fetchFn ?? ((...args) => globalThis.fetch(...args));
+  }
+
+  async connect(url, data, onChunk) {
+    this.abort = new AbortController();
+    const response = await this.fetchFn(url, {
+      method: data === undefined ? "GET" : "POST",
+      body: data === undefined ? undefined : JSON.stringify(data),
+      signal: this.abort.signal,
+    });
+    const handler = ProtocolHandler.fromContentType(response);
+    const reader = response.body.getReader();
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      onChunk(await handler.processChunk(value));
+    }
+  }
+
+  disconnect() {
+    this.abort?.abort?.();
+    this.abort = null;
+  }
+}
+
+export class WorkerTransport {
+  constructor(config = {}) {
+    this.worker = config.worker;
+  }
+
+  send(_url, _method, data) {
+    this.worker.postMessage(data);
+  }
+
+  onMessage(callback) {
+    this.worker.onmessage = (event) => callback(event.data);
+  }
+
+  disconnect() {
+    this.worker?.terminate?.();
+  }
+}
+
+export class Transport {
+  /** Factory (spec §2): default is fetch. */
+  static create(config = {}) {
+    switch (config.transport) {
+      case "sse":
+        return new SSETransport(config);
+      case "ws":
+        return new WebSocketTransport(config);
+      case "chunked":
+        return new ChunkedTransport(config);
+      case "worker":
+        return new WorkerTransport(config);
+      default:
+        return new FetchTransport(config);
+    }
+  }
+}
+
+// ─── Protocol handlers (decision 022 content types) ───────────────────────────
+
+function streamEventResult(kind, raw) {
+  if (kind === "json") {
+    try {
+      return routeJson(JSON.parse(raw));
+    } catch {
+      return { type: "raw", text: String(raw) };
+    }
+  }
+  if (kind === "arrow") return { type: "raw", text: String(raw) }; // SSE arrow is base64/firehose — F11 follow-up
+  return routeHtml(String(raw));
+}
+
+/** JSON morph-wrapper detection (spec §3). */
+function routeJson(value) {
+  if (value && typeof value === "object" && value.morph) {
+    return { type: "json-morph", morph: value.morph };
+  }
+  return { type: "json", patches: value };
+}
+
+/** HTML island-wrapper detection (spec §3). */
+function routeHtml(html) {
+  const match = /^\s*<island\b[^>]*data-target="([^"]+)"[^>]*data-action="([^"]+)"[^>]*>([\s\S]*)<\/island>\s*$/.exec(html);
+  if (match) {
+    return { type: "html-morph", target: match[1], action: match[2], content: match[3] };
+  }
+  return { type: "html", html };
+}
+
+export class ArrowHandler {
+  async process(response) {
+    const buffer = await response.arrayBuffer();
+    return { type: "arrow", columns: ColumnarParser.parse(new Uint8Array(buffer)) };
+  }
+}
+
+export class JsonHandler {
+  async process(response) {
+    return routeJson(await response.json());
+  }
+}
+
+export class HtmlHandler {
+  async process(response) {
+    return routeHtml(await response.text());
+  }
+}
+
+export class RawHandler {
+  async process(response) {
+    return { type: "raw", text: await response.text() };
+  }
+}
+
+export class ProtocolHandler {
+  /** Content-type table (spec §3, G46). */
+  static fromContentType(response) {
+    const ct = response.headers?.get?.("content-type") || "";
+    if (ct.includes("primal-arrow") || ct.includes("event-stream-arrow")) return new ArrowHandler();
+    if (ct.includes("primal-json") || ct.includes("event-stream-json")) return new JsonHandler();
+    if (ct.includes("primal-html") || ct.includes("event-stream-html") || ct.includes("text/html")) {
+      return new HtmlHandler();
+    }
+    return new RawHandler();
+  }
+}
+
+// ─── Hydrator (styles + scripts ONLY — events are F08's, G2) ──────────────────
+
+/**
+ * Prefix every rule selector with `prefix` — `.title{...}` inside `#island-1`
+ * becomes `#island-1 .title{...}`; compound selectors each get the prefix.
+ * Pure function (the CSSStyleSheet adoption around it is browser-only).
+ */
+export function scopeCss(cssText, prefix) {
+  return cssText.replace(/(^|\})\s*([^@{}][^{}]*)\{/g, (_, brace, selectors) => {
+    const scoped = selectors
+      .split(",")
+      .map((sel) => `${prefix} ${sel.trim()}`)
+      .join(", ");
+    return `${brace}\n${scoped} {`;
+  });
+}
+
+export class Hydrator {
+  /** Scoped-script execution scope (spec §5). */
+  static createScope(targetElement) {
+    const eventCleanups = [];
+    return {
+      targets: () => targetElement.querySelectorAll("[primal-id]"),
+      parent: () => targetElement,
+      querySelector: (sel) => targetElement.querySelector(sel),
+      querySelectorAll: (sel) => targetElement.querySelectorAll(sel),
+      addEvent(sel, event, handler) {
+        const el = targetElement.querySelector(sel);
+        if (el) {
+          el.addEventListener(event, handler);
+          eventCleanups.push({ el, event, handler });
+        }
+      },
+      cleanup() {
+        for (const { el, event, handler } of eventCleanups) {
+          el.removeEventListener(event, handler);
+        }
+        eventCleanups.length = 0;
+      },
+    };
+  }
+
+  /** Styles + scripts. NOT events (F08 owns primal:on*). Browser-leaning. */
+  static hydrate(root, doc = root.ownerDocument ?? globalThis.document) {
+    if (typeof root.querySelectorAll !== "function") return;
+    // Styles: scope + adopt.
+    for (const style of root.querySelectorAll("style[primal\\:style]")) {
+      const prefix = root.id ? `#${root.id}` : `[primal-id="${root.getAttribute?.("primal-id") ?? ""}"]`;
+      const scoped = scopeCss(style.textContent, prefix);
+      if (typeof CSSStyleSheet === "function" && doc?.adoptedStyleSheets) {
+        const sheet = new CSSStyleSheet();
+        sheet.replaceSync(scoped);
+        doc.adoptedStyleSheets = [...doc.adoptedStyleSheets, sheet];
+        (root._sheets ??= []).push(sheet);
+      }
+      style.remove?.();
+    }
+    // Scripts: run with the scope object; per-script error isolation.
+    for (const script of root.querySelectorAll("script[primal\\:script]")) {
+      try {
+        const fn = new Function("scope", script.textContent);
+        fn(Hydrator.createScope(root));
+      } catch (error) {
+        console.error("Hydrator: scoped script failed", error);
+      }
+      script.remove?.();
+    }
+  }
+}
+
+// ─── Patcher ───────────────────────────────────────────────────────────────────
+
+export class Patcher {
+  /** Injectable seams: the F08 dispatcher, the DomOp applicator, signals. */
+  static runtime = { dispatcher: null, applicator: null, signalBridge: null };
+
+  static materialize(html, target, doc = target.ownerDocument ?? globalThis.document) {
+    if (typeof doc?.createRange === "function") {
+      const fragment = doc.createRange().createContextualFragment(html);
+      target.appendChild(fragment);
+    } else {
+      target.innerHTML = html;
+    }
+    Hydrator.hydrate(target, doc);
+    Patcher.runtime.dispatcher?.scanAndWire?.(target); // F08 (idempotent)
+  }
+
+  static applyDomOps(columns) {
+    Patcher.runtime.applicator?.apply?.(columns);
+  }
+
+  static applySignalPatches(patches) {
+    const bridge = Patcher.runtime.signalBridge;
+    if (bridge?.applyPatches) bridge.applyPatches(patches);
+    else console.warn("Patcher: no signalBridge installed; JSON patches dropped", patches);
+  }
+
+  /** Route one ProtocolHandler result to the DOM (shared by both mounts). */
+  static route(result, targetEl, doc) {
+    switch (result.type) {
+      case "html":
+        Patcher.materialize(result.html, targetEl, doc);
+        break;
+      case "html-morph": {
+        const morphTarget = doc.querySelector(result.target);
+        if (morphTarget && typeof doc.createRange === "function") {
+          MorphDom.morph(morphTarget, doc.createRange().createContextualFragment(result.content), doc);
+        }
+        break;
+      }
+      case "json-morph": {
+        const morphTarget = doc.querySelector(result.morph.target);
+        if (morphTarget && typeof doc.createRange === "function") {
+          MorphDom.morph(morphTarget, doc.createRange().createContextualFragment(result.morph.content), doc);
+        }
+        break;
+      }
+      case "json":
+        Patcher.applySignalPatches(result.patches);
+        break;
+      case "arrow":
+        Patcher.applyDomOps(result.columns);
+        break;
+      default:
+        targetEl.textContent = result.text ?? "";
+    }
+  }
+}
+
+// ─── Response placement (spec §9, shared by both mounts) ──────────────────────
+
+export function resolveMountTarget(element, target, doc) {
+  if (!target) {
+    // Self-replacement: the mount is a placeholder that disappears (G29).
+    const container = doc.createElement("div");
+    element.parentNode?.replaceChild?.(container, element);
+    return container;
+  }
+  if (target === "parent") {
+    const parent = element.parentElement ?? element.parent ?? null;
+    if (!parent) throw new Error("mount target not found: parent");
+    clearChildren(parent);
+    return parent;
+  }
+  const found = doc.querySelector(target);
+  if (!found) throw new Error(`mount target not found: ${target}`);
+  clearChildren(found);
+  return found;
+}
+
+function clearChildren(el) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+}
+
+// ─── Custom elements (browser base class guarded for node) ─────────────────────
+
+const BaseElement = typeof HTMLElement === "undefined" ? class {} : HTMLElement;
+
+/** `<primal-island>` — no network; styles + scripts + F08 event wiring. */
+export class IslandComponent extends BaseElement {
+  connectedCallback() {
+    Hydrator.hydrate(this);
+    Patcher.runtime.dispatcher?.scanAndWire?.(this);
+  }
+
+  disconnectedCallback() {
+    const doc = this.ownerDocument ?? globalThis.document;
+    if (this._sheets?.length && doc?.adoptedStyleSheets) {
+      doc.adoptedStyleSheets = doc.adoptedStyleSheets.filter((s) => !this._sheets.includes(s));
+    }
+    this._sheets = [];
+    Patcher.runtime.dispatcher?.removeListeners?.(this);
+  }
+}
+
+/** Shared mount bootstrap: read attrs, build transport, resolve target. */
+function mountSetup(element, defaults = {}) {
+  const api = element.getAttribute("api");
+  if (!api) throw new Error(`${element.tagName?.toLowerCase() ?? "mount"}: missing api attribute`);
+  let data = {};
+  try {
+    data = JSON.parse(element.getAttribute("data") || "{}");
+  } catch (error) {
+    console.error("mount: invalid JSON in data attribute", error);
+  }
+  const transport =
+    element._transportOverride ??
+    Transport.create({ transport: element.getAttribute("transport") ?? defaults.transport, url: api });
+  return { api, data, transport, target: element.getAttribute("target") };
+}
+
+/** `<mount-data>` — one request, one response (spec §7). */
+export class MountDataComponent extends BaseElement {
+  async connectedCallback() {
+    const doc = this.ownerDocument ?? globalThis.document;
+    try {
+      const { api, data, transport, target } = mountSetup(this);
+      this._transport = transport;
+      const method = this.getAttribute("method") || "POST";
+      const result = await transport.send(api, method, data);
+      const targetEl = resolveMountTarget(this, target, doc);
+      Patcher.route(result, targetEl, doc);
+    } catch (error) {
+      console.error("mount-data:", error);
+    }
+  }
+
+  disconnectedCallback() {
+    this._transport?.disconnect?.();
+  }
+}
+
+/** `<mount-stream>` — continuous results until disconnect (spec §8). */
+export class MountStreamComponent extends BaseElement {
+  connectedCallback() {
+    const doc = this.ownerDocument ?? globalThis.document;
+    try {
+      const { api, data, transport, target } = mountSetup(this, { transport: "sse" });
+      this._transport = transport;
+      const targetEl = resolveMountTarget(this, target, doc);
+      transport.connect(api, data, (result) => Patcher.route(result, targetEl, doc));
+    } catch (error) {
+      console.error("mount-stream:", error);
+    }
+  }
+
+  disconnectedCallback() {
+    this._transport?.disconnect?.();
+    this._transport = null;
+  }
+}
+
+/** Register the custom elements (browser only; idempotent). */
+export function registerWebComponents() {
+  if (typeof customElements === "undefined") return;
+  if (!customElements.get("primal-island")) customElements.define("primal-island", IslandComponent);
+  if (!customElements.get("mount-data")) customElements.define("mount-data", MountDataComponent);
+  if (!customElements.get("mount-stream")) customElements.define("mount-stream", MountStreamComponent);
+}
+
+/** Build the `window.primal` namespace (G30) over injected runtime seams. */
+export function createPrimal({ dispatcher, doc = globalThis.document } = {}) {
+  return {
+    mountData(api, data, targetNode, opts = {}) {
+      const transport = Transport.create({ transport: opts.transport, url: api });
+      return transport
+        .send(api, opts.method || "POST", data)
+        .then((result) => Patcher.route(result, targetNode, doc));
+    },
+    mountStream(api, data, targetNode, opts = {}) {
+      const transport = Transport.create({ transport: opts.transport ?? "sse", url: api });
+      transport.connect(api, data, (result) => Patcher.route(result, targetNode, doc));
+      return transport;
+    },
+    unmount(element) {
+      element.disconnectedCallback?.();
+      element.remove?.();
+    },
+    on: (selector, event, handler) => doc.querySelector(selector)?.addEventListener(event, handler),
+    onclick(selector, handler) {
+      this.on(selector, "click", handler);
+    },
+    onchange(selector, handler) {
+      this.on(selector, "change", handler);
+    },
+    off: (selector, event, handler) => doc.querySelector(selector)?.removeEventListener(event, handler),
+    scope: (element) => Hydrator.createScope(element),
+    dispatcher,
+    Transport,
+    ProtocolHandler,
+    Patcher,
+    Hydrator,
+  };
+}
+
+if (typeof window !== "undefined") {
+  registerWebComponents();
+  window.primal ??= createPrimal({});
+}
+
 // mirror lets classic (non-module) scripts on the same page reach the DOM runtime as
 // `globalThis.FoundationWasmUiRuntime` once the module has loaded.
 globalThis.FoundationWasmUiRuntime = Object.freeze({
@@ -1332,6 +1907,19 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   resolveFunctionRef,
   resolveDelegateTarget,
   initEventRuntime,
+  Transport,
+  ProtocolHandler,
+  Patcher,
+  Hydrator,
+  scopeCss,
+  RequestQueue,
+  reconnectDelay,
+  resolveMountTarget,
+  IslandComponent,
+  MountDataComponent,
+  MountStreamComponent,
+  registerWebComponents,
+  createPrimal,
   DomHeap,
   domAbi,
   BATCH_OP_APPLY_DOM,
