@@ -1,4 +1,4 @@
-// Hosted-prelude import: this module is std-gated inside a no_std crate.
+// Hosted-prelude import: this module is target-gated (native-only) inside a no_std crate.
 #[allow(unused_imports)]
 use std::prelude::rust_2021::*;
 
@@ -104,30 +104,25 @@ fn run_generate(args: &ArgMatches) -> Result<(), BoxedError> {
 
     let generator = WasmBinGenerator::new(crate_path)?;
 
-    println!(
-        "Scanning crate: {} ({})",
+    tracing::info!(
+        "scanning crate {} ({})",
         generator.crate_name(),
         crate_path.display()
     );
 
     let plan = generator.generate()?;
 
-    println!();
-    println!("Generated {} WASM entrypoints:", plan.entrypoints.len());
-    println!();
-
+    tracing::info!("generated {} WASM entrypoints", plan.entrypoints.len());
     for file in &plan.generated_files {
-        println!("  Created: {}", file.path.display());
+        tracing::info!("created {}", file.path.display());
     }
-    println!(
-        "  Updated: Cargo.toml (added {} [[bin]] sections)",
+    tracing::info!(
+        "updated Cargo.toml ({} [[bin]] sections added)",
         plan.bin_sections.len()
     );
-
-    println!();
-    println!("Build with:");
-    println!("  cargo build --target wasm32-unknown-unknown");
-    println!("  cargo build --target wasm32-unknown-unknown --release");
+    tracing::info!(
+        "build with: cargo build --target wasm32-unknown-unknown [--release]"
+    );
 
     Ok(())
 }

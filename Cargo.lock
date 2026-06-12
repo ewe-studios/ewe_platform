@@ -3403,6 +3403,8 @@ dependencies = [
  "tempfile",
  "toml 0.9.8",
  "toml_edit 0.22.27",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
@@ -3443,6 +3445,7 @@ dependencies = [
  "foundation_wasm",
  "serde_json",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

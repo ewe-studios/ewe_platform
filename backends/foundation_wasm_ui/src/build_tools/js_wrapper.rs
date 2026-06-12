@@ -11,7 +11,7 @@
 //! `// __EWE_WASM_LOAD__` marker line is what the single-file bundler
 //! replaces with embedded bytes.
 
-// Hosted-prelude import: this module is std-gated inside a no_std crate.
+// Hosted-prelude import: this module is target-gated (native-only) inside a no_std crate.
 #[allow(unused_imports)]
 use std::prelude::rust_2021::*;
 

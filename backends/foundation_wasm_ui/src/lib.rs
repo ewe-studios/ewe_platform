@@ -17,13 +17,14 @@
 
 extern crate alloc;
 
-// Build tooling is a STD, native-only concern (feature 20).
-#[cfg(feature = "build-tools")]
+// Build tooling is a STD, native-only concern (feature 20) — target-gated so
+// every native build carries the CLI while wasm builds stay no_std-clean.
+#[cfg(not(target_arch = "wasm32"))]
 extern crate std;
 
-#[cfg(feature = "build-tools")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod build_tools;
-#[cfg(feature = "cli")]
+#[cfg(not(target_arch = "wasm32"))]
 pub mod cli;
 
 pub mod events;

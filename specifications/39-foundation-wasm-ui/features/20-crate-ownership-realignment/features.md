@@ -26,25 +26,32 @@ consumers, schema generation, and the wasm FILE inspection CLI (wasmbin port).
 
 ```
 foundation_wasm/                     (#![no_std] runtime — unchanged by default)
-├── src/build_tools/                 feature = "build-tools" (std, native-only)
+├── src/build_tools/                 cfg(not(target_arch = "wasm32")) (std, native-only)
 │   ├── mod.rs                       WasmBinGenerator, WasmEntrypoint, plans
 │   ├── error.rs / generator.rs / planner.rs / validator.rs
-├── src/cli.rs                       feature = "cli" (clap): `wasm-bins` cmd
-└── Cargo: build-tools = ["dep:foundation_codegen", "dep:toml", "dep:toml_edit"]
-          cli = ["build-tools", "dep:clap"]
+├── src/cli.rs                       `wasm-bins` cmd (clap)
+├── src/bin/ewe_wasm_bins.rs         standalone CLI (stub main on wasm32)
+└── Cargo: [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+          foundation_codegen, toml, toml_edit, clap, tracing(+subscriber)
 
-foundation_wasm_ui/                  (#![no_std] runtime — unchanged by default)
-├── src/build_tools/                 feature = "build-tools"
+foundation_wasm_ui/                  (#![no_std] runtime — unchanged on wasm)
+├── src/build_tools/                 cfg(not(target_arch = "wasm32"))
 │   ├── mod.rs                       WasmBundleGenerator (uses foundation_wasm::build_tools)
 │   ├── js_wrapper.rs / bundler.rs
-├── src/cli.rs                       feature = "cli": `wasm-bundle` cmd
+├── src/cli.rs                       `wasm-bundle` cmd
+├── src/bin/ewe_wasm_bundle.rs       standalone CLI (stub main on wasm32)
 └── embedded.rs                      + APACHE_ARROW_JS (embedded-js feature)
 ```
 
-- The `build-tools`/`cli` features are **std features on no_std crates**:
-  gated `extern crate std;`, OFF by default — wasm builds are untouched.
-  Enabling them in a wasm32 build is a compile error by construction (std
-  process/fs) — that's correct: build tooling never belongs in the artifact.
+- Build tooling is **target-gated, not feature-gated** (review decision: the
+  CLI should build every time): deps under
+  `[target.'cfg(not(target_arch = "wasm32"))'.dependencies]`, modules behind
+  `#[cfg(not(target_arch = "wasm32"))]` with a gated `extern crate std;`.
+  Native builds always get the tooling; wasm32 builds never see it — build
+  tooling never belongs in the artifact.
+- Logs go through `tracing` (`error!`/`info!`; fmt subscriber installed by
+  the standalone bins) — never `eprintln!`. The `list`/`plan` dry-run
+  reports are command OUTPUT and stay on stdout.
 - No dependency cycles: `foundation_codegen` does not depend on
   `foundation_wasm`; `foundation_wasm_ui` already depends on
   `foundation_wasm`.

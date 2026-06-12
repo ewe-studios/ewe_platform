@@ -1,4 +1,4 @@
-// Hosted-prelude import: this module is std-gated inside a no_std crate.
+// Hosted-prelude import: this module is target-gated (native-only) inside a no_std crate.
 #[allow(unused_imports)]
 use std::prelude::rust_2021::*;
 

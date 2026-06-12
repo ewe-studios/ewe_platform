@@ -107,7 +107,6 @@ fn attribute_mapping() {
 }
 
 /// Spec test 3 — `--release --dev` conflict at the CLI layer.
-#[cfg(feature = "cli")]
 #[test]
 fn release_dev_flags_conflict() {
     let cmd = foundation_wasm_ui::cli::command();
@@ -118,7 +117,6 @@ fn release_dev_flags_conflict() {
 }
 
 /// Spec tests 1-2 / 4-5 surface: flags parse with their defaults.
-#[cfg(feature = "cli")]
 #[test]
 fn cli_flags_parse() {
     let cmd = foundation_wasm_ui::cli::command();

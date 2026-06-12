@@ -12,9 +12,8 @@ description = "DOM/window/animation bindings + WASM protocol implementations bui
 [[bin]]
 name = "ewe-wasm-bundle"
 path = "src/bin/ewe_wasm_bundle.rs"
-# The binary only exists when the CLI feature set is enabled — default
-# (runtime/no_std) builds are untouched.
-required-features = ["cli"]
+# Builds on every native build; on wasm32 it degrades to a stub main —
+# the build tooling never belongs in the artifact.
 
 [dependencies]
 # foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
@@ -29,16 +28,16 @@ foundation_macros = { workspace = true }
 foundation_nostd = { workspace = true }
 tracing = { version = "0.1", default-features = false }
 
-clap = { version = "4", features = ["derive"], optional = true }
-foundation_codegen = { workspace = true, optional = true }
+# Build tooling (feature 20): JS wrappers + bundles over foundation_wasm's
+# build_tools — a std, native-only concern, so target-gated rather than
+# feature-gated: every native build gets the CLI, wasm builds never see it.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+clap = { version = "4", features = ["derive"] }
+foundation_codegen = { workspace = true }
+tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]
 default = []
-# The crate OWNS how its runtime ships (feature 20): JS wrappers + bundles
-# over foundation_wasm's build-tools. std-only, native-only, OFF by default.
-build-tools = ["foundation_wasm/build-tools", "dep:foundation_codegen"]
-# The `wasm-bundle` CLI surface.
-cli = ["build-tools", "dep:clap"]
 # Embeds the JS runtime assets (foundation-wasm.js / foundation-wasm-ui.js) into the binary.
 embedded-js = ["foundation_wasm/embedded-js"]
 

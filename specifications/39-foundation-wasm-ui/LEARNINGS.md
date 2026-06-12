@@ -901,9 +901,15 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
 
 ## Features 20-addendum + 21 (2026-06-12)
 
-- **CLI binaries ride required-features**: src/bin/*.rs in the no_std runtime
-  crates with `required-features = ["cli"]` — `cargo install --features cli`
-  yields ewe-wasm-bins / ewe-wasm-bundle; default builds never see them.
+- **Target-gate native tooling in no_std crates, don't feature-gate it**
+  (review decision — the CLI should build every time): deps under
+  `[target.'cfg(not(target_arch = "wasm32"))'.dependencies]`, modules behind
+  `#[cfg(not(target_arch = "wasm32"))]`, bins with a stub `main` on wasm32
+  (cargo builds all targets per --target). Native consumers get
+  ewe-wasm-bins / ewe-wasm-bundle with zero flags; wasm32 stays no_std-clean.
+- **Logs via `tracing::error!`/`info!`, never `eprintln!`**; the standalone
+  bins install the fmt subscriber. Dry-run/list reports are command OUTPUT
+  (stdout), not logs.
 - **Mirror the wire-peer's parser, not the spec**: the JS SseParser copies
   the Rust impl's semantics (incl. its ignore-no-colon-lines deviation from
   W3C) so both ends of OUR wire agree; divergences from W3C are documented,

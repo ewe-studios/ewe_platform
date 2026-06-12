@@ -8,7 +8,7 @@
 //!
 //! HOW: Thin orchestration over [`crate::wasm_bundle::WasmBundleGenerator`].
 
-// Hosted-prelude import: this module is std-gated inside a no_std crate.
+// Hosted-prelude import: this module is target-gated (native-only) inside a no_std crate.
 #[allow(unused_imports)]
 use std::prelude::rust_2021::*;
 
@@ -117,16 +117,16 @@ fn run_build(args: &ArgMatches) -> Result<(), BoxedError> {
     let verbose = args.get_flag("verbose");
 
     if verbose {
-        println!(
-            "Building {} entrypoint(s), release={release}, skip_runtimes={skip_runtimes}",
+        tracing::info!(
+            "building {} entrypoint(s), release={release}, skip_runtimes={skip_runtimes}",
             generator.entrypoints().len()
         );
     }
     let written = generator.execute(release, skip_runtimes, &runtime_assets())?;
     for file in &written {
-        println!("  Wrote: {} ({})", file.path.display(), file.kind);
+        tracing::info!("wrote {} ({})", file.path.display(), file.kind);
     }
-    println!("Done — {} file(s).", written.len());
+    tracing::info!("done — {} file(s)", written.len());
     Ok(())
 }
 
