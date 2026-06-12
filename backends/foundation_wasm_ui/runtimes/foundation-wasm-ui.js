@@ -1326,26 +1326,34 @@ export function reconnectDelay(attempt) {
   return Math.min(1000 * 2 ** attempt, 30_000);
 }
 
+/** Probe `HEAD /primal/messages` (feature 11 §2): 200 = server batches. */
+export async function probeBatching(fetchFn = globalThis.fetch) {
+  try {
+    const res = await fetchFn("/primal/messages", { method: "HEAD" });
+    return !!res && res.ok === true;
+  } catch {
+    return false;
+  }
+}
+
 /**
- * Request bundling (G26/decision 026): when the server supports
- * `/primal/messages`, queued requests flush as ONE batch per microtask tick.
+ * HTTP request bundling (feature 11 / decision 026): when the server supports
+ * `/primal/messages`, queued requests flush as ONE id'd batch per microtask
+ * tick (`[{id, url, method, headers, body}]`); a lone request skips the
+ * wrapper and goes out as itself.
  */
 export class RequestQueue {
   constructor(transport) {
     this.queue = [];
     this.scheduled = false;
     this.transport = transport;
-    this.bundlingEnabled = false; // set after the HEAD /primal/messages probe
+    this.bundlingEnabled = false; // set after the probe
+    this.nextId = 1;
   }
 
   /** Probe once; enable bundling on 200 OK. */
   async probe(fetchFn = globalThis.fetch) {
-    try {
-      const res = await fetchFn("/primal/messages", { method: "HEAD" });
-      this.bundlingEnabled = !!res && res.ok === true;
-    } catch {
-      this.bundlingEnabled = false;
-    }
+    this.bundlingEnabled = await probeBatching(fetchFn);
     return this.bundlingEnabled;
   }
 
@@ -1353,7 +1361,13 @@ export class RequestQueue {
     if (!this.bundlingEnabled) {
       return this.transport.send(request.url, request.method, request.data);
     }
-    this.queue.push(request);
+    this.queue.push({
+      id: this.nextId++,
+      url: request.url,
+      method: request.method ?? "GET",
+      headers: request.headers,
+      body: request.data,
+    });
     if (!this.scheduled) {
       this.scheduled = true;
       queueMicrotask(() => this.flush());
@@ -1363,9 +1377,89 @@ export class RequestQueue {
 
   flush() {
     this.scheduled = false;
+    if (this.queue.length === 0) return; // no network call (test 7)
+    const batch = this.queue.splice(0);
+    if (batch.length === 1) {
+      // Single request: as-is, no batch wrapper (test 5).
+      const only = batch[0];
+      this.transport.send(only.url, only.method, only.body);
+      return;
+    }
+    this.transport.send("/primal/messages", "POST", batch);
+  }
+}
+
+/**
+ * Parse one batched-response entry (`{id, status, headers, body}`) per its
+ * declared content type and produce the same result objects the protocol
+ * handlers emit — so `Patcher.route` works on batch members too (§5).
+ */
+export function parseBatchEntry(entry) {
+  const ct = entry.headers?.["content-type"] ?? entry.headers?.["Content-Type"] ?? "";
+  if (ct.includes("primal-json")) return { id: entry.id, ...routeJson(entry.body) };
+  if (ct.includes("primal-html") || ct.includes("text/html")) {
+    return { id: entry.id, ...routeHtml(String(entry.body)) };
+  }
+  if (ct.includes("primal-arrow")) {
+    return { id: entry.id, type: "arrow", columns: ColumnarParser.parse(new Uint8Array(entry.body)) };
+  }
+  return { id: entry.id, type: "raw", text: String(entry.body ?? "") };
+}
+
+/**
+ * WebSocket frame coalescing (feature 11 §6): one frame per microtask; a
+ * single message ships unwrapped, several wrap as `{ batch: [...] }`.
+ */
+export class WSBatchQueue {
+  constructor(ws) {
+    this.ws = ws;
+    this.queue = [];
+    this.scheduled = false;
+  }
+
+  send(data) {
+    this.queue.push(data);
+    if (!this.scheduled) {
+      this.scheduled = true;
+      queueMicrotask(() => this.flush());
+    }
+  }
+
+  flush() {
+    this.scheduled = false;
+    if (this.queue.length === 1) {
+      this.ws.send(JSON.stringify(this.queue.splice(0, 1)[0]));
+    } else if (this.queue.length > 1) {
+      this.ws.send(JSON.stringify({ batch: this.queue.splice(0) }));
+    }
+  }
+}
+
+/**
+ * Worker postMessage coalescing (feature 11 §7): one structured-clone
+ * transfer per microtask, transferables forwarded rather than copied.
+ */
+export class WorkerBatchQueue {
+  constructor(worker) {
+    this.worker = worker;
+    this.queue = [];
+    this.scheduled = false;
+  }
+
+  postMessage(data) {
+    this.queue.push(data);
+    if (!this.scheduled) {
+      this.scheduled = true;
+      queueMicrotask(() => this.flush());
+    }
+  }
+
+  flush() {
+    this.scheduled = false;
     if (this.queue.length === 0) return;
     const batch = this.queue.splice(0);
-    this.transport.send("/primal/messages", "POST", batch);
+    const transfers = batch.map((d) => d?.transferable).filter(Boolean);
+    this.worker.postMessage({ batch }, transfers);
   }
 }
 
@@ -1913,6 +2007,10 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   Hydrator,
   scopeCss,
   RequestQueue,
+  WSBatchQueue,
+  WorkerBatchQueue,
+  probeBatching,
+  parseBatchEntry,
   reconnectDelay,
   resolveMountTarget,
   IslandComponent,
