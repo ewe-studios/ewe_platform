@@ -58,6 +58,8 @@ pub(crate) struct Graph {
     /// JS-interop callback registry (G17). Ids are NEVER reused.
     callbacks: BTreeMap<u64, Box<dyn FnMut(EventData)>>,
     next_callback_id: u64,
+    /// Monotonic instance-id allocator for `html!` mounts (G20).
+    next_instance_id: u32,
     managers: Vec<Box<dyn NotificationManager>>,
 }
 
@@ -81,6 +83,7 @@ impl Runtime {
                 stabilizing: false,
                 callbacks: BTreeMap::new(),
                 next_callback_id: 0,
+                next_instance_id: 0,
                 managers: Vec::new(),
             }),
         }
@@ -150,6 +153,21 @@ impl Runtime {
                 false
             }
         }
+    }
+
+    /// Allocate a contiguous block of `count` instance ids (G20). Blocks are
+    /// never reused; see `Context::allocate_id_block`.
+    ///
+    /// # Panics
+    /// Panics on 32-bit id-space exhaustion.
+    #[must_use]
+    pub fn allocate_id_block(&self, count: u32) -> u32 {
+        let mut graph = self.graph();
+        let base = graph.next_instance_id;
+        graph.next_instance_id = base
+            .checked_add(count)
+            .expect("html! instance id space (u32) exhausted");
+        base
     }
 
     /// True if `id` is currently registered (stale ids return false).

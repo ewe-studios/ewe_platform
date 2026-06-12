@@ -12,6 +12,7 @@ mod schema_fields;
 mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
+mod html_macro;
 mod valtron_entry;
 mod wasm_test;
 mod wasmbin_codec;
@@ -540,4 +541,20 @@ pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()
+}
+
+/// `html!` — compile-time HTML templates producing typed
+/// [`foundation_ui_traits::Html`] trees with `Part` descriptors (feature 03,
+/// decisions 001/005/008/029).
+///
+/// Two forms:
+/// - `html! { <div>..</div> }` — a pure `Html` value.
+/// - `html! { ctx, receiver, <div>..</div> }` — additionally queues the DOM
+///   build as `DomOp`s on `receiver` and creates one effect per dynamic
+///   slot/attribute (effects run immediately).
+///
+/// See `foundation_macros::html_macro` module docs for the full walkthrough.
+#[proc_macro]
+pub fn html(input: TokenStream) -> TokenStream {
+    html_macro::html(input.into()).into()
 }

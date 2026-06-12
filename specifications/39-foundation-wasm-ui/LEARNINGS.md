@@ -775,3 +775,26 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   --profile uat). Cleared target/debug. `df` on /home is the WRONG filesystem
   for this repo; check `df -h /home/darkvoid/Boxxed`.
 
+## Feature 03 (html! macro, 2026-06-12)
+
+- **One closure per expression, or nothing compiles**: the spec's "evaluate
+  the slot for Html AND again in the effect" double-moves captured handles.
+  Resolution: reactive slots put a placeholder in the tree and let the
+  IMMEDIATE effect run (decision 008) deliver initial content — the expression
+  exists in exactly one `move` closure. Consequence: a handle used in N slots
+  needs N-1 explicit clones (plain Rust, documented).
+- **Parent-SetText is a trap the spec set for itself**: spec test 25 mixes
+  slots and elements under one parent; SetText-on-parent clobbers siblings.
+  Dedicated text node per slot (CreateTextNode + Register + Append, SetText on
+  IT) preserves mixed content and needed no new ops.
+- **String id prefixes don't fit a u32 wire**: "42:0" can't ride
+  DomOp.node_id. `ctx.allocate_id_block(total)` (monotonic) + `base + index`
+  gives identical per-instance disjointness, wire-compatible.
+- **Proc-macro crates can't export test hooks**: exact error-message tests for
+  the parser live as in-file unit tests (documented deviation from the
+  tests-in-tests/ rule) — integration tests can only observe successful
+  expansion or add a compile-fail harness dep.
+- **`__macro` hidden re-exports**: generated code can't say `::std::vec!`
+  (no_std callers) or `::alloc::vec!` (std callers without extern alloc);
+  re-exporting alloc types through foundation_ui_traits::__macro works in both.
+

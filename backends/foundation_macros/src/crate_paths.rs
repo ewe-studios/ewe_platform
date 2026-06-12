@@ -31,6 +31,14 @@ pub fn foundation_core_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_core")
 }
 
+pub fn foundation_ui_traits_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_ui_traits")
+}
+
+pub fn foundation_wasm_ui_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_wasm_ui")
+}
+
 pub fn foundation_jsonschema_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_jsonschema")
 }

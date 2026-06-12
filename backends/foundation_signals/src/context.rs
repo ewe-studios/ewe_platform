@@ -68,6 +68,17 @@ impl Context {
         &self.runtime
     }
 
+    /// Allocate a contiguous block of `count` instance ids from the runtime's
+    /// monotonic counter (G20 — `html!` gives every mounted template instance
+    /// a disjoint id range; loops/conditionals allocate per iteration).
+    ///
+    /// # Panics
+    /// Panics if the 32-bit id space is exhausted (4 billion mounted nodes).
+    #[must_use]
+    pub fn allocate_id_block(&self, count: u32) -> u32 {
+        self.runtime.allocate_id_block(count)
+    }
+
     // ─── Creation ──────────────────────────────────────────────────────────────
 
     /// Create a signal; returns the `(getter, setter)` pair (decision 029).

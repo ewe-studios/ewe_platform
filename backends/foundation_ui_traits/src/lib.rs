@@ -41,3 +41,15 @@ pub use html::{
 };
 pub use json_encoder::JsonEncoder;
 pub use parts::{AttrPart, EventPart, Part, TextPart};
+
+/// Hidden re-exports for `foundation_macros::html!` codegen: the generated
+/// code must name alloc types without knowing whether the calling crate is
+/// `std` or `no_std` (where `::std` paths would not resolve).
+#[doc(hidden)]
+pub mod __macro {
+    pub use alloc::borrow::Cow;
+    pub use alloc::string::{String, ToString};
+    pub use alloc::vec;
+    pub use alloc::vec::Vec;
+}
+

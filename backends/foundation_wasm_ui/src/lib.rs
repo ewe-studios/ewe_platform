@@ -17,6 +17,7 @@
 
 extern crate alloc;
 
+pub mod html_macro;
 pub mod instruction;
 pub mod protocol;
 pub mod runtime;
@@ -25,7 +26,11 @@ pub mod wasm;
 #[cfg(feature = "embedded-js")]
 pub mod embedded;
 
+pub use html_macro::MaybeCallback;
 pub use instruction::InstructionReceiver;
+// The html! proc macro itself — re-exported so users write
+// `use foundation_wasm_ui::html;`.
+pub use foundation_macros::html;
 pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use protocol::{
     ArrowV1, BatchInstructionsV1, DomOpsBatch, HandleResult, JsonV1, MockProtocol,

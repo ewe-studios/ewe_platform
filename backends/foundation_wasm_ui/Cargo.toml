@@ -16,6 +16,9 @@ foundation_ui_traits = { workspace = true }
 # The reactive layer this runtime bridges to the DOM (decision 012 diagram:
 # foundation_wasm_ui depends on BOTH signals and wasm).
 foundation_signals = { workspace = true }
+# Re-exports the html! proc macro (feature 03); macros live in
+# foundation_macros per project rule.
+foundation_macros = { workspace = true }
 
 [features]
 default = []
