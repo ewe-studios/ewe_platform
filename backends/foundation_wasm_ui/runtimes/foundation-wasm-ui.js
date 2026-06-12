@@ -94,62 +94,89 @@ export function resolveWireName(wire, table) {
 // ─── ColumnarParser (compact columnar payload — protocol 1, wire v1) ─────────────
 
 /**
- * Decode the COMPACT COLUMNAR payload (protocol byte 1, wire VERSION 1 — the
- * owned, Arrow-INSPIRED layout; wire version 2 is real Arrow IPC, server-side)
- * into per-column arrays. Layout (little-endian), mirroring
- * `foundation_ui_traits::ColumnarEncoder::encode`:
+ * Decode the COMPACT COLUMNAR payload v1.1 (protocol byte 1, wire VERSION 1 —
+ * the owned layout; wire version 2 is real Arrow IPC, server-side). Layout
+ * (little-endian), mirroring `foundation_ui_traits::ColumnarBatch::serialize`:
  *
- *   [row_count:u32]
+ *   [pad_len:u8][0x00 × pad_len]      // alignment shim
+ *   [row_count:u32][flags:u32]        // 8-byte header — 8-ALIGNED by contract
  *   [op_id:    u32 × N]
  *   [node_id:  u32 × N]
- *   [operation:u8  × N]
- *   [attribute string-column]
- *   [value     string-column]
- *   [text_val  string-column]
+ *   [operation:u8  × N][pad to 4]
+ *   [attribute column][value column][text_val column]
  *
- * A string-column is `[(N+1) offsets:u32][data_len:u32][utf8 bytes]`.
+ * A column is `[(N+1) offsets:u32][data_len:u32][utf8 bytes][pad to 4]`.
+ *
+ * ZERO-COPY (feature 19): every producer pads so the header lands 8-aligned —
+ * the pure encoder relative to the payload, the wasm framing layer against the
+ * ABSOLUTE arena address. When that holds here (`byteOffset` math), the u32
+ * columns become TRUE TypedArray views sharing the payload's buffer
+ * (`zeroCopy: true`); otherwise we fall back to copying (correct everywhere).
  */
 export class ColumnarParser {
   /**
    * @param {Uint8Array} payload
-   * @returns {{ count:number, nodeIds:Uint32Array, operations:Uint8Array,
-   *            attribute:string[], value:string[], textVal:string[] }}
+   * @returns {{ count:number, opIds:Uint32Array, nodeIds:Uint32Array,
+   *            operations:Uint8Array, attribute:string[], value:string[],
+   *            textVal:string[], zeroCopy:boolean }}
    */
   static parse(payload) {
     const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
-    let off = 0;
+    const padLen = view.getUint8(0);
+    const headerAt = 1 + padLen;
+    // Column alignment is relative to the header; the producers' shim makes it
+    // absolute. Verify — views need absolute 4-alignment.
+    const aligned = (payload.byteOffset + headerAt) % 4 === 0;
+
+    let off = headerAt;
     const u32 = () => {
       const v = view.getUint32(off, true);
       off += 4;
       return v;
     };
+    const pad4 = () => {
+      off += (4 - ((off - headerAt) % 4)) % 4;
+    };
 
     const count = u32();
+    u32(); // flags (reserved — future cached-string demux)
 
-    // op_id column (sequential, not needed for apply — skip).
-    off += count * 4;
+    const u32Column = () => {
+      let column;
+      if (aligned) {
+        // TRUE view — shares the payload's buffer, zero copies.
+        column = new Uint32Array(payload.buffer, payload.byteOffset + off, count);
+      } else {
+        column = new Uint32Array(count);
+        for (let i = 0; i < count; i++) column[i] = view.getUint32(off + i * 4, true);
+      }
+      off += count * 4;
+      return column;
+    };
 
-    // node_id column (zero-copy view).
-    const nodeIds = new Uint32Array(count);
-    for (let i = 0; i < count; i++) nodeIds[i] = u32();
-
-    // operation column.
-    const operations = new Uint8Array(count);
-    for (let i = 0; i < count; i++) operations[i] = view.getUint8(off++);
+    const opIds = u32Column();
+    const nodeIds = u32Column();
+    // u8 views have no alignment requirement — always zero-copy.
+    const operations = new Uint8Array(payload.buffer, payload.byteOffset + off, count);
+    off += count;
+    pad4();
 
     const decoder = new TextDecoder();
     const readStringColumn = () => {
-      const offsets = new Uint32Array(count + 1);
-      for (let i = 0; i <= count; i++) offsets[i] = u32();
+      const offsets = u32Column.call(null);
+      // (count+1) offsets — u32Column read `count`; read the extra one.
+      const last = u32();
       const dataLen = u32();
       const base = payload.byteOffset + off;
       const out = new Array(count);
       for (let i = 0; i < count; i++) {
+        const end = i + 1 < count ? offsets[i + 1] : last;
         out[i] = decoder.decode(
-          new Uint8Array(payload.buffer, base + offsets[i], offsets[i + 1] - offsets[i]),
+          new Uint8Array(payload.buffer, base + offsets[i], end - offsets[i]),
         );
       }
       off += dataLen;
+      pad4();
       return out;
     };
 
@@ -157,7 +184,7 @@ export class ColumnarParser {
     const value = readStringColumn();
     const textVal = readStringColumn();
 
-    return { count, nodeIds, operations, attribute, value, textVal };
+    return { count, opIds, nodeIds, operations, attribute, value, textVal, zeroCopy: aligned };
   }
 }
 

@@ -16,7 +16,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 
 use foundation_ui_traits::DomOp;
-use foundation_wasm::{internal_api, MemoryAllocations, MemoryId};
+use foundation_wasm::{internal_api, MemoryAllocations, MemoryId, ProtocolHandler};
 
 use crate::protocol::{ProtocolMethods, SendResult};
 
@@ -156,3 +156,115 @@ impl InstructionReceiver {
         }
     }
 }
+
+// ─── ColumnarReceiver (feature 19 — columnar-native accumulation) ──────────────
+
+use foundation_ui_traits::ColumnarBatch;
+
+use crate::protocol::ColumnarV1;
+
+/// The columnar-native receiver: `queue` pushes ops STRAIGHT into column
+/// buffers (no `Vec<DomOp>` exists anywhere in the path); `flush` frames the
+/// finished columns through [`ColumnarV1`]'s absolute-aligned framing.
+///
+/// Only the columnar protocol can take this route — generic protocols (JSON,
+/// byte-0, mocks) need row-shaped `DomOp`s and use [`InstructionReceiver`].
+pub struct ColumnarReceiver {
+    batch: ColumnarBatch,
+    protocol: ColumnarV1,
+    memory: Arena,
+    flush_count: u64,
+}
+
+impl ColumnarReceiver {
+    /// Receiver-owned arena (native tests / custom hosts).
+    #[must_use]
+    pub fn new(protocol: ColumnarV1, memory: MemoryAllocations) -> Self {
+        Self {
+            batch: ColumnarBatch::new(),
+            protocol,
+            memory: Arena::Owned(memory),
+            flush_count: 0,
+        }
+    }
+
+    /// GLOBAL-arena receiver — the live JS loop (see
+    /// [`InstructionReceiver::with_global_arena`]).
+    #[must_use]
+    pub fn with_global_arena(protocol: ColumnarV1) -> Self {
+        Self {
+            batch: ColumnarBatch::new(),
+            protocol,
+            memory: Arena::Global,
+            flush_count: 0,
+        }
+    }
+
+    /// Append one op to the column buffers (string bytes copied exactly once).
+    pub fn queue(&mut self, op: &DomOp) {
+        self.batch.push(op);
+    }
+
+    /// Ops accumulated but not yet flushed.
+    #[must_use]
+    pub fn pending_count(&self) -> usize {
+        self.batch.len()
+    }
+
+    /// Non-empty flushes since construction.
+    #[must_use]
+    pub fn flush_count(&self) -> u64 {
+        self.flush_count
+    }
+
+    /// Frame and ship the accumulated columns (no-op when empty). Column
+    /// buffers keep their capacity across cycles (G22).
+    pub fn flush(&mut self) -> Option<SendResult> {
+        if self.batch.is_empty() {
+            return None;
+        }
+        self.flush_count += 1;
+        let result = match &mut self.memory {
+            Arena::Owned(memory) => {
+                let (result, ptr, len) = self.protocol.write_batch(&self.batch, memory);
+                self.protocol.send_to_js(result.memory_id, ptr, len);
+                result
+            }
+            Arena::Global => {
+                // Write under the lock, SHIP after releasing it (host_apply
+                // re-enters WASM — same discipline as the row receiver).
+                let protocol = self.protocol;
+                let batch = &self.batch;
+                let (result, ptr, len) = internal_api::with_global_allocations(|memory| {
+                    protocol.write_batch(batch, memory)
+                });
+                self.protocol.send_to_js(result.memory_id, ptr, len);
+                result
+            }
+        };
+        self.batch.clear();
+        Some(result)
+    }
+
+    /// Release an arena slot (host-side ACK path).
+    pub fn ack(&mut self, memory_id: MemoryId) {
+        match &mut self.memory {
+            Arena::Owned(memory) => self.protocol.ack(memory_id, memory),
+            Arena::Global => {
+                internal_api::with_global_allocations(|memory| {
+                    self.protocol.ack(memory_id, memory);
+                });
+            }
+        }
+    }
+
+    /// Borrow the receiver-OWNED arena (tests). `None` for global-arena mode.
+    #[must_use]
+    pub fn memory(&self) -> Option<&MemoryAllocations> {
+        match &self.memory {
+            Arena::Owned(memory) => Some(memory),
+            Arena::Global => None,
+        }
+    }
+}
+

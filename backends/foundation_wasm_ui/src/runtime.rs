@@ -25,60 +25,96 @@ use foundation_signals::{Context, NotificationManager, SignalGetter};
 use foundation_ui_traits::DomOp;
 use foundation_wasm::{MemoryAllocations, MemoryId};
 
-use crate::instruction::InstructionReceiver;
-use crate::protocol::{ProtocolMethods, SendResult};
+use crate::instruction::{ColumnarReceiver, InstructionReceiver};
+use crate::protocol::{ColumnarV1, ProtocolMethods, SendResult};
 
 // ─── SharedInstructionReceiver ─────────────────────────────────────────────────
 
 /// Cloneable handle to the runtime-owned receiver. Effects capture a clone and
-/// `queue()` without knowing about protocols, arenas, or the FFI.
+/// `queue()` without knowing about protocols, arenas, the FFI — or whether ops
+/// accumulate row-shaped or columnar-native (feature 19).
 #[derive(Clone)]
 pub struct SharedInstructionReceiver {
-    inner: Rc<RefCell<InstructionReceiver>>,
+    inner: Rc<RefCell<AnyReceiver>>,
+}
+
+/// The two accumulation strategies behind the shared handle.
+enum AnyReceiver {
+    /// Row-shaped `Vec<DomOp>` — required by generic protocols (JSON, byte-0,
+    /// mocks) that need the ops themselves.
+    Rows(InstructionReceiver),
+    /// Columnar-native buffers — the zero-serialization columnar path.
+    Columnar(ColumnarReceiver),
 }
 
 impl SharedInstructionReceiver {
-    /// Wrap a receiver for shared single-threaded access.
+    /// Wrap a row-shaped receiver for shared single-threaded access.
     #[must_use]
     pub fn new(receiver: InstructionReceiver) -> Self {
         Self {
-            inner: Rc::new(RefCell::new(receiver)),
+            inner: Rc::new(RefCell::new(AnyReceiver::Rows(receiver))),
+        }
+    }
+
+    /// Wrap a columnar-native receiver (feature 19).
+    #[must_use]
+    pub fn columnar(receiver: ColumnarReceiver) -> Self {
+        Self {
+            inner: Rc::new(RefCell::new(AnyReceiver::Columnar(receiver))),
         }
     }
 
     /// Queue one op for the next flush.
     pub fn queue(&self, op: DomOp) {
-        self.inner.borrow_mut().queue(op);
+        match &mut *self.inner.borrow_mut() {
+            AnyReceiver::Rows(r) => r.queue(op),
+            AnyReceiver::Columnar(r) => r.queue(&op),
+        }
     }
 
     /// Encode and ship everything queued (no-op when empty). See
     /// [`InstructionReceiver::flush`].
     #[must_use = "the SendResult's memory_id is what the host must ACK"]
     pub fn flush(&self) -> Option<SendResult> {
-        self.inner.borrow_mut().flush()
+        match &mut *self.inner.borrow_mut() {
+            AnyReceiver::Rows(r) => r.flush(),
+            AnyReceiver::Columnar(r) => r.flush(),
+        }
     }
 
     /// Release an arena slot (host-side ACK path).
     pub fn ack(&self, memory_id: MemoryId) {
-        self.inner.borrow_mut().ack(memory_id);
+        match &mut *self.inner.borrow_mut() {
+            AnyReceiver::Rows(r) => r.ack(memory_id),
+            AnyReceiver::Columnar(r) => r.ack(memory_id),
+        }
     }
 
     /// Ops queued but not yet flushed.
     #[must_use]
     pub fn pending_count(&self) -> usize {
-        self.inner.borrow().pending_count()
+        match &*self.inner.borrow() {
+            AnyReceiver::Rows(r) => r.pending_count(),
+            AnyReceiver::Columnar(r) => r.pending_count(),
+        }
     }
 
     /// Non-empty flushes since construction.
     #[must_use]
     pub fn flush_count(&self) -> u64 {
-        self.inner.borrow().flush_count()
+        match &*self.inner.borrow() {
+            AnyReceiver::Rows(r) => r.flush_count(),
+            AnyReceiver::Columnar(r) => r.flush_count(),
+        }
     }
 
     /// Inspect the receiver-OWNED arena (tests). `None` for global-arena
     /// receivers; the closure form keeps the `RefCell` borrow scoped.
     pub fn with_memory<R>(&self, f: impl FnOnce(Option<&MemoryAllocations>) -> R) -> R {
-        f(self.inner.borrow().memory())
+        match &*self.inner.borrow() {
+            AnyReceiver::Rows(r) => f(r.memory()),
+            AnyReceiver::Columnar(r) => f(r.memory()),
+        }
     }
 }
 
@@ -97,6 +133,7 @@ impl Runtime {
             protocol: None,
             memory: None,
             global_arena: false,
+            columnar: false,
         }
     }
 
@@ -132,6 +169,7 @@ pub struct RuntimeBuilder {
     protocol: Option<Box<dyn ProtocolMethods<Vec<DomOp>>>>,
     memory: Option<MemoryAllocations>,
     global_arena: bool,
+    columnar: bool,
 }
 
 impl RuntimeBuilder {
@@ -158,6 +196,16 @@ impl RuntimeBuilder {
         self
     }
 
+    /// Columnar-native accumulation (feature 19): ops queue STRAIGHT into
+    /// column buffers and flush through [`ColumnarV1`]'s absolute-aligned
+    /// framing — no `Vec<DomOp>` in the path. Implies the columnar protocol;
+    /// do not also call [`protocol`](Self::protocol).
+    #[must_use]
+    pub fn columnar(mut self) -> Self {
+        self.columnar = true;
+        self
+    }
+
     /// Build the runtime.
     ///
     /// # Panics
@@ -166,6 +214,25 @@ impl RuntimeBuilder {
     /// chosen (the spec's required-fields contract).
     #[must_use]
     pub fn build(self) -> Runtime {
+        if self.columnar {
+            assert!(
+                self.protocol.is_none(),
+                "columnar() implies ColumnarV1 — do not also set protocol(..)"
+            );
+            let receiver = if self.global_arena {
+                assert!(
+                    self.memory.is_none(),
+                    "choose either memory(..) or global_arena(), not both"
+                );
+                ColumnarReceiver::with_global_arena(ColumnarV1::new())
+            } else {
+                let memory = self.memory.expect("memory is required");
+                ColumnarReceiver::new(ColumnarV1::new(), memory)
+            };
+            return Runtime {
+                receiver: SharedInstructionReceiver::columnar(receiver),
+            };
+        }
         let protocol = self.protocol.expect("protocol is required");
         let receiver = if self.global_arena {
             assert!(

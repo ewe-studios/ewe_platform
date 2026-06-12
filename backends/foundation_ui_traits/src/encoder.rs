@@ -197,6 +197,20 @@ impl<'a> Cursor<'a> {
         Ok(u32::from_le_bytes([slice[0], slice[1], slice[2], slice[3]]))
     }
 
+    /// Current read position (for layout-relative padding math).
+    pub(crate) fn position(&self) -> usize {
+        self.pos
+    }
+
+    /// Consume the pad bytes that re-align the stream to a multiple of 4
+    /// RELATIVE to `base` (the v1.1 header start).
+    pub(crate) fn skip_pad4(&mut self, base: usize) -> DecodeResult<()> {
+        let rel = self.position() - base;
+        let pad = (4 - (rel % 4)) % 4;
+        let _ = self.bytes(pad)?;
+        Ok(())
+    }
+
     pub(crate) fn bytes(&mut self, len: usize) -> DecodeResult<&'a [u8]> {
         let end = self.pos.checked_add(len).ok_or_else(|| {
             DecodeError::SchemaMismatch {
@@ -252,6 +266,209 @@ fn parse_ref(s: &str, what: &str, row_index: usize) -> DecodeResult<u32> {
 //     selector is the raw string (empty for node-id). The selector may itself
 //     contain `:` — parsers must split only the first two colons.
 
+/// A row cell during [`row_view`]: borrowed where the op already holds the
+/// text, owned only where the wire form must be FORMATTED (wire-id names,
+/// numeric references, morph packing).
+enum Cell<'a> {
+    None,
+    Str(&'a str),
+    Owned(String),
+}
+
+impl Cell<'_> {
+    fn as_deref(&self) -> Option<&str> {
+        match self {
+            Cell::None => None,
+            Cell::Str(s) => Some(s),
+            Cell::Owned(s) => Some(s.as_str()),
+        }
+    }
+}
+
+/// THE decision-010 mapping as a borrowing visitor: every wire format
+/// (columnar builder, Arrow IPC, JSON, byte-0 stream) serialises a [`DomOp`]
+/// through this one function. `f` receives
+/// `(operation, node_id, attribute, value, text_val)` with string cells
+/// BORROWED wherever the op already owns the text — the columnar builder
+/// copies each byte exactly once, with no intermediate `String`s.
+// One arm per op keeps this a literal transcription of the decision-010
+// table; splitting it into helpers would obscure the 1:1 mapping.
+#[allow(clippy::too_many_lines)]
+pub fn row_view<R>(
+    op: &DomOp,
+    f: impl FnOnce(u8, u32, Option<&str>, Option<&str>, Option<&str>) -> R,
+) -> R {
+    use Cell::{None as CNone, Owned, Str};
+    let (operation, node_id, attribute, value, text_val) = match op {
+        DomOp::CreateElement {
+            node_id,
+            tag,
+            class,
+        } => (
+            OP_CREATE_ELEMENT,
+            *node_id,
+            Owned(tag.to_wire_string()),
+            Str(class.as_ref()),
+            CNone,
+        ),
+        DomOp::CreateTextNode { node_id, content } => (
+            OP_CREATE_TEXT_NODE,
+            *node_id,
+            CNone,
+            CNone,
+            Str(content.as_ref()),
+        ),
+        DomOp::SetText { node_id, text } => (
+            OP_SET_TEXT_CONTENT,
+            *node_id,
+            CNone,
+            CNone,
+            Str(text.as_ref()),
+        ),
+        DomOp::SetAttribute {
+            node_id,
+            name,
+            value,
+        } => (
+            OP_SET_ATTRIBUTE,
+            *node_id,
+            Owned(name.to_wire_string()),
+            Str(value.as_ref()),
+            CNone,
+        ),
+        DomOp::RemoveAttribute { node_id, name } => (
+            OP_REMOVE_ATTRIBUTE,
+            *node_id,
+            Owned(name.to_wire_string()),
+            CNone,
+            CNone,
+        ),
+        DomOp::SetProperty {
+            node_id,
+            name,
+            value,
+        } => (
+            OP_SET_PROPERTY,
+            *node_id,
+            Owned(name.to_wire_string()),
+            Str(value.as_ref()),
+            CNone,
+        ),
+        DomOp::AddEventListener {
+            node_id,
+            event_name,
+        } => (
+            OP_ADD_EVENT_LISTENER,
+            *node_id,
+            CNone,
+            Owned(event_name.to_wire_string()),
+            CNone,
+        ),
+        DomOp::RemoveEventListener {
+            node_id,
+            event_name,
+        } => (
+            OP_REMOVE_EVENT_LISTENER,
+            *node_id,
+            CNone,
+            Owned(event_name.to_wire_string()),
+            CNone,
+        ),
+        DomOp::AppendChild {
+            parent_id,
+            child_id,
+        } => (
+            OP_APPEND_CHILD,
+            *parent_id,
+            Owned(child_id.to_string()),
+            CNone,
+            CNone,
+        ),
+        DomOp::RemoveChild {
+            parent_id,
+            child_id,
+        } => (
+            OP_REMOVE_CHILD,
+            *parent_id,
+            Owned(child_id.to_string()),
+            CNone,
+            CNone,
+        ),
+        DomOp::RemoveNode { node_id } => (OP_REMOVE_NODE, *node_id, CNone, CNone, CNone),
+        DomOp::InsertBefore {
+            parent_id,
+            child_id,
+            ref_id,
+        } => (
+            OP_INSERT_BEFORE,
+            *parent_id,
+            Owned(child_id.to_string()),
+            CNone,
+            Owned(ref_id.to_string()),
+        ),
+        DomOp::ReplaceNode { old_id, new_id } => (
+            OP_REPLACE_NODE,
+            *old_id,
+            Owned(new_id.to_string()),
+            CNone,
+            CNone,
+        ),
+        DomOp::SetStyle {
+            node_id,
+            prop,
+            value,
+        } => (
+            OP_SET_STYLE,
+            *node_id,
+            Owned(prop.to_wire_string()),
+            Str(value.as_ref()),
+            CNone,
+        ),
+        DomOp::AddClass { node_id, class } => (
+            OP_ADD_CLASS,
+            *node_id,
+            CNone,
+            Str(class.as_ref()),
+            CNone,
+        ),
+        DomOp::RemoveClass { node_id, class } => (
+            OP_REMOVE_CLASS,
+            *node_id,
+            CNone,
+            Str(class.as_ref()),
+            CNone,
+        ),
+        DomOp::MorphNode {
+            target,
+            action,
+            content,
+        } => {
+            let (node_id, kind, selector): (u32, u8, &str) = match target {
+                TargetSelector::NodeId(id) => (*id, 0, ""),
+                TargetSelector::Id(s) => (0, 1, s.as_ref()),
+                TargetSelector::Class(s) => (0, 2, s.as_ref()),
+                TargetSelector::Query(s) => (0, 3, s.as_ref()),
+            };
+            (
+                OP_MORPH_NODE,
+                node_id,
+                Owned(format!("{}:{kind}:{selector}", action.as_u8())),
+                CNone,
+                Str(content.as_ref()),
+            )
+        }
+        DomOp::RegisterNode { node_id } => (OP_REGISTER_NODE, *node_id, CNone, CNone, CNone),
+        DomOp::UnregisterNode { node_id } => (OP_UNREGISTER_NODE, *node_id, CNone, CNone, CNone),
+    };
+    f(
+        operation,
+        node_id,
+        attribute.as_deref(),
+        value.as_deref(),
+        text_val.as_deref(),
+    )
+}
+
 /// The canonical decision-010 row form of a [`DomOp`]. Public so protocol impls
 /// (Arrow's columns, the flat JSON objects, the batch-instructions custom
 /// protocol) share ONE `DomOp` ⇄ row mapping. `None` column values become Arrow
@@ -271,156 +488,17 @@ pub struct Row {
 }
 
 impl Row {
-    /// Map a [`DomOp`] to its row form.
-    // One arm per op keeps this a literal transcription of the decision-010
-    // table; splitting it into helpers would obscure the 1:1 mapping.
-    #[allow(clippy::too_many_lines)]
+    /// Map a [`DomOp`] to its row form (owned cells — the decoders need them).
+    /// The mapping itself lives in [`row_view`]; this materializes it.
     #[must_use]
     pub fn from_op(op: &DomOp) -> Self {
-        let mut row = Self::default();
-        match op {
-            DomOp::CreateElement {
-                node_id,
-                tag,
-                class,
-            } => {
-                row.operation = OP_CREATE_ELEMENT;
-                row.node_id = *node_id;
-                row.attribute = Some(tag.to_wire_string());
-                row.value = Some(class.to_string());
-            }
-            DomOp::CreateTextNode { node_id, content } => {
-                row.operation = OP_CREATE_TEXT_NODE;
-                row.node_id = *node_id;
-                row.text_val = Some(content.to_string());
-            }
-            DomOp::SetText { node_id, text } => {
-                row.operation = OP_SET_TEXT_CONTENT;
-                row.node_id = *node_id;
-                row.text_val = Some(text.to_string());
-            }
-            DomOp::SetAttribute {
-                node_id,
-                name,
-                value,
-            } => {
-                row.operation = OP_SET_ATTRIBUTE;
-                row.node_id = *node_id;
-                row.attribute = Some(name.to_wire_string());
-                row.value = Some(value.to_string());
-            }
-            DomOp::RemoveAttribute { node_id, name } => {
-                row.operation = OP_REMOVE_ATTRIBUTE;
-                row.node_id = *node_id;
-                row.attribute = Some(name.to_wire_string());
-            }
-            DomOp::SetProperty {
-                node_id,
-                name,
-                value,
-            } => {
-                row.operation = OP_SET_PROPERTY;
-                row.node_id = *node_id;
-                row.attribute = Some(name.to_wire_string());
-                row.value = Some(value.to_string());
-            }
-            DomOp::AddEventListener {
-                node_id,
-                event_name,
-            } => {
-                row.operation = OP_ADD_EVENT_LISTENER;
-                row.node_id = *node_id;
-                row.value = Some(event_name.to_wire_string());
-            }
-            DomOp::RemoveEventListener {
-                node_id,
-                event_name,
-            } => {
-                row.operation = OP_REMOVE_EVENT_LISTENER;
-                row.node_id = *node_id;
-                row.value = Some(event_name.to_wire_string());
-            }
-            DomOp::AppendChild {
-                parent_id,
-                child_id,
-            } => {
-                row.operation = OP_APPEND_CHILD;
-                row.node_id = *parent_id;
-                row.attribute = Some(child_id.to_string());
-            }
-            DomOp::RemoveChild {
-                parent_id,
-                child_id,
-            } => {
-                row.operation = OP_REMOVE_CHILD;
-                row.node_id = *parent_id;
-                row.attribute = Some(child_id.to_string());
-            }
-            DomOp::RemoveNode { node_id } => {
-                row.operation = OP_REMOVE_NODE;
-                row.node_id = *node_id;
-            }
-            DomOp::InsertBefore {
-                parent_id,
-                child_id,
-                ref_id,
-            } => {
-                row.operation = OP_INSERT_BEFORE;
-                row.node_id = *parent_id;
-                row.attribute = Some(child_id.to_string());
-                row.text_val = Some(ref_id.to_string());
-            }
-            DomOp::ReplaceNode { old_id, new_id } => {
-                row.operation = OP_REPLACE_NODE;
-                row.node_id = *old_id;
-                row.attribute = Some(new_id.to_string());
-            }
-            DomOp::SetStyle {
-                node_id,
-                prop,
-                value,
-            } => {
-                row.operation = OP_SET_STYLE;
-                row.node_id = *node_id;
-                row.attribute = Some(prop.to_wire_string());
-                row.value = Some(value.to_string());
-            }
-            DomOp::AddClass { node_id, class } => {
-                row.operation = OP_ADD_CLASS;
-                row.node_id = *node_id;
-                row.value = Some(class.to_string());
-            }
-            DomOp::RemoveClass { node_id, class } => {
-                row.operation = OP_REMOVE_CLASS;
-                row.node_id = *node_id;
-                row.value = Some(class.to_string());
-            }
-            DomOp::MorphNode {
-                target,
-                action,
-                content,
-            } => {
-                row.operation = OP_MORPH_NODE;
-                let (node_id, kind, selector): (u32, u8, &str) = match target {
-                    TargetSelector::NodeId(id) => (*id, 0, ""),
-                    TargetSelector::Id(s) => (0, 1, s.as_ref()),
-                    TargetSelector::Class(s) => (0, 2, s.as_ref()),
-                    TargetSelector::Query(s) => (0, 3, s.as_ref()),
-                };
-                row.node_id = node_id;
-                row.attribute = Some(format!("{}:{kind}:{selector}", action.as_u8()));
-                row.text_val = Some(content.to_string());
-            }
-            DomOp::RegisterNode { node_id } => {
-                row.operation = OP_REGISTER_NODE;
-                row.node_id = *node_id;
-            }
-            DomOp::UnregisterNode { node_id } => {
-                row.operation = OP_UNREGISTER_NODE;
-                row.node_id = *node_id;
-            }
-        }
-        row
+        row_view(op, |operation, node_id, attribute, value, text_val| Self {
+            operation,
+            node_id,
+            attribute: attribute.map(str::to_string),
+            value: value.map(str::to_string),
+            text_val: text_val.map(str::to_string),
+        })
     }
 
     /// Map the row form back to a [`DomOp`]. `row_index` is reported in errors.

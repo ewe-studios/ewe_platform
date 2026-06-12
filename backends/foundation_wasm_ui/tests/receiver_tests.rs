@@ -11,11 +11,11 @@
 use std::rc::Rc;
 
 use foundation_signals::{Context, Runtime as SignalsRuntime};
-use foundation_ui_traits::{DomOp, ProtocolEncoder};
+use foundation_ui_traits::{ColumnarBatch, DomOp, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, ProtocolHandler, WasmEnvelope};
 use foundation_wasm_ui::{
-    ColumnarV1, BatchInstructionsV1, DomSignalBinding, InstructionReceiver, JsonV1, MockProtocol,
-    ProtocolMethods, Runtime,
+    BatchInstructionsV1, ColumnarReceiver, ColumnarV1, DomSignalBinding, InstructionReceiver,
+    JsonV1, MockProtocol, ProtocolMethods, Runtime,
 };
 
 fn set_text(node_id: u32, text: &str) -> DomOp {
@@ -217,18 +217,23 @@ fn protocol_bytes_match_the_spec() {
 
 // ─── Memory lifecycle (tests 15-18) ────────────────────────────────────────────
 
-/// Test 15 — the slot holds exactly envelope + encoded payload.
+/// Test 15 — the slot holds envelope + payload whose BODY matches the pure
+/// encoder's output exactly (the alignment shims differ by placement: the
+/// pure encoder pads relative to the payload, the framing layer against the
+/// absolute slot address — feature 19 §2).
 #[test]
-fn slot_contains_exact_encoded_bytes() {
+fn slot_contains_exact_encoded_body() {
     let mut memory = MemoryAllocations::new();
     let ops = five_ops();
-    let expected_payload = foundation_ui_traits::ColumnarEncoder.encode(ops.clone());
-    let result = ColumnarV1::new().encode_and_send(ops, &mut memory);
-    assert_eq!(result.encoded_bytes, expected_payload.len());
+    let expected = foundation_ui_traits::ColumnarEncoder.encode(ops.clone());
+    let expected_body = &expected[1 + expected[0] as usize..];
 
+    let result = ColumnarV1::new().encode_and_send(ops, &mut memory);
     let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
     let (_, payload) = WasmEnvelope::parse(&bytes);
-    assert_eq!(payload, expected_payload);
+    assert_eq!(result.encoded_bytes, payload.len());
+    let body = &payload[1 + payload[0] as usize..];
+    assert_eq!(body, expected_body, "one layout, two producers");
 }
 
 /// Test 17 — generations prevent stale access after slot recycling.
@@ -395,3 +400,94 @@ fn quiet_stabilize_sends_nothing() {
     signals.stabilize(); // nothing dirty
     assert_eq!(sent.borrow().len(), before, "no empty batch shipped");
 }
+
+// ─── Feature 19: columnar v1.1 (alignment + columnar-native accumulation) ──────
+
+/// Spec §5 test 2 — ONE layout, two producers: the columnar-native builder
+/// and the pure encoder emit byte-identical BODIES.
+#[test]
+fn builder_and_encoder_emit_identical_bodies() {
+    let ops = five_ops();
+    let mut batch = ColumnarBatch::new();
+    for op in &ops {
+        batch.push(op);
+    }
+    let built = batch.serialize();
+    let encoded = foundation_ui_traits::ColumnarEncoder.encode(ops);
+    assert_eq!(built, encoded, "builder output == encoder output, shim included");
+}
+
+/// Spec §5 test 3 — the framing layer's shim puts the 8-byte columnar header
+/// on an 8-byte boundary in linear memory (pointer math on the live slot).
+#[test]
+fn framed_columnar_header_is_absolutely_aligned() {
+    let mut memory = MemoryAllocations::new();
+    let mut batch = ColumnarBatch::new();
+    for op in &five_ops() {
+        batch.push(op);
+    }
+    let (result, ptr, _len) = ColumnarV1::new().write_batch(&batch, &mut memory);
+
+    let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
+    let (_, payload) = WasmEnvelope::parse(&bytes);
+    let pad = payload[0] as usize;
+    let header_addr = ptr as usize + 14 /* WasmEnvelope */ + 1 + pad;
+    assert_eq!(header_addr % 8, 0, "header 8-aligned at absolute address");
+}
+
+/// Spec §5 test 6 — the columnar receiver round-trips with NO Vec<DomOp> in
+/// the accumulate/flush path; buffers reset across cycles.
+#[test]
+fn columnar_receiver_round_trips() {
+    let ops = five_ops();
+    let mut receiver = ColumnarReceiver::new(ColumnarV1::new(), MemoryAllocations::new());
+    assert!(receiver.flush().is_none(), "empty flush is a no-op");
+
+    for op in &ops {
+        receiver.queue(op);
+    }
+    assert_eq!(receiver.pending_count(), ops.len());
+    let result = receiver.flush().expect("flush ships");
+    assert_eq!(result.op_count, ops.len());
+    assert_eq!(receiver.pending_count(), 0);
+    assert_eq!(receiver.flush_count(), 1);
+
+    let memory = receiver.memory().expect("owned arena");
+    let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
+    let (envelope, payload) = WasmEnvelope::parse(&bytes);
+    assert_eq!(envelope.protocol, 1);
+    let decoded = ColumnarV1::new()
+        .handle_received(result.memory_id, payload.as_ptr(), payload.len())
+        .expect("decode");
+    assert_eq!(decoded, ops);
+
+    // Second cycle reuses the cleared buffers.
+    receiver.queue(&set_text(9, "next"));
+    let second = receiver.flush().expect("second flush");
+    assert_eq!(second.op_count, 1);
+    receiver.ack(result.memory_id);
+    receiver.ack(second.memory_id);
+}
+
+/// `RuntimeBuilder` columnar mode drives the full signals loop columnar-native.
+#[test]
+fn builder_columnar_mode_e2e() {
+    let signals = Rc::new(SignalsRuntime::new());
+    let ctx = Context::new(Rc::clone(&signals));
+    let runtime = Runtime::builder()
+        .columnar()
+        .memory(MemoryAllocations::new())
+        .build();
+    runtime.attach(&signals);
+    let receiver = runtime.receiver();
+
+    let (count, set_count) = ctx.signal(1i64);
+    let _bind = DomSignalBinding::bind(&ctx, &count, &receiver, 7, |v| format!("n={v}"));
+    signals.stabilize();
+    set_count.set(2);
+    signals.stabilize();
+
+    assert_eq!(receiver.flush_count(), 2, "initial render + update flushed");
+    assert_eq!(receiver.pending_count(), 0);
+}
+

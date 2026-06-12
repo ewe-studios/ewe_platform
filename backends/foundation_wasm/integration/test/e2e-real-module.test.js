@@ -27,12 +27,9 @@ test(
     let captured = null;
     rt.setProtocolHandler(1, {
       apply: (memoryId, payload) => {
-        // First u32 of the compact columnar layout is the row count.
-        const rows = new DataView(
-          payload.buffer,
-          payload.byteOffset,
-          payload.byteLength,
-        ).getUint32(0, true);
+        // v1.1: [pad_len][shim] then the 8-byte header; row count is its first u32.
+        const view = new DataView(payload.buffer, payload.byteOffset, payload.byteLength);
+        const rows = view.getUint32(1 + view.getUint8(0), true);
         captured = { memoryId, len: payload.length, rows };
       },
     });

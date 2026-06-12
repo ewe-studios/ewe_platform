@@ -820,3 +820,22 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   real Arrow IPC (`foundation_arrow::ArrowIpcEncoder`, wire v2). Protocol
   byte 1 remains the spec's Arrow-family slot; the version byte demuxes.
 
+## Feature 19 (columnar zero-copy, 2026-06-12)
+
+- **Zero-copy is a property of PLACEMENT, not format**: a pure encoder can
+  only align relative to its own payload; whoever places the bytes must align
+  absolutely. Hence pad_len as a FIELD: pure encoder ships 7 (standalone
+  buffers aligned at offset 0 — review decision: aligned is the universal
+  contract), the wasm framer computes the shim from the slot address.
+- **Reading the slot address before writing**: arena `allocate` zero-fills to
+  capacity, so the Vec's buffer is fixed — `as_address` BEFORE the content
+  write is safe and lets the framer solve for the shim. debug_assert the
+  pointer didn't move after the write.
+- **Views die with the slot**: JS assertions on TypedArray views must run
+  INSIDE the apply handler — the slot is ACK-disposed when it returns.
+- **row_view visitor**: one borrowing mapping feeding from_op, the columnar
+  builder, Arrow IPC, JSON, and byte-0 — string bytes copied exactly once on
+  the columnar path; no drift risk between formats.
+- Byte-offset-hardcoding in tests bites on every layout change — locate
+  patch targets dynamically (search for the data, read the shim).
+

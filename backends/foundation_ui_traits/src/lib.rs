@@ -28,10 +28,10 @@ mod html;
 mod json_encoder;
 mod parts;
 
-pub use columnar_encoder::ColumnarEncoder;
+pub use columnar_encoder::{ColumnarBatch, ColumnarEncoder};
 pub use dom_op::{DomOp, MorphAction, TargetSelector};
 pub use encoder::{
-    DecodeError, DecodeResult, ProtocolEncoder, Row, OP_COUNT, PROTOCOL_ARROW,
+    row_view, DecodeError, DecodeResult, ProtocolEncoder, Row, OP_COUNT, PROTOCOL_ARROW,
     PROTOCOL_CUSTOM_BINARY, PROTOCOL_JSON, PROTOCOL_VERSION,
 };
 pub use envelope::{encode_with_envelope, Envelope, ENVELOPE_SIZE};

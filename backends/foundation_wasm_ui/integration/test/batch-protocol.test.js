@@ -13,6 +13,7 @@ import { dirname, join } from "node:path";
 
 import { FoundationWasm } from "../../../foundation_wasm/runtime/foundation-wasm.js";
 import {
+  ColumnarParser,
   DomOpApplicator,
   NodeRegistry,
   DomHeap,
@@ -52,3 +53,52 @@ test("byte-0 batch protocol: DomOps ride the Instructions format end-to-end", { 
   assert.equal(n6.removed, true, "Remove applied through the batch protocol");
   assert.equal(registry.get(6), undefined, "removed node unregistered");
 });
+
+test("columnar-native path: absolute alignment yields TRUE zero-copy views", { skip }, () => {
+  const doc = new MockDocument();
+  const registry = new NodeRegistry();
+  const n5 = registry.register(5, doc.createElement("span"));
+  const n6 = registry.register(6, doc.createElement("div"));
+  const applicator = new DomOpApplicator(registry, doc);
+
+  const rt = new FoundationWasm();
+  // The slot is ACK-disposed after apply returns, so views are only valid
+  // INSIDE the handler — snapshot every assertion input there.
+  let snap = null;
+  rt.setProtocolHandler(1, {
+    apply: (_id, payload) => {
+      const parsed = ColumnarParser.parse(payload);
+      snap = {
+        zeroCopy: parsed.zeroCopy,
+        nodeIdsIsView: parsed.nodeIds instanceof Uint32Array,
+        opIdsIsView: parsed.opIds instanceof Uint32Array,
+        // THE zero-copy proof: the column views share the payload's buffer
+        // (wasm linear memory) — no bytes were copied out.
+        sharesBuffer: parsed.nodeIds.buffer === payload.buffer,
+        nodeIds: [...parsed.nodeIds],
+      };
+      applicator.apply(parsed);
+    },
+  });
+
+  const abi = { ...rt.web_abi, ...domAbi(rt, new DomHeap({ window: null, document: null })) };
+  const instance = new WebAssembly.Instance(new WebAssembly.Module(readFileSync(wasmPath)), {
+    abi,
+  });
+  rt.init(instance);
+
+  instance.exports.emit_columnar_dom_ops();
+
+  // Feature 19: the framing layer aligned against the ABSOLUTE arena address,
+  // so the u32 columns are genuine views over wasm linear memory.
+  assert.ok(snap, "columnar handler was invoked");
+  assert.equal(snap.zeroCopy, true, "alignment contract held");
+  assert.equal(snap.nodeIdsIsView && snap.opIdsIsView, true);
+  assert.equal(snap.sharesBuffer, true, "views share wasm memory — zero copies");
+  assert.deepEqual(snap.nodeIds, [5, 6]);
+
+  // And the ops applied correctly through the same parse.
+  assert.equal(n5.textContent, "columnar hi");
+  assert.equal(n6.removed, true);
+});
+

@@ -318,7 +318,7 @@ is the at-a-glance view (kept in sync as features complete).
 | [15-typesafe-wasm-wat](features/15-typesafe-wasm-wat/) | wasmbin port → foundation_codegen::wasm + WAT + CLI | 1 | **COMPLETE** (2026-06-11) |
 | [16-walrus-transform-port](features/16-walrus-transform-port/) | **DEFERRED** — walrus IR port; revisit when heavy structural rewrites are needed | 1 | deferred |
 | [17-abi-function-call-codec](features/17-abi-function-call-codec/) | WASM↔JS function-call ABI codec, two-way port | 1 | **COMPLETE** (2026-06-11) |
-| [19-columnar-zero-copy](features/19-columnar-zero-copy/) | Columnar v1.1: aligned buffers (true zero-copy JS TypedArray views) + columnar-native accumulation (ColumnarBatch builder, no row→column pass at flush); cached-string columns recorded as future work | 1 | in progress (2026-06-12) |
+| [19-columnar-zero-copy](features/19-columnar-zero-copy/) | Columnar v1.1: aligned buffers (true zero-copy JS TypedArray views) + columnar-native accumulation (ColumnarBatch builder, no row→column pass at flush); cached-string columns recorded as future work | 1 | **COMPLETE** (2026-06-12) |
 | [18-valtron-signals-bridge](features/18-valtron-signals-bridge/) | Cross-thread signals over valtron: SignalHub actor, RemoteGetter/RemoteSetter, post-stabilize snapshot visibility (glitch-freedom across threads) | LAST | design ready for review (2026-06-12) |
 
 > Features 12–17 + decision 031 were added 2026-06-10 (own WASM infra end-to-end; wasm-bindgen only at explicit integration points; wasmbin ported for type-safe edits; walrus port deferred).

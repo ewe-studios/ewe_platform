@@ -27,7 +27,7 @@ pub mod wasm;
 pub mod embedded;
 
 pub use html_macro::MaybeCallback;
-pub use instruction::InstructionReceiver;
+pub use instruction::{ColumnarReceiver, InstructionReceiver};
 // The html! proc macro itself — re-exported so users write
 // `use foundation_wasm_ui::html;`.
 pub use foundation_macros::html;

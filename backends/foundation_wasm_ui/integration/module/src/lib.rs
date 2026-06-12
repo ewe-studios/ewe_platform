@@ -9,7 +9,7 @@ use foundation_ui_traits::DomOp;
 use foundation_wasm::abi::web::register_function;
 use foundation_wasm::ExternalPointer;
 use foundation_wasm_ui::wasm::dom::{allocate_dom_reference, drop_dom_reference, DomInvoke};
-use foundation_wasm_ui::{BatchInstructionsV1, InstructionReceiver};
+use foundation_wasm_ui::{BatchInstructionsV1, ColumnarReceiver, ColumnarV1, InstructionReceiver};
 
 /// Pre-allocate a DOM-heap slot (`dom_allocate_external_pointer`) → its handle.
 /// Slots 0–4 are reserved (self/heap/window/document/body), so the first
@@ -50,3 +50,20 @@ pub extern "C" fn emit_batch_dom_ops() {
     receiver.queue(DomOp::RemoveNode { node_id: 6 });
     receiver.flush();
 }
+
+/// Ship a DomOp batch over the COLUMNAR protocol (byte 1, wire v1.1) through
+/// the columnar-native path: ColumnarReceiver accumulates straight into column
+/// buffers (no Vec<DomOp>), and ColumnarV1's framing computes the alignment
+/// shim against the ABSOLUTE arena address — the JS ColumnarParser must get
+/// TRUE zero-copy TypedArray views (feature 19).
+#[no_mangle]
+pub extern "C" fn emit_columnar_dom_ops() {
+    let mut receiver = ColumnarReceiver::with_global_arena(ColumnarV1::new());
+    receiver.queue(&DomOp::SetText {
+        node_id: 5,
+        text: "columnar hi".into(),
+    });
+    receiver.queue(&DomOp::RemoveNode { node_id: 6 });
+    let _ = receiver.flush();
+}
+

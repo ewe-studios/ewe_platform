@@ -201,8 +201,10 @@ fn columnar_round_trips_unicode() {
 #[test]
 fn columnar_unknown_operation_reports_op_and_row() {
     let mut bytes = ColumnarEncoder.encode(vec![DomOp::RemoveNode { node_id: 1 }]);
-    // Layout: [count:4][op_id:4][node_id:4][operation:1]... — patch the op byte.
-    bytes[12] = 99;
+    // v1.1 layout: [pad_len:1][pad×7][header:8][op_id:4][node_id:4][operation:1]
+    // — patch the op byte at header+16.
+    let header_at = 1 + bytes[0] as usize;
+    bytes[header_at + 16] = 99;
     assert_eq!(
         ColumnarEncoder.decode(&bytes),
         Err(DecodeError::UnknownOperation {
@@ -338,8 +340,11 @@ fn columnar_invalid_utf8_reports_column() {
         node_id: 1,
         text: Cow::Borrowed("ok"),
     }]);
-    // The text data bytes are the trailing "ok" — corrupt the first byte.
-    let data_start = bytes.len() - 2;
+    // Corrupt the text data ("ok") wherever the v1.1 layout placed it.
+    let data_start = bytes
+        .windows(2)
+        .position(|w| w == b"ok")
+        .expect("text data present");
     bytes[data_start] = 0xFF;
     assert_eq!(
         ColumnarEncoder.decode(&bytes),
@@ -353,8 +358,10 @@ fn columnar_invalid_utf8_reports_column() {
 /// Test 31 — a malformed columnar layout reports schema/truncation, not panic.
 #[test]
 fn columnar_malformed_layout_fails_cleanly() {
-    // Claim 4 rows but provide nothing else.
-    let bytes = 4u32.to_le_bytes();
+    // Valid shim, claimed 4 rows, nothing else.
+    let mut bytes = vec![0u8]; // pad_len = 0
+    bytes.extend_from_slice(&4u32.to_le_bytes()); // row_count
+    bytes.extend_from_slice(&0u32.to_le_bytes()); // flags
     let err = ColumnarEncoder.decode(&bytes).unwrap_err();
     assert!(
         matches!(err, DecodeError::TruncatedBuffer { .. }),
@@ -375,7 +382,7 @@ fn columnar_empty_payload_is_truncated() {
     assert_eq!(
         ColumnarEncoder.decode(&[]),
         Err(DecodeError::TruncatedBuffer {
-            expected_min: 4,
+            expected_min: 1,
             actual: 0
         })
     );
