@@ -14,144 +14,166 @@ A single queue cannot serve both purposes because interruption requires cancelli
 
 ## Decision
 
-Two separate concurrent-queue-backed delivery queues with distinct semantics:
+Two separate queue-backed delivery mechanisms with distinct semantics:
 
-| Queue | Interrupts ToolCallManager? | Interrupts LLM? | When processed | Use case |
-|-------|----------------------------|-----------------|----------------|----------|
-| **PriorityQueue** | ✅ Yes — cancels in-progress tool calls | ✅ Yes — next turn | Immediately at next check | User says "stop, do this instead" |
-| **FollowUpQueue** | ❌ No — lets tool calls complete | ❌ No — waits for loop end | At outer loop boundary | User says "after that, also do this" |
+| Queue | Interrupts LLM? | Interrupts ToolCallManager? | When processed | Use case |
+|-------|-----------------|----------------------------|----------------|----------|
+| **PriorityQueue** | ✅ Yes — sets cancel signal checked each LLM valtron iteration | ✅ Yes — signals cancellation | Between each LLM valtron step | User says "stop, do this instead" |
+| **FollowUpQueue** | ❌ No — waits for LLM turn to complete | ❌ No — waits for all tool calls done | At outer loop boundary | User says "after that, also do this" |
 
-### PriorityQueue
+### Queue Types
 
-**Purpose:** Immediate user interruption and steering.
-
-**Behavior:**
-1. User sends a message → enqueued to PriorityQueue
-2. Agent loop checks PriorityQueue at **every inner loop iteration**
-3. **If PriorityQueue has messages:**
-   - Signal ToolCallManager to cancel in-progress tool calls
-   - Inject priority messages at the **front** of the message list
-   - LLM **must** respond to the priority message first
-   - Original task is abandoned or paused
-
-**Processing order:**
-```
-Inner loop iteration:
-├── Drain PriorityQueue → inject at FRONT of message list
-│   └── "STOP. Instead, fix the auth bug in the login handler."
-├── streamAssistantResponse() with modified message list
-│   └── LLM responds to the priority message
-└── Continue inner loop with LLM's response
-```
-
-**Cancellation cascade:**
-```
-PriorityQueue has messages
-├── ToolCallManager.cancel() called
-│   ├── cancellation_signal.store(true)
-│   ├── In-progress tool calls check signal → abort
-│   └── Partial results persisted to Message API
-├── Agent loop processes priority message
-│   └── New tool calls may be generated (fresh execution)
-└── Original tool calls are abandoned (results still persisted for audit)
-```
-
-### FollowUpQueue
-
-**Purpose:** Deferred steering — instructions for the next iteration.
-
-**Behavior:**
-1. User sends a message → enqueued to FollowUpQueue
-2. Agent loop checks FollowUpQueue only at **outer loop boundary** (after all tool calls complete, inner loop has no more tool calls)
-3. **If FollowUpQueue has messages:**
-   - Move messages to the pending message list
-   - Continue outer loop with follow-up instructions as the next task
-   - Does **NOT** interrupt ToolCallManager or LLM
-
-**Processing order:**
-```
-Outer loop boundary (inner loop exhausted, no more tool calls):
-├── Drain FollowUpQueue → add as pending messages
-│   └── "Now that the auth bug is fixed, also update the tests."
-├── Set as pending, continue outer loop
-└── Inner loop restarts with follow-up instructions
-```
-
-### Queue Implementation
-
-Both queues use `concurrent_queue::ConcurrentQueue` wrapped in `Arc`:
+Both use `Arc<ConcurrentQueue<SteeringMessage>>` — the Agent task holds references to both, passed as shared state:
 
 ```rust
-pub struct PriorityQueue {
-    queue: Arc<ConcurrentQueue<SteeringMessage>>,
-    notifier: Arc<Notifier>, // wakes the agent task when messages arrive
+pub struct AgentSession {
+    pub priority_queue: Arc<ConcurrentQueue<SteeringMessage>>,
+    pub followup_queue: Arc<ConcurrentQueue<SteeringMessage>>,
+    pub cancel_signal: Arc<AtomicU32>,  // signal codes for LLM task
+    // ... other shared state
 }
 
-pub struct FollowUpQueue {
-    queue: Arc<ConcurrentQueue<SteeringMessage>>,
-    notifier: Arc<Notifier>,
-}
-
-pub struct SteeringMessage {
-    pub content: String,
-    pub source: MessageSource, // user, system, external
-    pub enqueued_at: u128,     // scru128 timestamp
+pub enum CancelCode: u32 {
+    None = 0,
+    PauseForPriority = 1,   // LLM should pause, check priority queue
+    Abort = 2,              // LLM should abort entirely
 }
 ```
+
+### How PriorityQueue Interrupts the LLM
+
+The LLM task in foundation_ai is a valtron task. The Agent task drives it using valtron's **sequenced** execution mode (`DualSequeunceChildAndParentLinkedTask`):
+
+```
+Agent Task (parent) ──sequenced──▶ LLM Task (child)
+
+Each executor step:
+1. LLM task runs one valtron iteration → yields token / pending / done
+2. Agent task runs one valtron iteration → checks priority queue
+3. If priority queue has messages:
+   a. Agent sets cancel_signal = PauseForPriority
+   b. LLM task sees signal on next iteration → pauses/aborts
+   c. Agent drains priority queue, injects at front of message list
+   d. Agent continues with new instruction
+```
+
+**Why sequenced (`DualSequeunceChildAndParentLinkedTask`)?**
+
+From valtron's `dependent_lift.rs` — `DualSequeunceChildAndParentLinkedTask` polls both child and parent on each executor step:
+
+```rust
+// Each next() call:
+// 1. Poll child (LLM task) → get token/pending/done
+// 2. Poll parent (Agent task) → check queues, set signals
+// 3. Return child's state
+// Both run in lockstep — Agent can interleave between each LLM step
+```
+
+This gives the Agent a chance to check the priority queue **between every LLM valtron iteration** — not just after the full response.
+
+### How FollowUpQueue Works
+
+FollowUpQueue is checked at **outer loop boundary** — after the LLM turn completes, all tool calls finish, and inner loop has no more tool calls:
+
+```
+Outer loop boundary:
+├── LLM turn complete (no more tool calls)
+├── Check FollowUpQueue
+│   ├── If messages → move to pending, continue outer loop
+│   └── If empty → emit(agent_end)
+└── Agent loop restarts with follow-up instructions
+```
+
+The FollowUpQueue does NOT set cancel_signal — it waits for natural completion.
+
+### Valtron Task Composition Options
+
+The Agent task can compose with the LLM task using different valtron spawn modes:
+
+| Spawn Mode | Executor Type | Behavior | Use for |
+|-----------|--------------|----------|---------|
+| **Sequenced** (`sequenced()`) | `DualSequeunceChildAndParentLinkedTask` | Child + parent run lockstep each executor iteration | **LLM task** — Agent checks queues between each LLM step |
+| **Lifted** (`lift()`) | `FinishChildBeforeParentTask` | Child runs to exhaustion, then parent resumes | **Tool execution sub-tasks** — run tool, then Agent processes result |
+| **Broadcast** (`broadcast()`) | Global queue → another thread | Runs on different thread | **Embedding generation** — independent background work |
+| **Scheduled** (`schedule()`) | Bottom of local queue | Runs after all local tasks complete | **Memory generation** — deferred, non-urgent |
 
 ### Agent Loop Integration
 
 ```
-agent.prompt("Fix the bug")
+Agent.prompt("Fix the bug")
 └─ runLoop()
    │
-   ├─ emit(agent_start)
-   ├─ emit(turn_start)
+   ├─ emit(AgentEvent::SessionStart)
    │
    ├─ OUTER LOOP (follow-up continuation)
    │   │
    │   ├─ Check FollowUpQueue → if messages, add as pending, continue outer loop
    │   │
-   │   ├─ INNER LOOP (tool calls + steering)
-   │   │   ├─ Drain PriorityQueue → inject at FRONT of message list
-   │   │   │   └── If PriorityQueue had messages:
-   │   │   │       └── ToolCallManager.cancel() → abort in-progress tool calls
+   │   ├─ LLM Task (spawned via sequenced with Agent as parent)
    │   │   │
-   │   │   ├─ streamAssistantResponse()
-   │   │   ├─ Extract tool calls
-   │   │   ├─ If tool calls:
-   │   │   │   ├─ ToolCallManager.submit(tool_calls)
-   │   │   │   ├─ ToolCallManager executes
-   │   │   │   └── Results → Message API → agent loop
-   │   │   └─ Check PriorityQueue again → repeat inner loop if priority messages
+   │   │   ├─ Each executor step:
+   │   │   │   ├── LLM task iteration → yield token/pending
+   │   │   │   └── Agent task iteration → check PriorityQueue
+   │   │   │       └── If priority messages:
+   │   │   │           ├── cancel_signal = PauseForPriority
+   │   │   │           ├── LLM sees signal → pauses
+   │   │   │           ├── Agent drains PriorityQueue → inject at front
+   │   │   │           └── Agent continues with new instruction
+   │   │   │
+   │   │   └─ When LLM completes → emit(MessageEnd)
+   │   │
+   │   ├─ Extract tool calls
+   │   ├─ If tool calls:
+   │   │   ├─ ToolCallManager.submit(tool_calls) — spawned via lifted
+   │   │   │   ├── Each tool runs as child task
+   │   │   │   ├── Agent checks PriorityQueue between tool executions
+   │   │   │   └── If priority: cancel remaining tool calls
+   │   │   └── Results → Message API → agent loop
    │   │
    │   └─ Check FollowUpQueue → if messages, continue outer loop
    │
-   └─ emit(agent_end)
+   └─ emit(AgentEvent::SessionEnd)
+```
+
+### SteeringMessage Structure
+
+```rust
+pub struct SteeringMessage {
+    pub content: String,
+    pub source: MessageSource,  // user, system, external
+    pub enqueued_at: u128,      // scru128 timestamp
+    pub urgency: Urgency,       // Priority or FollowUp
+}
+
+pub enum Urgency {
+    Priority,   // Goes to PriorityQueue — interrupts LLM
+    FollowUp,   // Goes to FollowUpQueue — waits for outer loop boundary
+}
 ```
 
 ### Rationale
 
-**Why two queues instead of one?**  
-- A single queue with priority levels still requires a decision point: "do I cancel or wait?"
-- Separate queues make the intent explicit at the API level — callers choose the right queue
-- PriorityQueue is checked at every inner loop iteration; FollowUpQueue only at outer loop boundary
-- Cancellation semantics are different — PriorityQueue cancels tool calls, FollowUpQueue does not
+**Why sequenced execution for LLM + Agent?**
+- Gives Agent a chance to check queues between every LLM valtron iteration
+- LLM can be interrupted mid-stream, not just after completion
+- Uses valtron's built-in `DualSequeunceChildAndParentLinkedTask` — no custom coordination needed
+- Agent's `next()` runs every step — can set `cancel_signal`, check queues, emit progress
 
-**Why check PriorityQueue at every inner loop iteration?**  
-- User interruption should be responsive — the agent shouldn't continue executing irrelevant tool calls
-- Tool calls can be expensive (API calls, file operations) — cancelling early saves resources
-- The LLM should respond to the user's latest intent, not stale instructions
+**Why AtomicU32 cancel signal instead of AtomicBool?**
+- Single bool only supports on/off — can't distinguish "pause" from "abort"
+- U32 allows multiple signal codes: PauseForPriority, Abort, Resume, etc.
+- Extensible — new signal types added without API changes
 
-**Why check FollowUpQueue only at outer loop boundary?**  
-- Follow-up instructions are for the **next** task, not the current one
-- Interrupting mid-task wastes work and creates confusing LLM behavior
-- Natural boundary: "current task done, what's next?"
+**Why shared `Arc<ConcurrentQueue>` instead of valtron `NotifyQueue`?**
+- Agent task owns the queues and polls them directly in its `next()` iteration
+- No separate consumer task needed — Agent is the consumer
+- `ConcurrentQueue` is sufficient — no CondVar blocking needed (Agent polls, doesn't block)
+- `NotifyQueue` is for producer-consumer where consumer blocks waiting — not our pattern
 
-**Why use ConcurrentQueue + Notifier?**  
-- `ConcurrentQueue` provides lock-free enqueue/dequeue
-- `Notifier` (from foundation_core::synca or similar) allows the agent task to wake immediately when a message arrives, rather than polling
-- This matches valtron's `EventReadiness` pattern — the queue implements `EventReadiness` and the agent task uses `TaskStatus::Depends(signal)`
+**Why two queues instead of priority levels?**
+- Two distinct check points: PriorityQueue (between LLM steps), FollowUpQueue (outer loop boundary)
+- Priority levels in a single queue would still need a decision: "do I check this now or wait?"
+- Separate queues make the intent explicit at the API level
 
 ## Alternatives Considered
 
@@ -160,12 +182,12 @@ agent.prompt("Fix the bug")
 - **Cons:** Still needs cancellation logic at every check point; unclear semantics for "medium priority"
 - **Rejected because:** Two distinct use cases (interrupt vs defer) are better served by explicit separation
 
+### NotifyQueue + BoolSignal for wakeup
+- **Pros:** Uses valtron's existing notification infrastructure
+- **Cons:** Agent task owns the queues and polls them directly — no separate consumer needs wakeup
+- **Rejected because:** Our pattern is inline polling in Agent's valtron iteration, not blocking consumer
+
 ### Channel-based queues (mpsc)
 - **Pros:** Built-in async support, backpressure
-- **Cons:** `mpsc` is single-consumer; we need multiple listeners (agent loop, monitoring tasks)
-- **Rejected because:** `ConcurrentQueue` + `Broadcaster` supports multiple consumers
-
-### Signal-based interruption only (no queue)
-- **Pros:** Simpler — just a flag to interrupt
-- **Cons:** Loses the actual steering message content; agent knows to stop but not what to do instead
-- **Rejected because:** Interruption must carry the new instruction, not just a stop signal
+- **Cons:** `mpsc` is single-consumer; we need the Agent to poll at specific points
+- **Rejected because:** `ConcurrentQueue` + inline polling matches the Agent's execution model better
