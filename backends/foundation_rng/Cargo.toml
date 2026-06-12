@@ -8,7 +8,7 @@ description = "RNG (getrandom) + scru128 IDs for foundation_ai, with WASM suppor
 default = ["std", "native"]
 std = ["dep:serde", "fstr/std"]
 global_gen = ["std", "dep:forkguard", "dep:reseeding_rng"]
-native = ["std", "global_gen", "rand010", "dep:getrandom"]
+native = ["std", "global_gen", "rand010", "sys_rng", "dep:getrandom"]
 # Feature aliases (copied source uses these names)
 rand010 = ["scru128_rand010"]
 rand09 = []

@@ -2974,6 +2974,7 @@ dependencies = [
  "derive_more",
  "foundation_core",
  "foundation_netio",
+ "foundation_rng",
  "futures-core",
  "futures-lite",
  "getrandom 0.2.16",

@@ -21,7 +21,7 @@ mod global_gen;
 pub use global_gen::{new, new_string};
 
 pub mod generator;
-pub use generator::Generator;
+pub use generator::{Generator, StdSystemTime};
 
 pub mod id;
 pub use id::{FieldError, Id, ParseError};
@@ -45,11 +45,13 @@ pub use getrandom::{fill, fill_uninit, u32, u64, Error as RngError};
 #[cfg(all(feature = "std", feature = "sys_rng"))]
 pub fn new_scru128() -> Id {
     use crate::generator::with_rand010::Adapter;
+    use crate::generator::StdSystemTime;
     use std::cell::RefCell;
 
+    type DefaultGen = Generator<Adapter<rand::rngs::ThreadRng>, StdSystemTime>;
     thread_local! {
-        static GEN: RefCell<Generator<Adapter<rand::rngs::ThreadRng>, crate::time::NativeTime>> =
-            const { RefCell::new(Generator::with_rand010(rand::rng())) };
+        static GEN: RefCell<DefaultGen> =
+            RefCell::new(Generator::with_rand010(rand::rng()));
     }
     GEN.with_borrow_mut(|g| g.generate())
 }

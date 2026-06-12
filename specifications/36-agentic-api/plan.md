@@ -1,11 +1,33 @@
 This plan is an overview architecture for what the agentic API for foundation-ai looks like, after studying how Pi, Hermes, Mastra and Yoagent works:
 
+- valtron: /home/darkvoid/Boxxed/@dev/ewe_platform/backends/foundation_core/src/valtron
+- foundation_ai: /home/darkvoid/Boxxed/@dev/ewe_platform/backends/foundation_ai
+- Skills:
+  - /home/darkvoid/Boxxed/@dev/ewe_platform/.agents/skills/rust-valtron-iterator
+  - /home/darkvoid/Boxxed/@dev/ewe_platform/.agents/skills/rust-valtron-usage
+
 See explorations here:
 
 - /home/darkvoid/Boxxed/@dev/repo-expolorations/src.datastar/yoke
 - /home/darkvoid/Boxxed/@dev/repo-expolorations/hermes
 - /home/darkvoid/Boxxed/@dev/repo-expolorations/mastra
 - /home/darkvoid/Boxxed/@dev/repo-expolorations/pi
+
+ TThe goal for us is, then after creating a good understanding of things, write a draft of what
+  the decisions are and where there are holes, issues, problems, lets discuss it 1 by 1 (no
+  rushing), we finish talking about one till i am satisfied and when all of it is good, we then
+  write the decision document or update it, then go to the next.
+
+  Once done, we launch/spawn a fresh agent without our context to review everything and create a
+  gaps.md which we talk also about, fixing them all until everything is crystal clear.
+
+  Once we are done, we generate very detailed features for the spec that when someone reads it
+  they already immediately know how it works, every block, section, code, they know how we will
+  build it in its entirely.
+  The features guide the implementation so they cant be vague, assume things, be unclear, leave
+  some area, idea, element, struct unfinished or without clarity.
+
+## Plan Idea
 
 Which create specific agentic inner and outer loops which is responsible for:
 
@@ -146,6 +168,8 @@ This allows the Message API to be the defacto shareable (probably put it a Arc o
 The messages will contain every message since the lifetime of that interaction and we will never compact it, its an audit of every single interaction for that session.
 
 More so, we should be able to do semantic recall (bascially a vector search) on the session to find important information that is really important to the current interactions.
+
+Update: Thur 11, June 2026: As i was thinking more on this, we need to probably keep a message buffer in memory upon which after its full or after a certain amount of turn, we flush to disk to reduce write pressure, we will need to be careful here though, probably write it to a Arc<ConcurrentQueue> that is shared or have a Arc<MessageTask> where we can before stopping the agent, ensure the process flushes all messages to disk first. Meaning, we should build a struct for all the different MessageAPI, Memory,etc that then a valtron Agentic task wraps, put them in a Arc<T> ensuring all memthods are &self, and use interior mutability if needed or Arc<Mutex<T>> the items, and then when the agentic handler that we lunch into a task or that launches the task into valtron, when its about to stop or end, will ensure to flush properly.
 
 Different operations can then get the copy of the Message{inner: Arc<MessageInner>} and use it to perform different operations on the messages, like:
 
