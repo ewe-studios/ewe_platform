@@ -202,7 +202,47 @@ backdrop is `::backdrop`, not a DOM part).
 | **scroll-area** | Root/Viewport/Content/Scrollbar/Thumb/Corner | pure JS-side presentation (scroll math), `data-scrolling/hovering`; Rust side is just markup — candidate for a PURE component (no signals at all) |
 | **skeleton** *(ours, kept from old draft)* | `skeleton(shape)` | fully static |
 
-## 5. Implementation order
+## 5. The styling contract (how a component is styled)
+
+Modeled on base-ui's demo CSS (each demo ships css-modules + tailwind
+variants; the css-modules form is the reference idiom: plain CSS, state
+via attribute selectors — `.Switch[data-checked] { … }`), adapted to our
+stack:
+
+1. **Stable part classes, overridable.** Every part renders a default
+   class (`switch`, `switch-thumb`, `dialog-popup`, `menu-item`…); config
+   carries optional per-part overrides (`SwitchConfig.class`,
+   `…thumb_class`). Default markup is styleable out of the box; design
+   systems can rename. (base-ui's per-part `className` prop, minus React.)
+2. **State styles target data-attributes, never classes.** The component
+   NEVER toggles style classes; it toggles the documented data-attributes
+   (family docs are the contract). Consumer CSS:
+   `.switch[data-checked] { … }`, `.field-control[data-invalid] { … }`,
+   `[data-side="top"] .arrow { … }`. Morph-safe and uniform.
+3. **Machinery CSS variables are styling API.** M7 measurements
+   (`--collapsible-panel-height`, `--active-tab-*`), M1 anchor vars
+   (`--anchor-width`, `--available-height`, `--transform-origin`), M8
+   movement vars (`--toast-swipe-movement-*`) — documented per family;
+   animations/layout read them, JS never writes styles directly beyond
+   these vars + the var-driven properties.
+4. **Where CSS lives — three supported tiers:**
+   - plain stylesheets (the base-ui idiom; everything is classes +
+     attributes, so `to_markup` SSR pages style identically);
+   - `<style primal:style>` scoped blocks (spec-39 F09) for styling a
+     component INSTANCE at the use site without global leakage — no
+     base-ui equivalent;
+   - `#[derive(ThemeTokens)]` custom properties for design tokens with
+     auto dark mode — component CSS references `var(--color-…)` tokens
+     instead of hand-rolling `prefers-color-scheme` per rule (which is
+     what base-ui's demos do).
+5. **Focus styles are consumer CSS** via `:focus-visible` (the components
+   guarantee correct focus TARGETS, never outline styles).
+6. Each family's implementation feature must ship a styled reference
+   example per component (the "headless claim" acceptance test from §6)
+   written in tier-1 plain CSS + tokens, mirroring base-ui's demo so the
+   two can be visually compared.
+
+## 6. Implementation order
 
 1. **Machinery**: M6 → M5 → M3 → M1 → M2 → M7 (M4 rides M2), each with JS
    tests + a proving component (M6→switch, M5→tabs, M1/M3→popover).
@@ -213,7 +253,7 @@ backdrop is `::backdrop`, not a DOM part).
    keyboard contract, data-attribute contract (asserted on the op stream),
    morph survival, and a styled example proving the headless claim.
 
-## 6. Crate
+## 7. Crate
 
 `backends/foundation_ui_components` (name from the old draft, kept):
 `foundation_wasm_ui` + `foundation_signals` deps only; no_std-compatible
