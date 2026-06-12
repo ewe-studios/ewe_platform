@@ -36,3 +36,13 @@ radio hero demo IS a radio group).
   (ThemeTokens), keeping the demo values as token defaults.
 - Keep every attribute/var selector EXACTLY — that's the contract under
   test.
+- Movement vars consumed unconditionally by base transforms
+  (`--toast-swipe-movement-x/y`, `--drawer-swipe-progress/strength`) MUST
+  be initialized to `0px`/`0` at mount even while M8 gestures are
+  deferred, or the v1 stylesheets break.
+- Selectors with NO component producer are demo-author hooks
+  (`[data-color='red']` in alert-dialog.css): keep them in the file,
+  exempt from traceability.
+- ENFORCEMENT: the acceptance suite mechanically checks that every other
+  `[data-*]` and `var(--*)` selector in these files traces to a family-doc
+  or machinery.md line.

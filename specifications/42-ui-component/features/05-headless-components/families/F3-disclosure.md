@@ -114,7 +114,9 @@ Data attributes (full set):
 - Tab: `data-active`, `data-disabled`, `data-orientation`,
   `data-activation-direction: left|right|up|down|none` (which way
   selection moved — for slide animations),
-- Panel: `data-hidden`, `data-index`, `data-orientation`,
+- Panel: `data-hidden` AND the native `hidden` attribute together (the
+  reference stylesheet selects `&[hidden]`), `data-index`,
+  `data-orientation`,
   `data-activation-direction`, `data-starting-style`/`data-ending-style`,
 - List: `data-orientation` (+ `data-activation-direction`).
 

@@ -105,6 +105,13 @@ callers may replace are slots, parts that are structural are built-in.
 M1/M3/M5/M7 are JS-runtime modules with Rust-side attribute contracts;
 M2 is mostly platform; M4 partially platform; M6 is Rust.
 
+**Exact algorithms, constants, and defaults live in
+[machinery.md](machinery.md)** (cold-review fixes: collision three-knob
+semantics, typeahead 750ms prefix matching, scroll-lock technique,
+hover-intent safe polygon + per-component delays, data-instant,
+hold-repeat constants, the event reason taxonomy, RTL policy).
+machinery.md WINS where a family doc is vaguer.
+
 ## 4. The catalog (all base-ui components, grouped by family)
 
 **The full review lives in [families/](families/)** — every component,

@@ -48,7 +48,12 @@ arrows ±step, PageUp/Down ±largeStep, Home/End → min/max (native-ish via
 the hidden input, intercepted for format); pointer drag on Control moves
 the NEAREST thumb (gesture module — drag ships WITH slider v1, it is the
 component; shared module also serves drawer-swipe/scrub later); CSS vars
-for thumb position/percent on Root so Track/Indicator style in pure CSS;
+on Root, NAMED (the styling contract needs names): `--slider-value`,
+`--slider-percent` (0-100; per-thumb `--slider-percent-N` in range mode)
+so Track/Indicator style in pure CSS; tie-break for drag on Control:
+nearest thumb by track distance, lower-index thumb on exact ties;
+`thumbCollisionBehavior='swap'` exchanges thumb identities mid-drag when
+they cross ('stop' clamps at the neighbor minus minStepsBetweenValues);
 `data-dragging`, `data-orientation`, field data-attrs.
 
 **Platform:** `<input type=range>` + `accent-color` for the basic case;

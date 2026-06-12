@@ -91,17 +91,22 @@ ScrubAreaCursor.
 | base-ui prop | ours | notes |
 |--------------|------|-------|
 | `value: number \| null` triple + `onValueCommitted` | `(value, set_value)` + optional `on_commit` callback (fires on blur/arrow-release vs every keystroke) | signal |
-| `min`/`max`/`step = 'any'`/`smallStep = 0.1`/`largeStep = 10` | static | arrows step; Shift+arrows largeStep; Alt+arrows smallStep (captured modifier map) |
+| `min`/`max`/**`step = 1`** (`'any'` is the opt-out — CORRECTED; the spec previously inverted this) /`smallStep = 0.1`/`largeStep = 10` | static | arrows step; Shift+arrows largeStep; Alt+arrows smallStep (captured modifier map) |
 | `snapOnStep = false` | static | snap to step grid on change |
-| `allowOutOfRange = false` | static | clamp vs allow-and-invalidate |
+| `allowOutOfRange = false` | static | nuance (corrected): only TYPED text may exceed the range (and invalidates); step interactions (arrows/buttons/wheel/scrub) ALWAYS clamp |
 | `format: Intl.NumberFormatOptions` + `locale` | static — display formatting (currency, percent, grouping); input parses localized text back (captured: parsing strips group separators, handles locale decimal) |
 | `allowWheelScrub = false` | static | wheel over input scrubs value |
-| ScrubArea (+Cursor) | pointer-drag scrubbing with virtual cursor (pointer lock) | DEFERRED to the shared pointer-gestures module (with slider drag, drawer swipe) — parts spec'd now |
+| ScrubArea (+Cursor) | pointer-drag scrubbing with virtual cursor (pointer lock); `pixelSensitivity = 2`, `direction = 'horizontal'`, `teleportDistance` (cursor wraps at viewport edge) | DEFERRED to M8 — parts + constants spec'd now (machinery.md §M8) |
 
 Behaviors: input is `inputmode="decimal"` text (NOT `type=number` — the
 native spinner UX is why this component exists); `role="spinbutton"` ARIA
 not used (text input + buttons pattern per base-ui); buttons repeat on
-hold (initial delay + acceleration — captured); Home/End → min/max.
+hold — first repeat after **400 ms**, then every **60 ms** (machinery.md
+§M8); Home/End → min/max. `on_commit` timing (corrected): blur after
+typing, pointer release after button-hold/scrub, SIMULTANEOUS with the
+change for single keyboard steps. Change callbacks carry the reason
+taxonomy (`input-change/input-clear/input-blur/input-paste/keyboard/
+increment-press/decrement-press/wheel/scrub`) in `EventData.reason`.
 Data attributes: scrubbing state on ScrubArea, `data-disabled` etc.
 
 **Platform:** `<input type=number>` documented as the simple-case recipe;

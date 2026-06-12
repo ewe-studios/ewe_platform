@@ -20,6 +20,13 @@ Every overlay in base-ui shares:
   set_active_trigger)` optional `Option<String>` signal set by triggers
   before opening; content reads it like any signal. No handle type needed
   — signals ARE the handle.
+- TRIGGERS carry `data-popup-open` (their popup is open) and
+  `data-pressed` (pressed/active trigger) — load-bearing in 8 vendored
+  stylesheets; every overlay trigger emits both.
+- Popups emit `data-instant="click|dismiss|focus|trigger-change"` when a
+  change must not animate (semantics: machinery.md §M7) and
+  `--popup-width/--popup-height` (their measured size, distinct from the
+  positioner vars).
 - Popup `data-open/closed`, `data-starting-style`/`data-ending-style`;
   dialog adds `data-nested` / `data-nested-dialog-open` (style stacked
   dialogs — capture: nested dialog pushes parent back via these attrs +
@@ -77,26 +84,34 @@ referenced by tooltip/preview-card/menus/select):
 | `side: top\|bottom\|left\|right\|inline-start\|inline-end` (+`align: start\|center\|end`) | static config → `data-side`/`data-align` REFLECT the FINAL placement after collision handling (CSS hooks for arrow + origin) |
 | `sideOffset`/`alignOffset: number \| fn(anchor,popup,side)` | static numbers v1 (offset functions deferred until needed) |
 | `anchor` (element/virtual/ref) | trigger by default; any `primal-id` or a point (context-menu) |
-| `collisionAvoidance` (flip/shift modes), `collisionBoundary` (clipping ancestors default), `collisionPadding = 5`, `sticky` | M1: flip-then-shift default, boundary = viewport/clipping ancestors, padding config; `sticky` keeps popup attached when anchor scrolls out |
-| `positionMethod: absolute\|fixed` | M1 detail (fixed default) |
+| `collisionAvoidance` (three knobs: `side`/`align`/`fallbackAxisSide`), `collisionBoundary = 'clipping-ancestors'`, `collisionPadding = 5`, `sticky = false` | machinery.md §M1 carries the EXACT semantics (flip/shift/none per knob, the side:shift⇒align constraint, logical fallback order); `sticky` keeps popup attached when anchor scrolls out |
+| `positionMethod: absolute\|fixed` | M1 detail (**default `absolute`** — corrected; full collision algorithm in machinery.md §M1) |
 | `arrowPadding = 5`, Arrow part with `data-side`/`data-uncentered` | arrow = slot positioned via `--transform-origin`-style vars |
 | `disableAnchorTracking` | static — skip scroll/resize observers |
 | CSS vars: `--anchor-width/height`, `--available-width/height`, `--positioner-width/height`, `--transform-origin` | M1 emits ALL (they're the headless styling contract: match-trigger-width selects, max-height clamping, scale-from-origin animations) |
 | `data-anchor-hidden` | present when anchor scrolled out of view |
 
-Trigger hover mode (popover/preview-card/tooltip share it): `openOnHover =
-false`, `delay = 300`, `closeDelay = 0` — M3-adjacent hover-intent JS
-(pointer enter/leave with delay timers, popup itself hoverable keeps it
-open). `modal: false` default for popovers (true traps focus — rare).
+Trigger hover mode (popover/preview-card/tooltip share the MECHANISM, not
+the numbers — per-component delays + the safe-polygon state machine live
+in machinery.md §M3; popover trigger is 300/0). `modal: false` default for
+popovers; captured conditional: `modal: true` activates the focus trap
+ONLY when a Close part is rendered inside the Popup.
+
+Popover also has a **Viewport** part (multi-trigger payload mode): one
+popup whose content transitions between triggers' payloads, with
+`data-current`/`data-previous`/`data-transitioning` on the old/new content
+wrappers — required by the detached-triggers reference stylesheet; ships
+WITH the payload feature (`active_trigger` signal).
 
 ## tooltip
 
 Popover specialization, hover/focus-only (NEVER click), non-focusable
 content, `role="tooltip"`:
-- Provider: `delay`, `closeDelay`, `timeout = 400` — GROUPING: moving
-  between grouped triggers within `timeout` skips the open delay (the
-  "tooltip walk" UX). Ours: `TooltipGroup` config value shared by tooltip
-  instances (plain Rc'd struct, no provider component).
+- **`delay = 600`**, `closeDelay = 0` (tooltip's OWN defaults — NOT
+  popover's 300); provider `timeout = 400` — GROUPING: moving between
+  grouped triggers within 400 ms skips the open delay (the "tooltip walk"
+  UX). Ours: `TooltipGroup` config value shared by tooltip instances
+  (plain Rc'd struct, no provider component).
 - `trackCursorAxis: none\|x\|y\|both` — popup follows the cursor on an
   axis (M1 virtual-anchor mode).
 - `disableHoverablePopup` — popup not hoverable (closes on leave).
@@ -131,18 +146,30 @@ Dialog variant + gestures; captured distinctives:
 
 ## toast
 
-The one overlay where the LIST is the component.
+The one overlay where the LIST is the component. Parts: Provider(config) /
+Viewport / Root / **Content** (the body wrapper — carries `data-behind`
+when stacked behind the frontmost toast and `data-expanded`; required by
+toast.css) / Title / Description / Action / Close / and the ANCHORED mode
+parts (Positioner + Arrow — a toast may anchor to an element with the full
+M1 API via per-toast `positioner` config; v1 defers anchored toasts with
+M8).
+
+Numeric defaults (captured): `timeout = 5000` ms, `limit = 3`,
+`priority = 'low'`, `swipeDirection = ['down','right']`.
 - Manager (base-ui `createToastManager` / `useToastManager`): `add`,
   `close`, `update`, `promise(promise, {loading, success, error})` —
   ours: `ToastManager` Rust struct over a `(toasts, set_toasts)` Vec
   signal; `promise` becomes a valtron-friendly variant (update on task
   completion). Toast value: `{ id, type, title, description, timeout,
-  priority, action }`.
+  priority, action: Option<(label, Callback)>, data: Option<JsonValue>,
+  on_close, on_remove }` (data = caller payload; on_close fires at
+  dismiss, on_remove after the exit animation completes).
 - Behaviors captured: auto-dismiss timeout (pause on hover/focus of the
   viewport — captured!), `limit` with `data-limited` for overflowed
   toasts, stacking with `--toast-index`/`--toast-height`/
-  `--toast-offset-y` vars + `data-expanded` (viewport hover expands the
-  stack), swipe-to-dismiss with `--toast-swipe-movement-x/y` +
+  `--toast-offset-y` + `--toast-frontmost-height` (the first toast's
+  height — the collapsed stack sizes behind it) vars + `data-expanded`
+  (viewport hover expands the stack), swipe-to-dismiss with `--toast-swipe-movement-x/y` +
   `data-swiping` + `data-swipe-direction` (gesture module — same deferral
   as drawer; timeout/limit/stack ship in v1), `data-type` for styling per
   toast type.

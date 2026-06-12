@@ -23,7 +23,7 @@ Root captured (beyond the F4 overlay model):
 | `closeParentOnEsc = false` (submenu) | config | Escape in a submenu: close just it, or the whole tree |
 | `orientation = vertical` | config | arrow axis |
 | `disabled` | config | trigger inert |
-| trigger `openOnHover`/`delay` (submenu trigger: hover default) | config | F4 hover model |
+| trigger `openOnHover`/`delay` (submenu trigger: hover default, **`delay = 100`**) | config | F4 hover model + machinery.md §M3 safe polygon (submenus NEED it) |
 
 Items captured:
 
@@ -40,8 +40,11 @@ Items captured:
 Keyboard contract (M5 menu variant — captured fully):
 ↑/↓ move highlight (loop per config); → opens submenu / ← closes it
 (mirrored in RTL); Enter/Space activate; typeahead by `label` or text
-content; Escape closes (tree per `closeParentOnEsc`); Tab closes and moves
-on. Highlight ≠ focus: base-ui keeps DOM focus on the popup and moves
+content (algorithm pinned in machinery.md §M5: 750 ms buffer reset,
+locale-lowercased prefix match over visible enabled items, same-letter
+cycling); Escape closes (tree per `closeParentOnEsc`); Tab closes and
+moves on. `modal = true` scroll-lock/inertness mechanism: machinery.md
+§M2/M3 (no native dialog involved). Highlight ≠ focus: base-ui keeps DOM focus on the popup and moves
 `aria-activedescendant`-style highlight — ours: `data-highlighted` +
 `aria-activedescendant` on the popup (one focus stop, M5 "virtual
 highlight" mode — also what select/combobox need).
@@ -59,7 +62,7 @@ the popup layer (F4); behavior is ours via M1/M3/M5.
 
 Root/Trigger wrap a menu: Trigger is the right-clickable SURFACE
 (`contextmenu` event → open at pointer coords via M1 virtual point
-anchor; long-press on touch). No hover, no `openOnHover`. Repeated
+anchor; long-press on touch = **500 ms**, machinery.md §M3). No hover, no `openOnHover`. Repeated
 right-click inside moves the menu. All menu parts/keyboard identical.
 
 ---

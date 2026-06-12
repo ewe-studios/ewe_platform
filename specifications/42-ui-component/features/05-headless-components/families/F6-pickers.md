@@ -27,6 +27,9 @@ Separator.
 Captured behaviors:
 - Trigger shows the selected item's label via the Value part (placeholder
   when none); `data-placeholder`-style styling via empty state.
+- Scroll arrows (ScrollUpArrow/ScrollDownArrow) carry
+  `data-direction="up|down"` + visibility state (select.css selects
+  `[data-direction]`).
 - Popup ALIGNS THE SELECTED ITEM OVER THE TRIGGER (macOS-style; base-ui's
   `alignItemWithTrigger` positioning mode) with inner scroll + Scroll
   Up/Down arrow parts — v1 ships the simpler anchored-below mode (M1
@@ -52,6 +55,15 @@ customizable-select reaches Baseline.
 
 ## combobox
 
+Data-attribute surface (cold-review fix — previously undocumented):
+- **Input**: `data-popup-open`, `data-popup-side` (mirror of the popup's
+  final side), `data-list-empty`, `data-pressed`, + the field six.
+- Trigger/Clear/Chips: `data-popup-open`, `data-pressed`,
+  `data-disabled`; Chip: `data-highlighted`.
+- Popup/List: `data-empty` when zero results (consumed by combobox.css
+  and autocomplete.css), `data-side`/`data-align` per M1.
+- Items: `data-selected`/`data-highlighted`/`data-disabled` as select.
+
 Select + a text input filtering the option list. Parts add: Input,
 InputGroup, Clear, Chips/Chip/ChipRemove (multi as tokens), Status
 (live-region result count), Empty (no-results), Row (grid mode),
@@ -62,7 +74,7 @@ Captured beyond select:
 | prop | ours |
 |------|------|
 | `inputValue` triple | `(query, set_query)` signal |
-| `filter: fn(item, query) \| null` | DEFAULT: `filtered = ctx.computed(items × query)` — contains-match, locale-aware lowercase; `null` = server-filtered (see below); custom fn supported |
+| `filter: fn(item, query) \| null` | DEFAULT: `filtered = ctx.computed(items × query)` using base-ui's named filter set: `contains` (default) / `starts_with` / `ends_with`, locale-lowercase folded with base-letter (diacritic-folding) sensitivity per the static `locale`; `null` = server-filtered (see below); custom fn supported |
 | `filteredItems` (externally controlled list) | pass a `SignalGetter<Vec<PickItem>>` instead of static items — THE SERVER-DRIVEN PATH: query signal → mount-stream/fetch (feature 04) → items signal. First-class in ours, not an afterthought. |
 | `autoHighlight = false` | highlight first result as you type |
 | `openOnInputClick = true` | config |
@@ -92,11 +104,17 @@ built-in, not a slot.
 ## autocomplete
 
 base-ui ships it as a SEPARATE component with the same anatomy where the
-VALUE IS THE INPUT TEXT itself (no separate selected value; items are
-suggestions). Ours: `autocomplete()` = combobox specialization
-(`value ≡ query`, selecting an item writes the query signal, no chips, no
-hidden value input — the input IS the form field). All filtering/server
-options identical.
+VALUE IS THE INPUT TEXT itself (items are suggestions). Captured API
+(cold-review fix — the mode taxonomy was lost): **`mode: 'list' | 'both'
+| 'inline' | 'none'`** — `list`: filter the list only; `both`: filter AND
+inline-complete the input with the highlighted item's remainder (selected
+range over the completed span); `inline`: inline-complete without
+filtering; `none`: neither (external control). Plus `keepHighlight`
+(preserve highlight across re-filters) and `submitOnItemClick`.
+`aria-autocomplete` mirrors the mode. Ours: `autocomplete()` = combobox
+specialization (`value ≡ query`, no chips, no hidden value input — the
+input IS the form field) + the mode config. All filtering/server options
+identical.
 
 ## Shapes
 
