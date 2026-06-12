@@ -757,3 +757,21 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   sets a signal whose default callback is itself registered) and reinstates it
   after — unless disposal removed it meanwhile.
 
+## Feature 04 (InstructionReceiver completion, 2026-06-12)
+
+- **The loop e2e test caught a real ordering bug**: foundation_signals' dirty
+  buckets were LIFO (Vec::pop) — two same-height effects flushed their DomOps
+  in reverse creation order. DomOp streams are order-dependent, so buckets are
+  now VecDeque FIFO. Lesson: cross-crate integration tests (signals → receiver
+  → protocol) catch contracts no single-crate test expresses.
+- **G22 capacity preservation**: flush uses `mem::replace(&mut ops,
+  Vec::with_capacity(64))` — the protocol takes ownership of the batch Vec, so
+  plain `clear()` can't work and plain `mem::take` zeroes capacity.
+- **Recorder-handle mocks**: a mock consumed by `Box<dyn ProtocolMethods>`
+  can't be inspected afterwards — expose `Rc<RefCell<..>>` recorder clones
+  BEFORE boxing (MockProtocol::sent_batches/acked_ids).
+- **Disk note (2026-06-12)**: the repo disk (/dev/sda "Boxxed") hit 100% —
+  target/debug alone was 260G (Cranelift dev artifacts; all spec work builds
+  --profile uat). Cleared target/debug. `df` on /home is the WRONG filesystem
+  for this repo; check `df -h /home/darkvoid/Boxxed`.
+

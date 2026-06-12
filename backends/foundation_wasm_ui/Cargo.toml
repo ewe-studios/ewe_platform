@@ -13,6 +13,9 @@ description = "DOM/window/animation bindings + WASM protocol implementations bui
 # foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
 foundation_wasm = { workspace = true, features = ["web"] }
 foundation_ui_traits = { workspace = true }
+# The reactive layer this runtime bridges to the DOM (decision 012 diagram:
+# foundation_wasm_ui depends on BOTH signals and wasm).
+foundation_signals = { workspace = true }
 
 [features]
 default = []
@@ -21,3 +24,7 @@ embedded-js = ["foundation_wasm/embedded-js"]
 
 [lints]
 workspace = true
+
+[dev-dependencies]
+# Test 12: assert the JSON protocol's payload parses as real JSON.
+serde_json = { workspace = true }

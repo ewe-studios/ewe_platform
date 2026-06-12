@@ -304,7 +304,7 @@ is the at-a-glance view (kept in sync as features complete).
 | [01-foundation-ui-traits](features/01-foundation-ui-traits/) | Shared types crate: IntoHtml/Html/Part, 19-op DomOp, HtmlTag/AttrName wire ids, ProtocolEncoder + Arrow/JSON encoders, Envelope | 1 | **COMPLETE** (2026-06-11) |
 | [02-signal-system](features/02-signal-system/) | foundation_signals: R3-style reactive graph — height-ordered bucket queue, ThreeState + Check short-circuit, (getter, setter) tuples, Context disposal, callback registry | 1 | **COMPLETE** (2026-06-12) |
 | [03-html-macro](features/03-html-macro/) | html! macro: pure-Rust parse, Part emission, primal-id assignment, setter callback wiring | 2 | pending |
-| [04-instruction-receiver](features/04-instruction-receiver/) | InstructionReceiver: DomOp queue/flush/ack over the protocol layer (decision 030) | 1 | partial — core receiver shipped with F01/F17 plumbing; see features.md for remainder |
+| [04-instruction-receiver](features/04-instruction-receiver/) | InstructionReceiver: DomOp queue/flush/ack over the protocol layer (decision 030) | 1 | **COMPLETE** (2026-06-12) |
 | [05-arrow-encoding](features/05-arrow-encoding/) | Real Arrow IPC RecordBatch encoding behind ProtocolEncoder (no_std columnar layout shipped in F01 as the interim) | 1 | pending |
 | [06-web-components](features/06-web-components/) | Island/mount web components, execution modes (decisions 013/014/021/023/024) | 2 | pending |
 | [07-dom-morphing](features/07-dom-morphing/) | Datastar-style morphing (decision 027) behind MorphNode (minimal application shipped in F01 JS) | 2 | pending |

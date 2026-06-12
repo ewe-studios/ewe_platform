@@ -16,7 +16,7 @@
 //! borrow, runs the closure, re-borrows to commit tracking results.
 
 use std::cell::RefCell;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, VecDeque};
 use std::rc::Rc;
 
 use crate::arena::{Arena, NodeId};
@@ -40,8 +40,10 @@ pub struct Runtime {
 pub(crate) struct Graph {
     pub(crate) nodes: Arena,
     /// Bucket queue: `dirty[height]` holds nodes awaiting processing. Grows on
-    /// demand; cheap level-by-level iteration without sorting.
-    dirty: Vec<Vec<NodeId>>,
+    /// demand; cheap level-by-level iteration without sorting. FIFO within a
+    /// height: effects at the same height run in CREATION/marking order, so
+    /// order-dependent op streams (DOM ops) stay deterministic.
+    dirty: Vec<VecDeque<NodeId>>,
     /// Global change counter. Bumped by every value-changing write and at the
     /// start of every stabilize — any increase means "something changed".
     version: u64,
@@ -255,7 +257,7 @@ impl Runtime {
                     graph.stabilizing = false;
                     break;
                 }
-                graph.dirty[height].pop()
+                graph.dirty[height].pop_front()
             };
             let Some(id) = popped else {
                 height += 1;
@@ -457,9 +459,9 @@ impl Graph {
         if current == ThreeState::Clean {
             let height = node.height() as usize;
             if self.dirty.len() <= height {
-                self.dirty.resize_with(height + 1, Vec::new);
+                self.dirty.resize_with(height + 1, VecDeque::new);
             }
-            self.dirty[height].push(id);
+            self.dirty[height].push_back(id);
         }
     }
 

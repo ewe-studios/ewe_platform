@@ -3424,8 +3424,10 @@ dependencies = [
 name = "foundation_wasm_ui"
 version = "0.1.0"
 dependencies = [
+ "foundation_signals",
  "foundation_ui_traits",
  "foundation_wasm",
+ "serde_json",
 ]
 
 [[package]]

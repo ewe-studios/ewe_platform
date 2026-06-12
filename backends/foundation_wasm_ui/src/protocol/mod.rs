@@ -17,10 +17,12 @@
 mod arrow;
 mod batch_instructions;
 mod json;
+mod mock;
 
 pub use arrow::ArrowV1;
 pub use batch_instructions::{BatchInstructionsV1, DomOpsBatch, BATCH_OP_APPLY_DOM};
 pub use json::JsonV1;
+pub use mock::MockProtocol;
 
 use alloc::vec::Vec;
 
@@ -45,11 +47,15 @@ pub(crate) fn ship(memory_id: MemoryId, ptr: *const u8, len: usize) {
 // ─── Send / handle results ─────────────────────────────────────────────────────
 
 /// Outcome of [`ProtocolMethods::encode_and_send`] — the arena slot that JS must
-/// `dispose_allocation` after applying the batch.
+/// `dispose_allocation` after applying the batch, plus batch diagnostics.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct SendResult {
     /// The arena slot holding the shipped message.
     pub memory_id: MemoryId,
+    /// Number of `DomOp`s encoded into the message.
+    pub op_count: usize,
+    /// Payload byte size EXCLUDING the envelope header.
+    pub encoded_bytes: usize,
 }
 
 /// Outcome of [`ProtocolMethods::handle_received`] — the decoded `DomOp` batch or a
@@ -122,8 +128,9 @@ where
     H: ProtocolHandler,
     E: ProtocolEncoder<Vec<DomOp>>,
 {
+    let op_count = ops.len();
     let payload = encoder.encode(ops);
-    write_framed(handler, &payload, memory)
+    write_framed(handler, &payload, memory, op_count)
 }
 
 /// Frame an already-encoded `payload` in a [`WasmEnvelope`] inside one arena slot
@@ -138,6 +145,7 @@ pub(crate) fn write_framed<H>(
     handler: &H,
     payload: &[u8],
     memory: &mut MemoryAllocations,
+    op_count: usize,
 ) -> (SendResult, *const u8, usize)
 where
     H: ProtocolHandler,
@@ -162,7 +170,15 @@ where
     // The slot length came from a `usize` (`total`), so this never truncates; use a
     // checked conversion so a 32-bit target can't silently lose the high bits.
     let len = usize::try_from(len).expect("arena slot length exceeds usize::MAX");
-    (SendResult { memory_id: mem_id }, ptr, len)
+    (
+        SendResult {
+            memory_id: mem_id,
+            op_count,
+            encoded_bytes: payload.len(),
+        },
+        ptr,
+        len,
+    )
 }
 
 /// Decode a payload slice at `(ptr, len)` with `encoder`.

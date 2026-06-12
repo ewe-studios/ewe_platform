@@ -127,7 +127,9 @@ impl BatchInstructionsV1 {
         payload.extend_from_slice(&ops_bytes);
         payload.extend_from_slice(&text_bytes);
 
-        write_framed(self, &payload, memory)
+        // Generic messages don't expose an op count; `encode_and_write` (the
+        // Vec<DomOp> leg) overwrites it with the real batch size.
+        write_framed(self, &payload, memory, 0)
     }
 
     /// One-call build + ship for OWNED arenas. Do NOT call while holding the
@@ -169,7 +171,10 @@ impl ProtocolMethods<Vec<DomOp>> for BatchInstructionsV1 {
         ops: Vec<DomOp>,
         memory: &mut MemoryAllocations,
     ) -> (SendResult, *const u8, usize) {
-        self.write_message(&DomOpsBatch(&ops), memory)
+        let op_count = ops.len();
+        let (mut result, ptr, len) = self.write_message(&DomOpsBatch(&ops), memory);
+        result.op_count = op_count;
+        (result, ptr, len)
     }
 
     fn handle_received(&self, _memory_id: MemoryId, ptr: *const u8, len: usize) -> HandleResult {

@@ -43,7 +43,13 @@ pub struct InstructionReceiver {
     ops: Vec<DomOp>,
     protocol: Box<dyn ProtocolMethods<Vec<DomOp>>>,
     memory: Arena,
+    /// Successful (non-empty) flushes since construction — diagnostics only.
+    flush_count: u64,
 }
+
+/// Typical batch is 10-200 ops; start the queue at 64 so the common case never
+/// reallocates (spec section 3).
+const INITIAL_OPS_CAPACITY: usize = 64;
 
 impl InstructionReceiver {
     /// Build a receiver with its OWN arena (native tests / custom hosts). For the
@@ -51,9 +57,10 @@ impl InstructionReceiver {
     #[must_use]
     pub fn new(protocol: Box<dyn ProtocolMethods<Vec<DomOp>>>, memory: MemoryAllocations) -> Self {
         Self {
-            ops: Vec::new(),
+            ops: Vec::with_capacity(INITIAL_OPS_CAPACITY),
             protocol,
             memory: Arena::Owned(memory),
+            flush_count: 0,
         }
     }
 
@@ -63,9 +70,10 @@ impl InstructionReceiver {
     #[must_use]
     pub fn with_global_arena(protocol: Box<dyn ProtocolMethods<Vec<DomOp>>>) -> Self {
         Self {
-            ops: Vec::new(),
+            ops: Vec::with_capacity(INITIAL_OPS_CAPACITY),
             protocol,
             memory: Arena::Global,
+            flush_count: 0,
         }
     }
 
@@ -81,6 +89,19 @@ impl InstructionReceiver {
         self.ops.len()
     }
 
+    /// Spec-named alias of [`pending`](Self::pending).
+    #[must_use]
+    pub fn pending_count(&self) -> usize {
+        self.ops.len()
+    }
+
+    /// Successful (non-empty) flushes since construction. Empty flushes do not
+    /// increment.
+    #[must_use]
+    pub fn flush_count(&self) -> u64 {
+        self.flush_count
+    }
+
     /// Encode and ship all queued ops in one batch.
     ///
     /// Returns `None` (and does nothing) when there is nothing queued, so a no-op
@@ -90,7 +111,11 @@ impl InstructionReceiver {
         if self.ops.is_empty() {
             return None;
         }
-        let ops = core::mem::take(&mut self.ops);
+        // G22: keep the queue's capacity across flush cycles — a bare
+        // `mem::take` would hand the protocol our allocation and leave a
+        // zero-capacity Vec, forcing a reallocation on the next queue().
+        let ops = core::mem::replace(&mut self.ops, Vec::with_capacity(INITIAL_OPS_CAPACITY));
+        self.flush_count += 1;
         let protocol = &mut self.protocol;
         Some(match &mut self.memory {
             Arena::Owned(memory) => protocol.encode_and_send(ops, memory),

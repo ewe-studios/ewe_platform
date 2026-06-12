@@ -19,13 +19,15 @@ extern crate alloc;
 
 pub mod instruction;
 pub mod protocol;
+pub mod runtime;
 pub mod wasm;
 
 #[cfg(feature = "embedded-js")]
 pub mod embedded;
 
 pub use instruction::InstructionReceiver;
+pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use protocol::{
-    ArrowV1, BatchInstructionsV1, DomOpsBatch, HandleResult, JsonV1, ProtocolMethods,
-    SendResult, BATCH_OP_APPLY_DOM,
+    ArrowV1, BatchInstructionsV1, DomOpsBatch, HandleResult, JsonV1, MockProtocol,
+    ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
 };
