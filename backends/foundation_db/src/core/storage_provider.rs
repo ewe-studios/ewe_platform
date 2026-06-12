@@ -503,3 +503,107 @@ pub trait AsyncRateLimiterStore {
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()>;
 }
+
+// ===========================================================================
+// DocumentStore — append-only document storage with scan semantics
+// ===========================================================================
+
+/// A single document in a document store.
+#[derive(Debug, Clone)]
+pub struct Document {
+    /// Unique document ID within the collection.
+    pub id: String,
+    /// The document content as a JSON string.
+    pub content: String,
+    /// Optional metadata (created_at, updated_at, etc.).
+    pub metadata: serde_json::Value,
+}
+
+/// Document append operations — available on all backends.
+///
+/// Documents are stored as JSON strings in an append-only collection.
+/// Each document gets a unique ID (scru128 or similar).
+/// Collections are identified by a key (e.g., `session:{id}:messages`).
+pub trait DocumentStore: Send + Sync {
+    /// Append a document to a collection. Yields one `Next(Document)`.
+    ///
+    /// The backend assigns a unique ID to the document.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if serialization or the backend operation fails.
+    fn append<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<StorageItemStream<'_, Document>>;
+
+    /// Scan the last N documents from a collection.
+    /// Yields up to N `Next(Document)` items, newest-first.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend operation fails.
+    fn scan<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        limit: usize,
+    ) -> StorageResult<StorageItemStream<'_, V>>;
+
+    /// Scan all documents from a collection, oldest-first.
+    /// Yields all `Next(Document)` items.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend operation fails.
+    fn scan_all<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<StorageItemStream<'_, V>>;
+
+    /// Delete a specific document from a collection by its ID.
+    /// Yields one `Next(())`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the document doesn't exist or the operation fails.
+    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+
+    /// Delete all documents in a collection.
+    /// Yields one `Next(u64)` with the count of deleted documents.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend operation fails.
+    fn delete_all(&self, key: &str) -> StorageResult<StorageItemStream<'_, u64>>;
+
+    /// Count documents in a collection. Yields one `Next(u64)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the backend operation fails.
+    fn count(&self, key: &str) -> StorageResult<StorageItemStream<'_, u64>>;
+}
+
+/// Async document store operations — for wasm backends where the underlying
+/// JS APIs are Promise-based and cannot be called synchronously.
+#[async_trait::async_trait(?Send)]
+pub trait AsyncDocumentStore {
+    /// Append a document to a collection.
+    async fn append_async<V: Serialize + Send + 'static>(&self, key: &str, content: V) -> StorageResult<Document>;
+
+    /// Scan the last N documents from a collection.
+    async fn scan_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, limit: usize) -> StorageResult<Vec<V>>;
+
+    /// Scan all documents from a collection, oldest-first.
+    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Vec<V>>;
+
+    /// Delete a specific document.
+    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()>;
+
+    /// Delete all documents in a collection.
+    async fn delete_all_async(&self, key: &str) -> StorageResult<u64>;
+
+    /// Count documents in a collection.
+    async fn count_async(&self, key: &str) -> StorageResult<u64>;
+}

@@ -14,6 +14,7 @@ keywords = ["database", "storage", "turso", "foundation"]
 # Multi-threaded support is optional - enable with `multi` feature
 foundation_core = { workspace = true, features = ["std"] }
 foundation_netio = { workspace = true }
+foundation_rng = { path = "../foundation_rng", features = ["native"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }

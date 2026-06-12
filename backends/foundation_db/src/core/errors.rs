@@ -27,6 +27,10 @@ pub enum StorageError {
     #[from(ignore)]
     Serialization(String),
 
+    /// Deserialization error.
+    #[from(ignore)]
+    Deserialization(String),
+
     /// Encryption error.
     #[from(ignore)]
     Encryption(String),
@@ -71,6 +75,7 @@ impl core::fmt::Display for StorageError {
             Self::Connection(s) => write!(f, "Connection failed: {s}"),
             Self::NotFound(s) => write!(f, "Key not found: {s}"),
             Self::Serialization(s) => write!(f, "Serialization error: {s}"),
+            Self::Deserialization(s) => write!(f, "Deserialization error: {s}"),
             Self::Encryption(s) => write!(f, "Encryption error: {s}"),
             Self::Migration(s) => write!(f, "Migration error: {s}"),
             Self::Generic(s) => write!(f, "Storage error: {s}"),
