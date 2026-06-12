@@ -510,98 +510,308 @@ export function parseCallbackId(ref) {
 }
 
 /**
- * WHY: DOM events have to cross back into WASM. The event runtime wires
- * `primal:on{event}` attributes to direct listeners (decision 018 — direct binding
- * is the default, works for non-bubbling events too) that serialise EventData and
- * invoke the WASM callback.
+ * WHY: DOM events have to reach BOTH worlds: WASM (signal setters via
+ * `primal:setter`, registry callbacks via `callback-N`) and plain JS handlers
+ * (dot-path refs like `"controller.delete"`). Decision 018: direct binding is
+ * the default (works for non-bubbling events); delegation is opt-in per
+ * attribute.
  *
- * WHAT: scan/wire/unwire + programmatic helpers, with idempotent rewiring (G2).
+ * WHAT: The feature-08 event runtime — scan/wire/unwire with idempotent
+ * rewiring (G2), dot-path resolution, opt-in delegation
+ * (`primal:onclick:delegate="#container"`), MutationObserver auto-wiring with
+ * the island boundary rule, microtask-batched removal cleanup, and the
+ * programmatic `on`/`off`/`on<event>` API.
  *
- * HOW: `deliver(callbackId, eventData)` is injected so the EventData *wire format*
- * (F08) stays swappable — see {@link callbackDeliver} for the default that ships it
- * through a `CallbackRegistry`.
+ * HOW: `deliver(callbackId, eventData)` ships registry-callback events;
+ * `deliverSignal(setterId, eventData)` ships signal-setter events (two id
+ * NAMESPACES — see {@link callbackDeliver} / {@link signalDeliver}).
+ * Handler resolution order per element/event:
+ *   1. `handlerRef` is `"N"`/`"callback-N"`  → registry callback bridge
+ *   2. element carries `primal:setter="N"`   → signal bridge (two-way binding)
+ *   3. `handlerRef` is a dot-path             → JS function from `scope`
+ *   4. otherwise                              → console.warn, no listener
  */
 export class EventDispatcher {
-  /** @param {(callbackId:number, eventData:object) => void} deliver */
-  constructor(deliver) {
+  /**
+   * @param {(callbackId:number, eventData:object) => void} deliver
+   * @param {{ deliverSignal?:(setterId:number, eventData:object)=>void,
+   *           scope?:object }} [options]
+   */
+  constructor(deliver, options = {}) {
     this.deliver = deliver;
-    // element -> Map<eventType, listenerFn>, so rewiring/cleanup is exact.
+    this.deliverSignal = options.deliverSignal ?? deliver;
+    this.scope = options.scope ?? globalThis;
+    // element -> Map<key, listenerFn>; keys are "click" (direct) or
+    // "click:delegate:<primal-id>" (delegated, stored on the TARGET element).
     this.listeners = new WeakMap();
+    // trackRemoved microtask batching (feature 08 §9).
+    this.cleanupQueue = [];
+    this.cleanupScheduled = false;
+    this.observer = null;
   }
 
   /** Wire every `primal:on*` attribute on `root` and its descendants. */
   scanAndWire(root) {
-    this.#visit(root, (el) => {
+    visit(root, (el) => {
       for (const name of el.getAttributeNames()) {
-        if (name.startsWith(PRIMAL_ON)) {
-          this.wire(el, name.slice(PRIMAL_ON.length), el.getAttribute(name));
+        if (!name.startsWith(PRIMAL_ON)) continue;
+        const rest = name.slice(PRIMAL_ON.length); // "click" | "click:delegate"
+        const [eventType, mode] = rest.split(":");
+        if (!eventType) continue;
+        if (mode === "delegate") {
+          this.wireDelegated(el, eventType, el.getAttribute(name));
+        } else if (mode === undefined) {
+          this.wire(el, eventType, el.getAttribute(name));
         }
       }
     });
   }
 
-  #visit(node, fn) {
-    if (typeof node.getAttributeNames === "function") fn(node);
-    for (const child of node.children || []) this.#visit(child, fn);
+  /**
+   * Wire one direct `eventType` on `el` to `handlerRef` (resolution order in
+   * the class docs). Idempotent (G2): the prior listener for that event is
+   * removed first, so re-scans never stack duplicates.
+   */
+  wire(el, eventType, handlerRef) {
+    const listener = this.#buildListener(el, eventType, handlerRef);
+    if (!listener) {
+      console.warn(`EventDispatcher: unresolvable handler "${handlerRef}" for ${eventType}`);
+      return;
+    }
+    this.off(el, eventType);
+    el.addEventListener(eventType, listener);
+    this.#listenerMap(el).set(eventType, listener);
+  }
+
+  #buildListener(el, eventType, handlerRef) {
+    const callbackId = parseCallbackId(handlerRef);
+    if (callbackId !== null) {
+      return (event) => this.deliver(callbackId, buildEventData(eventType, event, el));
+    }
+    const setterId = parseCallbackId(el.getAttribute?.("primal:setter"));
+    if (setterId !== null) {
+      return (event) => this.deliverSignal(setterId, buildEventData(eventType, event, el));
+    }
+    const fn = resolveFunctionRef(this.scope, handlerRef);
+    if (fn) return fn.bind(el); // clean `this` = the attributed element
+    return null;
   }
 
   /**
-   * Wire one `eventType` on `el` to `handlerRef`. Idempotent (G2): removes any prior
-   * listener for that event first, so re-scans (or MutationObserver re-fires) don't
-   * stack duplicates.
+   * Opt-in delegation (feature 08 §6): attach a listener on the element named
+   * by `selector` that stamps `event.delegateTarget = el` whenever the event
+   * originated inside `el`. Keys include `el`'s primal-id so many elements can
+   * delegate the same event type to one container without colliding.
    */
-  wire(el, eventType, handlerRef) {
-    this.off(el, eventType);
+  wireDelegated(el, eventType, selector) {
+    const target = resolveDelegateTarget(el, selector, this.documentOf(el));
+    if (!target) {
+      console.warn(`EventDispatcher: delegate target "${selector}" not found`);
+      return;
+    }
     const listener = (event) => {
-      const callbackId = parseCallbackId(handlerRef);
-      if (callbackId !== null) {
-        this.deliver(callbackId, buildEventData(eventType, event, el));
+      if (el === event.target || (el.contains && el.contains(event.target))) {
+        event.delegateTarget = el;
       }
     };
-    el.addEventListener(eventType, listener);
+    const key = `${eventType}:delegate:${el.getAttribute?.("primal-id") || el.id || ""}`;
+    const map = this.#listenerMap(target);
+    const prior = map.get(key);
+    if (prior) target.removeEventListener(eventType, prior);
+    map.set(key, listener);
+    target.addEventListener(eventType, listener);
+  }
+
+  /** The document an element belongs to (overridable for tests/mocks). */
+  documentOf(el) {
+    return el.ownerDocument ?? (typeof document === "undefined" ? null : document);
+  }
+
+  #listenerMap(el) {
     let map = this.listeners.get(el);
     if (!map) {
       map = new Map();
       this.listeners.set(el, map);
     }
-    map.set(eventType, listener);
+    return map;
   }
 
-  /** Remove the listener for `eventType` on `el` (if any). */
+  /**
+   * Remove listeners on `el`: a specific event type (matching its direct key
+   * AND any delegated compound keys), or — with no `eventType` — everything.
+   */
   off(el, eventType) {
     const map = this.listeners.get(el);
-    const listener = map?.get(eventType);
-    if (listener) {
-      el.removeEventListener(eventType, listener);
-      map.delete(eventType);
+    if (!map) return;
+    if (eventType !== undefined) {
+      for (const [key, listener] of map) {
+        if (key === eventType || key.startsWith(`${eventType}:`)) {
+          el.removeEventListener(eventType, listener);
+          map.delete(key);
+        }
+      }
+      return;
+    }
+    for (const [key, listener] of map) {
+      el.removeEventListener(key.split(":")[0], listener);
+    }
+    map.clear();
+    this.listeners.delete(el);
+  }
+
+  /** Remove all listeners on `el` and its descendants (node-removal cleanup). */
+  removeListeners(root) {
+    visit(root, (el) => this.off(el));
+  }
+
+  /**
+   * Queue a removed node for cleanup; one microtask drains the whole batch
+   * (feature 08 §9 — removing 50 nodes costs one pass, before paint).
+   */
+  trackRemoved(node) {
+    this.cleanupQueue.push(node);
+    if (this.cleanupScheduled) return;
+    this.cleanupScheduled = true;
+    queueMicrotask(() => {
+      const batch = this.cleanupQueue.splice(0);
+      this.cleanupScheduled = false;
+      for (const item of batch) this.removeListeners(item);
+    });
+  }
+
+  /**
+   * Process MutationObserver-style records (feature 08 §7): wire added
+   * subtrees, clean removed ones — SKIPPING anything inside an `<island>`
+   * (the island custom element owns its own lifecycle, F06).
+   */
+  handleMutations(mutations) {
+    for (const mutation of mutations) {
+      if (mutation.type !== "childList") continue;
+      for (const node of mutation.addedNodes) {
+        if (!isElement(node) || insideIsland(node)) continue;
+        this.scanAndWire(node);
+      }
+      for (const node of mutation.removedNodes) {
+        if (!isElement(node) || insideIsland(node)) continue;
+        this.removeListeners(node);
+      }
     }
   }
 
-  /** Remove all listeners on `el` and its descendants (cleanup on node removal). */
-  removeListeners(root) {
-    this.#visit(root, (el) => {
-      const map = this.listeners.get(el);
-      if (map) {
-        for (const [eventType, listener] of map) el.removeEventListener(eventType, listener);
-        this.listeners.delete(el);
-      }
-    });
+  /** Start the document-level observer (browser only; no-op without one). */
+  observe(doc) {
+    if (typeof MutationObserver === "undefined" || this.observer) return;
+    this.observer = new MutationObserver((mutations) => this.handleMutations(mutations));
+    this.observer.observe(doc, { subtree: true, childList: true });
+  }
+
+  /**
+   * Programmatic wiring (feature 08 §11): `on(el, "click", "ctrl.fn")` or
+   * `on(el, "click", null, { delegate: "#box" })`.
+   */
+  on(el, eventType, handlerRef, options = {}) {
+    if (options.delegate) this.wireDelegated(el, eventType, options.delegate);
+    else this.wire(el, eventType, handlerRef);
   }
 }
 
+/** Events that get `dispatcher.on<event>(el, ref, opts)` convenience methods. */
+export const CONVENIENCE_EVENTS = [
+  "click", "change", "submit", "keydown", "keyup",
+  "focus", "blur", "scroll", "input", "mousedown", "mouseup",
+];
+for (const evt of CONVENIENCE_EVENTS) {
+  EventDispatcher.prototype[`on${evt}`] = function (el, handlerRef, options) {
+    this.on(el, evt, handlerRef, options);
+  };
+}
+
+/** Depth-first walk over attribute-bearing nodes (root first). */
+function visit(node, fn) {
+  if (typeof node.getAttributeNames === "function") fn(node);
+  for (const child of node.children || []) visit(child, fn);
+}
+
+function isElement(node) {
+  return !!node && typeof node.getAttributeNames === "function";
+}
+
+/** The island boundary rule: nearest `<island>` ancestor-or-self opts out. */
+function insideIsland(node) {
+  if (typeof node.closest === "function") return node.closest("island") !== null;
+  // Mock fallback: walk parents by tag.
+  for (let cur = node; cur; cur = cur.parent ?? cur.parentElement ?? null) {
+    if ((cur.tag ?? cur.tagName ?? "").toLowerCase() === "island") return true;
+  }
+  return false;
+}
+
 /**
- * Default `deliver` for {@link EventDispatcher}: serialise EventData and ship it to
- * the WASM callback via a `CallbackRegistry` (from foundation-wasm.js).
- *
- * `encode(eventData) -> Uint8Array` is injectable; the default is UTF-8 JSON. The
- * authoritative EventData wire format is defined by feature 08 (event-runtime) — this
- * keeps the seam swappable without changing the dispatcher.
+ * Dot-path resolution against `scope` (feature 08 §4): `"controller.delete"`
+ * walks `scope.controller.delete`; missing segments or non-functions → null.
+ */
+export function resolveFunctionRef(scope, handlerRef) {
+  if (typeof handlerRef !== "string" || handlerRef.length === 0) return null;
+  let current = scope;
+  for (const part of handlerRef.split(".")) {
+    if (current == null) return null;
+    current = current[part];
+  }
+  return typeof current === "function" ? current : null;
+}
+
+/** Delegate target resolution (feature 08 §5). */
+export function resolveDelegateTarget(el, selector, doc) {
+  if (!selector) return null;
+  if (selector === "parent") return el.parentElement ?? el.parent ?? null;
+  if (selector === "body") return doc?.body ?? null;
+  return doc?.querySelector ? doc.querySelector(selector) : null;
+}
+
+/**
+ * Run the initial scan + observer once the document is ready (feature 08 §10).
+ * Both paths are idempotent — rewiring replaces listeners (G2).
+ */
+export function initEventRuntime(dispatcher, doc = typeof document === "undefined" ? null : document) {
+  if (!doc) return;
+  const boot = () => {
+    dispatcher.scanAndWire(doc.body);
+    dispatcher.observe(doc);
+  };
+  doc.addEventListener?.("DOMContentLoaded", boot);
+  if (doc.readyState !== "loading") boot();
+}
+
+/**
+ * Default `deliver` for REGISTRY callbacks (`callback-N` refs): serialise
+ * EventData and ship via a `CallbackRegistry` (foundation-wasm.js), which
+ * writes an arena slot and calls the `invoke_callback` export.
  *
  * @param {{invoke:(id:number, bytes:Uint8Array)=>void}} callbackRegistry
  * @param {(eventData:object)=>Uint8Array} [encode]
  */
 export function callbackDeliver(callbackRegistry, encode = jsonEncodeEventData) {
   return (callbackId, eventData) => callbackRegistry.invoke(callbackId, encode(eventData));
+}
+
+/**
+ * `deliverSignal` for SIGNAL setters (`primal:setter` ids — the
+ * foundation_signals registry, a separate namespace): write the JSON
+ * EventData into a fresh global-arena slot and call the dedicated
+ * `invoke_signal_callback(setterId, memoryId)` export. Rust reads, dispatches
+ * to the setter, runs `stabilize()`, and frees the slot — no JS-side dispose.
+ *
+ * @param {{exports:object, memory:()=>WebAssembly.Memory}} bridge
+ * @param {(eventData:object)=>Uint8Array} [encode]
+ */
+export function signalDeliver(bridge, encode = jsonEncodeEventData) {
+  return (setterId, eventData) => {
+    const bytes = encode(eventData);
+    const memId = bridge.exports.create_allocation(BigInt(bytes.length));
+    const ptr = Number(bridge.exports.allocation_start_pointer(memId));
+    new Uint8Array(bridge.memory().buffer, ptr, bytes.length).set(bytes);
+    bridge.exports.invoke_signal_callback(BigInt(setterId), memId);
+  };
 }
 
 function jsonEncodeEventData(eventData) {
@@ -784,7 +994,12 @@ globalThis.FoundationWasmUiRuntime = Object.freeze({
   buildEventData,
   parseCallbackId,
   EventDispatcher,
+  CONVENIENCE_EVENTS,
   callbackDeliver,
+  signalDeliver,
+  resolveFunctionRef,
+  resolveDelegateTarget,
+  initEventRuntime,
   DomHeap,
   domAbi,
   BATCH_OP_APPLY_DOM,

@@ -3427,10 +3427,12 @@ name = "foundation_wasm_ui"
 version = "0.1.0"
 dependencies = [
  "foundation_macros",
+ "foundation_nostd",
  "foundation_signals",
  "foundation_ui_traits",
  "foundation_wasm",
  "serde_json",
+ "tracing",
 ]
 
 [[package]]

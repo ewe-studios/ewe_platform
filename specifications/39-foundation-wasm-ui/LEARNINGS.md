@@ -839,3 +839,18 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
 - Byte-offset-hardcoding in tests bites on every layout change — locate
   patch targets dynamically (search for the data, read the shim).
 
+## Feature 08 (event runtime, 2026-06-12)
+
+- **One export per id namespace**: signal callback ids (G17) and the function
+  registry mint independent counters — routing both through one
+  invoke_callback export invites collisions. invoke_signal_callback is the
+  signals door; the F00 export keeps the function-call ABI.
+- **stabilize() inside the export**: the spec's "no async gap" invariant means
+  the setter's effects must flush before invoke_signal_callback returns —
+  events behave like local set+stabilize, one synchronous chain end-to-end.
+- **Slot cleanup is unconditional**: the event slot is read AND freed before
+  any dispatch decision, so stale ids/bad payloads can never leak arena slots.
+- The spec's §6 delegation pseudocode never invokes a handler — its tests
+  only assert placement + delegateTarget stamping; implement to the tests and
+  say so, rather than inventing semantics the spec didn't pin.
+

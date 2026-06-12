@@ -19,6 +19,8 @@ foundation_signals = { workspace = true }
 # Re-exports the html! proc macro (feature 03); macros live in
 # foundation_macros per project rule.
 foundation_macros = { workspace = true }
+foundation_nostd = { workspace = true }
+tracing = { version = "0.1", default-features = false }
 
 [features]
 default = []

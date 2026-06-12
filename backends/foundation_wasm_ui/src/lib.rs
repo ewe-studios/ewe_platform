@@ -17,6 +17,7 @@
 
 extern crate alloc;
 
+pub mod events;
 pub mod html_macro;
 pub mod instruction;
 pub mod protocol;
@@ -26,6 +27,7 @@ pub mod wasm;
 #[cfg(feature = "embedded-js")]
 pub mod embedded;
 
+pub use events::{install_event_bridge, invoke_signal_callback, uninstall_event_bridge};
 pub use html_macro::MaybeCallback;
 pub use instruction::{ColumnarReceiver, InstructionReceiver};
 // The html! proc macro itself — re-exported so users write

@@ -70,6 +70,27 @@ export class MockNode {
     return this.parent;
   }
 
+  /** DOM-alias for the event runtime's delegate resolution. */
+  get parentElement() {
+    return this.parent;
+  }
+
+  /** Subtree containment (delegation guards). */
+  contains(node) {
+    for (let cur = node; cur; cur = cur.parent) {
+      if (cur === this) return true;
+    }
+    return false;
+  }
+
+  /** Nearest ancestor-or-self matching a bare tag name (island boundary). */
+  closest(tag) {
+    for (let cur = this; cur; cur = cur.parent) {
+      if (cur.tag === tag) return cur;
+    }
+    return null;
+  }
+
   /**
    * Records adjacent-HTML insertions for assertions (real parsing/morphing is
    * feature 07); `position` is one of beforebegin/afterbegin/beforeend/afterend.
