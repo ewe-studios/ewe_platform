@@ -56,6 +56,16 @@ export class MockNode {
     return child;
   }
 
+  replaceChild(newChild, oldChild) {
+    const i = this.children.indexOf(oldChild);
+    if (i >= 0) {
+      this.children[i] = newChild;
+      newChild.parent = this;
+      oldChild.parent = null;
+    }
+    return oldChild;
+  }
+
   removeChild(child) {
     const i = this.children.indexOf(child);
     if (i >= 0) {
