@@ -4,7 +4,7 @@
 
 - **`App`** (foundation_wasm_ui::app): `new()` = THE ARROW-FAMILY DEFAULT
   (wire v1 columnar), `columnar()` alias, `json()`/`mock()` opt-in
-  debug/test presets, `arrow_ipc()` (wire v2) behind the `arrow` cargo
+  debug/test presets, `arrow()` (wire v2) behind the `arrow` cargo
   feature, `with_protocol` escape hatch; `context() -> (Context,
   SharedInstructionReceiver)`, `ctx()/receiver()/signals()/runtime()/
   stabilize()/scope()`; `Default`; drop disposes the root scope.

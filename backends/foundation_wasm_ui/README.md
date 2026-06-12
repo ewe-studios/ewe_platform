@@ -85,7 +85,7 @@ app.stabilize();
 Presets: `App::new()`/`columnar()` (compact columnar wire v1 — the
 default), `App::json()` (debugging), `App::mock()` (tests — returns the
 captured-ops handle), `App::server()`/`server_with(encoder)` (see §server
-below), `App::arrow_ipc()` (wire v2, real Apache Arrow IPC — same protocol
+below), `App::arrow()` (wire v2, real Apache Arrow IPC — same protocol
 byte, version-demuxed; `arrow` feature, ON by default), and
 `App::with_protocol(...)` as the escape hatch. `app.scope()` gives a child
 `Context` for component-scoped teardown; dropping the `App` disposes the
@@ -328,6 +328,25 @@ within it.
 | `BatchInstructionsV1`  |      | the V2 batch-operation codec (multiple op groups per message, `BATCH_OP_APPLY_DOM` for DOM payloads). |
 | `JsonV1`               |      | human-readable DomOps; perfect for debugging the loop.                      |
 | `MockProtocol`         |      | test double — records every flushed batch for assertions.                  |
+
+### Wire performance (measured)
+
+`wire_bench` (release; rerun with `cargo test --release -p
+foundation_wasm_ui --test wire_bench -- --ignored --nocapture`):
+
+| batch              | compact columnar (v1)            | Apache Arrow IPC (v2)           | size v2/v1 |
+|--------------------|-----------------------------------|----------------------------------|------------|
+| 10 DomOps          | 674 ns enc · 458 ns dec · 344 B  | 5.3 µs · 3.0 µs · 2378 B        | 6.9×       |
+| 100 DomOps         | 3.8 µs · 5.7 µs · 3.0 KB         | 10 µs · 7.0 µs · 5.1 KB         | 1.69×      |
+| 1,000 DomOps       | 28 µs enc · 58 µs dec · 30 KB    | 45 µs enc · **47 µs dec** · 33 KB| 1.08×      |
+| 10,000 DomOps      | 259 µs · 580 µs · 311 KB         | 430 µs · **439 µs** · 320 KB    | 1.03×      |
+
+Read it as: the compact columnar **dominates the loop's real traffic**
+(small UI deltas) by ~7× on latency and bytes — Arrow IPC pays a ~2 KB
+schema/flatbuffers framing floor per message. At bulk sizes they converge
+and Arrow wins decode. Hence the defaults: `App::new()` = compact columnar
+for the loop; `App::arrow()` / `server_with(ArrowIpcEncoder)` when you want
+bulk batches or standard Arrow tooling on the other end.
 
 **The alignment contract** (worth knowing if you implement a producer):
 every encoder pads so the columnar header lands 8-byte aligned — the pure

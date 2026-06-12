@@ -135,6 +135,6 @@ fn server_with_arrow_ipc_emits_version_2() {
 
 #[cfg(feature = "arrow")]
 #[test]
-fn arrow_ipc_preset_constructs() {
-    let _app = App::arrow_ipc();
+fn arrow_preset_constructs() {
+    let _app = App::arrow();
 }

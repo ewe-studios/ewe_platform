@@ -48,7 +48,7 @@ impl App {
     /// `ProtocolEncoder<Vec<DomOp>>`). Behind an `arrow` cargo feature
     /// (optional foundation_arrow dep); JS side reads it with the embedded
     /// apache-arrow.js (`APACHE_ARROW_JS`).
-    pub fn arrow_ipc() -> App;
+    pub fn arrow() -> App;
     /// Human-readable JSON DomOps (debugging).
     pub fn json() -> App;
     /// MockProtocol — tests; pairs with `sent_batches()` access.
@@ -90,7 +90,7 @@ Notes (settled):
   confusing (it triggered exactly the feature-flag confusion it was bound
   to). Taxonomy: protocol byte 1 = the COLUMNAR family; VERSION demuxes
   our compact columnar (v1) from Apache Arrow IPC (v2). `App::new()` =
-  compact columnar; `arrow_ipc()` = Apache Arrow IPC. Nothing defaults to
+  compact columnar; `arrow()` = Apache Arrow IPC. Nothing defaults to
   json/mock — those are opt-in debugging/testing presets.
 - **The `arrow` feature is ON by default** (review decision: arrow-native
   support is a project goal; arrow-rs rides default-features=false and

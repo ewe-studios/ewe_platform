@@ -55,12 +55,14 @@ impl App {
         Self::new()
     }
 
-    /// Apache Arrow IPC (protocol byte 1, wire VERSION 2): real
-    /// `RecordBatch`es, read on the JS side with the embedded
-    /// `apache-arrow.js`.
+    /// Apache Arrow (IPC `RecordBatch`es — protocol byte 1, wire VERSION
+    /// 2), read on the JS side with the embedded `apache-arrow.js`. The
+    /// compact columnar default is ~7x faster/smaller on small UI deltas
+    /// (see README §wire performance); pick arrow for bulk batches and
+    /// ecosystem interop.
     #[cfg(feature = "arrow")]
     #[must_use]
-    pub fn arrow_ipc() -> Self {
+    pub fn arrow() -> Self {
         Self::with_protocol(crate::protocol::ArrowIpcV2::new())
     }
 
