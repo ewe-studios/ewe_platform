@@ -5,13 +5,13 @@
 // foundation_wasm / foundation_wasm_ui crate split.
 //
 // WHAT: the first DOM increment —
-//   - ArrowParser        : decodes the Arrow columnar payload (the exact layout
-//                          `foundation_ui_traits::ArrowEncoder` produces)
+//   - ColumnarParser        : decodes the Arrow columnar payload (the exact layout
+//                          `foundation_ui_traits::ColumnarEncoder` produces)
 //   - NodeRegistry       : primal-id (u32) → DOM node
-//   - ArrowDomApplicator : applies a parsed batch to a DOM `document`
-//   - arrowHandler()     : a ProtocolDispatcher handler that ties parse → apply
+//   - DomOpApplicator : applies a parsed batch to a DOM `document`
+//   - columnarHandler()     : a ProtocolDispatcher handler that ties parse → apply
 //
-// HOW: register `arrowHandler(...)` on a FoundationWasm dispatcher for protocol byte
+// HOW: register `columnarHandler(...)` on a FoundationWasm dispatcher for protocol byte
 // 1; when WASM ships an Arrow batch via host_apply, it's parsed and applied here.
 //
 // The op codes match decision 010 (shared with the Rust encoders).
@@ -91,11 +91,13 @@ export function resolveWireName(wire, table) {
 }
 
 
-// ─── ArrowParser ─────────────────────────────────────────────────────────────
+// ─── ColumnarParser (compact columnar payload — protocol 1, wire v1) ─────────────
 
 /**
- * Decode the Arrow-inspired columnar payload into per-column arrays. Layout
- * (little-endian), mirroring `foundation_ui_traits::ArrowEncoder::encode`:
+ * Decode the COMPACT COLUMNAR payload (protocol byte 1, wire VERSION 1 — the
+ * owned, Arrow-INSPIRED layout; wire version 2 is real Arrow IPC, server-side)
+ * into per-column arrays. Layout (little-endian), mirroring
+ * `foundation_ui_traits::ColumnarEncoder::encode`:
  *
  *   [row_count:u32]
  *   [op_id:    u32 × N]
@@ -107,7 +109,7 @@ export function resolveWireName(wire, table) {
  *
  * A string-column is `[(N+1) offsets:u32][data_len:u32][utf8 bytes]`.
  */
-export class ArrowParser {
+export class ColumnarParser {
   /**
    * @param {Uint8Array} payload
    * @returns {{ count:number, nodeIds:Uint32Array, operations:Uint8Array,
@@ -244,14 +246,14 @@ export class NodeRegistry {
   }
 }
 
-// ─── ArrowDomApplicator ──────────────────────────────────────────────────────
+// ─── DomOpApplicator ──────────────────────────────────────────────────────
 
 /**
  * Applies a parsed Arrow batch to a DOM. `document` must provide `createElement`,
  * `createTextNode`; nodes must provide the usual mutation API. Designed so a minimal
  * stub (tests) or a real `document` both work.
  */
-export class ArrowDomApplicator {
+export class DomOpApplicator {
   /**
    * @param {NodeRegistry} registry @param {Document} document
    * @param {(eventName:string, nodeId:number, event:Event, el:Element)=>void} [onEvent]
@@ -264,7 +266,7 @@ export class ArrowDomApplicator {
     this.listeners = new Map(); // `${nodeId}:${event}` -> bound handler
   }
 
-  /** Apply a full batch (output of {@link ArrowParser.parse}). */
+  /** Apply a full batch (output of {@link ColumnarParser.parse}). */
   apply(batch) {
     const { count, nodeIds, operations, attribute, value, textVal } = batch;
     for (let i = 0; i < count; i++) {
@@ -377,7 +379,7 @@ export class ArrowDomApplicator {
         reg.unregister(nodeId); // registry only — DOM untouched
         break;
       default:
-        throw new Error(`ArrowDomApplicator: unknown operation ${op}`);
+        throw new Error(`DomOpApplicator: unknown operation ${op}`);
     }
   }
 
@@ -391,7 +393,7 @@ export class ArrowDomApplicator {
     const first = packed.indexOf(":");
     const second = packed.indexOf(":", first + 1);
     if (first < 0 || second < 0) {
-      throw new Error(`ArrowDomApplicator: malformed morph packing \`${packed}\``);
+      throw new Error(`DomOpApplicator: malformed morph packing \`${packed}\``);
     }
     const action = Number(packed.slice(0, first));
     const kind = packed.slice(first + 1, second);
@@ -402,8 +404,8 @@ export class ArrowDomApplicator {
     else if (kind === "1") target = this.document.querySelector(`#${selector}`);
     else if (kind === "2") target = this.document.querySelector(`.${selector}`);
     else if (kind === "3") target = this.document.querySelector(selector);
-    else throw new Error(`ArrowDomApplicator: unknown morph selector kind ${kind}`);
-    if (!target) throw new Error(`ArrowDomApplicator: morph target not found (${kind}:${selector})`);
+    else throw new Error(`DomOpApplicator: unknown morph selector kind ${kind}`);
+    if (!target) throw new Error(`DomOpApplicator: morph target not found (${kind}:${selector})`);
 
     switch (action) {
       case 0: // ReplaceChildren
@@ -423,7 +425,7 @@ export class ArrowDomApplicator {
         (target.parent ?? target.parentNode)?.insertAdjacentHTML("beforeend", content);
         break;
       default:
-        throw new Error(`ArrowDomApplicator: unknown morph action ${action}`);
+        throw new Error(`DomOpApplicator: unknown morph action ${action}`);
     }
   }
 }
@@ -431,14 +433,14 @@ export class ArrowDomApplicator {
 // ─── Protocol handler factory ────────────────────────────────────────────────
 
 /**
- * Build a ProtocolDispatcher handler (`{ apply(memoryId, payload) }`) for protocol
- * byte 1 (Arrow): parse the payload and apply it to the DOM.
- * @param {ArrowDomApplicator} applicator
+ * Build a ProtocolDispatcher handler (`{ apply(memoryId, payload) }`) for
+ * protocol byte 1 wire v1 (compact columnar): parse + apply to the DOM.
+ * @param {DomOpApplicator} applicator
  */
-export function arrowHandler(applicator) {
+export function columnarHandler(applicator) {
   return {
     apply(_memoryId, payload) {
-      applicator.apply(ArrowParser.parse(payload));
+      applicator.apply(ColumnarParser.parse(payload));
     },
   };
 }
@@ -597,7 +599,7 @@ export const BATCH_OP_APPLY_DOM = 10;
  * opcodes the same way.
  *
  * @param {{batches:{registerOperation:Function, params:object}}} rt  core runtime
- * @param {ArrowDomApplicator} applicator
+ * @param {DomOpApplicator} applicator
  */
 export function registerDomBatchOperation(rt, applicator) {
   rt.batches.registerOperation(BATCH_OP_APPLY_DOM, (batch, _opId, i, view, texts) => {
@@ -748,10 +750,10 @@ export function domAbi(rt, dom) {
 globalThis.FoundationWasmUiRuntime = Object.freeze({
   Op,
   RESERVED,
-  ArrowParser,
+  ColumnarParser,
   NodeRegistry,
-  ArrowDomApplicator,
-  arrowHandler,
+  DomOpApplicator,
+  columnarHandler,
   buildEventData,
   parseCallbackId,
   EventDispatcher,

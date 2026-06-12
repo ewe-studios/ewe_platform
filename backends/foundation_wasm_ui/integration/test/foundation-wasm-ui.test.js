@@ -1,4 +1,4 @@
-// Tests for foundation-wasm-ui.js — the DOM layer. Covers ArrowParser/Applicator on
+// Tests for foundation-wasm-ui.js — the DOM layer. Covers ColumnarParser/Applicator on
 // a synthetic batch, and end-to-end: a REAL wasm module's Arrow batch applied to a
 // mock DOM (the full WASM → JS → DOM loop).
 
@@ -10,8 +10,8 @@ import { dirname, join } from "node:path";
 
 import { FoundationWasm } from "../../../foundation_wasm/runtime/foundation-wasm.js";
 import {
-  ArrowParser,
-  ArrowDomApplicator,
+  ColumnarParser,
+  DomOpApplicator,
   NodeRegistry,
   Op,
 } from "../../runtimes/foundation-wasm-ui.js";
@@ -20,7 +20,7 @@ import { MockDocument } from "../mock-dom.js";
 const here = dirname(fileURLToPath(import.meta.url));
 const wasmPath = join(here, "..", "..", "..", "foundation_wasm", "integration", "fixtures", "foundation_wasm_e2e.wasm");
 
-test("ArrowDomApplicator applies create/register/attribute/class/append ops", () => {
+test("DomOpApplicator applies create/register/attribute/class/append ops", () => {
   const doc = new MockDocument();
   const registry = new NodeRegistry();
   const parent = registry.register(1000, doc.createElement("div"));
@@ -42,7 +42,7 @@ test("ArrowDomApplicator applies create/register/attribute/class/append ops", ()
     value: ["btn", "", "submit", "primary", ""],
     textVal: ["", "", "", "", ""],
   };
-  new ArrowDomApplicator(registry, doc).apply(batch);
+  new DomOpApplicator(registry, doc).apply(batch);
 
   const btn = registry.get(1001);
   assert.equal(btn.tag, "button", "id:4 resolves through the mirrored TAG_NAMES table");
@@ -55,7 +55,7 @@ test("ArrowDomApplicator applies create/register/attribute/class/append ops", ()
 test("created nodes stay staged until REGISTER_NODE promotes them", () => {
   const doc = new MockDocument();
   const registry = new NodeRegistry();
-  const applicator = new ArrowDomApplicator(registry, doc);
+  const applicator = new DomOpApplicator(registry, doc);
 
   applicator.applyOne(Op.CREATE_ELEMENT, 7, "id:1", "", "");
   assert.equal(registry.get(7), undefined, "no auto-register");
@@ -74,7 +74,7 @@ test("created nodes stay staged until REGISTER_NODE promotes them", () => {
 test("REPLACE_NODE takes its replacement from staged nodes and re-registers", () => {
   const doc = new MockDocument();
   const registry = new NodeRegistry();
-  const applicator = new ArrowDomApplicator(registry, doc);
+  const applicator = new DomOpApplicator(registry, doc);
   const parent = registry.register(1, doc.createElement("div"));
   const oldNode = registry.register(2, doc.createElement("span"));
   parent.appendChild(oldNode);
@@ -90,7 +90,7 @@ test("REPLACE_NODE takes its replacement from staged nodes and re-registers", ()
 test("MORPH_NODE resolves selectors and applies the packed action", () => {
   const doc = new MockDocument();
   const registry = new NodeRegistry();
-  const applicator = new ArrowDomApplicator(registry, doc);
+  const applicator = new DomOpApplicator(registry, doc);
 
   // kind 0 (node id) + action 0 (replace children).
   const byId = registry.register(4, doc.createElement("div"));
@@ -104,8 +104,8 @@ test("MORPH_NODE resolves selectors and applies the packed action", () => {
   assert.deepEqual(target.adjacentHTML, [{ position: "afterend", html: "<aside/>" }]);
 });
 
-test("ArrowDomApplicator throws on an unknown node id", () => {
-  const applicator = new ArrowDomApplicator(new NodeRegistry(), new MockDocument());
+test("DomOpApplicator throws on an unknown node id", () => {
+  const applicator = new DomOpApplicator(new NodeRegistry(), new MockDocument());
   assert.throws(
     () =>
       applicator.apply({
@@ -121,7 +121,7 @@ test("ArrowDomApplicator throws on an unknown node id", () => {
 });
 
 test(
-  "e2e: a real module's Arrow batch parses and applies to the DOM",
+  "e2e: a real module's columnar batch parses and applies to the DOM",
   { skip: existsSync(wasmPath) ? false : "wasm fixture not built (run ./build-module.sh)" },
   () => {
     const doc = new MockDocument();
@@ -129,13 +129,13 @@ test(
     // The module emits SetText(5,"hi") and Remove(6); seed those nodes.
     const n5 = registry.register(5, doc.createElement("span"));
     const n6 = registry.register(6, doc.createElement("div"));
-    const applicator = new ArrowDomApplicator(registry, doc);
+    const applicator = new DomOpApplicator(registry, doc);
 
     const rt = new FoundationWasm();
     let parsed = null;
     rt.setProtocolHandler(1, {
       apply: (_id, payload) => {
-        parsed = ArrowParser.parse(payload);
+        parsed = ColumnarParser.parse(payload);
         applicator.apply(parsed);
       },
     });
@@ -144,9 +144,9 @@ test(
       abi: rt.web_abi,
     });
     rt.init(instance);
-    instance.exports.emit_arrow_batch();
+    instance.exports.emit_columnar_batch();
 
-    // Parser decoded the Rust ArrowEncoder output correctly.
+    // Parser decoded the Rust ColumnarEncoder output correctly.
     assert.equal(parsed.count, 2);
     assert.deepEqual([...parsed.nodeIds], [5, 6]);
     assert.deepEqual([...parsed.operations], [Op.SET_TEXT_CONTENT, Op.REMOVE_NODE]);

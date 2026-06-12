@@ -135,7 +135,7 @@ pub struct RuntimeBuilder {
 }
 
 impl RuntimeBuilder {
-    /// The wire protocol (`ArrowV1` / `BatchInstructionsV1` / `JsonV1` /
+    /// The wire protocol (`ColumnarV1` / `BatchInstructionsV1` / `JsonV1` /
     /// `MockProtocol`).
     #[must_use]
     pub fn protocol(mut self, protocol: impl ProtocolMethods<Vec<DomOp>> + 'static) -> Self {

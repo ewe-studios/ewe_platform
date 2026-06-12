@@ -4,7 +4,7 @@
 //! single "encode these ops and ship them" call. That is Layer 3.
 //!
 //! WHAT: The [`ProtocolMethods`] trait plus the three concrete protocol
-//! implementations — [`ArrowV1`], [`BatchInstructionsV1`] (Custom Binary, byte 0 —
+//! implementations — [`ColumnarV1`], [`BatchInstructionsV1`] (Custom Binary, byte 0 —
 //! the `foundation_wasm` Instructions format per decision 022), [`JsonV1`] — and the
 //! uniform `host_apply` FFI they all ship through (decision 028/030).
 //!
@@ -14,12 +14,12 @@
 //! single uniform `host_apply` import — so JS reads the protocol byte from the buffer
 //! and `dispose_allocation`s the slot by `memory_id`.
 
-mod arrow;
+mod columnar;
 mod batch_instructions;
 mod json;
 mod mock;
 
-pub use arrow::ArrowV1;
+pub use columnar::ColumnarV1;
 pub use batch_instructions::{BatchInstructionsV1, DomOpsBatch, BATCH_OP_APPLY_DOM};
 pub use json::JsonV1;
 pub use mock::MockProtocol;

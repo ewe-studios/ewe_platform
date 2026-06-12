@@ -1,14 +1,14 @@
 //! Minimal wasm32 module that exercises the real foundation_wasm ABI so
 //! `foundation-wasm.js` can be tested end-to-end against an actual instance.
 //!
-//! `emit_arrow_batch` allocates a slot in the global arena, frames an Arrow-encoded
+//! `emit_columnar_batch` allocates a slot in the global arena, frames an Arrow-encoded
 //! `DomOp` batch in a `WasmEnvelope`, and ships it through the uniform `host_apply`
 //! import — the exact WASM→JS transport path the JS dispatcher consumes.
 //!
 //! This is a `std` crate (like the other nodejs integration fixtures) so it links the
 //! default allocator + panic handler; `foundation_wasm` itself stays `no_std`.
 
-use foundation_ui_traits::{ArrowEncoder, DomOp, ProtocolEncoder};
+use foundation_ui_traits::{ColumnarEncoder, DomOp, ProtocolEncoder};
 use foundation_wasm::abi::web::{
     allocate_function_reference, batch, batch_response, cache_text, drop_cached_string,
     drop_object_reference, host_apply, invoke_as_bool, invoke_as_f64, invoke_as_i32,
@@ -19,12 +19,12 @@ use foundation_wasm::{
     ReturnTypeHints, ReturnTypeId, ReturnValues, Returns, ThreeState, WasmEnvelope,
 };
 
-/// Build a 2-op Arrow batch and ship it to JS via `host_apply`.
+/// Build a 2-op compact-columnar batch and ship it to JS via `host_apply`.
 ///
 /// # Panics
 /// Panics if the arena slot can't be addressed (never in practice).
 #[no_mangle]
-pub extern "C" fn emit_arrow_batch() {
+pub extern "C" fn emit_columnar_batch() {
     let ops = vec![
         DomOp::SetText {
             node_id: 5,
@@ -32,7 +32,7 @@ pub extern "C" fn emit_arrow_batch() {
         },
         DomOp::RemoveNode { node_id: 6 },
     ];
-    let payload = ArrowEncoder.encode(ops);
+    let payload = ColumnarEncoder.encode(ops);
 
     // Allocate in the GLOBAL arena (the one JS's dispose_allocation frees).
     let total = (WasmEnvelope::HEADER_LEN + payload.len()) as u64;

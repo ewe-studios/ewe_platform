@@ -14,7 +14,7 @@ use foundation_signals::{Context, Runtime as SignalsRuntime};
 use foundation_ui_traits::{DomOp, ProtocolEncoder};
 use foundation_wasm::{MemoryAllocations, ProtocolHandler, WasmEnvelope};
 use foundation_wasm_ui::{
-    ArrowV1, BatchInstructionsV1, DomSignalBinding, InstructionReceiver, JsonV1, MockProtocol,
+    ColumnarV1, BatchInstructionsV1, DomSignalBinding, InstructionReceiver, JsonV1, MockProtocol,
     ProtocolMethods, Runtime,
 };
 
@@ -153,11 +153,11 @@ fn five_ops() -> Vec<DomOp> {
     ]
 }
 
-/// Test 10 — `ArrowV1` `SendResult` diagnostics.
+/// Test 10 — `ColumnarV1` `SendResult` diagnostics.
 #[test]
-fn arrow_send_result_carries_counts() {
+fn columnar_send_result_carries_counts() {
     let mut memory = MemoryAllocations::new();
-    let result = ArrowV1::new().encode_and_send(five_ops(), &mut memory);
+    let result = ColumnarV1::new().encode_and_send(five_ops(), &mut memory);
     assert_eq!(result.op_count, 5);
     assert!(result.encoded_bytes > 0);
     assert!(memory.get(result.memory_id).is_ok(), "slot is live");
@@ -198,7 +198,7 @@ fn json_payload_is_valid_json() {
 #[test]
 fn ack_frees_and_stale_ids_miss() {
     let mut memory = MemoryAllocations::new();
-    let proto = ArrowV1::new();
+    let proto = ColumnarV1::new();
     let result = proto.encode_and_send(five_ops(), &mut memory);
     proto.ack(result.memory_id, &mut memory);
     assert!(memory.get(result.memory_id).is_err(), "freed after ack");
@@ -209,7 +209,7 @@ fn ack_frees_and_stale_ids_miss() {
 /// Test 14 — protocol byte values.
 #[test]
 fn protocol_bytes_match_the_spec() {
-    assert_eq!(ArrowV1::new().protocol_byte(), 1);
+    assert_eq!(ColumnarV1::new().protocol_byte(), 1);
     assert_eq!(BatchInstructionsV1::new().protocol_byte(), 0);
     assert_eq!(JsonV1::new().protocol_byte(), 2);
     assert_eq!(MockProtocol::new().protocol_byte(), 255);
@@ -222,8 +222,8 @@ fn protocol_bytes_match_the_spec() {
 fn slot_contains_exact_encoded_bytes() {
     let mut memory = MemoryAllocations::new();
     let ops = five_ops();
-    let expected_payload = foundation_ui_traits::ArrowEncoder.encode(ops.clone());
-    let result = ArrowV1::new().encode_and_send(ops, &mut memory);
+    let expected_payload = foundation_ui_traits::ColumnarEncoder.encode(ops.clone());
+    let result = ColumnarV1::new().encode_and_send(ops, &mut memory);
     assert_eq!(result.encoded_bytes, expected_payload.len());
 
     let bytes = memory.get(result.memory_id).unwrap().clone_memory().unwrap();
@@ -235,7 +235,7 @@ fn slot_contains_exact_encoded_bytes() {
 #[test]
 fn generation_prevents_stale_access_after_recycle() {
     let mut memory = MemoryAllocations::new();
-    let proto = ArrowV1::new();
+    let proto = ColumnarV1::new();
     let first = proto.encode_and_send(five_ops(), &mut memory);
     proto.ack(first.memory_id, &mut memory);
 
@@ -249,7 +249,7 @@ fn generation_prevents_stale_access_after_recycle() {
 #[test]
 fn flush_ack_cycles_do_not_leak() {
     let mut receiver =
-        InstructionReceiver::new(Box::new(ArrowV1::new()), MemoryAllocations::new());
+        InstructionReceiver::new(Box::new(ColumnarV1::new()), MemoryAllocations::new());
     for cycle in 0..10u32 {
         receiver.queue(set_text(cycle, "tick"));
         let result = receiver.flush().unwrap();
@@ -270,7 +270,7 @@ fn flush_ack_cycles_do_not_leak() {
 #[test]
 fn builder_with_protocol_and_memory_builds() {
     let runtime = Runtime::builder()
-        .protocol(ArrowV1::new())
+        .protocol(ColumnarV1::new())
         .memory(MemoryAllocations::new())
         .build();
     assert_eq!(runtime.receiver().pending_count(), 0);
@@ -287,7 +287,7 @@ fn builder_missing_protocol_panics() {
 #[test]
 #[should_panic(expected = "memory is required")]
 fn builder_missing_memory_panics() {
-    let _ = Runtime::builder().protocol(ArrowV1::new()).build();
+    let _ = Runtime::builder().protocol(ColumnarV1::new()).build();
 }
 
 /// Test 22 — ops flow through a builder-constructed runtime.

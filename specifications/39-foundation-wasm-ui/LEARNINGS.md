@@ -810,3 +810,13 @@ Instructions)" — the BatchOperations/ParameterParserV2 batching system. Correc
   — spec rows demanding it should be marked N/A rather than force unsafe
   fixture construction.
 
+## Naming correction (2026-06-12)
+
+- The hand-written v1 pair was MISNAMED as Arrow: renamed
+  `foundation_ui_traits::ArrowEncoder` -> `ColumnarEncoder`, wasm_ui `ArrowV1`
+  -> `ColumnarV1`, JS `ArrowParser` -> `ColumnarParser`, `ArrowDomApplicator`
+  -> `DomOpApplicator`, `arrowHandler` -> `columnarHandler`, fixture export
+  `emit_arrow_batch` -> `emit_columnar_batch`. "Arrow" now exclusively means
+  real Arrow IPC (`foundation_arrow::ArrowIpcEncoder`, wire v2). Protocol
+  byte 1 remains the spec's Arrow-family slot; the version byte demuxes.
+

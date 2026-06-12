@@ -6,7 +6,7 @@
 //!
 //! WHAT: The [`IntoHtml`] trait + [`Html`] tree, [`Part`] descriptors, the
 //! 19-variant [`DomOp`] enum with [`HtmlTag`]/[`AttrName`] wire ids, the
-//! [`ProtocolEncoder`] contract with [`ArrowEncoder`]/[`JsonEncoder`], and the
+//! [`ProtocolEncoder`] contract with [`ColumnarEncoder`]/[`JsonEncoder`], and the
 //! 6-byte [`Envelope`]. (Protocol byte 0 — Custom Binary — is the
 //! `foundation_wasm` batch-instructions stream per decision 022; its
 //! `ProtocolHandler` lives in `foundation_wasm_ui`.)
@@ -20,7 +20,7 @@
 
 extern crate alloc;
 
-mod arrow_encoder;
+mod columnar_encoder;
 mod dom_op;
 mod encoder;
 mod envelope;
@@ -28,7 +28,7 @@ mod html;
 mod json_encoder;
 mod parts;
 
-pub use arrow_encoder::ArrowEncoder;
+pub use columnar_encoder::ColumnarEncoder;
 pub use dom_op::{DomOp, MorphAction, TargetSelector};
 pub use encoder::{
     DecodeError, DecodeResult, ProtocolEncoder, Row, OP_COUNT, PROTOCOL_ARROW,

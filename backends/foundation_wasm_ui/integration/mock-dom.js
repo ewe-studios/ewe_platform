@@ -1,4 +1,4 @@
-// A tiny DOM stand-in — just enough surface for ArrowDomApplicator, so DOM tests run
+// A tiny DOM stand-in — just enough surface for DomOpApplicator, so DOM tests run
 // under plain `node --test` without jsdom.
 
 class ClassList {

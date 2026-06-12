@@ -1,7 +1,7 @@
 //! WHY: Servers (HTTP `application/primal-arrow`, SSE `text/event-stream-arrow`)
 //! and analytics tooling want DOM-op batches in REAL Apache Arrow IPC — readable
 //! by every Arrow ecosystem implementation (feature 05, decision 010). The WASM
-//! loop keeps `foundation_ui_traits::ArrowEncoder`'s compact owned layout
+//! loop keeps `foundation_ui_traits::ColumnarEncoder`'s compact owned layout
 //! (binary-size; see the feature-05 status.md deviation) — THIS encoder is the
 //! interop face, behind the very same `ProtocolEncoder` contract.
 //!

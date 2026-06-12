@@ -13,7 +13,7 @@ import { dirname, join } from "node:path";
 
 import { FoundationWasm } from "../../../foundation_wasm/runtime/foundation-wasm.js";
 import {
-  ArrowDomApplicator,
+  DomOpApplicator,
   NodeRegistry,
   DomHeap,
   domAbi,
@@ -32,7 +32,7 @@ test("byte-0 batch protocol: DomOps ride the Instructions format end-to-end", { 
   // The module emits SetText(5, "batch hi") and Remove(6); seed those nodes.
   const n5 = registry.register(5, doc.createElement("span"));
   const n6 = registry.register(6, doc.createElement("div"));
-  const applicator = new ArrowDomApplicator(registry, doc);
+  const applicator = new DomOpApplicator(registry, doc);
 
   const rt = new FoundationWasm();
   // The byte-0 handler is PRE-WIRED by the core runtime; the DOM layer only

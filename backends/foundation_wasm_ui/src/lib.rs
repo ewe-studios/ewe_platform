@@ -11,7 +11,7 @@
 //!
 //! HOW: Depends on `foundation_wasm` (ABI + transport) and `foundation_ui_traits`
 //! (encoders). Adds `wasm::dom` (DOM references), and — in later feature work —
-//! protocol impls (`ArrowV1`/`BatchInstructionsV1`/`JsonV1`) and the `InstructionReceiver`.
+//! protocol impls (`ColumnarV1`/`BatchInstructionsV1`/`JsonV1`) and the `InstructionReceiver`.
 
 #![no_std]
 
@@ -33,6 +33,6 @@ pub use instruction::InstructionReceiver;
 pub use foundation_macros::html;
 pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use protocol::{
-    ArrowV1, BatchInstructionsV1, DomOpsBatch, HandleResult, JsonV1, MockProtocol,
+    ColumnarV1, BatchInstructionsV1, DomOpsBatch, HandleResult, JsonV1, MockProtocol,
     ProtocolMethods, SendResult, BATCH_OP_APPLY_DOM,
 };

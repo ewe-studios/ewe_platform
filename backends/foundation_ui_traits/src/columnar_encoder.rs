@@ -5,7 +5,7 @@
 //! while staying dependency-free. Feature 05 (arrow-encoding) owns the swap to
 //! real Arrow IPC behind the same [`ProtocolEncoder`] face.
 //!
-//! WHAT: [`ArrowEncoder`] — encodes a `DomOp` batch into the six decision-010
+//! WHAT: [`ColumnarEncoder`] — encodes a `DomOp` batch into the six decision-010
 //! columns: `op_id`, `node_id`, `operation`, `attribute`, `value`, `text_val`.
 //!
 //! HOW: `[row_count:4]` then the fixed-width columns (`op_id` u32×N, `node_id`
@@ -23,14 +23,15 @@ use crate::encoder::{
 };
 use crate::DomOp;
 
-/// The Arrow-columnar [`ProtocolEncoder`] (protocol byte 1).
+/// The compact-columnar [`ProtocolEncoder`] — protocol byte 1, wire VERSION 1.
+/// (Wire version 2 is REAL Apache Arrow IPC: `foundation_arrow::ArrowIpcEncoder`.)
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
-pub struct ArrowEncoder;
+pub struct ColumnarEncoder;
 
 /// Column names reported in [`DecodeError::InvalidUtf8`].
 const STRING_COLUMNS: [&str; 3] = ["attribute", "value", "text_val"];
 
-impl ArrowEncoder {
+impl ColumnarEncoder {
     /// Append an Arrow-style variable-length string column: an `N+1` offset
     /// buffer followed by the concatenated UTF-8 data.
     fn write_string_column(buf: &mut Vec<u8>, values: &[Option<&str>]) {
@@ -83,7 +84,7 @@ impl ArrowEncoder {
     }
 }
 
-impl ProtocolEncoder<Vec<DomOp>> for ArrowEncoder {
+impl ProtocolEncoder<Vec<DomOp>> for ColumnarEncoder {
     fn protocol_byte(&self) -> u8 {
         PROTOCOL_ARROW
     }

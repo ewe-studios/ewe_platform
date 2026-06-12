@@ -3,7 +3,7 @@
 //! `WasmEnvelope`, that the payload round-trips, that `ack` frees the slot, and that
 //! `InstructionReceiver` batches/flushes per decision 030.
 //!
-//! WHAT: `ArrowV1`/`BatchInstructionsV1`/`JsonV1` `encode_and_send` + `handle_received` +
+//! WHAT: `ColumnarV1`/`BatchInstructionsV1`/`JsonV1` `encode_and_send` + `handle_received` +
 //! `ack`, and `InstructionReceiver` queue/flush/ack behaviour.
 //!
 //! HOW: Native build — `host_apply` is a no-op stub, so we inspect the arena slot the
@@ -11,7 +11,7 @@
 
 use foundation_ui_traits::DomOp;
 use foundation_wasm::{MemoryAllocations, WasmEnvelope};
-use foundation_wasm_ui::{ArrowV1, BatchInstructionsV1, InstructionReceiver, JsonV1, ProtocolMethods};
+use foundation_wasm_ui::{ColumnarV1, BatchInstructionsV1, InstructionReceiver, JsonV1, ProtocolMethods};
 
 fn sample_ops() -> Vec<DomOp> {
     vec![
@@ -68,8 +68,8 @@ fn assert_protocol_round_trip<P: ProtocolMethods<Vec<DomOp>>>(proto: &P, expecte
 }
 
 #[test]
-fn arrow_v1_encode_send_round_trip() {
-    assert_protocol_round_trip(&ArrowV1::new(), 1);
+fn columnar_v1_encode_send_round_trip() {
+    assert_protocol_round_trip(&ColumnarV1::new(), 1);
 }
 
 #[test]
@@ -202,7 +202,7 @@ fn batch_instructions_round_trips_all_nineteen_variants() {
 #[test]
 fn instruction_receiver_batches_and_flushes_once() {
     let ops = sample_ops();
-    let mut receiver = InstructionReceiver::new(Box::new(ArrowV1::new()), MemoryAllocations::new());
+    let mut receiver = InstructionReceiver::new(Box::new(ColumnarV1::new()), MemoryAllocations::new());
 
     // Empty flush is a no-op: no encoding, no slot.
     assert!(receiver.flush().is_none());
@@ -225,8 +225,8 @@ fn instruction_receiver_batches_and_flushes_once() {
     let slot = receiver.memory().expect("owned arena").get(result.memory_id).expect("slot live");
     let bytes = slot.clone_memory().expect("read bytes");
     let (envelope, payload) = WasmEnvelope::parse(&bytes);
-    assert_eq!(envelope.protocol, 1); // Arrow
-    let decoded = ArrowV1::new()
+    assert_eq!(envelope.protocol, 1); // columnar (Arrow slot, wire v1)
+    let decoded = ColumnarV1::new()
         .handle_received(result.memory_id, payload.as_ptr(), payload.len())
         .expect("decode");
     assert_eq!(decoded, ops);
@@ -250,7 +250,7 @@ fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() 
     // shipped slot resolves through `internal_api::get_memory` (same arena the
     // exposed_runtime exports use) and decodes back to the queued ops.
     let ops = sample_ops();
-    let mut receiver = InstructionReceiver::with_global_arena(Box::new(ArrowV1::new()));
+    let mut receiver = InstructionReceiver::with_global_arena(Box::new(ColumnarV1::new()));
     assert!(receiver.memory().is_none(), "global receiver owns no arena");
 
     for op in &ops {
@@ -264,7 +264,7 @@ fn instruction_receiver_global_arena_slots_are_visible_to_the_exposed_runtime() 
     assert_eq!(envelope.protocol, 1);
     assert_eq!(envelope.memory_id, result.memory_id.as_u64());
 
-    let decoded = ArrowV1::new()
+    let decoded = ColumnarV1::new()
         .handle_received(result.memory_id, payload.as_ptr(), payload.len())
         .expect("payload decodes");
     assert_eq!(decoded, ops);

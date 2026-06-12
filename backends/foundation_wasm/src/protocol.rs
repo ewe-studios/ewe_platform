@@ -37,7 +37,7 @@ use crate::{
 /// same loan pattern — the producer allocates an arena slot, the consumer ACKs by
 /// calling `dispose_allocation`.
 ///
-/// HOW: Implementors (in `foundation_wasm_ui`: `ArrowV1`, `BatchInstructionsV1`,
+/// HOW: Implementors (in `foundation_wasm_ui`: `ColumnarV1`, `BatchInstructionsV1`,
 /// `JsonV1`) wrap the uniform 3-param `host_apply` FFI for `send_to_js`, and read
 /// + deallocate the arena slot for `handle_from_js`.
 pub trait ProtocolHandler {

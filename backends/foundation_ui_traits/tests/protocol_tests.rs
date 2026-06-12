@@ -11,7 +11,7 @@
 use std::borrow::Cow;
 
 use foundation_ui_traits::{
-    encode_with_envelope, ArrowEncoder, AttrName, DecodeError, DomOp, Envelope, HtmlTag,
+    encode_with_envelope, ColumnarEncoder, AttrName, DecodeError, DomOp, Envelope, HtmlTag,
     JsonEncoder, MorphAction, ProtocolEncoder, TargetSelector, ATTR_CLASS, ENVELOPE_SIZE,
     PROTOCOL_ARROW, PROTOCOL_JSON, PROTOCOL_VERSION, TAG_DIV, TAG_SPAN,
 };
@@ -120,65 +120,65 @@ fn all_nineteen_ops() -> Vec<DomOp> {
     ]
 }
 
-// ─── Tests 11-17: ArrowEncoder round-trips ─────────────────────────────────────
+// ─── Tests 11-17: ColumnarEncoder round-trips ─────────────────────────────────────
 
 /// Test 11 — 5 mixed ops match field-by-field after a round-trip.
 #[test]
-fn arrow_round_trips_five_mixed_ops() {
+fn columnar_round_trips_five_mixed_ops() {
     let ops = five_mixed_ops();
-    let bytes = ArrowEncoder.encode(ops.clone());
-    assert_eq!(ArrowEncoder.decode(&bytes).unwrap(), ops);
+    let bytes = ColumnarEncoder.encode(ops.clone());
+    assert_eq!(ColumnarEncoder.decode(&bytes).unwrap(), ops);
 }
 
 /// Test 12 — an empty batch is a valid zero-row buffer.
 #[test]
-fn arrow_empty_batch_round_trips() {
-    let bytes = ArrowEncoder.encode(vec![]);
-    assert_eq!(ArrowEncoder.decode(&bytes).unwrap(), vec![]);
+fn columnar_empty_batch_round_trips() {
+    let bytes = ColumnarEncoder.encode(vec![]);
+    assert_eq!(ColumnarEncoder.decode(&bytes).unwrap(), vec![]);
 }
 
 /// Test 13 — tag and class survive a single `CreateElement` round-trip; known
 /// tags ride the wire as `id:` strings.
 #[test]
-fn arrow_create_element_keeps_tag_and_class() {
+fn columnar_create_element_keeps_tag_and_class() {
     let op = DomOp::CreateElement {
         node_id: 7,
         tag: HtmlTag::Id(TAG_DIV),
         class: Cow::Borrowed("header dark"),
     };
-    let bytes = ArrowEncoder.encode(vec![op.clone()]);
+    let bytes = ColumnarEncoder.encode(vec![op.clone()]);
     // The wire carries the compact id form, not the tag name.
     let as_text = String::from_utf8_lossy(&bytes);
     assert!(as_text.contains("id:1"), "known tag should encode as id:1");
     assert!(!as_text.contains("div"), "tag NAME should not be on the wire");
-    assert_eq!(ArrowEncoder.decode(&bytes).unwrap(), vec![op]);
+    assert_eq!(ColumnarEncoder.decode(&bytes).unwrap(), vec![op]);
 }
 
 /// Test 14 — all 19 variants round-trip in one batch.
 #[test]
-fn arrow_round_trips_all_nineteen_variants() {
+fn columnar_round_trips_all_nineteen_variants() {
     let ops = all_nineteen_ops();
     assert_eq!(ops.len(), 19);
-    let bytes = ArrowEncoder.encode(ops.clone());
-    assert_eq!(ArrowEncoder.decode(&bytes).unwrap(), ops);
+    let bytes = ColumnarEncoder.encode(ops.clone());
+    assert_eq!(ColumnarEncoder.decode(&bytes).unwrap(), ops);
 }
 
 /// Test 15 — 1000 `SetText` ops with unique texts all match.
 #[test]
-fn arrow_round_trips_thousand_set_texts() {
+fn columnar_round_trips_thousand_set_texts() {
     let ops: Vec<DomOp> = (0..1000u32)
         .map(|i| DomOp::SetText {
             node_id: i,
             text: Cow::Owned(format!("text number {i}")),
         })
         .collect();
-    let bytes = ArrowEncoder.encode(ops.clone());
-    assert_eq!(ArrowEncoder.decode(&bytes).unwrap(), ops);
+    let bytes = ColumnarEncoder.encode(ops.clone());
+    assert_eq!(ColumnarEncoder.decode(&bytes).unwrap(), ops);
 }
 
 /// Test 16 — CJK, emoji, and RTL text are byte-exact after a round-trip.
 #[test]
-fn arrow_round_trips_unicode() {
+fn columnar_round_trips_unicode() {
     let ops = vec![
         DomOp::SetText {
             node_id: 1,
@@ -193,18 +193,18 @@ fn arrow_round_trips_unicode() {
             text: Cow::Borrowed("مرحبا بالعالم"),
         },
     ];
-    let bytes = ArrowEncoder.encode(ops.clone());
-    assert_eq!(ArrowEncoder.decode(&bytes).unwrap(), ops);
+    let bytes = ColumnarEncoder.encode(ops.clone());
+    assert_eq!(ColumnarEncoder.decode(&bytes).unwrap(), ops);
 }
 
 /// Test 17 — a hand-crafted op=99 reports `UnknownOperation` with the row index.
 #[test]
-fn arrow_unknown_operation_reports_op_and_row() {
-    let mut bytes = ArrowEncoder.encode(vec![DomOp::RemoveNode { node_id: 1 }]);
+fn columnar_unknown_operation_reports_op_and_row() {
+    let mut bytes = ColumnarEncoder.encode(vec![DomOp::RemoveNode { node_id: 1 }]);
     // Layout: [count:4][op_id:4][node_id:4][operation:1]... — patch the op byte.
     bytes[12] = 99;
     assert_eq!(
-        ArrowEncoder.decode(&bytes),
+        ColumnarEncoder.decode(&bytes),
         Err(DecodeError::UnknownOperation {
             op_id: 99,
             row_index: 0
@@ -321,20 +321,20 @@ fn envelope_overrunning_length_fails() {
 #[test]
 fn encode_with_envelope_is_self_describing() {
     let ops = five_mixed_ops();
-    let message = encode_with_envelope(&ArrowEncoder, ops.clone());
+    let message = encode_with_envelope(&ColumnarEncoder, ops.clone());
     assert_eq!(message[0], PROTOCOL_ARROW);
     assert_eq!(message[1], PROTOCOL_VERSION);
     let (envelope, payload) = Envelope::parse(&message).unwrap();
     assert_eq!(envelope.protocol, PROTOCOL_ARROW);
-    assert_eq!(ArrowEncoder.decode(payload).unwrap(), ops);
+    assert_eq!(ColumnarEncoder.decode(payload).unwrap(), ops);
 }
 
 // ─── Tests 30-33: error paths ──────────────────────────────────────────────────
 
 /// Test 30 — invalid UTF-8 in a string column reports the column name.
 #[test]
-fn arrow_invalid_utf8_reports_column() {
-    let mut bytes = ArrowEncoder.encode(vec![DomOp::SetText {
+fn columnar_invalid_utf8_reports_column() {
+    let mut bytes = ColumnarEncoder.encode(vec![DomOp::SetText {
         node_id: 1,
         text: Cow::Borrowed("ok"),
     }]);
@@ -342,7 +342,7 @@ fn arrow_invalid_utf8_reports_column() {
     let data_start = bytes.len() - 2;
     bytes[data_start] = 0xFF;
     assert_eq!(
-        ArrowEncoder.decode(&bytes),
+        ColumnarEncoder.decode(&bytes),
         Err(DecodeError::InvalidUtf8 {
             column_name: "text_val",
             row_index: 0
@@ -352,10 +352,10 @@ fn arrow_invalid_utf8_reports_column() {
 
 /// Test 31 — a malformed columnar layout reports schema/truncation, not panic.
 #[test]
-fn arrow_malformed_layout_fails_cleanly() {
+fn columnar_malformed_layout_fails_cleanly() {
     // Claim 4 rows but provide nothing else.
     let bytes = 4u32.to_le_bytes();
-    let err = ArrowEncoder.decode(&bytes).unwrap_err();
+    let err = ColumnarEncoder.decode(&bytes).unwrap_err();
     assert!(
         matches!(err, DecodeError::TruncatedBuffer { .. }),
         "got: {err:?}"
@@ -371,9 +371,9 @@ fn json_garbage_fails_with_parse_error() {
 
 /// Test 33 — decoding an empty Arrow payload reports truncation.
 #[test]
-fn arrow_empty_payload_is_truncated() {
+fn columnar_empty_payload_is_truncated() {
     assert_eq!(
-        ArrowEncoder.decode(&[]),
+        ColumnarEncoder.decode(&[]),
         Err(DecodeError::TruncatedBuffer {
             expected_min: 4,
             actual: 0
@@ -385,7 +385,7 @@ fn arrow_empty_payload_is_truncated() {
 
 /// Test 34 — Arrow and JSON decode the same 10 ops identically.
 #[test]
-fn arrow_and_json_agree_on_ten_ops() {
+fn columnar_and_json_agree_on_ten_ops() {
     let mut ops = five_mixed_ops();
     ops.extend(vec![
         DomOp::SetStyle {
@@ -410,11 +410,11 @@ fn arrow_and_json_agree_on_ten_ops() {
     ]);
     assert_eq!(ops.len(), 10);
 
-    let from_arrow = ArrowEncoder.decode(&ArrowEncoder.encode(ops.clone())).unwrap();
+    let from_columnar = ColumnarEncoder.decode(&ColumnarEncoder.encode(ops.clone())).unwrap();
     let from_json = JsonEncoder.decode(&JsonEncoder.encode(ops.clone())).unwrap();
-    assert_eq!(from_arrow, ops);
+    assert_eq!(from_columnar, ops);
     assert_eq!(from_json, ops);
-    assert_eq!(from_arrow, from_json);
+    assert_eq!(from_columnar, from_json);
 }
 
 /// Test 35 — every encoder in this crate decodes the all-variant batch to the
@@ -423,9 +423,9 @@ fn arrow_and_json_agree_on_ten_ops() {
 #[test]
 fn all_encoders_agree_on_every_variant() {
     let ops = all_nineteen_ops();
-    let from_arrow = ArrowEncoder.decode(&ArrowEncoder.encode(ops.clone())).unwrap();
+    let from_columnar = ColumnarEncoder.decode(&ColumnarEncoder.encode(ops.clone())).unwrap();
     let from_json = JsonEncoder.decode(&JsonEncoder.encode(ops.clone())).unwrap();
-    assert_eq!(from_arrow, ops);
+    assert_eq!(from_columnar, ops);
     assert_eq!(from_json, ops);
 }
 
@@ -457,7 +457,7 @@ fn morph_selector_and_action_round_trip() {
             action,
             content: Cow::Borrowed("<span>x</span>"),
         };
-        let decoded = ArrowEncoder.decode(&ArrowEncoder.encode(vec![op.clone()])).unwrap();
+        let decoded = ColumnarEncoder.decode(&ColumnarEncoder.encode(vec![op.clone()])).unwrap();
         assert_eq!(decoded, vec![op], "target {target:?} action {action:?}");
     }
 }
