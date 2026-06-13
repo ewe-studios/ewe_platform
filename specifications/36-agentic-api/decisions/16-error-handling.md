@@ -177,13 +177,77 @@ enum AgentAction {
 
 ### Error Surfacing
 
+**Tool errors ALWAYS go back to the model.** The LLM must know whether its tool call succeeded, failed, or produced an error — so it can adapt, retry with different arguments, or report to the user.
+
 | Error Type | Surfaces To | Action |
 |-----------|-------------|--------|
 | LLM generation error | User (via stream) | Agent terminates or switches model |
-| Tool call error | LLM (via ToolResult message) | LLM sees error, can retry or adapt |
+| **Tool call error** | **LLM (via ToolResult message)** | **LLM sees error, adapts or retries with different args** |
 | Auth error | User (via stream) | Agent terminates |
 | Loop detection | Agent (internal redirect) | Agent redirects with memory context |
 | Memory/vector error | Agent (logs, continues) | Agent continues without memory |
+
+### ToolCallManager Retry Configuration
+
+The ToolCallManager has built-in retry with exponential backoff for tool calls:
+
+```rust
+pub struct ToolRetryConfig {
+    /// Maximum number of retry attempts (default: 3)
+    pub max_retries: u32,
+    /// Initial backoff duration (default: 1s)
+    pub initial_backoff: Duration,
+    /// Backoff multiplier (default: 2x)
+    pub backoff_multiplier: f64,
+    /// Maximum backoff duration (default: 30s)
+    pub max_backoff: Duration,
+    /// Retry only on these error types (default: timeouts, network errors)
+    pub retry_on: Vec<ToolErrorKind>,
+}
+
+impl Default for ToolRetryConfig {
+    fn default() -> Self {
+        Self {
+            max_retries: 3,
+            initial_backoff: Duration::from_secs(1),
+            backoff_multiplier: 2.0,
+            max_backoff: Duration::from_secs(30),
+            retry_on: vec![ToolErrorKind::Timeout, ToolErrorKind::Network],
+        }
+    }
+}
+
+impl ToolCallManager {
+    /// Execute a tool call with automatic retry
+    fn execute_with_retry(&self, call: ToolCallRequest) -> ToolCallResult {
+        let config = self.get_retry_config(&call.name);
+        let mut backoff = config.initial_backoff;
+        
+        for attempt in 0..=config.max_retries {
+            match self.execute_tool(&call) {
+                Ok(result) => return Ok(result),
+                Err(e) => {
+                    if attempt == config.max_retries || !config.retry_on.contains(&e.kind()) {
+                        // All retries exhausted or non-retriable error
+                        // Return error to LLM via ToolResult message
+                        return self.return_error_to_llm(&call, e);
+                    }
+                    // Wait with exponential backoff
+                    sleep(backoff);
+                    backoff = min(backoff * config.backoff_multiplier, config.max_backoff);
+                }
+            }
+        }
+        unreachable!()
+    }
+}
+```
+
+Retry configuration can be customized per tool:
+- **File operations** (read, write, edit): retry on I/O errors, 2 retries
+- **Network tools** (HTTP, API calls): retry on timeouts/network errors, 3 retries
+- **Shell commands**: no retry (side effects may be non-idempotent)
+- **Search tools** (fff): retry on index errors, 1 retry
 
 ### Existing Error Types (Reused)
 
