@@ -12,11 +12,10 @@ use chrono::Utc;
 use serde_json::json;
 use tempfile::TempDir;
 
-use foundation_db::core::state::helpers::{collect_all, collect_first, drive_to_completion};
-use foundation_db::core::state::file::FileStateStore;
-use foundation_db::core::state::hash::config_hash;
-use foundation_db::core::state::traits::StateStore;
-use foundation_db::core::state::types::{ResourceState, StateStatus};
+use foundation_db::state::{
+    collect_all, collect_first, config_hash, drive_to_completion, FileStateStore, ResourceState,
+    StateStatus, StateStore,
+};
 
 /// Helper: create a test `ResourceState`.
 fn make_state(id: &str, status: StateStatus) -> ResourceState {
