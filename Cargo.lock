@@ -2855,6 +2855,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_browser"
+version = "0.0.1"
+dependencies = [
+ "base64 0.22.1",
+ "derive_more",
+ "foundation_core",
+ "foundation_netio",
+ "serde",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_cedar"
 version = "0.0.1"
 dependencies = [

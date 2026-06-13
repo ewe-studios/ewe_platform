@@ -1,0 +1,28 @@
+[package]
+name = "foundation_browser"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Pure-Rust browser test driver (CDP) — speak the browser's JSON-RPC protocol directly from Rust"
+keywords = ["browser", "cdp", "testing", "foundation", "chromium"]
+
+[dependencies]
+# `multi` is REQUIRED: foundation_netio's native WebSocket client is
+# `#[cfg(feature = "multi")]`, and we want the valtron multi-threaded executor
+# (all CPU threads) driving the browser sockets. multi → foundation_core/multi.
+foundation_core = { workspace = true, features = ["multi"] }
+foundation_netio = { workspace = true, features = ["multi"] }
+
+serde = { workspace = true }
+serde_json = { workspace = true }
+derive_more = { workspace = true }
+tracing = { workspace = true }
+base64 = "0.22"
+
+[features]
+# Integration tests that require a real Chromium binary opt into this so CI
+# without a browser skips them.
+browser-tests = []
