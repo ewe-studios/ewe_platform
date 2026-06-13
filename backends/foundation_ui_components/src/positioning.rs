@@ -25,6 +25,19 @@ pub enum PlacementSide {
     Right,
 }
 
+impl PlacementSide {
+    /// The `primal:side` token consumed by the M1 positioner.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            PlacementSide::Top => "top",
+            PlacementSide::Bottom => "bottom",
+            PlacementSide::Left => "left",
+            PlacementSide::Right => "right",
+        }
+    }
+}
+
 /// Alignment along the anchor's cross axis.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum PlacementAlign {
@@ -37,6 +50,18 @@ pub enum PlacementAlign {
     End,
 }
 
+impl PlacementAlign {
+    /// The `primal:align` token consumed by the M1 positioner.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            PlacementAlign::Center => "center",
+            PlacementAlign::Start => "start",
+            PlacementAlign::End => "end",
+        }
+    }
+}
+
 /// Collision behavior for a single axis.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum CollisionBehavior {
@@ -47,6 +72,19 @@ pub enum CollisionBehavior {
     Shift,
     /// No correction.
     None,
+}
+
+impl CollisionBehavior {
+    /// The `data-collision-side`/`data-collision-align` token consumed by the
+    /// M1 positioner.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            CollisionBehavior::Flip => "flip",
+            CollisionBehavior::Shift => "shift",
+            CollisionBehavior::None => "none",
+        }
+    }
 }
 
 /// Positioning configuration for overlay components.

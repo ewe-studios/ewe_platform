@@ -5,9 +5,11 @@
 //! a monolithic hand-maintained runtime, each behavior's JS is **colocated**
 //! here beside its Rust contract and DELIVERED as a scoped script.
 //!
-//! WHAT: [`scoped_script`] (the delivery primitive) + per-behavior submodules
-//! ([`composite`] = M5, …). A behavior is `function(scope){…}` emitted as a
-//! `<script scoped primal:script>` node the component embeds in its root.
+//! WHAT: [`scoped_script`] (the delivery primitive) + per-behavior submodules:
+//! [`composite`] (M5 roving focus), [`dismiss`] (M3 light dismiss),
+//! [`position`] (M1 anchored positioning), [`transition`] (M7 enter/leave).
+//! A behavior is `function(scope){…}` emitted as a `<script scoped
+//! primal:script>` node the component embeds in its root.
 //!
 //! HOW: The existing scoped-script hydrator (spec-39 feature 09 §5) runs the
 //! body ONCE with a `scope` object (`scope.parent()` = the component root),
@@ -24,6 +26,9 @@ use alloc::vec::Vec;
 use foundation_ui_traits::{AttrName, Html, HtmlTag};
 
 pub mod composite;
+pub mod dismiss;
+pub mod position;
+pub mod transition;
 
 /// Build a `<script scoped primal:script>` node carrying `body` (a JS function
 /// expression `function(scope){…}`). Embed it inside the component root; the

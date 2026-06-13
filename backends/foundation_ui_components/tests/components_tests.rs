@@ -318,3 +318,70 @@ fn toggle_group_embeds_composite_machinery_and_marks_items() {
         "composite behavior script emitted"
     );
 }
+
+#[test]
+fn radio_group_wires_roving_and_move_and_select() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal::<Option<String>>(None);
+    let items = vec![
+        RadioItem { value: alloc_string("a"), content: Html::text("A"), disabled: false },
+        RadioItem { value: alloc_string("b"), content: Html::text("B"), disabled: false },
+    ];
+    let _h = radio_group(&ctx, &rcv, RadioGroupConfig::default(), &value, set_value, items);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    // Group opts into the radio "move AND select" composite pattern.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-composite-select") && *value == "true")),
+        "radiogroup opts into move-and-select");
+    // Inputs are roving members.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-composite-item") && *value == "true")),
+        "radio inputs marked as composite items");
+    // The composite roving script is embedded.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+        "composite behavior script emitted into the radiogroup");
+}
+
+// ─── M3 / M1 / M7 machinery (scoped-script behaviors) ────────────────────────────
+
+#[test]
+fn dismiss_behavior_is_a_light_dismiss_script() {
+    use foundation_ui_components::machinery::dismiss::{dismiss_behavior, DISMISS_JS};
+    let s = dismiss_behavior();
+    let body = s.children[0].text.as_deref().unwrap();
+    assert!(body.contains("Escape"), "Escape closes");
+    assert!(body.contains("pointerdown"), "outside pointer closes");
+    assert!(body.contains("data-dismiss-action"), "clicks the close action");
+    assert!(body.contains("primal:anchor"), "ignores clicks on the trigger");
+    assert!(DISMISS_JS.contains("data-dismiss-reason"), "stamps a dismiss reason");
+}
+
+#[test]
+fn position_behavior_emits_placement_and_var_contract() {
+    use foundation_ui_components::machinery::position::{position_behavior, POSITION_JS};
+    let s = position_behavior();
+    let body = s.children[0].text.as_deref().unwrap();
+    assert!(body.contains("data-side") && body.contains("data-align"), "reflects final placement");
+    assert!(body.contains("opposite"), "flips to the opposite side on overflow");
+    assert!(body.contains("--anchor-width"), "emits the anchor-size vars");
+    assert!(body.contains("--transform-origin"), "emits the origin var");
+    assert!(body.contains("--popup-width"), "emits the popup-size vars");
+    assert!(POSITION_JS.contains("primal:anchor"), "resolves the anchor element");
+}
+
+#[test]
+fn transition_behavior_manages_starting_and_ending_styles() {
+    use foundation_ui_components::machinery::transition::{transition_behavior, TRANSITION_JS};
+    let s = transition_behavior();
+    let body = s.children[0].text.as_deref().unwrap();
+    assert!(body.contains("data-starting-style"), "stamps enter baseline");
+    assert!(body.contains("data-ending-style"), "holds exit style");
+    assert!(body.contains("data-instant"), "honors instant suppression");
+    assert!(body.contains("MutationObserver"), "observes the open state");
+    assert!(TRANSITION_JS.contains("transitionend"), "completes on transitionend");
+}

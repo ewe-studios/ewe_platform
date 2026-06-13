@@ -10,8 +10,12 @@
 //! HOW: Items render through `<For>` (correct ids + live `data-checked`).
 //! Selecting writes the group's `Option<String>` value via `ctx.callback`
 //! (an `Option<String>` setter has no default event mapping). The container
-//! carries `data-composite` so the M5 roving-focus module can attach the
-//! arrow-key "move AND select" radio pattern (that keyboard nav is M5's job).
+//! carries `data-composite` + `data-composite-select` and embeds the M5
+//! [`composite_behavior`](crate::machinery::composite::composite_behavior)
+//! scoped script, so arrow keys MOVE-AND-SELECT (the WAI-ARIA radiogroup
+//! pattern: `.click()` on the focused input checks it → `onchange` selects).
+//! Each input is marked `data-composite-item`; the checked one is
+//! `data-composite-active` so roving seeds focus there.
 
 use alloc::borrow::Cow;
 use alloc::string::String;
@@ -21,6 +25,7 @@ use foundation_signals::{Context, SignalGetter, SignalSetter};
 use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver};
 
+use crate::machinery::composite::composite_behavior;
 use crate::toggle_group::Orientation;
 
 /// A radio option within a group.
@@ -98,6 +103,8 @@ pub fn radio_group(
         let cr_value = item.value.clone();
         let checked_input = value_for_render.clone();
         let ci_value = item.value.clone();
+        let active_input = value_for_render.clone();
+        let ai_value = item.value.clone();
         html! { c, r,
             <span class="radio"
                   data-value=[item_value.clone()]
@@ -106,6 +113,8 @@ pub fn radio_group(
                 <input type="radio" class="radio-input"
                        name=[name]
                        value=[item_value]
+                       data-composite-item="true"
+                       data-composite-active={(active_input.get().as_deref() == Some(ai_value.as_str())).then_some("")}
                        checked={(checked_input.get().as_deref() == Some(ci_value.as_str())).then_some("")}
                        disabled=[disabled.then_some("")]
                        primal:onchange={select} />
@@ -119,10 +128,12 @@ pub fn radio_group(
         <div class=[class] role="radiogroup"
              aria-label=[config.aria_label]
              data-composite="true"
+             data-composite-select="true"
              data-orientation={orientation}
              data-required=[config.required.then_some("")]
              data-disabled=[group_disabled.then_some("")]>
             <For each={items.clone()} key={|item: &RadioItem| item.value.clone()} render={render} />
+            <Fragment>{composite_behavior()}</Fragment>
         </div>
     }
 }
