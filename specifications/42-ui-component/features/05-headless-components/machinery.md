@@ -141,23 +141,28 @@ function-registry ABI (`foundation_wasm::host_runtime::web`):
   `invoke_as_*(handler, &[Params])` calls it. The fn runs with `this` = the
   FunctionRegistry `context`. (host_runtime.rs §web; foundation-wasm.js
   `FunctionRegistry`.)
-- **Element resolution = `querySelector('[primal-id="N"]')` (REVISED
-  2026-06-13, supersedes the earlier `this.node` plan).** Bodies resolve their
-  own elements by the stable `primal-id` attribute, NOT the wasm NodeRegistry —
-  this makes a body byte-identical across deployments and mount-timing-safe (it
-  queries an element that already exists in the DOM).
-- **Delivery = a self-invoking `<script>` node (uniform path).** Each behavior
-  emits an `Html` `<script>` carrying `(SOURCE)(primalId, …opts)`:
-  - SSR / `to_markup`: ships inline, runs at parse after its target, auto-hooks
-    — no wasm ABI, native compiles with zero `cfg` gating.
-  - wasm reactive: injected as a DOM node; the applicator uses
-    `createElement`+`appendChild` (NOT `innerHTML`), so the script EXECUTES on
-    insertion.
-  `register_function`+`invoke_as_*` (host_runtime web) stays available as a
-  LATER wasm-only optimization (register once, invoke per instance) if
-  per-instance script nodes become a measured cost; the body is unchanged
-  (still `querySelector`-based). Bodies MUST be idempotent (clear prior
-  listeners on re-attach) so morph re-insertion is safe.
+- **Delivery = SCOPED SCRIPTS (FINAL, 2026-06-13 — supersedes both the
+  `this.node` and the raw-`<script>`+`querySelector` plans).** Reuse the
+  EXISTING scoped-script hydrator (spec-39 feature 09 §5): each behavior emits
+  a `<script scoped primal:script>function(scope){…}</script>` node inside the
+  component root. The hydrator runs it with a `scope` object:
+  - `scope.parent()` / `scope.targets()` → the component element(s) directly —
+    no `primal-id` plumbing, no `querySelector` guesswork.
+  - `scope.addEvent(target, type, handler)` → listener with AUTO-CLEANUP on
+    disconnect, so idempotency-on-re-attach is handled for free.
+  - `scope.querySelector(sel)` (parent-scoped) + `primal.on/onclick/onchange`
+    globals. Bubbled events: one listener on `scope.parent()`, read
+    `event.target` (M5 key handling, M3 outside-click).
+  Per-behavior OPTIONS ride the parent's data-attributes (which the component
+  already sets — `data-orientation`, `data-loop`, …); the body reads them off
+  `scope.parent()`. No `register_function`, no `cfg(wasm32)` gating, no
+  mount-timing dance, no new JS infra. `register_function`+`invoke` remains a
+  possible later optimization but is NOT needed.
+- **One integration point to verify (§5.4):** scoped scripts OUTSIDE an
+  `<island>` are compile-time only — the MutationObserver does not hydrate
+  runtime-inserted ones. Reactive (runtime-mounted) components must therefore
+  hydrate within an island's `connectedCallback`, OR the observer is extended
+  to run scoped scripts on insertion. Confirm/choose before building M5.
 - **Per behavior.** A `&str` JS-source const (function expression) colocated
   with the Rust contract + a typed Rust `attach(node_id, …opts) -> Html` that
   returns the self-invoking `<script>` node the component embeds (no `cfg`
