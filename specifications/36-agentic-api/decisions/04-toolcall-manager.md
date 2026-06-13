@@ -41,11 +41,37 @@ ToolCallManager { inner: Arc<ToolCallManagerInner> }
 | **Parallel** | Execute all tool calls concurrently, collect all results | Independent tool calls (no data dependencies) |
 | **Batch** | Group tool calls, execute groups sequentially, parallel within groups | Mixed dependencies (some independent, some dependent) |
 
-### Dependency Analysis — DAG Execution
+### Dependency Analysis — Workflow-Based DAG Execution
 
-When the LLM returns multiple tool calls, the ToolCallManager builds a **directed acyclic graph (DAG)** of dependencies and computes an execution plan that maximizes parallelism while respecting sequential dependencies.
+When the LLM returns multiple tool calls, the ToolCallManager builds a **workflow** — a flat list of stages that execute sequentially, where each stage is either parallel or sequential tool calls.
 
-The LLM can explicitly declare dependencies between tool calls:
+```rust
+pub struct ToolCallWorkflow {
+    pub stages: Vec<ToolCallStage>,
+}
+
+pub enum ToolCallStage {
+    /// Run these tool calls in parallel
+    Parallel {
+        calls: Vec<ToolCallRequest>,
+        fail_mode: FailMode,  // continue on failure vs cancel all
+    },
+    /// Run these tool calls sequentially, each feeds off the previous result
+    Sequential {
+        calls: Vec<ToolCallRequest>,
+        fail_fast: bool,  // if one fails, stop the rest
+    },
+}
+
+pub enum FailMode {
+    /// Continue running all tool calls, collect all results (default)
+    CollectAll,
+    /// If any fails, cancel the remaining calls in this stage
+    CancelOnFailure,
+}
+```
+
+The LLM declares dependencies via `depends_on` in each tool call:
 
 ```rust
 pub struct ToolCallRequest {
@@ -53,37 +79,13 @@ pub struct ToolCallRequest {
     pub name: String,
     pub arguments: HashMap<String, ArgType>,
     pub depends_on: Vec<String>,       // tool call IDs this depends on
-    pub execution_hint: ExecutionHint, // how to execute
-}
-
-pub enum ExecutionHint {
-    /// No preference — ToolCallManager decides (default)
-    Unspecified,
-    /// Run in parallel with other independent calls
-    Parallel,
-    /// Run after all depends_on calls complete
-    Sequential,
-    /// Run in a specific position within a pipeline
-    Pipeline { position: usize },
-}
-
-pub enum ExecutionPlan {
-    /// All tool calls are independent — run in parallel
-    Parallel(Vec<ToolCallRequest>),
-    
-    /// All tool calls must run sequentially
-    Sequential(Vec<ToolCallRequest>),
-    
-    /// DAG execution: groups run sequentially, members run in parallel
-    Dag(Vec<ToolCallStage>),
-}
-
-pub struct ToolCallStage {
-    pub stage_id: usize,
-    pub calls: Vec<ToolCallRequest>,    // run in parallel within stage
-    pub depends_on: Vec<usize>,         // stage IDs this stage depends on
 }
 ```
+
+The ToolCallManager groups tool calls into stages based on dependency depth:
+1. Tool calls with no dependencies → Stage 0 (parallel)
+2. Tool calls depending on Stage 0 → Stage 1 (sequential or parallel based on their dependencies)
+3. And so on...
 
 **Execution example:**
 
@@ -95,22 +97,76 @@ LLM returns 5 tool calls:
 ├── call_4: analyze_results(call_1, call_2, call_3)  — depends on [call_1, call_2, call_3]
 └── call_5: write_report(call_4)          — depends on [call_4]
 
-ToolCallManager builds DAG:
-├── Stage 0: [call_1, call_2, call_3] — run in parallel
-├── Stage 1: [call_4] — runs after Stage 0 completes
-└── Stage 2: [call_5] — runs after Stage 1 completes
+ToolCallManager builds workflow:
+├── Stage 0 (Parallel): [call_1, call_2, call_3]
+│   └── All run concurrently, collect all results
+├── Stage 1 (Sequential): [call_4]
+│   └── Runs after Stage 0 completes, feeds off results
+└── Stage 2 (Sequential): [call_5]
+    └── Runs after Stage 1 completes
 
 Execution:
-├── Stage 0 → parallel (3 files read concurrently)
-├── Stage 1 → sequential (analysis waits for all reads)
-└── Stage 2 → sequential (report waits for analysis)
+├── Stage 0 → 3 files read in parallel
+├── Stage 1 → analysis (waits for all reads)
+└── Stage 2 → report (waits for analysis)
+```
+
+**Sequential stage with multiple calls:**
+
+```
+LLM returns 3 dependent calls:
+├── call_1: query_database("SELECT users")     — no dependencies
+├── call_2: process_data(call_1.result)        — depends on [call_1]
+└── call_3: save_results(call_2.result)        — depends on [call_2]
+
+ToolCallManager builds workflow:
+├── Stage 0 (Sequential, fail_fast=true): [call_1, call_2, call_3]
+│   └── call_1 runs, result passed to call_2, result passed to call_3
+│   └── If any fails, remaining calls are skipped
+```
+
+**Execution logic:**
+
+```rust
+impl ToolCallManager {
+    fn execute_workflow(&self, workflow: ToolCallWorkflow) -> Vec<ToolCallResult> {
+        let mut results = HashMap::new();
+        
+        for stage in workflow.stages {
+            match stage {
+                ToolCallStage::Parallel { calls, fail_mode } => {
+                    let stage_results = self.execute_parallel(calls, fail_mode);
+                    
+                    // Check if any failed and fail_mode is CancelOnFailure
+                    if fail_mode == FailMode::CancelOnFailure 
+                        && stage_results.iter().any(|r| r.is_err()) {
+                        break;  // cancel remaining stages
+                    }
+                    results.extend(stage_results);
+                }
+                ToolCallStage::Sequential { calls, fail_fast } => {
+                    for call in calls {
+                        let result = self.execute(call);
+                        results.insert(call.id.clone(), result.clone());
+                        
+                        if fail_fast && result.is_err() {
+                            break;  // stop sequential chain
+                        }
+                    }
+                }
+            }
+        }
+        results
+    }
+}
 ```
 
 **Dependency detection strategy:**  
 - **Default: Parallel** — tool calls with no explicit dependencies are assumed independent
 - **Explicit dependencies** — tool calls declare `depends_on: [tool_call_id]` to force ordering
-- **Argument analysis** (future) — ToolCallManager can detect implicit dependencies by analyzing arguments (e.g., if call_4's arguments reference call_1's output variable)
-- **LLM hint** — LLM can use `execution_hint` to guide the ToolCallManager
+- **Stage grouping** — ToolCallManager groups calls into stages by dependency depth (topological sort)
+- **LLM hints** — LLM can use `execution_hint` (Parallel, Sequential) to guide grouping
+- **Fail mode** — Parallel stages default to `CollectAll` (continue on failure), can be set to `CancelOnFailure`
 - **Heuristic detection** (future) — analyze tool call arguments for references to prior tool call outputs
 
 ### Persistence Guarantee
