@@ -50,12 +50,21 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
                     field_inits.push(quote! { static_dir: ::core::option::Option::Some((#value).into()) });
                 }
                 "static_mount" => field_inits.push(quote! { static_mount: (#value).to_string() }),
+                "encoding" => field_inits.push(quote! {
+                    encoding: ::core::str::FromStr::from_str(#value)
+                        .expect("wasm_ui_server: invalid encoding (json|columnar)")
+                }),
+                "headers" => field_inits.push(quote! {
+                    headers: ::core::iter::IntoIterator::into_iter(#value)
+                        .map(|(k, v)| (::std::string::ToString::to_string(k), ::std::string::ToString::to_string(v)))
+                        .collect()
+                }),
                 other => {
                     return syn::Error::new_spanned(
                         nv.path,
                         format!(
-                            "unknown wasm_ui_server arg `{other}` \
-                             (expected port/host/headless/html/file/static_dir/static_mount)"
+                            "unknown wasm_ui_server arg `{other}` (expected port/host/headless/\
+                             html/file/static_dir/static_mount/encoding/headers)"
                         ),
                     )
                     .to_compile_error();

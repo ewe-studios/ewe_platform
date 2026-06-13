@@ -151,6 +151,29 @@ The wasm bundle comes from `foundation_wasm_testbed`'s build step; the same
    Rust signals, asserted in a real browser.
 6. **Mode 2** validated with a built wasm bundle (`StaticFileHandler`).
 
+## Implementation findings (channel-A transport, proven)
+
+Two things surfaced wiring the SSE stream route against `foundation_http`:
+
+1. **No `Content-Length` on a streaming SSE response.** `SseStream::new` writes
+   `SendSafeBody::None`, which renders `Content-Length: 0` — the browser then
+   reads zero bytes and treats the body as COMPLETE (`EventSource` errors,
+   `fetch().body` ends immediately), ignoring every `data:` line written after.
+   The `StreamHandler` writes a streaming head by hand (no `Content-Length`,
+   `Connection: keep-alive`), and the stream stays open.
+2. **`Take` already IS "take and owned".** The worry was that returning
+   `ConnectionResult::Take` would let the worker reap/close the socket, motivating
+   a future `TakeAndOwned`. It doesn't: `SharedByteBufferStream` is `Arc`-shared
+   (`OwnedReader` over `Arc<RwLock<…>>`), so the worker dropping ITS handle on
+   `Take` leaves the broadcaster's clone holding the socket open. So a handler can
+   detach (clone into the broadcaster, return `Take`) WITHOUT blocking a worker
+   per stream — no new variant needed. (`TakeAndOwned` could still be added later
+   purely as intent-signalling, but it's not required for this.)
+
+Verified end-to-end: a frame pushed from Rust (`server.push_frame`) reaches a real
+browser's `EventSource` over SSE (base64-decoded in the page), the stream stays
+open, and teardown drops the connections cleanly.
+
 ## Open decisions
 
 - **SSE vs WS first:** SSE-over-fetch is simpler and the JS runtime supports it; WS

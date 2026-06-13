@@ -302,7 +302,7 @@ impl D1Store {
     }
 
     fn wrap_value<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
+        val
     }
 
     fn wrap_vec<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
@@ -334,7 +334,7 @@ impl D1Store {
 // ===========================================================================
 
 impl KeyValueStore for D1Store {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
@@ -350,7 +350,7 @@ impl KeyValueStore for D1Store {
         }
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
         let json_value = serde_json::to_string(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
         let sql = format!(
             "INSERT INTO {} (key, value, updated_at) VALUES (?, ?, strftime('%s', 'now') * 1000) ON CONFLICT(key) DO UPDATE SET value = ?, updated_at = strftime('%s', 'now') * 1000",
@@ -362,13 +362,13 @@ impl KeyValueStore for D1Store {
         Ok(Self::wrap_value(()))
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
         self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         Ok(Self::wrap_value(()))
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         Ok(Self::wrap_value(!Self::extract_rows(&response).is_empty()))
@@ -427,7 +427,7 @@ impl QueryStore for D1Store {
         Ok(Self::wrap_vec(results?))
     }
 
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
             DataValue::Null => serde_json::Value::Null,
             DataValue::Integer(i) => serde_json::Value::Number(serde_json::Number::from(*i)),
@@ -442,7 +442,7 @@ impl QueryStore for D1Store {
         Ok(Self::wrap_value(affected))
     }
 
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_sql(sql, &[])?;
         Ok(Self::wrap_value(()))
     }
@@ -453,7 +453,7 @@ impl QueryStore for D1Store {
 // ===========================================================================
 
 impl RateLimiterStore for D1Store {
-    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         let create_table = r"CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
         self.execute_sql(create_table, &[])?;
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
@@ -473,7 +473,7 @@ impl RateLimiterStore for D1Store {
         Ok(Self::wrap_value(allowed))
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let now = std::time::SystemTime::now().duration_since(std::time::UNIX_EPOCH).unwrap().as_secs();
         let sql = "INSERT INTO rate_limits (key, count, window_start) VALUES (?, 1, ?) ON CONFLICT(key) DO UPDATE SET count = count + 1, window_start = excluded.window_start";
         self.execute_sql(sql, &[serde_json::Value::String(key.to_string()), serde_json::Value::Number(serde_json::Number::from(now))])?;
@@ -485,7 +485,7 @@ impl RateLimiterStore for D1Store {
         Ok(Self::wrap_value(count))
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let sql = "DELETE FROM rate_limits WHERE key = ?";
         self.execute_sql(sql, &[serde_json::Value::String(key.to_string())])?;
         Ok(Self::wrap_value(()))
@@ -497,7 +497,7 @@ impl RateLimiterStore for D1Store {
 // ===========================================================================
 
 impl BlobStore for D1Store {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = STANDARD.encode(data);
         let json_value = serde_json::json!({ "type": "blob", "encoding": "base64", "data": encoded }).to_string();
         let sql = format!(
@@ -510,7 +510,7 @@ impl BlobStore for D1Store {
         Ok(Self::wrap_value(()))
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         let rows = Self::extract_rows(&response);
@@ -533,13 +533,13 @@ impl BlobStore for D1Store {
         }
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
         self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         Ok(Self::wrap_value(()))
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
         Ok(Self::wrap_value(!Self::extract_rows(&response).is_empty()))

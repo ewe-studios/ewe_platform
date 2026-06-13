@@ -73,7 +73,7 @@ impl KVWasmStorage {
 
     #[allow(dead_code)]
     fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
+        val
     }
 
     fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
@@ -87,9 +87,9 @@ impl KVWasmStorage {
 
 impl KeyValueStore for KVWasmStorage {
     fn get<'a, V: serde::de::DeserializeOwned + Send + 'static>(
-        &'a self,
+        &self,
         key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    ) -> StorageResult<Option<V>> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -97,7 +97,7 @@ impl KeyValueStore for KVWasmStorage {
         })
     }
 
-    fn set<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -105,7 +105,7 @@ impl KeyValueStore for KVWasmStorage {
         })
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -113,7 +113,7 @@ impl KeyValueStore for KVWasmStorage {
         })
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -285,13 +285,13 @@ impl QueryStore for KVWasmStorage {
         &self,
         _sql: &str,
         _params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, u64>> {
+    ) -> StorageResult<u64> {
         Err(StorageError::Generic(
             "QueryStore not supported for KVWasmStorage".to_string(),
         ))
     }
 
-    fn execute_batch(&self, _sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
         Err(StorageError::Generic(
             "QueryStore not supported for KVWasmStorage".to_string(),
         ))
@@ -308,7 +308,7 @@ impl RateLimiterStore for KVWasmStorage {
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>> {
+    ) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -316,7 +316,7 @@ impl RateLimiterStore for KVWasmStorage {
         })
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -324,7 +324,7 @@ impl RateLimiterStore for KVWasmStorage {
         })
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -473,7 +473,7 @@ impl AsyncRateLimiterStore for KVWasmStorage {
 // ===========================================================================
 
 impl BlobStore for KVWasmStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
         let data = data.to_vec();
@@ -482,7 +482,7 @@ impl BlobStore for KVWasmStorage {
         })
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -490,7 +490,7 @@ impl BlobStore for KVWasmStorage {
         })
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -498,7 +498,7 @@ impl BlobStore for KVWasmStorage {
         })
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {

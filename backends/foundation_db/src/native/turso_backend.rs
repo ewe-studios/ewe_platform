@@ -601,10 +601,10 @@ impl TursoStorage {
 }
 
 impl KeyValueStore for TursoStorage {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(
-        &'a self,
+    fn get<V: DeserializeOwned + Send + 'static>(
+        &self,
         key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    ) -> StorageResult<Option<V>> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -612,7 +612,7 @@ impl KeyValueStore for TursoStorage {
         })
     }
 
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -620,7 +620,7 @@ impl KeyValueStore for TursoStorage {
         })
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -628,7 +628,7 @@ impl KeyValueStore for TursoStorage {
         })
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -685,7 +685,7 @@ impl QueryStore for TursoStorage {
         &self,
         sql: &str,
         params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, u64>> {
+    ) -> StorageResult<u64> {
         let sql = sql.to_string();
         let storage = self.clone();
         let params = params.to_vec();
@@ -694,7 +694,7 @@ impl QueryStore for TursoStorage {
         })
     }
 
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         let sql = sql.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -709,7 +709,7 @@ impl RateLimiterStore for TursoStorage {
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>> {
+    ) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -717,7 +717,7 @@ impl RateLimiterStore for TursoStorage {
         })
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -725,7 +725,7 @@ impl RateLimiterStore for TursoStorage {
         })
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -735,7 +735,7 @@ impl RateLimiterStore for TursoStorage {
 }
 
 impl BlobStore for TursoStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let key = key.to_string();
         let data = data.to_vec();
         let storage = self.clone();
@@ -744,7 +744,7 @@ impl BlobStore for TursoStorage {
         })
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -752,7 +752,7 @@ impl BlobStore for TursoStorage {
         })
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -760,7 +760,7 @@ impl BlobStore for TursoStorage {
         })
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {

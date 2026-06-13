@@ -1,18 +1,21 @@
-//! # TestServer (spec-43 phase-1 §6) — on `foundation_http`
+//! # TestServer (spec-43 phase-1 §6 + feature 01) — on `foundation_http`
 //!
 //! WHY: The page under test must be served somewhere the browser can load it,
-//! torn down with the test. We dogfood our OWN server (`foundation_http`) rather
-//! than a raw socket — its `Serve` handlers OWN the connection, which is what the
-//! later channel-A DOM-op stream route (`ConnectionResult::Take`) needs.
+//! torn down with the test. We dogfood our OWN server (`foundation_http`) — its
+//! `Serve` handlers OWN the connection, which the channel-A DOM-op stream route
+//! (`ConnectionResult::Take`) needs. Response headers + the wire encoding are
+//! declared up front (the browser runtime negotiates off them).
 //!
-//! WHAT: [`PageSource`] (inline HTML or an on-disk file), [`TestServer`] — boot
-//! an `HttpApp` serving the page at `/` (+ an optional [`StaticFileHandler`]
-//! directory for assets/wasm), RAII `Drop` (signal shutdown + join).
+//! WHAT: [`PageSource`] (inline HTML or a file), [`Encoding`] (json/columnar),
+//! [`TestServer`] — boot an `HttpApp` serving the page at `/`, a static dir, and
+//! the channel-A stream at [`STREAM_PATH`](crate::test::stream::STREAM_PATH);
+//! `broadcaster()` pushes frames; RAII `Drop` stops the server.
 //!
-//! HOW: A `PageHandler` (`Serve`) reads the mountable page from the `ContextBag`
-//! and writes it; `StaticFileHandler::new(dir)` (reused from `foundation_http`)
-//! serves a directory under a mount prefix. Served via `serve_with_listener` on
-//! an ephemeral `TcpListener` on a background thread, stopped by an `OnSignal`.
+//! HOW: A `PageHandler` (`Serve`) reads the page + headers from the `ContextBag`
+//! and writes them; `StaticFileHandler` serves a directory; [`StreamHandler`]
+//! upgrades the owned connection to SSE and registers it with the
+//! [`Broadcaster`]. Served via `serve_with_listener` on an ephemeral
+//! `TcpListener` on a background thread, stopped by an `OnSignal`.
 
 use std::net::TcpListener;
 use std::path::PathBuf;
@@ -24,12 +27,48 @@ use foundation_http::native::handlers::static_file::StaticFileHandler;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
-use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};
+use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_http::OnSignal;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::shared::SimpleIncomingRequest;
+use foundation_netio::simple_http::shared::{
+    Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
+    Status,
+};
 
 use crate::error::{BrowserError, Result};
+use crate::test::stream::{BroadcastTx, Broadcaster, StreamHandler, STREAM_PATH};
+
+/// The wire encoding the App streams in (and that the browser runtime decodes).
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum Encoding {
+    /// UTF-8 JSON frames — debuggable; the recommended first cut over SSE.
+    #[default]
+    Json,
+    /// Compact columnar binary frames.
+    Columnar,
+}
+
+impl Encoding {
+    /// The token announced via the `X-Primal-Encoding` header.
+    #[must_use]
+    pub fn token(self) -> &'static str {
+        match self {
+            Encoding::Json => "json",
+            Encoding::Columnar => "columnar",
+        }
+    }
+}
+
+impl core::str::FromStr for Encoding {
+    type Err = String;
+    fn from_str(s: &str) -> core::result::Result<Self, Self::Err> {
+        match s {
+            "json" | "Json" | "JSON" => Ok(Encoding::Json),
+            "columnar" | "Columnar" => Ok(Encoding::Columnar),
+            other => Err(format!("unknown encoding `{other}` (json|columnar)")),
+        }
+    }
+}
 
 /// What the `/` route renders: inline HTML or a file read at request time.
 #[derive(Clone)]
@@ -59,10 +98,13 @@ pub struct StaticMount {
     pub dir: PathBuf,
 }
 
-/// The mountable page, parked in the `ContextBag` for `PageHandler` to read.
-struct PageBody(Arc<Mutex<PageSource>>);
+/// The mountable page + response headers, parked in the `ContextBag`.
+struct PageState {
+    page: Mutex<PageSource>,
+    headers: Vec<(String, String)>,
+}
 
-/// Serves the current [`PageSource`] at its route.
+/// Serves the current [`PageSource`] with the configured headers.
 struct PageHandler;
 
 impl ServeFactory for PageHandler {
@@ -78,37 +120,62 @@ impl Serve for PageHandler {
         _req: SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
-        let html = bag
-            .get::<PageBody>()
-            .map(|b| b.0.lock().expect("page body poisoned").render())
-            .unwrap_or_default();
-        respond::html(&mut conn, 200, &html)
-            .map_or(ConnectionResult::Close(None), |()| ConnectionResult::Keep)
+        let Some(state) = bag.get::<SharedState>() else {
+            return ConnectionResult::Close(None);
+        };
+        let html = state.page.lock().expect("page poisoned").render();
+        let mut builder = SimpleOutgoingResponse::builder()
+            .with_status(Status::OK)
+            .add_header(SimpleHeader::CONTENT_TYPE, "text/html; charset=utf-8");
+        for (name, value) in &state.headers {
+            builder = builder.add_header(SimpleHeader::custom(name), value);
+        }
+        let Ok(response) = builder.with_body(SendSafeBody::Text(html)).build() else {
+            return ConnectionResult::Close(None);
+        };
+        Http11::response(response)
+            .http_render_to_writer(&mut conn)
+            .map_or(ConnectionResult::Close(None), |_| ConnectionResult::Keep)
     }
 }
 
-/// A background `foundation_http` server serving the page under test.
+/// A background `foundation_http` server serving the page + channel-A stream.
 pub struct TestServer {
     addr: std::net::SocketAddr,
-    page: Arc<Mutex<PageSource>>,
+    page: Arc<PageState>,
+    broadcaster: Broadcaster,
     shutdown: Arc<OnSignal>,
     handle: Option<JoinHandle<()>>,
 }
 
 impl TestServer {
-    /// Start a server bound to `bind` serving `page` at `/`, plus any static
-    /// directory mounts (assets/wasm).
+    /// Start a server bound to `bind` serving `page` at `/`, static directory
+    /// mounts, and the channel-A SSE stream. `headers` are attached to the page
+    /// response; `encoding` adds the `X-Primal-Encoding` announce header.
     ///
     /// # Errors
     /// [`BrowserError::Io`] if the listener can't bind.
-    pub fn start(bind: &str, page: PageSource, statics: &[StaticMount]) -> Result<Self> {
+    pub fn start(
+        bind: &str,
+        page: PageSource,
+        statics: &[StaticMount],
+        mut headers: Vec<(String, String)>,
+        encoding: Encoding,
+    ) -> Result<Self> {
         let listener = TcpListener::bind(bind)?;
         let addr = listener.local_addr()?;
-        let page = Arc::new(Mutex::new(page));
+
+        headers.push(("X-Primal-Encoding".into(), encoding.token().into()));
+        let page_state = Arc::new(PageState { page: Mutex::new(page), headers });
+        let broadcaster = Broadcaster::new();
 
         let mut app = HttpApp::new_serve();
-        app.context().store(PageBody(page.clone()));
+        // PageState + Broadcaster are read out of the bag by the handlers; the
+        // Arc/clone share the same state the TestServer holds.
+        app.context().store(SharedState(page_state.clone()));
+        app.context().store(broadcaster.clone());
         app.route_any::<PageHandler>("/");
+        app.route_any::<StreamHandler>(STREAM_PATH);
         for sm in statics {
             let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(sm.dir.clone()));
             app.router.add_route_any(&format!("{}/*", sm.mount.trim_end_matches('/')), &handler);
@@ -124,7 +191,7 @@ impl TestServer {
                 .map_err(|e| BrowserError::Launch(e.to_string()))?
         };
 
-        Ok(Self { addr, page, shutdown, handle: Some(handle) })
+        Ok(Self { addr, page: page_state, broadcaster, shutdown, handle: Some(handle) })
     }
 
     /// The base URL (e.g. `http://127.0.0.1:54321/`).
@@ -135,12 +202,39 @@ impl TestServer {
 
     /// Replace the served page (takes effect on the next navigation).
     pub fn mount(&self, page: PageSource) {
-        *self.page.lock().expect("page poisoned") = page;
+        *self.page.page.lock().expect("page poisoned") = page;
+    }
+
+    /// A `Send` handle for streaming protocol frames to the connected browser
+    /// (the App's broadcast sink pushes through this).
+    #[must_use]
+    pub fn broadcaster(&self) -> BroadcastTx {
+        self.broadcaster.sender()
+    }
+
+    /// Convenience: push one raw frame to the browser (used by transport tests).
+    pub fn push_frame(&self, frame: &[u8]) {
+        self.broadcaster.sender().send(frame);
+    }
+}
+
+/// Newtype so `PageState` (which itself isn't the bag key) stores cleanly.
+struct SharedState(Arc<PageState>);
+
+// The bag stores `SharedState`; `PageHandler` looks up `PageState` via it.
+impl core::ops::Deref for SharedState {
+    type Target = PageState;
+    fn deref(&self) -> &PageState {
+        &self.0
     }
 }
 
 impl Drop for TestServer {
     fn drop(&mut self) {
+        // Unblock the streaming handlers first (drop their senders → recv errors
+        // → the handlers return → their valtron workers are freed), THEN stop
+        // the accept loop and join.
+        self.broadcaster.close();
         self.shutdown.turn_on();
         if let Some(handle) = self.handle.take() {
             if handle.join().is_err() {

@@ -45,12 +45,7 @@ pub trait StorageCleanup: QueryStore {
         };
 
         let stream = self.execute(&sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        Ok(stream)
     }
 
     /// Delete expired JWT tokens (refresh tokens past expiration).
@@ -66,13 +61,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM jwt_tokens WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Delete expired verification tokens.
@@ -88,13 +77,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM verification_tokens WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Delete expired OAuth states (PKCE states past expiration).
@@ -110,13 +93,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM oauth_states WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        let stream = self.execute(sql, &params)?;
-        for item in stream {
-            if let foundation_core::valtron::Stream::Next(result) = item {
-                return result.map_err(|e| StorageError::Generic(format!("Cleanup failed: {e}")));
-            }
-        }
-        Err(StorageError::Generic("No result from cleanup".to_string()))
+        self.execute(sql, &params)
     }
 
     /// Delete expired magic links.

@@ -240,10 +240,7 @@ impl StorageProvider {
 }
 
 impl KeyValueStore for StorageProvider {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(
-        &'a self,
-        key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.get(key),
@@ -270,7 +267,7 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.set(key, value),
@@ -297,7 +294,7 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.delete(key),
@@ -324,7 +321,7 @@ impl KeyValueStore for StorageProvider {
         }
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.exists(key),
@@ -417,7 +414,7 @@ impl QueryStore for StorageProvider {
         &self,
         sql: &str,
         params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, u64>> {
+    ) -> StorageResult<u64> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.execute(sql, params),
@@ -446,7 +443,7 @@ impl QueryStore for StorageProvider {
         }
     }
 
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.execute_batch(sql),
@@ -482,7 +479,7 @@ impl RateLimiterStore for StorageProvider {
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>> {
+    ) -> StorageResult<bool> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => {
@@ -525,7 +522,7 @@ impl RateLimiterStore for StorageProvider {
         }
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.record_rate_limit(key),
@@ -552,7 +549,7 @@ impl RateLimiterStore for StorageProvider {
         }
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.reset_rate_limit(key),
@@ -581,7 +578,7 @@ impl RateLimiterStore for StorageProvider {
 }
 
 impl BlobStore for StorageProvider {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.put_blob(key, data),
@@ -604,7 +601,7 @@ impl BlobStore for StorageProvider {
         }
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.get_blob(key),
@@ -627,7 +624,7 @@ impl BlobStore for StorageProvider {
         }
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.delete_blob(key),
@@ -650,7 +647,7 @@ impl BlobStore for StorageProvider {
         }
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
             StorageProviderInner::Turso(storage) => storage.blob_exists(key),

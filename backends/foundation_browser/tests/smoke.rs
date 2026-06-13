@@ -131,3 +131,26 @@ fn file_page_source_and_static_directory() {
 
     let _ = std::fs::remove_dir_all(&dir);
 }
+
+#[test]
+fn channel_a_streams_a_frame_to_the_browser() {
+    // The page opens the channel-A SSE stream and renders each frame (base64 → text).
+    let harness = Harness::setup(TestConfig {
+        html: "<div id='out'></div><script>\
+               var es=new EventSource('/__primal/stream');\
+               es.onmessage=function(e){var d=document.createElement('div');d.className='frame';\
+                 d.textContent=atob(e.data);document.getElementById('out').appendChild(d)};\
+               </script>"
+            .into(),
+        ..TestConfig::default()
+    })
+    .expect("setup");
+
+    harness.run("channel_a_streams_a_frame_to_the_browser", |server, page| {
+        // Push a frame from Rust → broadcaster → SSE → browser. Backlog/replay
+        // absorbs the connect/push race; the assertion retries.
+        server.push_frame(b"hello-stream");
+        page.locator(".frame").expect().to_have_text("hello-stream")?;
+        Ok(())
+    });
+}

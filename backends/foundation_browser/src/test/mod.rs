@@ -6,6 +6,8 @@
 
 pub mod harness;
 pub mod server;
+pub mod stream;
 
 pub use harness::{Harness, TestConfig};
-pub use server::{PageSource, StaticMount, TestServer};
+pub use server::{Encoding, PageSource, StaticMount, TestServer};
+pub use stream::{BroadcastTx, Broadcaster, STREAM_PATH};

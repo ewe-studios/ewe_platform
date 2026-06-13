@@ -167,7 +167,7 @@ impl R2Store {
     }
 
     fn wrap_value<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
+        val
     }
 
     fn wrap_value_state<T: Send + 'static>(val: T) -> StateStoreStream<T> {
@@ -318,7 +318,7 @@ impl R2Store {
 // ===========================================================================
 
 impl BlobStore for R2Store {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let object_key = self.blob_object_key(key);
         let url = self.object_url(&object_key);
         let response = self
@@ -339,7 +339,7 @@ impl BlobStore for R2Store {
         Ok(Self::wrap_value(()))
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let object_key = self.blob_object_key(key);
         let url = self.object_url(&object_key);
         let response = self
@@ -362,7 +362,7 @@ impl BlobStore for R2Store {
         Ok(Self::wrap_value(Some(bytes)))
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let object_key = self.blob_object_key(key);
         let url = self.object_url(&object_key);
         let response = self
@@ -382,7 +382,7 @@ impl BlobStore for R2Store {
         Ok(Self::wrap_value(()))
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let object_key = self.blob_object_key(key);
         let url = self.object_url(&object_key);
         let response = self

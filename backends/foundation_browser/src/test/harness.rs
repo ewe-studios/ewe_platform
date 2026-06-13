@@ -18,7 +18,7 @@ use std::path::PathBuf;
 use crate::browser::{BrowserDriver, Page};
 use crate::cdp::launch::{Browser, LaunchConfig};
 use crate::error::Result;
-use crate::test::server::{PageSource, StaticMount, TestServer};
+use crate::test::server::{Encoding, PageSource, StaticMount, TestServer};
 
 /// Configuration for a `#[wasm_ui_server]` test.
 pub struct TestConfig {
@@ -34,6 +34,11 @@ pub struct TestConfig {
     pub static_dir: Option<PathBuf>,
     /// URL prefix for `static_dir` (default `/assets`).
     pub static_mount: String,
+    /// Extra response headers attached to the page response (the browser runtime
+    /// negotiates off these).
+    pub headers: Vec<(String, String)>,
+    /// The wire encoding the App streams in (also sets the announce header).
+    pub encoding: Encoding,
     /// Which browser.
     pub browser: Browser,
     /// Run headless (default true).
@@ -49,6 +54,8 @@ impl Default for TestConfig {
             file: None,
             static_dir: None,
             static_mount: "/assets".into(),
+            headers: Vec::new(),
+            encoding: Encoding::Json,
             browser: Browser::Chromium,
             headless: true,
         }
@@ -93,7 +100,13 @@ impl Harness {
     /// # Errors
     /// [`crate::BrowserError`] if the server can't bind or the browser can't launch.
     pub fn setup(config: TestConfig) -> Result<Self> {
-        let server = TestServer::start(&config.bind(), config.page(), &config.statics())?;
+        let server = TestServer::start(
+            &config.bind(),
+            config.page(),
+            &config.statics(),
+            config.headers.clone(),
+            config.encoding,
+        )?;
         let driver = BrowserDriver::launch(config.launch())?;
         Ok(Self { driver, server })
     }

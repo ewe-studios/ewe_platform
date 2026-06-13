@@ -57,7 +57,7 @@ impl R2WasmStorage {
 
     #[allow(dead_code)]
     fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
+        val
     }
 }
 
@@ -66,7 +66,7 @@ impl R2WasmStorage {
 // ===========================================================================
 
 impl BlobStore for R2WasmStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
         let data = data.to_vec();
@@ -75,7 +75,7 @@ impl BlobStore for R2WasmStorage {
         })
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -83,7 +83,7 @@ impl BlobStore for R2WasmStorage {
         })
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {
@@ -91,7 +91,7 @@ impl BlobStore for R2WasmStorage {
         })
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
         schedule_future(async move {

@@ -372,7 +372,7 @@ impl LibsqlStore {
     }
 
     fn wrap_value<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        Box::new(std::iter::once(Stream::Next(Ok(val))))
+        val
     }
 
     fn wrap_vec<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
@@ -721,25 +721,25 @@ impl LibsqlStore {
 // ===========================================================================
 
 impl KeyValueStore for LibsqlStore {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(&'a self, key: &str) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move { storage.get_async_internal::<V>(&key).await })
     }
 
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move { storage.set_async_internal(&key, value).await })
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move { storage.delete_async_internal(&key).await })
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move { storage.exists_async_internal(&key).await })
@@ -788,14 +788,14 @@ impl QueryStore for LibsqlStore {
         Ok(Box::new(stream))
     }
 
-    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
         let sql = sql.to_string();
         let storage = self.clone();
         let params = params.to_vec();
         Self::wrap_async(async move { storage.execute_async_internal(&sql, &params).await })
     }
 
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         let sql = sql.to_string();
         let storage = self.clone();
         Self::wrap_async(async move { storage.execute_batch_async_internal(&sql).await })
@@ -807,7 +807,7 @@ impl QueryStore for LibsqlStore {
 // ===========================================================================
 
 impl RateLimiterStore for LibsqlStore {
-    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn check_rate_limit(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -815,7 +815,7 @@ impl RateLimiterStore for LibsqlStore {
         })
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -823,7 +823,7 @@ impl RateLimiterStore for LibsqlStore {
         })
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move {
@@ -837,26 +837,26 @@ impl RateLimiterStore for LibsqlStore {
 // ===========================================================================
 
 impl BlobStore for LibsqlStore {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let key = key.to_string();
         let data = data.to_vec();
         let storage = self.clone();
         Self::wrap_async(async move { storage.put_blob_async_internal(&key, &data).await })
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move { storage.get_blob_async_internal(&key).await })
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move { storage.delete_blob_async_internal(&key).await })
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
         Self::wrap_async(async move { storage.blob_exists_async_internal(&key).await })
