@@ -239,6 +239,17 @@ fn popover_wires_trigger_positioner_and_modal_machinery() {
 }
 
 #[test]
+fn hover_behavior_ports_safe_polygon() {
+    use foundation_ui_components::machinery::hover::HOVER_JS;
+    // The full safePolygon geometry is present (not just a timer).
+    assert!(HOVER_JS.contains("inQuad"), "quadrilateral containment test");
+    assert!(HOVER_JS.contains("mousemove"), "tracks the cursor toward the popup");
+    assert!(HOVER_JS.contains("trough"), "ignores the trough between trigger and popup");
+    assert!(HOVER_JS.contains("data-hover-popup"), "resolves the floating element");
+    assert!(HOVER_JS.contains("leaveRight") && HOVER_JS.contains("leaveBottom"), "cursor exit side");
+}
+
+#[test]
 fn tooltip_is_hover_describe_popover() {
     let (app, sent) = App::mock();
     let (ctx, rcv) = app.context();

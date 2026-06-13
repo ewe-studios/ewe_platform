@@ -174,8 +174,8 @@ pub fn popover(
                     data-pressed={t_pressed.get().then_some("")}
                     primal:onclick={toggle}>
                 <Fragment>{trigger_html.clone()}</Fragment>
+                <Fragment>{is_hover.then(hover_behavior)}</Fragment>
             </button>
-            <Fragment>{is_hover.then(hover_behavior)}</Fragment>
             <button type="button" hidden="" data-hover-open="true" primal:onclick={hover_open} />
             <button type="button" hidden="" data-hover-close="true" primal:onclick={hover_close} />
             <div class="popover-positioner"
@@ -186,6 +186,7 @@ pub fn popover(
                 <div class=[class] id=[popup_id_attr]
                      role=[config.role]
                      data-anchor=[anchor_attr_popup]
+                     data-hover-popup="true"
                      data-dismiss="true"
                      data-scroll-lock=[modal.then_some("true")]
                      data-focus-trap=[modal.then_some("true")]

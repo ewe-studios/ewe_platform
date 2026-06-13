@@ -31,6 +31,7 @@ use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver, Slot};
 
 use crate::machinery::dismiss::dismiss_behavior;
+use crate::machinery::hover::hover_behavior;
 use crate::machinery::listbox::listbox_behavior;
 use crate::machinery::position::position_behavior;
 use crate::machinery::scoped_script;
@@ -434,12 +435,21 @@ fn render_entry(
                 let set_sub_open = set_sub_open.clone();
                 ctx.callback(move |_| set_sub_open.set(false))
             };
+            let hover_open = {
+                let set_sub_open = set_sub_open.clone();
+                ctx.callback(move |_| set_sub_open.set(true))
+            };
+            let hover_close = {
+                let set_sub_open = set_sub_open.clone();
+                ctx.callback(move |_| set_sub_open.set(false))
+            };
             let trigger_id_attr: Cow<'static, str> = Cow::Owned(trigger_id.clone());
             let anchor_attr: Cow<'static, str> = Cow::Owned(trigger_id);
             let popup_id_attr: Cow<'static, str> = Cow::Owned(popup_id);
             let s_open = sub_open.clone();
             let s_closed = sub_open.clone();
             let t_expanded = sub_open.clone();
+            // Submenus open on hover with base-ui's 100ms delay + safe polygon.
             html! { ctx, rcv,
                 <div class="menu-submenu">
                     <div class="menu-item menu-submenu-trigger" role="menuitem"
@@ -447,17 +457,22 @@ fn render_entry(
                          aria-haspopup="menu"
                          aria-expanded={t_expanded.get()}
                          data-label=[label_text]
+                         data-hover-delay="100"
                          aria-disabled={disabled.then_some("true")}
                          data-disabled={disabled.then_some("")}
                          primal:onclick={toggle}>
                         <Fragment>{label_html.clone()}</Fragment>
                         <span class="menu-submenu-arrow" aria-hidden="true">{"›"}</span>
+                        <Fragment>{hover_behavior()}</Fragment>
                     </div>
+                    <button type="button" hidden="" data-hover-open="true" primal:onclick={hover_open} />
+                    <button type="button" hidden="" data-hover-close="true" primal:onclick={hover_close} />
                     <div class="menu-positioner"
                          data-anchor=[anchor_attr]
                          data-prefer-side="right" data-prefer-align="start">
                         <div class="menu" id=[popup_id_attr]
                              role="menu" tabindex="0"
+                             data-hover-popup="true"
                              data-dismiss="true"
                              data-open={s_open.get().then_some("")}
                              data-closed={(!s_closed.get()).then_some("")}>
