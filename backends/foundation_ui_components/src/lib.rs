@@ -41,6 +41,11 @@ pub mod collapsible;
 pub mod accordion;
 pub mod tabs;
 
+// F4 — Overlays
+pub mod dialog;
+pub mod popover;
+pub mod toast;
+
 // Re-exports for convenience. `Orientation` is intentionally NOT re-exported
 // at the crate root (defined by both `separator` and `toggle_group`); reach it
 // via the module path.
@@ -58,6 +63,13 @@ pub use radio::{radio_group, RadioGroupConfig, RadioItem};
 pub use collapsible::{collapsible, CollapsibleConfig, CollapsibleSlots};
 pub use accordion::{accordion, AccordionConfig, AccordionItem};
 pub use tabs::{tabs, TabDef, TabsConfig};
+pub use dialog::{
+    alert_dialog, dialog, drawer, DialogConfig, DialogSlots, DrawerSide,
+};
+pub use popover::{
+    popover, preview_card, tooltip, HoverConfig, PopoverConfig, PopoverSlots,
+};
+pub use toast::{toast_viewport, Toast, ToastManager};
 pub use field_state::{
     field, FieldBinding, FieldConfig, FieldSlots, FieldState, ValidationMode, Validator,
 };

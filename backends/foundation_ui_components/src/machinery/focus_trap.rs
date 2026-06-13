@@ -12,7 +12,7 @@
 //! then focuses `data-initial-focus` (a selector; `"none"` skips) or the first
 //! tabbable. A `keydown` listener wraps Tab/Shift+Tab between the first and last
 //! visible tabbables. On close it restores focus to the recorded element, or to
-//! `primal:anchor` (the trigger) as a fallback.
+//! `data-anchor` (the trigger) as a fallback.
 
 use foundation_ui_traits::Html;
 
@@ -48,7 +48,7 @@ pub const FOCUS_TRAP_JS: &str = r#"function(scope){
   function deactivate(){
     var node = (restore && restore.focus) ? restore : null;
     if (!node) {
-      var anchor = el.getAttribute('primal:anchor');
+      var anchor = el.getAttribute('data-anchor');
       if (anchor) { var t = doc.getElementById(anchor); if (t) node = t; }
     }
     if (node && node.focus) node.focus();
@@ -75,7 +75,7 @@ pub const FOCUS_TRAP_JS: &str = r#"function(scope){
 
 /// The `<script>` node a modal popup embeds to trap focus while open. The popup
 /// root must carry [`DATA_FOCUS_TRAP`], toggle `data-open`, and (for restore)
-/// carry `primal:anchor` pointing at its trigger.
+/// carry `data-anchor` pointing at its trigger.
 #[must_use]
 pub fn focus_trap_behavior() -> Html {
     scoped_script(FOCUS_TRAP_JS)

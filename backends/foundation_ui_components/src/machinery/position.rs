@@ -13,8 +13,8 @@
 //! [`CollisionBehavior`]) describe the same contract on the Rust side.
 //!
 //! HOW: Reads its options off `scope.parent()` (the positioner element):
-//! `primal:anchor` (trigger id — else the previous sibling), `primal:side`,
-//! `primal:align`, `data-offset`, `data-collision-side|align` (`flip|shift|
+//! `data-anchor` (trigger id — else the previous sibling), `data-prefer-side`,
+//! `data-prefer-align`, `data-offset`, `data-collision-side|align` (`flip|shift|
 //! none`), `data-collision-padding`, `data-position-method`,
 //! `data-disable-anchor-tracking`. It measures both rects, applies side flip +
 //! align flip/shift within the viewport, writes `style.left/top` and the full
@@ -30,13 +30,13 @@ use foundation_ui_traits::Html;
 
 use super::scoped_script;
 
-/// Positioner attribute: the trigger/anchor element id (`primal:anchor`).
+/// Positioner attribute: the trigger/anchor element id (`data-anchor`).
 /// Absent → the positioner's previous element sibling is the anchor.
-pub const PRIMAL_ANCHOR: &str = "primal:anchor";
-/// Preferred side token (`primal:side`): `top|bottom|left|right`.
-pub const PRIMAL_SIDE: &str = "primal:side";
-/// Preferred alignment token (`primal:align`): `start|center|end`.
-pub const PRIMAL_ALIGN: &str = "primal:align";
+pub const DATA_ANCHOR: &str = "data-anchor";
+/// Preferred side token (`data-prefer-side`): `top|bottom|left|right`.
+pub const DATA_PREFER_SIDE: &str = "data-prefer-side";
+/// Preferred alignment token (`data-prefer-align`): `start|center|end`.
+pub const DATA_PREFER_ALIGN: &str = "data-prefer-align";
 /// Final post-collision side, reflected for CSS (`data-side`).
 pub const DATA_SIDE: &str = "data-side";
 /// Final post-collision alignment, reflected for CSS (`data-align`).
@@ -52,9 +52,9 @@ pub const POSITION_JS: &str = r#"function(scope){
   if (!pos) return;
   var doc = pos.ownerDocument || document;
   var win = doc.defaultView || window;
-  var anchorId = pos.getAttribute('primal:anchor');
-  var prefSide = pos.getAttribute('primal:side') || 'bottom';
-  var prefAlign = pos.getAttribute('primal:align') || 'center';
+  var anchorId = pos.getAttribute('data-anchor');
+  var prefSide = pos.getAttribute('data-prefer-side') || 'bottom';
+  var prefAlign = pos.getAttribute('data-prefer-align') || 'center';
   var offset = parseFloat(pos.getAttribute('data-offset')) || 0;
   var pad = parseFloat(pos.getAttribute('data-collision-padding'));
   if (isNaN(pad)) pad = 5;
@@ -129,10 +129,10 @@ pub const POSITION_JS: &str = r#"function(scope){
 }"#;
 
 /// The `<script>` node a positioner embeds to get M1 anchored positioning.
-/// The positioner root must carry [`PRIMAL_ANCHOR`] (or sit immediately after
-/// its anchor) plus the optional `primal:side`/`primal:align`/`data-offset`/
-/// `data-collision-*` config; the body writes [`DATA_SIDE`]/[`DATA_ALIGN`] +
-/// the CSS-var contract.
+/// The positioner root must carry [`DATA_ANCHOR`] (or sit immediately after
+/// its anchor) plus the optional `data-prefer-side`/`data-prefer-align`/
+/// `data-offset`/`data-collision-*` config; the body writes [`DATA_SIDE`]/
+/// [`DATA_ALIGN`] + the CSS-var contract.
 #[must_use]
 pub fn position_behavior() -> Html {
     scoped_script(POSITION_JS)

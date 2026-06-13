@@ -27,8 +27,10 @@ use alloc::vec::Vec;
 use foundation_ui_traits::{AttrName, Html, HtmlTag};
 
 pub mod composite;
+pub mod dialog;
 pub mod dismiss;
 pub mod focus_trap;
+pub mod hover;
 pub mod measure;
 pub mod position;
 pub mod scroll_lock;

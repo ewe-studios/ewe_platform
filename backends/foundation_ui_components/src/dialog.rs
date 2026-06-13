@@ -1,0 +1,218 @@
+//! # Dialog / alert-dialog / drawer (F4 — Overlays)
+//!
+//! WHY: A modal surface — native `<dialog>` gives the top layer, focus trap,
+//! scroll lock, `::backdrop` and page inertness for free (F4 verdict: "native
+//! `<dialog>`, fully"). The headless job is signal⇄native sync + the ARIA and
+//! data-attribute contract.
+//!
+//! WHAT: [`dialog`] (the base), [`alert_dialog`] (always modal, no light
+//! dismiss, `role="alertdialog"`), and [`drawer`] (a side-anchored dialog;
+//! swipe/snap gestures are the M8 follow-up). Open is one `(open, set_open)`
+//! signal.
+//!
+//! HOW: Renders `<dialog primal:dialog>` driven by [`dialog_behavior`]
+//! (`data-open` ⇄ `showModal()`/`close()`, `cancel`/backdrop → `set_open(false)`).
+//! Title/Description slots auto-wire `aria-labelledby`/`aria-describedby` to
+//! generated ids. A hidden `[data-dialog-close]` element carries the close
+//! callback for the Escape/backdrop routes; the optional Close slot button is
+//! wired the same way. M7 transitions ride the `data-open` toggle.
+
+use alloc::borrow::Cow;
+use alloc::vec::Vec;
+
+use foundation_signals::{Context, SignalGetter, SignalSetter};
+use foundation_ui_traits::Html;
+use foundation_wasm_ui::{html, SharedInstructionReceiver, Slot};
+
+use crate::machinery::dialog::dialog_behavior;
+use crate::machinery::transition::transition_behavior;
+
+/// Which edge a drawer anchors to.
+#[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
+pub enum DrawerSide {
+    /// Slide in from the right (default).
+    #[default]
+    Right,
+    /// Slide in from the left.
+    Left,
+    /// Slide in from the top.
+    Top,
+    /// Slide in from the bottom.
+    Bottom,
+}
+
+impl DrawerSide {
+    fn as_str(self) -> &'static str {
+        match self {
+            DrawerSide::Right => "right",
+            DrawerSide::Left => "left",
+            DrawerSide::Top => "top",
+            DrawerSide::Bottom => "bottom",
+        }
+    }
+}
+
+/// Static config for a dialog.
+pub struct DialogConfig {
+    /// Modal (`showModal()` — top layer, scroll lock, inert page) vs non-modal
+    /// (`show()`). Default modal.
+    pub modal: bool,
+    /// Allow backdrop/Escape light dismissal (default true; alert-dialog fixes
+    /// this false).
+    pub dismissable: bool,
+    /// `role="alertdialog"` instead of `dialog`.
+    pub alert: bool,
+    /// Class override for the dialog element (default: `"dialog"`).
+    pub class: Option<Cow<'static, str>>,
+    /// `aria-label` when no Title slot is provided.
+    pub aria_label: Option<Cow<'static, str>>,
+}
+
+impl Default for DialogConfig {
+    fn default() -> Self {
+        Self { modal: true, dismissable: true, alert: false, class: None, aria_label: None }
+    }
+}
+
+/// Slots for a dialog.
+pub struct DialogSlots {
+    /// Title (→ `aria-labelledby`).
+    pub title: Option<Slot>,
+    /// Description (→ `aria-describedby`).
+    pub description: Option<Slot>,
+    /// Body content.
+    pub children: Vec<Slot>,
+    /// Optional close-button content (wired to `set_open(false)`).
+    pub close_label: Option<Slot>,
+}
+
+impl Default for DialogSlots {
+    fn default() -> Self {
+        Self { title: None, description: None, children: Vec::new(), close_label: None }
+    }
+}
+
+/// Dialog component — a native `<dialog>` kept in sync with `open`.
+#[must_use]
+pub fn dialog(
+    ctx: &Context,
+    rcv: &SharedInstructionReceiver,
+    config: DialogConfig,
+    open: &SignalGetter<bool>,
+    set_open: SignalSetter<bool>,
+    slots: DialogSlots,
+) -> Html {
+    dialog_impl(ctx, rcv, config, open, set_open, slots, None)
+}
+
+/// Alert-dialog — always modal, never light-dismissable, `role="alertdialog"`.
+#[must_use]
+pub fn alert_dialog(
+    ctx: &Context,
+    rcv: &SharedInstructionReceiver,
+    mut config: DialogConfig,
+    open: &SignalGetter<bool>,
+    set_open: SignalSetter<bool>,
+    slots: DialogSlots,
+) -> Html {
+    config.modal = true;
+    config.dismissable = false;
+    config.alert = true;
+    dialog_impl(ctx, rcv, config, open, set_open, slots, None)
+}
+
+/// Drawer — a side-anchored modal dialog (swipe/snap deferred to M8). Adds
+/// `data-side` for the slide-in stylesheet.
+#[must_use]
+pub fn drawer(
+    ctx: &Context,
+    rcv: &SharedInstructionReceiver,
+    mut config: DialogConfig,
+    side: DrawerSide,
+    open: &SignalGetter<bool>,
+    set_open: SignalSetter<bool>,
+    slots: DialogSlots,
+) -> Html {
+    if config.class.is_none() {
+        config.class = Some(Cow::Borrowed("drawer"));
+    }
+    dialog_impl(ctx, rcv, config, open, set_open, slots, Some(side))
+}
+
+#[allow(clippy::too_many_lines)]
+fn dialog_impl(
+    ctx: &Context,
+    rcv: &SharedInstructionReceiver,
+    config: DialogConfig,
+    open: &SignalGetter<bool>,
+    set_open: SignalSetter<bool>,
+    slots: DialogSlots,
+    drawer_side: Option<DrawerSide>,
+) -> Html {
+    let class = config
+        .class
+        .unwrap_or(if config.alert { Cow::Borrowed("alert-dialog") } else { Cow::Borrowed("dialog") });
+    let role: Cow<'static, str> =
+        if config.alert { Cow::Borrowed("alertdialog") } else { Cow::Borrowed("dialog") };
+    let mode: Cow<'static, str> =
+        if config.modal { Cow::Borrowed("modal") } else { Cow::Borrowed("nonmodal") };
+    let id_n = ctx.allocate_id_block(1);
+    let title_id = alloc::format!("dialog-title-{id_n}");
+    let desc_id = alloc::format!("dialog-desc-{id_n}");
+
+    let labelledby: Option<Cow<'static, str>> =
+        slots.title.as_ref().map(|_| Cow::Owned(title_id.clone()));
+    let describedby: Option<Cow<'static, str>> =
+        slots.description.as_ref().map(|_| Cow::Owned(desc_id.clone()));
+
+    let title_html = slots.title.map(|s| s.render(ctx, rcv));
+    let description_html = slots.description.map(|s| s.render(ctx, rcv));
+    let body_html: Vec<Html> = slots.children.into_iter().map(|s| s.render(ctx, rcv)).collect();
+    let close_label_html = slots.close_label.map(|s| s.render(ctx, rcv));
+
+    let close = {
+        let set_open = set_open.clone();
+        ctx.callback(move |_| set_open.set(false))
+    };
+    let close_hidden = {
+        let set_open = set_open.clone();
+        ctx.callback(move |_| set_open.set(false))
+    };
+
+    let title_id_attr: Cow<'static, str> = Cow::Owned(title_id);
+    let desc_id_attr: Cow<'static, str> = Cow::Owned(desc_id);
+    let side_attr: Option<Cow<'static, str>> = drawer_side.map(|s| Cow::Borrowed(s.as_str()));
+    let dismissable_attr: Option<&'static str> = (!config.dismissable).then_some("false");
+
+    let d_open = open.clone();
+    let d_closed = open.clone();
+
+    html! { ctx, rcv,
+        <dialog class=[class]
+                role=[role]
+                data-dialog-mode=[mode]
+                data-side=[side_attr]
+                data-dialog-dismissable=[dismissable_attr]
+                aria-label=[config.aria_label]
+                aria-labelledby=[labelledby]
+                aria-describedby=[describedby]
+                data-open={d_open.get().then_some("")}
+                data-closed={(!d_closed.get()).then_some("")}>
+            <Fragment>{title_html.clone().map(|t| html! { ctx, rcv,
+                <h2 class="dialog-title" id=[title_id_attr.clone()]><Fragment>{t.clone()}</Fragment></h2>
+            })}</Fragment>
+            <Fragment>{description_html.clone().map(|d| html! { ctx, rcv,
+                <p class="dialog-description" id=[desc_id_attr.clone()]><Fragment>{d.clone()}</Fragment></p>
+            })}</Fragment>
+            <div class="dialog-body"><Fragment>{body_html.clone()}</Fragment></div>
+            <Fragment>{close_label_html.clone().map(|c| html! { ctx, rcv,
+                <button type="button" class="dialog-close" primal:onclick={close.clone()}>
+                    <Fragment>{c.clone()}</Fragment>
+                </button>
+            })}</Fragment>
+            <button type="button" hidden="" data-dialog-close="true" primal:onclick={close_hidden} />
+            <Fragment>{transition_behavior()}</Fragment>
+            <Fragment>{dialog_behavior()}</Fragment>
+        </dialog>
+    }
+}

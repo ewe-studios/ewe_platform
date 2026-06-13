@@ -14,10 +14,12 @@ use std::rc::Rc;
 
 use foundation_signals::EventData;
 use foundation_ui_components::{
-    accordion, checkbox, collapsible, field, parent_check_state, radio_group, separator, switch,
-    tabs, toggle, AccordionConfig, AccordionItem, CheckState, CheckboxConfig, CheckboxSlots,
-    CollapsibleConfig, CollapsibleSlots, FieldConfig, FieldSlots, RadioGroupConfig, RadioItem,
-    SeparatorConfig, SwitchConfig, TabDef, TabsConfig, ToggleConfig, ToggleSlots, ValidationMode,
+    accordion, checkbox, collapsible, dialog, field, parent_check_state, popover, radio_group,
+    separator, switch, tabs, toast_viewport, toggle, tooltip, AccordionConfig, AccordionItem,
+    CheckState, CheckboxConfig, CheckboxSlots, CollapsibleConfig, CollapsibleSlots, DialogConfig,
+    DialogSlots, FieldConfig, FieldSlots, PopoverConfig, PopoverSlots, RadioGroupConfig, RadioItem,
+    SeparatorConfig, SwitchConfig, TabDef, TabsConfig, Toast, ToastManager, ToggleConfig,
+    ToggleSlots, ValidationMode,
 };
 use foundation_ui_traits::{DomOp, Html};
 use foundation_wasm_ui::{html, App};
@@ -171,6 +173,106 @@ fn field_binding_input_and_blur_drive_state() {
 
 fn alloc_string(s: &str) -> String {
     s.to_string()
+}
+
+// ─── F4 overlays ──────────────────────────────────────────────────────────────────
+
+#[test]
+fn dialog_syncs_open_and_wires_aria_and_driver() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let _h = dialog(
+        &ctx, &rcv, DialogConfig::default(), &open, set_open.clone(),
+        DialogSlots { title: Some(Html::text("Title").into()), ..DialogSlots::default() },
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-dialog-mode") && *value == "modal")), "modal driver mode");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("aria-labelledby"))),
+        "title wires aria-labelledby");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))), "dialog driver emitted");
+
+    set_open.set(true);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-open") && *value == "")), "open flips data-open");
+}
+
+#[test]
+fn popover_wires_trigger_positioner_and_modal_machinery() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let _h = popover(
+        &ctx, &rcv,
+        PopoverConfig { modal: true, ..PopoverConfig::default() },
+        &open, set_open,
+        PopoverSlots { trigger: vec![Html::text("Open").into()], children: vec![Html::text("Body").into()], ..PopoverSlots::default() },
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("aria-controls"))), "trigger controls popup");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-anchor") && value.starts_with("popover-trigger-"))), "positioner anchored");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-scroll-lock") && *value == "true")), "modal → scroll lock");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-focus-trap") && *value == "true")), "modal → focus trap");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-dismiss") && *value == "true")), "popup is light-dismissable");
+}
+
+#[test]
+fn tooltip_is_hover_describe_popover() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let _h = tooltip(
+        &ctx, &rcv, &open, set_open,
+        PopoverSlots { trigger: vec![Html::text("?").into()], children: vec![Html::text("Help").into()], ..PopoverSlots::default() },
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "tooltip")), "tooltip role");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("aria-describedby"))), "describe link");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-hover-delay") && *value == "600")), "600ms tooltip delay");
+}
+
+#[test]
+fn toast_manager_adds_and_closes_over_the_list() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let manager = ToastManager::new(&ctx);
+    let _h = toast_viewport(&ctx, &rcv, &manager);
+    app.stabilize();
+
+    let id = manager.add(Toast::new("", "Saved"));
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-toast") && *value == "true")), "a toast rendered");
+    assert_eq!(manager.toasts().get().len(), 1, "one toast queued");
+
+    manager.close(&id);
+    app.stabilize();
+    assert_eq!(manager.toasts().get().len(), 0, "close drops it from the list");
 }
 
 // ─── F2 selection controls ──────────────────────────────────────────────────────
@@ -358,7 +460,7 @@ fn dismiss_behavior_is_a_light_dismiss_script() {
     assert!(body.contains("Escape"), "Escape closes");
     assert!(body.contains("pointerdown"), "outside pointer closes");
     assert!(body.contains("data-dismiss-action"), "clicks the close action");
-    assert!(body.contains("primal:anchor"), "ignores clicks on the trigger");
+    assert!(body.contains("data-anchor"), "ignores clicks on the trigger");
     assert!(DISMISS_JS.contains("data-dismiss-reason"), "stamps a dismiss reason");
 }
 
@@ -372,7 +474,7 @@ fn position_behavior_emits_placement_and_var_contract() {
     assert!(body.contains("--anchor-width"), "emits the anchor-size vars");
     assert!(body.contains("--transform-origin"), "emits the origin var");
     assert!(body.contains("--popup-width"), "emits the popup-size vars");
-    assert!(POSITION_JS.contains("primal:anchor"), "resolves the anchor element");
+    assert!(POSITION_JS.contains("data-anchor"), "resolves the anchor element");
 }
 
 #[test]
@@ -491,6 +593,6 @@ fn focus_trap_behavior_traps_and_restores() {
     let body = s.children[0].text.as_deref().unwrap();
     assert!(body.contains("Tab"), "wraps Tab");
     assert!(body.contains("data-initial-focus"), "honors initial-focus target");
-    assert!(body.contains("primal:anchor"), "restores to the trigger");
+    assert!(body.contains("data-anchor"), "restores to the trigger");
     assert!(FOCUS_TRAP_JS.contains("activeElement"), "records/restores focus");
 }

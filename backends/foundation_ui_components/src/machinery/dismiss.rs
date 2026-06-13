@@ -15,7 +15,7 @@
 //! handles" mechanism. The popup owns the open signal; it renders a hidden
 //! `[data-dismiss-action]` element wired to `set_open(false)`. On Escape
 //! (document keydown) or a pointer-down OUTSIDE both the popup and its trigger
-//! (resolved via `primal:anchor`), the body stamps `data-dismiss-reason` and
+//! (resolved via `data-anchor`), the body stamps `data-dismiss-reason` and
 //! `.click()`s that action — the signal flips, morph closes the popup, the
 //! scoped script is removed and re-runs clean on the next open. Listeners use
 //! `scope.addEvent` (auto-cleanup on disconnect), so it's idempotent.
@@ -40,7 +40,7 @@ pub const DATA_DISMISS_ESCAPE: &str = "data-dismiss-escape";
 pub const DATA_DISMISS_OUTSIDE: &str = "data-dismiss-outside";
 
 /// The M3 light-dismiss behavior (Escape + outside-pointer → click the
-/// `[data-dismiss-action]`). Reads `primal:anchor` (trigger id, so clicks on
+/// `[data-dismiss-action]`). Reads `data-anchor` (trigger id, so clicks on
 /// the trigger don't dismiss) and the `data-dismiss-escape/outside` opt-outs
 /// off the popup root.
 pub const DISMISS_JS: &str = r#"function(scope){
@@ -63,7 +63,7 @@ pub const DISMISS_JS: &str = r#"function(scope){
   if (popup.getAttribute('data-dismiss-outside') !== 'false') {
     scope.addEvent(doc, 'pointerdown', function(e){
       if (popup.contains(e.target)) return;
-      var anchor = popup.getAttribute('primal:anchor');
+      var anchor = popup.getAttribute('data-anchor');
       if (anchor) {
         var trig = doc.getElementById(anchor);
         if (trig && trig.contains(e.target)) return;
@@ -74,7 +74,7 @@ pub const DISMISS_JS: &str = r#"function(scope){
 }"#;
 
 /// The `<script>` node a light-dismissable popup embeds. The popup root must
-/// carry [`DATA_DISMISS`] (+ optional `primal:anchor` / `data-dismiss-escape` /
+/// carry [`DATA_DISMISS`] (+ optional `data-anchor` / `data-dismiss-escape` /
 /// `data-dismiss-outside`) and render a hidden [`DATA_DISMISS_ACTION`] element
 /// whose `primal:onclick` writes `set_open(false)`.
 #[must_use]
