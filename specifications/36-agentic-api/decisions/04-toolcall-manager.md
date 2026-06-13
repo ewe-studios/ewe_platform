@@ -41,11 +41,32 @@ ToolCallManager { inner: Arc<ToolCallManagerInner> }
 | **Parallel** | Execute all tool calls concurrently, collect all results | Independent tool calls (no data dependencies) |
 | **Batch** | Group tool calls, execute groups sequentially, parallel within groups | Mixed dependencies (some independent, some dependent) |
 
-### Dependency Analysis
+### Dependency Analysis — DAG Execution
 
-When the LLM returns multiple tool calls, the ToolCallManager analyzes dependencies:
+When the LLM returns multiple tool calls, the ToolCallManager builds a **directed acyclic graph (DAG)** of dependencies and computes an execution plan that maximizes parallelism while respecting sequential dependencies.
+
+The LLM can explicitly declare dependencies between tool calls:
 
 ```rust
+pub struct ToolCallRequest {
+    pub id: String,                    // unique ID for this call
+    pub name: String,
+    pub arguments: HashMap<String, ArgType>,
+    pub depends_on: Vec<String>,       // tool call IDs this depends on
+    pub execution_hint: ExecutionHint, // how to execute
+}
+
+pub enum ExecutionHint {
+    /// No preference — ToolCallManager decides (default)
+    Unspecified,
+    /// Run in parallel with other independent calls
+    Parallel,
+    /// Run after all depends_on calls complete
+    Sequential,
+    /// Run in a specific position within a pipeline
+    Pipeline { position: usize },
+}
+
 pub enum ExecutionPlan {
     /// All tool calls are independent — run in parallel
     Parallel(Vec<ToolCallRequest>),
@@ -53,20 +74,43 @@ pub enum ExecutionPlan {
     /// All tool calls must run sequentially
     Sequential(Vec<ToolCallRequest>),
     
-    /// Grouped execution: groups run sequentially, members run in parallel
-    Batched(Vec<ToolCallGroup>),
+    /// DAG execution: groups run sequentially, members run in parallel
+    Dag(Vec<ToolCallStage>),
 }
 
-pub struct ToolCallGroup {
-    pub group_id: usize,
-    pub calls: Vec<ToolCallRequest>,
-    pub depends_on: Vec<usize>, // group IDs this group depends on
+pub struct ToolCallStage {
+    pub stage_id: usize,
+    pub calls: Vec<ToolCallRequest>,    // run in parallel within stage
+    pub depends_on: Vec<usize>,         // stage IDs this stage depends on
 }
+```
+
+**Execution example:**
+
+```
+LLM returns 5 tool calls:
+├── call_1: read_file("auth.rs")          — no dependencies
+├── call_2: read_file("middleware.rs")    — no dependencies
+├── call_3: search_content("auth_check")  — no dependencies
+├── call_4: analyze_results(call_1, call_2, call_3)  — depends on [call_1, call_2, call_3]
+└── call_5: write_report(call_4)          — depends on [call_4]
+
+ToolCallManager builds DAG:
+├── Stage 0: [call_1, call_2, call_3] — run in parallel
+├── Stage 1: [call_4] — runs after Stage 0 completes
+└── Stage 2: [call_5] — runs after Stage 1 completes
+
+Execution:
+├── Stage 0 → parallel (3 files read concurrently)
+├── Stage 1 → sequential (analysis waits for all reads)
+└── Stage 2 → sequential (report waits for analysis)
 ```
 
 **Dependency detection strategy:**  
 - **Default: Parallel** — tool calls with no explicit dependencies are assumed independent
-- **Sequential markers** — tool calls can declare `depends_on: [tool_call_id]` to force ordering
+- **Explicit dependencies** — tool calls declare `depends_on: [tool_call_id]` to force ordering
+- **Argument analysis** (future) — ToolCallManager can detect implicit dependencies by analyzing arguments (e.g., if call_4's arguments reference call_1's output variable)
+- **LLM hint** — LLM can use `execution_hint` to guide the ToolCallManager
 - **Heuristic detection** (future) — analyze tool call arguments for references to prior tool call outputs
 
 ### Persistence Guarantee
