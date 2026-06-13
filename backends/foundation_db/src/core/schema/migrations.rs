@@ -191,10 +191,10 @@ impl<'a> MigrationRunner<'a> {
                 // Apply migration - consume the iterator
                 store.execute_batch(migration.sql)?;
 
-                // Record migration - consume the iterator
+                // Record migration
                 store.execute(
                     "INSERT OR IGNORE INTO _migrations (name) VALUES (?)",
-                    &[DataValue::Text(name.to_string())],
+                    &[DataValue::Text(migration.id.to_string())],
                 )?;
 
                 count += 1;

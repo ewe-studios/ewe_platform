@@ -166,9 +166,6 @@ impl R2Store {
         }
     }
 
-    fn wrap_value<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        val
-    }
 
     fn wrap_value_state<T: Send + 'static>(val: T) -> StateStoreStream<T> {
         Box::new(std::iter::once(ThreadedValue::Value(Ok(val))))
@@ -336,7 +333,7 @@ impl BlobStore for R2Store {
         if status_code >= 400 {
             return Err(StorageError::Backend(format!("R2 PUT failed with status {}", response.get_status())));
         }
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
     fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
@@ -352,14 +349,14 @@ impl BlobStore for R2Store {
             .send()
             .map_err(|e| StorageError::Backend(format!("R2 GET request failed: {e}")))?;
         if response.get_status() == Status::NotFound {
-            return Ok(Self::wrap_value(None));
+            return Ok(None);
         }
         if response.get_status() != Status::OK {
             return Err(StorageError::Backend(format!("R2 GET failed with status {}", response.get_status())));
         }
         let bytes = Self::body_bytes(response.get_body_ref())
             .ok_or_else(|| StorageError::Backend("R2 GET: empty response body".to_string()))?;
-        Ok(Self::wrap_value(Some(bytes)))
+        Ok(Some(bytes))
     }
 
     fn delete_blob(&self, key: &str) -> StorageResult<()> {
@@ -379,7 +376,7 @@ impl BlobStore for R2Store {
         if status_code >= 400 && response.get_status() != Status::NotFound {
             return Err(StorageError::Backend(format!("R2 DELETE failed with status {}", response.get_status())));
         }
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
     fn blob_exists(&self, key: &str) -> StorageResult<bool> {
@@ -395,7 +392,7 @@ impl BlobStore for R2Store {
             .map_err(|e| StorageError::Backend(format!("R2 request build failed: {e}")))?
             .send()
             .map_err(|e| StorageError::Backend(format!("R2 HEAD request failed: {e}")))?;
-        Ok(Self::wrap_value(response.get_status() == Status::OK))
+        Ok(response.get_status() == Status::OK)
     }
 }
 

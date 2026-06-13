@@ -301,9 +301,6 @@ impl D1Store {
         }
     }
 
-    fn wrap_value<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        val
-    }
 
     fn wrap_vec<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
         Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
@@ -344,9 +341,9 @@ impl KeyValueStore for D1Store {
                     .ok_or_else(|| StorageError::SqlConversion("missing or invalid value field".to_string()))?;
                 let deserialized: V = serde_json::from_str(&value)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                Ok(Self::wrap_value(Some(deserialized)))
+                Ok(Some(deserialized))
             }
-            None => Ok(Self::wrap_value(None)),
+            None => Ok(None),
         }
     }
 
@@ -359,19 +356,19 @@ impl KeyValueStore for D1Store {
         let kv = serde_json::Value::String(key.to_string());
         let jv = serde_json::Value::String(json_value);
         self.execute_sql(&sql, &[kv.clone(), jv.clone(), jv])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
     fn delete(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
         self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
     fn exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(!Self::extract_rows(&response).is_empty()))
+        Ok(!Self::extract_rows(&response).is_empty())
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
@@ -439,12 +436,12 @@ impl QueryStore for D1Store {
         let affected = response.pointer("/result/0/meta/changes")
             .and_then(serde_json::Value::as_i64)
             .map_or(0, i64::unsigned_abs);
-        Ok(Self::wrap_value(affected))
+        Ok(affected)
     }
 
     fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         self.execute_sql(sql, &[])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 }
 
@@ -470,7 +467,7 @@ impl RateLimiterStore for D1Store {
             }
             None => true,
         };
-        Ok(Self::wrap_value(allowed))
+        Ok(allowed)
     }
 
     fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
@@ -482,13 +479,13 @@ impl RateLimiterStore for D1Store {
         let count = Self::extract_rows(&response).first()
             .and_then(|r| r.get("count")).and_then(serde_json::Value::as_i64)
             .map_or(1, |c| c as u32);
-        Ok(Self::wrap_value(count))
+        Ok(count)
     }
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let sql = "DELETE FROM rate_limits WHERE key = ?";
         self.execute_sql(sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 }
 
@@ -507,7 +504,7 @@ impl BlobStore for D1Store {
         let kv = serde_json::Value::String(key.to_string());
         let jv = serde_json::Value::String(json_value);
         self.execute_sql(&sql, &[kv.clone(), jv.clone(), jv])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
     fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
@@ -521,28 +518,28 @@ impl BlobStore for D1Store {
                 let wrapper: serde_json::Value = serde_json::from_str(&value)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
                 if wrapper.get("type").and_then(serde_json::Value::as_str) != Some("blob") {
-                    return Ok(Self::wrap_value(None));
+                    return Ok(None);
                 }
                 let encoded = wrapper.get("data").and_then(serde_json::Value::as_str)
                     .ok_or_else(|| StorageError::Serialization("missing data field in blob wrapper".to_string()))?;
                 let decoded = STANDARD.decode(encoded)
                     .map_err(|e| StorageError::Backend(format!("Base64 decode failed: {e}")))?;
-                Ok(Self::wrap_value(Some(decoded)))
+                Ok(Some(decoded))
             }
-            None => Ok(Self::wrap_value(None)),
+            None => Ok(None),
         }
     }
 
     fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let sql = format!("DELETE FROM {} WHERE key = ?", self.kv_table());
         self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(()))
+        Ok(())
     }
 
     fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let sql = format!("SELECT 1 FROM {} WHERE key = ? LIMIT 1", self.kv_table());
         let response = self.execute_sql(&sql, &[serde_json::Value::String(key.to_string())])?;
-        Ok(Self::wrap_value(!Self::extract_rows(&response).is_empty()))
+        Ok(!Self::extract_rows(&response).is_empty())
     }
 }
 
