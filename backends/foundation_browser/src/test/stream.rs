@@ -6,24 +6,28 @@
 //! (json/columnar/arrow) produces a framed `Vec<u8>`, and the broadcaster just
 //! delivers it over SSE.
 //!
-//! WHAT: [`Broadcaster`] (owned SSE connections + a replayed backlog),
-//! [`BroadcastTx`] (the `Send` write handle the App's sink / a test pushes
-//! frames to), and [`StreamHandler`] (a `Serve` route that upgrades + detaches).
+//! WHAT: [`Broadcaster`] (owned SSE streams + a replayed backlog), [`BroadcastTx`]
+//! (the `Send` push handle the App's sink / a test pushes frames to), and
+//! [`StreamHandler`] (a `Serve` route that upgrades + detaches).
 //!
-//! HOW: `StreamHandler` writes a STREAMING SSE response head (NO `Content-Length`
-//! — otherwise the browser reads zero bytes and treats the body as complete),
-//! then clones the owned connection into the [`Broadcaster`] and returns
-//! `ConnectionResult::Take`. The connection is `Arc`-shared (`SharedByteBufferStream`),
-//! so the worker dropping its handle doesn't close the socket — the broadcaster's
-//! clone keeps it live. A push from the test thread writes `data:` frames to
-//! every connection; teardown drops them (closing the sockets). Backlog/replay
-//! kills the connect/push race.
+//! HOW: We use foundation_http's SSE writer API — [`SseStream`] (`message`/`send`/
+//! `comment`, built on `foundation_netio::event_source::EventWriter` +
+//! [`SseEvent`](foundation_netio::event_source::SseEvent)) — for the response
+//! head AND the `data:` lines. (`SseStream` writes a streaming head with no
+//! `Content-Length`, which is correct now that the response builder no longer
+//! auto-adds `Content-Length: 0` for an absent body.) `StreamHandler` upgrades
+//! the owned connection, hands the `SseStream` to the [`Broadcaster`], and
+//! returns `ConnectionResult::Take`; the connection is `Arc`-shared, so the
+//! worker dropping its handle leaves the broadcaster's `SseStream` holding the
+//! socket open — no blocked worker per stream. A push (from the test thread)
+//! `message`s every stream; teardown drops them (closing the sockets). The
+//! backlog/replay kills the connect/push race.
 
-use std::io::Write;
 use std::sync::{Arc, Mutex};
 
 use base64::Engine as _;
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_http::native::upgrade::SseStream;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_netio::netcap::RawStream;
@@ -32,19 +36,9 @@ use foundation_netio::simple_http::shared::SimpleIncomingRequest;
 /// The stream route the browser's runtime connects to.
 pub const STREAM_PATH: &str = "/__primal/stream";
 
-/// A streaming-SSE response head — deliberately NO `Content-Length` so the body
-/// is open-ended (terminated by connection close), not zero-length.
-const SSE_HEAD: &[u8] = b"HTTP/1.1 200 OK\r\n\
-Content-Type: text/event-stream\r\n\
-Cache-Control: no-cache\r\n\
-Connection: keep-alive\r\n\
-X-Accel-Buffering: no\r\n\r\n";
-
-type Conn = SharedByteBufferStream<RawStream>;
-
-/// Owned SSE connections + the frame backlog replayed to late joiners.
+/// Owned SSE streams + the frame backlog replayed to late joiners.
 struct Inner {
-    conns: Vec<Conn>,
+    streams: Vec<SseStream>,
     backlog: Vec<Vec<u8>>,
 }
 
@@ -58,7 +52,7 @@ impl Broadcaster {
     /// Empty broadcaster.
     #[must_use]
     pub fn new() -> Self {
-        Self { inner: Arc::new(Mutex::new(Inner { conns: Vec::new(), backlog: Vec::new() })) }
+        Self { inner: Arc::new(Mutex::new(Inner { streams: Vec::new(), backlog: Vec::new() })) }
     }
 
     /// A `Send` handle for pushing frames (held by the App's sink / the test).
@@ -67,18 +61,18 @@ impl Broadcaster {
         BroadcastTx { inner: self.inner.clone() }
     }
 
-    /// Register a freshly-upgraded SSE connection, replaying the backlog into it.
-    fn register(&self, mut conn: Conn) {
+    /// Register a freshly-upgraded SSE stream, replaying the backlog into it.
+    fn register(&self, mut sse: SseStream) {
         let mut inner = self.inner.lock().expect("broadcaster poisoned");
-        let ok = inner.backlog.iter().all(|frame| write_sse(&mut conn, frame));
+        let ok = inner.backlog.iter().all(|frame| sse.message(encode(frame)).is_ok());
         if ok {
-            inner.conns.push(conn);
+            inner.streams.push(sse);
         }
     }
 
     /// Drop all connections (teardown closes the sockets).
     pub fn close(&self) {
-        self.inner.lock().expect("broadcaster poisoned").conns.clear();
+        self.inner.lock().expect("broadcaster poisoned").streams.clear();
     }
 }
 
@@ -99,22 +93,20 @@ impl BroadcastTx {
     pub fn send(&self, frame: &[u8]) {
         let mut inner = self.inner.lock().expect("broadcaster poisoned");
         inner.backlog.push(frame.to_vec());
-        let frame = frame.to_vec();
-        inner.conns.retain_mut(|conn| write_sse(conn, &frame));
+        let data = encode(frame);
+        inner.streams.retain_mut(|sse| sse.message(data.clone()).is_ok());
     }
 }
 
-/// Write one frame as an SSE `data:` line (base64 so binary encoders survive the
-/// text channel; the browser runtime base64-decodes). Returns `false` on write
-/// error so the dead connection is dropped.
-fn write_sse(conn: &mut Conn, frame: &[u8]) -> bool {
-    let b64 = base64::engine::general_purpose::STANDARD.encode(frame);
-    let line = format!("data: {b64}\n\n");
-    conn.write_all(line.as_bytes()).and_then(|()| conn.flush()).is_ok()
+/// Encode a frame for an SSE `data:` line. Frames are protocol bytes; we ship
+/// them base64 so binary encoders (columnar/arrow) survive the text channel and
+/// the browser runtime can base64-decode. (UTF-8 JSON frames base64 fine too.)
+fn encode(frame: &[u8]) -> String {
+    base64::engine::general_purpose::STANDARD.encode(frame)
 }
 
-/// `Serve` route: upgrade the owned connection to a streaming SSE response, hand
-/// it to the [`Broadcaster`], and detach.
+/// `Serve` route: upgrade the owned connection to SSE, hand it to the
+/// [`Broadcaster`], and detach.
 pub struct StreamHandler;
 
 impl ServeFactory for StreamHandler {
@@ -128,17 +120,22 @@ impl Serve for StreamHandler {
         &self,
         bag: Arc<ContextBag>,
         _req: SimpleIncomingRequest,
-        mut conn: Conn,
+        mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         let Some(bc) = bag.get::<Broadcaster>() else {
             return ConnectionResult::Close(None);
         };
-        if conn.write_all(SSE_HEAD).and_then(|()| conn.flush()).is_err() {
-            return ConnectionResult::Close(None);
+        match SseStream::new(&mut conn) {
+            Ok(sse) => {
+                // The connection is Arc-shared; the broadcaster's SseStream clone
+                // keeps it open after the worker drops its handle on Take.
+                bc.register(sse);
+                ConnectionResult::Take
+            }
+            Err(e) => {
+                tracing::warn!("SSE upgrade failed: {e}");
+                ConnectionResult::Close(None)
+            }
         }
-        // The connection is Arc-shared; the broadcaster's clone keeps it open
-        // after the worker drops its handle on Take.
-        bc.register(conn.clone());
-        ConnectionResult::Take
     }
 }

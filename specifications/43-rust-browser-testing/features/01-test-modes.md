@@ -151,24 +151,58 @@ The wasm bundle comes from `foundation_wasm_testbed`'s build step; the same
    Rust signals, asserted in a real browser.
 6. **Mode 2** validated with a built wasm bundle (`StaticFileHandler`).
 
-## Implementation findings (channel-A transport, proven)
+## Use the owned SSE APIs (don't hand-roll the wire)
 
-Two things surfaced wiring the SSE stream route against `foundation_http`:
+The stack already has a clean SSE writer surface — USE IT rather than formatting
+`data:` lines by hand:
 
-1. **No `Content-Length` on a streaming SSE response.** `SseStream::new` writes
-   `SendSafeBody::None`, which renders `Content-Length: 0` — the browser then
-   reads zero bytes and treats the body as COMPLETE (`EventSource` errors,
-   `fetch().body` ends immediately), ignoring every `data:` line written after.
-   The `StreamHandler` writes a streaming head by hand (no `Content-Length`,
-   `Connection: keep-alive`), and the stream stays open.
-2. **`Take` already IS "take and owned".** The worry was that returning
-   `ConnectionResult::Take` would let the worker reap/close the socket, motivating
-   a future `TakeAndOwned`. It doesn't: `SharedByteBufferStream` is `Arc`-shared
-   (`OwnedReader` over `Arc<RwLock<…>>`), so the worker dropping ITS handle on
-   `Take` leaves the broadcaster's clone holding the socket open. So a handler can
-   detach (clone into the broadcaster, return `Take`) WITHOUT blocking a worker
-   per stream — no new variant needed. (`TakeAndOwned` could still be added later
-   purely as intent-signalling, but it's not required for this.)
+- **`foundation_http::native::upgrade::SseStream`** — the server-side SSE
+  connection. `SseStream::new(&mut conn)` writes the streaming response head
+  (`200`, `text/event-stream`, `Cache-Control: no-cache`, `Connection: keep-alive`,
+  NO `Content-Length`) and wraps the connection. Then:
+  - `sse.message(data: impl Into<String>)` — a `data:`-only event.
+  - `sse.send(&SseEvent)` — a full event (id / event-type / retry).
+  - `sse.comment(&str)` — a `: …` keep-alive comment.
+  Each call flushes. The handler returns `ConnectionResult::Take` after creating it.
+- **`foundation_netio::event_source::EventWriter<W>`** — what `SseStream` wraps;
+  use it directly to write SSE to any `W: Write`. Same `send`/`message`/`comment`,
+  all flushing, correct multi-line `data:` framing.
+- **`foundation_netio::event_source::SseEvent`** — the event builder:
+  `SseEvent::message(data)`, plus `.id(..)`, `.event(type)`, `.data(..)` via its
+  builder for structured events the browser routes on.
+- **`foundation_netio::event_source::shared::response::SseResponse`** — a header
+  builder for an SSE response (`with_header`/`with_status`) if you need the head
+  separately. NOTE: its `build()` uses `SendSafeBody::None`, so it relies on the
+  `Content-Length` fix below.
+- **Client side** (for Rust SSE consumers): `foundation_netio::event_source`'s
+  `SseStream::connect` / `SseParser` / the reconnecting task.
+
+`StreamHandler` therefore just `SseStream::new(conn)?`, replays the backlog +
+streams via `sse.message(base64(frame))`, and detaches.
+
+## The `Content-Length` fix (root cause, fixed at source)
+
+The first cut hand-wrote the head because `SseStream` produced a broken response:
+`SimpleOutgoingResponseBuilder::build()` AUTO-ADDED `Content-Length: 0` for an
+absent body (`SendSafeBody::None`). A browser then reads zero bytes, treats the
+SSE body as COMPLETE, and ignores every streamed `data:` line (`EventSource`
+errors; `fetch().body` ends immediately).
+
+Fixed at the source (`foundation_netio` `SimpleOutgoingResponseBuilder::build`):
+an **absent body no longer auto-adds `Content-Length`** — a streaming response is
+delimited by its framing / connection close, not a declared length. An
+*explicitly*-set `Content-Length` (e.g. `SimpleOutgoingResponse::empty()`'s `0`)
+is preserved. Bodies that ARE present (`Text`/`Bytes`) still get the correct
+`Content-Length`. With that, `SseStream` works directly and we use it.
+
+## `Take` already IS "take and owned"
+
+The worry that `ConnectionResult::Take` would let the worker reap/close the socket
+(motivating a `TakeAndOwned`) is unfounded: `SharedByteBufferStream` is `Arc`-shared
+(`OwnedReader` over `Arc<RwLock<…>>`), so the worker dropping ITS handle on `Take`
+leaves the broadcaster's `SseStream` clone holding the socket open. A handler can
+detach (clone into the broadcaster, return `Take`) WITHOUT blocking a worker per
+stream — no new variant required.
 
 Verified end-to-end: a frame pushed from Rust (`server.push_frame`) reaches a real
 browser's `EventSource` over SSE (base64-decoded in the page), the stream stays

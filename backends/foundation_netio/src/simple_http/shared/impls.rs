@@ -1717,7 +1717,12 @@ impl SimpleOutgoingResponseBuilder {
 
         match &body {
             SendSafeBody::None => {
-                headers.insert(SimpleHeader::CONTENT_LENGTH, vec![String::from("0")]);
+                // Absent body → DO NOT auto-add `Content-Length`. A streaming
+                // response (SSE, long-poll, chunked) is delimited by its framing or
+                // by connection close, not a declared length; a `Content-Length: 0`
+                // makes clients treat the body as complete and ignore everything
+                // streamed afterwards. An explicit `Content-Length` (e.g. from
+                // `empty()`) set on the headers is preserved untouched.
             }
             SendSafeBody::Bytes(inner) => {
                 let content_length = inner
