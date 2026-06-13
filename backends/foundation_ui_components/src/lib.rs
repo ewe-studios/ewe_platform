@@ -36,6 +36,11 @@ pub mod switch;
 pub mod checkbox;
 pub mod radio;
 
+// F3 — Disclosure
+pub mod collapsible;
+pub mod accordion;
+pub mod tabs;
+
 // Re-exports for convenience. `Orientation` is intentionally NOT re-exported
 // at the crate root (defined by both `separator` and `toggle_group`); reach it
 // via the module path.
@@ -50,6 +55,9 @@ pub use checkbox::{
     CheckboxSlots,
 };
 pub use radio::{radio_group, RadioGroupConfig, RadioItem};
+pub use collapsible::{collapsible, CollapsibleConfig, CollapsibleSlots};
+pub use accordion::{accordion, AccordionConfig, AccordionItem};
+pub use tabs::{tabs, TabDef, TabsConfig};
 pub use field_state::{
     field, FieldBinding, FieldConfig, FieldSlots, FieldState, ValidationMode, Validator,
 };

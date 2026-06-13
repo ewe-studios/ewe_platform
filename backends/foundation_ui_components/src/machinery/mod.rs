@@ -29,6 +29,7 @@ use foundation_ui_traits::{AttrName, Html, HtmlTag};
 pub mod composite;
 pub mod dismiss;
 pub mod focus_trap;
+pub mod measure;
 pub mod position;
 pub mod scroll_lock;
 pub mod transition;

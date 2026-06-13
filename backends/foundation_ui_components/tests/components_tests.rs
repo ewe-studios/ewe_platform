@@ -14,9 +14,10 @@ use std::rc::Rc;
 
 use foundation_signals::EventData;
 use foundation_ui_components::{
-    checkbox, field, parent_check_state, radio_group, separator, switch, toggle, CheckState,
-    CheckboxConfig, CheckboxSlots, FieldConfig, FieldSlots, RadioGroupConfig, RadioItem,
-    SeparatorConfig, SwitchConfig, ToggleConfig, ToggleSlots, ValidationMode,
+    accordion, checkbox, collapsible, field, parent_check_state, radio_group, separator, switch,
+    tabs, toggle, AccordionConfig, AccordionItem, CheckState, CheckboxConfig, CheckboxSlots,
+    CollapsibleConfig, CollapsibleSlots, FieldConfig, FieldSlots, RadioGroupConfig, RadioItem,
+    SeparatorConfig, SwitchConfig, TabDef, TabsConfig, ToggleConfig, ToggleSlots, ValidationMode,
 };
 use foundation_ui_traits::{DomOp, Html};
 use foundation_wasm_ui::{html, App};
@@ -395,6 +396,92 @@ fn scroll_lock_behavior_locks_and_restores() {
     assert!(body.contains("scrollbar-gutter") || body.contains("scrollbarGutter"), "prefers gutter-stable");
     assert!(body.contains("paddingRight"), "pads the gutter on the fallback path");
     assert!(SCROLL_LOCK_JS.contains("data-open"), "engages while open");
+}
+
+// ─── F3 disclosure ──────────────────────────────────────────────────────────────
+
+#[test]
+fn collapsible_toggles_expanded_and_hidden() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let _h = collapsible(
+        &ctx, &rcv, CollapsibleConfig::default(), &open, set_open.clone(), CollapsibleSlots::default(),
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-expanded") && *value == "false")), "closed → aria-expanded false");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("hidden"))), "closed panel is hidden");
+    // Embeds M7 + measurement.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-size-var") && *value == "--collapsible-panel")), "panel measured");
+
+    set_open.set(true);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-expanded") && *value == "true")), "open → aria-expanded true");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::RemoveAttribute { name, .. } if name.name() == Some("hidden"))), "open panel un-hidden");
+}
+
+#[test]
+fn accordion_reflects_open_item_and_ties_aria() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open_items, set_open) = ctx.signal::<Vec<String>>(Vec::new());
+    let items = vec![
+        AccordionItem { value: alloc_string("a"), header: Html::text("A"), panel: Html::text("pa"), disabled: false },
+        AccordionItem { value: alloc_string("b"), header: Html::text("B"), panel: Html::text("pb"), disabled: false },
+    ];
+    let _h = accordion(&ctx, &rcv, AccordionConfig::default(), &open_items, set_open.clone(), items);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    // Panel↔trigger wiring present.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-controls") && value.starts_with("accordion-panel-"))),
+        "trigger controls its panel");
+
+    set_open.set(vec![alloc_string("a")]);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-expanded") && *value == "true")), "opened item is expanded");
+}
+
+#[test]
+fn tabs_selection_drives_aria_and_automatic_mode_selects() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (selected, set_selected) = ctx.signal::<Option<String>>(Some(alloc_string("a")));
+    let defs = vec![
+        TabDef { value: alloc_string("a"), label: Html::text("A"), panel: Html::text("PA"), disabled: false },
+        TabDef { value: alloc_string("b"), label: Html::text("B"), panel: Html::text("PB"), disabled: false },
+    ];
+    let _h = tabs(
+        &ctx, &rcv,
+        TabsConfig { activate_on_focus: true, ..TabsConfig::default() },
+        &selected, set_selected.clone(), defs,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-selected") && *value == "true")), "selected tab is aria-selected");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-composite-select") && *value == "true")),
+        "automatic mode → arrows move-and-select");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "tabpanel")),
+        "panels carry the tabpanel role");
 }
 
 #[test]
