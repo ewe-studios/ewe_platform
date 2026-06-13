@@ -334,6 +334,16 @@ sufficient for the whole catalog:
   attrs that are presence-style use `.then_some("")`; string-valued reactive
   attrs are unchanged.
 
+- **Static interpolation `attr=[expr]` (NEW — the no-clone form):** `{expr}`
+  attributes are REACTIVE — re-evaluated in an `FnMut` effect on signal change
+  — so an owned value (`class`, `aria-label` from `Cow` config) would be moved
+  out of the effect and force a `.clone()`. The bracket form `attr=[expr]`
+  evaluates ONCE at build (no effect): the value moves in exactly once, no
+  clone, no per-render effect. Rule of thumb: **`[…]` for static config
+  values, `{…}` for signal reads** (`class=[class]`, `aria-pressed={on.get()}`,
+  `data-checked={on.get().then_some("")}`). Both honor Option-valued semantics
+  (`None` omits / removes).
+
 After 8.1 + 8.2, a component is its `html!` block plus signal/slot plumbing:
 no `{...}` clone-and-effect blocks except where a single effect legitimately
 touches MULTIPLE nodes/attributes at once (rare; document why).

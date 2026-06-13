@@ -477,6 +477,36 @@ fn option_attribute_presence_pure() {
     assert_eq!(attr(&plain, "data-n"), Some("3"));
 }
 
+/// Static interpolation `attr=[expr]`: evaluated ONCE; owned values need no
+/// `.clone()` (no `FnMut` effect); `None` omits.
+#[test]
+fn static_interpolation_pure() {
+    let cls = String::from("box"); // owned, moved once — no clone
+    let h = html! {
+        <div class=[cls] data-x=[Some("y")] data-z=[Option::<&str>::None]></div>
+    };
+    assert_eq!(attr(&h, "class"), Some("box"));
+    assert_eq!(attr(&h, "data-x"), Some("y"));
+    assert_eq!(attr(&h, "data-z"), None, "None omits");
+}
+
+/// Static interpolation (reactive): set EXACTLY once at mount, no effect, and
+/// an owned value moves in without a clone.
+#[test]
+fn static_interpolation_reactive_sets_once() {
+    let m = reactive_setup();
+    let label = String::from("hi"); // owned, no clone needed
+    let _tree = html! { m.ctx, m.receiver, <div data-label=[label]></div> };
+    m.signals.stabilize();
+    let ops = all_ops(&m.sent);
+    let sets: Vec<_> = ops
+        .iter()
+        .filter(|op| matches!(op, DomOp::SetAttribute { name, .. } if name.name() == Some("data-label")))
+        .collect();
+    assert_eq!(sets.len(), 1, "set once at mount, got {sets:?}");
+    assert!(matches!(sets[0], DomOp::SetAttribute { value, .. } if *value == "hi"));
+}
+
 /// Option-valued attribute (reactive): toggling the signal emits
 /// `SetAttribute` (present) then `RemoveAttribute` (absent) then back.
 #[test]

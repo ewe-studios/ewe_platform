@@ -19,6 +19,9 @@
 
 extern crate alloc;
 
+pub mod curve;
+pub mod palette;
+
 use alloc::borrow::Cow;
 use alloc::string::String;
 use alloc::vec::Vec;
@@ -233,22 +236,128 @@ const BUILTIN_UTILITIES: &str = "\
 .font-bold { font-weight: 700; }\n\
 .text-center { text-align: center; }\n\
 .border { border-width: 1px; }\n\
-.border-2 { border-width: 2px; }\n\
 .hidden { display: none; }\n\
 .visible { visibility: visible; }\n";
 
-/// Append the generated `.opacity-{n}` scale: `0 → 100` in steps of 5
-/// (`.opacity-0` = 0, `.opacity-5` = 0.05, …, `.opacity-100` = 1). One rule
-/// per step; a fine-grained range that still maps cleanly onto 5/10-based
-/// design systems.
-fn append_opacity_scale(css: &mut String) {
-    for pct in (0..=100).step_by(5) {
-        let value = match pct {
-            0 => String::from("0"),
-            100 => String::from("1"),
-            p => alloc::format!("0.{p:02}"),
-        };
-        let _ = writeln!(css, ".opacity-{pct} {{ opacity: {value}; }}");
+/// How a scale index `n` maps to a CSS value — the calculable formula family
+/// (see the token-scale design guide, feature 09).
+/// A measured unit for a scale value (feature 09 token-scale guide). The
+/// `suffix` is appended to the class (`.text-16-rem`); an EMPTY suffix marks
+/// the bare/default unit (`.opacity-50`, `.w-50` = `50%`) — those carry no
+/// unit-tagged twin.
+#[derive(Clone, Copy)]
+enum Unit {
+    /// Proportion `n/100` (`5 → 0.05`, `100 → 1`); bare. For opacity.
+    Ratio,
+    /// The number verbatim; bare. For unitless enumerations (font-weight).
+    Raw,
+    /// Percent `n%`; bare (the default sizing unit). For width/height.
+    Pct,
+    /// `npx`, suffix `px`.
+    Px,
+    /// `nrem`, suffix `rem`.
+    Rem,
+    /// `nem`, suffix `em`.
+    Em,
+    /// `nvh`, suffix `vh`.
+    Vh,
+    /// `nvw`, suffix `vw`.
+    Vw,
+}
+
+impl Unit {
+    /// Class suffix; empty = bare/default (no `-unit` twin emitted).
+    fn suffix(self) -> &'static str {
+        match self {
+            Unit::Ratio | Unit::Raw | Unit::Pct => "",
+            Unit::Px => "px",
+            Unit::Rem => "rem",
+            Unit::Em => "em",
+            Unit::Vh => "vh",
+            Unit::Vw => "vw",
+        }
+    }
+
+    /// The CSS value for index `n` under this unit.
+    fn value(self, n: u32) -> String {
+        match self {
+            Unit::Ratio => match n {
+                0 => String::from("0"),
+                100 => String::from("1"),
+                p => alloc::format!("0.{p:02}"),
+            },
+            Unit::Raw => alloc::format!("{n}"),
+            Unit::Pct => alloc::format!("{n}%"),
+            Unit::Px => alloc::format!("{n}px"),
+            Unit::Rem => alloc::format!("{n}rem"),
+            Unit::Em => alloc::format!("{n}em"),
+            Unit::Vh => alloc::format!("{n}vh"),
+            Unit::Vw => alloc::format!("{n}vw"),
+        }
+    }
+}
+
+/// One generated utility scale: `.{prefix}-{n}` (bare, primary unit) plus
+/// `.{prefix}-{n}-{unit}` for every unit-tagged variant, over `start..=end`
+/// stepping by `step`. `units[0]` is the primary (drives the bare class).
+struct Scale {
+    prefix: &'static str,
+    property: &'static str,
+    start: u32,
+    end: u32,
+    step: u32,
+    units: &'static [Unit],
+}
+
+/// The calculable scale table (feature 09 token-scale design guide). Every
+/// value is a pure function of its index `n`. Spatial/text scales carry
+/// `px/rem/em/vh` variants so users pick the measured property
+/// (`.text-56-rem`, `.h-50-vh`); the bare class uses the primary unit.
+const SCALES: &[Scale] = &[
+    Scale { prefix: "opacity", property: "opacity", start: 0, end: 100, step: 5, units: &[Unit::Ratio] },
+    Scale { prefix: "w", property: "width", start: 0, end: 100, step: 5, units: &[Unit::Pct, Unit::Vw, Unit::Vh] },
+    Scale { prefix: "h", property: "height", start: 0, end: 100, step: 5, units: &[Unit::Pct, Unit::Vh, Unit::Vw] },
+    Scale { prefix: "p", property: "padding", start: 0, end: 64, step: 4, units: &[Unit::Px, Unit::Rem] },
+    Scale { prefix: "m", property: "margin", start: 0, end: 64, step: 4, units: &[Unit::Px, Unit::Rem] },
+    Scale { prefix: "gap", property: "gap", start: 0, end: 64, step: 4, units: &[Unit::Px, Unit::Rem] },
+    Scale { prefix: "text", property: "font-size", start: 8, end: 72, step: 2, units: &[Unit::Px, Unit::Rem, Unit::Em, Unit::Vh] },
+    Scale { prefix: "border", property: "border-width", start: 0, end: 8, step: 1, units: &[Unit::Px, Unit::Rem, Unit::Em] },
+    Scale { prefix: "font", property: "font-weight", start: 100, end: 900, step: 100, units: &[Unit::Raw] },
+];
+
+/// Append every generated scale. Named tokens (`.p-md`, `.text-primary`) come
+/// from the theme's own tokens; these numeric variants (`.p-16`, `.p-16-rem`,
+/// `.opacity-50`, `.text-56-rem`) coexist by namespace (numbers vs names never
+/// collide). Each step emits the bare primary class plus one class per
+/// unit-tagged variant.
+fn append_scales(css: &mut String) {
+    for scale in SCALES {
+        let mut n = scale.start;
+        while n <= scale.end {
+            // Bare class from the primary unit (`.text-16`, `.w-50`, `.opacity-50`).
+            let primary = scale.units[0];
+            let _ = writeln!(
+                css,
+                ".{}-{n} {{ {}: {}; }}",
+                scale.prefix,
+                scale.property,
+                primary.value(n)
+            );
+            // Unit-tagged variants (`.text-16-rem`, `.h-50-vh`, …).
+            for unit in scale.units {
+                let suffix = unit.suffix();
+                if !suffix.is_empty() {
+                    let _ = writeln!(
+                        css,
+                        ".{}-{n}-{suffix} {{ {}: {}; }}",
+                        scale.prefix,
+                        scale.property,
+                        unit.value(n)
+                    );
+                }
+            }
+            n += scale.step;
+        }
     }
 }
 
@@ -329,7 +438,7 @@ pub fn theme_css(tokens: &[ThemeToken]) -> String {
         }
     }
     css.push_str(BUILTIN_UTILITIES);
-    append_opacity_scale(&mut css);
+    append_scales(&mut css);
     css
 }
 

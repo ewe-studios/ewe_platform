@@ -1,21 +1,28 @@
 //! # Avatar (F1 — Primitives)
 //!
-//! Parts: Root (`<span>`), Image (`<img>`), Fallback (`<span>`).
+//! WHY: An image that falls back to initials/icon on load failure, without a
+//! flash of fallback while the image is still loading (spec-42 §F1).
 //!
-//! Image wires `load`/`error` events → internal `loading_status` signal.
-//! Fallback is visible only when status ≠ loaded (`data-hidden` toggling).
+//! WHAT: Parts Root (`<span>`), Image (`<img>`), Fallback (`<span>`). The
+//! image's `load`/`error` events drive an internal `loading_status` signal;
+//! the fallback is hidden once the image is `loaded` (`data-hidden`).
 //!
-//! Data attributes: `data-loading-status` (idle/loading/loaded/error).
+//! HOW: `load`/`error` carry no value the default setter could read, so they
+//! wire through `ctx.callback` (the event escape hatch). `fallback_delay_ms`
+//! is emitted as the `--avatar-fallback-delay` custom property — CSS owns the
+//! "wait before showing fallback" via `transition-delay`, no JS timer.
 
+use alloc::borrow::Cow;
+use alloc::string::String;
 
 use foundation_signals::Context;
-use foundation_ui_traits::{AttrName, DomOp, Html};
+use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver, Slot};
 
 /// Image loading status (mirrors base-ui's state enum).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum ImageLoadingStatus {
-    /// Not yet attempted.
+    /// Not yet attempted (no `src`).
     #[default]
     Idle,
     /// Image is loading.
@@ -26,16 +33,30 @@ pub enum ImageLoadingStatus {
     Error,
 }
 
-/// Static config for an avatar.
+impl ImageLoadingStatus {
+    /// The `data-loading-status` token.
+    #[must_use]
+    pub fn as_str(self) -> &'static str {
+        match self {
+            ImageLoadingStatus::Idle => "idle",
+            ImageLoadingStatus::Loading => "loading",
+            ImageLoadingStatus::Loaded => "loaded",
+            ImageLoadingStatus::Error => "error",
+        }
+    }
+}
+
+/// Static config for an avatar. Text fields are `Cow<'static, str>`.
 pub struct AvatarConfig {
-    /// Image URL (optional — if absent, fallback shows immediately).
-    pub src: Option<&'static str>,
+    /// Image URL — if absent, the fallback shows immediately.
+    pub src: Option<Cow<'static, str>>,
     /// Alt text for the image.
-    pub alt: Option<&'static str>,
-    /// Fallback delay in milliseconds (default: 0 = immediate).
+    pub alt: Option<Cow<'static, str>>,
+    /// Delay before the fallback appears, in ms (emitted as a CSS var so CSS
+    /// owns the timing; `0` = immediate).
     pub fallback_delay_ms: u32,
-    /// Optional custom class for the root.
-    pub class: Option<&'static str>,
+    /// Class override for the root (default: `"avatar"`).
+    pub class: Option<Cow<'static, str>>,
 }
 
 impl Default for AvatarConfig {
@@ -51,7 +72,7 @@ impl Default for AvatarConfig {
 
 /// Slots for the avatar.
 pub struct AvatarSlots {
-    /// Fallback content (shown when image is not loaded).
+    /// Fallback content (shown when the image is not loaded).
     pub fallback: Option<Slot>,
 }
 
@@ -63,8 +84,9 @@ impl Default for AvatarSlots {
 
 /// Avatar component — image with fallback.
 ///
-/// Internal signal: `loading_status` (idle → loading → loaded|error).
-/// Static: `src`, `alt`, `fallback_delay_ms`, `class`.
+/// Internal signal: `loading_status` (idle → loading → loaded|error), driven
+/// by the image's `load`/`error` events. Static: `src`, `alt`,
+/// `fallback_delay_ms`, `class`.
 #[must_use]
 pub fn avatar(
     ctx: &Context,
@@ -72,89 +94,45 @@ pub fn avatar(
     config: AvatarConfig,
     slots: AvatarSlots,
 ) -> Html {
-    let (status, set_status) = ctx.signal(ImageLoadingStatus::Idle);
-    let class = config.class.unwrap_or("avatar");
-    let root_id = ctx.allocate_id_block(1);
-    let fallback_id = ctx.allocate_id_block(1);
+    let class = config.class.unwrap_or(Cow::Borrowed("avatar"));
+    let fallback_html = slots.fallback.map(|slot| slot.render(ctx, rcv));
 
-    let has_image = config.src.is_some();
-
-    if has_image {
-        let src = config.src.unwrap_or("");
-        let alt = config.alt.unwrap_or("");
-        let _callback_id_load: u64 = 0; // placeholder — real impl would allocate
-        let _callback_id_error: u64 = 0;
-
-        // Start loading immediately.
-        set_status.set(ImageLoadingStatus::Loading);
-
-        // Effect: update root's data-loading-status attribute
-        {
-            let rcv = rcv.clone();
-            let status = status.clone();
-            ctx.effect(move || {
-                let s = status.get();
-                let val = match s {
-                    ImageLoadingStatus::Idle => "idle",
-                    ImageLoadingStatus::Loading => "loading",
-                    ImageLoadingStatus::Loaded => "loaded",
-                    ImageLoadingStatus::Error => "error",
-                };
-                rcv.queue(DomOp::SetAttribute {
-                    node_id: root_id,
-                    name: AttrName::from_static("data-loading-status"),
-                    value: val.into(),
-                });
-            });
-        }
-
-        // Effect: toggle fallback visibility
-        {
-            let rcv = rcv.clone();
-            let status = status.clone();
-            ctx.effect(move || {
-                let is_loaded = status.get() == ImageLoadingStatus::Loaded;
-                if is_loaded {
-                    rcv.queue(DomOp::SetAttribute {
-                        node_id: fallback_id,
-                        name: AttrName::from_static("data-hidden"),
-                        value: "".into(),
-                    });
-                } else {
-                    rcv.queue(DomOp::RemoveAttribute {
-                        node_id: fallback_id,
-                        name: AttrName::from_static("data-hidden"),
-                    });
-                }
-            });
-        }
-
-        let fallback_html = slots.fallback.map(|slot| slot.render(ctx, rcv));
-
-        html! {
-            <span primal-id={root_id}
-                  class={class}
-                  data-loading-status="loading">
-                <img src={src}
-                     alt={alt}
-                     class="avatar-image"/>
-                <span primal-id={fallback_id}
-                      class="avatar-fallback">
-                    {fallback_html}
-                </span>
+    let Some(src) = config.src else {
+        // No image — fallback shows immediately.
+        return html! { ctx, rcv,
+            <span class=[class] data-loading-status="idle">
+                {fallback_html.clone()}
             </span>
-        }
-    } else {
-        // No image — show fallback immediately.
-        set_status.set(ImageLoadingStatus::Idle);
+        };
+    };
 
-        let fallback_html = slots.fallback.map(|slot| slot.render(ctx, rcv));
+    let alt = config.alt.unwrap_or(Cow::Borrowed(""));
+    let delay_style: String = alloc::format!("--avatar-fallback-delay: {}ms", config.fallback_delay_ms);
+    let (status, set_status) = ctx.signal(ImageLoadingStatus::Loading);
 
-        html! {
-            <span class={class}
-                  data-loading-status="idle">
-                {fallback_html}
+    // load/error carry no value → Callback escape hatch flips the status.
+    let on_load = {
+        let set = set_status.clone();
+        ctx.callback(move |_| set.set(ImageLoadingStatus::Loaded))
+    };
+    let on_error = {
+        let set = set_status.clone();
+        ctx.callback(move |_| set.set(ImageLoadingStatus::Error))
+    };
+
+    let status_attr = status.clone();
+    let fallback_status = status.clone();
+    html! { ctx, rcv,
+        <span class=[class]
+              style=[delay_style]
+              data-loading-status={status_attr.get().as_str()}>
+            <img src=[src] alt=[alt] class="avatar-image"
+                 primal:onload={on_load}
+                 primal:onerror={on_error}/>
+            <span class="avatar-fallback"
+                  data-hidden={(fallback_status.get() == ImageLoadingStatus::Loaded).then_some("")}>
+                {fallback_html.clone()}
             </span>
-        }
+        </span>
     }
 }

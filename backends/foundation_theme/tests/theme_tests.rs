@@ -44,12 +44,34 @@ fn root_custom_properties_and_utilities() {
     assert!(css.contains(".flex { display: flex; }"));
     assert!(css.contains(".hidden { display: none; }"));
 
-    // Generated opacity scale: 0 -> 100 step 5, endpoints and fine variants.
+    // Generated calculable scales (token-scale design guide).
+    // Ratio (opacity), step 5: endpoints + fine variants.
     assert!(css.contains(".opacity-0 { opacity: 0; }"));
     assert!(css.contains(".opacity-5 { opacity: 0.05; }"));
     assert!(css.contains(".opacity-50 { opacity: 0.50; }"));
     assert!(css.contains(".opacity-100 { opacity: 1; }"));
-    assert!(!css.contains(".opacity-105"), "scale stops at 100");
+    assert!(!css.contains(".opacity-105"), "ratio scale stops at 100");
+    // Percent (width/height), step 5.
+    assert!(css.contains(".w-50 { width: 50%; }"));
+    assert!(css.contains(".h-100 { height: 100%; }"));
+    // Pixel grid (spacing/border/font-size) — bare class uses the primary unit.
+    assert!(css.contains(".p-16 { padding: 16px; }"));
+    assert!(css.contains(".border-2 { border-width: 2px; }"));
+    assert!(css.contains(".text-16 { font-size: 16px; }"));
+    // Enumerated (font-weight).
+    assert!(css.contains(".font-700 { font-weight: 700; }"));
+
+    // Unit-tagged variants: users pick the measured property.
+    assert!(css.contains(".text-56-px { font-size: 56px; }"));
+    assert!(css.contains(".text-56-rem { font-size: 56rem; }"));
+    assert!(css.contains(".text-56-em { font-size: 56em; }"));
+    assert!(css.contains(".text-56-vh { font-size: 56vh; }"));
+    assert!(css.contains(".p-16-rem { padding: 16rem; }"));
+    assert!(css.contains(".h-50-vh { height: 50vh; }"));
+    assert!(css.contains(".w-50-vw { width: 50vw; }"));
+    // Bare (Ratio/Pct) units get NO unit-tagged twin.
+    assert!(!css.contains(".w-50-pct"), "percent is the bare default");
+    assert!(!css.contains(".opacity-50-"), "ratio has no unit suffix");
 }
 
 #[test]

@@ -79,8 +79,13 @@ pub(crate) enum ParsedNode {
 pub(crate) enum ParsedAttr {
     /// `name="value"` or bare boolean `name` (value "true").
     Static { name: String, value: String },
-    /// `name={expr}`.
+    /// `name={expr}` — REACTIVE: re-evaluated in an effect on signal change.
     Dynamic { name: String, tokens: TokenStream },
+    /// `name=[expr]` — STATIC-once: evaluated a single time at build (no
+    /// effect). For runtime-but-non-reactive values (config `Cow`s, computed
+    /// classes) — avoids the `FnMut` move that forces `{expr}` callers to
+    /// `.clone()`, and emits no per-render effect.
+    StaticDynamic { name: String, tokens: TokenStream },
     /// `primal:onX={handler}` — `event_name` is X with the prefix stripped.
     Event {
         event_name: String,
@@ -398,6 +403,7 @@ fn parse_builtin_attrs(
                 out.push((name, tokens));
             }
             ParsedAttr::Dynamic { name, .. }
+            | ParsedAttr::StaticDynamic { name, .. }
             | ParsedAttr::Static { name, .. }
             | ParsedAttr::Event {
                 event_name: name, ..
@@ -589,6 +595,16 @@ fn parse_attributes(cursor: &mut Cursor, tag: &str, tag_span: Span) -> ParseResu
                         unreachable!()
                     };
                     attrs.push(ParsedAttr::Dynamic {
+                        name,
+                        tokens: group.stream(),
+                    });
+                }
+                // `name=[expr]` — static-once interpolation (no effect).
+                Some(TokenTree::Group(g)) if g.delimiter() == Delimiter::Bracket => {
+                    let TokenTree::Group(group) = cursor.next().expect("peeked") else {
+                        unreachable!()
+                    };
+                    attrs.push(ParsedAttr::StaticDynamic {
                         name,
                         tokens: group.stream(),
                     });

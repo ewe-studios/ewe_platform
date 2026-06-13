@@ -30,10 +30,14 @@ pub mod toggle;
 pub mod toggle_group;
 pub mod avatar;
 
-// Re-exports for convenience
-pub use button::{button, ButtonConfig, ButtonSlots};
+// Re-exports for convenience. `Orientation` is intentionally NOT re-exported
+// at the crate root (defined by both `separator` and `toggle_group`); reach it
+// via the module path.
+pub use button::{button, button_with_click, ButtonConfig, ButtonSlots};
 pub use separator::{separator, SeparatorConfig};
-pub use toggle::{toggle, ToggleConfig};
-pub use toggle_group::{toggle_group, ToggleGroupConfig};
-pub use avatar::{avatar, AvatarConfig, AvatarSlots};
-pub use field_state::{field, FieldConfig, FieldSlots, FieldState};
+pub use toggle::{toggle, ToggleConfig, ToggleSlots};
+pub use toggle_group::{toggle_group, ToggleGroupConfig, ToggleGroupItem};
+pub use avatar::{avatar, AvatarConfig, AvatarSlots, ImageLoadingStatus};
+pub use field_state::{
+    field, FieldBinding, FieldConfig, FieldSlots, FieldState, ValidationMode, Validator,
+};

@@ -493,7 +493,11 @@ fn gen_html_node(
                             ));
                         });
                     }
-                    ParsedAttr::Dynamic { name, tokens } => match mode {
+                    // Both forms build the SAME Html literal: pure evaluates
+                    // once; reactive carries a placeholder (the value is set by
+                    // an effect for `{}` / once at mount for `[]`).
+                    ParsedAttr::Dynamic { name, tokens }
+                    | ParsedAttr::StaticDynamic { name, tokens } => match mode {
                         // Pure: evaluate once; `None` omits the attribute
                         // (presence contract, §8.2), `Some` sets it.
                         Mode::Pure => attr_stmts.push(quote! {
@@ -503,8 +507,8 @@ fn gen_html_node(
                                 __attrs.push((#ui::AttrName::from_static(#name), __v));
                             }
                         }),
-                        // Reactive: the effect (which runs immediately) owns the
-                        // expression; the tree carries a placeholder.
+                        // Reactive: the value is set on the wire (effect or
+                        // one-shot mount op); the tree carries a placeholder.
                         Mode::Reactive => attr_stmts.push(quote! {
                             __attrs.push((
                                 #ui::AttrName::from_static(#name),
@@ -693,6 +697,23 @@ fn gen_mount_ops(
                         });
                     }
                     ParsedAttr::Static { .. } => {}
+                    ParsedAttr::StaticDynamic { name, tokens } => {
+                        // `name=[expr]`: evaluate ONCE at mount, no effect. The
+                        // expression is moved exactly once (no `FnMut`), so
+                        // callers pass owned values without `.clone()`. `None`
+                        // omits (presence contract).
+                        ops.extend(quote! {
+                            if let ::core::option::Option::Some(__value) =
+                                #ui::IntoAttrValue::into_attr_value((#tokens))
+                            {
+                                __rcv.queue(#ui::DomOp::SetAttribute {
+                                    node_id: __base + #ridx,
+                                    name: #ui::AttrName::from_static(#name),
+                                    value: __value,
+                                });
+                            }
+                        });
+                    }
                     ParsedAttr::Dynamic { name, tokens } => {
                         // The effect owns the expression; immediate run queues
                         // the initial Set/RemoveAttribute (decision 008). An
