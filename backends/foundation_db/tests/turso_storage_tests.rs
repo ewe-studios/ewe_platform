@@ -1,8 +1,8 @@
 //! Turso storage backend integration tests.
 
 use foundation_db::{DataValue, EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
-use tempfile::TempDir;
 use std::sync::Mutex;
+use tempfile::TempDir;
 
 /// Shared Valtron pool guard — initialized once and reused across all tests
 /// to avoid parallel tests interfering with each other's thread pool.
@@ -26,7 +26,9 @@ fn test_turso_storage_basic() {
     let storage = TursoStorage::new(url).unwrap();
     storage.init_schema().unwrap();
 
-    storage.set::<String>("test_key", "test_value".to_string()).unwrap();
+    storage
+        .set::<String>("test_key", "test_value".to_string())
+        .unwrap();
 
     let value: Option<String> = storage.get("test_key").unwrap();
     assert_eq!(value, Some("test_value".to_string()));
@@ -102,7 +104,10 @@ fn test_turso_storage_encryption_wrong_key() {
     let storage2 = TursoStorage::with_encryption(url, Some(key2.clone())).unwrap();
 
     let result = storage2.get::<String>("secret_key");
-    assert!(result.is_err(), "Should fail with wrong key, got: {result:?}");
+    assert!(
+        result.is_err(),
+        "Should fail with wrong key, got: {result:?}"
+    );
 }
 
 #[test]
@@ -115,9 +120,15 @@ fn test_turso_storage_list_keys() {
     let storage = TursoStorage::new(url).unwrap();
     storage.init_schema().unwrap();
 
-    storage.set::<String>("prefix:key1", "value1".to_string()).unwrap();
-    storage.set::<String>("prefix:key2", "value2".to_string()).unwrap();
-    storage.set::<String>("other:key3", "value3".to_string()).unwrap();
+    storage
+        .set::<String>("prefix:key1", "value1".to_string())
+        .unwrap();
+    storage
+        .set::<String>("prefix:key2", "value2".to_string())
+        .unwrap();
+    storage
+        .set::<String>("other:key3", "value3".to_string())
+        .unwrap();
 
     let keys: Vec<String> = storage
         .list_keys(None)
@@ -150,14 +161,23 @@ fn test_turso_storage_migrations() {
     let storage = TursoStorage::new(url).unwrap();
 
     let migrations = &[
-        ("001_create_users", "CREATE TABLE users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL)"),
-        ("002_create_sessions", "CREATE TABLE sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL)"),
+        (
+            "001_create_users",
+            "CREATE TABLE users (id TEXT PRIMARY KEY, email TEXT UNIQUE NOT NULL)",
+        ),
+        (
+            "002_create_sessions",
+            "CREATE TABLE sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL)",
+        ),
     ];
 
     storage.migrate(migrations).unwrap();
 
     let users_exist = !storage
-        .query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'", &[])
+        .query(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='users'",
+            &[],
+        )
         .unwrap()
         .flat_map(|stream_item| match stream_item {
             foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
@@ -167,7 +187,10 @@ fn test_turso_storage_migrations() {
         .is_empty();
 
     let sessions_exist = !storage
-        .query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='sessions'", &[])
+        .query(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='sessions'",
+            &[],
+        )
         .unwrap()
         .flat_map(|stream_item| match stream_item {
             foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
@@ -177,7 +200,10 @@ fn test_turso_storage_migrations() {
         .is_empty();
 
     let migrations_exist = !storage
-        .query("SELECT 1 FROM sqlite_master WHERE type='table' AND name='_migrations'", &[])
+        .query(
+            "SELECT 1 FROM sqlite_master WHERE type='table' AND name='_migrations'",
+            &[],
+        )
         .unwrap()
         .flat_map(|stream_item| match stream_item {
             foundation_core::valtron::Stream::Next(Ok(result)) => vec![result],
