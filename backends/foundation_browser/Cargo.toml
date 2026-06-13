@@ -18,7 +18,9 @@ foundation_netio = { workspace = true, features = ["multi"] }
 foundation_http = { workspace = true }
 foundation_macros = { workspace = true }
 foundation_wasm = { workspace = true }
-foundation_wasm_ui = { workspace = true }
+# embedded-js exposes the runtime assets (foundation-wasm-ui.js) as consts so we
+# serve <mount-stream> without a build step.
+foundation_wasm_ui = { workspace = true, features = ["embedded-js"] }
 foundation_ui_traits = { workspace = true }
 
 serde = { workspace = true }

@@ -39,9 +39,9 @@ use crate::error::{BrowserError, Result};
 use crate::test::sink::BroadcastSink;
 use crate::test::stream::{BroadcastTx, Broadcaster, StreamHandler, STREAM_PATH};
 
-/// The `foundation_wasm_ui` browser runtime, embedded so `<mount-stream>` works
-/// without a build step. Served at [`RUNTIME_PATH`].
-const RUNTIME_JS: &str = include_str!("../../../foundation_wasm_ui/runtimes/foundation-wasm-ui.js");
+/// The `foundation_wasm_ui` browser runtime (via its `embedded-js` feature) so
+/// `<mount-stream>` works without a build step. Served at [`RUNTIME_PATH`].
+const RUNTIME_JS: &str = foundation_wasm_ui::embedded::FOUNDATION_WASM_UI_JS;
 
 /// Where the embedded runtime is served (the page imports it).
 pub const RUNTIME_PATH: &str = "/__primal/foundation-wasm-ui.js";
@@ -254,6 +254,12 @@ impl TestServer {
     /// Convenience: push one raw frame to the browser (used by transport tests).
     pub fn push_frame(&self, frame: &[u8]) {
         self.broadcaster.sender().send(frame);
+    }
+
+    /// Number of frames the App has streamed so far (diagnostics).
+    #[must_use]
+    pub fn frame_count(&self) -> usize {
+        self.broadcaster.frame_count()
     }
 
     /// The App's protocol sink (Mode 1): wire it into `App::with_protocol(...)`,

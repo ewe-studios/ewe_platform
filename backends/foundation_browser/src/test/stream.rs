@@ -74,6 +74,12 @@ impl Broadcaster {
     pub fn close(&self) {
         self.inner.lock().expect("broadcaster poisoned").streams.clear();
     }
+
+    /// Number of frames pushed so far (diagnostics).
+    #[must_use]
+    pub fn frame_count(&self) -> usize {
+        self.inner.lock().expect("broadcaster poisoned").backlog.len()
+    }
 }
 
 impl Default for Broadcaster {

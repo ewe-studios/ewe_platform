@@ -154,3 +154,69 @@ fn channel_a_streams_a_frame_to_the_browser() {
         Ok(())
     });
 }
+
+// Mode 1 — a NATIVE foundation_wasm_ui App streams to a REAL browser. The App
+// runs in this test thread; its protocol sink ships frames over channel-A SSE;
+// the page's <mount-stream> applies them. We drive a signal in Rust and watch
+// the browser DOM update. Headful when PRIMAL_TEST_HEADFUL is set — watch it!
+#[test]
+fn mode1_native_app_streams_to_real_browser() {
+    use foundation_browser::test::Encoding;
+    use foundation_wasm_ui::{html, App};
+
+    let page = r##"<!doctype html><html><head><meta charset=utf-8></head><body>
+<h2>spec-43 Mode 1 — native App → real browser</h2>
+<div id="app" style="font:20px monospace;padding:1rem;border:2px solid #44f"></div>
+<script>
+  window.__errs=[];
+  var __oe=console.error; console.error=function(){window.__errs.push(Array.prototype.map.call(arguments,String).join(' ')); __oe.apply(console,arguments);};
+  window.addEventListener('error',function(e){window.__errs.push('error: '+e.message);});
+  window.addEventListener('unhandledrejection',function(e){window.__errs.push('reject: '+e.reason);});
+</script>
+<mount-stream api="/__primal/stream" transport="sse" protocol="arrow" target="#app"></mount-stream>
+<script type="module">
+  import { registerWebComponents } from '/__primal/foundation-wasm-ui.js';
+  registerWebComponents();
+</script>
+</body></html>"##;
+
+    let headful = std::env::var("PRIMAL_TEST_HEADFUL").is_ok();
+    let harness = Harness::setup(TestConfig {
+        html: page.into(),
+        encoding: Encoding::Columnar,
+        headless: !headful,
+        ..TestConfig::default()
+    })
+    .expect("setup");
+
+    harness.run("mode1_native_app_streams_to_real_browser", |server, page| {
+        // The App is native, lives here, never crosses threads. Its sink streams
+        // encoded frames to the browser on every stabilize().
+        let app = App::with_protocol(server.broadcast_sink());
+        let (ctx, rcv) = app.context();
+        let (title, set_title) = ctx.signal(alloc_str("Hello from Rust 👋"));
+
+        let t = title.clone();
+        let _ui = html! { ctx, rcv,
+            <div id="greeting" class="greeting">{t.get()}</div>
+        };
+        app.stabilize(); // initial mount → SSE → browser applies it
+        std::thread::sleep(std::time::Duration::from_millis(600));
+        let dbg = page
+            .eval("JSON.stringify({body:document.body.innerHTML.slice(0,400), greeting:!!document.getElementById('greeting'), errs:window.__errs})")
+            .unwrap_or_default();
+        eprintln!("MODE1 diagnostic: {dbg} | rust frames={}", server.frame_count());
+        page.locator("#greeting").expect().to_have_text("Hello from Rust 👋")?;
+        if headful { std::thread::sleep(std::time::Duration::from_millis(1500)); }
+
+        set_title.set(alloc_str("Updated live from a Rust signal! ✨"));
+        app.stabilize(); // the SetText op streams → DOM updates live
+        page.locator("#greeting").expect().to_have_text("Updated live from a Rust signal! ✨")?;
+        if headful { std::thread::sleep(std::time::Duration::from_secs(3)); }
+        Ok(())
+    });
+}
+
+fn alloc_str(s: &str) -> String {
+    s.to_string()
+}
