@@ -795,6 +795,32 @@ fn slider_wires_drag_machinery() {
 }
 
 #[test]
+fn drawer_snap_points_wired() {
+    use foundation_ui_components::{drawer_with_snap, DialogConfig, DialogSlots, DrawerSide};
+    use foundation_ui_components::machinery::gestures::SNAP_JS;
+    assert!(SNAP_JS.contains("data-snap-points"), "reads the snap points");
+    assert!(SNAP_JS.contains("data-swipe-dismiss"), "below the lowest point dismisses");
+    assert!(SNAP_JS.contains("--drawer-snap-progress"), "publishes progress var");
+
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(true);
+    let (_snap, set_snap) = ctx.signal(0usize);
+    let _h = drawer_with_snap(
+        &ctx, &rcv, DialogConfig::default(), DrawerSide::Bottom,
+        vec![0.4, 1.0], true, set_snap, &open, set_open, DialogSlots::default(),
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-snap-points") && *value == "0.4,1")),
+        "snap points serialized");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-snap-input") && *value == "true")),
+        "snap index reports back via hidden input");
+}
+
+#[test]
 fn toast_swipe_to_dismiss_wired() {
     use foundation_ui_components::machinery::gestures::SWIPE_JS;
     assert!(SWIPE_JS.contains("data-swipe-dismiss"), "swipe past threshold dismisses");

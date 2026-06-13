@@ -82,7 +82,7 @@ pub use collapsible::{collapsible, CollapsibleConfig, CollapsibleSlots};
 pub use accordion::{accordion, AccordionConfig, AccordionItem};
 pub use tabs::{tabs, TabDef, TabsConfig};
 pub use dialog::{
-    alert_dialog, dialog, drawer, DialogConfig, DialogSlots, DrawerSide,
+    alert_dialog, dialog, drawer, drawer_with_snap, DialogConfig, DialogSlots, DrawerSide,
 };
 pub use popover::{
     popover, preview_card, tooltip, HoverConfig, PopoverConfig, PopoverSlots,

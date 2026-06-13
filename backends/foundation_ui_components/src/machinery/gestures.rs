@@ -116,6 +116,58 @@ pub const SWIPE_JS: &str = r#"function(scope){
   });
 }"#;
 
+/// Drawer snap points (OUR design — base-ui has no drawer; vaul-inspired). The
+/// drawer drags along its swipe axis and rests at fractional-open heights
+/// (`data-snap-points="0.5,1"`, 1 = fully open); release snaps to the nearest
+/// point (or the next/prev with `data-snap-sequential`), dragging below the
+/// smallest point dismisses. Publishes `--drawer-offset` + `--drawer-snap-progress`
+/// and reports the resting index via `[data-snap-input]` (→ a `usize` signal).
+pub const SNAP_JS: &str = r#"function(scope){
+  var el = scope.parent();
+  if (!el || el.__snap) return; el.__snap = true;
+  var dir = el.getAttribute('data-swipe-direction') || 'bottom';
+  function sign(){ return (dir === 'up' || dir === 'left') ? -1 : 1; }
+  var horizontal = dir === 'left' || dir === 'right';
+  var points = (el.getAttribute('data-snap-points') || '1').split(',').map(parseFloat)
+    .filter(function(n){ return !isNaN(n); }).sort(function(a, b){ return a - b; });
+  if (!points.length) points = [1];
+  var sequential = el.getAttribute('data-snap-sequential') === 'true';
+  var snapInput = el.querySelector('[data-snap-input]');
+  var full = horizontal ? el.offsetWidth : el.offsetHeight;
+  var startCoord = 0, dragging = false, curIdx = points.length - 1, base = 0;
+  function toOffset(f){ return (1 - f) * full; }
+  function setOffset(px){
+    el.style.setProperty('--drawer-offset', px + 'px');
+    el.style.setProperty('--drawer-snap-progress', String(full ? 1 - px / full : 1));
+  }
+  setOffset(toOffset(points[curIdx]));
+  scope.addEvent(el, 'pointerdown', function(e){
+    if (e.button) return;
+    dragging = true; startCoord = horizontal ? e.clientX : e.clientY;
+    base = toOffset(points[curIdx]);
+    el.setAttribute('data-swiping', '');
+    if (el.setPointerCapture) { try { el.setPointerCapture(e.pointerId); } catch (_) {} }
+  });
+  scope.addEvent(el, 'pointermove', function(e){
+    if (!dragging) return;
+    var d = (horizontal ? e.clientX : e.clientY) - startCoord;
+    var off = Math.max(0, Math.min(base + sign() * d, full));
+    setOffset(off);
+  });
+  scope.addEvent(el, 'pointerup', function(){
+    if (!dragging) return; dragging = false; el.removeAttribute('data-swiping');
+    var off = parseFloat(el.style.getPropertyValue('--drawer-offset')) || 0;
+    var frac = full ? 1 - off / full : 1;
+    if (frac < points[0] / 2) { var act = el.querySelector('[data-swipe-dismiss]'); if (act) { act.click(); return; } }
+    var best = 0, bestD = Infinity;
+    for (var i = 0; i < points.length; i++) { var dd = Math.abs(points[i] - frac); if (dd < bestD) { bestD = dd; best = i; } }
+    if (sequential) best = Math.max(curIdx - 1, Math.min(curIdx + 1, best));
+    curIdx = best;
+    setOffset(toOffset(points[curIdx]));
+    if (snapInput) { snapInput.value = String(curIdx); snapInput.dispatchEvent(new Event('change', { bubbles: true })); }
+  });
+}"#;
+
 /// The `<script>` a slider Root embeds for M8 pointer drag. The Root must carry
 /// `data-min`/`data-max`/`data-step`/`data-large-step`/`data-orientation`, mark
 /// the track `[data-slider-control]` and the hidden range `[data-slider-input]`.
@@ -130,4 +182,13 @@ pub fn slider_drag_behavior() -> Html {
 #[must_use]
 pub fn swipe_behavior() -> Html {
     scoped_script(SWIPE_JS)
+}
+
+/// The `<script>` a drawer with snap points embeds. The drawer must carry
+/// `data-swipe-direction`/`data-snap-points` (+ optional `data-snap-sequential`)
+/// and a hidden `[data-snap-input]` wired to a `usize` snap-index signal +
+/// `[data-swipe-dismiss]` for the dismiss-below-lowest path.
+#[must_use]
+pub fn snap_behavior() -> Html {
+    scoped_script(SNAP_JS)
 }

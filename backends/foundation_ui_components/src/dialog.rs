@@ -25,7 +25,7 @@ use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver, Slot};
 
 use crate::machinery::dialog::dialog_behavior;
-use crate::machinery::gestures::swipe_behavior;
+use crate::machinery::gestures::{snap_behavior, swipe_behavior};
 use crate::machinery::transition::transition_behavior;
 
 /// Which edge a drawer anchors to.
@@ -103,7 +103,7 @@ pub fn dialog(
     set_open: SignalSetter<bool>,
     slots: DialogSlots,
 ) -> Html {
-    dialog_impl(ctx, rcv, config, open, set_open, slots, None)
+    dialog_impl(ctx, rcv, config, open, set_open, slots, None, None)
 }
 
 /// Alert-dialog — always modal, never light-dismissable, `role="alertdialog"`.
@@ -119,7 +119,7 @@ pub fn alert_dialog(
     config.modal = true;
     config.dismissable = false;
     config.alert = true;
-    dialog_impl(ctx, rcv, config, open, set_open, slots, None)
+    dialog_impl(ctx, rcv, config, open, set_open, slots, None, None)
 }
 
 /// Drawer — a side-anchored modal dialog (swipe/snap deferred to M8). Adds
@@ -137,10 +137,39 @@ pub fn drawer(
     if config.class.is_none() {
         config.class = Some(Cow::Borrowed("drawer"));
     }
-    dialog_impl(ctx, rcv, config, open, set_open, slots, Some(side))
+    dialog_impl(ctx, rcv, config, open, set_open, slots, Some(side), None)
 }
 
-#[allow(clippy::too_many_lines)]
+/// Drawer with snap points (OUR design — base-ui has no drawer). `snap_points`
+/// are fractional-open heights (`1.0` = fully open); dragging rests at the
+/// nearest (or sequential) point, and below the smallest dismisses. The resting
+/// index flows to `set_snap_point`.
+#[must_use]
+#[allow(clippy::too_many_arguments)]
+pub fn drawer_with_snap(
+    ctx: &Context,
+    rcv: &SharedInstructionReceiver,
+    mut config: DialogConfig,
+    side: DrawerSide,
+    snap_points: Vec<f64>,
+    sequential: bool,
+    set_snap_point: SignalSetter<usize>,
+    open: &SignalGetter<bool>,
+    set_open: SignalSetter<bool>,
+    slots: DialogSlots,
+) -> Html {
+    if config.class.is_none() {
+        config.class = Some(Cow::Borrowed("drawer"));
+    }
+    let on_snap = ctx.callback(move |data| {
+        if let Some(n) = data.value.as_deref().and_then(|t| t.parse::<usize>().ok()) {
+            set_snap_point.set(n);
+        }
+    });
+    dialog_impl(ctx, rcv, config, open, set_open, slots, Some(side), Some((snap_points, sequential, on_snap)))
+}
+
+#[allow(clippy::too_many_lines, clippy::too_many_arguments, clippy::type_complexity)]
 fn dialog_impl(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
@@ -149,6 +178,7 @@ fn dialog_impl(
     set_open: SignalSetter<bool>,
     slots: DialogSlots,
     drawer_side: Option<DrawerSide>,
+    snap: Option<(Vec<f64>, bool, foundation_signals::Callback)>,
 ) -> Html {
     let class = config
         .class
@@ -188,6 +218,21 @@ fn dialog_impl(
     let swipe_dir: Option<Cow<'static, str>> = drawer_side.map(|s| Cow::Borrowed(s.as_str()));
     let swipe_prefix: Option<&'static str> = drawer_side.map(|_| "--drawer");
     let is_drawer = drawer_side.is_some();
+    // Snap config (our design): comma-joined fractions + sequential flag.
+    let (snap_points, sequential, on_snap) = match snap {
+        Some((pts, seq, cb)) => (Some(pts), seq, Some(cb)),
+        None => (None, false, None),
+    };
+    let has_snap = snap_points.is_some();
+    let snap_points_attr: Option<Cow<'static, str>> = snap_points.map(|pts| {
+        Cow::Owned(
+            pts.iter()
+                .map(alloc::string::ToString::to_string)
+                .collect::<Vec<_>>()
+                .join(","),
+        )
+    });
+    let sequential_attr: Option<&'static str> = (has_snap && sequential).then_some("true");
 
     let d_open = open.clone();
     let d_closed = open.clone();
@@ -200,6 +245,8 @@ fn dialog_impl(
                 data-dialog-dismissable=[dismissable_attr]
                 data-swipe-direction=[swipe_dir]
                 data-swipe-prefix=[swipe_prefix]
+                data-snap-points=[snap_points_attr]
+                data-snap-sequential=[sequential_attr]
                 aria-label=[config.aria_label]
                 aria-labelledby=[labelledby]
                 aria-describedby=[describedby]
@@ -218,9 +265,13 @@ fn dialog_impl(
                 </button>
             })}</Fragment>
             <button type="button" hidden="" data-dialog-close="true" data-swipe-dismiss="true" primal:onclick={close_hidden} />
+            <Fragment>{on_snap.map(|cb| html! { ctx, rcv,
+                <input type="hidden" data-snap-input="true" primal:onchange={cb} />
+            })}</Fragment>
             <Fragment>{transition_behavior()}</Fragment>
             <Fragment>{dialog_behavior()}</Fragment>
-            <Fragment>{is_drawer.then(swipe_behavior)}</Fragment>
+            // Snap drawers use the snap gesture; plain drawers use swipe-dismiss.
+            <Fragment>{if has_snap { Some(snap_behavior()) } else if is_drawer { Some(swipe_behavior()) } else { None }}</Fragment>
         </dialog>
     }
 }
