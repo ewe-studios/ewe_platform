@@ -6,6 +6,7 @@
 
 #![cfg(feature = "browser-tests")]
 
+use foundation_browser::test::{Harness, TestConfig};
 use foundation_browser::{BrowserDriver, LaunchConfig};
 
 #[test]
@@ -61,4 +62,72 @@ fn locator_geometry_attributes_style_and_input() {
     page.locator("#in").fill("hello").expect("fill");
     let val = page.eval("document.getElementById('in').value").expect("read value");
     assert_eq!(val.as_str(), Some("hello"), "input received typed text");
+}
+
+#[test]
+fn harness_serves_drives_and_tears_down() {
+    let harness = Harness::setup(TestConfig {
+        html: "<button id='go'>Go</button><div id='out'></div>\
+               <script>document.getElementById('go').onclick=function(){document.getElementById('out').textContent='done'}</script>"
+            .into(),
+        ..TestConfig::default()
+    })
+    .expect("setup server + browser");
+
+    harness.run("harness_serves_drives_and_tears_down", |_server, page| {
+        page.locator("#go").click()?;
+        page.locator("#out").expect().to_have_text("done")?;
+        Ok(())
+    });
+    // run() consumed the harness → server thread + browser process torn down here.
+}
+
+// The ergonomic form: the macro owns setup + teardown.
+#[foundation_browser::wasm_ui_server(html = "<button id='go'>Go</button><div id='out'></div><script>document.getElementById('go').onclick=function(){document.getElementById('out').textContent='ok'}</script>")]
+fn macro_drives_a_served_page(
+    _server: &foundation_browser::test::TestServer,
+    page: &foundation_browser::Page,
+) -> foundation_browser::Result<()> {
+    page.locator("#go").click()?;
+    page.locator("#out").expect().to_have_text("ok")?;
+    Ok(())
+}
+
+#[test]
+fn file_page_source_and_static_directory() {
+    use foundation_browser::test::PageSource;
+    use std::io::Write;
+
+    // A temp site: an HTML page file + an asset under assets/.
+    let dir = std::env::temp_dir().join(format!("primal-site-{}", std::process::id()));
+    std::fs::create_dir_all(dir.join("assets")).unwrap();
+    std::fs::File::create(dir.join("assets/hello.txt"))
+        .unwrap()
+        .write_all(b"asset-ok")
+        .unwrap();
+    let page_file = dir.join("page.html");
+    std::fs::File::create(&page_file)
+        .unwrap()
+        .write_all(
+            b"<div id='m'>file-page</div>\
+              <script>fetch('/assets/hello.txt').then(function(r){return r.text()}).then(function(t){\
+                var d=document.createElement('div');d.id='asset';d.textContent=t;document.body.appendChild(d)})</script>",
+        )
+        .unwrap();
+
+    let harness = Harness::setup(TestConfig {
+        file: Some(page_file),
+        static_dir: Some(dir.clone()),
+        static_mount: "/assets".into(),
+        ..TestConfig::default()
+    })
+    .expect("setup");
+
+    harness.run("file_page_source_and_static_directory", |_server, page| {
+        page.locator("#m").expect().to_have_text("file-page")?; // File page source served
+        page.locator("#asset").expect().to_have_text("asset-ok")?; // StaticFileHandler served the dir
+        Ok(())
+    });
+
+    let _ = std::fs::remove_dir_all(&dir);
 }

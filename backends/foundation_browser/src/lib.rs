@@ -25,6 +25,7 @@ pub mod jsonrpc;
 pub mod locator;
 pub mod runtime;
 pub mod supervisor;
+pub mod test;
 
 pub use browser::{BrowserDriver, Page};
 pub use cdp::launch::{Browser, LaunchConfig};
@@ -32,3 +33,7 @@ pub use error::{BrowserError, Result};
 pub use geometry::Rect;
 pub use jsonrpc::{RpcEngine, WireProtocol};
 pub use locator::{Locator, LocatorAssertions};
+
+/// `#[wasm_ui_server]` — boot a server + browser for a test, with deterministic
+/// teardown (see the macro docs).
+pub use foundation_macros::wasm_ui_server;

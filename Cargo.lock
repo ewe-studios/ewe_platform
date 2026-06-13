@@ -2861,6 +2861,8 @@ dependencies = [
  "base64 0.22.1",
  "derive_more",
  "foundation_core",
+ "foundation_http",
+ "foundation_macros",
  "foundation_netio",
  "serde",
  "serde_json",

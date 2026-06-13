@@ -18,6 +18,7 @@ mod theme_tokens;
 mod wasm_modes;
 mod valtron_entry;
 mod wasm_test;
+mod wasm_ui_server_entry;
 mod wasmbin_codec;
 
 // scaffold!() — marker for methods delegated by #[scaffold_impl].
@@ -544,6 +545,22 @@ pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()
+}
+
+/// `#[wasm_ui_server]` — wrap a fn into a `#[test]` that boots a `TestServer` +
+/// browser, navigates a page, runs the body, and tears everything down on
+/// success/error/panic (spec-43). Re-exported by `foundation_browser`.
+///
+/// ```ignore
+/// #[wasm_ui_server(headless = true)]
+/// fn dialog_traps_focus(server: &TestServer, page: &Page) -> foundation_browser::Result<()> {
+///     page.locator("dialog").expect().to_be_visible()?;
+///     Ok(())
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_ui_server_entry::wasm_ui_server(attr.into(), item.into()).into()
 }
 
 /// `html!` — compile-time HTML templates producing typed
