@@ -169,9 +169,11 @@ The Context API owns a **three-tier memory hierarchy** that progressively distil
 
 | Trigger | Threshold | Action |
 |---------|-----------|--------|
-| Observation generation | Recent interactions > 30k tokens | Generate observation memory from recent messages |
-| Reflection generation | Observation memory > 40k tokens | Generate reflections, replace observation memory |
+| Observation generation | Recent interactions > 30k tokens | Generate observation memory using **memory model** (smaller, cheaper) |
+| Reflection generation | Observation memory > 40k tokens | Generate reflections using **memory model**, replace observation memory |
 | Working memory update | User explicitly requests OR smaller model detects new fact | Update working memory, push to message store |
+
+The memory model is configured via `AgentConfig::memory_model` — typically a smaller model (e.g., Haiku) for cost efficiency. If no memory model is configured, the primary model is used.
 
 ### Context Assembly Order
 

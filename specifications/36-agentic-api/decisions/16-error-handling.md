@@ -249,6 +249,60 @@ Retry configuration can be customized per tool:
 - **Shell commands**: no retry (side effects may be non-idempotent)
 - **Search tools** (fff): retry on index errors, 1 retry
 
+### Circuit Breaker — Model Degradation
+
+The Agent task receives a **ModelProvider** (not just a single Model), giving it access to all available models. When the primary model keeps erroring, the agent can switch to a fallback model.
+
+```rust
+pub struct AgentConfig {
+    pub provider: Arc<dyn ModelProvider>,  // access to all models
+    pub primary_model: ModelId,            // default model
+    pub fallback_models: Vec<ModelId>,     // models to try on failure
+    pub memory_model: Option<ModelId>,     // smaller model for memory generation
+}
+
+impl AgentLoop {
+    /// Circuit breaker: if primary model fails, try fallback models
+    fn handle_generation_failure(&mut self, error: AgenticError) -> AgentAction {
+        self.failure_count += 1;
+        
+        if self.failure_count >= self.circuit_breaker_threshold {
+            if let Some(next_model) = self.next_fallback_model() {
+                self.current_model = next_model;
+                self.failure_count = 0;
+                AgentAction::RetryWithNewModel(next_model)
+            } else {
+                AgentAction::Terminate(error)
+            }
+        } else {
+            AgentAction::RetrySameModel
+        }
+    }
+}
+```
+
+### Memory Generation with Smaller Models
+
+Memory generation (observations, reflections) uses a **smaller, cheaper model** than the main conversation model:
+
+```rust
+impl ContextProvider {
+    fn get_memory_model(&self) -> Arc<dyn Model> {
+        if let Some(model_id) = &self.config.memory_model {
+            self.provider.get_model(model_id.clone())
+                .unwrap_or_else(|_| self.provider.get_model(&self.config.primary_model).unwrap())
+        } else {
+            self.provider.get_model(&self.config.primary_model).unwrap()
+        }
+    }
+}
+```
+
+Model allocation example:
+- **Primary model:** Claude Sonnet 4.6 — conversation, reasoning, tool use
+- **Memory model:** Claude Haiku 4.5 — observation/reflection generation (cheaper, faster)
+- **Fallback model:** Claude Opus 4.8 — when primary fails (more capable, expensive)
+
 ### Existing Error Types (Reused)
 
 The agentic error wraps existing error types from the platform:

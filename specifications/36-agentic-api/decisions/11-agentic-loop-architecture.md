@@ -6,7 +6,10 @@
 
 ## Problem
 
-The agentic loop orchestrates all components (LLM, tools, memory, queues) into a coherent execution flow. It must support:
+The agentic loop receives a **ModelProvider** (not just a Model), giving it access to:
+- All available models for fallback on error (circuit breaker)
+- A smaller model for memory generation (observations, reflections)
+- Model switching based on cost/performance requirements It must support:
 - Streaming LLM responses
 - Tool call extraction, execution, and result injection
 - User interruption (immediate and deferred)
