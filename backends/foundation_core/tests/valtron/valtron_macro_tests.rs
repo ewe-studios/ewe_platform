@@ -57,8 +57,9 @@ fn explicit_seed_and_threads_are_accepted() {
 
 #[valtron_test(threads = 1)]
 fn thread_count_below_the_minimum_is_clamped_not_rejected() {
-    // `threads = 1` is clamped to the Some(3) minimum by the macro — the case
-    // still runs on a properly-sized engine rather than failing.
+    // The macro passes `Some(1)` straight through; the multi engine clamps it up
+    // to its ≥ 3 minimum (≥ 2 task workers after a background worker is carved
+    // off) rather than panicking — the case still runs on a properly-sized engine.
     assert_eq!(run_counting_task(), vec![1, 2, 3]);
 }
 

@@ -132,7 +132,11 @@ where
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
     let thread_num = match user_thread_num {
         None => get_allocatable_thread_count(),
-        Some(num) => num,
+        // The multi pool splits threads into background + task workers and needs
+        // ≥ 2 TASK workers (`ThreadRegistry`), which means ≥ 3 total once the
+        // background worker is carved off. Clamp a smaller request up rather than
+        // panic — callers (and the `#[valtron]` macros) pass a plain count.
+        Some(num) => num.max(3),
     };
 
     let (task_threads, bg_threads) = split_thread_count(thread_num);
