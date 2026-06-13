@@ -36,7 +36,15 @@ use foundation_netio::simple_http::shared::{
 };
 
 use crate::error::{BrowserError, Result};
+use crate::test::sink::BroadcastSink;
 use crate::test::stream::{BroadcastTx, Broadcaster, StreamHandler, STREAM_PATH};
+
+/// The `foundation_wasm_ui` browser runtime, embedded so `<mount-stream>` works
+/// without a build step. Served at [`RUNTIME_PATH`].
+const RUNTIME_JS: &str = include_str!("../../../foundation_wasm_ui/runtimes/foundation-wasm-ui.js");
+
+/// Where the embedded runtime is served (the page imports it).
+pub const RUNTIME_PATH: &str = "/__primal/foundation-wasm-ui.js";
 
 /// The wire encoding the App streams in (and that the browser runtime decodes).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -139,6 +147,36 @@ impl Serve for PageHandler {
     }
 }
 
+/// Serves the embedded `foundation-wasm-ui.js` runtime as an ES module.
+struct RuntimeHandler;
+
+impl ServeFactory for RuntimeHandler {
+    fn create(_bag: &ContextBag) -> Self {
+        RuntimeHandler
+    }
+}
+
+impl Serve for RuntimeHandler {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        _req: SimpleIncomingRequest,
+        mut conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        let Ok(response) = SimpleOutgoingResponse::builder()
+            .with_status(Status::OK)
+            .add_header(SimpleHeader::CONTENT_TYPE, "text/javascript; charset=utf-8")
+            .with_body(SendSafeBody::Text(RUNTIME_JS.to_string()))
+            .build()
+        else {
+            return ConnectionResult::Close(None);
+        };
+        Http11::response(response)
+            .http_render_to_writer(&mut conn)
+            .map_or(ConnectionResult::Close(None), |_| ConnectionResult::Keep)
+    }
+}
+
 /// A background `foundation_http` server serving the page + channel-A stream.
 pub struct TestServer {
     addr: std::net::SocketAddr,
@@ -176,6 +214,7 @@ impl TestServer {
         app.context().store(broadcaster.clone());
         app.route_any::<PageHandler>("/");
         app.route_any::<StreamHandler>(STREAM_PATH);
+        app.route_any::<RuntimeHandler>(RUNTIME_PATH);
         for sm in statics {
             let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(sm.dir.clone()));
             app.router.add_route_any(&format!("{}/*", sm.mount.trim_end_matches('/')), &handler);
@@ -215,6 +254,14 @@ impl TestServer {
     /// Convenience: push one raw frame to the browser (used by transport tests).
     pub fn push_frame(&self, frame: &[u8]) {
         self.broadcaster.sender().send(frame);
+    }
+
+    /// The App's protocol sink (Mode 1): wire it into `App::with_protocol(...)`,
+    /// then `stabilize()` streams encoded frames to the browser's `<mount-stream>`.
+    /// Columnar by default (matches `<mount-stream protocol="arrow">`).
+    #[must_use]
+    pub fn broadcast_sink(&self) -> BroadcastSink {
+        BroadcastSink::new(self.broadcaster.sender())
     }
 }
 

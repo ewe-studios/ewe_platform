@@ -17,6 +17,9 @@ foundation_core = { workspace = true, features = ["multi"] }
 foundation_netio = { workspace = true, features = ["multi"] }
 foundation_http = { workspace = true }
 foundation_macros = { workspace = true }
+foundation_wasm = { workspace = true }
+foundation_wasm_ui = { workspace = true }
+foundation_ui_traits = { workspace = true }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -43,6 +43,8 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
             match key.as_str() {
                 "port" => field_inits.push(quote! { port: #value }),
                 "headless" => field_inits.push(quote! { headless: #value }),
+                // `headful = true` is the friendly inverse — watch the test run.
+                "headful" => field_inits.push(quote! { headless: !(#value) }),
                 "host" => field_inits.push(quote! { host: (#value).to_string() }),
                 "html" => field_inits.push(quote! { html: (#value).to_string() }),
                 "file" => field_inits.push(quote! { file: ::core::option::Option::Some((#value).into()) }),
@@ -64,7 +66,7 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
                         nv.path,
                         format!(
                             "unknown wasm_ui_server arg `{other}` (expected port/host/headless/\
-                             html/file/static_dir/static_mount/encoding/headers)"
+                             headful/html/file/static_dir/static_mount/encoding/headers)"
                         ),
                     )
                     .to_compile_error();
