@@ -1,5 +1,23 @@
 # F2 — Selection controls: switch, checkbox, checkbox-group, radio, radio-group
 
+> **Implementation status (2026-06-13):** `switch`, `checkbox` (tri-state
+> `CheckState`), `checkbox_group` (+ `parent_check_state` computed showcase),
+> and `radio_group` are implemented and tested in
+> `backends/foundation_ui_components`. The hidden-native-input pattern uses the
+> existing two-way binding: a checkbox/switch `change` delivers `checked`
+> straight to a `SignalSetter<bool>`; tri-state checkbox and radio selection
+> use `ctx.callback`. Data-attribute + ARIA contracts (presence pairs,
+> `aria-checked="mixed"`) verified on the op stream.
+>
+> **Deferred (documented):** (1) M5 arrow-key roving — groups emit the
+> `data-composite` container contract; the keyboard "move (+select for radio)"
+> behavior is the M5 JS module's job (feature 05 machinery, not yet built).
+> (2) the hidden input's `.indeterminate` DOM property (needs a `SetProperty`
+> path; `aria-checked="mixed"` + `data-indeterminate` already carry the
+> contract). (3) full F7 `field` integration of F2 controls (emitting the six
+> field data-attrs from a passed `FieldState`). (4) standalone `radio()` for
+> custom group layouts (today radios are built by `radio_group` items).
+
 Source: base-ui `types.md` references (complete prop tables harvested
 2026-06-13). Shared spine for the whole family:
 

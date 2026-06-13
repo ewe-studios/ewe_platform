@@ -14,8 +14,9 @@ use std::rc::Rc;
 
 use foundation_signals::EventData;
 use foundation_ui_components::{
-    field, separator, toggle, FieldConfig, FieldSlots, SeparatorConfig, ToggleConfig, ToggleSlots,
-    ValidationMode,
+    checkbox, field, parent_check_state, radio_group, separator, switch, toggle, CheckState,
+    CheckboxConfig, CheckboxSlots, FieldConfig, FieldSlots, RadioGroupConfig, RadioItem,
+    SeparatorConfig, SwitchConfig, ToggleConfig, ToggleSlots, ValidationMode,
 };
 use foundation_ui_traits::{DomOp, Html};
 use foundation_wasm_ui::{html, App};
@@ -169,4 +170,97 @@ fn field_binding_input_and_blur_drive_state() {
 
 fn alloc_string(s: &str) -> String {
     s.to_string()
+}
+
+// ─── F2 selection controls ──────────────────────────────────────────────────────
+
+#[test]
+fn switch_reflects_checked_as_presence_pair() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (checked, set_checked) = ctx.signal(false);
+
+    let _h = switch(&ctx, &rcv, SwitchConfig::default(), &checked, set_checked.clone());
+    app.stabilize();
+    let ops = all_ops(&sent);
+    // unchecked → data-unchecked present, data-checked removed.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-unchecked") && *value == "")));
+
+    set_checked.set(true);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-checked") && *value == "")),
+        "data-checked present when on");
+}
+
+#[test]
+fn checkbox_three_state_drives_aria_and_data() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (state, set_state) = ctx.signal(CheckState::Indeterminate);
+
+    let _h = checkbox(
+        &ctx, &rcv, CheckboxConfig::default(), &state, set_state.clone(), CheckboxSlots::default(),
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-checked") && *value == "mixed")), "indeterminate → mixed");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-indeterminate") && *value == "")));
+
+    set_state.set(CheckState::Checked);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-checked") && *value == "true")));
+}
+
+#[test]
+fn parent_check_state_computes_tristate() {
+    let (app, _sent) = App::mock();
+    let (ctx, _rcv) = app.context();
+    let (values, set_values) = ctx.signal::<Vec<String>>(Vec::new());
+    let all = vec![alloc_string("a"), alloc_string("b")];
+
+    let parent = parent_check_state(&ctx, &values, all);
+    app.stabilize();
+    assert_eq!(parent.get(), CheckState::Unchecked, "none selected");
+
+    set_values.set(vec![alloc_string("a")]);
+    app.stabilize();
+    assert_eq!(parent.get(), CheckState::Indeterminate, "some selected");
+
+    set_values.set(vec![alloc_string("a"), alloc_string("b")]);
+    app.stabilize();
+    assert_eq!(parent.get(), CheckState::Checked, "all selected");
+}
+
+#[test]
+fn radio_group_marks_selected_item_checked() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal::<Option<String>>(None);
+    let items = vec![
+        RadioItem { value: alloc_string("a"), content: Html::text("A"), disabled: false },
+        RadioItem { value: alloc_string("b"), content: Html::text("B"), disabled: false },
+    ];
+
+    let _h = radio_group(&ctx, &rcv, RadioGroupConfig::default(), &value, set_value.clone(), items);
+    app.stabilize();
+
+    set_value.set(Some(alloc_string("b")));
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-checked") && *value == "")),
+        "selecting an item sets data-checked");
 }

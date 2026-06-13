@@ -30,6 +30,11 @@ pub mod toggle;
 pub mod toggle_group;
 pub mod avatar;
 
+// F2 — Selection controls
+pub mod switch;
+pub mod checkbox;
+pub mod radio;
+
 // Re-exports for convenience. `Orientation` is intentionally NOT re-exported
 // at the crate root (defined by both `separator` and `toggle_group`); reach it
 // via the module path.
@@ -38,6 +43,12 @@ pub use separator::{separator, SeparatorConfig};
 pub use toggle::{toggle, ToggleConfig, ToggleSlots};
 pub use toggle_group::{toggle_group, ToggleGroupConfig, ToggleGroupItem};
 pub use avatar::{avatar, AvatarConfig, AvatarSlots, ImageLoadingStatus};
+pub use switch::{switch, SwitchConfig};
+pub use checkbox::{
+    checkbox, checkbox_group, parent_check_state, CheckState, CheckboxConfig, CheckboxGroupConfig,
+    CheckboxSlots,
+};
+pub use radio::{radio_group, RadioGroupConfig, RadioItem};
 pub use field_state::{
     field, FieldBinding, FieldConfig, FieldSlots, FieldState, ValidationMode, Validator,
 };
