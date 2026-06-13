@@ -633,6 +633,13 @@ fn navigation_menu_is_nav_with_linked_panels() {
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-current") && *value == "page")),
         "current link marked");
+    // Shared morphing Viewport (one popup, content swaps).
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-nav-content") && *value == "true")),
+        "contents live in the shared viewport");
+    use foundation_ui_components::nav_menu::NAV_MENU_JS;
+    assert!(NAV_MENU_JS.contains("--popup-width") && NAV_MENU_JS.contains("activation-direction"),
+        "viewport measures + slides");
 }
 
 // ─── F8 indicators & surfaces ───────────────────────────────────────────────────
