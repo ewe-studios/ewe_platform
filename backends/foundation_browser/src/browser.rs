@@ -131,4 +131,42 @@ impl Page<'_> {
         std::fs::write(path, bytes)?;
         Ok(())
     }
+
+    /// Wait until the server-driven DOM has SETTLED — no applied frame for
+    /// `quiet_ms` — or `timeout_ms` elapses. Reads the runtime's always-on frame
+    /// instrument (`globalThis.__primalFrames`, bumped by `Patcher.route`), so it
+    /// needs no in-page helper. Returns `true` if it settled, `false` on timeout.
+    ///
+    /// Complements the retrying [`LocatorAssertions`](crate::LocatorAssertions):
+    /// use it to wait for a streamed update to land before reading raw state.
+    ///
+    /// # Errors
+    /// Protocol error from the evaluate call.
+    pub fn wait_for_reactive(&self, quiet_ms: u64, timeout_ms: u64) -> Result<bool> {
+        let step = quiet_ms.min(25).max(1);
+        let expr = format!(
+            "(async () => {{ const t=()=>performance.now(); const start=t(); \
+             for(;;) {{ const f=globalThis.__primalFrames; \
+             if (f && t()-f.at >= {quiet_ms}) return true; \
+             if (t()-start > {timeout_ms}) return false; \
+             await new Promise(r=>setTimeout(r,{step})); }} }})()"
+        );
+        Ok(self.eval(&expr)?.as_bool().unwrap_or(false))
+    }
+
+    /// Read the bounding boxes of many selectors in ONE layout pass. Returns a
+    /// JSON object `{ selector: {x,y,width,height} | null }`. Cheaper than one
+    /// `bounding_box` call per element when asserting several positions.
+    ///
+    /// # Errors
+    /// Protocol error from the evaluate call.
+    pub fn bounding_boxes(&self, selectors: &[&str]) -> Result<Value> {
+        let list = serde_json::to_string(selectors).unwrap_or_else(|_| "[]".into());
+        let expr = format!(
+            "Object.fromEntries({list}.map(s => {{ const el=document.querySelector(s); \
+             if(!el) return [s,null]; const r=el.getBoundingClientRect(); \
+             return [s,{{x:r.x,y:r.y,width:r.width,height:r.height}}]; }}))"
+        );
+        self.eval(&expr)
+    }
 }

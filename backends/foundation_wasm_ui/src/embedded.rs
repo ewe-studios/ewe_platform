@@ -20,5 +20,11 @@ pub const FOUNDATION_WASM_UI_JS: &str = include_str!("../runtimes/foundation-was
 /// compact columnar v1 needs only `ColumnarParser` and never loads this.
 pub const APACHE_ARROW_JS: &str = include_str!("../runtimes/apache-arrow.js");
 
+/// The injected test helper (`runtimes/primal-test.js`, spec-43 §6): defines
+/// `window.__primalTest` with `waitForReactive` + `batchLayout` over the runtime's
+/// frame instrument. Self-contained (no imports) so a driver can inject it on any
+/// page. Used by the `foundation_browser` test harness.
+pub const PRIMAL_TEST_JS: &str = include_str!("../runtimes/primal-test.js");
+
 /// The core ABI runtime, re-exported so consumers embed the set from one place.
 pub use foundation_wasm::embedded::FOUNDATION_WASM_JS;

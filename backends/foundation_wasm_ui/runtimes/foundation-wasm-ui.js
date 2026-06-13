@@ -2194,6 +2194,8 @@ export class Hydrator {
 export class Patcher {
   /** Injectable seams: the F08 dispatcher, the DomOp applicator, signals. */
   static runtime = { dispatcher: null, applicator: null, signalBridge: null };
+  /** Monotonic count of applied results (the frame instrument; see `route`). */
+  static frameSeq = 0;
 
   static materialize(html, target, doc = target.ownerDocument ?? globalThis.document) {
     if (typeof doc?.createRange === "function") {
@@ -2232,6 +2234,19 @@ export class Patcher {
 
   /** Route one ProtocolHandler result to the DOM (shared by both mounts). */
   static route(result, targetEl, doc) {
+    Patcher.applyRoute(result, targetEl, doc);
+    // Frame instrument: every applied result bumps a sequence + timestamp. Cheap,
+    // always-on, broadly useful — a server-driven client (or a test driver) can
+    // poll `globalThis.__primalFrames` to know the DOM has caught up.
+    Patcher.frameSeq += 1;
+    const stamp = (typeof performance !== "undefined" ? performance.now() : Date.now());
+    if (typeof globalThis !== "undefined") {
+      globalThis.__primalFrames = { seq: Patcher.frameSeq, at: stamp };
+    }
+  }
+
+  /** Apply one routed result (the actual DOM work; instrumented by `route`). */
+  static applyRoute(result, targetEl, doc) {
     switch (result.type) {
       case "html":
         Patcher.materialize(result.html, targetEl, doc);
@@ -2399,6 +2414,16 @@ export function registerArrowIpc(arrow = globalThis.Arrow) {
     return;
   }
   ProtocolHandler.arrowIpcReader = (bytes) => arrow.tableFromIPC(bytes);
+}
+
+/**
+ * The frame instrument: `{ seq, at }` — `seq` is the count of applied routed
+ * results, `at` the timestamp of the last apply. A server-driven client (or a
+ * test driver) polls this to know the DOM has caught up with the stream. Also
+ * mirrored on `globalThis.__primalFrames`.
+ */
+export function frameStats() {
+  return globalThis.__primalFrames ?? { seq: Patcher.frameSeq, at: null };
 }
 
 /** Build the `window.primal` namespace (G30) over injected runtime seams. */

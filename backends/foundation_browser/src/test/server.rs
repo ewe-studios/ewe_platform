@@ -51,12 +51,19 @@ const RUNTIME_JS: &str = foundation_wasm_ui::embedded::FOUNDATION_WASM_UI_JS;
 /// registers as `ProtocolHandler.arrowIpcReader`. Served at [`ARROW_LIB_PATH`].
 const APACHE_ARROW_JS: &str = foundation_wasm_ui::embedded::APACHE_ARROW_JS;
 
+/// The injected test helper (`window.__primalTest`). Served at [`PRIMAL_TEST_PATH`].
+const PRIMAL_TEST_JS: &str = foundation_wasm_ui::embedded::PRIMAL_TEST_JS;
+
 /// Where the embedded runtime is served (the page imports it).
 pub const RUNTIME_PATH: &str = "/__primal/foundation-wasm-ui.js";
 
 /// Where the bundled Apache Arrow library is served (the page loads it for the
 /// Arrow IPC protocol).
 pub const ARROW_LIB_PATH: &str = "/__primal/apache-arrow.js";
+
+/// Where the injected test helper is served (`import`/`<script>` it for the
+/// in-page `window.__primalTest` API).
+pub const PRIMAL_TEST_PATH: &str = "/__primal/primal-test.js";
 
 /// A self-signed `localhost`/`127.0.0.1` dev certificate, for the `https` mode.
 /// Regenerate with `mise run test:cert:regen`. The browser is launched trusting
@@ -216,8 +223,10 @@ impl TestServer {
         let js_ct = "text/javascript; charset=utf-8";
         let runtime: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(RUNTIME_JS.as_bytes(), js_ct));
         let arrow_lib: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(APACHE_ARROW_JS.as_bytes(), js_ct));
+        let primal_test: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(PRIMAL_TEST_JS.as_bytes(), js_ct));
         app.router.add_route_any(RUNTIME_PATH, &runtime);
         app.router.add_route_any(ARROW_LIB_PATH, &arrow_lib);
+        app.router.add_route_any(PRIMAL_TEST_PATH, &primal_test);
         for sm in statics {
             let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(sm.dir.clone()));
             app.router.add_route_any(&format!("{}/*", sm.mount.trim_end_matches('/')), &handler);

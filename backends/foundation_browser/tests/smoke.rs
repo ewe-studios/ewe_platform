@@ -369,6 +369,64 @@ fn https_serves_a_secure_context() {
     });
 }
 
+// The primal-test helper (spec-43 §6): the runtime's frame instrument +
+// `page.wait_for_reactive` + `page.bounding_boxes`, and the served in-page
+// `window.__primalTest` API.
+#[test]
+fn primal_test_helper_and_reactive_settle() {
+    use foundation_browser::test::{BroadcastSink, Encoding};
+    use foundation_ui_traits::ColumnarEncoder;
+    use foundation_wasm_ui::{html, App};
+
+    // Page loads the runtime AND the injected helper (proves both are served).
+    let page_html = r##"<!doctype html><html><head><meta charset=utf-8></head><body>
+<mount-stream api="/__primal/stream" transport="sse" protocol="arrow"></mount-stream>
+<script type="module">
+  import { registerWebComponents } from '/__primal/foundation-wasm-ui.js';
+  import { installPrimalTest } from '/__primal/primal-test.js';
+  registerWebComponents();
+  installPrimalTest();
+</script>
+</body></html>"##;
+
+    let harness = Harness::setup(TestConfig {
+        html: page_html.into(),
+        encoding: Encoding::Columnar,
+        ..TestConfig::default()
+    })
+    .expect("setup");
+
+    harness.run("primal_test_helper_and_reactive_settle", |server, page| {
+        let app = App::with_protocol(BroadcastSink::with_encoder(ColumnarEncoder, server.broadcaster()));
+        let (ctx, rcv) = app.context();
+        let (label, set_label) = ctx.signal(alloc_str("one"));
+        let l = label.clone();
+        app.mount(html! { ctx, rcv, <p id="p">{l.get()}</p> });
+        app.stabilize();
+
+        // Driver-side: wait until the streamed frame has settled, no in-page helper needed.
+        assert!(page.wait_for_reactive(40, 4000)?, "DOM settled after the mount frame");
+        page.locator("#p").expect().to_have_text("one")?;
+
+        set_label.set(alloc_str("two"));
+        app.stabilize();
+        assert!(page.wait_for_reactive(40, 4000)?, "DOM settled after the update frame");
+        page.locator("#p").expect().to_have_text("two")?;
+
+        // Batched layout read of several selectors in one pass.
+        let boxes = page.bounding_boxes(&["#p", "#missing"]).unwrap_or_default();
+        assert!(boxes.get("#p").map(|b| !b.is_null()).unwrap_or(false), "#p has a box");
+        assert!(boxes.get("#missing").map(serde_json::Value::is_null).unwrap_or(false), "#missing is null");
+
+        // In-page helper: the served primal-test.js installed window.__primalTest.
+        let has_helper = page
+            .eval("typeof window.__primalTest === 'object' && typeof window.__primalTest.waitForReactive === 'function'")
+            .unwrap_or_default();
+        assert_eq!(has_helper.as_bool(), Some(true), "window.__primalTest installed");
+        Ok(())
+    });
+}
+
 fn alloc_str(s: &str) -> String {
     s.to_string()
 }
