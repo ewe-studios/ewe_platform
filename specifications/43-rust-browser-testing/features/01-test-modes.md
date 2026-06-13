@@ -1,8 +1,9 @@
 # Feature 01 — Two test modes: native-App-streamed (Mode 1) + wasm-in-browser (Mode 2)
 
-Status: DESIGN (2026-06-13). Both modes are supported; **Mode 1 is primary** for
-component testing, **Mode 2** for full end-to-end. They share the one
-`TestServer` transport built in phase 1.
+Status: **Mode 1 DELIVERED** (2026-06-14) — native-App streaming is green across
+all four protocols against real Chromium. **Mode 2** (wasm-in-browser) shares the
+same `TestServer` transport and is supported but exercised mainly via the existing
+testbed. Mode 1 is primary for component testing; Mode 2 for full end-to-end.
 
 ## The fork
 

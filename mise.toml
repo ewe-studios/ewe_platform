@@ -92,6 +92,39 @@ npx playwright install --with-deps chromium
 echo "✓ Playwright + chromium installed"
 """
 
+# ── spec-43: pure-Rust browser testing (no node/Playwright) ──────────────────
+# The foundation_browser driver speaks CDP directly to a system Chromium; these
+# tasks install it per-distro and run the suite. Set PRIMAL_TEST_CHROMIUM_BIN to
+# point at a specific binary.
+[tasks."test:browsers"]
+alias = "test-browsers"
+description = "Install browsers for the pure-Rust browser test driver (spec-43)"
+depends = ["test:browsers:chromium"]
+run = 'echo "✓ test browsers installed"'
+
+[tasks."test:browsers:chromium"]
+description = "Install Chromium for foundation_browser tests (per-distro)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+case "$(. /etc/os-release; echo "$ID")" in
+  arch)          sudo pacman -S --needed --noconfirm chromium ;;
+  debian|ubuntu) sudo apt-get update && (sudo apt-get install -y chromium || sudo apt-get install -y chromium-browser) ;;
+  fedora)        sudo dnf install -y chromium ;;
+  *) echo "Install a Chromium build and set PRIMAL_TEST_CHROMIUM_BIN" >&2; exit 1 ;;
+esac
+echo "✓ chromium installed"
+"""
+
+[tasks."test:browser"]
+alias = "test-browser"
+description = "Run the pure-Rust browser test suite against a real Chromium (spec-43)"
+run = """
+echo "Running foundation_browser suite (needs chromium — run 'mise run test:browsers')..."
+cargo test -p foundation_browser --features browser-tests --test smoke
+echo "✓ browser tests passed (PRIMAL_TEST_HEADFUL=1 to watch them live)"
+"""
+
 [tasks."setup:depot-tools"]
 description = "Install Chromium depot_tools into tools/depot_tools (for Dawn/gclient)"
 run = """

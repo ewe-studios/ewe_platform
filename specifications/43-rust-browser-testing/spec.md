@@ -1,7 +1,13 @@
 # Spec 43 — Rust-native browser testing (`#[wasm_ui_server]` + an owned CDP/BiDi driver)
 
-Status: DESIGN (2026-06-13). Author: design pass over the existing stack +
-the Playwright references (`@formulas/src.UIFrameworks/src.playwright/{playwright,playwright-python}`).
+Status: **PHASE 1 DELIVERED** (2026-06-14). The pure-Rust CDP driver, the
+`#[wasm_ui_server]` macro, the `foundation_http`-backed `TestServer`, and live
+server-driven-UI testing across all four protocols against real Chromium all ship
+and are green. Phase 2 (WebDriver BiDi / Firefox) and a few phase-1 niceties
+(HTTPS dev cert, the injected `primal-test` helper) are deferred follow-ups —
+see [§14 Status](#14-status--what-shipped). Original design pass over the existing
+stack + the Playwright references
+(`@formulas/src.UIFrameworks/src.playwright/{playwright,playwright-python}`).
 
 ## 1. Why we are unusually well-positioned
 
@@ -290,19 +296,19 @@ We are on **Arch** (`pacman -S chromium`). Debian/Ubuntu use
 
 ## 11. Build order
 
-1. **JSON-RPC engine** over `WebSocketClient::connect` (request/result/error +
+1. ✅ **JSON-RPC engine** over `WebSocketClient::connect` (request/result/error +
    event pump): one reader thread draining `WebSocketConnection::messages()`,
    correlating `id`→pending oneshot, dispatching `method` events to subscribers;
-   sends via `MessageDelivery`. Sync, protocol-agnostic. (No new WS code — this
-   is the single integration point with the existing stack.)
-2. **`CdpClient`** + `BrowserSupervisor` (Chromium launch/discover/kill) +
-   minimal `Page::goto`/`eval`/`screenshot` → first green: launch, navigate, shoot.
-3. **`Locator`** + DOM/box-model/computed-style/`Input` ops + `LocatorAssertions`.
-4. **`#[wasm_ui_server]` macro** + `TestServer` (serve app + stream + helper),
-   wire one real M-machinery test end-to-end.
-5. **`mise` tasks + cert + templates**; retire the node/Playwright path.
-6. **`primal-test` injected helper** (waitForReactive / batchLayout).
-7. **Phase 2 BiDi/Firefox** behind the same trait.
+   sends via `MessageDelivery`. Sync, protocol-agnostic. (`src/jsonrpc/engine.rs`.)
+2. ✅ **`CdpClient`** + `BrowserSupervisor` (Chromium launch/discover/kill) +
+   `Page::goto`/`eval`/`screenshot` → green: launch, navigate, shoot.
+3. ✅ **`Locator`** + DOM/box-model/computed-style/`Input` ops + `LocatorAssertions`.
+4. ✅ **`#[wasm_ui_server]` macro** + `TestServer` (serve app + stream); wired real
+   end-to-end tests — Mode 1 native-App streaming across all four protocols.
+5. ◐ **`mise` tasks** (`test:browsers[:chromium]`, `test:browser`) shipped; the
+   HTTPS dev cert + node-path retirement remain (see §14).
+6. ☐ **`primal-test` injected helper** (waitForReactive / batchLayout) — deferred.
+7. ☐ **Phase 2 BiDi/Firefox** behind the same trait — deferred.
 
 ## 12. Open decisions
 
@@ -329,3 +335,49 @@ We are on **Arch** (`pacman -S chromium`). Debian/Ubuntu use
 - Our `foundation_netio::websocket` (frame codec + client handshake),
   `foundation_http` (server/SSE/WS), `foundation_wasm_ui` (DOM-op protocol +
   hydration), `foundation_wasm_testbed/src/browser.rs` (the node path we replace).
+
+## 14. Status — what shipped
+
+**Phase 1 is delivered and green.** A native `foundation_wasm_ui` App streams DOM
+frames over SSE to a real Chromium, driven by Rust signals, asserted against real
+paint/layout — with **zero node/Playwright**.
+
+### Crate layout (as built)
+
+- **`backends/foundation_browser/`** — the pure-Rust driver:
+  - `src/jsonrpc/engine.rs` — `RpcEngine` + `WireProtocol` trait (CDP today, BiDi
+    behind the same seam).
+  - `src/cdp/`, `src/supervisor.rs` — `CdpClient`, `BrowserProcess` (launch flags,
+    DevToolsActivePort discovery, RAII kill + profile cleanup).
+  - `src/browser.rs`, `src/locator.rs`, `src/geometry.rs` — `BrowserDriver`/`Page`
+    (goto/eval/screenshot) + `Locator`/`LocatorAssertions` (retrying).
+  - `src/test/` — `TestServer` (on `foundation_http`), the SSE `StreamHandler` +
+    `SseTransport` glue, `Harness` (RAII + panic trap), `TestConfig`
+    (incl. `window_size`, `headless`). Gated behind the `browser-tests` feature.
+- **`foundation_wasm_ui::server`** — the transport-agnostic server-driven-UI
+  machinery (`Broadcaster`/`BroadcastTx`/`BroadcastSink`/`FrameTransport`): a real
+  capability, not test-only. foundation_http gained `StaticAssetHandler` +
+  `SseStream::binary` (the binary-over-SSE half).
+- **`foundation_macros`** — `#[wasm_ui_server]` (args: `port/host/headless/headful/
+  html/file/static_dir/static_mount/encoding/headers/window_size`).
+
+### Verified
+
+- `foundation_browser` smoke suite (10 tests) green against real Chromium, incl.
+  Mode-1 native-App streaming for **all four protocols** (columnar, Apache Arrow
+  IPC, JSON, HTML) each rendering identically; runnable headful (`PRIMAL_TEST_HEADFUL=1`).
+- The runtime gained the missing apply paths: `Patcher.ensureApplicator`, JSON
+  DomOp-batch routing, the `arrow-ipc` route + `registerArrowIpc`.
+- `mise run test:browsers` / `test:browser` (per-distro Chromium install + run).
+
+### Deferred follow-ups (intentionally out of phase 1)
+
+- **HTTPS dev cert** (`#[wasm_ui_server(.., https)]` + `test:cert:regen`) — §8.
+- **Injected `primal-test` helper** (`waitForReactive`/`batchLayout`) — §11.6.
+- **Retire `foundation_wasm_testbed/src/browser.rs`** (the old node path) — it
+  still exists for the spec-39 web runner; remove once that migrates.
+- **Phase 2 — WebDriver BiDi / Firefox** behind `WireProtocol` — §6, §11.7.
+
+These are "expand and validate later" items; the core deliverable stands without
+them. Design narrative for both test modes:
+[`features/01-test-modes.md`](./features/01-test-modes.md).
