@@ -304,89 +304,45 @@ impl Iterator for AsyncListStreamIterator {
 
 /// Key-value store operations available on all backends.
 ///
-/// All methods return `StorageItemStream` for composable, non-blocking I/O.
-/// Single-value operations yield exactly one `Stream::Next` item.
-/// Use `collect_one` / `collect_result` at sync boundaries to extract values.
+/// Single-value operations return `StorageResult<T>` directly.
+/// Multi-value operations return `StorageItemStream<T>`.
 pub trait KeyValueStore: Send + Sync {
-    /// Get a value by key. Yields one `Next(Option<V>)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if scheduling fails or deserialization fails.
-    fn get<'a, V: DeserializeOwned + Send + 'static>(
-        &'a self,
-        key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>>;
+    /// Get a value by key. Returns `None` if key doesn't exist.
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
 
-    /// Set a key-value pair. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if serialization or scheduling fails.
-    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Set a key-value pair.
+    fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
 
-    /// Delete a key. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Delete a key.
+    fn delete(&self, key: &str) -> StorageResult<()>;
 
-    /// Check if a key exists. Yields one `Next(bool)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>>;
+    /// Check if a key exists.
+    fn exists(&self, key: &str) -> StorageResult<bool>;
 
     /// List all keys with optional prefix filter.
-    /// Yields multiple `Next(String)` items.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
+    /// Returns a stream of keys.
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>>;
 }
 
 /// Blob storage operations for binary large objects.
 pub trait BlobStore: Send + Sync {
-    /// Put a blob into storage. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Put a blob into storage.
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()>;
 
-    /// Get a blob from storage. Yields one `Next(Option<Vec<u8>>)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>>;
+    /// Get a blob from storage. Returns `None` if key doesn't exist.
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
 
-    /// Delete a blob. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Delete a blob.
+    fn delete_blob(&self, key: &str) -> StorageResult<()>;
 
-    /// Check if a blob exists. Yields one `Next(bool)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>>;
+    /// Check if a blob exists.
+    fn blob_exists(&self, key: &str) -> StorageResult<bool>;
 }
 
 /// SQL query operations for relational backends (Turso, D1).
 pub trait QueryStore: Send + Sync {
     /// Execute a query that returns rows.
-    /// Returns a stream of `Next(SqlRow)` items.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the query fails or parameter conversion fails.
+    /// Returns a stream of `SqlRow` items.
     fn query(
         &self,
         sql: &str,
@@ -394,20 +350,10 @@ pub trait QueryStore: Send + Sync {
     ) -> StorageResult<StorageItemStream<'_, SqlRow>>;
 
     /// Execute a statement that returns number of rows affected.
-    /// Yields one `Next(u64)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the statement fails or parameter conversion fails.
-    fn execute(&self, sql: &str, params: &[DataValue])
-        -> StorageResult<StorageItemStream<'_, u64>>;
+    fn execute(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64>;
 
-    /// Execute a batch of SQL statements. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if any statement in the batch fails.
-    fn execute_batch(&self, sql: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Execute a batch of SQL statements.
+    fn execute_batch(&self, sql: &str) -> StorageResult<()>;
 }
 
 /// Async SQL query operations — for wasm backends (D1) where the underlying
@@ -451,31 +397,19 @@ pub trait AsyncKeyValueStore {
 
 /// Rate limiting operations.
 pub trait RateLimiterStore: Send + Sync {
-    /// Check if a rate limit key is allowed. Yields one `Next(bool)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
+    /// Check if a rate limit key is allowed.
     fn check_rate_limit(
         &self,
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>>;
+    ) -> StorageResult<bool>;
 
-    /// Record a rate-limited action. Yields one `Next(u32)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>>;
+    /// Record a rate-limited action. Returns the current count.
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32>;
 
-    /// Reset a rate limit key. Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend encounters an error.
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    /// Reset a rate limit key.
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()>;
 }
 
 /// Async blob store operations — for wasm backends where the underlying
@@ -505,7 +439,17 @@ pub trait AsyncRateLimiterStore {
 }
 
 // ===========================================================================
-// DocumentStore — append-only document storage with scan semantics
+// StoreResponse — reserved for future use
+//
+// If an operation ever needs to support both single-value and streaming
+// returns from the same method, use:
+//
+//   pub enum StoreResponse<T, S> {
+//       One(T),
+//       Stream(StorageItemStream<S>),
+//   }
+//
+// Currently not needed — each method has a clear single vs multi-value intent.
 // ===========================================================================
 
 /// A single document in a document store.
@@ -525,25 +469,17 @@ pub struct Document {
 /// Each document gets a unique ID (scru128 or similar).
 /// Collections are identified by a key (e.g., `session:{id}:messages`).
 pub trait DocumentStore: Send + Sync {
-    /// Append a document to a collection. Yields one `Next(Document)`.
+    /// Append a document to a collection. Returns the stored document with assigned ID.
     ///
     /// The backend assigns a unique ID to the document.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if serialization or the backend operation fails.
     fn append<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: V,
-    ) -> StorageResult<StorageItemStream<'_, Document>>;
+    ) -> StorageResult<Document>;
 
     /// Scan the last N documents from a collection.
-    /// Yields up to N `Next(Document)` items, newest-first.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend operation fails.
+    /// Returns a stream of documents, newest-first.
     fn scan<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
@@ -551,38 +487,20 @@ pub trait DocumentStore: Send + Sync {
     ) -> StorageResult<StorageItemStream<'_, V>>;
 
     /// Scan all documents from a collection, oldest-first.
-    /// Yields all `Next(Document)` items.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend operation fails.
+    /// Returns a stream of all documents.
     fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<StorageItemStream<'_, V>>;
 
     /// Delete a specific document from a collection by its ID.
-    /// Yields one `Next(())`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the document doesn't exist or the operation fails.
-    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<StorageItemStream<'_, ()>>;
+    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()>;
 
-    /// Delete all documents in a collection.
-    /// Yields one `Next(u64)` with the count of deleted documents.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend operation fails.
-    fn delete_all(&self, key: &str) -> StorageResult<StorageItemStream<'_, u64>>;
+    /// Delete all documents in a collection. Returns count of deleted documents.
+    fn delete_all(&self, key: &str) -> StorageResult<u64>;
 
-    /// Count documents in a collection. Yields one `Next(u64)`.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the backend operation fails.
-    fn count(&self, key: &str) -> StorageResult<StorageItemStream<'_, u64>>;
+    /// Count documents in a collection.
+    fn count(&self, key: &str) -> StorageResult<u64>;
 }
 
 /// Async document store operations — for wasm backends where the underlying

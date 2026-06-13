@@ -38,27 +38,23 @@ impl Default for MemoryStorage {
 }
 
 impl KeyValueStore for MemoryStorage {
-    fn get<'a, V: DeserializeOwned + Send + 'static>(
-        &'a self,
-        key: &str,
-    ) -> StorageResult<StorageItemStream<'a, Option<V>>> {
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self
             .data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
-        let result = match data.get(key) {
+        match data.get(key) {
             Some(bytes) => {
                 let value: V = serde_json::from_slice(bytes)
                     .map_err(|e| StorageError::Serialization(e.to_string()))?;
-                Some(value)
+                Ok(Some(value))
             }
-            None => None,
-        };
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(result)))))
+            None => Ok(None),
+        }
     }
 
-    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn set<V: Serialize>(&self, key: &str, value: V) -> StorageResult<()> {
         let bytes =
             serde_json::to_vec(&value).map_err(|e| StorageError::Serialization(e.to_string()))?;
 
@@ -68,26 +64,24 @@ impl KeyValueStore for MemoryStorage {
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
 
         data.insert(key.to_string(), Zeroizing::new(bytes));
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
+        Ok(())
     }
 
-    fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str) -> StorageResult<()> {
         let mut data = self
             .data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.remove(key);
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
+        Ok(())
     }
 
-    fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn exists(&self, key: &str) -> StorageResult<bool> {
         let data = self
             .data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(
-            data.contains_key(key)
-        )))))
+        Ok(data.contains_key(key))
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
@@ -119,17 +113,13 @@ impl QueryStore for MemoryStorage {
         ))
     }
 
-    fn execute(
-        &self,
-        _sql: &str,
-        _params: &[DataValue],
-    ) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn execute(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryStorage".to_string(),
         ))
     }
 
-    fn execute_batch(&self, _sql: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn execute_batch(&self, _sql: &str) -> StorageResult<()> {
         Err(StorageError::Generic(
             "QueryStore not supported for MemoryStorage".to_string(),
         ))
@@ -150,7 +140,7 @@ impl RateLimiterStore for MemoryStorage {
         key: &str,
         max_count: u32,
         window_seconds: u64,
-    ) -> StorageResult<StorageItemStream<'_, bool>> {
+    ) -> StorageResult<bool> {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -175,10 +165,10 @@ impl RateLimiterStore for MemoryStorage {
             }
             None => true,
         };
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(allowed)))))
+        Ok(allowed)
     }
 
-    fn record_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, u32>> {
+    fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let now = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .unwrap()
@@ -218,56 +208,53 @@ impl RateLimiterStore for MemoryStorage {
             1
         };
 
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(new_count)))))
+        Ok(new_count)
     }
 
-    fn reset_rate_limit(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let rate_key = format!("_rate_limit:{key}");
         let mut data = self
             .data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.remove(&rate_key);
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
+        Ok(())
     }
 }
 
 impl BlobStore for MemoryStorage {
-    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let mut storage = self
             .data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         storage.insert(key.to_string(), Zeroizing::new(data.to_vec()));
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
+        Ok(())
     }
 
-    fn get_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, Option<Vec<u8>>>> {
+    fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let data = self
             .data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        let result = data.get(key).cloned().map(|z| z.to_vec());
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(result)))))
+        Ok(data.get(key).cloned().map(|z| z.to_vec()))
     }
 
-    fn delete_blob(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let mut data = self
             .data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
         data.remove(key);
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
+        Ok(())
     }
 
-    fn blob_exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
+    fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let data = self
             .data
             .lock()
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))?;
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(
-            data.contains_key(key)
-        )))))
+        Ok(data.contains_key(key))
     }
 }
 

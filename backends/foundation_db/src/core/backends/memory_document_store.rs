@@ -37,7 +37,7 @@ impl DocumentStore for MemoryDocumentStore {
         &self,
         key: &str,
         content: V,
-    ) -> StorageResult<StorageItemStream<'_, Document>> {
+    ) -> StorageResult<Document> {
         let seq = self.sequence.fetch_add(1, Ordering::SeqCst);
         let doc_id = format!("mem-{seq}");
         let content_json = serde_json::to_string(&content)
@@ -55,7 +55,7 @@ impl DocumentStore for MemoryDocumentStore {
             .or_default()
             .push((doc_id, content_json, metadata, seq));
 
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(doc)))))
+        Ok(doc)
     }
 
     fn scan<V: DeserializeOwned + Send + 'static>(
@@ -102,23 +102,23 @@ impl DocumentStore for MemoryDocumentStore {
         Ok(Box::new(iter))
     }
 
-    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let mut docs = self.documents.lock().unwrap();
         if let Some(collection) = docs.get_mut(key) {
             collection.retain(|(id, _, _, _)| id != doc_id);
         }
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(())))))
+        Ok(())
     }
 
-    fn delete_all(&self, key: &str) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn delete_all(&self, key: &str) -> StorageResult<u64> {
         let mut docs = self.documents.lock().unwrap();
         let count = docs.remove(key).map(|v| v.len() as u64).unwrap_or(0);
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(count)))))
+        Ok(count)
     }
 
-    fn count(&self, key: &str) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn count(&self, key: &str) -> StorageResult<u64> {
         let docs = self.documents.lock().unwrap();
         let count = docs.get(key).map(|v| v.len() as u64).unwrap_or(0);
-        Ok(Box::new(std::iter::once(Stream::Next(Ok(count)))))
+        Ok(count)
     }
 }

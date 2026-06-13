@@ -35,7 +35,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         &self,
         key: &str,
         content: V,
-    ) -> StorageResult<StorageItemStream<'_, Document>> {
+    ) -> StorageResult<Document> {
         let doc_id = foundation_rng::new_scru128_string();
         let content_json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
@@ -58,13 +58,11 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
 
         self.query_store.execute(&sql, &params)?;
 
-        let doc = Document {
+        Ok(Document {
             id: doc_id,
             content: content_json,
             metadata,
-        };
-        let stream = std::iter::once(Stream::Next(Ok(doc)));
-        Ok(Box::new(stream))
+        })
     }
 
     fn scan<V: DeserializeOwned + Send + 'static>(
@@ -127,7 +125,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         Ok(Box::new(iter))
     }
 
-    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<StorageItemStream<'_, ()>> {
+    fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let table = &self.table;
         let sql = format!(
             "DELETE FROM {} WHERE collection_key = ? AND doc_id = ?",
@@ -138,31 +136,29 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
             crate::core::storage_provider::DataValue::Text(doc_id.to_string()),
         ];
         self.query_store.execute(&sql, &params)?;
-        let stream = std::iter::once(Stream::Next(Ok(())));
-        Ok(Box::new(stream))
+        Ok(())
     }
 
-    fn delete_all(&self, key: &str) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn delete_all(&self, key: &str) -> StorageResult<u64> {
         let table = &self.table;
         let sql = format!("DELETE FROM {} WHERE collection_key = ?", table);
         let params = [crate::core::storage_provider::DataValue::Text(key.to_string())];
-        let result = self.query_store.execute(&sql, &params)?;
-        Ok(Box::new(result))
+        self.query_store.execute(&sql, &params)
     }
 
-    fn count(&self, key: &str) -> StorageResult<StorageItemStream<'_, u64>> {
+    fn count(&self, key: &str) -> StorageResult<u64> {
         let table = &self.table;
         let sql = format!("SELECT COUNT(*) as cnt FROM {} WHERE collection_key = ?", table);
         let params = [crate::core::storage_provider::DataValue::Text(key.to_string())];
         let rows = self.query_store.query(&sql, &params)?;
-        let iter = rows.filter_map(|s| match s {
-            Stream::Next(Ok(row)) => match row.get_by_name::<i64>("cnt") {
-                Ok(n) => Some(Stream::Next(Ok(n as u64))),
-                Err(e) => Some(Stream::Next(Err(e))),
-            },
-            Stream::Next(Err(e)) => Some(Stream::Next(Err(e))),
-            _ => None,
-        });
-        Ok(Box::new(iter))
+        let mut total = 0u64;
+        for s in rows {
+            if let Stream::Next(Ok(row)) = s {
+                if let Ok(n) = row.get_by_name::<i64>("cnt") {
+                    total = n as u64;
+                }
+            }
+        }
+        Ok(total)
     }
 }
