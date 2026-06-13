@@ -129,6 +129,52 @@ list-navigation/item-press` etc. per component), tabs
 (`none/initial/disabled/missing`). `cancel()` ≙ the handler not writing
 the signal; automatic (non-user) changes are not cancelable.
 
+## Machinery delivery: `register_function` JS handles (decided 2026-06-13)
+
+The JS-runtime modules (M1/M3/M5/M7) are NOT a monolithic hand-maintained
+`foundation-wasm-ui.js`. Each behavior's JS lives **colocated beside its Rust
+contract** in a central `machinery` module and is delivered through the host
+function-registry ABI (`foundation_wasm::host_runtime::web`):
+
+- **Backbone.** `register_function(code: &str) -> HostFunction{ handler: u64 }`
+  compiles a JS **function expression** (`Function("…return("+src+")")()`);
+  `invoke_as_*(handler, &[Params])` calls it. The fn runs with `this` = the
+  FunctionRegistry `context`. (host_runtime.rs §web; foundation-wasm.js
+  `FunctionRegistry`.)
+- **Element resolution = `querySelector('[primal-id="N"]')` (REVISED
+  2026-06-13, supersedes the earlier `this.node` plan).** Bodies resolve their
+  own elements by the stable `primal-id` attribute, NOT the wasm NodeRegistry —
+  this makes a body byte-identical across deployments and mount-timing-safe (it
+  queries an element that already exists in the DOM).
+- **Delivery = a self-invoking `<script>` node (uniform path).** Each behavior
+  emits an `Html` `<script>` carrying `(SOURCE)(primalId, …opts)`:
+  - SSR / `to_markup`: ships inline, runs at parse after its target, auto-hooks
+    — no wasm ABI, native compiles with zero `cfg` gating.
+  - wasm reactive: injected as a DOM node; the applicator uses
+    `createElement`+`appendChild` (NOT `innerHTML`), so the script EXECUTES on
+    insertion.
+  `register_function`+`invoke_as_*` (host_runtime web) stays available as a
+  LATER wasm-only optimization (register once, invoke per instance) if
+  per-instance script nodes become a measured cost; the body is unchanged
+  (still `querySelector`-based). Bodies MUST be idempotent (clear prior
+  listeners on re-attach) so morph re-insertion is safe.
+- **Per behavior.** A `&str` JS-source const (function expression) colocated
+  with the Rust contract + a typed Rust `attach(node_id, …opts) -> Html` that
+  returns the self-invoking `<script>` node the component embeds (no `cfg`
+  gating — it's just markup).
+- **Timing.** Solved by construction: the script runs after its target element
+  exists (parse-time for SSR; insertion-time for the `createElement`-built
+  wasm node). No `requestAnimationFrame` dance needed, though a body MAY still
+  rAF for layout reads.
+- **Attribute contract still holds.** Bodies WRITE the documented outputs
+  (`data-side`/`data-align`, `--anchor-*` vars, roving `tabindex`, etc.) so CSS
+  + morph see the same contract regardless of delivery.
+
+Build order: backbone `JsBehavior` helper → M5 (roving/typeahead, self-contained)
+→ M3 (dismiss) → M1 (positioning) → M7 (transitions/measurement); M2 is mostly
+native (`<dialog>.showModal()` / `popover`), needing only open/close + scroll-lock
+helpers.
+
 ## RTL policy (cross-cutting)
 
 `dir` is static config, but its consequences are spec'd here once:
