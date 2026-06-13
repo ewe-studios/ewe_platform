@@ -20,6 +20,7 @@ use foundation_signals::{Context, SignalGetter, SignalSetter};
 use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver};
 
+use crate::machinery::gestures::slider_drag_behavior;
 use crate::toggle_group::Orientation;
 
 /// Static config for a slider.
@@ -30,6 +31,8 @@ pub struct SliderConfig {
     pub max: f64,
     /// Step (default 1.0).
     pub step: f64,
+    /// Large step for PageUp/PageDown (default 10.0).
+    pub large_step: f64,
     /// Orientation.
     pub orientation: Orientation,
     /// Disabled.
@@ -48,6 +51,7 @@ impl Default for SliderConfig {
             min: 0.0,
             max: 100.0,
             step: 1.0,
+            large_step: 10.0,
             orientation: Orientation::Horizontal,
             disabled: false,
             name: None,
@@ -89,6 +93,7 @@ pub fn slider(
         })
     };
 
+    let large_step = config.large_step;
     let v_style = value.clone();
     let v_thumb = value.clone();
     let v_input = value.clone();
@@ -97,13 +102,15 @@ pub fn slider(
         <div class=[class] data-orientation={orientation}
              aria-label=[config.aria_label]
              data-disabled={disabled.then_some("")}
+             data-min={min} data-max={max} data-step={step} data-large-step={large_step}
              style={alloc::format!("--slider-value:{};--slider-percent:{}",
                     v_style.get(), percent(v_style.get(), min, max))}>
-            <div class="slider-control">
+            <div class="slider-control" data-slider-control="true">
                 <div class="slider-track"><div class="slider-indicator"></div></div>
                 <div class="slider-thumb"
                      style={alloc::format!("--slider-percent:{}", percent(v_thumb.get(), min, max))}>
                     <input type="range" class="slider-input"
+                           data-slider-input="true"
                            min={min} max={max} step={step}
                            name=[config.name]
                            aria-valuenow={v_now.get()}
@@ -113,6 +120,7 @@ pub fn slider(
                            primal:onchange={on_change} />
                 </div>
             </div>
+            <Fragment>{slider_drag_behavior()}</Fragment>
         </div>
     }
 }

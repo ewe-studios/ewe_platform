@@ -25,6 +25,7 @@ use foundation_signals::{Context, SignalGetter, SignalSetter};
 use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver};
 
+use crate::machinery::gestures::swipe_behavior;
 use crate::machinery::scoped_script;
 
 /// A single toast value.
@@ -162,14 +163,17 @@ pub fn toast_viewport(
                  aria-live=[live]
                  data-toast="true"
                  data-type=[kind]
-                 data-timeout=[timeout_attr]>
+                 data-timeout=[timeout_attr]
+                 data-swipe-direction="right"
+                 data-swipe-prefix="--toast">
                 <div class="toast-title"><Fragment>{Html::text(title)}</Fragment></div>
                 <Fragment>{description.map(|d| html! { c, r,
                     <div class="toast-description"><Fragment>{Html::text(d)}</Fragment></div>
                 })}</Fragment>
-                <button type="button" class="toast-close" data-toast-close="true"
+                <button type="button" class="toast-close" data-toast-close="true" data-swipe-dismiss="true"
                         aria-label="Close" primal:onclick={close}><Fragment>{Html::text("×")}</Fragment></button>
                 <Fragment>{scoped_script(TOAST_TIMER_JS)}</Fragment>
+                <Fragment>{swipe_behavior()}</Fragment>
             </div>
         }
     };

@@ -710,6 +710,68 @@ fn number_field_emits_spinbutton_structure() {
 }
 
 #[test]
+fn number_field_drives_full_m8_behavior() {
+    use foundation_ui_components::number_field::NUMBER_FIELD_JS;
+    // The JS carries the base-ui constants + gestures 1:1.
+    assert!(NUMBER_FIELD_JS.contains("400") && NUMBER_FIELD_JS.contains("60"), "hold-repeat 400/60");
+    assert!(NUMBER_FIELD_JS.contains("requestPointerLock"), "scrub pointer lock");
+    assert!(NUMBER_FIELD_JS.contains("altKey") && NUMBER_FIELD_JS.contains("shiftKey"), "small/large step modifiers");
+    assert!(NUMBER_FIELD_JS.contains("snapTo"), "snap-on-step");
+
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal(3.0_f64);
+    let _h = number_field(
+        &ctx, &rcv,
+        NumberFieldConfig { min: Some(0.0), max: Some(10.0), scrub: true, allow_wheel_scrub: true, ..NumberFieldConfig::default() },
+        &value, set_value,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-nf-scrub") && *value == "true")),
+        "scrub area rendered when configured");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-allow-wheel") && *value == "true")),
+        "wheel scrub enabled");
+}
+
+#[test]
+fn slider_wires_drag_machinery() {
+    use foundation_ui_components::machinery::gestures::SLIDER_DRAG_JS;
+    assert!(SLIDER_DRAG_JS.contains("getBoundingClientRect"), "maps finger → value");
+    assert!(SLIDER_DRAG_JS.contains("PageUp"), "largeStep keys");
+
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal(25.0_f64);
+    let _h = slider(&ctx, &rcv, SliderConfig::default(), &value, set_value);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-slider-control") && *value == "true")),
+        "control is the drag surface");
+}
+
+#[test]
+fn toast_swipe_to_dismiss_wired() {
+    use foundation_ui_components::machinery::gestures::SWIPE_JS;
+    assert!(SWIPE_JS.contains("data-swipe-dismiss"), "swipe past threshold dismisses");
+    assert!(SWIPE_JS.contains("movement-x") && SWIPE_JS.contains("movement-y"), "publishes movement vars");
+
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let manager = ToastManager::new(&ctx);
+    let _h = toast_viewport(&ctx, &rcv, &manager);
+    manager.add(Toast::new("", "Saved"));
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-swipe-direction") && *value == "right")),
+        "toast swipes right to dismiss");
+}
+
+#[test]
 fn otp_field_emits_cells_and_hidden_aggregate() {
     let (app, sent) = App::mock();
     let (ctx, rcv) = app.context();

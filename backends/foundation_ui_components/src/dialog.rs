@@ -25,6 +25,7 @@ use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver, Slot};
 
 use crate::machinery::dialog::dialog_behavior;
+use crate::machinery::gestures::swipe_behavior;
 use crate::machinery::transition::transition_behavior;
 
 /// Which edge a drawer anchors to.
@@ -183,6 +184,10 @@ fn dialog_impl(
     let desc_id_attr: Cow<'static, str> = Cow::Owned(desc_id);
     let side_attr: Option<Cow<'static, str>> = drawer_side.map(|s| Cow::Borrowed(s.as_str()));
     let dismissable_attr: Option<&'static str> = (!config.dismissable).then_some("false");
+    // Drawers swipe toward their anchored edge to dismiss (M8).
+    let swipe_dir: Option<Cow<'static, str>> = drawer_side.map(|s| Cow::Borrowed(s.as_str()));
+    let swipe_prefix: Option<&'static str> = drawer_side.map(|_| "--drawer");
+    let is_drawer = drawer_side.is_some();
 
     let d_open = open.clone();
     let d_closed = open.clone();
@@ -193,6 +198,8 @@ fn dialog_impl(
                 data-dialog-mode=[mode]
                 data-side=[side_attr]
                 data-dialog-dismissable=[dismissable_attr]
+                data-swipe-direction=[swipe_dir]
+                data-swipe-prefix=[swipe_prefix]
                 aria-label=[config.aria_label]
                 aria-labelledby=[labelledby]
                 aria-describedby=[describedby]
@@ -210,9 +217,10 @@ fn dialog_impl(
                     <Fragment>{c.clone()}</Fragment>
                 </button>
             })}</Fragment>
-            <button type="button" hidden="" data-dialog-close="true" primal:onclick={close_hidden} />
+            <button type="button" hidden="" data-dialog-close="true" data-swipe-dismiss="true" primal:onclick={close_hidden} />
             <Fragment>{transition_behavior()}</Fragment>
             <Fragment>{dialog_behavior()}</Fragment>
+            <Fragment>{is_drawer.then(swipe_behavior)}</Fragment>
         </dialog>
     }
 }
