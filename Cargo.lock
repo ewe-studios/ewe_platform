@@ -2870,6 +2870,7 @@ dependencies = [
  "serde",
  "serde_json",
  "tracing",
+ "zeroize",
 ]
 
 [[package]]
@@ -3435,6 +3436,7 @@ version = "0.0.1"
 dependencies = [
  "clap",
  "derive_more",
+ "foundation_browser",
  "foundation_codegen",
  "foundation_core",
  "foundation_errstacks",

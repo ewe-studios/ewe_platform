@@ -1,11 +1,11 @@
 # Spec 43 — Rust-native browser testing (`#[wasm_ui_server]` + an owned CDP/BiDi driver)
 
-Status: **PHASE 1 DELIVERED** (2026-06-14). The pure-Rust CDP driver, the
-`#[wasm_ui_server]` macro, the `foundation_http`-backed `TestServer`, and live
-server-driven-UI testing across all four protocols against real Chromium all ship
-and are green. Phase 2 (WebDriver BiDi / Firefox) and a few phase-1 niceties
-(HTTPS dev cert, the injected `primal-test` helper) are deferred follow-ups —
-see [§14 Status](#14-status--what-shipped). Original design pass over the existing
+Status: **PHASE 1 COMPLETE** (2026-06-14). The pure-Rust CDP driver, the
+`#[wasm_ui_server]` macro, the `foundation_http`-backed `TestServer`, live
+server-driven-UI testing across all four protocols against real Chromium, the
+HTTPS dev-cert mode, the `primal-test` helper, and node/Playwright retirement all
+ship and are green. Only Phase 2 (WebDriver BiDi / Firefox) is deferred — see
+[§14 Status](#14-status--what-shipped). Original design pass over the existing
 stack + the Playwright references
 (`@formulas/src.UIFrameworks/src.playwright/{playwright,playwright-python}`).
 
@@ -305,9 +305,13 @@ We are on **Arch** (`pacman -S chromium`). Debian/Ubuntu use
 3. ✅ **`Locator`** + DOM/box-model/computed-style/`Input` ops + `LocatorAssertions`.
 4. ✅ **`#[wasm_ui_server]` macro** + `TestServer` (serve app + stream); wired real
    end-to-end tests — Mode 1 native-App streaming across all four protocols.
-5. ◐ **`mise` tasks** (`test:browsers[:chromium]`, `test:browser`) shipped; the
-   HTTPS dev cert + node-path retirement remain (see §14).
-6. ☐ **`primal-test` injected helper** (waitForReactive / batchLayout) — deferred.
+5. ✅ **`mise` tasks** (`test:browsers[:chromium]`, `test:browser`,
+   `test:cert:regen`) + **HTTPS dev cert** (`https = true` → TLS TestServer) +
+   **node-path retirement** (`foundation_wasm_testbed/src/browser.rs` now drives
+   Chromium via `foundation_browser`, no node/Playwright).
+6. ✅ **`primal-test` injected helper** — the runtime frame instrument
+   (`globalThis.__primalFrames`) + `primal-test.js` (`window.__primalTest`:
+   `waitForReactive`/`batchLayout`) + `Page::wait_for_reactive`/`bounding_boxes`.
 7. ☐ **Phase 2 BiDi/Firefox** behind the same trait — deferred.
 
 ## 12. Open decisions
@@ -363,21 +367,26 @@ paint/layout — with **zero node/Playwright**.
 
 ### Verified
 
-- `foundation_browser` smoke suite (10 tests) green against real Chromium, incl.
+- `foundation_browser` smoke suite (12 tests) green against real Chromium, incl.
   Mode-1 native-App streaming for **all four protocols** (columnar, Apache Arrow
   IPC, JSON, HTML) each rendering identically; runnable headful (`PRIMAL_TEST_HEADFUL=1`).
 - The runtime gained the missing apply paths: `Patcher.ensureApplicator`, JSON
-  DomOp-batch routing, the `arrow-ipc` route + `registerArrowIpc`.
-- `mise run test:browsers` / `test:browser` (per-distro Chromium install + run).
+  DomOp-batch routing, the `arrow-ipc` route + `registerArrowIpc`, and the frame
+  instrument (`globalThis.__primalFrames`).
+- **HTTPS mode** (`https = true`): TLS `TestServer` via a bundled localhost dev
+  cert + `HttpServer::serve_tls_with_listener`; browser trusts it
+  (`--ignore-certificate-errors`). `https_serves_a_secure_context` green.
+- **`primal-test` helper**: `primal-test.js` (`window.__primalTest`) +
+  `Page::wait_for_reactive`/`bounding_boxes`. `primal_test_helper_and_reactive_settle` green.
+- **node/Playwright retired**: `foundation_wasm_testbed/src/browser.rs` now drives
+  Chromium via `foundation_browser` (no node, npm, or Playwright).
+- `mise`: `test:browsers[:chromium]`, `test:browser`, `test:cert:regen`.
 
-### Deferred follow-ups (intentionally out of phase 1)
+### Deferred follow-up (Phase 2)
 
-- **HTTPS dev cert** (`#[wasm_ui_server(.., https)]` + `test:cert:regen`) — §8.
-- **Injected `primal-test` helper** (`waitForReactive`/`batchLayout`) — §11.6.
-- **Retire `foundation_wasm_testbed/src/browser.rs`** (the old node path) — it
-  still exists for the spec-39 web runner; remove once that migrates.
-- **Phase 2 — WebDriver BiDi / Firefox** behind `WireProtocol` — §6, §11.7.
+- **WebDriver BiDi / Firefox** behind `WireProtocol` — §6, §11.7. The driver's
+  `WireProtocol` seam already isolates CDP so BiDi slots in without touching the
+  `Page`/`Locator`/`TestServer` layers.
 
-These are "expand and validate later" items; the core deliverable stands without
-them. Design narrative for both test modes:
+Design narrative for both test modes:
 [`features/01-test-modes.md`](./features/01-test-modes.md).

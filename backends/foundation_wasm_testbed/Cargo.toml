@@ -16,6 +16,8 @@ foundation_wasm_ui = { workspace = true, features = ["embedded-js"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 foundation_http = { workspace = true }
+# The pure-Rust CDP browser driver (spec-43) — replaces the node/Playwright path.
+foundation_browser = { workspace = true }
 foundation_core = { workspace = true, features = ["multi"] }
 foundation_errstacks = { workspace = true }
 foundation_macros = { workspace = true }

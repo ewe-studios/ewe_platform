@@ -1,164 +1,85 @@
-//! Playwright browser test runner.
+//! Browser test runner — pure-Rust, no node/Playwright (spec-43).
 //!
-//! WHY: Browser tests need a real browser environment with DOM and WebAssembly support.
-//! WHAT: Generates a Playwright Node.js script, runs it, captures results.
-//! HOW: Creates a temp dir for the Playwright script, installs playwright via npm,
-//!      generates a test script tailored to the target URL/browser/headless mode.
+//! WHY: Browser tests need a real browser with DOM + WebAssembly. We drive a
+//! system Chromium directly over the Chrome DevTools Protocol via the
+//! `foundation_browser` driver — no Node.js, no `npm install`, no Playwright.
+//! WHAT: [`run`] launches Chromium, navigates to the test page, and polls the
+//! `#output` element for the test-result sentinel.
+//! HOW: `foundation_browser::BrowserDriver` (CDP over our own WebSocket client);
+//! the page writes results into `#output`, which we read with `Page::eval`.
 
-use std::process::Command;
+use std::time::{Duration, Instant};
 
+use foundation_browser::{BrowserDriver, LaunchConfig};
 use tracing::{debug, info};
 
 use crate::cli::Browser;
 use crate::error::{Result, ToTrace, WasmTestbedError};
 
 /// Output from a browser test run.
+#[derive(Debug)]
 pub struct BrowserOutput {
+    /// The first line of `#output` (e.g. `test result: ok. …`).
     pub test_result: String,
+    /// Captured console logs (best-effort; currently unused by callers).
     pub console_logs: Vec<String>,
+    /// Process-style exit code: `0` once results were captured (callers derive
+    /// pass/fail from `test_result`).
     pub exit_code: i32,
 }
 
-/// Run a browser test via Playwright.
+/// How long to wait for the page to produce a result before giving up.
+const RESULT_TIMEOUT: Duration = Duration::from_secs(30);
+
+/// Run the wasm test page at `url` in a real Chromium and capture its result.
 ///
 /// # Errors
-/// Returns an error when node/Playwright are unavailable or the browser run fails.
+/// [`WasmTestbedError::BrowserDriver`] if Chromium can't launch/navigate or the
+/// page doesn't produce a result within [`RESULT_TIMEOUT`]; for an unsupported
+/// browser (only Chromium ships in phase 1).
 pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput> {
-    which::which("node").map_err(|_| WasmTestbedError::NodeNotFound.trace())?;
+    // The pure-Rust driver speaks CDP — Chromium only (Firefox/WebKit are the
+    // spec-43 phase-2 WebDriver-BiDi follow-up).
+    if !matches!(browser, Browser::Chrome) {
+        return Err(WasmTestbedError::BrowserDriver(format!(
+            "{browser:?} is not supported by the pure-Rust CDP driver yet — use Chrome"
+        ))
+        .trace());
+    }
 
     info!("Running browser test: {url} (headless={headless})");
 
-    let temp_dir = tempfile::tempdir()
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
-    let script_path = temp_dir.path().join("run-test.js");
+    let driver = BrowserDriver::launch(LaunchConfig::chromium().headless(headless))
+        .map_err(|e| WasmTestbedError::BrowserDriver(format!("launch: {e}")).trace())?;
+    let page = driver
+        .new_page()
+        .map_err(|e| WasmTestbedError::BrowserDriver(format!("attach page: {e}")).trace())?;
+    page.goto(url)
+        .map_err(|e| WasmTestbedError::BrowserDriver(format!("navigate {url}: {e}")).trace())?;
 
-    let script = generate_playwright_script(url, browser, headless);
-    std::fs::write(&script_path, &script)
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
-    debug!("Wrote playwright script to {}", script_path.display());
-
-    info!("Installing playwright (first run may take a moment)...");
-
-    let status = Command::new("npm")
-        .arg("init")
-        .arg("-y")
-        .current_dir(temp_dir.path())
-        .stdout(std::process::Stdio::null())
-        .stderr(std::process::Stdio::null())
-        .status()
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
-    if !status.success() {
-        return Err(WasmTestbedError::NpmInitFailed.trace());
-    }
-
-    let status = Command::new("npm")
-        .arg("install")
-        .arg("playwright")
-        .current_dir(temp_dir.path())
-        .status()
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
-    if !status.success() {
-        return Err(WasmTestbedError::PlaywrightInstallFailed.trace());
-    }
-
-    let browser_name = match browser {
-        Browser::Chrome => "chromium",
-        Browser::Firefox => "firefox",
-        Browser::Safari => "webkit",
-    };
-
-    debug!("Installing playwright browser: {browser_name}");
-    let status = Command::new("npx")
-        .arg("playwright")
-        .arg("install")
-        .arg(browser_name)
-        .current_dir(temp_dir.path())
-        .status()
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
-    if !status.success() {
-        return Err(WasmTestbedError::PlaywrightBrowserInstallFailed(browser_name.to_string()).trace());
-    }
-
-    let output = Command::new("node")
-        .arg(&script_path)
-        .current_dir(temp_dir.path())
-        .output()
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
-
-    let stdout = String::from_utf8_lossy(&output.stdout);
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    let exit_code = output.status.code().unwrap_or(-1);
-
-    debug!("Playwright stdout:\n{stdout}");
-    if !stderr.is_empty() {
-        debug!("Playwright stderr:\n{stderr}");
-    }
-
-    let test_result = stdout.lines().next().unwrap_or("").trim().to_string();
-
-    let mut console_logs = Vec::new();
-    for line in stderr.lines() {
-        if let Ok(logs) = serde_json::from_str::<Vec<serde_json::Value>>(line) {
-            for log in logs {
-                if let Some(text) = log.get("text").and_then(|v| v.as_str()) {
-                    console_logs.push(text.to_string());
-                }
-            }
+    // Poll #output for the result sentinel the test harness writes.
+    let deadline = Instant::now() + RESULT_TIMEOUT;
+    let output = loop {
+        let text = page
+            .eval("(document.querySelector('#output') || {}).textContent || ''")
+            .ok()
+            .and_then(|v| v.as_str().map(str::to_string))
+            .unwrap_or_default();
+        if text.contains("test result:") || text.contains("Tests complete") {
+            break text;
         }
-    }
-
-    if exit_code != 0 {
-        return Err(WasmTestbedError::BrowserTestFailed(exit_code, test_result).trace());
-    }
-
-    Ok(BrowserOutput {
-        test_result,
-        console_logs,
-        exit_code,
-    })
-}
-
-/// Generate the Playwright test script content.
-fn generate_playwright_script(url: &str, browser: &Browser, headless: bool) -> String {
-    let browser_module = match browser {
-        Browser::Chrome => "chromium",
-        Browser::Firefox => "firefox",
-        Browser::Safari => "webkit",
+        if Instant::now() >= deadline {
+            return Err(WasmTestbedError::BrowserDriver(format!(
+                "test did not produce results within {}s",
+                RESULT_TIMEOUT.as_secs()
+            ))
+            .trace());
+        }
+        std::thread::sleep(Duration::from_millis(500));
     };
 
-    format!(
-        r"
-const {{ {browser_module} }} = require('playwright');
+    let test_result = output.lines().next().unwrap_or("").trim().to_string();
+    debug!("Browser test result: {test_result}");
 
-(async () => {{
-  const browser = await {browser_module}.launch({{ headless: {headless} }});
-  const page = await browser.newPage();
-  const logs = [];
-
-  page.on('console', msg => logs.push({{ type: msg.type(), text: msg.text() }}));
-
-  try {{
-    await page.goto('{url}', {{ waitUntil: 'domcontentloaded', timeout: 30000 }});
-
-    let output = null;
-    for (let i = 0; i < 60; i++) {{
-      try {{
-        output = await page.$eval('#output', el => el.textContent);
-      }} catch (e) {{}}
-      if (output && (output.includes('test result:') || output.includes('Tests complete'))) break;
-      await new Promise(r => setTimeout(r, 500));
-    }}
-
-    if (!output) {{
-      console.error('TIMEOUT: test did not produce results within 30 seconds');
-      process.exit(1);
-    }}
-
-    console.log(output);
-  }} finally {{
-    await browser.close();
-  }}
-}})();
-",
-    )
+    Ok(BrowserOutput { test_result, console_logs: Vec::new(), exit_code: 0 })
 }

@@ -147,28 +147,13 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     WranglerHttpFailed(String),
 
-    // --- browser.rs ---
+    // --- browser.rs (pure-Rust foundation_browser CDP driver, spec-43) ---
     #[display(
-        "node not found on PATH.\n\
-        Playwright requires Node.js."
+        "Browser driver error: {_0}\n\
+        Install Chromium with `mise run test:browsers` (or set PRIMAL_TEST_CHROMIUM_BIN)."
     )]
     #[error(ignore)]
-    NodeNotFound,
-
-    #[display("Failed to initialize npm package for playwright")]
-    #[error(ignore)]
-    NpmInitFailed,
-
-    #[display("Failed to install playwright")]
-    #[error(ignore)]
-    PlaywrightInstallFailed,
-
-    #[display(
-        "Failed to install playwright browser: {_0}\n\
-        Run: npx playwright install {_0}"
-    )]
-    #[error(ignore)]
-    PlaywrightBrowserInstallFailed(String),
+    BrowserDriver(String),
 
     #[display(
         "Browser test failed (exit code {_0})\n\
