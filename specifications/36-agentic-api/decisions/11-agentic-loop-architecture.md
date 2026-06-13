@@ -142,7 +142,7 @@ After each LLM response, output processors handle side effects:
 
 ### Stream States (Valtron Progress)
 
-The agent loop emits progress via `Stream<AgentEvent, AgentProgress>`:
+The agent loop emits progress via `Stream<Result<AgentEvent, AgenticError>, AgentProgress>`:
 
 ```rust
 // Stream::Next(value) — discrete events

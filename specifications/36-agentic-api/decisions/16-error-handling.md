@@ -72,19 +72,19 @@ pub enum AgenticError {
 
 ### Error Propagation
 
-All errors flow through valtron streams as `Stream::Next(Err(AgenticError))`:
+Errors flow through valtron streams as `Stream<Result<AgentEvent, AgenticError>, AgentProgress>`. The `D` (data) type parameter carries a `Result`, so errors are yielded as `Stream::Next(Err(AgenticError))`:
 
 ```rust
-// Agent loop stream
-Stream<AgentEvent, AgentProgress>
-├── Stream::Next(AgentEvent::MessageEnd { ... })  // normal event
-├── Stream::Next(AgentEvent::ToolCallEnd { ... }) // normal event
+// Agent loop stream — D carries Result
+Stream<Result<AgentEvent, AgenticError>, AgentProgress>
+├── Stream::Next(Ok(AgentEvent::MessageEnd { ... }))  // normal event
+├── Stream::Next(Ok(AgentEvent::ToolCallEnd { ... })) // normal event
 ├── Stream::Next(Err(AgenticError::Generation(...))) // error — agent loop handles
 ├── Stream::Next(Err(AgenticError::ToolCall { ... })) // error — agent loop handles
 └── Stream::Pending(AgentProgress::Generating { ... }) // progress
 ```
 
-The agent loop receives errors via its valtron iterator:
+No changes needed to the `Stream<D, P>` enum — the existing type handles this naturally. The agent loop receives errors via its valtron iterator:
 ```rust
 for item in agent_loop {
     match item {
