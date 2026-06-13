@@ -194,7 +194,7 @@ pub fn popover(
                      data-closed={(!p_closed.get()).then_some("")}>
                     <Fragment>{popup_html.clone()}</Fragment>
                     <Fragment>{arrow_html.clone().map(|a| html! { ctx, rcv,
-                        <span class="popover-arrow" aria-hidden="true"><Fragment>{a.clone()}</Fragment></span>
+                        <span class="popover-arrow" data-arrow="true" aria-hidden="true"><Fragment>{a.clone()}</Fragment></span>
                     })}</Fragment>
                     <button type="button" hidden="" data-dismiss-action="true" primal:onclick={dismiss} />
                     <Fragment>{transition_behavior()}</Fragment>

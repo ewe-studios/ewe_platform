@@ -71,15 +71,28 @@ move the box into the click callback.
 ctx/rcv). `scroll_area` proves "component ≠ signals": all behavior is a JS module
 keyed off `data-scroll-area`.
 
-## Deliberately deferred (spec-sanctioned follow-ups)
+## Machinery completeness — base-ui ported 1:1
 
-- **M8 pointer-gestures** (slider drag, number-field scrub/hold-repeat,
-  drawer swipe/snap, toast swipe) — API reserved (`SliderConfig`, `NumberField`,
-  `DrawerSide`), gestures land later in one shared module.
-- **M3 safe-polygon** hover (submenu/hoverable popups) — timer hover ships; the
-  polygon is the refinement.
-- **M5 typeahead** for the roving (composite) variant — virtual-highlight
-  (listbox) variant HAS typeahead; the roving variant's is the follow-up.
-- **M1** `fallbackAxisSide` / `sticky` / arrow centering / select item-alignment.
-- **F6 generic `T`** + `to_form_value` (v1 is `String`-valued).
-- **Nav-menu single morphing Viewport**; menubar cross-trigger roving/open-intent.
+All the JS-side behaviors were subsequently ported from the base-ui source
+(`@formulas/src.UIFrameworks/src.baseui/base-ui/packages/react/src`) rather than
+left as stubs — the testbed verifies them in-browser later:
+
+- **M8 pointer-gestures** (`machinery::gestures` + number-field): hold-repeat
+  (`usePressAndHold` 400/60 + 8px scroll-cancel), scrub (`NumberFieldScrubArea`
+  pointer-lock + virtual cursor + `pixelSensitivity=2` + teleport), snap
+  (`toValidatedNumber` directional/nearest), slider drag (`getFingerState`),
+  drawer/toast swipe (movement vars + threshold dismiss).
+- **M3 safe-polygon** (`machinery::hover`): full `safePolygon.ts` port —
+  geometry, trough rect, slow-cursor heuristic, per-side quadrilateral.
+- **M5 typeahead** on BOTH variants: `listbox` (virtual highlight) and
+  `composite` (roving) — `useTypeahead` 750 ms reset + same-letter cycling.
+- **M1 collision** (`machinery::position`): `fallbackAxisSide` (logical
+  start/end perpendicular fallback), `sticky`, arrow centering + `data-uncentered`.
+
+## Genuinely remaining (compositional, not base-ui-algorithm)
+
+- Drawer `snapPoints` (rest-at-partial-height) — swipe-to-dismiss ships.
+- Nav-menu single morphing Viewport (per-item panels ship); menubar
+  cross-trigger open-intent.
+- F6 generic `T` + `to_form_value` (v1 is `String`-valued).
+- Select macOS item-alignment positioning mode (anchored-below ships).

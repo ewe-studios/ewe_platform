@@ -60,6 +60,10 @@ pub const POSITION_JS: &str = r#"function(scope){
   if (isNaN(pad)) pad = 5;
   var sideMode = pos.getAttribute('data-collision-side') || 'flip';
   var alignMode = pos.getAttribute('data-collision-align') || 'flip';
+  var fallbackAxis = pos.getAttribute('data-fallback-axis') || 'none';
+  var sticky = pos.getAttribute('data-sticky') === 'true';
+  var arrowPad = parseFloat(pos.getAttribute('data-arrow-padding')); if (isNaN(arrowPad)) arrowPad = 5;
+  var rtl = pos.getAttribute('dir') === 'rtl';
   var track = pos.getAttribute('data-disable-anchor-tracking') !== 'true';
   function opposite(s){ return {top:'bottom',bottom:'top',left:'right',right:'left'}[s]; }
   function vertical(s){ return s === 'top' || s === 'bottom'; }
@@ -76,6 +80,17 @@ pub const POSITION_JS: &str = r#"function(scope){
     var side = prefSide, align = prefAlign;
     var need = (vertical(side) ? h : w) + offset;
     if (sideMode === 'flip' && space[side] < need && space[opposite(side)] > space[side]) side = opposite(side);
+    // fallbackAxisSide: preferred axis cannot fit either way → perpendicular axis.
+    if (fallbackAxis !== 'none' && space[side] < need && space[opposite(side)] < need) {
+      var perpNeed = (vertical(side) ? w : h) + offset;
+      var perp = vertical(side) ? ['left', 'right'] : ['top', 'bottom'];
+      if (vertical(side) && rtl) perp = ['right', 'left'];           // logical start in RTL
+      if (fallbackAxis === 'end') perp = [perp[1], perp[0]];          // logical end first
+      var chosen = null;
+      for (var pi = 0; pi < perp.length; pi++) { if (space[perp[pi]] >= perpNeed) { chosen = perp[pi]; break; } }
+      if (!chosen) chosen = space[perp[0]] >= space[perp[1]] ? perp[0] : perp[1];
+      side = chosen;
+    }
     var left, top;
     if (side === 'top') top = a.top - h - offset;
     else if (side === 'bottom') top = a.bottom + offset;
@@ -98,6 +113,11 @@ pub const POSITION_JS: &str = r#"function(scope){
       if (c < lo) c = lo;
     }
     if (vertical(side)) left = c; else top = c;
+    // sticky: keep the popup fully on-screen even as the anchor scrolls out.
+    if (sticky) {
+      left = Math.max(pad, Math.min(left, vw - w - pad));
+      top = Math.max(pad, Math.min(top, vh - h - pad));
+    }
     var fixed = pos.getAttribute('data-position-method') === 'fixed';
     pos.style.position = fixed ? 'fixed' : 'absolute';
     var sx = fixed ? 0 : (win.scrollX || 0), sy = fixed ? 0 : (win.scrollY || 0);
@@ -105,8 +125,27 @@ pub const POSITION_JS: &str = r#"function(scope){
     pos.style.top = (top + sy) + 'px';
     pos.setAttribute('data-side', side);
     pos.setAttribute('data-align', align);
-    if (a.bottom < 0 || a.right < 0 || a.top > vh || a.left > vw) pos.setAttribute('data-anchor-hidden', '');
+    var hidden = a.bottom < 0 || a.right < 0 || a.top > vh || a.left > vw;
+    if (hidden && !sticky) pos.setAttribute('data-anchor-hidden', '');
     else pos.removeAttribute('data-anchor-hidden');
+    // Arrow centering: align a [data-arrow] to the anchor centre on the cross
+    // axis, clamped by arrowPadding; data-uncentered when it had to be clamped.
+    var arrow = pos.querySelector('[data-arrow]');
+    if (arrow) {
+      var as = arrow.style;
+      if (vertical(side)) {
+        var center = a.left + a.width / 2 - left;
+        var clamped = Math.max(arrowPad, Math.min(center, w - arrowPad));
+        as.setProperty('--arrow-x', clamped + 'px'); as.removeProperty('--arrow-y');
+        if (clamped !== center) arrow.setAttribute('data-uncentered', ''); else arrow.removeAttribute('data-uncentered');
+      } else {
+        var centerY = a.top + a.height / 2 - top;
+        var clampedY = Math.max(arrowPad, Math.min(centerY, h - arrowPad));
+        as.setProperty('--arrow-y', clampedY + 'px'); as.removeProperty('--arrow-x');
+        if (clampedY !== centerY) arrow.setAttribute('data-uncentered', ''); else arrow.removeAttribute('data-uncentered');
+      }
+      arrow.setAttribute('data-side', side);
+    }
     var st = pos.style;
     st.setProperty('--anchor-width', a.width + 'px');
     st.setProperty('--anchor-height', a.height + 'px');

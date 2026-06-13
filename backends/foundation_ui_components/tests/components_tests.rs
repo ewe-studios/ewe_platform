@@ -402,6 +402,19 @@ fn composite_behavior_is_a_roving_script() {
     assert!(body.contains("data-composite-item"), "finds items");
     assert!(body.contains("ArrowRight") && body.contains("ArrowDown"), "orientation-aware");
     assert!(COMPOSITE_JS.contains("data-composite-select"), "radio move+select opt-in");
+    // M5 typeahead now on the roving variant too (ported from useTypeahead).
+    assert!(COMPOSITE_JS.contains("typeahead") && COMPOSITE_JS.contains("750"), "750ms typeahead buffer");
+    assert!(COMPOSITE_JS.contains("allowRapid"), "same-letter cycling");
+}
+
+#[test]
+fn position_behavior_has_full_collision_avoidance() {
+    use foundation_ui_components::machinery::position::POSITION_JS;
+    assert!(POSITION_JS.contains("data-fallback-axis"), "fallbackAxisSide knob");
+    assert!(POSITION_JS.contains("perpNeed"), "perpendicular-axis fallback");
+    assert!(POSITION_JS.contains("data-sticky"), "sticky keeps popup on-screen");
+    assert!(POSITION_JS.contains("data-arrow") && POSITION_JS.contains("--arrow-x"), "arrow centering");
+    assert!(POSITION_JS.contains("data-uncentered"), "uncentered arrow flag");
 }
 
 #[test]

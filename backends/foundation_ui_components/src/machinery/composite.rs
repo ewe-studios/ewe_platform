@@ -61,16 +61,39 @@ pub const COMPOSITE_JS: &str = r#"function(scope){
   }
   var nextKey = orientation === 'vertical' ? 'ArrowDown' : 'ArrowRight';
   var prevKey = orientation === 'vertical' ? 'ArrowUp' : 'ArrowLeft';
+  // Typeahead (M5; port of floating-ui useTypeahead): 750ms buffer reset,
+  // locale-lowercased prefix match, same-letter cycling.
+  var buf = '', bufAt = 0, matchIdx = -1;
+  function label(el){ return (el.getAttribute('data-label') || el.textContent || '').trim().toLowerCase(); }
+  function typeahead(ch){
+    var list = items();
+    if (!list.length) return;
+    var now = Date.now();
+    if (now - bufAt > 750) { buf = ''; }
+    bufAt = now;
+    var cur = list.indexOf(document.activeElement);
+    if (buf === '') matchIdx = cur;
+    var allowRapid = list.every(function(el){ var t = label(el); return t.length < 2 || t[0] !== t[1]; });
+    if (allowRapid && buf === ch.toLowerCase()) { buf = ''; }
+    buf += ch.toLowerCase();
+    var start = (matchIdx >= 0 ? matchIdx : cur) + 1;
+    for (var k = 0; k < list.length; k++) {
+      var i = (((start + k) % list.length) + list.length) % list.length;
+      if (label(list[i]).indexOf(buf) === 0) { matchIdx = i; move(i); return; }
+    }
+    buf = '';
+  }
   root.addEventListener('keydown', function(e){
     var list = items();
     var cur = list.indexOf(document.activeElement);
-    if (cur < 0) return;
     var next = null;
     if (e.key === nextKey) next = cur + 1;
     else if (e.key === prevKey) next = cur - 1;
     else if (e.key === 'Home') next = 0;
     else if (e.key === 'End') next = list.length - 1;
+    else if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); typeahead(e.key); return; }
     else return;
+    if (cur < 0 && e.key !== 'Home' && e.key !== 'End') return;
     e.preventDefault();
     move(next);
   });
