@@ -385,3 +385,25 @@ fn transition_behavior_manages_starting_and_ending_styles() {
     assert!(body.contains("MutationObserver"), "observes the open state");
     assert!(TRANSITION_JS.contains("transitionend"), "completes on transitionend");
 }
+
+#[test]
+fn scroll_lock_behavior_locks_and_restores() {
+    use foundation_ui_components::machinery::scroll_lock::{scroll_lock_behavior, SCROLL_LOCK_JS};
+    let s = scroll_lock_behavior();
+    let body = s.children[0].text.as_deref().unwrap();
+    assert!(body.contains("overflowY"), "toggles overflow-y");
+    assert!(body.contains("scrollbar-gutter") || body.contains("scrollbarGutter"), "prefers gutter-stable");
+    assert!(body.contains("paddingRight"), "pads the gutter on the fallback path");
+    assert!(SCROLL_LOCK_JS.contains("data-open"), "engages while open");
+}
+
+#[test]
+fn focus_trap_behavior_traps_and_restores() {
+    use foundation_ui_components::machinery::focus_trap::{focus_trap_behavior, FOCUS_TRAP_JS};
+    let s = focus_trap_behavior();
+    let body = s.children[0].text.as_deref().unwrap();
+    assert!(body.contains("Tab"), "wraps Tab");
+    assert!(body.contains("data-initial-focus"), "honors initial-focus target");
+    assert!(body.contains("primal:anchor"), "restores to the trigger");
+    assert!(FOCUS_TRAP_JS.contains("activeElement"), "records/restores focus");
+}
