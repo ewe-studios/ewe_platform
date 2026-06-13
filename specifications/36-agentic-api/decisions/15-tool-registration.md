@@ -16,21 +16,69 @@ The agent needs tools to interact with the world. Tools must be:
 
 Tool registration and discovery is handled entirely by the **ToolShed**, which is already defined in `foundation_ai::types` and wired into `ModelInteraction`.
 
-### ToolShed Structure
+### Tool Trait
+
+All tools implement a common trait. The ToolCallManager registers tools by name and executes them via this trait:
 
 ```rust
-pub struct ToolShed {
-    pub shed: Tool,          // meta-tool: "find me a tool for X"
-    pub memory: Option<MemoryTool>,  // add, replace, remove memory facts
-    pub delegate: Option<DelegationTool>,  // start, check, get delegation
-    pub read: Tool,          // read file content
-    pub edit: Tool,          // edit file content
-    pub write: Tool,         // write file content
-    pub search: Tool,        // search file content (fff integration)
-    pub bash: Option<Tool>,  // execute shell commands
-    // No `others` field — shed tool covers dynamic discovery
+pub trait Tool: Send + Sync {
+    /// Tool definition for LLM function calling format
+    fn definition(&self) -> ToolDefinition;
+    
+    /// Execute the tool with parsed arguments
+    /// Returns Result<ToolCallResult, ToolError>
+    fn execute(&self, arguments: HashMap<String, ArgType>) 
+        -> impl Future<Output = Result<ToolCallResult, ToolError>> + Send;
+}
+
+pub struct ToolDefinition {
+    pub name: String,
+    pub description: String,
+    pub arguments: Args,  // JSON Schema from foundation_jsonschema
+}
+
+pub struct ToolCallResult {
+    pub content: UserModelContent,
+    pub error_detail: Option<String>,
 }
 ```
+
+### Tool Registration in ToolCallManager
+
+The ToolCallManager maintains a registry of tool implementations:
+
+```rust
+pub struct ToolCallManager {
+    tools: HashMap<String, Arc<dyn Tool>>,
+    vector_store: Arc<dyn VectorStore>,  // for shed tool search
+    // ... other fields
+}
+
+impl ToolCallManager {
+    /// Register a tool by name
+    pub fn register(&mut self, tool: Arc<dyn Tool>) {
+        self.tools.insert(tool.definition().name.clone(), tool);
+    }
+    
+    /// Execute a tool call by name
+    fn execute_tool(&self, call: &ToolCallRequest) -> Result<ToolCallResult, ToolError> {
+        let tool = self.tools.get(&call.name)
+            .ok_or_else(|| ToolError::UnknownTool(call.name.clone()))?;
+        tool.execute(call.arguments.clone())
+    }
+}
+```
+
+### The `shed` Meta-Tool
+
+The `shed` tool is a special tool that owns its internal representation of available tools. It searches the tool description vector store and returns matching tool summaries. The LLM doesn't need to know the internal structure — it just asks:
+
+> "Is there a tool that can parse YAML files?"
+
+The `shed` tool executes like any other tool through the ToolCallManager, but internally it:
+1. Searches the vector store for matching tool descriptions
+2. Returns tool names, descriptions, and schemas
+3. The LLM can then request the full schema for a specific tool
 
 ### The `shed` Meta-Tool
 
