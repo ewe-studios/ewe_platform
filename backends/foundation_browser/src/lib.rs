@@ -20,11 +20,15 @@
 pub mod browser;
 pub mod cdp;
 pub mod error;
+pub mod geometry;
 pub mod jsonrpc;
+pub mod locator;
 pub mod runtime;
 pub mod supervisor;
 
 pub use browser::{BrowserDriver, Page};
 pub use cdp::launch::{Browser, LaunchConfig};
 pub use error::{BrowserError, Result};
+pub use geometry::Rect;
 pub use jsonrpc::{RpcEngine, WireProtocol};
+pub use locator::{Locator, LocatorAssertions};

@@ -66,6 +66,12 @@ impl Page<'_> {
         self.engine.call(method, params, Some(&self.session))
     }
 
+    /// A [`Locator`](crate::locator::Locator) for `selector`.
+    #[must_use]
+    pub fn locator<'s>(&'s self, selector: &str) -> crate::locator::Locator<'s> {
+        crate::locator::Locator::new(self, selector)
+    }
+
     /// Navigate to `url` and wait for the load event.
     ///
     /// # Errors
