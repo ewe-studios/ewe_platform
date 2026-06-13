@@ -1,7 +1,7 @@
 //! libsql storage backend integration tests.
 #![cfg(feature = "libsql")]
 
-use foundation_core::valtron::{collect_one, collect_result, Stream};
+use foundation_core::valtron::{collect_result, Stream};
 use foundation_db::{KeyValueStore, LibsqlStore, QueryStore};
 use std::sync::Mutex;
 use tempfile::TempDir;
