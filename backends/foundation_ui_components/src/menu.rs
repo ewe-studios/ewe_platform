@@ -138,6 +138,8 @@ pub struct MenuConfig {
     pub modal: bool,
     /// Whether roving/highlight loops.
     pub loop_focus: bool,
+    /// Mark the trigger as a composite member (menubar roving). Internal.
+    pub menubar_item: bool,
     /// Class override for the popup (default `"menu"`).
     pub class: Option<Cow<'static, str>>,
 }
@@ -149,6 +151,7 @@ impl Default for MenuConfig {
             align: PlacementAlign::Start,
             modal: true,
             loop_focus: true,
+            menubar_item: false,
             class: None,
         }
     }
@@ -182,6 +185,7 @@ pub fn menu(
 
     let trigger_id_attr: Cow<'static, str> = Cow::Owned(trigger_id);
     let popup_id_attr: Cow<'static, str> = Cow::Owned(popup_id);
+    let menubar_item: Option<&'static str> = config.menubar_item.then_some("true");
     let t_expanded = open.clone();
     let t_popup_open = open.clone();
     html! { ctx, rcv,
@@ -191,6 +195,7 @@ pub fn menu(
                     aria-haspopup="menu"
                     aria-expanded={t_expanded.get()}
                     aria-controls=[popup_id_attr]
+                    data-composite-item=[menubar_item]
                     data-popup-open={t_popup_open.get().then_some("")}
                     primal:onclick={toggle}>
                 <Fragment>{trigger_html.clone()}</Fragment>
@@ -549,12 +554,19 @@ pub fn menubar(
         .into_iter()
         .map(|(trigger, entries)| {
             let (open, set_open) = ctx.signal(false);
-            menu(ctx, rcv, MenuConfig::default(), &open, set_open, vec![trigger], entries)
+            menu(
+                ctx, rcv,
+                MenuConfig { menubar_item: true, ..MenuConfig::default() },
+                &open, set_open, vec![trigger], entries,
+            )
         })
         .collect();
+    // The menubar is one tab stop; ←/→ rove across the triggers (M5 composite).
     html! { ctx, rcv,
-        <div class="menubar" role="menubar" aria-orientation="horizontal" data-orientation="horizontal">
+        <div class="menubar" role="menubar" aria-orientation="horizontal"
+             data-orientation="horizontal" data-composite="true">
             <Fragment>{rendered.clone()}</Fragment>
+            <Fragment>{crate::machinery::composite::composite_behavior()}</Fragment>
         </div>
     }
 }
