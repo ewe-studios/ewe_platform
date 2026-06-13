@@ -10,7 +10,7 @@
 //! Arrow IPC v2 under the `arrow` feature, ON by default).
 
 use foundation_ui_traits::DomOp;
-use foundation_wasm_ui::{html, App};
+use foundation_wasm_ui::{html, App, BODY_NODE_ID};
 
 #[test]
 fn default_is_compact_columnar_and_drives_the_loop() {
@@ -137,4 +137,54 @@ fn server_with_arrow_ipc_emits_version_2() {
 #[test]
 fn arrow_preset_constructs() {
     let _app = App::arrow();
+}
+
+/// `App::mount` is the body half of startup delivery (mirrors `theme` →
+/// `<head>`): it queues a single `AppendChild` of the built root onto the
+/// reserved body node, landing at the bottom of `<body>`. Without it a
+/// reactive `html!` tree is built but DETACHED — nothing reaches the page.
+#[test]
+fn mount_appends_root_to_the_reserved_body_node() {
+    let (app, sent) = App::mock();
+    let (ctx, receiver) = app.context();
+    let root = app.mount(html! { ctx, receiver, <div id="root">"hi"</div> });
+    app.stabilize();
+
+    let ops: Vec<DomOp> = sent.borrow().iter().flatten().cloned().collect();
+    assert!(
+        ops.iter().any(|op| matches!(
+            op,
+            DomOp::AppendChild { parent_id, child_id }
+                if *parent_id == BODY_NODE_ID && *child_id == root
+        )),
+        "mount splices the root under the body node: {ops:?}"
+    );
+}
+
+/// Two mounts append in call order — the second lands after the first, so a
+/// late `<script>` mounted after content sits at the bottom of `<body>`.
+#[test]
+fn successive_mounts_append_in_order() {
+    let (app, sent) = App::mock();
+    let (ctx, receiver) = app.context();
+    let first = app.mount(html! { ctx, receiver, <main>"content"</main> });
+    let second = app.mount(html! { ctx, receiver, <script>"boot()"</script> });
+    app.stabilize();
+
+    let body_appends: Vec<u32> = sent
+        .borrow()
+        .iter()
+        .flatten()
+        .filter_map(|op| match op {
+            DomOp::AppendChild { parent_id, child_id } if *parent_id == BODY_NODE_ID => {
+                Some(*child_id)
+            }
+            _ => None,
+        })
+        .collect();
+    assert_eq!(
+        body_appends,
+        vec![first, second],
+        "content first, then the late script — both at body bottom in order"
+    );
 }

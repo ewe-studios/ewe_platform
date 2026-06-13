@@ -25,7 +25,9 @@ use foundation_theme::GeneratedTheme;
 use foundation_ui_traits::DomOp;
 use foundation_wasm::MemoryAllocations;
 
-use crate::theme::inject_theme_css;
+use foundation_ui_traits::Html;
+
+use crate::theme::{inject_theme_css, BODY_NODE_ID};
 
 use crate::protocol::{ColumnarV1, FrameSink, FrameSinkV1, JsonV1, MockProtocol, ProtocolMethods};
 use crate::protocol::CollectedFrames;
@@ -197,6 +199,37 @@ impl App {
     #[must_use]
     pub fn scope(&self) -> Context {
         self.ctx.child()
+    }
+
+    /// Append a tree to the BOTTOM of the document `<body>` — the splice that
+    /// makes a built (but detached) `html! {}` fragment part of the live
+    /// document.
+    ///
+    /// `html! { ctx, rcv, … }` builds and registers a subtree but leaves it
+    /// DETACHED (it has no parent); without this the JS runtime applies the
+    /// create/append ops into a registry but nothing reaches the page. `mount`
+    /// queues the single `AppendChild` onto the reserved [`BODY_NODE_ID`] the
+    /// JS `NodeRegistry` seeds from `document.body`, then the next
+    /// [`stabilize`](Self::stabilize) flushes it. Returns the mounted root id.
+    ///
+    /// `AppendChild` is LAST-CHILD semantics, so each `mount` lands at the
+    /// current bottom of `<body>`, after everything mounted before it. That is
+    /// exactly what you want for elements that must come after the body content
+    /// is in place — e.g. a `<script>` that should run once the body is parsed
+    /// and set up:
+    ///
+    /// ```ignore
+    /// app.mount(content);                       // body content first…
+    /// app.mount(html! { ctx, rcv, <script src="/boot.js"></script> }); // …then a late script
+    /// ```
+    ///
+    /// This pairs with [`theme`](Self::theme), which injects into `<head>`
+    /// (reserved [`HEAD_NODE_ID`](crate::HEAD_NODE_ID)): the startup instruction
+    /// stream covers head AND the bottom of body. It is the same
+    /// [`mount_fragment`](crate::mount_fragment) machinery `<Fragment>` uses — a
+    /// root mount is just a fragment spliced under body.
+    pub fn mount(&self, root: Html) -> u32 {
+        crate::mount_fragment(&self.ctx, &self.receiver, root, BODY_NODE_ID)
     }
 }
 

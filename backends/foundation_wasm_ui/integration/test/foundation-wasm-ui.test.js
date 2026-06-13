@@ -11,11 +11,30 @@ import { dirname, join } from "node:path";
 import { FoundationWasm } from "../../../foundation_wasm/runtime/foundation-wasm.js";
 import {
   ColumnarParser,
+  decodeEnvelopeFrame,
   DomOpApplicator,
   NodeRegistry,
   Op,
+  Patcher,
 } from "../../runtimes/foundation-wasm-ui.js";
 import { MockDocument } from "../mock-dom.js";
+
+/** Envelope-frame a payload: `[protocol][version][len u32 LE][payload]`. */
+function envelope(protocol, version, payload) {
+  const out = new Uint8Array(6 + payload.length);
+  out[0] = protocol;
+  out[1] = version;
+  new DataView(out.buffer).setUint32(2, payload.length, true);
+  out.set(payload, 6);
+  return out;
+}
+
+/** A document the applicator can mount onto (seedDocument needs `body`). */
+function docWithBody() {
+  const doc = new MockDocument();
+  doc.body = doc.createElement("body");
+  return doc;
+}
 
 const here = dirname(fileURLToPath(import.meta.url));
 const wasmPath = join(here, "..", "..", "..", "foundation_wasm", "integration", "fixtures", "foundation_wasm_e2e.wasm");
@@ -118,6 +137,144 @@ test("DomOpApplicator throws on an unknown node id", () => {
       }),
     /unknown node id 999/,
   );
+});
+
+test("Patcher.route('arrow') lazily installs a body-seeded applicator and mounts", () => {
+  // The streaming path (Mode 1: a native App → SSE → mount-stream) decodes to
+  // {type:"arrow", columns} and calls Patcher.route. Without an installed
+  // applicator the apply was a SILENT no-op; route must lazily build one whose
+  // NodeRegistry is seeded from the document so RESERVED.BODY (1) resolves.
+  const doc = new MockDocument();
+  doc.body = doc.createElement("body");
+  Patcher.runtime.applicator = null; // isolate from any prior test's singleton
+
+  // create #20 (div), register it, append to body (reserved id 1), set its text.
+  const batch = {
+    count: 4,
+    nodeIds: Uint32Array.from([20, 20, 1, 20]),
+    operations: Uint8Array.from([
+      Op.CREATE_ELEMENT,
+      Op.REGISTER_NODE,
+      Op.APPEND_CHILD,
+      Op.SET_TEXT_CONTENT,
+    ]),
+    attribute: ["div", "", "20", ""],
+    value: ["", "", "", ""],
+    textVal: ["", "", "", "hi from stream"],
+  };
+
+  Patcher.route({ type: "arrow", columns: batch }, null, doc);
+
+  assert.ok(Patcher.runtime.applicator, "route installed the applicator");
+  const mounted = doc.body.children[0];
+  assert.ok(mounted, "the streamed node landed in the seeded document.body");
+  assert.equal(mounted.tag, "div");
+  assert.equal(mounted.textContent, "hi from stream");
+
+  Patcher.runtime.applicator = null; // don't leak the singleton to other tests
+});
+
+// ─── mount renders identically across protocols ──────────────────────────────
+// The App streams a DomOp batch; the wire encoding (custom binary columnar vs
+// JSON) is an envelope detail. Both must reach the SAME DomOpApplicator so a
+// mount looks identical whichever protocol it streamed over. (HTML is a
+// different delivery — full markup via materialize, not a DomOp batch — covered
+// last.) These guard the streaming path the Rust browser e2e exercises.
+
+/** The greeting batch, as the columnar parser would hand it to the applicator. */
+function greetingColumnarBatch() {
+  return {
+    count: 4,
+    nodeIds: Uint32Array.from([20, 20, 1, 20]),
+    operations: Uint8Array.from([
+      Op.CREATE_ELEMENT,
+      Op.REGISTER_NODE,
+      Op.APPEND_CHILD,
+      Op.SET_TEXT_CONTENT,
+    ]),
+    attribute: ["div", "", "20", ""],
+    value: ["", "", "", ""],
+    textVal: ["", "", "", "hi"],
+  };
+}
+
+/** The SAME batch in the JsonEncoder flat-row form (snake_case, nulls). */
+function greetingJsonRows() {
+  return [
+    { op_id: 0, node_id: 20, operation: Op.CREATE_ELEMENT, attribute: "div", value: null, text_val: null },
+    { op_id: 1, node_id: 20, operation: Op.REGISTER_NODE, attribute: null, value: null, text_val: null },
+    { op_id: 2, node_id: 1, operation: Op.APPEND_CHILD, attribute: "20", value: null, text_val: null },
+    { op_id: 3, node_id: 20, operation: Op.SET_TEXT_CONTENT, attribute: null, value: null, text_val: "hi" },
+  ];
+}
+
+function assertMounted(doc) {
+  const mounted = doc.body.children[0];
+  assert.ok(mounted, "node mounted onto the seeded document.body");
+  assert.equal(mounted.tag, "div");
+  assert.equal(mounted.textContent, "hi");
+}
+
+test("protocol 1 (custom binary columnar): envelope routes to the applicator and mounts", () => {
+  const doc = docWithBody();
+  Patcher.runtime.applicator = null;
+  // Mirror the wire: protocol byte 1 v1 → {type:"arrow", columns}. (Encoding the
+  // columnar bytes is Rust-side; the Rust browser e2e drives the real bytes —
+  // here we assert the route+apply contract directly from a parsed batch.)
+  const result = { type: "arrow", columns: greetingColumnarBatch() };
+  Patcher.route(result, null, doc);
+  assertMounted(doc);
+  Patcher.runtime.applicator = null;
+});
+
+test("protocol 2 (JSON DomOp batch): envelope decodes + routes to the SAME applicator and mounts", () => {
+  const doc = docWithBody();
+  Patcher.runtime.applicator = null;
+  const payload = new TextEncoder().encode(JSON.stringify(greetingJsonRows()));
+  const result = decodeEnvelopeFrame(envelope(2, 1, payload));
+  assert.equal(result.type, "arrow", "a JSON DomOp batch routes through the DomOp applicator path");
+
+  Patcher.route(result, null, doc);
+  assertMounted(doc);
+  Patcher.runtime.applicator = null;
+});
+
+test("protocol 1 v2 (Apache Arrow IPC): route('arrow-ipc') reads the table into the SAME applicator", () => {
+  const doc = docWithBody();
+  Patcher.runtime.applicator = null;
+  // A minimal table stub (numRows + getChild(name).get(i)) stands in for an
+  // apache-arrow Table; the real IPC bytes are exercised by the Rust browser e2e.
+  const rows = greetingJsonRows();
+  const table = { numRows: rows.length, getChild: (name) => ({ get: (i) => rows[i][name] }) };
+  Patcher.route({ type: "arrow-ipc", table }, null, doc);
+  assertMounted(doc);
+  Patcher.runtime.applicator = null;
+});
+
+test("a JSON signal-patch array still routes to the signal bridge (not the applicator)", () => {
+  // Regression: only DomOp-row arrays (elements with `operation`) become a
+  // DomOp batch; signal patches (`signalId`) must keep going to the bridge.
+  const patches = [{ signalId: 1, value: "x" }];
+  const result = decodeEnvelopeFrame(
+    envelope(2, 1, new TextEncoder().encode(JSON.stringify(patches))),
+  );
+  assert.equal(result.type, "json", "signal patches are NOT a DomOp batch");
+
+  const captured = [];
+  Patcher.runtime.signalBridge = { applyPatches: (p) => captured.push(p) };
+  Patcher.route(result, null, docWithBody());
+  assert.deepEqual(captured[0], patches, "patches reached the signal bridge");
+  Patcher.runtime.signalBridge = null;
+});
+
+test("HTML protocol: route materializes full markup into the mount target", () => {
+  // HTML is the non-DomOp delivery — route('html') materializes markup into the
+  // target element rather than applying ops. (MockDocument has no createRange,
+  // so materialize falls back to target.innerHTML; hydrate no-ops on the mock.)
+  const doc = new MockDocument();
+  const target = doc.createElement("div");
+  Patcher.route({ type: "html", html: "<p>hi html</p>" }, target, doc);
+  assert.match(target.innerHTML, /hi html/, "markup materialized into the target");
 });
 
 test(

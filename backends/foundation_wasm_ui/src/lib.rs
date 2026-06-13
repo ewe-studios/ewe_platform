@@ -53,7 +53,7 @@ pub use foundation_macros::{html, theme, ThemeTokens};
 // Theme token model + runtime builder, re-exported so `theme!{}` output and
 // the no-macro `Theme` builder are reachable from one import path.
 pub use foundation_theme::{GeneratedTheme, Theme, ThemeToken};
-pub use theme::{inject_theme_css, HEAD_NODE_ID, THEME_STYLE_NODE_ID};
+pub use theme::{inject_theme_css, BODY_NODE_ID, HEAD_NODE_ID, THEME_STYLE_NODE_ID};
 pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use protocol::{
     ColumnarV1, BatchInstructionsV1, CollectedFrames, DomOpsBatch, FrameSinkV1, HandleResult,

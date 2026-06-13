@@ -30,12 +30,7 @@ fn test_libsql_storage_basic() {
     let storage = LibsqlStore::new_kv(url, None).unwrap();
     storage.init_kv().unwrap();
 
-    let _: () = collect_one(
-        storage
-            .set::<String>("test_key", "test_value".to_string())
-            .unwrap(),
-    )
-    .unwrap()
+    storage.set::<String>("test_key", "test_value".to_string()).unwrap();
     .unwrap();
 
     let _ = storage.get("test_key")?
@@ -76,24 +71,9 @@ fn test_libsql_storage_list_keys() {
     let storage = LibsqlStore::new_kv(url, None).unwrap();
     storage.init_kv().unwrap();
 
-    let _: () = collect_one(
-        storage
-            .set::<String>("prefix:key1", "value1".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
-    let _: () = collect_one(
-        storage
-            .set::<String>("prefix:key2", "value2".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
-    let _: () = collect_one(
-        storage
-            .set::<String>("other:key3", "value3".to_string())
-            .unwrap(),
+    storage.set::<String>("prefix:key1", "value1".to_string()).unwrap();
+    storage.set::<String>("prefix:key2", "value2".to_string()).unwrap();
+    storage.set::<String>("other:key3", "value3".to_string()).unwrap();
     )
     .unwrap()
     .unwrap();
@@ -138,7 +118,7 @@ fn test_libsql_storage_migrations() {
 
     // Apply migrations directly via execute_batch
     for (_name, sql) in migrations {
-        collect_one(storage.execute_batch(sql).unwrap())
+        storage.execute_batch(sql)
             .unwrap()
             .unwrap();
     }

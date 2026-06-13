@@ -10,22 +10,22 @@
 //! (the `Send` push handle the App's sink / a test pushes frames to), and
 //! [`StreamHandler`] (a `Serve` route that upgrades + detaches).
 //!
-//! HOW: We use foundation_http's SSE writer API — [`SseStream`] (`message`/`send`/
-//! `comment`, built on `foundation_netio::event_source::EventWriter` +
-//! [`SseEvent`](foundation_netio::event_source::SseEvent)) — for the response
-//! head AND the `data:` lines. (`SseStream` writes a streaming head with no
-//! `Content-Length`, which is correct now that the response builder no longer
-//! auto-adds `Content-Length: 0` for an absent body.) `StreamHandler` upgrades
-//! the owned connection, hands the `SseStream` to the [`Broadcaster`], and
-//! returns `ConnectionResult::Take`; the connection is `Arc`-shared, so the
-//! worker dropping its handle leaves the broadcaster's `SseStream` holding the
-//! socket open — no blocked worker per stream. A push (from the test thread)
-//! `message`s every stream; teardown drops them (closing the sockets). The
-//! backlog/replay kills the connect/push race.
+//! HOW: We use foundation_http's SSE writer API — [`SseStream`], whose
+//! [`binary`](SseStream::binary) method IS the binary-over-SSE machinery
+//! (base64 so columnar/arrow bytes survive the text `data:` line; the browser
+//! runtime's `streamEventResult("arrow", …)` decodes it). Nothing bespoke lives
+//! here — the broadcaster just hands frames to `SseStream::binary`. (`SseStream`
+//! writes a streaming head with no `Content-Length`, correct now that the
+//! response builder no longer auto-adds `Content-Length: 0` for an absent body.)
+//! `StreamHandler` upgrades the owned connection, hands the `SseStream` to the
+//! [`Broadcaster`], and returns `ConnectionResult::Take`; the connection is
+//! `Arc`-shared, so the worker dropping its handle leaves the broadcaster's
+//! `SseStream` holding the socket open — no blocked worker per stream. A push
+//! (from the test thread) writes every stream; teardown drops them (closing the
+//! sockets). The backlog/replay kills the connect/push race.
 
 use std::sync::{Arc, Mutex};
 
-use base64::Engine as _;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::upgrade::SseStream;
 use foundation_http::shared::context::ContextBag;
@@ -36,10 +36,30 @@ use foundation_netio::simple_http::shared::SimpleIncomingRequest;
 /// The stream route the browser's runtime connects to.
 pub const STREAM_PATH: &str = "/__primal/stream";
 
+/// One channel-A frame. Binary frames are envelope-encoded DomOp batches
+/// (columnar/arrow/json) delivered base64 over SSE; text frames are raw markup
+/// (the HTML protocol), delivered as a plain SSE `data:` line.
+enum Frame {
+    Binary(Vec<u8>),
+    Text(String),
+}
+
+impl Frame {
+    /// Write this frame to an SSE stream the way its protocol expects.
+    fn write(&self, sse: &mut SseStream) -> bool {
+        match self {
+            // `SseStream::binary` is foundation_http machinery for the
+            // binary-over-SSE contract (base64); `message` is a plain data line.
+            Frame::Binary(bytes) => sse.binary(bytes).is_ok(),
+            Frame::Text(text) => sse.message(text.clone()).is_ok(),
+        }
+    }
+}
+
 /// Owned SSE streams + the frame backlog replayed to late joiners.
 struct Inner {
     streams: Vec<SseStream>,
-    backlog: Vec<Vec<u8>>,
+    backlog: Vec<Frame>,
 }
 
 /// Shared fan-out of channel-A connections.
@@ -64,7 +84,7 @@ impl Broadcaster {
     /// Register a freshly-upgraded SSE stream, replaying the backlog into it.
     fn register(&self, mut sse: SseStream) {
         let mut inner = self.inner.lock().expect("broadcaster poisoned");
-        let ok = inner.backlog.iter().all(|frame| sse.message(encode(frame)).is_ok());
+        let ok = inner.backlog.iter().all(|frame| frame.write(&mut sse));
         if ok {
             inner.streams.push(sse);
         }
@@ -79,6 +99,12 @@ impl Broadcaster {
     #[must_use]
     pub fn frame_count(&self) -> usize {
         self.inner.lock().expect("broadcaster poisoned").backlog.len()
+    }
+
+    /// Number of currently-registered SSE connections (diagnostics).
+    #[must_use]
+    pub fn conn_count(&self) -> usize {
+        self.inner.lock().expect("broadcaster poisoned").streams.len()
     }
 }
 
@@ -95,20 +121,23 @@ pub struct BroadcastTx {
 }
 
 impl BroadcastTx {
-    /// Deliver one framed batch to all connections (and the backlog).
+    /// Deliver one BINARY (envelope-encoded) frame to all connections (and the
+    /// backlog) — the DomOp wires: columnar, arrow IPC, JSON.
     pub fn send(&self, frame: &[u8]) {
-        let mut inner = self.inner.lock().expect("broadcaster poisoned");
-        inner.backlog.push(frame.to_vec());
-        let data = encode(frame);
-        inner.streams.retain_mut(|sse| sse.message(data.clone()).is_ok());
+        self.push(Frame::Binary(frame.to_vec()));
     }
-}
 
-/// Encode a frame for an SSE `data:` line. Frames are protocol bytes; we ship
-/// them base64 so binary encoders (columnar/arrow) survive the text channel and
-/// the browser runtime can base64-decode. (UTF-8 JSON frames base64 fine too.)
-fn encode(frame: &[u8]) -> String {
-    base64::engine::general_purpose::STANDARD.encode(frame)
+    /// Deliver one TEXT frame (raw markup) — the HTML protocol, written as a
+    /// plain SSE `data:` line that the runtime routes through `routeHtml`.
+    pub fn send_text(&self, markup: &str) {
+        self.push(Frame::Text(markup.to_string()));
+    }
+
+    fn push(&self, frame: Frame) {
+        let mut inner = self.inner.lock().expect("broadcaster poisoned");
+        inner.streams.retain_mut(|sse| frame.write(sse));
+        inner.backlog.push(frame);
+    }
 }
 
 /// `Serve` route: upgrade the owned connection to SSE, hand it to the

@@ -1968,10 +1968,76 @@ function streamEventResult(kind, raw) {
   return routeHtml(String(raw));
 }
 
-/** JSON morph-wrapper detection (spec §3). */
+/**
+ * Convert a JSON `DomOp` batch (the {@link JsonEncoder} flat-row form:
+ * `[{op_id, node_id, operation, attribute, value, text_val}, …]`) into the same
+ * batch shape {@link DomOpApplicator#apply} consumes, so the JSON and columnar
+ * wires share ONE apply path. `null` columns map to `""` (what `applyOne` /
+ * `resolveWireName` expect); `operation`/`node_id` are numeric.
+ */
+function jsonRowsToBatch(rows) {
+  return {
+    count: rows.length,
+    nodeIds: rows.map((r) => r.node_id >>> 0),
+    operations: rows.map((r) => r.operation),
+    attribute: rows.map((r) => r.attribute ?? ""),
+    value: rows.map((r) => r.value ?? ""),
+    textVal: rows.map((r) => r.text_val ?? ""),
+  };
+}
+
+/**
+ * Convert a decoded Apache Arrow IPC table (wire VERSION 2, read via
+ * `ProtocolHandler.arrowIpcReader`, e.g. apache-arrow `tableFromIPC`) into the
+ * batch shape {@link DomOpApplicator#apply} consumes — the SAME shape the
+ * columnar and JSON wires produce. Reads the canonical DomOp columns
+ * (`operation`, `node_id`, `attribute`, `value`, `text_val`); null Utf8 cells
+ * become `""`. Works with any table exposing `numRows` + `getChild(name).get(i)`.
+ */
+function arrowTableToBatch(table) {
+  const count = table.numRows;
+  const col = (name) => table.getChild(name);
+  const op = col("operation");
+  const nid = col("node_id");
+  const attr = col("attribute");
+  const val = col("value");
+  const txt = col("text_val");
+  const nodeIds = new Array(count);
+  const operations = new Array(count);
+  const attribute = new Array(count);
+  const value = new Array(count);
+  const textVal = new Array(count);
+  for (let i = 0; i < count; i += 1) {
+    operations[i] = Number(op.get(i));
+    nodeIds[i] = Number(nid.get(i)) >>> 0;
+    attribute[i] = attr.get(i) ?? "";
+    value[i] = val.get(i) ?? "";
+    textVal[i] = txt.get(i) ?? "";
+  }
+  return { count, nodeIds, operations, attribute, value, textVal };
+}
+
+/** A JSON `DomOp` batch is a non-empty array whose rows carry `operation`. */
+function isJsonDomOpBatch(value) {
+  return (
+    Array.isArray(value) &&
+    value.length > 0 &&
+    value[0] != null &&
+    typeof value[0] === "object" &&
+    "operation" in value[0]
+  );
+}
+
+/** JSON morph-wrapper / DomOp-batch detection (spec §3). */
 function routeJson(value) {
   if (value && typeof value === "object" && value.morph) {
     return { type: "json-morph", morph: value.morph };
+  }
+  // A JSON-encoded DomOp batch applies through the SAME applicator the columnar
+  // ("arrow") wire uses — the envelope's protocol byte is the only difference, so
+  // a mount renders identically whichever wire it streamed over.
+  if (isJsonDomOpBatch(value)) {
+    return { type: "arrow", columns: jsonRowsToBatch(value) };
   }
   return { type: "json", patches: value };
 }
@@ -2144,6 +2210,20 @@ export class Patcher {
     Patcher.runtime.applicator?.apply?.(columns);
   }
 
+  /**
+   * Lazily install the Arrow DOM-op applicator the streaming path needs. A
+   * native App (Mode 1) ships absolute primal-ids and appends its root onto a
+   * reserved ambient node, so the applicator's NodeRegistry MUST be seeded with
+   * the live document (head=0, body=1, html=2). Idempotent; a host that wants a
+   * custom registry/onEvent hook can pre-set `Patcher.runtime.applicator`.
+   */
+  static ensureApplicator(doc) {
+    if (!Patcher.runtime.applicator) {
+      Patcher.runtime.applicator = new DomOpApplicator(new NodeRegistry().seedDocument(doc), doc);
+    }
+    return Patcher.runtime.applicator;
+  }
+
   static applySignalPatches(patches) {
     const bridge = Patcher.runtime.signalBridge;
     if (bridge?.applyPatches) bridge.applyPatches(patches);
@@ -2174,7 +2254,14 @@ export class Patcher {
         Patcher.applySignalPatches(result.patches);
         break;
       case "arrow":
+        Patcher.ensureApplicator(doc);
         Patcher.applyDomOps(result.columns);
+        break;
+      case "arrow-ipc":
+        // Apache Arrow IPC (wire v2): the decoded table carries the same DomOp
+        // columns — read them into a batch and apply through the SAME applicator.
+        Patcher.ensureApplicator(doc);
+        Patcher.applyDomOps(arrowTableToBatch(result.table));
         break;
       default:
         targetEl.textContent = result.text ?? "";

@@ -28,14 +28,16 @@ paint, focus, trusted input) in one test.
 ```rust
 #[wasm_ui_server]
 fn dialog_traps_focus(server: &TestServer, page: &Page) -> Result<()> {
-    let (ctx, rcv) = server.app();                  // App::server() context; rcv → browser
+    // The App lives in the test; its protocol sink streams frames to the page.
+    let app = App::with_protocol(server.broadcast_sink());
+    let (ctx, rcv) = app.context();
     let (open, set_open) = ctx.signal(false);
-    let _ui = dialog(&ctx, &rcv, DialogConfig::default(), &open, set_open, slots);
-    server.flush();                                 // stabilize + ship encoded frames
+    app.mount(dialog(&ctx, &rcv, DialogConfig::default(), &open, set_open, slots));
+    app.stabilize();                                // ship encoded frames → browser
     page.locator("dialog").expect().to_be_hidden()?;
 
     set_open.set(true);                             // drive a SIGNAL in Rust
-    server.flush();                                 // ship the update
+    app.stabilize();                                // ship the update
     page.locator("dialog").expect().to_be_visible()?;   // assert the REAL browser
     Ok(())
 }
@@ -52,8 +54,11 @@ The `foundation_wasm_ui` building blocks are purpose-built for this:
   Layer-1 encoder — `JsonEncoder` for debuggable streams, Arrow, etc.)
 - **`CollectedFrames = Rc<RefCell<VecDeque<Vec<u8>>>>`** — the encoded-frame queue;
   drain with `pop_front()`.
-- **`App::context() -> (Context, SharedInstructionReceiver)`** — what `server.app()`
-  returns; the test mounts components + drives signals against it.
+- **`App::with_protocol(server.broadcast_sink())`** — wires the App's protocol
+  sink straight to the server's SSE broadcaster (the `BroadcastSink` adapter), so
+  each `app.stabilize()` ships frames to the page; no `CollectedFrames` draining
+  needed for streaming. `App::context()` then yields the `(Context,
+  SharedInstructionReceiver)` the test mounts components + drives signals against.
 - **`runtimes/foundation-wasm-ui.js`** — the BROWSER runtime that already connects
   to a stream (SSE-over-fetch *or* WebSocket, feature 21/11), decodes columnar/json
   frames, and applies `DomOp`s via morphdom. The HTML shell just loads it.
@@ -61,11 +66,11 @@ The `foundation_wasm_ui` building blocks are purpose-built for this:
 So the data path is:
 
 ```
-test thread:  ctx/rcv  ──signals/mount──▶  App  ──flush()──▶  CollectedFrames (Vec<u8> frames)
-                                                                     │  server.flush() drains
-                                                                     ▼
-server thread:                                   Broadcaster (Arc<Mutex<Vec<Sink>>>)  ──writes──▶
-browser:                          foundation-wasm-ui.js  ◀──SSE/WS frames──  applies DomOps (morphdom)
+test thread:  ctx/rcv ──signals/App::mount──▶ App ──stabilize()──▶ BroadcastSink (encodes frame)
+                                                                          │  tx.send(frame)
+                                                                          ▼
+server thread:                                Broadcaster (Arc<Mutex<{streams, backlog}>>) ──sse.binary──▶
+browser:                       foundation-wasm-ui.js  ◀──base64 SSE frames──  ensureApplicator → DomOps
 ```
 
 ## The `!Send` constraint (load-bearing)
@@ -73,14 +78,17 @@ browser:                          foundation-wasm-ui.js  ◀──SSE/WS frames�
 `App`, `Context`, `SharedInstructionReceiver`, and `CollectedFrames` are **`Rc`-based
 → `!Send`** (the wasm-ui runtime is single-threaded by design). Therefore:
 
-- The App is **created and driven on the test thread** (inside the test body, where
-  `server.app()` is called). It NEVER moves to the `foundation_http` worker thread.
+- The App is **created and driven on the test thread** (inside the test body, via
+  `App::with_protocol(server.broadcast_sink())`). It NEVER moves to the
+  `foundation_http` worker thread; only the `Send` `BroadcastTx` crosses over.
 - The `foundation_http` server thread only touches the **`ContextBag`** (the
   `Broadcaster` + the page) — never the App.
-- `server.flush()` runs on the **test thread**: it drains `CollectedFrames` and
-  writes the bytes to each connection sink held by the `Broadcaster`. The sinks
-  (SSE/WS connections) are `Send` and live behind `Arc<Mutex<…>>`; the worker
-  thread only ADDS sinks (on connect), the test thread WRITES to them (on flush).
+- `app.stabilize()` runs on the **test thread**: the `BroadcastSink` (the App's
+  protocol sink) encodes each batch and hands the frame to the `Send`
+  `BroadcastTx`, which writes it to every connection held by the `Broadcaster`
+  (and the backlog). The connections (SSE streams) live behind `Arc<Mutex<…>>`;
+  the worker thread only ADDS them (on connect), the test thread WRITES (on
+  stabilize). No `CollectedFrames` draining — the sink pushes directly.
 - Consequence: `TestServer`/`Harness` are `!Send` and stay on the test thread — fine,
   since the body and setup both run there, and only the broadcaster crosses.
 
@@ -106,10 +114,10 @@ impl Serve for StreamHandler {
 }
 ```
 
-The **backlog + replay** removes the connect/flush race: the browser opens the
-stream after page load, possibly *after* the first `flush()`; a late sink is
-caught up by replaying the backlog. `server.flush()` appends to the backlog AND
-writes to every live sink.
+The **backlog + replay** removes the connect/stabilize race: the browser opens
+the stream after page load, possibly *after* the first `app.stabilize()`; a late
+stream is caught up by replaying the backlog (each frame re-sent via
+`sse.binary`). A push appends to the backlog AND writes to every live stream.
 
 `TestServer` API surface (Mode 1):
 
@@ -143,10 +151,13 @@ The wasm bundle comes from `foundation_wasm_testbed`'s build step; the same
    + `StaticFileHandler` dir) — the transport; the CDP driver; the macro + Harness.
 2. **Broadcaster + `StreamHandler`** route (`/__primal/stream`), backlog/replay,
    SSE first (simplest; WS next). `ConnectionResult::Take`.
-3. **`server.app()`/`flush()`** — `App::server()` held in the (`!Send`) `TestServer`;
-   `flush` drains `CollectedFrames` → broadcaster.
+3. **Done:** `App::with_protocol(server.broadcast_sink())` + `App::mount` +
+   `app.stabilize()` — the `BroadcastSink` pushes encoded frames to the
+   broadcaster directly (no `CollectedFrames` drain). App stays on the test
+   thread; only the `Send` `BroadcastTx` crosses.
 4. **HTML shell** that loads `runtimes/foundation-wasm-ui.js` and opens the stream
-   (the default `TestConfig` page in Mode-1 tests).
+   via a single targetless `<mount-stream>` (the default `TestConfig` page in
+   Mode-1 tests).
 5. **First real component end-to-end:** a spec-42 `dialog`/`popover` test driven by
    Rust signals, asserted in a real browser.
 6. **Mode 2** validated with a built wasm bundle (`StaticFileHandler`).
@@ -178,7 +189,68 @@ The stack already has a clean SSE writer surface — USE IT rather than formatti
   `SseStream::connect` / `SseParser` / the reconnecting task.
 
 `StreamHandler` therefore just `SseStream::new(conn)?`, replays the backlog +
-streams via `sse.message(base64(frame))`, and detaches.
+streams via **`sse.binary(frame)`**, and detaches. `SseStream::binary` is
+foundation_http machinery (the server half of the binary-over-SSE contract): it
+base64-encodes the frame so columnar/arrow bytes survive the text-only `data:`
+line, pairing with the browser runtime's `streamEventResult("arrow", …)` which
+`atob`s it back. The test holds NO bespoke encoding — the frame is a
+self-describing `[protocol][version][length][..]` envelope; the transport just
+moves bytes.
+
+## Mounting: head AND bottom-of-body are first-class startup delivery
+
+Two gaps surfaced wiring Mode 1 end-to-end; both are now machinery, not test code:
+
+- **JS — the arrow stream installed no applicator.** `Patcher.route` for a
+  `{type:"arrow"}` result called `applyDomOps`, but `Patcher.runtime.applicator`
+  was never set, so the apply was a SILENT no-op (no error, empty DOM). Fixed
+  with `Patcher.ensureApplicator(doc)` (called on the arrow path): it lazily
+  builds a `DomOpApplicator` whose `NodeRegistry` is `seedDocument(doc)`-seeded,
+  so the reserved ambient ids resolve — `RESERVED = {HEAD:0, BODY:1, HTML:2}`.
+  (Note: this is the Patcher `NodeRegistry`, distinct from the megatron
+  `DomHeap` whose reserved slots are self/heap/window/document/body.)
+- **Rust — a built `html!` tree is DETACHED.** `html! { ctx, rcv, … }` creates
+  and registers a subtree but never appends it to a parent, so nothing reaches
+  the page. `App::mount(root)` queues the single `AppendChild` onto the reserved
+  `BODY_NODE_ID` (1) — the body counterpart of `App::theme`, which injects into
+  `HEAD_NODE_ID` (0). `AppendChild` is last-child semantics, so successive mounts
+  land at the BOTTOM of `<body>` in order; that is how you place an element that
+  must follow the body content, e.g. a `<script>` that runs once the body is
+  parsed. The startup DOM-op stream thus covers head AND bottom-of-body.
+
+With both in place a Mode-1 page is exactly what the user asked for: a single
+`<mount-stream>` in the body with **no `target`** (the arrow protocol carries
+absolute primal-ids and the App mounts its own root, so the mount self-replaces
+and the App drives the document from there). No `#app` container, no manual
+`AppendChild`, no bespoke base64 — every capability lives in `foundation_wasm_ui`
+/ `foundation_http`.
+
+## Protocol parity: a mount renders identically across wires
+
+The App streams a `DomOp` batch; the wire encoding is an envelope detail, and a
+mount must look identical whichever protocol it streamed over. The mount-stream's
+`protocol="arrow"` means "base64 envelope frames" — `decodeEnvelopeFrame`
+dispatches on the envelope's protocol byte, NOT the attribute:
+
+- **Protocol 1 (custom binary columnar)** → `{type:"arrow", columns}` →
+  `ensureApplicator` + `applyDomOps`. The default.
+- **Protocol 2 (JSON)** — the `JsonEncoder` flat-row form
+  (`[{op_id, node_id, operation, attribute, value, text_val}, …]`). A third gap
+  surfaced here: `routeJson` sent EVERY protocol-2 payload to the signal-patch
+  bridge, so a JSON-encoded DomOp batch was dropped (no applicator, empty DOM).
+  Fixed: `routeJson` now detects a DomOp-batch array (rows carry `operation`) and
+  routes it through the SAME applicator (`jsonRowsToBatch` → `{type:"arrow"}`).
+  Signal patches (`signalId`) and `{morph}` wrappers are unaffected. This is a
+  decode-layer fix, so it holds for WS binary frames AND base64 SSE — any
+  transport, test-server or real HTTP server.
+- **HTML** is the non-DomOp delivery: `route("html")` materializes full markup
+  into the mount target (not the applicator). A different mount mode, not an App
+  DomOp stream.
+
+Coverage: the Rust browser e2e drives BOTH columnar and JSON through real
+Chromium over the real `foundation_http` server (`mode1_columnar_binary_…` /
+`mode1_json_…`), and JS unit tests assert the route+apply contract for protocol
+1, protocol 2, the signal-patch regression, and HTML materialize.
 
 ## The `Content-Length` fix (root cause, fixed at source)
 

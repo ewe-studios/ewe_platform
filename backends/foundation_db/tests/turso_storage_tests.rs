@@ -26,13 +26,7 @@ fn test_turso_storage_basic() {
     let storage = TursoStorage::new(url).unwrap();
     storage.init_schema().unwrap();
 
-    let _: () = collect_one(
-        storage
-            .set::<String>("test_key", "test_value".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
+    storage.set::<String>("test_key", "test_value".to_string()).unwrap();
 
     let _ = storage.get("test_key")?
         .unwrap()
@@ -72,7 +66,7 @@ fn test_turso_storage_encryption() {
     storage.init_schema().unwrap();
 
     let secret_value = "sensitive_data_12345".to_string();
-    let _: () = collect_one(storage.set("secret_key", secret_value.clone()).unwrap())
+    storage.set("secret_key", secret_value.clone()).unwrap()
         .unwrap()
         .unwrap();
 
@@ -122,7 +116,7 @@ fn test_turso_storage_encryption_wrong_key() {
     storage1.init_schema().unwrap();
 
     let secret_value = "sensitive_data".to_string();
-    let _: () = collect_one(storage1.set("secret_key", secret_value.clone()).unwrap())
+    storage1.set("secret_key", secret_value.clone()).unwrap()
         .unwrap()
         .unwrap();
 
@@ -131,7 +125,7 @@ fn test_turso_storage_encryption_wrong_key() {
     let storage2 = TursoStorage::with_encryption(url, Some(key2.clone())).unwrap();
 
     let result: Option<Result<Option<String>, foundation_db::StorageError>> =
-        collect_one(storage2.get("secret_key").unwrap());
+        storage2.get::<String>("secret_key").unwrap();
     match result {
         Some(Err(foundation_db::StorageError::Encryption(_))) => {} // Expected
         Some(Err(e)) => panic!("Expected Encryption error, got: {e:?}"),
@@ -148,27 +142,9 @@ fn test_turso_storage_list_keys() {
     let url = db_path.to_str().unwrap();
 
     let storage = TursoStorage::new(url).unwrap();
-    storage.init_schema().unwrap();
-
-    let _: () = collect_one(
-        storage
-            .set::<String>("prefix:key1", "value1".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
-    let _: () = collect_one(
-        storage
-            .set::<String>("prefix:key2", "value2".to_string())
-            .unwrap(),
-    )
-    .unwrap()
-    .unwrap();
-    let _: () = collect_one(
-        storage
-            .set::<String>("other:key3", "value3".to_string())
-            .unwrap(),
-    )
+    storage.set::<String>("prefix:key1", "value1".to_string()).unwrap();
+    storage.set::<String>("prefix:key2", "value2".to_string()).unwrap();
+    storage.set::<String>("other:key3", "value3".to_string()).unwrap();
     .unwrap()
     .unwrap();
 

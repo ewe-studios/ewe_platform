@@ -20,6 +20,10 @@ pub const THEME_STYLE_NODE_ID: u32 = 3;
 /// Reserved ambient id of `<head>`.
 pub const HEAD_NODE_ID: u32 = 0;
 
+/// Reserved ambient id of `<body>` — what a root tree mounts onto (the JS
+/// `NodeRegistry` seeds it from `document.body`). See [`crate::App::mount`].
+pub const BODY_NODE_ID: u32 = 1;
+
 /// Queue the theme stylesheet as DOM ops targeting `<head>`. Call before the
 /// first content batch (its flush IS the first batch, feature 09 §8).
 ///

@@ -95,7 +95,6 @@ fn macro_drives_a_served_page(
 
 #[test]
 fn file_page_source_and_static_directory() {
-    use foundation_browser::test::PageSource;
     use std::io::Write;
 
     // A temp site: an HTML page file + an asset under assets/.
@@ -159,61 +158,108 @@ fn channel_a_streams_a_frame_to_the_browser() {
 // runs in this test thread; its protocol sink ships frames over channel-A SSE;
 // the page's <mount-stream> applies them. We drive a signal in Rust and watch
 // the browser DOM update. Headful when PRIMAL_TEST_HEADFUL is set — watch it!
-#[test]
-fn mode1_native_app_streams_to_real_browser() {
-    use foundation_browser::test::Encoding;
-    use foundation_wasm_ui::{html, App};
+//
+// Both DomOp wire encodings are exercised against real Chromium: the COLUMNAR
+// binary default and the JSON encoder. The page is identical for both — the
+// mount-stream's `protocol="arrow"` just means "base64 envelope frames"; the
+// runtime's `decodeEnvelopeFrame` dispatches on the envelope's protocol byte
+// (1 = columnar → applicator, 2 = json DomOp batch → SAME applicator), so a
+// mount renders the same whichever wire it streamed over. Only the App's
+// encoder differs. This proves it in an ACTUAL HTTP-server context, not a stub.
 
-    let page = r##"<!doctype html><html><head><meta charset=utf-8></head><body>
+/// The shared Mode-1 page: a single targetless `<mount-stream>` + the runtime.
+/// No `target` (the App carries absolute primal-ids and `App::mount`s its own
+/// root onto `<body>`), no `#app` container — just the mount.
+const MODE1_PAGE: &str = r##"<!doctype html><html><head><meta charset=utf-8></head><body>
 <h2>spec-43 Mode 1 — native App → real browser</h2>
-<div id="app" style="font:20px monospace;padding:1rem;border:2px solid #44f"></div>
-<script>
-  window.__errs=[];
-  var __oe=console.error; console.error=function(){window.__errs.push(Array.prototype.map.call(arguments,String).join(' ')); __oe.apply(console,arguments);};
-  window.addEventListener('error',function(e){window.__errs.push('error: '+e.message);});
-  window.addEventListener('unhandledrejection',function(e){window.__errs.push('reject: '+e.reason);});
-</script>
-<mount-stream api="/__primal/stream" transport="sse" protocol="arrow" target="#app"></mount-stream>
+<mount-stream api="/__primal/stream" transport="sse" protocol="arrow"></mount-stream>
 <script type="module">
   import { registerWebComponents } from '/__primal/foundation-wasm-ui.js';
   registerWebComponents();
 </script>
 </body></html>"##;
 
+/// Mount a greeting component via `app`, then flip a signal — asserting both the
+/// initial mount and the live update land in the real browser DOM.
+fn drive_greeting(
+    app: foundation_wasm_ui::App,
+    page: &foundation_browser::Page,
+    headful: bool,
+) -> foundation_browser::Result<()> {
+    use foundation_wasm_ui::html;
+    let (ctx, rcv) = app.context();
+    let (title, set_title) = ctx.signal(alloc_str("Hello from Rust 👋"));
+
+    let t = title.clone();
+    // Build the tree, then `App::mount` splices it onto <body> — the same
+    // first-class machinery `App::theme` uses for <head>. No bespoke mount ops.
+    app.mount(html! { ctx, rcv,
+        <div id="greeting" class="greeting">{t.get()}</div>
+    });
+    app.stabilize(); // initial mount → SSE → browser applies it
+    page.locator("#greeting").expect().to_have_text("Hello from Rust 👋")?;
+    if headful {
+        std::thread::sleep(std::time::Duration::from_millis(1500));
+    }
+
+    set_title.set(alloc_str("Updated live from a Rust signal! ✨"));
+    app.stabilize(); // the SetText op streams → DOM updates live
+    page.locator("#greeting").expect().to_have_text("Updated live from a Rust signal! ✨")?;
+    if headful {
+        std::thread::sleep(std::time::Duration::from_secs(3));
+    }
+    Ok(())
+}
+
+#[test]
+fn mode1_columnar_binary_streams_to_real_browser() {
+    use foundation_browser::test::Encoding;
+    use foundation_ui_traits::ColumnarEncoder;
+    use foundation_wasm_ui::App;
+
     let headful = std::env::var("PRIMAL_TEST_HEADFUL").is_ok();
     let harness = Harness::setup(TestConfig {
-        html: page.into(),
+        html: MODE1_PAGE.into(),
         encoding: Encoding::Columnar,
         headless: !headful,
         ..TestConfig::default()
     })
     .expect("setup");
 
-    harness.run("mode1_native_app_streams_to_real_browser", |server, page| {
-        // The App is native, lives here, never crosses threads. Its sink streams
-        // encoded frames to the browser on every stabilize().
-        let app = App::with_protocol(server.broadcast_sink());
-        let (ctx, rcv) = app.context();
-        let (title, set_title) = ctx.signal(alloc_str("Hello from Rust 👋"));
+    harness.run("mode1_columnar_binary_streams_to_real_browser", |server, page| {
+        // Columnar binary (protocol byte 1) — the default wire.
+        let sink = foundation_browser::test::BroadcastSink::with_encoder(
+            ColumnarEncoder,
+            server.broadcaster(),
+        );
+        drive_greeting(App::with_protocol(sink), page, headful)
+    });
+}
 
-        let t = title.clone();
-        let _ui = html! { ctx, rcv,
-            <div id="greeting" class="greeting">{t.get()}</div>
-        };
-        app.stabilize(); // initial mount → SSE → browser applies it
-        std::thread::sleep(std::time::Duration::from_millis(600));
-        let dbg = page
-            .eval("JSON.stringify({body:document.body.innerHTML.slice(0,400), greeting:!!document.getElementById('greeting'), errs:window.__errs})")
-            .unwrap_or_default();
-        eprintln!("MODE1 diagnostic: {dbg} | rust frames={}", server.frame_count());
-        page.locator("#greeting").expect().to_have_text("Hello from Rust 👋")?;
-        if headful { std::thread::sleep(std::time::Duration::from_millis(1500)); }
+#[test]
+fn mode1_json_streams_to_real_browser() {
+    use foundation_browser::test::Encoding;
+    use foundation_ui_traits::JsonEncoder;
+    use foundation_wasm_ui::App;
 
-        set_title.set(alloc_str("Updated live from a Rust signal! ✨"));
-        app.stabilize(); // the SetText op streams → DOM updates live
-        page.locator("#greeting").expect().to_have_text("Updated live from a Rust signal! ✨")?;
-        if headful { std::thread::sleep(std::time::Duration::from_secs(3)); }
-        Ok(())
+    let headful = std::env::var("PRIMAL_TEST_HEADFUL").is_ok();
+    let harness = Harness::setup(TestConfig {
+        html: MODE1_PAGE.into(),
+        encoding: Encoding::Json,
+        headless: !headful,
+        ..TestConfig::default()
+    })
+    .expect("setup");
+
+    harness.run("mode1_json_streams_to_real_browser", |server, page| {
+        // JSON DomOp batch (protocol byte 2) — decoded through the SAME envelope
+        // + applicator path as columnar. The fix that makes this render: the
+        // runtime now routes a JSON DomOp batch to the DomOp applicator.
+        let sink = foundation_browser::test::BroadcastSink::with_encoder(
+            JsonEncoder,
+            server.broadcaster(),
+        );
+        drive_greeting(App::with_protocol(sink), page, headful)
     });
 }
 

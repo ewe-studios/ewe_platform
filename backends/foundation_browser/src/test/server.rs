@@ -43,8 +43,16 @@ use crate::test::stream::{BroadcastTx, Broadcaster, StreamHandler, STREAM_PATH};
 /// `<mount-stream>` works without a build step. Served at [`RUNTIME_PATH`].
 const RUNTIME_JS: &str = foundation_wasm_ui::embedded::FOUNDATION_WASM_UI_JS;
 
+/// The bundled Apache Arrow JS library — the Arrow IPC (wire v2) reader the page
+/// registers as `ProtocolHandler.arrowIpcReader`. Served at [`ARROW_LIB_PATH`].
+const APACHE_ARROW_JS: &str = foundation_wasm_ui::embedded::APACHE_ARROW_JS;
+
 /// Where the embedded runtime is served (the page imports it).
 pub const RUNTIME_PATH: &str = "/__primal/foundation-wasm-ui.js";
+
+/// Where the bundled Apache Arrow library is served (the page loads it for the
+/// Arrow IPC protocol).
+pub const ARROW_LIB_PATH: &str = "/__primal/apache-arrow.js";
 
 /// The wire encoding the App streams in (and that the browser runtime decodes).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -260,6 +268,12 @@ impl TestServer {
     #[must_use]
     pub fn frame_count(&self) -> usize {
         self.broadcaster.frame_count()
+    }
+
+    /// Number of registered SSE connections (diagnostics).
+    #[must_use]
+    pub fn conn_count(&self) -> usize {
+        self.broadcaster.conn_count()
     }
 
     /// The App's protocol sink (Mode 1): wire it into `App::with_protocol(...)`,
