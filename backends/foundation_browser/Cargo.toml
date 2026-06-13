@@ -15,7 +15,9 @@ keywords = ["browser", "cdp", "testing", "foundation", "chromium"]
 # (all CPU threads) driving the browser sockets. multi → foundation_core/multi.
 foundation_core = { workspace = true, features = ["multi"] }
 foundation_netio = { workspace = true, features = ["multi"] }
-foundation_http = { workspace = true }
+# ssl-rustls-ring: the TestServer can serve HTTPS (the `https` mode) using a
+# bundled localhost dev cert — for testing secure-context features.
+foundation_http = { workspace = true, features = ["ssl-rustls-ring"] }
 foundation_macros = { workspace = true }
 foundation_wasm = { workspace = true }
 # embedded-js exposes the runtime assets (foundation-wasm-ui.js) as consts so we
@@ -28,6 +30,8 @@ serde_json = { workspace = true }
 derive_more = { workspace = true }
 tracing = { workspace = true }
 base64 = "0.22"
+# Holds the dev TLS key zeroized in memory, matching the SSLAcceptor::from_pem API.
+zeroize = "1"
 
 [features]
 # Integration tests that require a real Chromium binary opt into this so CI

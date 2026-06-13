@@ -347,6 +347,28 @@ fn mode1_html_streams_to_real_browser() {
     });
 }
 
+// HTTPS — the TestServer serves TLS with the bundled localhost dev cert; the
+// browser trusts it (--ignore-certificate-errors). Proves secure-context pages
+// load and a secure-context-only API (crypto.subtle) is available.
+#[test]
+fn https_serves_a_secure_context() {
+    let harness = Harness::setup(TestConfig {
+        html: "<h1 id='h'>secure</h1>\
+               <script>window.__secure = window.isSecureContext && !!(crypto.subtle);</script>"
+            .into(),
+        https: true,
+        ..TestConfig::default()
+    })
+    .expect("setup https");
+
+    harness.run("https_serves_a_secure_context", |_server, page| {
+        page.locator("#h").expect().to_have_text("secure")?;
+        let secure = page.eval("window.__secure").unwrap_or_default();
+        assert_eq!(secure.as_bool(), Some(true), "page is a secure context over TLS");
+        Ok(())
+    });
+}
+
 fn alloc_str(s: &str) -> String {
     s.to_string()
 }

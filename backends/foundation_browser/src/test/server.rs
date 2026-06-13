@@ -25,16 +25,18 @@ use std::thread::JoinHandle;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::native::handlers::static_asset::StaticAssetHandler;
 use foundation_http::native::handlers::static_file::StaticFileHandler;
-use foundation_http::native::server::HttpServer;
+use foundation_http::native::server::ServerConfig;
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_http::OnSignal;
+use foundation_netio::netcap::ssl::SSLAcceptor;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::simple_http::shared::{
     Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse,
     Status,
 };
+use zeroize::Zeroizing;
 
 use foundation_wasm_ui::server::{BroadcastSink, BroadcastTx, Broadcaster};
 
@@ -55,6 +57,13 @@ pub const RUNTIME_PATH: &str = "/__primal/foundation-wasm-ui.js";
 /// Where the bundled Apache Arrow library is served (the page loads it for the
 /// Arrow IPC protocol).
 pub const ARROW_LIB_PATH: &str = "/__primal/apache-arrow.js";
+
+/// A self-signed `localhost`/`127.0.0.1` dev certificate, for the `https` mode.
+/// Regenerate with `mise run test:cert:regen`. The browser is launched trusting
+/// it (`--ignore-certificate-errors`), so it only needs to be a valid self-signed
+/// pair — never use it outside tests.
+const DEV_CERT_PEM: &[u8] = include_bytes!("fixtures/cert.pem");
+const DEV_KEY_PEM: &[u8] = include_bytes!("fixtures/key.pem");
 
 /// The wire encoding the App streams in (and that the browser runtime decodes).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -164,6 +173,7 @@ impl Serve for PageHandler {
 /// A background `foundation_http` server serving the page + channel-A stream.
 pub struct TestServer {
     addr: std::net::SocketAddr,
+    https: bool,
     page: Arc<PageState>,
     broadcaster: Broadcaster,
     shutdown: Arc<OnSignal>,
@@ -173,16 +183,19 @@ pub struct TestServer {
 impl TestServer {
     /// Start a server bound to `bind` serving `page` at `/`, static directory
     /// mounts, and the channel-A SSE stream. `headers` are attached to the page
-    /// response; `encoding` adds the `X-Primal-Encoding` announce header.
+    /// response; `encoding` adds the `X-Primal-Encoding` announce header. When
+    /// `https` is true the server speaks TLS with the bundled localhost dev cert.
     ///
     /// # Errors
-    /// [`BrowserError::Io`] if the listener can't bind.
+    /// [`BrowserError::Io`] if the listener can't bind; [`BrowserError::Launch`]
+    /// if the TLS acceptor can't be built or the server thread can't spawn.
     pub fn start(
         bind: &str,
         page: PageSource,
         statics: &[StaticMount],
         mut headers: Vec<(String, String)>,
         encoding: Encoding,
+        https: bool,
     ) -> Result<Self> {
         let listener = TcpListener::bind(bind)?;
         let addr = listener.local_addr()?;
@@ -211,22 +224,38 @@ impl TestServer {
         }
 
         let shutdown = Arc::new(OnSignal::new());
-        let server: HttpServer = app.server(&addr.to_string());
+        let addr_str = addr.to_string();
         let handle = {
             let shutdown = shutdown.clone();
-            std::thread::Builder::new()
-                .name("test-server".into())
-                .spawn(move || server.serve_with_listener(&listener, &shutdown))
-                .map_err(|e| BrowserError::Launch(e.to_string()))?
+            let builder = std::thread::Builder::new().name("test-server".into());
+            if https {
+                // TLS over the same caller-bound listener (ephemeral port already known).
+                let acceptor = SSLAcceptor::from_pem(
+                    DEV_CERT_PEM.to_vec(),
+                    Zeroizing::new(DEV_KEY_PEM.to_vec()),
+                )
+                .map_err(|e| BrowserError::Launch(format!("dev TLS acceptor: {e}")))?;
+                let server =
+                    app.server_with_config(&addr_str, ServerConfig::default().with_tls(Arc::new(acceptor)));
+                builder
+                    .spawn(move || server.serve_tls_with_listener(&listener, &shutdown))
+                    .map_err(|e| BrowserError::Launch(e.to_string()))?
+            } else {
+                let server = app.server(&addr_str);
+                builder
+                    .spawn(move || server.serve_with_listener(&listener, &shutdown))
+                    .map_err(|e| BrowserError::Launch(e.to_string()))?
+            }
         };
 
-        Ok(Self { addr, page: page_state, broadcaster, shutdown, handle: Some(handle) })
+        Ok(Self { addr, https, page: page_state, broadcaster, shutdown, handle: Some(handle) })
     }
 
-    /// The base URL (e.g. `http://127.0.0.1:54321/`).
+    /// The base URL (e.g. `http://127.0.0.1:54321/`, or `https://…` in `https` mode).
     #[must_use]
     pub fn url(&self) -> String {
-        format!("http://{}/", self.addr)
+        let scheme = if self.https { "https" } else { "http" };
+        format!("{scheme}://{}/", self.addr)
     }
 
     /// Replace the served page (takes effect on the next navigation).

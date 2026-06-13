@@ -46,6 +46,10 @@ pub struct TestConfig {
     /// Browser window size `(width, height)` in CSS px (e.g. `(800, 800)`).
     /// `None` = the browser default. Most visible headful (`--window-size`).
     pub window_size: Option<(u32, u32)>,
+    /// Serve over HTTPS (bundled localhost dev cert) so secure-context features
+    /// (secure cookies, service workers, clipboard) are testable. The browser is
+    /// launched trusting the cert (`--ignore-certificate-errors`).
+    pub https: bool,
 }
 
 impl Default for TestConfig {
@@ -62,6 +66,7 @@ impl Default for TestConfig {
             browser: Browser::Chromium,
             headless: true,
             window_size: None,
+            https: false,
         }
     }
 }
@@ -72,10 +77,15 @@ impl TestConfig {
     }
 
     fn launch(&self) -> LaunchConfig {
-        let extra_args = self
-            .window_size
-            .map(|(w, h)| vec![format!("--window-size={w},{h}").into()])
-            .unwrap_or_default();
+        let mut extra_args: Vec<std::borrow::Cow<'static, str>> = Vec::new();
+        if let Some((w, h)) = self.window_size {
+            extra_args.push(format!("--window-size={w},{h}").into());
+        }
+        if self.https {
+            // Trust the self-signed dev cert so HTTPS pages load without warnings.
+            extra_args.push("--ignore-certificate-errors".into());
+            extra_args.push("--allow-insecure-localhost".into());
+        }
         LaunchConfig { browser: self.browser, headless: self.headless, extra_args }
     }
 
@@ -114,6 +124,7 @@ impl Harness {
             &config.statics(),
             config.headers.clone(),
             config.encoding,
+            config.https,
         )?;
         let driver = BrowserDriver::launch(config.launch())?;
         Ok(Self { driver, server })

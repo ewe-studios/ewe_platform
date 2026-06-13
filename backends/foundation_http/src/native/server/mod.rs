@@ -410,6 +410,43 @@ impl HttpServer {
             .set_nonblocking(true)
             .expect("Failed to set non-blocking");
 
+        self.serve_loop(&listener, &shutdown, move |tcp| {
+            let conn = Connection::from(tcp);
+            let tls_stream = acceptor
+                .accept(conn)
+                .map_err(|e| format!("TLS handshake failed: {e}"))?;
+            RawStream::from_server_tls(tls_stream)
+                .map_err(|e| format!("Failed to create RawStream: {e}"))
+        });
+    }
+
+    /// Serve HTTPS over a caller-bound listener (the TLS analogue of
+    /// [`serve_with_listener`](Self::serve_with_listener)). Lets the caller bind
+    /// first — e.g. to discover an ephemeral port before announcing the URL.
+    /// Blocks until the shutdown signal is triggered.
+    ///
+    /// Requires an `ssl`/`ssl-*` feature and a `tls_acceptor` in `ServerConfig`.
+    #[cfg(any(
+        feature = "ssl",
+        feature = "ssl-rustls",
+        feature = "ssl-rustls-ring",
+        feature = "ssl-rustls-awsrc",
+        feature = "ssl-openssl",
+        feature = "ssl-native-tls",
+    ))]
+    #[tracing::instrument(skip(self, listener, shutdown))]
+    pub fn serve_tls_with_listener(self, listener: &std::net::TcpListener, shutdown: &Arc<OnSignal>) {
+        let acceptor = match &self.config.tls_acceptor {
+            Some(a) => a.clone(),
+            None => {
+                tracing::error!("TLS acceptor not configured — call ServerConfig::with_tls()");
+                return;
+            }
+        };
+        tracing::info!("Listening on {} (TLS)", self.bind_addr);
+        listener
+            .set_nonblocking(true)
+            .expect("Failed to set non-blocking");
         self.serve_loop(listener, shutdown, move |tcp| {
             let conn = Connection::from(tcp);
             let tls_stream = acceptor

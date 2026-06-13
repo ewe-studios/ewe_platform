@@ -125,6 +125,18 @@ cargo test -p foundation_browser --features browser-tests --test smoke
 echo "✓ browser tests passed (PRIMAL_TEST_HEADFUL=1 to watch them live)"
 """
 
+[tasks."test:cert:regen"]
+description = "Regenerate the localhost dev TLS cert for #[wasm_ui_server(https = true)]"
+dir = "backends/foundation_browser/src/test/fixtures"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+openssl req -x509 -newkey rsa:2048 -nodes -keyout key.pem -out cert.pem \
+  -days 3650 -subj "/CN=localhost" \
+  -addext "subjectAltName=DNS:localhost,IP:127.0.0.1"
+echo "✓ regenerated cert.pem + key.pem (dev only; the browser trusts it via --ignore-certificate-errors)"
+"""
+
 [tasks."setup:depot-tools"]
 description = "Install Chromium depot_tools into tools/depot_tools (for Dawn/gclient)"
 run = """

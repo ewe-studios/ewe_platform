@@ -15,7 +15,7 @@
 //! Attribute args (all optional): `port = N`, `host = "..."`, `headless = bool`,
 //! `headful = bool`, `html = "..."`, `file = "..."`, `static_dir = "..."`,
 //! `static_mount = "..."`, `encoding = "json|columnar"`, `headers = [(..)]`,
-//! `window_size = (800, 800)`.
+//! `window_size = (800, 800)`, `https = true`.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -58,6 +58,8 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
                 "window_size" => field_inits.push(quote! {
                     window_size: ::core::option::Option::Some(#value)
                 }),
+                // `https = true` — serve TLS (bundled localhost dev cert).
+                "https" => field_inits.push(quote! { https: #value }),
                 "encoding" => field_inits.push(quote! {
                     encoding: ::core::str::FromStr::from_str(#value)
                         .expect("wasm_ui_server: invalid encoding (json|columnar)")
@@ -72,7 +74,7 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
                         nv.path,
                         format!(
                             "unknown wasm_ui_server arg `{other}` (expected port/host/headless/\
-                             headful/html/file/static_dir/static_mount/encoding/headers/window_size)"
+                             headful/html/file/static_dir/static_mount/encoding/headers/window_size/https)"
                         ),
                     )
                     .to_compile_error();
