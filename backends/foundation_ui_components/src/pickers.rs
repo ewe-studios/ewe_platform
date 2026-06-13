@@ -97,19 +97,19 @@ pub const SELECT_ALIGN_JS: &str = r#"function(scope){
   if (popup.hasAttribute('data-open')) win.requestAnimationFrame(align);
 }"#;
 
-/// One pickable item.
+/// One pickable item over a value of type `T`.
 #[derive(Clone)]
-pub struct PickItem {
-    /// Submitted value (`<For>` key + serialization).
-    pub value: String,
+pub struct PickItem<T> {
+    /// Submitted value.
+    pub value: T,
     /// Display + typeahead label.
     pub label: String,
     /// Disabled.
     pub disabled: bool,
 }
 
-impl PickItem {
-    /// Convenience: value == label.
+impl PickItem<String> {
+    /// Convenience for string-valued pickers: value == label.
     #[must_use]
     pub fn new(value: impl Into<String>) -> Self {
         let value = value.into();
@@ -117,8 +117,16 @@ impl PickItem {
     }
 }
 
-/// Static config shared by the pickers.
-pub struct SelectConfig {
+impl<T> PickItem<T> {
+    /// A pickable item with a distinct value and display label.
+    pub fn with_label(value: T, label: impl Into<String>) -> Self {
+        Self { value, label: label.into(), disabled: false }
+    }
+}
+
+/// Static config shared by the pickers. `to_form_value` serializes `T` for the
+/// hidden form input + option identity (base-ui `itemToStringValue`).
+pub struct SelectConfig<T = String> {
     /// Placeholder shown on the trigger when nothing is selected.
     pub placeholder: Cow<'static, str>,
     /// Modal (scroll-lock while open). Select default true; combobox false.
@@ -134,12 +142,22 @@ pub struct SelectConfig {
     pub align_item_with_trigger: bool,
     /// Disabled.
     pub disabled: bool,
+    /// Serialize a value to its submitted/identity string.
+    pub to_form_value: fn(&T) -> String,
     /// Class override for the trigger/root (default `"select"`).
     pub class: Option<Cow<'static, str>>,
 }
 
-impl Default for SelectConfig {
+impl Default for SelectConfig<String> {
     fn default() -> Self {
+        Self::with_form_value(|s: &String| s.clone())
+    }
+}
+
+impl<T> SelectConfig<T> {
+    /// A config for a `T`-valued picker; supply the value serializer.
+    #[must_use]
+    pub fn with_form_value(to_form_value: fn(&T) -> String) -> Self {
         Self {
             placeholder: Cow::Borrowed("Select…"),
             modal: true,
@@ -148,28 +166,30 @@ impl Default for SelectConfig {
             align: PlacementAlign::Start,
             align_item_with_trigger: true,
             disabled: false,
+            to_form_value,
             class: None,
         }
     }
 }
 
-fn matches(item: &PickItem, query: &str) -> bool {
+fn matches<T>(item: &PickItem<T>, query: &str) -> bool {
     if query.is_empty() {
         return true;
     }
     item.label.to_lowercase().contains(&query.to_lowercase())
 }
 
-/// Build a `role="option"` from a `PickItem`, wired to select-and-(maybe-)close.
-fn option_html(
+/// Build a `role="option"` from a `PickItem<T>`, wired to select-and-(maybe-)close.
+fn option_html<T: Clone + PartialEq + 'static>(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
-    item: &PickItem,
-    value: &SignalGetter<Option<String>>,
-    set_value: &SignalSetter<Option<String>>,
+    item: &PickItem<T>,
+    to_form_value: fn(&T) -> String,
+    value: &SignalGetter<Option<T>>,
+    set_value: &SignalSetter<Option<T>>,
     set_open: Option<&SignalSetter<bool>>,
 ) -> Html {
-    let id: Cow<'static, str> = Cow::Owned(alloc::format!("option-{}", item.value));
+    let id: Cow<'static, str> = Cow::Owned(alloc::format!("option-{}", to_form_value(&item.value)));
     let label_attr: Cow<'static, str> = Cow::Owned(item.label.clone());
     let label_text = item.label.clone();
     let disabled = item.disabled;
@@ -194,9 +214,9 @@ fn option_html(
     html! { ctx, rcv,
         <div class="select-option" role="option"
              id=[id] data-list-item="true" data-label=[label_attr]
-             aria-selected={sel_aria.get().as_deref() == Some(v_aria.as_str())}
-             data-selected={(sel_data.get().as_deref() == Some(v_data.as_str())).then_some("")}
-             data-active-item={(sel_active.get().as_deref() == Some(v_active.as_str())).then_some("")}
+             aria-selected={sel_aria.get().as_ref() == Some(&v_aria)}
+             data-selected={(sel_data.get().as_ref() == Some(&v_data)).then_some("")}
+             data-active-item={(sel_active.get().as_ref() == Some(&v_active)).then_some("")}
              aria-disabled={disabled.then_some("true")}
              data-disabled={disabled.then_some("")}
              primal:onclick={on_click}>
@@ -206,20 +226,22 @@ fn option_html(
     }
 }
 
-/// Select — a button + listbox over `Option<String>`.
+/// Select — a button + listbox over `Option<T>`.
 #[must_use]
-pub fn select(
+#[allow(clippy::too_many_arguments)]
+pub fn select<T: Clone + PartialEq + 'static>(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
-    config: SelectConfig,
+    config: SelectConfig<T>,
     open: &SignalGetter<bool>,
     set_open: SignalSetter<bool>,
-    value: &SignalGetter<Option<String>>,
-    set_value: SignalSetter<Option<String>>,
-    items: Vec<PickItem>,
+    value: &SignalGetter<Option<T>>,
+    set_value: SignalSetter<Option<T>>,
+    items: Vec<PickItem<T>>,
 ) -> Html {
     let class = config.class.unwrap_or(Cow::Borrowed("select"));
     let modal = config.modal;
+    let tfv = config.to_form_value;
     let id_n = ctx.allocate_id_block(1);
     let trigger_id = alloc::format!("select-trigger-{id_n}");
     let popup_id = alloc::format!("select-popup-{id_n}");
@@ -237,8 +259,8 @@ pub fn select(
     // Options.
     let items_for_render = items.clone();
     let value_for_render = value.clone();
-    let render = move |c: &Context, r: &SharedInstructionReceiver, item: &PickItem| -> Html {
-        option_html(c, r, item, &value_for_render, &set_value, Some(&set_open))
+    let render = move |c: &Context, r: &SharedInstructionReceiver, item: &PickItem<T>| -> Html {
+        option_html(c, r, item, tfv, &value_for_render, &set_value, Some(&set_open))
     };
 
     // Trigger label: selected item's label, else placeholder.
@@ -283,7 +305,8 @@ pub fn select(
                     primal:onclick={toggle}>
                 <span class="select-value">{trigger_label()}</span>
             </button>
-            <input type="hidden" name=[config.name] value={h_value.get().unwrap_or_default()} />
+            <input type="hidden" name=[config.name]
+                   value={h_value.get().map(|v| tfv(&v)).unwrap_or_default()} />
             <div class="select-positioner"
                  data-anchor=[anchor_attr]
                  data-align-item=[align_item.then_some("true")]
@@ -298,7 +321,7 @@ pub fn select(
                      data-scroll-lock=[modal.then_some("true")]
                      data-open={p_open.get().then_some("")}
                      data-closed={(!p_closed.get()).then_some("")}>
-                    <For each={items_for_render.clone()} key={|it: &PickItem| it.value.clone()} render={render} />
+                    <For each={items_for_render.clone()} key={move |it: &PickItem<T>| tfv(&it.value)} render={render} />
                     <button type="button" hidden="" data-dismiss-action="true" primal:onclick={dismiss} />
                     <Fragment>{listbox_behavior()}</Fragment>
                     <Fragment>{dismiss_behavior()}</Fragment>
@@ -317,33 +340,33 @@ pub fn select(
 /// `query` signal drives the rendered list (`contains`, locale-lowercased).
 #[must_use]
 #[allow(clippy::too_many_arguments)]
-pub fn combobox(
+pub fn combobox<T: Clone + PartialEq + 'static>(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
-    config: SelectConfig,
+    config: SelectConfig<T>,
     open: &SignalGetter<bool>,
     set_open: SignalSetter<bool>,
-    value: &SignalGetter<Option<String>>,
-    set_value: SignalSetter<Option<String>>,
+    value: &SignalGetter<Option<T>>,
+    set_value: SignalSetter<Option<T>>,
     query: &SignalGetter<String>,
     set_query: SignalSetter<String>,
-    items: Vec<PickItem>,
+    items: Vec<PickItem<T>>,
 ) -> Html {
     combobox_impl(ctx, rcv, config, open, set_open, value, set_value, query, set_query, items, false)
 }
 
 /// Autocomplete — a combobox whose value IS the input text (suggestions list,
-/// no separate value signal). The input is the form field.
+/// no separate value signal). The input is the form field. String-valued.
 #[must_use]
 pub fn autocomplete(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
-    config: SelectConfig,
+    config: SelectConfig<String>,
     open: &SignalGetter<bool>,
     set_open: SignalSetter<bool>,
     query: &SignalGetter<String>,
     set_query: SignalSetter<String>,
-    items: Vec<PickItem>,
+    items: Vec<PickItem<String>>,
 ) -> Html {
     // value ≡ query: selecting writes the query, no hidden value input.
     let (value, set_value) = ctx.signal::<Option<String>>(None);
@@ -351,20 +374,21 @@ pub fn autocomplete(
 }
 
 #[allow(clippy::too_many_arguments, clippy::too_many_lines)]
-fn combobox_impl(
+fn combobox_impl<T: Clone + PartialEq + 'static>(
     ctx: &Context,
     rcv: &SharedInstructionReceiver,
-    config: SelectConfig,
+    config: SelectConfig<T>,
     open: &SignalGetter<bool>,
     set_open: SignalSetter<bool>,
-    value: &SignalGetter<Option<String>>,
-    set_value: SignalSetter<Option<String>>,
+    value: &SignalGetter<Option<T>>,
+    set_value: SignalSetter<Option<T>>,
     query: &SignalGetter<String>,
     set_query: SignalSetter<String>,
-    items: Vec<PickItem>,
+    items: Vec<PickItem<T>>,
     inline_value: bool,
 ) -> Html {
     let class = config.class.unwrap_or(Cow::Borrowed("combobox"));
+    let tfv = config.to_form_value;
     let id_n = ctx.allocate_id_block(1);
     let input_id = alloc::format!("combobox-input-{id_n}");
     let popup_id = alloc::format!("combobox-popup-{id_n}");
@@ -373,17 +397,13 @@ fn combobox_impl(
         let set_open = set_open.clone();
         ctx.callback(move |_| set_open.set(false))
     };
-    // Typing opens the list and updates the query (+ value when autocomplete).
+    // Typing opens the list and updates the query. (Autocomplete's value ≡ the
+    // input text: it tracks via selection; the input itself is the form field.)
     let on_input = {
         let set_query = set_query.clone();
         let set_open = set_open.clone();
-        let set_value = set_value.clone();
         ctx.callback(move |data| {
-            let text = data.value.clone().unwrap_or_default();
-            if inline_value {
-                set_value.set(Some(text.clone()));
-            }
-            set_query.set(text);
+            set_query.set(data.value.clone().unwrap_or_default());
             set_open.set(true);
         })
     };
@@ -396,9 +416,9 @@ fn combobox_impl(
     let set_open_render = set_open.clone();
     let set_query_render = set_query.clone();
     let inline = inline_value;
-    let render = move |c: &Context, r: &SharedInstructionReceiver, item: &PickItem| -> Html {
+    let render = move |c: &Context, r: &SharedInstructionReceiver, item: &PickItem<T>| -> Html {
         // Selecting fills the input (query) and, for select-mode, the value.
-        let id: Cow<'static, str> = Cow::Owned(alloc::format!("option-{}", item.value));
+        let id: Cow<'static, str> = Cow::Owned(alloc::format!("option-{}", tfv(&item.value)));
         let label_attr: Cow<'static, str> = Cow::Owned(item.label.clone());
         let label_text = item.label.clone();
         let disabled = item.disabled;
@@ -409,8 +429,8 @@ fn combobox_impl(
             let v = item.value.clone();
             let lbl = item.label.clone();
             c.callback(move |_| {
+                set_query.set(if inline { tfv(&v) } else { lbl.clone() });
                 set_value.set(Some(v.clone()));
-                set_query.set(if inline { v.clone() } else { lbl.clone() });
                 set_open.set(false);
             })
         };
@@ -421,8 +441,8 @@ fn combobox_impl(
         html! { c, r,
             <div class="combobox-option" role="option"
                  id=[id] data-list-item="true" data-label=[label_attr]
-                 aria-selected={sel.get().as_deref() == Some(v1.as_str())}
-                 data-selected={(sel2.get().as_deref() == Some(v2.as_str())).then_some("")}
+                 aria-selected={sel.get().as_ref() == Some(&v1)}
+                 data-selected={(sel2.get().as_ref() == Some(&v2)).then_some("")}
                  aria-disabled={disabled.then_some("true")}
                  data-disabled={disabled.then_some("")}
                  primal:onclick={on_click}>
@@ -434,7 +454,7 @@ fn combobox_impl(
     let filtered = {
         let all_items = all_items.clone();
         let q = query_for_filter.clone();
-        move || -> Vec<PickItem> {
+        move || -> Vec<PickItem<T>> {
             let query = q.get();
             all_items.iter().filter(|it| matches(it, &query)).cloned().collect()
         }
@@ -487,7 +507,7 @@ fn combobox_impl(
                      data-empty={p_empty().then_some("")}
                      data-open={p_open.get().then_some("")}
                      data-closed={(!p_closed.get()).then_some("")}>
-                    <For each={filtered()} key={|it: &PickItem| it.value.clone()} render={render} />
+                    <For each={filtered()} key={move |it: &PickItem<T>| tfv(&it.value)} render={render} />
                     <button type="button" hidden="" data-dismiss-action="true" primal:onclick={dismiss} />
                     <Fragment>{listbox_behavior()}</Fragment>
                     <Fragment>{dismiss_behavior()}</Fragment>

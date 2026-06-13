@@ -624,6 +624,33 @@ fn select_renders_listbox_options_and_hidden_input() {
 }
 
 #[test]
+fn select_is_generic_over_t_with_to_form_value() {
+    use foundation_ui_components::{select, PickItem, SelectConfig};
+    #[derive(Clone, PartialEq)]
+    struct City { id: u32 }
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let (value, set_value) = ctx.signal::<Option<City>>(Some(City { id: 7 }));
+    let items = vec![
+        PickItem::with_label(City { id: 7 }, "Lagos"),
+        PickItem::with_label(City { id: 9 }, "Cairo"),
+    ];
+    let cfg = SelectConfig::with_form_value(|c: &City| c.id.to_string());
+    let _h = select(&ctx, &rcv, cfg, &open, set_open, &value, set_value, items);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    // Hidden input serializes via to_form_value (the City id, not its label).
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("value") && *value == "7")),
+        "value serialized through to_form_value");
+    // Selection compares by PartialEq → the selected option is marked.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-selected") && *value == "true")),
+        "the equal-by-PartialEq item is selected");
+}
+
+#[test]
 fn navigation_menu_is_nav_with_linked_panels() {
     let (app, sent) = App::mock();
     let (ctx, rcv) = app.context();

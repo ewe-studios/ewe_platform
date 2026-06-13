@@ -89,10 +89,25 @@ left as stubs — the testbed verifies them in-browser later:
 - **M1 collision** (`machinery::position`): `fallbackAxisSide` (logical
   start/end perpendicular fallback), `sticky`, arrow centering + `data-uncentered`.
 
-## Genuinely remaining (compositional, not base-ui-algorithm)
+## Compositional + own-design pieces — now also complete
 
-- Drawer `snapPoints` (rest-at-partial-height) — swipe-to-dismiss ships.
-- Nav-menu single morphing Viewport (per-item panels ship); menubar
-  cross-trigger open-intent.
-- F6 generic `T` + `to_form_value` (v1 is `String`-valued).
-- Select macOS item-alignment positioning mode (anchored-below ships).
+- **Nav-menu shared Viewport** (base-ui port): one popup, all contents mounted,
+  active shown; scoped script measures the active content → `--popup-width/height`
+  and computes `data-activation-direction` from trigger-rect comparison.
+- **Select item-alignment** (base-ui `alignItemWithTrigger`): fixed popup with
+  the selected item over the trigger, viewport-clamped, inner scroll +
+  hold-to-scroll arrows. `SelectConfig.align_item_with_trigger=false` → M1
+  anchored-below.
+- **Menubar cross-trigger roving**: `MenuConfig.menubar_item` marks the trigger;
+  the bar is one composite tab stop.
+- **F6 generic `T`** (`PickItem<T>` + `SelectConfig<T>.to_form_value: fn(&T)->String`):
+  selection compares by `PartialEq`, `<For>` keys + hidden-input serialization
+  via `to_form_value`. `SelectConfig::<String>::default()` keeps the string
+  ergonomics; `with_form_value` for other `T`. autocomplete stays `String`.
+- **Drawer `snapPoints`** (OUR design — base-ui has no drawer; vaul-inspired):
+  `drawer_with_snap` + `SNAP_JS` rest-at-fraction + sequential snapping +
+  dismiss-below-lowest, resting index → a `usize` signal.
+
+Everything in spec-42 feature 05 is now implemented; what's left is in-browser
+verification on the testbed (the JS behaviors are unit-tested at the contract
+level, not yet exercised against a live DOM).
