@@ -38,26 +38,26 @@ fn test_libsql_storage_basic() {
     .unwrap()
     .unwrap();
 
-    let value: Option<String> = collect_one(storage.get("test_key").unwrap())
+    let _ = storage.get("test_key")?
         .unwrap()
         .unwrap();
     assert_eq!(value, Some("test_value".to_string()));
 
-    let exists: bool = collect_one(storage.exists("test_key").unwrap())
+    let _ = storage.exists("test_key")?
         .unwrap()
         .unwrap();
     assert!(exists);
 
-    let not_exists: bool = collect_one(storage.exists("nonexistent").unwrap())
+    let _ = storage.exists("nonexistent")?
         .unwrap()
         .unwrap();
     assert!(!not_exists);
 
-    let _: () = collect_one(storage.delete("test_key").unwrap())
+    let _ = storage.delete("test_key")?
         .unwrap()
         .unwrap();
 
-    let deleted: bool = collect_one(storage.exists("test_key").unwrap())
+    let _ = storage.exists("test_key")?
         .unwrap()
         .unwrap();
     assert!(!deleted);

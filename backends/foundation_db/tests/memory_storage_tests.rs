@@ -1,6 +1,5 @@
 //! Memory storage backend integration tests.
 
-use foundation_core::valtron::collect_one;
 use foundation_db::{KeyValueStore, MemoryStorage};
 use serde::{Deserialize, Serialize};
 
@@ -9,32 +8,32 @@ fn test_memory_storage_basic() {
     let storage = MemoryStorage::new();
 
     // Test set and get
-    let _: () = collect_one(storage.set("test_key", "test_value").unwrap())
+    let _ = storage.set("test_key", "test_value")?
         .unwrap()
         .unwrap();
 
-    let value: Option<String> = collect_one(storage.get("test_key").unwrap())
+    let _ = storage.get("test_key")?
         .unwrap()
         .unwrap();
     assert_eq!(value, Some("test_value".to_string()));
 
     // Test exists
-    let exists: bool = collect_one(storage.exists("test_key").unwrap())
+    let _ = storage.exists("test_key")?
         .unwrap()
         .unwrap();
     assert!(exists);
 
-    let not_exists: bool = collect_one(storage.exists("nonexistent").unwrap())
+    let _ = storage.exists("nonexistent")?
         .unwrap()
         .unwrap();
     assert!(!not_exists);
 
     // Test delete
-    let _: () = collect_one(storage.delete("test_key").unwrap())
+    let _ = storage.delete("test_key")?
         .unwrap()
         .unwrap();
 
-    let deleted: bool = collect_one(storage.exists("test_key").unwrap())
+    let _ = storage.exists("test_key")?
         .unwrap()
         .unwrap();
     assert!(!deleted);
@@ -44,13 +43,13 @@ fn test_memory_storage_basic() {
 fn test_memory_storage_list_keys() {
     let storage = MemoryStorage::new();
 
-    let _: () = collect_one(storage.set("prefix:key1", "value1").unwrap())
+    let _ = storage.set("prefix:key1", "value1")?
         .unwrap()
         .unwrap();
-    let _: () = collect_one(storage.set("prefix:key2", "value2").unwrap())
+    let _ = storage.set("prefix:key2", "value2")?
         .unwrap()
         .unwrap();
-    let _: () = collect_one(storage.set("other:key3", "value3").unwrap())
+    let _ = storage.set("other:key3", "value3")?
         .unwrap()
         .unwrap();
 
@@ -94,11 +93,11 @@ fn test_memory_storage_complex_value() {
         count: 42,
     };
 
-    let _: () = collect_one(storage.set("complex", data.clone()).unwrap())
+    let _: () = storage.set("complex", data.clone())?
         .unwrap()
         .unwrap();
 
-    let retrieved: Option<TestData> = collect_one(storage.get("complex").unwrap())
+    let _ = storage.get("complex")?
         .unwrap()
         .unwrap();
     assert_eq!(retrieved, Some(data));

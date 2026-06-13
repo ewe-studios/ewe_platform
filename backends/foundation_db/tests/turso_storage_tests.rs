@@ -1,6 +1,5 @@
 //! Turso storage backend integration tests.
 
-use foundation_core::valtron::collect_one;
 use foundation_db::{DataValue, EncryptionKey, KeyValueStore, QueryStore, TursoStorage};
 use tempfile::TempDir;
 use std::sync::Mutex;
@@ -35,26 +34,26 @@ fn test_turso_storage_basic() {
     .unwrap()
     .unwrap();
 
-    let value: Option<String> = collect_one(storage.get("test_key").unwrap())
+    let _ = storage.get("test_key")?
         .unwrap()
         .unwrap();
     assert_eq!(value, Some("test_value".to_string()));
 
-    let exists: bool = collect_one(storage.exists("test_key").unwrap())
+    let _ = storage.exists("test_key")?
         .unwrap()
         .unwrap();
     assert!(exists);
 
-    let not_exists: bool = collect_one(storage.exists("nonexistent").unwrap())
+    let _ = storage.exists("nonexistent")?
         .unwrap()
         .unwrap();
     assert!(!not_exists);
 
-    let _: () = collect_one(storage.delete("test_key").unwrap())
+    let _ = storage.delete("test_key")?
         .unwrap()
         .unwrap();
 
-    let deleted: bool = collect_one(storage.exists("test_key").unwrap())
+    let _ = storage.exists("test_key")?
         .unwrap()
         .unwrap();
     assert!(!deleted);
@@ -78,7 +77,7 @@ fn test_turso_storage_encryption() {
         .unwrap();
 
     // Retrieve and decrypt
-    let value: Option<String> = collect_one(storage.get("secret_key").unwrap())
+    let _ = storage.get("secret_key")?
         .unwrap()
         .unwrap();
     assert_eq!(value, Some(secret_value.clone()));

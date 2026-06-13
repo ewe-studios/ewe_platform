@@ -7,7 +7,6 @@
 mod common;
 
 use common::{init_valtron, make_r2_store};
-use foundation_core::valtron::collect_one;
 use foundation_db::BlobStore;
 
 fn create_local_r2_store() -> Option<foundation_db::R2Store> {
@@ -31,17 +30,17 @@ fn test_r2_blobstore_put_get() {
             .as_secs()
     );
 
-    let _: () = collect_one(storage.put_blob(&key, test_data).unwrap())
+    let _ = storage.put_blob(&key, test_data)?
         .unwrap()
         .unwrap();
 
-    let retrieved: Option<Vec<u8>> = collect_one(storage.get_blob(&key).unwrap())
+    let _ = storage.get_blob(&key)?
         .unwrap()
         .unwrap();
     assert_eq!(retrieved, Some(test_data.to_vec()));
 
     // Cleanup
-    let _: () = collect_one(storage.delete_blob(&key).unwrap())
+    let _ = storage.delete_blob(&key)?
         .unwrap()
         .unwrap();
 }
@@ -63,20 +62,20 @@ fn test_r2_blobstore_delete() {
             .as_secs()
     );
 
-    let _: () = collect_one(storage.put_blob(&key, test_data).unwrap())
+    let _ = storage.put_blob(&key, test_data)?
         .unwrap()
         .unwrap();
 
-    let exists_before: bool = collect_one(storage.blob_exists(&key).unwrap())
+    let _ = storage.blob_exists(&key)?
         .unwrap()
         .unwrap();
     assert!(exists_before);
 
-    let _: () = collect_one(storage.delete_blob(&key).unwrap())
+    let _ = storage.delete_blob(&key)?
         .unwrap()
         .unwrap();
 
-    let exists_after: bool = collect_one(storage.blob_exists(&key).unwrap())
+    let _ = storage.blob_exists(&key)?
         .unwrap()
         .unwrap();
     assert!(!exists_after);
@@ -98,23 +97,23 @@ fn test_r2_blobstore_exists() {
             .as_secs()
     );
 
-    let exists: bool = collect_one(storage.blob_exists(&key).unwrap())
+    let _ = storage.blob_exists(&key)?
         .unwrap()
         .unwrap();
     assert!(!exists);
 
     let test_data = b"Exists!";
-    let _: () = collect_one(storage.put_blob(&key, test_data).unwrap())
+    let _ = storage.put_blob(&key, test_data)?
         .unwrap()
         .unwrap();
 
-    let exists: bool = collect_one(storage.blob_exists(&key).unwrap())
+    let _ = storage.blob_exists(&key)?
         .unwrap()
         .unwrap();
     assert!(exists);
 
     // Cleanup
-    let _: () = collect_one(storage.delete_blob(&key).unwrap())
+    let _ = storage.delete_blob(&key)?
         .unwrap()
         .unwrap();
 }
@@ -137,17 +136,17 @@ fn test_r2_blobstore_binary_data() {
 
     // Test with binary data including null bytes
     let test_data = vec![0x00, 0x01, 0x02, 0xFF, 0xFE, 0xFD];
-    let _: () = collect_one(storage.put_blob(&key, &test_data).unwrap())
+    let _ = storage.put_blob(&key, &test_data)?
         .unwrap()
         .unwrap();
 
-    let retrieved: Option<Vec<u8>> = collect_one(storage.get_blob(&key).unwrap())
+    let _ = storage.get_blob(&key)?
         .unwrap()
         .unwrap();
     assert_eq!(retrieved, Some(test_data));
 
     // Cleanup
-    let _: () = collect_one(storage.delete_blob(&key).unwrap())
+    let _ = storage.delete_blob(&key)?
         .unwrap()
         .unwrap();
 }
@@ -169,6 +168,6 @@ fn test_r2_blobstore_delete_nonexistent() {
     );
 
     // Deleting non-existent key should succeed (no error)
-    let result: Result<(), _> = collect_one(storage.delete_blob(&key).unwrap()).unwrap();
+    let _ = storage.delete_blob(&key)?.unwrap();
     assert!(result.is_ok());
 }

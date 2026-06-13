@@ -7,7 +7,6 @@
 mod common;
 
 use common::{init_valtron, make_d1_store};
-use foundation_core::valtron::collect_one;
 use foundation_core::valtron::collect_result;
 use foundation_db::{DataValue, KeyValueStore, QueryStore};
 
@@ -35,15 +34,15 @@ fn test_d1_kvstore_put_get() {
             .as_secs()
     );
 
-    let _: () = collect_one(storage.set(&key, test_value).unwrap())
+    let _ = storage.set(&key, test_value)?
         .unwrap()
         .unwrap();
 
-    let retrieved: Option<String> = collect_one(storage.get(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.get(&key)?.unwrap().unwrap();
     assert_eq!(retrieved, Some(test_value.to_string()));
 
     // Cleanup
-    let _: () = collect_one(storage.delete(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.delete(&key)?.unwrap().unwrap();
 }
 
 #[test]
@@ -65,16 +64,16 @@ fn test_d1_kvstore_delete() {
             .as_secs()
     );
 
-    let _: () = collect_one(storage.set(&key, test_value).unwrap())
+    let _ = storage.set(&key, test_value)?
         .unwrap()
         .unwrap();
 
-    let exists_before: bool = collect_one(storage.exists(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.exists(&key)?.unwrap().unwrap();
     assert!(exists_before);
 
-    let _: () = collect_one(storage.delete(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.delete(&key)?.unwrap().unwrap();
 
-    let exists_after: bool = collect_one(storage.exists(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.exists(&key)?.unwrap().unwrap();
     assert!(!exists_after);
 }
 
@@ -96,19 +95,19 @@ fn test_d1_kvstore_exists() {
             .as_secs()
     );
 
-    let exists: bool = collect_one(storage.exists(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.exists(&key)?.unwrap().unwrap();
     assert!(!exists);
 
     let test_value = "Exists!";
-    let _: () = collect_one(storage.set(&key, test_value).unwrap())
+    let _ = storage.set(&key, test_value)?
         .unwrap()
         .unwrap();
 
-    let exists: bool = collect_one(storage.exists(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.exists(&key)?.unwrap().unwrap();
     assert!(exists);
 
     // Cleanup
-    let _: () = collect_one(storage.delete(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.delete(&key)?.unwrap().unwrap();
 }
 
 #[test]
@@ -132,13 +131,13 @@ fn test_d1_kvstore_list_keys() {
     let key2 = format!("{prefix}_b");
     let key3 = format!("{prefix}_c");
 
-    let _: () = collect_one(storage.set(&key1, "value_a").unwrap())
+    let _ = storage.set(&key1, "value_a")?
         .unwrap()
         .unwrap();
-    let _: () = collect_one(storage.set(&key2, "value_b").unwrap())
+    let _ = storage.set(&key2, "value_b")?
         .unwrap()
         .unwrap();
-    let _: () = collect_one(storage.set(&key3, "value_c").unwrap())
+    let _ = storage.set(&key3, "value_c")?
         .unwrap()
         .unwrap();
 
@@ -153,13 +152,13 @@ fn test_d1_kvstore_list_keys() {
     assert!(listed.contains(&key3));
 
     // Cleanup
-    let _: () = collect_one(storage.delete(&key1).unwrap())
+    let _ = storage.delete(&key1)?
         .unwrap()
         .unwrap();
-    let _: () = collect_one(storage.delete(&key2).unwrap())
+    let _ = storage.delete(&key2)?
         .unwrap()
         .unwrap();
-    let _: () = collect_one(storage.delete(&key3).unwrap())
+    let _ = storage.delete(&key3)?
         .unwrap()
         .unwrap();
 }
@@ -194,15 +193,15 @@ fn test_d1_kvstore_json_serialization() {
         active: true,
     };
 
-    let _: () = collect_one(storage.set(&key, test_value.clone()).unwrap())
+    let _: () = storage.set(&key, test_value.clone())?
         .unwrap()
         .unwrap();
 
-    let retrieved: Option<TestData> = collect_one(storage.get(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.get(&key)?.unwrap().unwrap();
     assert_eq!(retrieved, Some(test_value));
 
     // Cleanup
-    let _: () = collect_one(storage.delete(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.delete(&key)?.unwrap().unwrap();
 }
 
 #[test]
@@ -227,7 +226,7 @@ fn test_d1_query_store() {
         "CREATE TABLE {table_name} (id INTEGER PRIMARY KEY, name TEXT NOT NULL, value INTEGER)"
     );
 
-    let _: () = collect_one(storage.execute_batch(&create_sql).unwrap())
+    let _ = storage.execute_batch(&create_sql)?
         .unwrap()
         .unwrap();
 
@@ -261,7 +260,7 @@ fn test_d1_query_store() {
 
     // Cleanup
     let drop_sql = format!("DROP TABLE {table_name}");
-    let _: () = collect_one(storage.execute_batch(&drop_sql).unwrap())
+    let _ = storage.execute_batch(&drop_sql)?
         .unwrap()
         .unwrap();
 }
@@ -284,6 +283,6 @@ fn test_d1_kvstore_get_nonexistent() {
             .as_secs()
     );
 
-    let retrieved: Option<String> = collect_one(storage.get(&key).unwrap()).unwrap().unwrap();
+    let _ = storage.get(&key)?.unwrap().unwrap();
     assert_eq!(retrieved, None);
 }
