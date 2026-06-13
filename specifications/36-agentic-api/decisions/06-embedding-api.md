@@ -20,7 +20,7 @@ EmbeddingProvider { inner: Arc<EmbeddingProviderInner> }
 ├── cache: Arc<LruCache<EmbeddingKey, EmbeddingVector>>
 ├── dimension_registry: DimensionRegistry
 ├── generation_task: Entry  // valtron task that processes requests
-└── cache_backing: Option<FjallKeyspace>  // optional persistent cache
+└── cache_backing: Option<FjallKeyspace>  // optional persistent cache - **TODO**: Make required on native, optional on wasm, till we have one that works in wasm  and cloudflare
 ```
 
 ### LRU Cache
@@ -101,8 +101,8 @@ The caching strategy should consider how text is chunked for embedding:
 
 | Strategy | Pros | Cons |
 |----------|------|------|
-| **Whole text** | Simple, exact cache hits | Long texts waste cache space; partial matches not found |
-| **Sentence-level** | Better cache reuse for overlapping content | Requires sentence boundary detection |
+| **Whole text** | Simple, exact cache hits | Long texts waste cache space; partial matches not found | (REJECTED)
+| **Sentence-level** | Better cache reuse for overlapping content | Requires sentence boundary detection | we can use the library /home/darkvoid/Boxxed/@formulas/src.rust/src.AI/src.NLP/nlprule and bring it all in internally to support sentence based embeddings.
 | **Token-chunked** | Maximizes cache reuse | Loses cross-chunk semantic context |
 
 **Decision:** Start with **whole-text** embedding and caching. If cache hit rates are low, investigate sentence-level chunking as an optimization. This is the simplest correct approach and can be refined later.

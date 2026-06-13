@@ -26,6 +26,11 @@ extern crate std;
 pub mod build_tools;
 #[cfg(not(target_arch = "wasm32"))]
 pub mod cli;
+// Server-driven UI fan-out (broadcaster + App sink). Native (std), like the CLI.
+#[cfg(not(target_arch = "wasm32"))]
+pub mod server;
+#[cfg(not(target_arch = "wasm32"))]
+pub use server::{Broadcaster, BroadcastSink, BroadcastTx, FrameTransport};
 
 pub mod app;
 pub mod events;
@@ -61,3 +66,7 @@ pub use protocol::{
 };
 #[cfg(feature = "arrow")]
 pub use protocol::ArrowIpcV2;
+// The Arrow IPC Layer-1 encoder (wire v2), re-exported so a server sink can pick
+// it without a direct foundation_arrow dependency.
+#[cfg(feature = "arrow")]
+pub use foundation_arrow::ArrowIpcEncoder;

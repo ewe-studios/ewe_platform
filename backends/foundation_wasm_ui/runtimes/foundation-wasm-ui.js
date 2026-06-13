@@ -2384,6 +2384,23 @@ export function registerWebComponents() {
   if (!customElements.get("mount-stream")) customElements.define("mount-stream", MountStreamComponent);
 }
 
+/**
+ * Register the Apache Arrow IPC (wire v2) reader so streamed `arrow-ipc` frames
+ * decode through {@link decodeEnvelopeFrame}. `arrow` defaults to the global the
+ * bundled `apache-arrow.js` UMD sets (`globalThis.Arrow`); pass a module if you
+ * load it another way. This is the ONE framework call a consumer makes for Arrow
+ * IPC — the `tableFromIPC` wiring stays in the runtime, not in each page.
+ */
+export function registerArrowIpc(arrow = globalThis.Arrow) {
+  if (!arrow || typeof arrow.tableFromIPC !== "function") {
+    console.error(
+      "registerArrowIpc: no apache-arrow `tableFromIPC` available — load apache-arrow.js first",
+    );
+    return;
+  }
+  ProtocolHandler.arrowIpcReader = (bytes) => arrow.tableFromIPC(bytes);
+}
+
 /** Build the `window.primal` namespace (G30) over injected runtime seams. */
 export function createPrimal({ dispatcher, doc = globalThis.document } = {}) {
   return {

@@ -23,6 +23,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::JoinHandle;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_http::native::handlers::static_asset::StaticAssetHandler;
 use foundation_http::native::handlers::static_file::StaticFileHandler;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::HttpApp;
@@ -35,9 +36,10 @@ use foundation_netio::simple_http::shared::{
     Status,
 };
 
+use foundation_wasm_ui::server::{BroadcastSink, BroadcastTx, Broadcaster};
+
 use crate::error::{BrowserError, Result};
-use crate::test::sink::BroadcastSink;
-use crate::test::stream::{BroadcastTx, Broadcaster, StreamHandler, STREAM_PATH};
+use crate::test::stream::{StreamHandler, STREAM_PATH};
 
 /// The `foundation_wasm_ui` browser runtime (via its `embedded-js` feature) so
 /// `<mount-stream>` works without a build step. Served at [`RUNTIME_PATH`].
@@ -60,8 +62,10 @@ pub enum Encoding {
     /// UTF-8 JSON frames — debuggable; the recommended first cut over SSE.
     #[default]
     Json,
-    /// Compact columnar binary frames.
+    /// Compact columnar binary frames (our owned wire, protocol 1 v1).
     Columnar,
+    /// Apache Arrow IPC frames (protocol 1 v2) — ecosystem interop.
+    Arrow,
 }
 
 impl Encoding {
@@ -71,6 +75,7 @@ impl Encoding {
         match self {
             Encoding::Json => "json",
             Encoding::Columnar => "columnar",
+            Encoding::Arrow => "arrow",
         }
     }
 }
@@ -81,7 +86,8 @@ impl core::str::FromStr for Encoding {
         match s {
             "json" | "Json" | "JSON" => Ok(Encoding::Json),
             "columnar" | "Columnar" => Ok(Encoding::Columnar),
-            other => Err(format!("unknown encoding `{other}` (json|columnar)")),
+            "arrow" | "Arrow" => Ok(Encoding::Arrow),
+            other => Err(format!("unknown encoding `{other}` (json|columnar|arrow)")),
         }
     }
 }
@@ -155,36 +161,6 @@ impl Serve for PageHandler {
     }
 }
 
-/// Serves the embedded `foundation-wasm-ui.js` runtime as an ES module.
-struct RuntimeHandler;
-
-impl ServeFactory for RuntimeHandler {
-    fn create(_bag: &ContextBag) -> Self {
-        RuntimeHandler
-    }
-}
-
-impl Serve for RuntimeHandler {
-    fn serve(
-        &self,
-        _bag: Arc<ContextBag>,
-        _req: SimpleIncomingRequest,
-        mut conn: SharedByteBufferStream<RawStream>,
-    ) -> ConnectionResult {
-        let Ok(response) = SimpleOutgoingResponse::builder()
-            .with_status(Status::OK)
-            .add_header(SimpleHeader::CONTENT_TYPE, "text/javascript; charset=utf-8")
-            .with_body(SendSafeBody::Text(RUNTIME_JS.to_string()))
-            .build()
-        else {
-            return ConnectionResult::Close(None);
-        };
-        Http11::response(response)
-            .http_render_to_writer(&mut conn)
-            .map_or(ConnectionResult::Close(None), |_| ConnectionResult::Keep)
-    }
-}
-
 /// A background `foundation_http` server serving the page + channel-A stream.
 pub struct TestServer {
     addr: std::net::SocketAddr,
@@ -222,7 +198,13 @@ impl TestServer {
         app.context().store(broadcaster.clone());
         app.route_any::<PageHandler>("/");
         app.route_any::<StreamHandler>(STREAM_PATH);
-        app.route_any::<RuntimeHandler>(RUNTIME_PATH);
+        // Embedded JS assets via foundation_http's StaticAssetHandler — supply the
+        // bytes + content type, register on a path. No per-asset Serve impl.
+        let js_ct = "text/javascript; charset=utf-8";
+        let runtime: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(RUNTIME_JS.as_bytes(), js_ct));
+        let arrow_lib: Arc<dyn Serve> = Arc::new(StaticAssetHandler::new(APACHE_ARROW_JS.as_bytes(), js_ct));
+        app.router.add_route_any(RUNTIME_PATH, &runtime);
+        app.router.add_route_any(ARROW_LIB_PATH, &arrow_lib);
         for sm in statics {
             let handler: Arc<dyn Serve> = Arc::new(StaticFileHandler::new(sm.dir.clone()));
             app.router.add_route_any(&format!("{}/*", sm.mount.trim_end_matches('/')), &handler);
@@ -262,6 +244,12 @@ impl TestServer {
     /// Convenience: push one raw frame to the browser (used by transport tests).
     pub fn push_frame(&self, frame: &[u8]) {
         self.broadcaster.sender().send(frame);
+    }
+
+    /// Convenience: push one HTML markup frame (the HTML protocol) — delivered as
+    /// a plain SSE `data:` line the runtime routes through `routeHtml`.
+    pub fn push_html(&self, markup: &str) {
+        self.broadcaster.sender().send_text(markup);
     }
 
     /// Number of frames the App has streamed so far (diagnostics).

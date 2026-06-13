@@ -6,8 +6,10 @@
 
 ## Problem
 
+**TODO**: Locally we dont need auth, we can add a always allowed authentication implementation for local or where auth is disabled.
+
 The agentic API needs persistent storage for sessions, messages, and memory snapshots. It also needs authentication and authorization for:
-- Session access control (who can read/write a session)
+- Session access control (who can read/write a session) **TODO**, the Agent owns the session, unsure exactly why this is important, can you elaborate more with clarity?
 - Tool call permission gating (which tools a user can invoke)
 - Model access control (which models a user can use)
 - Usage tracking and billing (token consumption per user/org)

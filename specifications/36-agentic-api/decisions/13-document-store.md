@@ -4,6 +4,8 @@
 **Date:** 2026-06-12  
 **Context:** Specification 36 — Agentic API for foundation_ai, cross-platform document storage
 
+**TODO**: Should DocumentStore not also support pulling a message from a scru128 e.g any message for this id and after. The ids are temporal, we should benefit from using this property to our advantage.
+
 ## Problem
 
 Multiple components need append-only, scan-based document storage:

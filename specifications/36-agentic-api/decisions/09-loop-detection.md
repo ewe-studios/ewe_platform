@@ -6,6 +6,7 @@
 
 ## Problem
 
+
 LLMs can enter repetition loops — producing the same or near-identical content across multiple turns. This wastes tokens, costs money, and degrades user experience. The agent must detect loops early and redirect the LLM back to productive work.
 
 ## Decision

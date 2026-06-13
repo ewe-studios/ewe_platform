@@ -32,6 +32,8 @@ All vector search algorithms are implemented in Rust in `foundation_vectors`, re
 - **IVF (Inverted File Index)** — cluster-based approximate nearest neighbor for 1k-100k vectors
 - **HNSW (Hierarchical Navigable Small World)** — graph-based ANN for >100k vectors
 
+**TODO**: What of BM25 (BM25 (a classic keyword search algorithm) with vector search creates a hybrid search pipeline) This approach captures exact keyword matches and complex semantic intent together. It is highly recommended to A/B test this blend using Reciprocal Rank Fusion (RRF) to merge result. ost production systems combine these retrieval methods using one of the following approaches:Parallel Retrieval & Fusion: Run the BM25 and vector searches simultaneously to retrieve the top N results from each list. Merge the two lists using Reciprocal Rank Fusion (RRF) to combine rankings without worrying about score normalization.Re-ranking: Use a cross-encoder (like Cohere Rerank) as a final pass over your combined results to optimize the top outputs for precision.Alpha Weighting: Use weighted sums if your platform supports it (e.g., in Weaviate), where an α value of 1.0 is pure vector search and 0.0 is pure BM25.
+
 **Distance metrics:**
 - Cosine similarity (primary for text embeddings)
 - Euclidean / L2 distance

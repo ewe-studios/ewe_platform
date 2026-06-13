@@ -115,6 +115,8 @@ LLM message content can be complex (text, tool calls, thinking blocks, images). 
 
 ### FlatBuffers Fallback
 
+**TODO**: Arrow works in wasm, and it uses flatbuffers underneath so the flatbuffer option is not even necessary
+
 If Arrow proves problematic in certain environments (e.g., WASM), **FlatBuffers** is the fallback format:
 
 | Format | Pros | Cons | Status |
@@ -156,6 +158,9 @@ Agent Loop → Monitoring (via telemetry)
 - Simple — no file header, no complex format
 
 **Why JSON-encoded content within Arrow?**  
+
+**TODO**: But then we loose all the benefits of arrow for a well structured message that can be easily searched,i get somethings should be json encoded and stuffed into a `content` column, infact we can still stuff the data in the `content` column, but we should extract the sensible fields, scru128, title, summary, whatever makes sense that can be placed into a column on its own for easy search, change, reference.
+
 - Content is heterogeneous (text, tool calls, thinking, images) — encoding as JSON within Arrow preserves the structure
 - Arrow schema has a `content` column (UTF8) that holds JSON-encoded content
 - This avoids complex nested Arrow types while preserving full content fidelity

@@ -71,6 +71,8 @@ The agentic loop has multiple concurrent concerns (message handling, memory mana
   - `Init` → "setting up context, loading memory"
   - `Ready` → "here's the LLM response" / "tool call result"
   - `Ignore` → "checking queues, nothing to report"
+  - `Wait` -> "indicate event loop engine to wait" - for js helps yield to the js event loop
+  - `Depends(Arc<dyn EventReadiness>)` -> only continue when the readiness signal supplied is ready by the engine, reducing wasted resources and on ready semantic
 
 **Composability:**
 - Valtron's `execute()`, `broadcast`, `sequenced`, `lift` primitives provide the exact concurrency patterns needed
@@ -126,6 +128,8 @@ pub enum AgentLoopState {
     Executing { plan: ExecutionPlan },
     Complete { final_messages: Vec<Message> },
 }
+
+**TODO**: TaskStatus has Depends which will allow tasks to also wait on some indicator to become ready for them to continue executing, this can better enhance how tasks work without spamming TaskStatus::Delayed or TaskStatus::Pending endlessly running in a tight loop and use those two where sensible.
 
 impl TaskIterator for AgentLoop {
     type Ready = AgentEvent;

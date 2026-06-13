@@ -46,14 +46,12 @@
 //! }
 //! ```
 //!
-//! `#[valtron_test]` is the same wrapper with two differences:
+//! `#[valtron_test]` is the same wrapper plus `#[test]` (like `#[tokio::test]`),
+//! so the case is a plain `cargo test` target with the engine running around it.
 //!
-//! 1. it ADDS `#[test]` (like `#[tokio::test]`), so the case is a plain
-//!    `cargo test` target with the engine running around it;
-//! 2. its default thread count is `Some(3)` — and an explicit `threads = N` is
-//!    clamped to a MINIMUM of 3 — because scheduling-sensitive tests (lifts,
-//!    broadcasts, blocked-on-execution scenarios) need real thread interleaving
-//!    to mean anything; 1–2 threads can mask ordering bugs.
+//! Both macros take the SAME `seed`/`threads` rules: `threads = N` → `Some(N)`,
+//! absent → `None` (engine default); `seed = N` → that seed, absent → a random
+//! one (see "The default seed" below).
 //!
 //! # Why the guard handling is the whole point
 //!
@@ -180,18 +178,12 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         |expr| quote! { (#expr) },
     );
 
-    // Threads: tests default to Some(3) and CLAMP explicit values to ≥ 3 (the
-    // "minimal" rule — fewer threads can mask scheduling bugs); entry points
-    // default to None (engine decides) and pass explicit values through.
-    let threads = match (is_test, args.threads) {
-        (true, None) => quote! { ::core::option::Option::Some(3usize) },
-        (true, Some(expr)) => quote! {
-            ::core::option::Option::Some(::core::cmp::max(3usize, (#expr) as usize))
-        },
-        (false, None) => quote! { ::core::option::Option::None },
-        (false, Some(expr)) => quote! {
-            ::core::option::Option::Some((#expr) as usize)
-        },
+    // Threads: the engine wants an `Option<usize>` worker count. The rule is
+    // simple and the SAME for both macros — SUPPLIED → `Some(n)`, ABSENT → `None`
+    // (engine default).
+    let threads = match args.threads {
+        None => quote! { ::core::option::Option::None },
+        Some(expr) => quote! { ::core::option::Option::Some((#expr) as usize) },
     };
 
     let test_attr = if is_test {

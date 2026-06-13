@@ -13,7 +13,9 @@
 //! `Harness::run` is where the catch_unwind + RAII teardown live (spec §0).
 //!
 //! Attribute args (all optional): `port = N`, `host = "..."`, `headless = bool`,
-//! `html = "..."`.
+//! `headful = bool`, `html = "..."`, `file = "..."`, `static_dir = "..."`,
+//! `static_mount = "..."`, `encoding = "json|columnar"`, `headers = [(..)]`,
+//! `window_size = (800, 800)`.
 
 use proc_macro2::TokenStream;
 use quote::quote;
@@ -52,6 +54,10 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
                     field_inits.push(quote! { static_dir: ::core::option::Option::Some((#value).into()) });
                 }
                 "static_mount" => field_inits.push(quote! { static_mount: (#value).to_string() }),
+                // `window_size = (800, 800)` — browser window W,H in CSS px.
+                "window_size" => field_inits.push(quote! {
+                    window_size: ::core::option::Option::Some(#value)
+                }),
                 "encoding" => field_inits.push(quote! {
                     encoding: ::core::str::FromStr::from_str(#value)
                         .expect("wasm_ui_server: invalid encoding (json|columnar)")
@@ -66,7 +72,7 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
                         nv.path,
                         format!(
                             "unknown wasm_ui_server arg `{other}` (expected port/host/headless/\
-                             headful/html/file/static_dir/static_mount/encoding/headers)"
+                             headful/html/file/static_dir/static_mount/encoding/headers/window_size)"
                         ),
                     )
                     .to_compile_error();

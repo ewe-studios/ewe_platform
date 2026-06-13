@@ -6,6 +6,10 @@
 
 ## Problem
 
+**TODO**: I will like to split the search tool into two:
+- search(...): to support semantic search of vector store, memory and old messages, graph search e.g code graphs we've generated which can tell us which file has this given block of code or entity.
+- search_file(...): to use fff  to search the file system.
+
 The agent needs to search the filesystem for files and content. Two complementary search strategies are needed:
 1. **Literal/pattern-based search** — "find all files containing `auth_check(`"
 2. **Semantic search** — "what did I say before about authentication?"

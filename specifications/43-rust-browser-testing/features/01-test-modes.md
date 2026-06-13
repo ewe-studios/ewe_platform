@@ -234,8 +234,15 @@ dispatches on the envelope's protocol byte, NOT the attribute:
 
 - **Protocol 1 (custom binary columnar)** → `{type:"arrow", columns}` →
   `ensureApplicator` + `applyDomOps`. The default.
+- **Protocol 1 v2 (Apache Arrow IPC)** → `{type:"arrow-ipc", table}`. Two gaps:
+  `route` had no `arrow-ipc` case (fell through to `textContent`), and the reader
+  needed hand-wired registration per page. Fixed: a `route("arrow-ipc")` case
+  reads the table into a batch (`arrowTableToBatch`) through the SAME applicator,
+  and `registerArrowIpc(arrow = globalThis.Arrow)` is the ONE framework call that
+  wires `tableFromIPC` (the bundled `apache-arrow.js` sets `globalThis.Arrow`) —
+  no per-page reader glue.
 - **Protocol 2 (JSON)** — the `JsonEncoder` flat-row form
-  (`[{op_id, node_id, operation, attribute, value, text_val}, …]`). A third gap
+  (`[{op_id, node_id, operation, attribute, value, text_val}, …]`). A gap
   surfaced here: `routeJson` sent EVERY protocol-2 payload to the signal-patch
   bridge, so a JSON-encoded DomOp batch was dropped (no applicator, empty DOM).
   Fixed: `routeJson` now detects a DomOp-batch array (rows carry `operation`) and
@@ -243,14 +250,37 @@ dispatches on the envelope's protocol byte, NOT the attribute:
   Signal patches (`signalId`) and `{morph}` wrappers are unaffected. This is a
   decode-layer fix, so it holds for WS binary frames AND base64 SSE — any
   transport, test-server or real HTTP server.
-- **HTML** is the non-DomOp delivery: `route("html")` materializes full markup
-  into the mount target (not the applicator). A different mount mode, not an App
-  DomOp stream.
+- **HTML** is the non-DomOp delivery: a plain SSE text frame
+  ([`BroadcastTx::send_text`]) routes through `routeHtml` — full markup
+  (`materialize`) or, for an `<island>` wrapper, `html-morph` into a stable
+  target. A different mount mode, not an App DomOp stream.
 
-Coverage: the Rust browser e2e drives BOTH columnar and JSON through real
-Chromium over the real `foundation_http` server (`mode1_columnar_binary_…` /
-`mode1_json_…`), and JS unit tests assert the route+apply contract for protocol
-1, protocol 2, the signal-patch regression, and HTML materialize.
+Coverage: the Rust browser e2e drives ALL FOUR protocols through real Chromium
+over the real `foundation_http` server (`mode1_columnar` / `mode1_arrow_ipc` /
+`mode1_json` / `mode1_html`), each with its own page `<title>`/`<h1>`, cycling a
+shared `MESSAGES` set; JS unit tests assert the route+apply contract for protocol
+1, protocol 1 v2 (Arrow IPC), protocol 2, the signal-patch regression, and HTML
+materialize.
+
+## Where the machinery lives (no test-only capabilities)
+
+A standing rule: anything that makes a protocol work is a framework capability,
+not test glue, so it works in a real server too.
+
+- **`foundation_wasm_ui::server`** (native, target-gated like the CLI) owns the
+  transport-AGNOSTIC server-driven-UI machinery: [`FrameTransport`] (a client
+  connection trait), [`Broadcaster`]/[`BroadcastTx`] (fan-out + replayed
+  backlog), and [`BroadcastSink`] (the App protocol sink). It depends on no
+  socket/HTTP crate — connections are held as `Box<dyn FrameTransport + Send>`.
+- **foundation_http** owns the SSE wire (`SseStream::binary` base64 envelope /
+  `SseStream::message` text) AND a reusable [`StaticAssetHandler`] — supply bytes
+  + content type + headers, register on a path. The embedded JS assets (the
+  runtime + `apache-arrow.js`) are served through it; no per-asset `Serve` impl.
+- **foundation_browser** keeps ONLY the glue: an `SseTransport(SseStream)` newtype
+  (`impl FrameTransport`) + the `Serve` route, the page server, and the CDP
+  driver.
+- **`window_size = (800, 800)`** on `TestConfig` / the `#[wasm_ui_server]` macro
+  sets the (headful) browser window via `--window-size`.
 
 ## The `Content-Length` fix (root cause, fixed at source)
 

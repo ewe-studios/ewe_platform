@@ -157,30 +157,63 @@ fn channel_a_streams_a_frame_to_the_browser() {
 // Mode 1 — a NATIVE foundation_wasm_ui App streams to a REAL browser. The App
 // runs in this test thread; its protocol sink ships frames over channel-A SSE;
 // the page's <mount-stream> applies them. We drive a signal in Rust and watch
-// the browser DOM update. Headful when PRIMAL_TEST_HEADFUL is set — watch it!
+// the browser DOM cycle through the MESSAGES. Headful + an 800×800 window when
+// PRIMAL_TEST_HEADFUL is set — watch it!
 //
-// Both DomOp wire encodings are exercised against real Chromium: the COLUMNAR
-// binary default and the JSON encoder. The page is identical for both — the
-// mount-stream's `protocol="arrow"` just means "base64 envelope frames"; the
-// runtime's `decodeEnvelopeFrame` dispatches on the envelope's protocol byte
-// (1 = columnar → applicator, 2 = json DomOp batch → SAME applicator), so a
-// mount renders the same whichever wire it streamed over. Only the App's
-// encoder differs. This proves it in an ACTUAL HTTP-server context, not a stub.
+// All FOUR protocols render the SAME component in real Chromium over the real
+// foundation_http server, each with its own page <title>/<h1>:
+//   * columnar  — our compact binary wire (protocol 1 v1)
+//   * arrow     — Apache Arrow IPC (protocol 1 v2), via the bundled apache-arrow
+//   * json      — JSON DomOp batch (protocol 2)
+//   * html      — raw markup (island morph), the non-DomOp delivery
+// The three DomOp wires share ONE applicator (the envelope's protocol byte is
+// the only difference); html rides `routeHtml`. Nothing bespoke in the test —
+// every capability is foundation_wasm_ui / foundation_http machinery.
 
-/// The shared Mode-1 page: a single targetless `<mount-stream>` + the runtime.
-/// No `target` (the App carries absolute primal-ids and `App::mount`s its own
-/// root onto `<body>`), no `#app` container — just the mount.
-const MODE1_PAGE: &str = r##"<!doctype html><html><head><meta charset=utf-8></head><body>
-<h2>spec-43 Mode 1 — native App → real browser</h2>
-<mount-stream api="/__primal/stream" transport="sse" protocol="arrow"></mount-stream>
-<script type="module">
-  import { registerWebComponents } from '/__primal/foundation-wasm-ui.js';
-  registerWebComponents();
-</script>
-</body></html>"##;
+/// The messages the live browser cycles through (mounted, then live updates).
+const MESSAGES: [&str; 4] = [
+    "Hello from Rust 👋",
+    "Updated live from a Rust signal! ✨",
+    "foundation_wasm_ui rendering from tests in live browsers",
+    "foundation_wasm_ui saying good bye",
+];
 
-/// Mount a greeting component via `app`, then flip a signal — asserting both the
-/// initial mount and the live update land in the real browser DOM.
+/// 800×800 so a headful window is comfortably visible (no effect headless).
+const WINDOW: Option<(u32, u32)> = Some((800, 800));
+
+fn is_headful() -> bool {
+    std::env::var("PRIMAL_TEST_HEADFUL").is_ok()
+}
+
+fn watch_pause(headful: bool) {
+    if headful {
+        std::thread::sleep(std::time::Duration::from_millis(1400));
+    }
+}
+
+/// A Mode-1 page: a `<title>`/`<h1>` naming the protocol, plus the `<mount-stream>`
+/// and runtime. `mount_attrs` selects the wire path; `extra_head`/`extra_module`
+/// carry per-protocol setup (e.g. apache-arrow + `registerArrowIpc()`).
+fn protocol_page(
+    title: &str,
+    mount_attrs: &str,
+    body_extra: &str,
+    extra_head: &str,
+    extra_module: &str,
+) -> String {
+    format!(
+        "<!doctype html><html><head><meta charset=utf-8><title>{title}</title>{extra_head}</head>\
+<body>\n<h1>{title}</h1>\n{body_extra}\n\
+<mount-stream api=\"/__primal/stream\" transport=\"sse\" {mount_attrs}></mount-stream>\n\
+<script type=\"module\">\n\
+  import {{ registerWebComponents, registerArrowIpc }} from '/__primal/foundation-wasm-ui.js';\n\
+  registerWebComponents();\n  {extra_module}\n\
+</script>\n</body></html>"
+    )
+}
+
+/// Drive the greeting component over a DomOp wire: mount, then flip the signal
+/// through every message, asserting each lands in the real browser.
 fn drive_greeting(
     app: foundation_wasm_ui::App,
     page: &foundation_browser::Page,
@@ -188,7 +221,7 @@ fn drive_greeting(
 ) -> foundation_browser::Result<()> {
     use foundation_wasm_ui::html;
     let (ctx, rcv) = app.context();
-    let (title, set_title) = ctx.signal(alloc_str("Hello from Rust 👋"));
+    let (title, set_title) = ctx.signal(alloc_str(MESSAGES[0]));
 
     let t = title.clone();
     // Build the tree, then `App::mount` splices it onto <body> — the same
@@ -197,69 +230,120 @@ fn drive_greeting(
         <div id="greeting" class="greeting">{t.get()}</div>
     });
     app.stabilize(); // initial mount → SSE → browser applies it
-    page.locator("#greeting").expect().to_have_text("Hello from Rust 👋")?;
-    if headful {
-        std::thread::sleep(std::time::Duration::from_millis(1500));
-    }
+    page.locator("#greeting").expect().to_have_text(MESSAGES[0])?;
+    watch_pause(headful);
 
-    set_title.set(alloc_str("Updated live from a Rust signal! ✨"));
-    app.stabilize(); // the SetText op streams → DOM updates live
-    page.locator("#greeting").expect().to_have_text("Updated live from a Rust signal! ✨")?;
-    if headful {
-        std::thread::sleep(std::time::Duration::from_secs(3));
+    for msg in &MESSAGES[1..] {
+        set_title.set(alloc_str(msg)); // drive a SIGNAL in Rust
+        app.stabilize(); // the SetText op streams → DOM updates live
+        page.locator("#greeting").expect().to_have_text(msg)?;
+        watch_pause(headful);
     }
     Ok(())
 }
 
 #[test]
 fn mode1_columnar_binary_streams_to_real_browser() {
-    use foundation_browser::test::Encoding;
+    use foundation_browser::test::{BroadcastSink, Encoding};
     use foundation_ui_traits::ColumnarEncoder;
     use foundation_wasm_ui::App;
 
-    let headful = std::env::var("PRIMAL_TEST_HEADFUL").is_ok();
+    let headful = is_headful();
+    let page = protocol_page("columnar (custom binary)", "protocol=\"arrow\"", "", "", "");
     let harness = Harness::setup(TestConfig {
-        html: MODE1_PAGE.into(),
+        html: page,
         encoding: Encoding::Columnar,
         headless: !headful,
+        window_size: WINDOW,
         ..TestConfig::default()
     })
     .expect("setup");
 
-    harness.run("mode1_columnar_binary_streams_to_real_browser", |server, page| {
-        // Columnar binary (protocol byte 1) — the default wire.
-        let sink = foundation_browser::test::BroadcastSink::with_encoder(
-            ColumnarEncoder,
-            server.broadcaster(),
-        );
+    harness.run("mode1_columnar", |server, page| {
+        let sink = BroadcastSink::with_encoder(ColumnarEncoder, server.broadcaster());
+        drive_greeting(App::with_protocol(sink), page, headful)
+    });
+}
+
+#[test]
+fn mode1_arrow_ipc_streams_to_real_browser() {
+    use foundation_browser::test::{BroadcastSink, Encoding};
+    use foundation_wasm_ui::{App, ArrowIpcEncoder};
+
+    let headful = is_headful();
+    // Arrow IPC needs the apache-arrow reader — loaded as a classic script (sets
+    // globalThis.Arrow) then wired by the framework's `registerArrowIpc()`.
+    let page = protocol_page(
+        "arrow (Apache Arrow IPC)",
+        "protocol=\"arrow\"",
+        "",
+        "<script src=\"/__primal/apache-arrow.js\"></script>",
+        "registerArrowIpc();",
+    );
+    let harness = Harness::setup(TestConfig {
+        html: page,
+        encoding: Encoding::Arrow,
+        headless: !headful,
+        window_size: WINDOW,
+        ..TestConfig::default()
+    })
+    .expect("setup");
+
+    harness.run("mode1_arrow_ipc", |server, page| {
+        let sink = BroadcastSink::with_encoder(ArrowIpcEncoder, server.broadcaster());
         drive_greeting(App::with_protocol(sink), page, headful)
     });
 }
 
 #[test]
 fn mode1_json_streams_to_real_browser() {
-    use foundation_browser::test::Encoding;
+    use foundation_browser::test::{BroadcastSink, Encoding};
     use foundation_ui_traits::JsonEncoder;
     use foundation_wasm_ui::App;
 
-    let headful = std::env::var("PRIMAL_TEST_HEADFUL").is_ok();
+    let headful = is_headful();
+    let page = protocol_page("json", "protocol=\"arrow\"", "", "", "");
     let harness = Harness::setup(TestConfig {
-        html: MODE1_PAGE.into(),
+        html: page,
         encoding: Encoding::Json,
         headless: !headful,
+        window_size: WINDOW,
         ..TestConfig::default()
     })
     .expect("setup");
 
-    harness.run("mode1_json_streams_to_real_browser", |server, page| {
-        // JSON DomOp batch (protocol byte 2) — decoded through the SAME envelope
-        // + applicator path as columnar. The fix that makes this render: the
-        // runtime now routes a JSON DomOp batch to the DomOp applicator.
-        let sink = foundation_browser::test::BroadcastSink::with_encoder(
-            JsonEncoder,
-            server.broadcaster(),
-        );
+    harness.run("mode1_json", |server, page| {
+        let sink = BroadcastSink::with_encoder(JsonEncoder, server.broadcaster());
         drive_greeting(App::with_protocol(sink), page, headful)
+    });
+}
+
+#[test]
+fn mode1_html_streams_to_real_browser() {
+    let headful = is_headful();
+    // HTML is the non-DomOp delivery: the server streams markup, the runtime's
+    // routeHtml morphs it into a stable `#stage`. No App / encoder here — the
+    // broadcaster's text frame is the whole story.
+    let page = protocol_page("html (markup)", "", "<div id=\"stage\"></div>", "", "");
+    let harness = Harness::setup(TestConfig {
+        html: page,
+        headless: !headful,
+        window_size: WINDOW,
+        ..TestConfig::default()
+    })
+    .expect("setup");
+
+    harness.run("mode1_html", |server, page| {
+        for msg in MESSAGES {
+            // An island fragment morphs #stage's children → the greeting.
+            server.push_html(&format!(
+                "<island data-target=\"#stage\" data-action=\"replace-children\">\
+                 <div id=\"greeting\" class=\"greeting\">{msg}</div></island>"
+            ));
+            page.locator("#greeting").expect().to_have_text(msg)?;
+            watch_pause(headful);
+        }
+        Ok(())
     });
 }
 

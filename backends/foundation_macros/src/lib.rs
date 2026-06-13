@@ -530,18 +530,19 @@ pub fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 /// `foundation_core::valtron::initialize_pool(seed, threads)` and holds the
 /// returned `PoolGuard` until the function body has fully returned.
 ///
-/// Arguments (both optional): `#[valtron(seed = 42, threads = 4)]`. Without
-/// `seed`, a `RandomState`-derived u64 is used; without `threads`, the engine
-/// default applies. Also exported as `foundation_core::valtron::valtron`.
+/// Arguments (both optional): `#[valtron(seed = 42, threads = 4)]`. `threads`
+/// supplied → `Some(N)`, absent → `None` (engine default). Without `seed`, a
+/// random `RandomState`-derived u64 is used. Also exported as
+/// `foundation_core::valtron::valtron`.
 #[proc_macro_attribute]
 pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron(attr.into(), item.into()).into()
 }
 
 /// `#[test]` + a live valtron engine around the case (the `#[tokio::test]`
-/// analogue). Defaults to `Some(3)` pool threads and clamps an explicit
-/// `threads = N` to a minimum of 3 — scheduling-sensitive tests need real
-/// interleaving. Also exported as `foundation_core::valtron::valtron_test`.
+/// analogue). Same `seed`/`threads` rules as `#[valtron]`: `threads = N` →
+/// `Some(N)`, absent → `None`; `seed` absent → random. Also exported as
+/// `foundation_core::valtron::valtron_test`.
 #[proc_macro_attribute]
 pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()

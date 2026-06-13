@@ -43,6 +43,9 @@ pub struct TestConfig {
     pub browser: Browser,
     /// Run headless (default true).
     pub headless: bool,
+    /// Browser window size `(width, height)` in CSS px (e.g. `(800, 800)`).
+    /// `None` = the browser default. Most visible headful (`--window-size`).
+    pub window_size: Option<(u32, u32)>,
 }
 
 impl Default for TestConfig {
@@ -58,6 +61,7 @@ impl Default for TestConfig {
             encoding: Encoding::Json,
             browser: Browser::Chromium,
             headless: true,
+            window_size: None,
         }
     }
 }
@@ -68,7 +72,11 @@ impl TestConfig {
     }
 
     fn launch(&self) -> LaunchConfig {
-        LaunchConfig { browser: self.browser, headless: self.headless, extra_args: Vec::new() }
+        let extra_args = self
+            .window_size
+            .map(|(w, h)| vec![format!("--window-size={w},{h}").into()])
+            .unwrap_or_default();
+        LaunchConfig { browser: self.browser, headless: self.headless, extra_args }
     }
 
     fn page(&self) -> PageSource {
