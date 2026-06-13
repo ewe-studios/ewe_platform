@@ -5,7 +5,7 @@
 **Context:** Specification 36 — Agentic API for foundation_ai
 
 
-**TODO**: I like it, but one question how do we make fast look up work for a sql backend fine, for say fjall store then great, but we need to also catch e.g for a ndjson file a lookup that says this scru128 is at offset in file, so you can do fast seek, this means we might also use fjall beside the ndjson file to make this lookup fast and workers, where other stores like libsql, turso wont need this since they are relationdbs with indexes.
+**TODO**: I like it, but one question how do we make fast look up work for a sql backend fine, for say fjall store then great, but we need to also catch e.g for a ndjson file a lookup that says this scru128 is at offset in file, so you can do fast seek, this means we might also use fjall beside the ndjson file to make this lookup fast, basically fjall will provide us fast look up indexing beside any local file system store, we buold it into whatever owns and is used by the MessageAPI for the storage for memory and even messages, where other stores like libsql, turso wont need this since they are relationdbs with indexes.
 
 ## Problem
 
