@@ -264,3 +264,57 @@ fn radio_group_marks_selected_item_checked() {
             if name.name() == Some("data-checked") && *value == "")),
         "selecting an item sets data-checked");
 }
+
+// ─── M5 machinery (roving focus, scoped-script delivery) ─────────────────────────
+
+#[test]
+fn scoped_script_builds_primal_script_node() {
+    let s = foundation_ui_components::machinery::scoped_script("function(scope){}");
+    assert_eq!(s.tag.as_ref().and_then(|t| t.name()), Some("script"));
+    assert!(s.attributes.iter().any(|(n, _)| n.name() == Some("primal:script")));
+    assert_eq!(s.children[0].text.as_deref(), Some("function(scope){}"));
+}
+
+#[test]
+fn composite_behavior_is_a_roving_script() {
+    use foundation_ui_components::machinery::composite::{composite_behavior, COMPOSITE_JS};
+    let s = composite_behavior();
+    let body = s.children[0].text.as_deref().unwrap();
+    assert!(body.contains("keydown"), "wires keydown");
+    assert!(body.contains("data-composite-item"), "finds items");
+    assert!(body.contains("ArrowRight") && body.contains("ArrowDown"), "orientation-aware");
+    assert!(COMPOSITE_JS.contains("data-composite-select"), "radio move+select opt-in");
+}
+
+#[test]
+fn toggle_group_embeds_composite_machinery_and_marks_items() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (values, set_values) = ctx.signal::<Vec<String>>(Vec::new());
+    let items = vec![foundation_ui_components::ToggleGroupItem {
+        value: alloc_string("a"),
+        content: Html::text("A"),
+        disabled: false,
+    }];
+    let _h = foundation_ui_components::toggle_group(
+        &ctx,
+        &rcv,
+        foundation_ui_components::ToggleGroupConfig::default(),
+        &values,
+        set_values,
+        items,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(
+        ops.iter().any(|op| matches!(op,
+            DomOp::SetAttribute { name, value, .. }
+                if name.name() == Some("data-composite-item") && *value == "true")),
+        "items marked for roving"
+    );
+    assert!(
+        ops.iter().any(|op| matches!(op,
+            DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+        "composite behavior script emitted"
+    );
+}

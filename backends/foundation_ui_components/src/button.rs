@@ -87,7 +87,7 @@ pub fn button(
                 data-disabled={is_disabled.then_some("")}
                 data-loading={load_data.as_ref().map_or(false, SignalGetter::get).then_some("")}
                 aria-busy={loading.as_ref().map(SignalGetter::get)}>
-            {children.clone()}
+            <Fragment>{children.clone()}</Fragment>
         </button>
     }
 }
@@ -117,7 +117,7 @@ pub fn button_with_click(
                 data-loading={load_data.as_ref().map_or(false, SignalGetter::get).then_some("")}
                 aria-busy={loading.as_ref().map(SignalGetter::get)}
                 primal:onclick={on_click}>
-            {children.clone()}
+            <Fragment>{children.clone()}</Fragment>
         </button>
     }
 }

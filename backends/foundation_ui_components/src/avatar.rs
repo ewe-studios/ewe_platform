@@ -101,7 +101,7 @@ pub fn avatar(
         // No image — fallback shows immediately.
         return html! { ctx, rcv,
             <span class=[class] data-loading-status="idle">
-                {fallback_html.clone()}
+                <Fragment>{fallback_html.clone()}</Fragment>
             </span>
         };
     };
@@ -131,7 +131,7 @@ pub fn avatar(
                  primal:onerror={on_error}/>
             <span class="avatar-fallback"
                   data-hidden={(fallback_status.get() == ImageLoadingStatus::Loaded).then_some("")}>
-                {fallback_html.clone()}
+                <Fragment>{fallback_html.clone()}</Fragment>
             </span>
         </span>
     }

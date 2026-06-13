@@ -1025,6 +1025,11 @@ export class EventDispatcher {
       for (const node of mutation.addedNodes) {
         if (!isElement(node) || insideIsland(node)) continue;
         this.scanAndWire(node);
+        // Hydrate scoped styles/scripts on runtime-inserted subtrees (machinery
+        // delivery, spec-42 feature 05 §M-delivery). Idempotent: hydrate runs
+        // each scoped script once then removes it. Islands self-hydrate via
+        // connectedCallback, so they're skipped above.
+        Hydrator.hydrate(node);
       }
       for (const node of mutation.removedNodes) {
         if (!isElement(node) || insideIsland(node)) continue;
@@ -2102,11 +2107,14 @@ export class Hydrator {
       }
       style.remove?.();
     }
-    // Scripts: run with the scope object; per-script error isolation.
+    // Scripts: run with the scope object; per-script error isolation. Scope to
+    // the script's OWN parent (spec §5.2), so hydrating a subtree containing
+    // many components scopes each script to its component root, not the subtree.
     for (const script of root.querySelectorAll("script[primal\\:script]")) {
+      const owner = script.parentElement ?? root;
       try {
         const fn = new Function("scope", script.textContent);
-        fn(Hydrator.createScope(root));
+        fn(Hydrator.createScope(owner));
       } catch (error) {
         console.error("Hydrator: scoped script failed", error);
       }

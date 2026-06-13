@@ -23,6 +23,8 @@ use foundation_signals::{Context, SignalGetter, SignalSetter};
 use foundation_ui_traits::Html;
 use foundation_wasm_ui::{html, SharedInstructionReceiver};
 
+use crate::machinery::composite::composite_behavior;
+
 /// Orientation for the toggle group (drives arrow-key axis in M5 + CSS).
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Orientation {
@@ -101,6 +103,7 @@ pub fn toggle_group(
     let orientation = config.orientation.as_str();
     let multiple = config.multiple;
     let group_disabled = config.disabled;
+    let loop_focus = config.loop_focus;
 
     // Per-item render: live data-pressed (reads `values`) + click that updates
     // the Vec (toggle off if present; single mode replaces, multiple appends).
@@ -134,13 +137,14 @@ pub fn toggle_group(
         let aria_value = item.value.clone();
         html! { c, r,
             <button type="button" class="toggle"
+                    data-composite-item="true"
                     data-value=[value]
                     aria-pressed={aria.get().iter().any(|v| v == &aria_value)}
                     data-pressed={pressed.get().iter().any(|v| v == &pressed_value).then_some("")}
                     disabled={disabled.then_some("")}
                     data-disabled={disabled.then_some("")}
                     primal:onclick={on_click}>
-                {content.clone()}
+                <Fragment>{content.clone()}</Fragment>
             </button>
         }
     };
@@ -150,9 +154,11 @@ pub fn toggle_group(
              aria-label=[config.aria_label]
              data-composite="true"
              data-orientation={orientation}
+             data-loop=[(!loop_focus).then_some("false")]
              data-disabled={group_disabled.then_some("")}
              data-multiple={multiple.then_some("")}>
             <For each={items.clone()} key={|item: &ToggleGroupItem| item.value.clone()} render={render} />
+            <Fragment>{composite_behavior()}</Fragment>
         </div>
     }
 }

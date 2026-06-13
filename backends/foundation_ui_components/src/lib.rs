@@ -22,6 +22,7 @@ extern crate alloc;
 // Machinery modules
 pub mod field_state;
 pub mod positioning;
+pub mod machinery;
 
 // F1 — Primitives
 pub mod button;

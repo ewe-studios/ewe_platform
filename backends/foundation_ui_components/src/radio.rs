@@ -110,7 +110,7 @@ pub fn radio_group(
                        disabled=[disabled.then_some("")]
                        primal:onchange={select} />
                 <span class="radio-indicator"></span>
-                {content.clone()}
+                <Fragment>{content.clone()}</Fragment>
             </span>
         }
     };

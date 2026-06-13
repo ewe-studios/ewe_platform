@@ -42,6 +42,28 @@ component's `html!`:
 - **`attr={cond.then_some("")}`** — PRESENCE (set when on, removed when off) —
   the data-attribute contract below.
 
+### ⚠️ Embedding child `Html`: `<Fragment>{expr}</Fragment>`, not `{expr}`
+
+In the **reactive** `html!` form, a `{expr}` *child* slot is **TEXT-ONLY** — the
+generated effect does `into_html(expr).text` → `SetText`. An element/`Html`/
+`Vec<Html>` value placed in a bare `{expr}` child is silently **text-ified to
+empty** (tag + children dropped); attribute-only tests won't catch it. To mount
+a rendered `Html` element (slot output, a built child, a machinery `<script>`),
+wrap it:
+
+```rust
+html! { ctx, rcv,
+    <button class=[class]>
+        <Fragment>{children}</Fragment>   // ✅ mounts the element(s)
+        // {children}                     // ❌ would render nothing
+    </button>
+}
+```
+
+`<Fragment>` expands the value once at mount (`mount_fragment`/`build_subtree`,
+emitting CreateElement + attributes + children). Bare `{signal.get()}` is still
+correct for genuine TEXT. Rule: **text → `{…}`, element content → `<Fragment>{…}</Fragment>`.**
+
 ## The data-attribute styling contract
 
 Components NEVER toggle style classes. They toggle documented **data-attributes**;

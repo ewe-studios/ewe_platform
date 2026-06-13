@@ -93,7 +93,7 @@ pub fn toggle(
                 disabled={config.disabled.then_some("")}
                 data-disabled={config.disabled.then_some("")}
                 primal:onclick={flip}>
-            {children.clone()}
+            <Fragment>{children.clone()}</Fragment>
         </button>
     }
 }

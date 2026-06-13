@@ -246,10 +246,10 @@ where
              data-focused={d_focused.get().then_some("")}
              data-valid={d_valid.get().and_then(|v| v.then_some(""))}
              data-invalid={d_invalid.get().and_then(|v| (!v).then_some(""))}>
-            <label class="field-label" for=[label_for]>{label_html.clone()}</label>
-            <div class="field-control">{control_html.clone()}</div>
-            {description_html.clone()}
-            <div class="field-error">{error_htmls.clone()}</div>
+            <label class="field-label" for=[label_for]><Fragment>{label_html.clone()}</Fragment></label>
+            <div class="field-control"><Fragment>{control_html.clone()}</Fragment></div>
+            <Fragment>{description_html.clone()}</Fragment>
+            <div class="field-error"><Fragment>{error_htmls.clone()}</Fragment></div>
         </div>
     };
 

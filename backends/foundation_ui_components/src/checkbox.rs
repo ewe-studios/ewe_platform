@@ -131,7 +131,7 @@ pub fn checkbox(
                    checked={(s_input.get() == CheckState::Checked).then_some("")}
                    disabled=[config.disabled.then_some("")]
                    primal:onchange={advance} />
-            <span class="checkbox-indicator">{indicator.clone()}</span>
+            <span class="checkbox-indicator"><Fragment>{indicator.clone()}</Fragment></span>
         </span>
     }
 }
@@ -173,7 +173,7 @@ pub fn checkbox_group(
         <div class=[class] role="group"
              aria-label=[config.aria_label]
              data-disabled=[config.disabled.then_some("")]>
-            {kids.clone()}
+            <Fragment>{kids.clone()}</Fragment>
         </div>
     }
 }
