@@ -24,7 +24,7 @@ fn collect_many<T>(stream: StorageItemStream<'_, T>) -> Vec<T> {
 fn test_memory_json_set_and_get() {
     let store = MemoryJsonStore::new();
 
-    let _ = store.set::<()>("key", ())?;
+    let _ = store.set::<()>("key", ()).unwrap();
     let result: Option<()> = store.get("key").unwrap();
     assert!(result.is_some());
 
@@ -186,7 +186,7 @@ fn test_memory_json_query_not_supported() {
 #[test]
 fn test_storage_provider_memory_json() {
     let provider = StorageProvider::memory_json();
-    let _ = provider.set::<()>("key", ())?;
+    let _ = provider.set::<()>("key", ()).unwrap();
     let result: Option<()> = provider.get("key").unwrap();
     assert!(result.is_some());
 }
@@ -194,7 +194,7 @@ fn test_storage_provider_memory_json() {
 #[test]
 fn test_storage_provider_memory_json_via_new() {
     let provider = StorageProvider::new(StorageBackend::MemoryJson).unwrap();
-    let _ = provider.set("count", 99i64)?;
+    let _ = provider.set("count", 99i64).unwrap();
     let count: Option<i64> = provider.get("count").unwrap();
     assert_eq!(count, Some(99));
 }
