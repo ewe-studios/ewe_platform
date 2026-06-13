@@ -18,9 +18,10 @@ use foundation_ui_components::{
     parent_check_state, popover, radio_group, separator, switch, tabs, toast_viewport, toggle,
     tooltip, AccordionConfig, AccordionItem, CheckState, CheckboxConfig, CheckboxSlots,
     CollapsibleConfig, CollapsibleSlots, DialogConfig, DialogSlots, FieldConfig, FieldSlots,
-    InputConfig, NumberFieldConfig, OtpConfig, PopoverConfig, PopoverSlots, RadioGroupConfig,
-    RadioItem, SeparatorConfig, SwitchConfig, TabDef, TabsConfig, Toast, ToastManager,
-    ToggleConfig, ToggleSlots, ValidationMode,
+    progress, scroll_area, skeleton, slider, InputConfig, NumberFieldConfig, OtpConfig,
+    PopoverConfig, PopoverSlots, ProgressConfig, RadioGroupConfig, RadioItem, ScrollAreaConfig,
+    SeparatorConfig, SkeletonShape, SliderConfig, SwitchConfig, TabDef, TabsConfig, Toast,
+    ToastManager, ToggleConfig, ToggleSlots, ValidationMode,
 };
 use foundation_ui_traits::{DomOp, Html};
 use foundation_wasm_ui::{html, App};
@@ -499,6 +500,60 @@ fn scroll_lock_behavior_locks_and_restores() {
     assert!(body.contains("scrollbar-gutter") || body.contains("scrollbarGutter"), "prefers gutter-stable");
     assert!(body.contains("paddingRight"), "pads the gutter on the fallback path");
     assert!(SCROLL_LOCK_JS.contains("data-open"), "engages while open");
+}
+
+// ─── F8 indicators & surfaces ───────────────────────────────────────────────────
+
+#[test]
+fn progress_reflects_value_and_indeterminate() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal::<Option<f64>>(Some(50.0));
+    let _h = progress(&ctx, &rcv, ProgressConfig::default(), &value, None);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "progressbar")));
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-valuenow") && *value == "50")),
+        "valuenow reflects the value");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("style") && value.contains("--progress-value:50"))), "var published");
+
+    set_value.set(None);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-indeterminate") && *value == "")),
+        "None → indeterminate");
+}
+
+#[test]
+fn slider_publishes_percent_and_hidden_range_input() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal(25.0_f64);
+    let _h = slider(&ctx, &rcv, SliderConfig::default(), &value, set_value);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("style") && value.contains("--slider-percent:25"))), "percent var published");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("type") && *value == "range")),
+        "hidden range input carries focus/form/AT");
+}
+
+#[test]
+fn scroll_area_and_skeleton_are_pure_markup() {
+    let area = scroll_area(ScrollAreaConfig::default(), vec![Html::text("body")]);
+    assert_eq!(attr(&area, "data-scroll-area"), Some("true"), "keyed for the JS module");
+
+    let line = skeleton(SkeletonShape::Line { width: "60%".into() });
+    assert_eq!(attr(&line, "aria-hidden"), Some("true"), "decorative");
+    assert_eq!(attr(&line, "data-loading"), Some("true"));
+    assert!(attr(&line, "style").unwrap().contains("inline-size:60%"), "sized");
 }
 
 // ─── F7 form ──────────────────────────────────────────────────────────────────────

@@ -51,6 +51,11 @@ pub mod input;
 pub mod number_field;
 pub mod otp_field;
 
+// F8 — Indicators & surfaces
+pub mod progress;
+pub mod slider;
+pub mod surfaces;
+
 // Re-exports for convenience. `Orientation` is intentionally NOT re-exported
 // at the crate root (defined by both `separator` and `toggle_group`); reach it
 // via the module path.
@@ -80,6 +85,9 @@ pub use input::{
 };
 pub use number_field::{number_field, NumberFieldConfig};
 pub use otp_field::{otp_field, OtpConfig};
+pub use progress::{meter, progress, ProgressConfig};
+pub use slider::{slider, SliderConfig};
+pub use surfaces::{scroll_area, skeleton, ScrollAreaConfig, SkeletonShape};
 pub use field_state::{
     field, FieldBinding, FieldConfig, FieldSlots, FieldState, ValidationMode, Validator,
 };
