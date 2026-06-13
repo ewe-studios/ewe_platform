@@ -2,6 +2,7 @@
 
 **Status:** Proposed  
 **Date:** 2026-06-12  
+**Updated:** 2026-06-13  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
 ## Problem
@@ -14,19 +15,36 @@ The agent needs tools to interact with the world. Tools must be:
 
 ## Decision
 
-Tool registration and discovery is handled entirely by the **ToolShed**, which is already defined in `foundation_ai::types` and wired into `ModelInteraction`.
+Tool registration follows a clear pipeline from implementation to LLM prompt, with the `ToolImpl` trait defining what implementers need to provide.
 
-### Tool Trait
+### Tool Pipeline
 
-All tools implement a common trait. The ToolCallManager registers tools by name and executes them via this trait:
+```
+ToolImpl (implementation)
+    ↓ registered with
+ToolCallManager (registry)
+    ↓ generates
+ToolShed (always present, even if zero tools — shed meta-tool is always available)
+    ↓ converted by ToolFormatter
+ModelInteraction.tools_shed (sent to LLM)
+    ↓ LLM responds with
+ToolRequest (intent: tool name + arguments + depends_on + execution_hint)
+    ↓ executed by
+ToolCallManager (looks up ToolImpl by name, executes)
+    ↓ returns
+ToolResult (content or error, sent back to LLM via Message API)
+```
+
+### ToolImpl Trait
+
+All tool implementations implement this trait:
 
 ```rust
-pub trait Tool: Send + Sync {
+pub trait ToolImpl: Send + Sync {
     /// Tool definition for LLM function calling format
     fn definition(&self) -> ToolDefinition;
     
     /// Execute the tool with parsed arguments
-    /// Returns Result<ToolCallResult, ToolError>
     fn execute(&self, arguments: HashMap<String, ArgType>) 
         -> impl Future<Output = Result<ToolCallResult, ToolError>> + Send;
 }
@@ -43,63 +61,66 @@ pub struct ToolCallResult {
 }
 ```
 
-### Tool Registration in ToolCallManager
+### ToolCallManager Registry
 
-The ToolCallManager maintains a registry of tool implementations:
+The ToolCallManager maintains a registry of tool implementations and builds the ToolShed from them:
 
 ```rust
 pub struct ToolCallManager {
-    tools: HashMap<String, Arc<dyn Tool>>,
+    tools: HashMap<String, Arc<dyn ToolImpl>>,
     vector_store: Arc<dyn VectorStore>,  // for shed tool search
+    message_store: Arc<MessageInner>,    // for persisting tool call results
     // ... other fields
 }
 
 impl ToolCallManager {
-    /// Register a tool by name
-    pub fn register(&mut self, tool: Arc<dyn Tool>) {
-        self.tools.insert(tool.definition().name.clone(), tool);
+    /// Register a tool implementation
+    pub fn register(&mut self, tool: Arc<dyn ToolImpl>) {
+        let name = tool.definition().name.clone();
+        self.tools.insert(name, tool);
+        // Also store description in vector store for shed search
+        self.vector_store.insert(&name, tool.definition().embedding(), metadata);
     }
     
-    /// Execute a tool call by name
+    /// Execute a tool call by name (look up + execute)
     fn execute_tool(&self, call: &ToolCallRequest) -> Result<ToolCallResult, ToolError> {
         let tool = self.tools.get(&call.name)
             .ok_or_else(|| ToolError::UnknownTool(call.name.clone()))?;
         tool.execute(call.arguments.clone())
     }
+    
+    /// Build the ToolShed from registered tools
+    /// Always includes the shed meta-tool
+    fn build_toolshed(&self) -> ToolShed {
+        ToolShed {
+            shed: self.build_shed_tool(),        // always present
+            memory: self.build_memory_tool(),    // if memory feature enabled
+            delegate: self.build_delegate_tool(), // if delegation feature enabled
+            read: self.tools.get("read").map(|t| t.definition().into()),
+            edit: self.tools.get("edit").map(|t| t.definition().into()),
+            write: self.tools.get("write").map(|t| t.definition().into()),
+            search: self.tools.get("search").map(|t| t.definition().into()),
+            bash: self.tools.get("bash").map(|t| t.definition().into()),
+            // No `others` field — shed tool covers dynamic discovery
+        }
+    }
 }
 ```
 
-### The `shed` Meta-Tool
+### ToolShed — Always Present
 
-The `shed` tool is a special tool that owns its internal representation of available tools. It searches the tool description vector store and returns matching tool summaries. The LLM doesn't need to know the internal structure — it just asks:
-
-> "Is there a tool that can parse YAML files?"
-
-The `shed` tool executes like any other tool through the ToolCallManager, but internally it:
-1. Searches the vector store for matching tool descriptions
-2. Returns tool names, descriptions, and schemas
-3. The LLM can then request the full schema for a specific tool
+The ToolShed is **always** included in `ModelInteraction.tools_shed`, even when zero tools are registered. This ensures the `shed` meta-tool is always available for tool discovery.
 
 ### The `shed` Meta-Tool
 
-The `shed` tool is the key to dynamic tool discovery. It allows the agent to ask:
-
-> "Is there a tool that can parse YAML files?"
-> "Do you have a tool for interacting with AWS S3?"
-
-The `shed` tool:
-1. Takes a natural language query
-2. Searches the **tool description vector store** for matching tools
-3. Returns matching tool names, descriptions, and schemas
+The `shed` tool is always present in the ToolShed. It searches the tool description vector store and returns matching tool summaries:
 
 ```rust
-// shed tool arguments
 pub struct ShedQuery {
     pub description: String,  // "I need a tool to parse YAML"
-    pub limit: usize,         // max results to return
+    pub limit: usize,
 }
 
-// shed tool response
 pub struct ShedResult {
     pub tools: Vec<ToolSummary>,
 }
@@ -108,81 +129,17 @@ pub struct ToolSummary {
     pub name: String,
     pub description: String,
     pub category: String,
-    // Tool schema available on request via tool name
 }
 ```
 
-### Tool Description Vector Store
-
-All tool descriptions are stored in the vector store under a **toolshed namespace**:
-
-```
-VectorStore (toolshed namespace)
-├── "read" → "Read file content from the filesystem"
-├── "edit" → "Edit file content with search-and-replace"
-├── "write" → "Write content to a file, creating if needed"
-├── "search" → "Search file content using fff fast grep"
-├── "bash" → "Execute shell commands in a sandboxed environment"
-├── "aws_s3_upload" → "Upload files to AWS S3 bucket"
-├── "yaml_parser" → "Parse YAML files into structured data"
-└── ... (any number of tools)
-```
-
-When the agent calls `shed("I need to parse YAML")`, the vector store returns `yaml_parser` as a match.
-
-### Tool Registration Flow
-
-```
-Session creation
-├── ToolShed provided (core tools: read, edit, write, search, bash, shed)
-│   └── Tool descriptions stored in vector store (toolshed namespace)
-│
-├── ModelInteraction created with ToolShed
-│   └── Tool definitions converted to provider format via ToolFormatter
-│       ├── Anthropic: { name, description, input_schema }
-│       ├── OpenAI: { type: "function", function: { name, description, parameters } }
-│       └── etc.
-│
-├── Agent starts with core tools available
-│
-└── When agent needs unknown tool:
-    ├── Agent calls `shed("I need to do X")`
-    ├── Vector store searches for matching tool descriptions
-    ├── If found: agent gets tool name + description, requests full schema
-    └── If not found: agent reports no tool available
-```
-
-### Tool Execution
-
-The ToolCallManager receives tool call requests from the LLM and executes them:
-
-```rust
-impl ToolCallManager {
-    pub fn execute(&self, call: ToolCallRequest) -> ToolCallResult {
-        match call.name.as_str() {
-            "read" => self.tools.read.execute(call.arguments),
-            "edit" => self.tools.edit.execute(call.arguments),
-            "write" => self.tools.write.execute(call.arguments),
-            "search" => self.tools.search.execute(call.arguments),  // fff integration
-            "bash" => self.tools.bash.as_ref()?.execute(call.arguments),
-            "shed" => self.shed_search(call.arguments),              // vector store search
-            _ => Err(ToolError::UnknownTool(call.name)),
-        }
-    }
-    
-    /// shed_search: query vector store for tool descriptions
-    fn shed_search(&self, args: ShedQuery) -> Result<ShedResult> {
-        let matches = self.vector_store.query(&args.description, args.limit);
-        Ok(ShedResult {
-            tools: matches.into_iter().map(|m| m.metadata.tool_summary()).collect(),
-        })
-    }
-}
-```
+The `shed` tool:
+1. Takes a natural language query from the LLM
+2. Searches the tool description vector store for matches
+3. Returns tool names, descriptions, and schemas
 
 ### ToolFormatter Integration
 
-Tool schema conversion is already handled by `ToolFormatter` in foundation_ai:
+Tool schema conversion is handled by `ToolFormatter` in foundation_ai:
 
 ```rust
 pub trait ToolFormatter: Default + Send + Sync {
@@ -193,69 +150,46 @@ pub trait ToolFormatter: Default + Send + Sync {
 }
 ```
 
-Each provider (Anthropic, OpenAI, etc.) implements `ToolFormatter` to convert internal `Tool` definitions to its API's format. No additional conversion layer is needed.
+Each provider (Anthropic, OpenAI, etc.) implements `ToolFormatter` to convert internal `Tool` definitions to its API's format.
 
 ### External Tools (MCP, HTTP, CLI)
 
-External tools are registered in the ToolShed like any other tool:
+External tools implement `ToolImpl` and register with the ToolCallManager:
 
-- **MCP servers**: MCP tool definitions are converted to `Tool` and added to ToolShed. The `shed` tool's vector store includes MCP tool descriptions.
-- **HTTP endpoints**: Described as tools with HTTP call semantics. Added to ToolShed.
-- **CLI commands**: Wrapped as tools with argument parsing. Added to ToolShed.
+- **MCP servers**: Wrap MCP tool definitions as `ToolImpl`
+- **HTTP endpoints**: Describe HTTP call semantics as a `ToolImpl`
+- **CLI commands**: Wrap shell commands as `ToolImpl`
 
-The agent doesn't need to know the difference — all tools look the same through ToolShed.
+The agent doesn't need to know the difference — all tools implement `ToolImpl`.
 
 ### Tool Versioning
 
-Tools present their interface via their JSON Schema. If a tool's interface changes, the new schema is registered in the ToolShed. Versioning is the tool's own concern — the ToolShed stores whatever schema the tool provides.
-
-### Tool Discovery via Vector Store
-
-The vector store query for tool discovery uses the same `VectorStore` trait as message semantic recall, but in a separate namespace:
-
-```rust
-impl VectorStore {
-    /// Query tool descriptions in the toolshed namespace
-    pub fn query_tools(&self, query: &str, top_k: usize) -> Vec<ToolSummary> {
-        self.query_in_namespace("toolshed", query, top_k)
-    }
-}
-```
-
-This allows the same vector search infrastructure to serve both:
-- **Message recall** — "what did I say about auth?"
-- **Tool discovery** — "is there a tool for auth?"
+Tools present their interface via their JSON Schema. If a tool's interface changes, the new schema is registered. Versioning is the tool's own concern.
 
 ## Rationale
 
-**Why ToolShed instead of flat tool list?**
-- The `shed` meta-tool saves context — agent doesn't need all tool definitions upfront
-- Vector-stored descriptions enable semantic tool discovery
-- Structured categories (read, edit, write, search, bash, memory, delegate) cover common operations
+**Why ToolImpl trait?**
+- Clear contract: `definition()` + `execute() -> Result<ToolCallResult, ToolError>`
+- Easy to implement for new tools
+- ToolCallManager can execute any tool via the trait
 
-**Why no `others` field?**
-- `shed` tool covers dynamic discovery — no need for a catch-all field
-- Keeps ToolShed focused on core operations
+**Why ToolShed always present?**
+- `shed` meta-tool is always available for discovery
+- Even zero-tool sessions can discover tools dynamically
+- Consistent interface for LLM — ToolShed is always there
+
+**Why no `others` field in ToolShed?**
+- `shed` tool covers dynamic discovery — no need for a catch-all
 - External tools discovered via `shed` search, not hardcoded in struct
-
-**Why store tool descriptions in vector store?**
-- Semantic matching — "parse YAML" finds `yaml_parser` even without exact keyword match
-- Fast lookup — vector search is O(log n) with index
-- Reuses existing VectorStore infrastructure
 
 ## Alternatives Considered
 
 ### Flat tool list in ModelInteraction
 - **Pros:** Simpler
-- **Cons:** All tool definitions in context — wastes tokens, limits number of tools
+- **Cons:** All tool definitions in context — wastes tokens, limits tool count
 - **Rejected because:** Agent may have hundreds of tools — can't fit all in context
 
 ### Separate tool registry outside ToolShed
 - **Pros:** Clearer separation
 - **Cons:** More complexity, ToolShed already provides the structure
-- **Rejected because:** ToolShed + `shed` tool is sufficient for all use cases
-
-### Tool versioning in ToolShed
-- **Pros:** Track tool interface changes
-- **Cons:** Adds complexity, tool owns its interface
-- **Rejected because:** Tool presents its schema — if it changes, new schema replaces old
+- **Rejected because:** ToolShed + `shed` tool is sufficient
