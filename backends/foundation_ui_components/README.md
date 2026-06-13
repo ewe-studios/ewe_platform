@@ -14,6 +14,31 @@ component trait (composition is function composition).
 - [Events: how a click/focus reaches Rust](#events-how-a-clickfocus-reaches-rust)
 - [F1 primitives](#f1-primitives) — button, toggle, toggle-group, separator, avatar
 - [M6 field state](#m6-field-state) — `field` + `FieldBinding` callbacks
+- [The full catalog](#the-full-catalog) — F1–F8 + machinery M1–M7
+
+---
+
+## The full catalog
+
+All eight families ship (spec-42 feature 05). Each component is a function
+returning `Html`; reactive ones take `&Context` + `&SharedInstructionReceiver`.
+
+| Family | Components |
+|--------|-----------|
+| **F1 primitives** | `button` · `toggle` · `toggle_group` · `separator` · `avatar` |
+| **F2 selection** | `switch` · `checkbox` (+ `checkbox_group`) · `radio_group` |
+| **F3 disclosure** | `collapsible` · `accordion` · `tabs` |
+| **F4 overlays** | `dialog` · `alert_dialog` · `drawer` · `popover` · `tooltip` · `preview_card` · `toast` (+ `ToastManager`) |
+| **F5 menus** | `menu` (+ `MenuEntry`) · `context_menu` · `menubar` · `navigation_menu` · `toolbar` |
+| **F6 pickers** | `select` · `combobox` · `autocomplete` (over `PickItem`) |
+| **F7 form** | `field` · `input` · `fieldset` · `form` · `number_field` · `otp_field` |
+| **F8 indicators/surfaces** | `progress` · `meter` · `slider` · `scroll_area` · `skeleton` |
+
+Machinery (`machinery::*`, scoped-script behaviors): M1 `position` · M2
+`scroll_lock` + `dialog` · M3 `dismiss` + `hover` · M4 `focus_trap` · M5
+`composite` (roving) + `listbox` (virtual highlight + typeahead) · M7
+`transition` + `measure`. M8 pointer-gestures (slider drag, scrub, swipe) is the
+reserved follow-up. Build notes + gotchas: `specifications/42-ui-component/LEARNINGS.md`.
 
 ---
 
