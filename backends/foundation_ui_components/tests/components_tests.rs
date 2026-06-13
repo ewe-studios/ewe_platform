@@ -14,12 +14,13 @@ use std::rc::Rc;
 
 use foundation_signals::EventData;
 use foundation_ui_components::{
-    accordion, checkbox, collapsible, dialog, field, parent_check_state, popover, radio_group,
-    separator, switch, tabs, toast_viewport, toggle, tooltip, AccordionConfig, AccordionItem,
-    CheckState, CheckboxConfig, CheckboxSlots, CollapsibleConfig, CollapsibleSlots, DialogConfig,
-    DialogSlots, FieldConfig, FieldSlots, PopoverConfig, PopoverSlots, RadioGroupConfig, RadioItem,
-    SeparatorConfig, SwitchConfig, TabDef, TabsConfig, Toast, ToastManager, ToggleConfig,
-    ToggleSlots, ValidationMode,
+    accordion, checkbox, collapsible, dialog, field, input, number_field, otp_field,
+    parent_check_state, popover, radio_group, separator, switch, tabs, toast_viewport, toggle,
+    tooltip, AccordionConfig, AccordionItem, CheckState, CheckboxConfig, CheckboxSlots,
+    CollapsibleConfig, CollapsibleSlots, DialogConfig, DialogSlots, FieldConfig, FieldSlots,
+    InputConfig, NumberFieldConfig, OtpConfig, PopoverConfig, PopoverSlots, RadioGroupConfig,
+    RadioItem, SeparatorConfig, SwitchConfig, TabDef, TabsConfig, Toast, ToastManager,
+    ToggleConfig, ToggleSlots, ValidationMode,
 };
 use foundation_ui_traits::{DomOp, Html};
 use foundation_wasm_ui::{html, App};
@@ -498,6 +499,66 @@ fn scroll_lock_behavior_locks_and_restores() {
     assert!(body.contains("scrollbar-gutter") || body.contains("scrollbarGutter"), "prefers gutter-stable");
     assert!(body.contains("paddingRight"), "pads the gutter on the fallback path");
     assert!(SCROLL_LOCK_JS.contains("data-open"), "engages while open");
+}
+
+// ─── F7 form ──────────────────────────────────────────────────────────────────────
+
+#[test]
+fn input_reflects_value_and_is_field_aware() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal(alloc_string("hi"));
+    // Build a field to source a FieldState.
+    let (_f, state) = field(&ctx, &rcv, FieldConfig::default(), FieldSlots::default(), |c, r, _b| {
+        html! { c, r, <span /> }
+    });
+    let _h = input(&ctx, &rcv, InputConfig::default(), &value, set_value, Some(&state));
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("value") && *value == "hi")),
+        "input renders its value");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("type") && *value == "text")),
+        "default text type");
+}
+
+#[test]
+fn number_field_emits_spinbutton_structure() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal(3.0_f64);
+    let _h = number_field(
+        &ctx, &rcv, NumberFieldConfig { min: Some(0.0), max: Some(10.0), step: 1.0, ..NumberFieldConfig::default() },
+        &value, set_value,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "spinbutton")),
+        "input is a spinbutton");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-nf-increment") && *value == "true")),
+        "increment affordance present");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-valuenow") && *value == "3")),
+        "aria-valuenow reflects the value");
+}
+
+#[test]
+fn otp_field_emits_cells_and_hidden_aggregate() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (_code, set_code) = ctx.signal(String::new());
+    let _h = otp_field(&ctx, &rcv, OtpConfig { length: 4, ..OtpConfig::default() }, set_code);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    let cell_count = ops.iter().filter(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-otp-cell") && *value == "true")).count();
+    assert_eq!(cell_count, 4, "one input per cell");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-otp-value") && *value == "true")),
+        "hidden aggregate present");
 }
 
 // ─── F3 disclosure ──────────────────────────────────────────────────────────────

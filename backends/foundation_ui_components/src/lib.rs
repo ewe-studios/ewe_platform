@@ -46,6 +46,11 @@ pub mod dialog;
 pub mod popover;
 pub mod toast;
 
+// F7 — Form
+pub mod input;
+pub mod number_field;
+pub mod otp_field;
+
 // Re-exports for convenience. `Orientation` is intentionally NOT re-exported
 // at the crate root (defined by both `separator` and `toggle_group`); reach it
 // via the module path.
@@ -70,6 +75,11 @@ pub use popover::{
     popover, preview_card, tooltip, HoverConfig, PopoverConfig, PopoverSlots,
 };
 pub use toast::{toast_viewport, Toast, ToastManager};
+pub use input::{
+    fieldset, form, input, FieldsetConfig, FieldsetSlots, FormConfig, InputConfig,
+};
+pub use number_field::{number_field, NumberFieldConfig};
+pub use otp_field::{otp_field, OtpConfig};
 pub use field_state::{
     field, FieldBinding, FieldConfig, FieldSlots, FieldState, ValidationMode, Validator,
 };
