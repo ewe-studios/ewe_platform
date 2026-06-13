@@ -22,7 +22,11 @@ pub const HEAD_NODE_ID: u32 = 0;
 
 /// Queue the theme stylesheet as DOM ops targeting `<head>`. Call before the
 /// first content batch (its flush IS the first batch, feature 09 §8).
-pub fn inject_theme_css(receiver: &SharedInstructionReceiver, css: &'static str) {
+///
+/// Accepts any `&str` — a `&'static` from the `theme!{}` macro / `ThemeTokens`
+/// derive, or a runtime-built `String`'s slice from the `Theme` builder; the
+/// text is copied into the op either way.
+pub fn inject_theme_css(receiver: &SharedInstructionReceiver, css: &str) {
     receiver.queue(DomOp::CreateElement {
         node_id: THEME_STYLE_NODE_ID,
         tag: HtmlTag::from_static("style"),
@@ -38,7 +42,7 @@ pub fn inject_theme_css(receiver: &SharedInstructionReceiver, css: &'static str)
     });
     receiver.queue(DomOp::SetText {
         node_id: THEME_STYLE_NODE_ID,
-        text: css.into(),
+        text: alloc::string::ToString::to_string(css).into(),
     });
     receiver.queue(DomOp::AppendChild {
         parent_id: HEAD_NODE_ID,

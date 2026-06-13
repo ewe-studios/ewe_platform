@@ -353,3 +353,65 @@ macro_rules! impl_into_html_for_display {
 }
 
 impl_into_html_for_display!(usize, isize, u8, u16, u32, u64, i8, i16, i32, i64, bool, f32, f64);
+
+/// WHY: A dynamic attribute in `html!` (`attr={expr}`) needs to express both
+/// "set this attribute to a value" AND "this attribute should be ABSENT" —
+/// the latter is the presence data-attribute contract (`data-checked` present
+/// when on, removed when off; spec-42 feature 05 §1/§8.2). A value that always
+/// stringifies (`"false"`) cannot remove, and `[data-checked]` would still
+/// match in CSS.
+///
+/// WHAT: Converts an attribute expression to `Option<Cow<'static, str>>` —
+/// `Some(v)` ⇒ `SetAttribute(v)`, `None` ⇒ `RemoveAttribute` (or omit, in the
+/// pure/SSR form). Plain values (`&str`, `String`, `Cow`, bool, numbers)
+/// always yield `Some(..)` so existing `attr={value}` usage is unchanged;
+/// `Option<T>` and `bool::then_some` opt into presence semantics.
+///
+/// HOW: One blanket impl over `Option<T: IntoAttrValue>` plus leaf impls for
+/// the string/`Display` primitives. No overlap: bare `&str` and `Option<&str>`
+/// are distinct types.
+pub trait IntoAttrValue {
+    /// `None` removes/omits the attribute; `Some` sets it to the value.
+    fn into_attr_value(self) -> Option<Cow<'static, str>>;
+}
+
+impl<T: IntoAttrValue> IntoAttrValue for Option<T> {
+    fn into_attr_value(self) -> Option<Cow<'static, str>> {
+        self.and_then(IntoAttrValue::into_attr_value)
+    }
+}
+
+impl IntoAttrValue for Cow<'static, str> {
+    fn into_attr_value(self) -> Option<Cow<'static, str>> {
+        Some(self)
+    }
+}
+
+impl IntoAttrValue for &str {
+    fn into_attr_value(self) -> Option<Cow<'static, str>> {
+        Some(Cow::Owned(self.to_string()))
+    }
+}
+
+impl IntoAttrValue for String {
+    fn into_attr_value(self) -> Option<Cow<'static, str>> {
+        Some(Cow::Owned(self))
+    }
+}
+
+/// Primitives stringify (matching the old `IntoHtml`-text behavior) and always
+/// set — `bool` here is the always-`"true"/"false"` form; use `.then_some("")`
+/// for presence.
+macro_rules! impl_into_attr_value_for_display {
+    ($($ty:ty),*) => {
+        $(
+            impl IntoAttrValue for $ty {
+                fn into_attr_value(self) -> Option<Cow<'static, str>> {
+                    Some(Cow::Owned(self.to_string()))
+                }
+            }
+        )*
+    };
+}
+
+impl_into_attr_value_for_display!(usize, isize, u8, u16, u32, u64, i8, i16, i32, i64, bool, f32, f64);

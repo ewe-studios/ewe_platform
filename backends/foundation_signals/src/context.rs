@@ -14,7 +14,7 @@ use std::any::{Any, TypeId};
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use crate::callback::EventData;
+use crate::callback::{Callback, EventData};
 use crate::computed::{ComputedGetter, ComputedStorage};
 use crate::node::{ComputedNode, EffectNode, Node, SignalNode, ThreeState};
 use crate::runtime::Runtime;
@@ -141,6 +141,27 @@ impl Context {
         }
 
         (getter, setter)
+    }
+
+    /// Register an arbitrary event handler and return a [`Callback`] whose id
+    /// the `html!` macro stamps as `primal:setter` (it implements
+    /// `MaybeCallback` in `foundation_wasm_ui`).
+    ///
+    /// This is the escape hatch for DOM events that carry NO convertible value
+    /// — button clicks, image `load`/`error`, Escape dismiss — where the
+    /// default setter from [`signal`](Self::signal) cannot extract anything.
+    /// The closure receives the full [`EventData`] and typically writes one or
+    /// more setters; call `stabilize()` afterwards (the event runtime does).
+    ///
+    /// ```ignore
+    /// let (pressed, set_pressed) = ctx.signal(false);
+    /// let toggle = ctx.callback(move |_| set_pressed.set(!pressed.get()));
+    /// html! { ctx, rcv, <button primal:onclick={toggle}>…</button> }
+    /// ```
+    pub fn callback(&self, mut f: impl FnMut(&EventData) + 'static) -> Callback {
+        let id = self.runtime.next_callback_id();
+        self.runtime.register_callback(id, move |data| f(&data));
+        Callback::new(id)
     }
 
     /// Create a computed. Evaluates immediately (tracked) to seed the cache and

@@ -14,7 +14,8 @@ use foundation_signals::{Context, Runtime as SignalsRuntime};
 use foundation_ui_traits::DomOp;
 use foundation_wasm::MemoryAllocations;
 use foundation_wasm_ui::{
-    html, inject_theme_css, MockProtocol, Runtime, ThemeTokens, HEAD_NODE_ID, THEME_STYLE_NODE_ID,
+    html, inject_theme_css, theme, App, MockProtocol, Runtime, ThemeTokens, HEAD_NODE_ID,
+    THEME_STYLE_NODE_ID,
 };
 
 // ─── Scoped styles in html! (decision 019) ─────────────────────────────────────
@@ -182,5 +183,36 @@ fn inject_theme_css_queues_the_head_sequence() {
         batch[4],
         DomOp::AppendChild { parent_id, child_id }
             if parent_id == HEAD_NODE_ID && child_id == THEME_STYLE_NODE_ID
+    ));
+}
+
+// ─── theme!{} macro + App ownership (decision 021) ─────────────────────────────
+
+/// The headline API end-to-end: `theme!{}` → `GeneratedTheme`, `App` owns and
+/// injects it, `get_theme()` reads it back, and the CSS reaches `<head>`.
+#[test]
+fn theme_macro_builds_app_injects_and_reads_back() {
+    let (app, sent) = App::mock();
+    let app = app.theme(theme! {
+        colors  { primary: { light: "#3b82f6", dark: "#60a5fa" }, secondary: "#10b981" }
+        spacing { sm: 8px, md: 16px }
+        radius  { sm: 4px }
+    });
+
+    // get_theme: token table + generated CSS are inspectable.
+    let theme = app.get_theme().expect("theme installed");
+    assert_eq!(theme.value("color", "primary"), Some("#3b82f6"));
+    assert!(theme.to_css().contains("--color-primary: #3b82f6;"));
+    assert!(theme.to_css().contains("--spacing-md: 16px;"), "unquoted 16px token");
+    assert!(theme.to_css().contains("--color-primary: #60a5fa;"), "explicit dark");
+    assert!(theme.to_css().contains("--color-secondary: #0d9467;"), "auto-derived dark");
+    assert!(theme.to_css().contains(".opacity-50 { opacity: 0.50; }"));
+
+    // The CSS was queued toward <head> on install.
+    app.receiver().flush().expect("theme batch ships");
+    let batch = &sent.borrow()[0];
+    assert!(matches!(
+        &batch[3],
+        DomOp::SetText { text, .. } if text.contains("--color-primary")
     ));
 }

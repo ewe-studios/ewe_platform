@@ -58,3 +58,39 @@ impl EventData {
         }
     }
 }
+
+/// A registered event handler returned by [`Context::callback`].
+///
+/// WHY: [`Context::signal`]'s default setter callback only fires for events
+/// that carry a convertible value (`value`/`checked` — text inputs,
+/// checkboxes, radios). Button clicks, image `load`/`error`, Escape-to-dismiss
+/// and the like carry NONE, so the catalog needs an escape hatch: register an
+/// arbitrary closure and wire it like a setter.
+///
+/// WHAT: A copyable handle over the interop `callback_id` the closure was
+/// registered under. `foundation_wasm_ui` implements `MaybeCallback` for it, so
+/// `html!` stamps it as `primal:setter` exactly like a `SignalSetter` — the JS
+/// event runtime delivers the event through the same signal bridge.
+///
+/// [`Context::callback`]: crate::Context::callback
+/// [`Context::signal`]: crate::Context::signal
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Callback {
+    callback_id: u64,
+}
+
+impl Callback {
+    /// Construct from a raw id (internal — use [`Context::callback`]).
+    ///
+    /// [`Context::callback`]: crate::Context::callback
+    #[must_use]
+    pub(crate) fn new(callback_id: u64) -> Self {
+        Self { callback_id }
+    }
+
+    /// The interop `callback_id` — what `html!` stamps as `primal:setter`.
+    #[must_use]
+    pub fn callback_id(&self) -> u64 {
+        self.callback_id
+    }
+}

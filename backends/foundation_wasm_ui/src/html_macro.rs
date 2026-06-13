@@ -13,7 +13,7 @@
 //! can't depend on their host crates — the generated code names this trait
 //! through the `foundation_wasm_ui` path (G21).
 
-use foundation_signals::{EventData, SignalSetter};
+use foundation_signals::{Callback, EventData, SignalSetter};
 
 /// Compile-time classification of `primal:on*` handler expressions (G21).
 pub trait MaybeCallback {
@@ -23,6 +23,15 @@ pub trait MaybeCallback {
 }
 
 impl<T: Clone + PartialEq + 'static> MaybeCallback for SignalSetter<T> {
+    fn maybe_callback_id(&self) -> Option<u64> {
+        Some(self.callback_id())
+    }
+}
+
+// A `Context::callback` handle: arbitrary event logic wired through the same
+// `primal:setter` signal bridge as a setter (the escape hatch for events that
+// carry no convertible value — clicks, image load/error, dismiss).
+impl MaybeCallback for Callback {
     fn maybe_callback_id(&self) -> Option<u64> {
         Some(self.callback_id())
     }

@@ -37,8 +37,8 @@ pub use encoder::{
 };
 pub use envelope::{encode_with_envelope, Envelope, ENVELOPE_SIZE};
 pub use html::{
-    AttrName, Html, HtmlTag, IntoHtml, ATTR_CLASS, ATTR_ID, ATTR_NAMES, ATTR_STYLE, ATTR_VALUE,
-    TAG_BUTTON, TAG_DIV, TAG_INPUT, TAG_NAMES, TAG_SPAN,
+    AttrName, Html, HtmlTag, IntoAttrValue, IntoHtml, ATTR_CLASS, ATTR_ID, ATTR_NAMES, ATTR_STYLE,
+    ATTR_VALUE, TAG_BUTTON, TAG_DIV, TAG_INPUT, TAG_NAMES, TAG_SPAN,
 };
 pub use json_encoder::JsonEncoder;
 pub use parts::{AttrPart, EventPart, Part, TextPart};

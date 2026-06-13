@@ -25,6 +25,9 @@ foundation_signals = { workspace = true }
 # Re-exports the html! proc macro (feature 03); macros live in
 # foundation_macros per project rule.
 foundation_macros = { workspace = true }
+# Theme token model + shared CSS generator (the theme!{} macro, ThemeTokens
+# derive, and runtime Theme builder all route through it).
+foundation_theme = { workspace = true }
 foundation_nostd = { workspace = true }
 tracing = { version = "0.1", default-features = false }
 # Arrow IPC v2 over the loop (the `arrow` feature).

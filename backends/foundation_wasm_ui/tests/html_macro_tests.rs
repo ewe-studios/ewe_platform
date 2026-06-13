@@ -451,3 +451,69 @@ fn reactive_dynamic_attribute() {
         DomOp::SetAttribute { node_id: 16, value, .. } if *value == "off"
     ));
 }
+
+/// Option-valued attribute (pure): `None` OMITS the attribute, `Some` sets it
+/// — the presence data-attribute contract (features.md §8.2). `"false"` as a
+/// string would still match `[data-checked]` in CSS, which is the bug this
+/// avoids.
+#[test]
+fn option_attribute_presence_pure() {
+    let present: Option<&str> = Some("");
+    let absent: Option<&str> = None;
+    let h = html! { <div data-checked={present} data-unchecked={absent}></div> };
+    assert_eq!(attr(&h, "data-checked"), Some(""), "Some => present");
+    assert_eq!(attr(&h, "data-unchecked"), None, "None => omitted");
+
+    // `bool::then_some("")` is the idiomatic component spelling.
+    let on = html! { <div data-pressed={true.then_some("")}></div> };
+    assert_eq!(attr(&on, "data-pressed"), Some(""));
+    let off = html! { <div data-pressed={false.then_some("")}></div> };
+    assert_eq!(attr(&off, "data-pressed"), None);
+
+    // Plain values are unchanged (always set) — back-compat.
+    let cls = "x";
+    let plain = html! { <div class={cls} data-n={3}></div> };
+    assert_eq!(attr(&plain, "class"), Some("x"));
+    assert_eq!(attr(&plain, "data-n"), Some("3"));
+}
+
+/// Option-valued attribute (reactive): toggling the signal emits
+/// `SetAttribute` (present) then `RemoveAttribute` (absent) then back.
+#[test]
+fn reactive_option_attribute_toggles_presence() {
+    let m = reactive_setup();
+    let (on, set_on) = m.ctx.signal(true);
+
+    let _tree =
+        html! { m.ctx, m.receiver, <div data-checked={on.get().then_some("")}></div> };
+    m.signals.stabilize();
+    let ops = all_ops(&m.sent);
+    assert!(
+        ops.iter().any(|op| matches!(
+            op,
+            DomOp::SetAttribute { node_id: 16, name, value }
+                if name.name() == Some("data-checked") && *value == ""
+        )),
+        "Some => SetAttribute, got {ops:?}"
+    );
+
+    set_on.set(false);
+    m.signals.stabilize();
+    let ops = all_ops(&m.sent);
+    assert!(
+        matches!(
+            ops.last().unwrap(),
+            DomOp::RemoveAttribute { node_id: 16, name } if name.name() == Some("data-checked")
+        ),
+        "None => RemoveAttribute, got {:?}",
+        ops.last()
+    );
+
+    set_on.set(true);
+    m.signals.stabilize();
+    let ops = all_ops(&m.sent);
+    assert!(matches!(
+        ops.last().unwrap(),
+        DomOp::SetAttribute { node_id: 16, name, .. } if name.name() == Some("data-checked")
+    ));
+}

@@ -21,8 +21,11 @@ use alloc::rc::Rc;
 use alloc::vec::Vec;
 
 use foundation_signals::{Context, Runtime as SignalsRuntime};
+use foundation_theme::GeneratedTheme;
 use foundation_ui_traits::DomOp;
 use foundation_wasm::MemoryAllocations;
+
+use crate::theme::inject_theme_css;
 
 use crate::protocol::{ColumnarV1, FrameSink, FrameSinkV1, JsonV1, MockProtocol, ProtocolMethods};
 use crate::protocol::CollectedFrames;
@@ -39,6 +42,7 @@ pub struct App {
     ctx: Context,
     runtime: Runtime,
     receiver: SharedInstructionReceiver,
+    theme: Option<GeneratedTheme>,
 }
 
 impl App {
@@ -123,7 +127,32 @@ impl App {
             ctx,
             runtime,
             receiver,
+            theme: None,
         }
+    }
+
+    /// Install a theme: the app takes ownership and IMMEDIATELY queues the
+    /// stylesheet's head-injection ops (feature 09 §8 — theme CSS must reach
+    /// `<head>` before the first content batch). Pairs with `theme!{}` or the
+    /// runtime `Theme` builder, both of which yield a [`GeneratedTheme`].
+    ///
+    /// ```ignore
+    /// let app = App::new().theme(theme! {
+    ///     colors  { primary: { light: "#3b82f6", dark: "#60a5fa" } }
+    ///     spacing { sm: 8px, md: 16px }
+    /// });
+    /// ```
+    #[must_use]
+    pub fn theme(mut self, theme: GeneratedTheme) -> Self {
+        inject_theme_css(&self.receiver, theme.to_css());
+        self.theme = Some(theme);
+        self
+    }
+
+    /// The installed theme, if any.
+    #[must_use]
+    pub fn get_theme(&self) -> Option<&GeneratedTheme> {
+        self.theme.as_ref()
     }
 
     /// The pair every reactive `html!` / component call needs — cheap

@@ -3116,6 +3116,7 @@ dependencies = [
  "foundation_arrow",
  "foundation_jsonschema",
  "foundation_nostd",
+ "foundation_theme",
  "new_mime_guess",
  "proc-macro-crate",
  "proc-macro2",
@@ -3378,6 +3379,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_theme"
+version = "0.0.1"
+
+[[package]]
 name = "foundation_ui_components"
 version = "0.1.0"
 dependencies = [
@@ -3441,6 +3446,7 @@ dependencies = [
  "foundation_macros",
  "foundation_nostd",
  "foundation_signals",
+ "foundation_theme",
  "foundation_ui_traits",
  "foundation_wasm",
  "serde_json",

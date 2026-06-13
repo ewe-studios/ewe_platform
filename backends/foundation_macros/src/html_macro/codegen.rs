@@ -494,17 +494,14 @@ fn gen_html_node(
                         });
                     }
                     ParsedAttr::Dynamic { name, tokens } => match mode {
-                        // Pure: evaluate once, text via IntoHtml.
+                        // Pure: evaluate once; `None` omits the attribute
+                        // (presence contract, §8.2), `Some` sets it.
                         Mode::Pure => attr_stmts.push(quote! {
-                            __attrs.push((
-                                #ui::AttrName::from_static(#name),
-                                #ui::__macro::Cow::Owned(
-                                    #ui::IntoHtml::into_html((#tokens))
-                                        .text
-                                        .map(|__c| __c.into_owned())
-                                        .unwrap_or_default(),
-                                ),
-                            ));
+                            if let ::core::option::Option::Some(__v) =
+                                #ui::IntoAttrValue::into_attr_value((#tokens))
+                            {
+                                __attrs.push((#ui::AttrName::from_static(#name), __v));
+                            }
                         }),
                         // Reactive: the effect (which runs immediately) owns the
                         // expression; the tree carries a placeholder.
@@ -698,19 +695,27 @@ fn gen_mount_ops(
                     ParsedAttr::Static { .. } => {}
                     ParsedAttr::Dynamic { name, tokens } => {
                         // The effect owns the expression; immediate run queues
-                        // the initial SetAttribute (decision 008).
+                        // the initial Set/RemoveAttribute (decision 008). An
+                        // `Option`-valued expression removes on `None` — the
+                        // presence data-attribute contract (§8.2).
                         effects.extend(quote! {{
                             let __r = __rcv.clone();
                             __ctx.effect(move || {
-                                let __value = #ui::IntoHtml::into_html((#tokens))
-                                    .text
-                                    .map(|__c| __c.into_owned())
-                                    .unwrap_or_default();
-                                __r.queue(#ui::DomOp::SetAttribute {
-                                    node_id: __base + #ridx,
-                                    name: #ui::AttrName::from_static(#name),
-                                    value: #ui::__macro::Cow::Owned(__value),
-                                });
+                                match #ui::IntoAttrValue::into_attr_value((#tokens)) {
+                                    ::core::option::Option::Some(__value) => {
+                                        __r.queue(#ui::DomOp::SetAttribute {
+                                            node_id: __base + #ridx,
+                                            name: #ui::AttrName::from_static(#name),
+                                            value: __value,
+                                        });
+                                    }
+                                    ::core::option::Option::None => {
+                                        __r.queue(#ui::DomOp::RemoveAttribute {
+                                            node_id: __base + #ridx,
+                                            name: #ui::AttrName::from_static(#name),
+                                        });
+                                    }
+                                }
                             });
                         }});
                     }

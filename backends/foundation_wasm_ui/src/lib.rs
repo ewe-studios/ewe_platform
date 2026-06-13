@@ -49,7 +49,10 @@ pub use slots::{mount_before, mount_fragment, mount_into, Render, Slot};
 pub use instruction::{ColumnarReceiver, InstructionReceiver};
 // The html! proc macro itself — re-exported so users write
 // `use foundation_wasm_ui::html;`.
-pub use foundation_macros::{html, ThemeTokens};
+pub use foundation_macros::{html, theme, ThemeTokens};
+// Theme token model + runtime builder, re-exported so `theme!{}` output and
+// the no-macro `Theme` builder are reachable from one import path.
+pub use foundation_theme::{GeneratedTheme, Theme, ThemeToken};
 pub use theme::{inject_theme_css, HEAD_NODE_ID, THEME_STYLE_NODE_ID};
 pub use runtime::{DomSignalBinding, Runtime, RuntimeBuilder, SharedInstructionReceiver};
 pub use protocol::{

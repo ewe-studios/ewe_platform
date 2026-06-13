@@ -7,6 +7,12 @@ component — our equivalents are universal: static `class`/attrs in the
 template, state styling via the data-attribute contract, composition via
 slot structs (feature 00).
 
+> **Amendment (features.md §8, 2026-06-13):** config text/class/label fields
+> are `Cow<'static, str>` (not `&'static str`, not a lifetime); components are
+> written as pure `html!` reactive blocks using reactive + Option-valued
+> attributes (`data-pressed={on.then_some("")}`) — no hand-built `Html{}`, no
+> manual DomOp queueing, no `ctx.effect` attribute blocks.
+
 ---
 
 ## button

@@ -13,6 +13,7 @@ mod to_arrow;
 mod type_uuid;
 mod wasm_entrypoint;
 mod html_macro;
+mod theme_macro;
 mod theme_tokens;
 mod wasm_modes;
 mod valtron_entry;
@@ -569,6 +570,24 @@ pub fn html(input: TokenStream) -> TokenStream {
 #[proc_macro_derive(ThemeTokens, attributes(token))]
 pub fn theme_tokens(item: TokenStream) -> TokenStream {
     theme_tokens::theme_tokens_derive(item.into()).into()
+}
+
+/// `theme! { … }` — the headline theme API (decision 021). One function-like
+/// macro that reads like a struct of design-token blocks (`colors`, `spacing`,
+/// `padding`, `margin`, `radius`, `shadow`, `font_size`, `animation`; unknown
+/// blocks are a compile error) and expands to a `const`-capable
+/// `foundation_theme::GeneratedTheme` with compile-time-generated CSS.
+///
+/// ```ignore
+/// let theme = theme! {
+///     colors  { primary: { light: "#3b82f6", dark: "#60a5fa" }, bg: "#ffffff" }
+///     spacing { sm: 8px, md: 16px }
+/// };
+/// let app = App::new().theme(theme);
+/// ```
+#[proc_macro]
+pub fn theme(input: TokenStream) -> TokenStream {
+    theme_macro::theme(input.into()).into()
 }
 
 /// `#[wasm_bin]` — main-thread WASM entrypoint (feature 10, decision 014).

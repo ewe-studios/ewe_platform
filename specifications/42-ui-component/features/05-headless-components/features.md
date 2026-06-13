@@ -62,27 +62,38 @@ static; a component that needs it dynamic takes a getter explicitly.
 ## 2. The component shape (the pattern every entry follows)
 
 ```rust
-/// Static config — plain values, no signals.
+/// Static config — plain values, no signals. Text/class fields are
+/// `Cow<'static, str>` (see §8.1): `&'static str` literals cost nothing,
+/// owned `String`/dynamic values are accepted too. NEVER `&'static str`
+/// (rejects runtime strings) and NEVER a config lifetime (config is moved
+/// into `'static` effect closures, so a borrow can't be captured).
 pub struct SwitchConfig {
-    pub name: &'static str,
+    pub name: Cow<'static, str>,
     pub required: bool,
     pub disabled: bool,
+    pub class: Option<Cow<'static, str>>,
     // …
 }
 
-/// fn parts: root composes thumb; state in/out via signals.
+/// fn parts: root composes thumb; state in/out via signals. The whole body
+/// is `html!` — reactive attrs (`aria-checked={checked.get()}`) and
+/// Option-valued attrs (`data-checked={checked.get().then_some("")}`, §8.2)
+/// mean NO hand-written effects and NO manual DomOp queueing.
 pub fn switch(
     ctx: &Context, rcv: &SharedInstructionReceiver,
     config: SwitchConfig,
     checked: SignalGetter<bool>, set_checked: SignalSetter<bool>,
 ) -> Html {
     html! { ctx, rcv,
-        <button class="switch" role="switch" primal:onclick={set_checked /* toggled via EventData */}>
+        <button class="switch" role="switch"
+                aria-checked={checked.get()}
+                data-checked={checked.get().then_some("")}    // present iff on
+                data-unchecked={(!checked.get()).then_some("")}
+                primal:onclick={set_checked /* toggled via EventData */}>
             <span class="switch-thumb"></span>
         </button>
+        // + a visually-hidden native <input> carrying name/value (forms/AT)
     }
-    // + effects: aria-checked, data-checked/data-unchecked
-    // + hidden input carrying name/value (form integration)
 }
 ```
 
@@ -274,3 +285,67 @@ default stylesheet per component.
 `foundation_wasm_ui` + `foundation_signals` deps only; no_std-compatible
 like its dependencies; components are functions + config/slot structs —
 NO component trait (settled, feature 00 §2).
+
+## 8. Amendments (2026-06-13, post-F1 review)
+
+The first F1 + M6 pass landed the catalog's SHAPE but most of it was
+non-functional scaffolding (effects with empty `let _ = sig.get();` bodies,
+`callback_id = 0` placeholders, `_ctx`/`_rcv` unused, `Html{}` hand-built
+AND DomOps hand-queued in parallel — duplicating `html!`). These amendments
+fix the patterns BEFORE the catalog scales, and the finish-100% rule
+applies: a component lands fully wired or not at all.
+
+### 8.1 Config string fields are `Cow<'static, str>`
+
+All text/class/label/aria config fields are `Cow<'static, str>` (optionals
+`Option<Cow<'static, str>>`), constructed via `impl Into<Cow<'static, str>>`.
+
+- **Rejected: `&'static str`.** Forces string literals; a caller can't pass
+  an i18n string, a formatted label, or any runtime `String`.
+- **Rejected: a config lifetime (`Config<'a>`).** Config values are *moved
+  into `'static` effect closures* and pushed as `Cow<'static, str>` onto the
+  attribute layer (`html!` already uses `Cow<'static, str>` — see
+  `html_macro/codegen.rs`). A non-`'static` borrow cannot be captured, so a
+  lifetime param fights the architecture and goes viral across 40 components.
+- **Chosen: `Cow<'static, str>`.** `&'static str` literals stay borrowed
+  (zero alloc); owned `String`/dynamic values convert in. Matches the wire
+  attribute representation exactly — no extra conversion at emit time.
+
+### 8.2 Lift the per-component effect boilerplate into `html!`
+
+Components must NOT hand-build `Html{}`, hand-queue `CreateElement`/
+`RegisterNode`/`SetAttribute`, or hand-write `ctx.effect` blocks for
+attributes. `html!`'s reactive form already emits ids, mount ops, and one
+effect per dynamic attribute (`codegen.rs:699`). Two capabilities make it
+sufficient for the whole catalog:
+
+- **Reactive attributes (already present):** `aria-checked={checked.get()}`
+  re-runs an effect on change and queues `SetAttribute`. Use directly.
+- **Option-valued dynamic attributes (NEW — the one macro change):** a
+  dynamic attribute whose value is `Option`-like emits `SetAttribute` on
+  `Some(v)` and `RemoveAttribute` on `None`. This is the missing primitive —
+  the **presence data-attribute contract** (§1: `data-checked` present when
+  on, ABSENT when off) cannot be expressed by always-`SetAttribute`
+  (`data-checked="false"` still matches `[data-checked]` in CSS — a bug).
+  Spelling: `data-checked={on.then_some("")}`. Also clears optional aria
+  (`aria-label={cfg.aria_label}` where the value is `Option<Cow>`).
+  Mechanically: the generated effect branches on an `IntoAttrValue` trait —
+  `Option<T>` → Some/None, plain `T` → always-set (back-compat). Boolean
+  attrs that are presence-style use `.then_some("")`; string-valued reactive
+  attrs are unchanged.
+
+After 8.1 + 8.2, a component is its `html!` block plus signal/slot plumbing:
+no `{...}` clone-and-effect blocks except where a single effect legitimately
+touches MULTIPLE nodes/attributes at once (rare; document why).
+
+### 8.3 Correctness fixes folded into the F1 refactor
+
+- `toggle`: drop `role="button"` — a native `<button>` + `aria-pressed` IS
+  the toggle contract (base-ui adds no role); export `ToggleSlots`.
+- `data-disabled`/`data-pressed`/`data-*` everywhere: presence-toggled via
+  §8.2, never `"true"/"false"` strings.
+- `avatar`: wire real `load`/`error` event callbacks to the status signal;
+  honor `fallback_delay_ms`.
+- `toggle_group`: real reactive items + M5 roving focus + ids/DOM ops.
+- M6 `field`: effects emit the six data-attributes for real; setters wire to
+  control focus/blur/input events; validator runs per `ValidationMode`.

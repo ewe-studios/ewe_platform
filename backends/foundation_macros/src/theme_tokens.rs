@@ -1,10 +1,11 @@
-//! WHY: Design tokens should be typed Rust, not stringly CSS — and the CSS
-//! they imply (custom properties, dark-mode overrides, utility classes) must
-//! be generated at COMPILE time (decision 020: zero runtime CSS processing).
+//! WHY: `#[derive(ThemeTokens)]` is the LEGACY compile-time theme form
+//! (decision 020). It is kept for back-compat, but the CSS it emits now comes
+//! from the SAME generator as `theme!{}` and the runtime builder
+//! (`foundation_theme::theme_css`, decision 021) — one source of truth.
 //!
-//! WHAT: `#[derive(ThemeTokens)]` over a struct of `#[token(...)]` fields.
-//! The spec's sketch uses nested non-Rust literals; the REAL syntax carries
-//! everything in attributes (valid Rust, same three levels of dark control):
+//! WHAT: A derive over a struct of `#[token(...)]` fields. The spec's sketch
+//! used nested non-Rust literals; the real syntax carries everything in
+//! attributes (valid Rust):
 //!
 //! ```ignore
 //! #[derive(ThemeTokens)]
@@ -18,51 +19,16 @@
 //! }
 //! ```
 //!
-//! Generates `Theme::new()`, `Theme::CSS: &'static str`, and
-//! `css_string(&self)`: a `:root` block of custom properties, a
-//! `@media (prefers-color-scheme: dark)` override block (explicit values
-//! verbatim; missing dark colors auto-derived at ~80% luminance), per-token
-//! utility classes (`.bg-*`/`.text-*`/`.border-*`, `.p-*`/`.m-*`,
-//! `.rounded-*`, `.shadow-*`), and the built-in utility set (feature 09 §7.2).
+//! Generates `Theme::new()`, `Theme::CSS: &'static str`, and `css_string()`.
 //!
-//! HOW: Pure string assembly inside the macro — the output is ONE `'static`
-//! literal in the binary.
-
-use core::fmt::Write as _;
+//! HOW: Parse the `#[token]` attrs into `foundation_theme::ThemeToken`s, call
+//! `theme_css` at expansion time, embed the result as a `'static` literal.
 
 use proc_macro2::TokenStream;
 use quote::quote;
 use syn::spanned::Spanned;
 
-struct Token {
-    name: String,
-    category: String,
-    light: String,
-    dark: Option<String>,
-}
-
-/// Built-in utility classes (feature 09 §7.2) — token-independent.
-const BUILTIN_UTILITIES: &str = "\
-.relative { position: relative; }\n\
-.absolute { position: absolute; }\n\
-.fixed { position: fixed; }\n\
-.flex { display: flex; }\n\
-.grid { display: grid; }\n\
-.block { display: block; }\n\
-.inline { display: inline; }\n\
-.w-full { width: 100%; }\n\
-.h-screen { height: 100vh; }\n\
-.max-w-md { max-width: 768px; }\n\
-.text-sm { font-size: 0.875rem; }\n\
-.text-lg { font-size: 1.125rem; }\n\
-.font-bold { font-weight: 700; }\n\
-.text-center { text-align: center; }\n\
-.border { border-width: 1px; }\n\
-.border-2 { border-width: 2px; }\n\
-.hidden { display: none; }\n\
-.visible { visibility: visible; }\n\
-.opacity-0 { opacity: 0; }\n\
-.opacity-100 { opacity: 1; }\n";
+use foundation_theme::{theme_css, ThemeToken};
 
 pub fn theme_tokens_derive(input: TokenStream) -> TokenStream {
     let ast: syn::DeriveInput = match syn::parse2(input) {
@@ -96,7 +62,7 @@ pub fn theme_tokens_derive(input: TokenStream) -> TokenStream {
         }
     }
 
-    let css = build_css(&tokens);
+    let css = theme_css(&tokens);
     quote! {
         impl #name {
             /// The full theme stylesheet, generated at compile time.
@@ -123,7 +89,7 @@ pub fn theme_tokens_derive(input: TokenStream) -> TokenStream {
     }
 }
 
-fn parse_token_attr(field: &syn::Field) -> Result<Option<Token>, syn::Error> {
+fn parse_token_attr(field: &syn::Field) -> Result<Option<ThemeToken>, syn::Error> {
     for attr in &field.attrs {
         if !attr.path().is_ident("token") {
             continue;
@@ -145,101 +111,17 @@ fn parse_token_attr(field: &syn::Field) -> Result<Option<Token>, syn::Error> {
             Ok(())
         })?;
         let span = field.span();
-        let category = category
-            .ok_or_else(|| syn::Error::new(span, "#[token] needs category = \"…\""))?;
+        let category =
+            category.ok_or_else(|| syn::Error::new(span, "#[token] needs category = \"…\""))?;
         let light = light
             .ok_or_else(|| syn::Error::new(span, "#[token] needs light = \"…\" or value = \"…\""))?;
-        return Ok(Some(Token {
-            name: field.ident.as_ref().expect("named").to_string().replace('_', "-"),
-            category,
-            light,
-            dark,
-        }));
+        let name = field
+            .ident
+            .as_ref()
+            .expect("named")
+            .to_string()
+            .replace('_', "-");
+        return Ok(Some(ThemeToken::owned(name, category, light, dark)));
     }
     Ok(None)
-}
-
-fn build_css(tokens: &[Token]) -> String {
-    let var_name = |t: &Token| format!("--{}-{}", t.category, t.name);
-
-    let mut css = String::from(":root {\n");
-    for token in tokens {
-        let _ = writeln!(css, "  {}: {};", var_name(token), token.light);
-    }
-    css.push_str("}\n");
-
-    // Dark block: colors only — explicit where given, auto-derived otherwise.
-    let dark_entries: Vec<String> = tokens
-        .iter()
-        .filter(|t| t.category == "color")
-        .filter_map(|t| {
-            let value = t
-                .dark
-                .clone()
-                .or_else(|| auto_dark(&t.light))?;
-            Some(format!("    {}: {};\n", var_name(t), value))
-        })
-        .collect();
-    if !dark_entries.is_empty() {
-        css.push_str("@media (prefers-color-scheme: dark) {\n  :root {\n");
-        for entry in &dark_entries {
-            css.push_str(entry);
-        }
-        css.push_str("  }\n}\n");
-    }
-
-    // Utility classes per category (feature 09 §7.1).
-    for token in tokens {
-        let var = var_name(token);
-        let name = &token.name;
-        match token.category.as_str() {
-            "color" => {
-                let _ = writeln!(css, ".bg-{name} {{ background-color: var({var}); }}");
-                let _ = writeln!(css, ".text-{name} {{ color: var({var}); }}");
-                let _ = writeln!(css, ".border-{name} {{ border-color: var({var}); }}");
-            }
-            "spacing" => {
-                let _ = writeln!(css, ".p-{name} {{ padding: var({var}); }}");
-                let _ = writeln!(css, ".m-{name} {{ margin: var({var}); }}");
-            }
-            "radius" => {
-                let _ = writeln!(css, ".rounded-{name} {{ border-radius: var({var}); }}");
-            }
-            "shadow" => {
-                let _ = writeln!(css, ".shadow-{name} {{ box-shadow: var({var}); }}");
-            }
-            _ => {}
-        }
-    }
-    css.push_str(BUILTIN_UTILITIES);
-    css
-}
-
-/// Auto-derive a dark value from a light `#rrggbb` (or `#rgb`) color:
-/// ~80% luminance (the spec's worked example within rounding). Non-hex
-/// values return None — no auto-generation for non-colors.
-fn auto_dark(light: &str) -> Option<String> {
-    let hex = light.strip_prefix('#')?;
-    let expand = |s: &str| -> Option<Vec<u8>> {
-        match s.len() {
-            3 => s
-                .chars()
-                .map(|c| u8::from_str_radix(&format!("{c}{c}"), 16).ok())
-                .collect(),
-            6 => (0..3)
-                .map(|i| u8::from_str_radix(&s[i * 2..i * 2 + 2], 16).ok())
-                .collect(),
-            _ => None,
-        }
-    };
-    let rgb = expand(hex)?;
-    let darkened: Vec<u8> = rgb
-        .iter()
-        .map(|&v| {
-            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-            let out = (f32::from(v) * 0.8).round() as u8;
-            out
-        })
-        .collect();
-    Some(format!("#{:02x}{:02x}{:02x}", darkened[0], darkened[1], darkened[2]))
 }

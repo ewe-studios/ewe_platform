@@ -44,7 +44,7 @@ mod runtime;
 mod signal;
 
 pub use arena::NodeId;
-pub use callback::{EventData, Modifiers};
+pub use callback::{Callback, EventData, Modifiers};
 pub use computed::ComputedGetter;
 pub use context::Context;
 pub use effect::Effect;
