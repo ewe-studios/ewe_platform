@@ -71,16 +71,53 @@ pub enum FailMode {
 }
 ```
 
-The LLM declares dependencies via `depends_on` in each tool call:
+The LLM declares dependencies via fields in the tool call schema. These fields **must be added** to `foundation_ai::types::ModelOutput::ToolCall`:
 
 ```rust
-pub struct ToolCallRequest {
-    pub id: String,                    // unique ID for this call
-    pub name: String,
-    pub arguments: HashMap<String, ArgType>,
-    pub depends_on: Vec<String>,       // tool call IDs this depends on
+// In foundation_ai::types::ModelOutput
+ToolCall {
+    id: String,
+    name: String,
+    arguments: Option<HashMap<String, ArgType>>,
+    signature: Option<String>,
+    // NEW: dependency fields for DAG execution
+    depends_on: Vec<String>,        // tool call IDs this depends on
+    execution_hint: ExecutionHint,  // parallel, sequential, or unspecified
+}
+
+pub enum ExecutionHint {
+    Unspecified,   // ToolCallManager decides (default)
+    Parallel,      // Run in parallel with other independent calls
+    Sequential,    // Run after depends_on calls complete
 }
 ```
+
+The schema is included in the tool definition sent to the LLM, so the LLM **knows** it can declare dependencies:
+
+```json
+{
+  "name": "read_file",
+  "description": "Read file content",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "path": { "type": "string" },
+      "depends_on": {
+        "type": "array",
+        "items": { "type": "string" },
+        "description": "Tool call IDs this depends on"
+      },
+      "execution_hint": {
+        "type": "string",
+        "enum": ["parallel", "sequential", "unspecified"],
+        "default": "unspecified"
+      }
+    }
+  }
+}
+```
+
+Without these fields in the schema, the LLM cannot declare dependencies — it has no way to know the feature exists.
 
 The ToolCallManager groups tool calls into stages based on dependency depth:
 1. Tool calls with no dependencies → Stage 0 (parallel)
