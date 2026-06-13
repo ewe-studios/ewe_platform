@@ -598,16 +598,29 @@ impl TursoStorage {
                 .map_pending(|_| ()),
         ))
     }
+
+    /// Helper: wrap an async result into a direct value via valtron.
+    fn wrap_async_value<T: Send + 'static>(
+        future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
+    ) -> StorageResult<T> {
+        use foundation_core::valtron::{execute, collect_one};
+
+        let task = from_future(future);
+        let stream = execute(task, None)
+            .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
+
+        collect_one(stream)
+            .transpose()
+            .map_err(|e| StorageError::Backend(format!("Execution failed: {e}")))?
+            .ok_or_else(|| StorageError::Backend("No result from async operation".to_string()))
+    }
 }
 
 impl KeyValueStore for TursoStorage {
-    fn get<V: DeserializeOwned + Send + 'static>(
-        &self,
-        key: &str,
-    ) -> StorageResult<Option<V>> {
+    fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.get_async_internal::<V>(&key).await
         })
     }
@@ -615,7 +628,7 @@ impl KeyValueStore for TursoStorage {
     fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.set_async_internal(&key, value).await
         })
     }
@@ -623,7 +636,7 @@ impl KeyValueStore for TursoStorage {
     fn delete(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.delete_async_internal(&key).await
         })
     }
@@ -631,7 +644,7 @@ impl KeyValueStore for TursoStorage {
     fn exists(&self, key: &str) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.exists_async_internal(&key).await
         })
     }
@@ -689,7 +702,7 @@ impl QueryStore for TursoStorage {
         let sql = sql.to_string();
         let storage = self.clone();
         let params = params.to_vec();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.execute_async_internal(&sql, &params).await
         })
     }
@@ -697,7 +710,7 @@ impl QueryStore for TursoStorage {
     fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         let sql = sql.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.execute_batch_async_internal(&sql).await
         })
     }
@@ -712,7 +725,7 @@ impl RateLimiterStore for TursoStorage {
     ) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.check_rate_limit_async_internal(&key, max_count, window_seconds).await
         })
     }
@@ -720,7 +733,7 @@ impl RateLimiterStore for TursoStorage {
     fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.record_rate_limit_async_internal(&key).await
         })
     }
@@ -728,7 +741,7 @@ impl RateLimiterStore for TursoStorage {
     fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.reset_rate_limit_async_internal(&key).await
         })
     }
@@ -739,7 +752,7 @@ impl BlobStore for TursoStorage {
         let key = key.to_string();
         let data = data.to_vec();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.put_blob_async_internal(&key, &data).await
         })
     }
@@ -747,7 +760,7 @@ impl BlobStore for TursoStorage {
     fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.get_blob_async_internal(&key).await
         })
     }
@@ -755,7 +768,7 @@ impl BlobStore for TursoStorage {
     fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.delete_blob_async_internal(&key).await
         })
     }
@@ -763,7 +776,7 @@ impl BlobStore for TursoStorage {
     fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let key = key.to_string();
         let storage = self.clone();
-        Self::wrap_async(async move {
+        Self::wrap_async_value(async move {
             storage.blob_exists_async_internal(&key).await
         })
     }

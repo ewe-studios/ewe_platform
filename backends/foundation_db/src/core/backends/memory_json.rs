@@ -38,10 +38,6 @@ impl MemoryJsonStore {
             .map_err(|e| StorageError::Backend(format!("Mutex poisoned: {e}")))
     }
 
-    fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        val
-    }
-
     fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
         Box::new(vals.into_iter().map(|v| Stream::Next(Ok(v))))
     }
@@ -222,7 +218,7 @@ impl BlobStore for MemoryJsonStore {
 
     fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let data = self.lock()?;
-        Ok(Self::stream_once(data.contains_key(key)))
+        Ok(data.contains_key(key))
     }
 }
 

@@ -148,7 +148,7 @@ pub enum MessageEvent {
 
 This enables:
 - **EmbeddingProvider task** subscribes to `Appended` events → generates embeddings for new messages
-- **ObservationMemory task** subscribes to `Appended` events → tracks token accumulation
+- **ObservationMemory task** subscribes to `Appended` events → tracks token accumulation *TODO*: why is ObservationMemory any business with token accumulation, its job is to record observations
 - **External listeners** (UI, monitoring) subscribe for real-time message streaming
 
 ### Semantic Recall

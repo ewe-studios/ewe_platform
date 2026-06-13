@@ -189,16 +189,13 @@ impl<'a> MigrationRunner<'a> {
 
             if !exists {
                 // Apply migration - consume the iterator
-                for _result in store.execute_batch(migration.sql)? {}
+                store.execute_batch(migration.sql)?;
 
                 // Record migration - consume the iterator
-                for _result in store.execute(
-                    "INSERT INTO _migrations (id, name) VALUES (?, ?)",
-                    &[
-                        DataValue::Text(migration.id.to_string()),
-                        DataValue::Text(migration.name.to_string()),
-                    ],
-                )? {}
+                store.execute(
+                    "INSERT OR IGNORE INTO _migrations (name) VALUES (?)",
+                    &[DataValue::Text(name.to_string())],
+                )?;
 
                 count += 1;
             }

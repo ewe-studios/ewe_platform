@@ -4,6 +4,9 @@
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
+
+**TODO**: I like it, but one question how do we make fast look up work for a sql backend fine, for say fjall store then great, but we need to also catch e.g for a ndjson file a lookup that says this scru128 is at offset in file, so you can do fast seek, this means we might also use fjall beside the ndjson file to make this lookup fast and workers, where other stores like libsql, turso wont need this since they are relationdbs with indexes.
+
 ## Problem
 
 LLM context windows are finite. Long-running sessions accumulate interactions that exceed token limits. The agent needs a structured way to remember important information across sessions without overwhelming the context window with raw message history.
@@ -217,6 +220,9 @@ Observation memory is **NOT** directly included in context — it has been conde
 - **Rejected because:** Different memory types serve different purposes in context assembly
 
 ### External vector database (Pinecone, Chroma)
+
+**TODO**: Nothing  stops us from supporting these, because we should have a central trait for our VectorStore and in native we could implement for Pinecoine, Chroma, TurboPuffer and local.
+
 - **Pros:** Managed, scalable
 - **Cons:** External dependency, network latency, not WASM-compatible, data privacy concerns
 - **Deferred to:** Vector search decision (see Decision 07) — in-process vector store preferred
