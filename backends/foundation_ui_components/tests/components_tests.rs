@@ -611,6 +611,16 @@ fn select_renders_listbox_options_and_hidden_input() {
     assert!(ops.iter().any(|op| matches!(op,
         DomOp::SetAttribute { name, value, .. } if name.name() == Some("type") && *value == "hidden")),
         "hidden input serializes the value");
+    // Item-alignment positioning (base-ui alignItemWithTrigger) is the default.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-align-item") && *value == "true")),
+        "selected item aligns over the trigger");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-select-scroll") && *value == "up")),
+        "scroll arrows present");
+    use foundation_ui_components::pickers::SELECT_ALIGN_JS;
+    assert!(SELECT_ALIGN_JS.contains("data-selected") && SELECT_ALIGN_JS.contains("scrollTop"),
+        "aligns + scrolls the selected item");
 }
 
 #[test]

@@ -28,9 +28,74 @@ use foundation_wasm_ui::{html, SharedInstructionReceiver};
 use crate::machinery::dismiss::dismiss_behavior;
 use crate::machinery::listbox::listbox_behavior;
 use crate::machinery::position::position_behavior;
+use crate::machinery::scoped_script;
 use crate::machinery::scroll_lock::scroll_lock_behavior;
 use crate::machinery::transition::transition_behavior;
 use crate::positioning::{PlacementAlign, PlacementSide};
+
+/// Select item-alignment positioning (base-ui `alignItemWithTrigger`): the popup
+/// is `fixed` so the SELECTED item sits over the trigger; if it overflows the
+/// viewport it clamps with margins and scrolls the selected item onto the
+/// trigger line, with ScrollUp/Down arrows.
+pub const SELECT_ALIGN_JS: &str = r#"function(scope){
+  var pos = scope.parent();
+  if (!pos || pos.__selAlign) return; pos.__selAlign = true;
+  var doc = pos.ownerDocument || document;
+  var win = doc.defaultView || window;
+  var popup = pos.querySelector('[data-select-popup]');
+  if (!popup) return;
+  var anchorId = pos.getAttribute('data-anchor');
+  function trigger(){ return anchorId ? doc.getElementById(anchorId) : pos.previousElementSibling; }
+  var up = pos.querySelector('[data-select-scroll="up"]'), down = pos.querySelector('[data-select-scroll="down"]');
+  var margin = 8;
+  function updateArrows(){
+    var max = popup.scrollHeight - popup.clientHeight;
+    if (up) up.style.visibility = popup.scrollTop > 1 ? 'visible' : 'hidden';
+    if (down) down.style.visibility = popup.scrollTop < max - 1 ? 'visible' : 'hidden';
+  }
+  function align(){
+    if (pos.getAttribute('data-align-item') !== 'true' || !popup.hasAttribute('data-open')) return;
+    var trg = trigger(); if (!trg) return;
+    var r = trg.getBoundingClientRect();
+    var sel = popup.querySelector('[data-selected]') || popup.querySelector('[role="option"]');
+    if (!sel) return;
+    var vh = doc.documentElement.clientHeight;
+    pos.style.position = 'fixed';
+    pos.style.left = r.left + 'px';
+    pos.style.minWidth = r.width + 'px';
+    pos.style.height = '';
+    popup.scrollTop = 0;
+    var selOffset = sel.offsetTop, selH = sel.offsetHeight, natural = popup.scrollHeight;
+    var maxH = vh - 2 * margin, center = r.top + r.height / 2;
+    var top = center - (selOffset + selH / 2);
+    if (natural <= maxH) {
+      if (top < margin) top = margin;
+      if (top + natural > vh - margin) top = vh - margin - natural;
+      pos.style.top = top + 'px';
+      pos.style.height = natural + 'px';
+      popup.scrollTop = 0;
+    } else {
+      pos.style.top = margin + 'px';
+      pos.style.height = maxH + 'px';
+      var st = (selOffset + selH / 2) - (center - margin);
+      popup.scrollTop = Math.max(0, Math.min(st, popup.scrollHeight - popup.clientHeight));
+    }
+    updateArrows();
+  }
+  function holdScroll(arrow, dir){
+    if (!arrow) return;
+    scope.addEvent(arrow, 'pointerenter', function(){
+      var iv = win.setInterval(function(){ popup.scrollTop += dir * popup.clientHeight * 0.25; updateArrows(); }, 50);
+      var stop = function(){ win.clearInterval(iv); arrow.removeEventListener('pointerleave', stop); };
+      arrow.addEventListener('pointerleave', stop);
+    });
+  }
+  holdScroll(up, -1); holdScroll(down, 1);
+  scope.addEvent(popup, 'scroll', updateArrows);
+  var mo = new MutationObserver(function(){ if (popup.hasAttribute('data-open')) win.requestAnimationFrame(align); });
+  mo.observe(popup, { attributes: true, attributeFilter: ['data-open'] });
+  if (popup.hasAttribute('data-open')) win.requestAnimationFrame(align);
+}"#;
 
 /// One pickable item.
 #[derive(Clone)]
@@ -64,6 +129,9 @@ pub struct SelectConfig {
     pub side: PlacementSide,
     /// Preferred alignment.
     pub align: PlacementAlign,
+    /// Align the selected item over the trigger (macOS-style). When false,
+    /// anchored-below (M1). Combobox/autocomplete ignore this.
+    pub align_item_with_trigger: bool,
     /// Disabled.
     pub disabled: bool,
     /// Class override for the trigger/root (default `"select"`).
@@ -78,6 +146,7 @@ impl Default for SelectConfig {
             name: None,
             side: PlacementSide::Bottom,
             align: PlacementAlign::Start,
+            align_item_with_trigger: true,
             disabled: false,
             class: None,
         }
@@ -193,6 +262,7 @@ pub fn select(
     let side_attr: Cow<'static, str> = Cow::Borrowed(config.side.as_str());
     let align_attr: Cow<'static, str> = Cow::Borrowed(config.align.as_str());
 
+    let align_item = config.align_item_with_trigger;
     let t_expanded = open.clone();
     let t_popup_open = open.clone();
     let t_placeholder = value.clone();
@@ -216,9 +286,12 @@ pub fn select(
             <input type="hidden" name=[config.name] value={h_value.get().unwrap_or_default()} />
             <div class="select-positioner"
                  data-anchor=[anchor_attr]
+                 data-align-item=[align_item.then_some("true")]
                  data-prefer-side=[side_attr]
                  data-prefer-align=[align_attr]>
+                <div class="select-scroll-arrow" data-select-scroll="up" aria-hidden="true"></div>
                 <div class="select-popup" id=[popup_id_attr]
+                     data-select-popup="true"
                      role="listbox" tabindex="0"
                      data-anchor=[anchor_attr_popup]
                      data-dismiss="true"
@@ -232,7 +305,9 @@ pub fn select(
                     <Fragment>{transition_behavior()}</Fragment>
                     <Fragment>{modal.then(scroll_lock_behavior)}</Fragment>
                 </div>
-                <Fragment>{position_behavior()}</Fragment>
+                <div class="select-scroll-arrow" data-select-scroll="down" aria-hidden="true"></div>
+                // Item-alignment mode positions itself; otherwise M1 anchors below.
+                <Fragment>{if align_item { scoped_script(SELECT_ALIGN_JS) } else { position_behavior() }}</Fragment>
             </div>
         </div>
     }
