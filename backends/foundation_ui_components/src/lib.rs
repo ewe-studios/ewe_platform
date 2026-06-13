@@ -51,6 +51,14 @@ pub mod input;
 pub mod number_field;
 pub mod otp_field;
 
+// F5 — Menus
+pub mod menu;
+pub mod nav_menu;
+pub mod toolbar;
+
+// F6 — Pickers
+pub mod pickers;
+
 // F8 — Indicators & surfaces
 pub mod progress;
 pub mod slider;
@@ -88,6 +96,12 @@ pub use otp_field::{otp_field, OtpConfig};
 pub use progress::{meter, progress, ProgressConfig};
 pub use slider::{slider, SliderConfig};
 pub use surfaces::{scroll_area, skeleton, ScrollAreaConfig, SkeletonShape};
+pub use menu::{
+    context_menu, menu, menubar, ItemConfig, MenuAction, MenuConfig, MenuEntry, RadioEntry,
+};
+pub use toolbar::{toolbar, ToolbarConfig};
+pub use nav_menu::{navigation_menu, NavItem, NavMenuConfig};
+pub use pickers::{autocomplete, combobox, select, PickItem, SelectConfig};
 pub use field_state::{
     field, FieldBinding, FieldConfig, FieldSlots, FieldState, ValidationMode, Validator,
 };

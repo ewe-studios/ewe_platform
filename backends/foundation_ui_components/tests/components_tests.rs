@@ -18,10 +18,12 @@ use foundation_ui_components::{
     parent_check_state, popover, radio_group, separator, switch, tabs, toast_viewport, toggle,
     tooltip, AccordionConfig, AccordionItem, CheckState, CheckboxConfig, CheckboxSlots,
     CollapsibleConfig, CollapsibleSlots, DialogConfig, DialogSlots, FieldConfig, FieldSlots,
-    progress, scroll_area, skeleton, slider, InputConfig, NumberFieldConfig, OtpConfig,
-    PopoverConfig, PopoverSlots, ProgressConfig, RadioGroupConfig, RadioItem, ScrollAreaConfig,
-    SeparatorConfig, SkeletonShape, SliderConfig, SwitchConfig, TabDef, TabsConfig, Toast,
-    ToastManager, ToggleConfig, ToggleSlots, ValidationMode,
+    menu, navigation_menu, progress, scroll_area, select, skeleton, slider, toolbar, InputConfig,
+    ItemConfig, MenuConfig, MenuEntry, NavItem, NavMenuConfig, NumberFieldConfig, OtpConfig,
+    PickItem, PopoverConfig, PopoverSlots, ProgressConfig, RadioGroupConfig, RadioItem,
+    ScrollAreaConfig, SelectConfig, SeparatorConfig, SkeletonShape, SliderConfig, SwitchConfig,
+    TabDef, TabsConfig, Toast, ToastManager, ToggleConfig, ToggleSlots, ToolbarConfig,
+    ValidationMode,
 };
 use foundation_ui_traits::{DomOp, Html};
 use foundation_wasm_ui::{html, App};
@@ -500,6 +502,113 @@ fn scroll_lock_behavior_locks_and_restores() {
     assert!(body.contains("scrollbar-gutter") || body.contains("scrollbarGutter"), "prefers gutter-stable");
     assert!(body.contains("paddingRight"), "pads the gutter on the fallback path");
     assert!(SCROLL_LOCK_JS.contains("data-open"), "engages while open");
+}
+
+// ─── F5 menus + F6 pickers ──────────────────────────────────────────────────────
+
+#[test]
+fn menu_renders_roled_items_and_listbox_machinery() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let (checked, set_checked) = ctx.signal(false);
+    let items = vec![
+        MenuEntry::Item {
+            cfg: ItemConfig::default(),
+            label: Html::text("Cut").into(),
+            on_select: Box::new(|| {}),
+        },
+        MenuEntry::Checkbox {
+            cfg: ItemConfig { close_on_click: false, ..ItemConfig::default() },
+            label: Html::text("Word wrap").into(),
+            checked,
+            set_checked,
+        },
+        MenuEntry::Separator,
+    ];
+    let _h = menu(
+        &ctx, &rcv, MenuConfig::default(), &open, set_open,
+        vec![Html::text("Edit").into()], items,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-haspopup") && *value == "menu")),
+        "trigger announces a menu popup");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "menuitem")),
+        "command item role");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "menuitemcheckbox")),
+        "checkbox item role");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-list-item") && *value == "true")),
+        "items are list members for virtual highlight");
+}
+
+#[test]
+fn toolbar_marks_children_as_composite_members() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    // Toolbar children are element widgets (separators here) — the marker rides
+    // each child's root element.
+    let _h = toolbar(
+        &ctx, &rcv, ToolbarConfig::default(),
+        vec![
+            separator(SeparatorConfig::default()).into(),
+            separator(SeparatorConfig::default()).into(),
+        ],
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "toolbar")));
+    let marked = ops.iter().filter(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("data-composite-item") && *value == "true")).count();
+    assert_eq!(marked, 2, "each child becomes a roving member");
+}
+
+#[test]
+fn select_renders_listbox_options_and_hidden_input() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let (value, set_value) = ctx.signal::<Option<String>>(Some(alloc_string("b")));
+    let items = vec![PickItem::new("a"), PickItem::new("b")];
+    let _h = select(&ctx, &rcv, SelectConfig::default(), &open, set_open, &value, set_value, items);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-haspopup") && *value == "listbox")),
+        "select trigger opens a listbox");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("role") && *value == "option")),
+        "options rendered");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("type") && *value == "hidden")),
+        "hidden input serializes the value");
+}
+
+#[test]
+fn navigation_menu_is_nav_with_linked_panels() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (active, set_active) = ctx.signal::<Option<String>>(None);
+    let items = vec![
+        NavItem { value: alloc_string("products"), trigger: Html::text("Products").into(),
+                  content: Some(Html::text("panel").into()), href: None, current: false },
+        NavItem { value: alloc_string("home"), trigger: Html::text("Home").into(),
+                  content: None, href: Some("/".into()), current: true },
+    ];
+    let _h = navigation_menu(&ctx, &rcv, NavMenuConfig::default(), &active, set_active, items);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-controls") && value.starts_with("nav-panel-"))),
+        "trigger controls its panel");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. } if name.name() == Some("aria-current") && *value == "page")),
+        "current link marked");
 }
 
 // ─── F8 indicators & surfaces ───────────────────────────────────────────────────
