@@ -99,7 +99,7 @@ echo "✓ Playwright + chromium installed"
 [tasks."test:browsers"]
 alias = "test-browsers"
 description = "Install browsers for the pure-Rust browser test driver (spec-43)"
-depends = ["test:browsers:chromium"]
+depends = ["test:browsers:chromium", "test:browsers:firefox"]
 run = 'echo "✓ test browsers installed"'
 
 [tasks."test:browsers:chromium"]
@@ -114,6 +114,20 @@ case "$(. /etc/os-release; echo "$ID")" in
   *) echo "Install a Chromium build and set PRIMAL_TEST_CHROMIUM_BIN" >&2; exit 1 ;;
 esac
 echo "✓ chromium installed"
+"""
+
+[tasks."test:browsers:firefox"]
+description = "Install Firefox for foundation_browser BiDi tests (per-distro)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+case "$(. /etc/os-release; echo "$ID")" in
+  arch)          sudo pacman -S --needed --noconfirm firefox ;;
+  debian|ubuntu) sudo apt-get update && sudo apt-get install -y firefox-esr || sudo apt-get install -y firefox ;;
+  fedora)        sudo dnf install -y firefox ;;
+  *) echo "Install Firefox and set PRIMAL_TEST_FIREFOX_BIN" >&2; exit 1 ;;
+esac
+echo "✓ firefox installed"
 """
 
 [tasks."test:browser"]
