@@ -15,9 +15,31 @@ tasks:
   completion_percentage: 0%
 ---
 
-**TODO**: Same statement dont let existing API limit you, we build it better, we understand what the limitations are, see if we need to redesign what we need and make it work. If existing traits are to bounded, lets create new specific traits for our usecases that we design for that fit our needs, that is ok.
-
 # Feature 07: MemoryStore
+
+> **Standing directive (user, 2026-06-15):** don't let an existing API bound the design — understand the
+> limitation, redesign, and **create new purpose-fit traits where the existing ones are too bounded**.
+> This applies to **every** feature/decision in this spec; each is updated toward the desired end goal,
+> with genuine holes surfaced to the user rather than papered over. F07's application of this is resolved
+> below.
+
+> **RESOLVED (user, 2026-06-15) — don't let `KeyValueStore` bound the design; build the trait we need.**
+> `MemoryStore` is a **purpose-built trait** for the latest-snapshot-per-session use case, NOT a thin
+> reskin constrained by `KeyValueStore`'s shape. Where the existing KV trait is too bounded we either
+> design around it or add a new, specific trait — that's fine. Concretely, addressing the limitations the
+> review found:
+> - **No bulk get (hydrate = 3 sequential gets):** `hydrate()` is a **first-class single-shot op** in our
+>   trait, and the `KeyValueStore` impl stores all three tiers under **one key** `memory:{session_id}` as
+>   a single `MemoryBundle` JSON → **hydrate is ONE get** (the hot resume path wins). `set_*` becomes a
+>   read-modify-write of the bundle; that's acceptable because writes happen at memory triggers (rare),
+>   reads happen on every resume (hot). If per-tier keys are ever needed for a backend, add a small
+>   `BulkKeyValueStore { get_many(&[key]) }` extension rather than living with N round-trips. (OD-07-8.)
+> - **`set` clones by value:** our `set_*` takes `&Snapshot`; the bundle path serializes once. We don't
+>   inherit the by-value clone at the MemoryStore API. (OD-07-9.)
+> - **Async `(?Send)`:** kept (mirrors `AsyncKeyValueStore`), already OD-07-5.
+>
+> So `MemoryStore` is **our** trait; `KvMemoryStore`/`FjallMemoryStore` are impls that adapt the storage
+> substrate to it — the substrate does not dictate the API.
 
 > **Review status (2026-06-14) — crate placement reversed (was fatal).** The typed `MemoryStore`
 > **cannot** live in `foundation_db` (OD-07-4 was wrong): it names `SessionId` + the snapshot types,
@@ -85,23 +107,32 @@ the record and the snapshot use them). OD-07-1.
 ### Backing: `KvMemoryStore` over `KeyValueStore`
 
 The default impl wraps any `KeyValueStore` (`storage_provider.rs:309`) — so it works on every backend
-(SQLite, Turso/D1, in-memory, CF KV):
+(SQLite, Turso/D1, in-memory, CF KV). **One key per session holding the whole bundle**, so the hot
+resume path is a single get (OD-07-8):
 
 ```
-key: memory:{session_id}:working      → JSON(WorkingMemorySnapshot)
-key: memory:{session_id}:observation  → JSON(ObservationSnapshot)
-key: memory:{session_id}:reflection   → JSON(ReflectionSnapshot)
+key: memory:{session_id}   → JSON(MemoryBundle { working?, observation?, reflection? })
 ```
 
-`set_*` = `kv.set(key, json)` (overwrite); `get_*` = `kv.get(key)`; `hydrate` = three gets (or one
-`list_keys("memory:{session}:")` + bulk). This is the universal path.
+- **`hydrate`** = **one** `kv.get("memory:{session}")` → deserialize `MemoryBundle`. No 3-get fan-out,
+  no `list_keys` scan.
+- **`set_*`** updates one tier of the bundle and re-persists it. Because the live session already holds
+  the hydrated `MemoryBundle` in memory, `set_*` mutates that in-memory copy and writes the whole bundle
+  once — **no read-modify-write round-trip** on the hot path; a cold writer (no cached bundle) does one
+  get first. Single-writer-per-session (OD-07-6) makes this race-free.
+- **`get_*`** reads the cached/persisted bundle and returns the one tier.
+- **`clear`** = delete the single key.
+
+This is the universal path. (Per-tier keys remain a fallback for any backend that needs them, via a
+`BulkKeyValueStore::get_many` extension — OD-07-8 — never N blind round-trips.)
 
 ### Optional native fjall keyspace
 
-On native, a `FjallMemoryStore` uses a dedicated fjall partition keyed `{session_id}:{tier}` for
-locality and fast point-reads, mirroring the F05 sidecar-index philosophy. Same trait; chosen by
-config. (OD-07-2 — is the KV path sufficient, making fjall a perf-only option? Rec: yes, fjall is
-opt-in.)
+On native, a `FjallMemoryStore` uses a dedicated fjall partition for locality and fast point-reads,
+mirroring the F05 index philosophy. fjall reads are cheap and local, so it may key **per session**
+(`{session_id}` → bundle, single read, consistent with KV) or **per tier** (`{session_id}:{tier}`,
+avoids any RMW) — either satisfies `hydrate`. Same trait; chosen by config. (OD-07-2 — is the KV path
+sufficient, making fjall a perf-only option? Rec: yes, fjall is opt-in.)
 
 ### Relationship to DocumentStore (source of truth)
 
@@ -125,20 +156,33 @@ graph TD
 
 ## HOW: Implementation Steps
 
-1. Factor F01's memory payloads into shared `*Snapshot` structs (used by both `SessionRecord` and
-   `MemoryStore`).
-2. Define `MemoryStore` trait + `MemoryBundle` in `foundation_db` (or `foundation_ai::agentic`? —
-   OD-07-4: it's storage → `foundation_db`).
-3. `KvMemoryStore<K: KeyValueStore>` impl (universal).
-4. `FjallMemoryStore` (native, opt-in) impl.
-5. `hydrate` + `clear`; document the DocumentStore fallback contract.
-6. Tests: set/get/overwrite per tier; hydrate bundle; clear; missing-tier → None; KV + fjall parity;
-   fallback-to-DocumentStore (integration with F04).
+1. Factor F01's memory payloads into shared `*Snapshot` structs so the record and the `MemoryStore`
+   snapshot can't diverge — via the sharing strategy chosen in **OD-07-1** (flatten vs nest vs duplicate;
+   needs the user's wire-format call).
+2. Define `MemoryStore`/`AsyncMemoryStore` + `MemoryBundle` in **`foundation_ai::agentic`** (it names
+   `SessionId`/snapshots; `foundation_db` can't depend on `foundation_ai` — OD-07-4).
+3. `KvMemoryStore<K: KeyValueStore>` impl (universal) — single-key bundle (OD-07-8).
+4. `FjallMemoryStore` (native, opt-in) impl in `foundation_nativeapis`.
+5. `hydrate` (one get) + `clear` (one delete); document the DocumentStore fallback contract.
+6. Tests: set/get/overwrite per tier; single-get hydrate bundle; clear; missing-tier → None; KV + fjall
+   parity; fallback-to-DocumentStore (integration with F04, filter by `record_type`).
 
 ## Open Decisions
 
-- **OD-07-1 — shared snapshot structs:** factor F01's memory payloads so record + snapshot share
-  types (avoid divergence). Rec: yes.
+- **OD-07-1 — shared snapshot structs (NEEDS USER CALL — wire-format tradeoff):** the record and the
+  snapshot must share the payload structs (`WorkingMemorySnapshot`/`ObservationSnapshot`/
+  `ReflectionSnapshot`) to avoid divergence, but F01's `SessionRecord` variants carry **extra** record-level
+  fields (`timestamp`, the reflection before/after counts) the bare snapshot doesn't. Three ways to share,
+  each with a cost:
+  - **(a) `#[serde(flatten)] snapshot: WorkingMemorySnapshot` + outer fields** — keeps Decision 03's
+    **flat** JSON, shares the struct. **Risk:** `SessionRecord` is an internally-tagged enum
+    (`tag = "message_type"`); serde `flatten` inside internally-tagged variants has known edge cases —
+    must be tested.
+  - **(b) nest `snapshot: { … }`** — clean Rust, but **changes the wire shape** (Decision 03 fixtures
+    become nested). A deliberate break to document.
+  - **(c) duplicate the structs** — no wire change, but reintroduces the divergence we're trying to kill.
+  **Rec: (a) flatten** if the internally-tagged-enum test passes, else (b) with a documented wire change.
+  This is the one open hole in F07 — flagged for the user.
 - **OD-07-2 — fjall vs KV:** is `KvMemoryStore` sufficient, fjall a perf-only opt-in? Rec: yes.
 - **OD-07-3 — derived-cache semantics:** MemoryStore is a cache over DocumentStore; resume falls back
   to a DocumentStore scan if a tier snapshot is absent. Confirm.
@@ -154,6 +198,14 @@ graph TD
 - **OD-07-7 — fallback addressing:** "latest of tier T" via `DocumentStore` requires either separate
   collections per tier or scan-and-filter by `record_type` (F04 promoted column!). Rec: filter by
   `record_type` via F04's `scan_documents`; re-populate `MemoryStore` on a fallback hit.
+- **OD-07-8 — single-key bundle vs per-tier keys:** **Resolved (user, 2026-06-15)** → store the whole
+  `MemoryBundle` under **one key** `memory:{session_id}` so `hydrate` is one get (hot resume path). The
+  live session caches the bundle, so `set_*` mutates in memory + writes once (no RMW round-trip). If a
+  backend ever needs per-tier keys, add a `BulkKeyValueStore::get_many(&[key])` extension trait rather
+  than N blind round-trips — don't let the bounded `KeyValueStore` shape force a slow hydrate.
+- **OD-07-9 — API doesn't inherit KV's by-value `set`:** **Resolved (user, 2026-06-15)** → `MemoryStore`
+  is our purpose-built trait: `set_*` takes `&Snapshot`, serialization happens once at the bundle
+  boundary; we do not propagate `KeyValueStore::set`'s by-value clone into the MemoryStore API.
 
 ## Target Files
 
@@ -165,28 +217,36 @@ graph TD
 ## Tests
 
 ```bash
-cargo test -p foundation_db -- memory_store
+cargo test -p foundation_ai -- agentic::memory_store
+cargo test -p foundation_nativeapis --features vfs-fjall -- memory_store   # FjallMemoryStore
 ```
 
 ## Verification
 
 ```bash
-cargo build -p foundation_db
-cargo clippy -p foundation_db -- -D warnings
-cargo test  -p foundation_db
+cargo build  -p foundation_ai
+cargo clippy -p foundation_ai -- -D warnings
+cargo test   -p foundation_ai -- agentic::memory_store
+cargo build  -p foundation_nativeapis --features vfs-fjall   # native fjall backend
 ```
 
 ## Fundamentals Documentation (zero-to-expert) — REQUIRED
 
 Author `fundamentals/` covering: derived caches vs source-of-truth & invalidation; cache-aside &
-fallback patterns; KV access patterns for latest-snapshot reads; **crate dependency direction** (why
-a trait can't name types from a crate that depends on it); last-writer-wins vs CAS/versioning;
-`?Send` async mirrors. (Task — see list.)
+fallback patterns; KV access patterns for latest-snapshot reads (**single-key bundle vs per-tier keys**,
+why one get beats N); **designing purpose-fit traits instead of being bounded by a substrate trait**
+(when to add a `BulkKeyValueStore` extension); **crate dependency direction** (why a trait can't name
+types from a crate that depends on it); last-writer-wins vs CAS/versioning; `?Send` async mirrors.
+(Task — see list.)
 
 ## Done When
 
-- `MemoryStore` (+ async mirror) is defined; `KvMemoryStore` works over any `KeyValueStore`; an
-  optional native `FjallMemoryStore` exists.
-- `hydrate()` loads all three tiers fast on resume; missing tiers fall back to DocumentStore.
-- Snapshot structs are shared with F01's records (no divergence).
-- OD-07-1..5 resolved.
+- `MemoryStore` (+ `AsyncMemoryStore` `?Send` mirror) is defined **in `foundation_ai::agentic`** (not
+  `foundation_db`); `KvMemoryStore` works over any `KeyValueStore` via a single-key bundle; an optional
+  native `FjallMemoryStore` exists in `foundation_nativeapis`.
+- `hydrate()` is **one get** on resume; missing tiers fall back to a DocumentStore `record_type` scan and
+  re-populate the cache.
+- Snapshot structs are shared with F01's records via the OD-07-1 factoring (no divergence).
+- `MemoryStore` is a purpose-built trait, not bounded by `KeyValueStore` (single-key hydrate, `&`-taking
+  `set_*`).
+- OD-07-2..9 resolved; **OD-07-1 flagged for the user** (snapshot-sharing wire-format call).
