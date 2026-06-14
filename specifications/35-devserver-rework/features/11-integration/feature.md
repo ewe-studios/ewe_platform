@@ -68,7 +68,7 @@ fn test_sse_event_format() {
 
 #[test]
 fn test_cargo_builder_skips_check() {
-    // 1. Create CargoBuilderTask with skip_check = true
+    // 1. Create ProjectBuilderTask with CargoBuilder (skip_check = true)
     // 2. Push FileChange::Rust event
     // 3. Verify cargo build runs but cargo check does not
 }

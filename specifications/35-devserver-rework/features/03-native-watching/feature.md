@@ -1,12 +1,12 @@
 ---
 feature: "Native Watching"
-description: "Replace DirectoryWatcher (notify-based) with NativeWatcher from foundation_nativeapis — FileChange enum + thin valtron FileWatcherTask adapter"
+description: "Reuse foundation_nativeapis::valtron::FileWatcherTask — subscribe to its mpp broadcast, map WatchEvent → FileChange"
 status: "pending"
 priority: "high"
-depends_on: ["02-task-operators", "specifications/34-native-file-watchers/01-native-apis"]
-estimated_effort: "medium"
-created: 2026-06-01
-last_updated: 2026-06-01
+depends_on: ["02-task-operators"]
+estimated_effort: "small"
+created: "2026-06-01"
+last_updated: "2026-06-14"
 ---
 
 # Feature: Native Watching
@@ -21,44 +21,59 @@ Current `DirectoryWatcher` in `crates/devserver/src/watchers.rs`:
 
 ## Solution
 
-Replace with `FileWatcherTask` that wraps `foundation_nativeapis::NativeWatcher`:
+**Reuse `foundation_nativeapis::valtron::FileWatcherTask` as-is.** It already:
+- Wraps `NativeWatcher` (inotify on Linux, kqueue on macOS, ReadDirectoryChangesW on Windows)
+- Uses `TaskStatus::Depends(CompositeReadiness)` — parks the task, zero CPU spinning
+- Broadcasts `WatchEvent` to subscribers via `mpp::Receiver<WatchEvent>`
+- Handles stop signals via `StopSignal`
+
+We only need a thin adapter that subscribes to its broadcast and maps `WatchEvent → FileChange`:
 
 ```rust
-pub struct FileWatcherTask {
-    watcher: Box<dyn NativeWatcher>,
-    change_queue: Arc<ConcurrentQueue<FileChange>>,
-    watched_paths: Vec<PathBuf>,
-    poll_interval: Duration,
-}
+// FileWatcherTask already exists in foundation_nativeapis — we just subscribe:
+let mut builder_task = FileWatcherTask::new()?;
+builder_task.watch(Path::new("src/"), true)?;
+let mut event_rx = builder_task.subscribe();  // mpp::Receiver<WatchEvent>
 
-impl TaskIterator for FileWatcherTask {
-    type Ready = ();
-    type Pending = ();
-    type Spawner = NoSpawner;
+// Spawn into valtron (already a TaskIterator):
+engine.schedule(Box::new(builder_task))?;
 
-    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        // Poll the native watcher (sync, blocks up to 50ms)
-        match self.watcher.poll(Duration::from_millis(50)) {
-            Ok(events) => {
-                for event in events {
-                    let change = FileChange::from(&event.path);
-                    let _ = self.change_queue.push(change);
-                }
-            }
-            Err(e) => tracing::warn!("watcher poll error: {}", e),
+// In ProjectBuilderTask (subscriber side):
+fn next_status(&mut self) -> Option<TaskStatus<...>> {
+    while let Ok(watch_event) = self.event_rx.try_recv() {
+        let change = FileChange::from(&watch_event.path);
+        if matches!(change, FileChange::Rust(_)) {
+            self.pending_rebuild = true;
         }
-
-        // Yield back to valtron
-        Some(TaskStatus::Wait(self.poll_interval))
     }
+    if self.pending_rebuild {
+        // do the build...
+    }
+    // No events → Depends(QueueReadiness) — parks until file change arrives
+    Some(TaskStatus::Depends(Arc::new(self.ready_signal.clone())))
 }
 ```
 
-The valtron task is a thin adapter. `NativeWatcher::poll()` does all the work.
+### Why Depends matters here
+
+`FileWatcherTask` itself uses `TaskStatus::Depends(CompositeReadiness(watcher, stop_signal))` — on Linux this parks on inotify epoll, zero ticks. **Subscribers** (ProjectBuilderTask, SseReloadHandler) use `Depends(QueueReadiness)` — the queue itself is the readiness signal, no separate bool to flip.
 
 ### FileChange Enum (preserve current API)
 
-Keep the existing `FileChange` enum for API compatibility — it categorizes changes by file extension, which the CargoBuilderTask uses to decide whether to rebuild (only on `FileChange::Rust`).
+Keep the existing `FileChange` enum for API compatibility — it categorizes changes by file extension, which each `ProjectBuilder` uses via `should_build()` to decide whether to trigger (e.g. `CargoBuilder` only on `FileChange::Rust`).
+
+```rust
+#[derive(Clone, Debug, Hash, Eq, PartialEq)]
+pub enum FileChange {
+    Rust(PathBuf),
+    Javascript(PathBuf),
+    Typescript(PathBuf),
+    Ruby(PathBuf),
+    Any(PathBuf),
+}
+
+impl From<&PathBuf> for FileChange { ... }
+```
 
 ### Two Watcher Instances
 
@@ -66,28 +81,21 @@ The current devserver uses **two** separate watchers:
 1. **Builder watcher** — watches `build_directories` for Rust file changes → triggers cargo build
 2. **Reloader watcher** — watches `reload_directories` for any file changes → triggers browser SSE reload
 
-Both become separate `FileWatcherTask` instances with separate `ConcurrentQueue`s.
+Both become separate `FileWatcherTask` instances with separate subscriptions.
 
 ### Task Breakdown
 
 1. [ ] Define `FileChange` enum (copy from devserver, preserve API)
-2. [ ] Implement `FileWatcherTask` struct wrapping `NativeWatcher`
-3. [ ] Implement `TaskIterator` for `FileWatcherTask`
-4. [ ] Implement `From<PathBuf> for FileChange` (extension-based categorization)
-5. [ ] Write tests: touch file, verify FileChange event delivered to queue
-6. [ ] Verify wasm32 compilation (stub/no-op watcher)
+2. [ ] Wire `FileWatcherTask` from `foundation_nativeapis::valtron` — no implementation needed
+3. [ ] Create `QueueReadiness<WatchEvent>` wrapping the broadcaster's queue — subscribers use `Depends(QueueReadiness)`
+4. [ ] ProjectBuilderTask and SseReloadHandler subscribe to their own `QueueReadiness` for zero-spinning waits
+5. [ ] Write tests: touch file, verify FileChange delivered to subscriber queue
 
-## Dependencies
-
-- **Feature 01** (scaffolding) must be complete
-- **Spec 34 Feature 01** (native-apis) must be complete — `NativeWatcher` trait must exist
-- Requires `foundation_nativeapis` with `watcher` feature enabled
-
-## File Changes Summary
+### File Changes Summary
 
 | File | Action |
 |------|--------|
-| `backends/foundation_toolings/src/watcher/mod.rs` | Create — FileChange + FileWatcherTask |
+| `backends/foundation_toolings/src/watcher/mod.rs` | Create — FileChange enum + event pump helper |
 
 ---
 

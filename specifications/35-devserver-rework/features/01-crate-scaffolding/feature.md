@@ -37,14 +37,14 @@ backends/foundation_toolings/
 │   ├── watcher/
 │   │   └── mod.rs          # FileChange enum + watcher task (delegates to NativeWatcher)
 │   ├── builder/
-│   │   └── mod.rs          # CargoBuilderTask (sync cargo check/build)
+│   │   └── mod.rs          # ProjectBuilderTask + ProjectBuilder trait
 │   ├── runner/
 │   │   └── mod.rs          # BinaryRunnerTask (sync process lifecycle)
 │   ├── proxy/
-│   │   ├── mod.rs          # ProxyTask (Listener + accept loop + route dispatch)
-│   │   ├── http1.rs        # Http1 request handler (simple_http parser, route dispatch)
-│   │   ├── tunnel.rs       # TCP tunnel (raw bidirectional copy)
-│   │   └── sse.rs          # SSE reload handler (SseResponse + EventWriter + reload_queue)
+│   │   ├── mod.rs          # ProxyTask — builds HttpApp + HttpServer with TunnelProxy
+│   │   ├── handlers.rs     # Serve handlers: ProxyForwarder, SseReloadHandler
+│   │   ├── tunnel_proxy.rs # TunnelProxy trait impl (raw TCP to upstream)
+│   │   └── copy.rs         # copy_bidirectional helper (foundation_netio::netcap::Connection)
 │   └── service/
 │       └── mod.rs          # DevService — valtron-coordinated top-level service
 └── tests/
@@ -69,6 +69,7 @@ keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
 foundation_core = { workspace = true }
 foundation_nativeapis = { workspace = true, features = ["watcher"] }
 foundation_netio = { workspace = true }
+foundation_http = { workspace = true }
 foundation_nostd = { workspace = true }
 foundation_runtimes = { workspace = true }
 foundation_errstacks = { workspace = true }
@@ -95,14 +96,15 @@ workspace = true
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
-| `foundation_netio` | Primary networking crate | Provides `Connection`, `Listener`, `simple_http`, `event_source` — covers all networking needs |
+| `foundation_http` | Primary HTTP server layer | Provides `HttpServer`, `HttpApp`, `Serve` trait, `Router`, `StaticAssetHandler`, `ConnectionResult` — full valtron-integrated HTTP server |
+| `foundation_netio` | Raw TCP / tunnel layer | `Connection`, `Listener`, `copy_bidirectional` for non-HTTP fallback tunneling |
 | `tokio::sync::broadcast` | Replace with `synca` | foundation_core already provides broadcast/signal primitives |
 | `tokio::process` | Replace with `std::process` | Sync spawn + valtron tick for polling process status |
 | `tokio::net` | Replace with `foundation_netio::netcap` | `Connection`/`Listener` provide sync TCP without async runtime |
-| `axum` / `hyper` | Remove entirely | `foundation_netio::simple_http` handles HTTP parsing/responses |
+| `axum` / `hyper` | Remove entirely | `foundation_http` handles HTTP serving; `foundation_netio` handles raw TCP |
 | `async-trait` | Remove | TaskIterator is a sync trait — no async needed |
-| `http` crate | Not needed directly | `foundation_netio::simple_http` provides its own `Status`, `Proto`, headers |
-| `bytes` crate | Not needed | `foundation_netio` handles body I/O internally |
+| `http` crate | Not needed directly | `foundation_http` re-exports `Status`, `Proto`, headers from `foundation_netio` |
+| `bytes` crate | Not needed | `foundation_http`/`foundation_netio` handle body I/O internally |
 
 ### Task Breakdown
 

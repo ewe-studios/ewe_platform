@@ -40,16 +40,18 @@ pub trait TaskIterator {
 
 Each devserver component becomes a `TaskIterator` that:
 1. Performs one unit of work per `next_status()` call
-2. Returns `TaskStatus::Wait(duration)` to yield back to valtron
-3. Returns `TaskStatus::Ready(result)` when work is complete
-4. Returns `TaskStatus::Spawn(action)` to spawn child tasks
-5. Returns `None` to terminate
+2. Returns `TaskStatus::Depends(EventReadiness)` to park until a signal fires (preferred — zero CPU spinning)
+3. Returns `TaskStatus::Wait(duration)` for short-duration polls (e.g. reload timer, <10ms)
+4. Returns `TaskStatus::Ready(result)` when work is complete
+5. Returns `TaskStatus::Spawn(action)` to spawn child tasks
+6. Returns `None` to terminate
 
 ### Coordination Model
 
 Instead of `ParrellelOps` which `tokio::spawn`s all operators concurrently, the `DevService` spawns all component tasks into valtron, and they communicate through:
 - **`concurrent_queue::ConcurrentQueue`** for producer→consumer event streams
 - **`foundation_core::synca`** primitives for signals and barriers
+- **`valtron::run_background_job`** for blocking operations (cargo build) — offloads to `BackgroundJobRegistry` pool, task returns `Depends(QueueReadiness)` to park while work runs
 
 ### Task Breakdown
 
@@ -64,11 +66,12 @@ Instead of `ParrellelOps` which `tokio::spawn`s all operators concurrently, the 
 | Before (async Operator) | After (TaskIterator) |
 |------------------------|---------------------|
 | `Operator::run(signal) -> JoinHandle` | `TaskIterator::next_status() -> TaskStatus` |
-| `tokio::spawn(async move { loop { ... } })` | `loop { yield TaskStatus::Wait(ms); }` |
-| `tokio::select! { event = rx.recv() => ..., _ = signal.recv() => ... }` | Check queue → check signal → return Wait |
+| `tokio::spawn(async move { loop { ... } })` | `loop { yield Depends(signal) or Wait(ms); }` |
+| `tokio::select! { event = rx.recv() => ..., _ = signal.recv() => ... }` | `Depends(QueueReadiness)` — executor parks, wakes on queue message |
+| `tokio::process::Command.output().await` | `run_background_job` → push to queue → `Depends(QueueReadiness)` |
 | `ParrellelOps::run(signal)` | valtron engine spawns each as separate task |
-| `broadcast::channel(2)` for events | `concurrent_queue::ConcurrentQueue` |
-| `signal.resubscribe()` for new listeners | New `ConcurrentQueue` sender per subscriber |
+| `broadcast::channel(2)` for events | `ConcurrentQueue` + `QueueReadiness` |
+| `signal.resubscribe()` for new listeners | `broadcaster.subscribe()` per subscriber |
 
 ## File Changes Summary
 

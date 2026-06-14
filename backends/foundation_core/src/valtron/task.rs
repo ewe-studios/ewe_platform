@@ -66,6 +66,49 @@ impl EventReadiness for BoolSignal {
     }
 }
 
+/// A readiness signal backed by a `ConcurrentQueue<T>`.
+///
+/// The task considers itself ready when the queue is **non-empty** — i.e.,
+/// one or more messages are waiting to be consumed.
+///
+/// This is the preferred signal for any `TaskIterator` that waits on a
+/// producer→consumer queue (file events, build results, SSE reload signals).
+/// The executor parks the task entirely and only wakes it when a message
+/// arrives. Zero CPU spinning.
+///
+/// # Example
+///
+/// ```ignore
+/// let queue = Arc::new(ConcurrentQueue::unbounded());
+/// let readiness = QueueReadiness::new(queue.clone());
+///
+/// // In TaskIterator::next_status():
+/// if let Ok(msg) = queue.pop() {
+///     return Some(TaskStatus::Ready(msg));
+/// }
+/// Some(TaskStatus::Depends(Arc::new(readiness)))
+/// ```
+#[derive(Clone)]
+pub struct QueueReadiness<T>(Arc<ConcurrentQueue<T>>);
+
+impl<T> QueueReadiness<T> {
+    /// Create a `QueueReadiness` that watches the given queue for messages.
+    pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
+        Self(queue)
+    }
+
+    /// Get a clone of the underlying queue for external mutation (pushing messages).
+    pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
+        self.0.clone()
+    }
+}
+
+impl<T: Send> EventReadiness for QueueReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        !self.0.is_empty()
+    }
+}
+
 /// The type for a panic handling closure. Note that this same closure
 /// may be invoked multiple times in parallel.
 pub type PanicHandler = dyn Fn(Box<dyn Any + Send>) + Send + Sync;

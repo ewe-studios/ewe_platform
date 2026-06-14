@@ -38,7 +38,8 @@ Migrate the devserver (`crates/devserver`) into a new crate `backends/foundation
 
 - **valtron** task iterators (`TaskIterator`, `ExecutionAction`, `ExecutionEngine`) instead of `tokio::spawn` + `tokio::select!`
 - **foundation_nativeapis** `NativeWatcher` instead of `ewe_watch_utils::watch_path` (which uses `notify`)
-- **foundation_netio** networking (`Connection`, `Listener`, `simple_http`, `event_source`) instead of hyper/axum/tower
+- **foundation_http** `HttpServer` + `HttpApp` + `Serve` trait instead of hyper/axum/tower for HTTP serving
+- **foundation_netio** raw TCP (`Connection`, `Listener`, `TunnelProxy`) for non-HTTP tunnel forwarding
 - **foundation_core** concurrency (`concurrent_queue`, `synca` primitives) instead of `tokio::sync::broadcast`
 - **foundation_runtimes** `AssetReloader` for embedded reloader.js (already used, keep as-is)
 
@@ -53,6 +54,11 @@ Migrate the devserver (`crates/devserver`) into a new crate `backends/foundation
 - SSE reload uses `tokio_stream::wrappers::BroadcastStream` + axum's `Sse` responder
 - Templates and examples directly import `ewe_devserver::{HttpDevService, ProjectDefinition, ...}` + `tokio::sync::broadcast`
 
+**Replacement stack:**
+- HTTP serving: `foundation_http` (`HttpServer`, `HttpApp`, `Serve`, `ConnectionResult`, `TunnelProxy`)
+- Raw TCP: `foundation_netio` (`Connection`, `Listener`, `copy_bidirectional`)
+- File watching: `foundation_nativeapis` (`NativeWatcher`, `FileWatcherTask`)
+
 ## Feature Index
 
 | Feature | Description | Status |
@@ -60,10 +66,10 @@ Migrate the devserver (`crates/devserver`) into a new crate `backends/foundation
 | [01-crate-scaffolding](features/01-crate-scaffolding/) | Create `backends/foundation_toolings/` with clean Cargo.toml, module structure, error types | pending |
 | [02-task-operators](features/02-task-operators/) | Replace async `Operator` trait with valtron `TaskIterator` — all devserver components become TaskIterators | pending |
 | [03-native-watching](features/03-native-watching/) | Replace `DirectoryWatcher` (notify-based) with `NativeWatcher` from foundation_nativeapis | pending |
-| [04-cargo-builder](features/04-cargo-builder/) | Replace `CargoShellBuilder` (tokio::process) with sync spawning + valtron task iteration | pending |
-| [05-binary-runner](features/05-binary-runner/) | Replace `BinaryApp` (tokio::spawn loops) with valtron TaskIterator managing `std::process::Child` | pending |
-| [06-native-proxy](features/06-native-proxy/) | Replace hyper/axum/tower proxy with foundation_netio (Connection, Listener, simple_http) | pending |
-| [07-sse-reload](features/07-sse-reload/) | Use foundation_netio::event_source (EventWriter, SseEvent, SseResponse) for SSE reload | pending |
+| [04-cargo-builder](features/04-cargo-builder/) | Pluggable `ProjectBuilder` trait — multiple builders (cargo, wasm, JS), `should_build(FileChange)` dispatch, BackgroundJobRegistry backpressure | pending |
+| [05-binary-runner](features/05-binary-runner/) | Replace `BinaryApp` (tokio::spawn loops) with `BinaryRunnerTask` managing `std::process::Child` lifecycle | pending |
+| [06-native-proxy](features/06-native-proxy/) | Replace hyper/axum/tower proxy with foundation_http (HttpServer, Serve, TunnelProxy) | pending |
+| [07-sse-reload](features/07-sse-reload/) | SseReloadHandler as foundation_http Serve impl — ConnectionResult::Take owns connection | pending |
 | [08-dev-service](features/08-dev-service/) | Replace `HttpDevService` with valtron-coordinated `DevService` — spawn all components as child tasks | pending |
 | [09-api-compat](features/09-api-compat/) | Public API surface: `ProjectDefinition`, `ProxyRemoteConfig`, `ProxyType`, `Http1`/`Http2`/`Http3`, `VecStringExt` — preserve signatures where possible | pending |
 | [10-cleanup](features/10-cleanup/) | Deprecate/remove `crates/devserver`, update workspace Cargo.toml, update templates/examples/bin/platform imports | pending |
@@ -107,8 +113,8 @@ Migrate the devserver (`crates/devserver`) into a new crate `backends/foundation
 │    ├─ NativeWatcherTask (foundation_nativeapis)               │
 │    │    └─ polls NativeWatcher, delivers WatchEvent to queue   │
 │                                                               │
-│    ├─ CargoBuilderTask (sync std::process::Command)           │
-│    │    └─ on WatchEvent::Rust → cargo check → cargo build    │
+│    ├─ ProjectBuilderTask (pluggable builders: cargo, wasm, JS)  │
+│    │    └─ on Rust change → cargo check → cargo build (background)
 │    │    └─ on build complete → signals BinaryRunnerTask        │
 │                                                               │
 │    ├─ BinaryRunnerTask (sync std::process::Child lifecycle)   │
@@ -155,6 +161,7 @@ Migrate the devserver (`crates/devserver`) into a new crate `backends/foundation
 - `crates/devserver/` — current devserver implementation (to be replaced)
 - `backends/foundation_nativeapis/` — NativeWatcher trait, WatchEvent, poll-layer (spec-34 feature 01)
 - `backends/foundation_netio/` — Connection, Listener, simple_http (HTTP), event_source (SSE)
+- `backends/foundation_http/` — HttpServer, HttpApp, Serve trait, Router, TunnelProxy, StaticAssetHandler
 - `backends/foundation_core/src/valtron/` — TaskIterator, ExecutionEngine, ExecutionIterator
 - `backends/foundation_core/src/synca/` — signals, broadcast, entry, mpp
 - `backends/foundation_core/src/io/` — memory, ubytes, stream_ext

@@ -1,12 +1,12 @@
 ---
 feature: "Dev Service"
-description: "Replace HttpDevService with valtron-coordinated DevService — spawn all components as child tasks through ExecutionEngine"
+description: "Replace HttpDevService with valtron-coordinated DevService — watchers/builders/runners as TaskIterators, HttpServer runs inline"
 status: "pending"
 priority: "high"
 depends_on: ["02-task-operators", "03-native-watching", "04-cargo-builder", "05-binary-runner", "06-native-proxy", "07-sse-reload"]
 estimated_effort: "medium"
-created: 2026-06-01
-last_updated: 2026-06-01
+created: "2026-06-01"
+last_updated: "2026-06-14"
 ---
 
 # Feature: Dev Service
@@ -21,7 +21,7 @@ Current `HttpDevService` in `crates/devserver/src/builders.rs`:
 
 ## Solution
 
-Replace with `DevService` — a valtron-coordinated service:
+Replace with `DevService` — valtron-coordinated watchers/builders/runners, plus `HttpServer` running inline:
 
 ```rust
 pub struct DevService {
@@ -33,54 +33,69 @@ impl DevService {
         Self { project }
     }
 
-    /// Start the dev service by spawning all components into valtron.
-    /// Returns the task entry IDs for monitoring.
+    /// Start the dev service. Spawns watchers/builders/runners as valtron
+    /// TaskIterators, then starts HttpServer inline (blocking until shutdown).
     pub fn start(
         &self,
         engine: &dyn ExecutionEngine,
-    ) -> Result<DevServiceHandles> {
-        // 1. Create shared channels/queues
-        let (build_changes_tx, build_changes_rx) = ...;
-        let (reload_changes_tx, reload_changes_rx) = ...;
-        let (build_complete_tx, build_complete_rx) = ...;
-        let (package_started_tx, package_started_rx) = ...;
+        shutdown: &Arc<OnSignal>,
+    ) -> Result<()> {
+        // 1. Create shared channels
+        let (build_changes_tx, _) = synca::broadcast::channel(64);
+        let (reload_changes_tx, _) = synca::broadcast::channel(64);
+        let (build_complete_tx, _) = synca::broadcast::channel(16);
 
-        // 2. Register SSE routes
-        let proxy_type = self.configure_proxy_routes(&reload_changes_tx);
+        // 2. Build HttpApp with routes + TunnelProxy
+        let mut app = HttpApp::new_serve();
+        app.ctx.store(build_changes_tx.clone());
+        app.ctx.store(reload_changes_tx.clone());
+        app.ctx.store(build_complete_tx.clone());
 
-        // 3. Spawn all component tasks into valtron
-        let builder_watcher = engine.schedule(Box::new(
-            FileWatcherTask::new(self.project.build_directories.clone(), build_changes_tx)
-                .into_execution_iterator()
+        // Static reloader.js
+        let reloader = StaticAssetHandler::new(RELOADER_JS, "text/javascript");
+        app.router().add_route_any("/static/sse/reloader.js", Arc::new(reloader));
+
+        // SSE reload endpoint
+        app.route_any::<SseReloadHandler>("/static/sse/reload");
+
+        // Catch-all proxy forwarder
+        app.route_any::<ProxyForwarder>("/");
+
+        // Non-HTTP tunnel
+        let tunnel_dest = self.project.upstream_address();
+        app = app.tunnel_proxy(TunnelProxy { dest: tunnel_dest });
+
+        // 3. Spawn valtron TaskIterators for watchers, builder, runner
+        engine.schedule(Box::new(
+            FileWatcherTask::new(self.project.build_directories.clone(), build_changes_tx.clone())
         ))?;
 
-        let reloader_watcher = engine.schedule(Box::new(
-            FileWatcherTask::new(self.project.reload_directories.clone(), reload_changes_tx)
-                .into_execution_iterator()
+        engine.schedule(Box::new(
+            FileWatcherTask::new(self.project.reload_directories.clone(), reload_changes_tx.clone())
         ))?;
 
-        let cargo_builder = engine.schedule(Box::new(
-            CargoBuilderTask::new(..., build_changes_rx, build_complete_tx)
-                .into_execution_iterator()
+        engine.schedule(Box::new(
+            ProjectBuilderTask::new(build_changes_tx.subscribe(), build_complete_queue.clone())
+                .builder(CargoBuilder {
+                    workspace_root: self.project.workspace_root.clone(),
+                    crate_name: self.project.crate_name.clone(),
+                    build_args: self.project.build_arguments.clone(),
+                    skip_check: self.project.skip_rust_checks,
+                })
         ))?;
 
-        let binary_runner = engine.schedule(Box::new(
-            BinaryRunnerTask::new(..., build_complete_rx, package_started_tx)
-                .into_execution_iterator()
+        engine.schedule(Box::new(
+            BinaryRunnerTask::new(
+                self.project.clone(),
+                build_complete_tx.subscribe(),
+            )
         ))?;
 
-        let proxy = engine.schedule(Box::new(
-            ProxyTask::new(proxy_type)
-                .into_execution_iterator()
-        ))?;
+        // 4. Start HttpServer inline (blocks until shutdown signal)
+        let server = app.server(&self.project.proxy_source_address());
+        server.serve(shutdown);
 
-        Ok(DevServiceHandles {
-            builder_watcher,
-            reloader_watcher,
-            cargo_builder,
-            binary_runner,
-            proxy,
-        })
+        Ok(())
     }
 }
 ```
@@ -89,13 +104,41 @@ impl DevService {
 
 ```
 FileWatcherTask (build dirs)
-    ↓ pushes FileChange to queue
-CargoBuilderTask
-    ↓ sets build_complete_flag
-BinaryRunnerTask
-    ↓ pushes to started_queue
-ProxyTask (reads started_queue for SSE reload signals)
-    ↓ serves HTTP to browser
+    ↓ broadcasts FileChange via synca broadcast
+ProjectBuilderTask (subscribes to build changes)
+    ↓ dispatches to matching builders → background jobs
+    ↓ pushes to build_complete_queue when any build finishes
+BinaryRunnerTask (pops from build_complete_queue)
+    ↓ kills old binary, spawns new
+
+HttpServer (inline, same thread pool)
+    ├─ SseReloadHandler → subscribes to reload_changes broadcast
+    ├─ ProxyForwarder → reads build state from ContextBag
+    └─ TunnelProxy → raw copy_bidirectional to upstream
+```
+
+### Key difference from old HttpDevService
+
+The old service spawned the proxy as a `tokio::spawn`ed task alongside the other components.
+Now `HttpServer` runs **inline** after spawning the valtron tasks — its accept loop submits
+each connection as a valtron TaskIterator (`ConnectionHandler`), so HTTP connections and
+valtron tasks (watchers, builder, runner) share the same executor thread pool.
+
+```
+┌─────────────────────────────────────────────────┐
+│ valtron executor (thread pool)                  │
+│                                                 │
+│  TaskIterator  TaskIterator  TaskIterator       │
+│  FileWatcher   CargoBuilder  BinaryRunner       │
+│                                                 │
+│  TaskIterator  TaskIterator  TaskIterator       │
+│  Connection 1  Connection 2  Connection 3       │
+│  (HTTP)        (HTTP)        (tunnel)            │
+└─────────────────────────────────────────────────┘
+
+HttpServer.serve() runs on the calling thread,
+accepting connections and submitting them to the
+executor via foundation_core::valtron::send()
 ```
 
 ### API Compatibility
@@ -110,8 +153,13 @@ waiter.await??;
 
 // New:
 let dev_service = DevService::new(definition);
-let handles = dev_service.start(&engine)?;
-// engine runs; handles provide entry IDs for monitoring
+let shutdown = Arc::new(OnSignal::new());
+// In a signal handler: ctrl_c.on_signal(|| shutdown.trigger());
+
+valtron::run(|| {
+    let engine = valtron::engine();
+    dev_service.start(&engine, &shutdown)?;
+});
 ```
 
 For the CLI consumer (`bin/platform/src/local/mod.rs`), we need a convenience wrapper:
@@ -119,22 +167,26 @@ For the CLI consumer (`bin/platform/src/local/mod.rs`), we need a convenience wr
 ```rust
 pub fn run_dev_server(project: ProjectDefinition) -> Result<()> {
     let dev_service = DevService::new(project);
-    // Set up valtron engine, spawn tasks, run until cancel
-    let mut engine = SingleThreadedEngine::new(Config::default())?;
-    let _handles = dev_service.start(&engine)?;
-    engine.run()?;
-    Ok(())
+
+    let shutdown = Arc::new(OnSignal::new());
+    setup_ctrlc_handler(shutdown.clone());
+
+    valtron::run(|| {
+        let engine = valtron::engine();
+        dev_service.start(&engine, &shutdown)
+    })
 }
 ```
 
 ### Task Breakdown
 
 1. [ ] Define `DevService` struct with `start()` method
-2. [ ] Implement component wiring (queues, flags, channels)
-3. [ ] Implement proxy route configuration (SSE routes)
-4. [ ] Implement `DevServiceHandles` for task monitoring
-5. [ ] Write convenience `run_dev_server()` function for CLI consumers
-6. [ ] Write tests: verify all 5 components are spawned, verify queue wiring
+2. [ ] Implement component wiring (broadcast channels via synca)
+3. [ ] Build `HttpApp` with routes + `TunnelProxy` inside `start()`
+4. [ ] Spawn watcher/builder/runner TaskIterators into valtron
+5. [ ] Start `HttpServer` inline after spawning
+6. [ ] Write convenience `run_dev_server()` function for CLI consumers
+7. [ ] Write tests: verify all components are spawned, verify HttpServer binds
 
 ## File Changes Summary
 

@@ -1,12 +1,12 @@
 ---
 feature: "Native Proxy"
-description: "Replace hyper/axum/tower proxy with foundation_netio (Connection, Listener, HttpConnectionPool, simple_http) for HTTP/1 proxy and TCP tunnel"
+description: "Use foundation_http (HttpServer + HttpApp + Serve) for HTTP/1 proxy + SSE routing, with TunnelProxy for raw TCP tunneling on the same port"
 status: "pending"
 priority: "high"
 depends_on: ["02-task-operators"]
-estimated_effort: "medium"
-created: 2026-06-01
-last_updated: 2026-06-01
+estimated_effort: "small"
+created: "2026-06-01"
+last_updated: "2026-06-14"
 ---
 
 # Feature: Native Proxy
@@ -22,209 +22,225 @@ Current proxy in `crates/devserver/src/proxy.rs` and `crates/devserver/src/strea
 
 ## Solution
 
-Use **`foundation_netio`** — which already provides everything we need:
+Use **`foundation_http`** — which already provides a full valtron-integrated HTTP server with routing, middleware, keep-alive, and static asset serving. Plus a **`TunnelProxy`** for non-HTTP traffic on the same port.
 
 ### Proxy Architecture
 
 ```
-Browser ──(new conn)──► Proxy ──(pooled conn)──► Upstream Backend
-                          │
-                    HttpConnectionPool
-                    ├── "localhost:3000" ──► [RawStream, RawStream, ...]
-                    └── "api.backend:8080" ──► [RawStream]
+Browser ──(TCP)──► HttpServer (foundation_http)
+                      │
+                      ├─ ConnectionHandler (valtron TaskIterator per connection)
+                      │    ├─ HTTP detected → route dispatch
+                      │    │    ├─ /static/sse/reloader.js → StaticAssetHandler (served locally)
+                      │    │    ├─ /static/sse/reload → SseReloadHandler (ConnectionResult::Take)
+                      │    │    └─ /* → ProxyForwarder (forward to upstream via HttpConnectionPool)
+                      │    │
+                      │    └─ Non-HTTP detected → TunnelProxy
+                      │         └─ copy_bidirectional to upstream
+                      │
+                      └─ HttpConnectionPool (persistent upstream connections)
 ```
 
-- **Client → Proxy**: New `Connection` per request (via `Listener.accept()`)
-- **Proxy → Upstream**: Reuse pooled connections (via `HttpConnectionPool`)
-- Connections are keyed by `host:port` and checked in/out with stale expiration
-
-### Networking: `netcap::connection`
+### HttpApp setup
 
 ```rust
-use foundation_netio::netcap::connection::{Listener, Connection, ConfigListenAddr};
+use foundation_http::{
+    shared::{app::HttpApp, context::ContextBag, serve::Serve},
+    native::server::HttpServer,
+    native::handlers::static_asset::StaticAssetHandler,
+};
 
-// Proxy listens for client connections
-let listen_addr = ConfigListenAddr::from_socket_addrs("0.0.0.0:8080")?;
-let listener: Listener = listen_addr.bind()?;
-let (client_conn, _addr) = listener.accept()?;
+// 1. Create app with Serve handlers
+let mut app = HttpApp::new_serve();
+
+// 2. Store shared state in ContextBag
+app.ctx.store(reload_channel.clone());
+app.ctx.store(upstream_config.clone());
+
+// 3. Register routes
+// Static reloader.js — embedded asset, already exists in foundation_http
+let reloader_js = StaticAssetHandler::new(RELOADER_JS_BYTES, "text/javascript");
+app.router().add_route_any("/static/sse/reloader.js", Arc::new(reloader_js));
+
+// SSE reload endpoint — custom Serve handler
+app.route_any::<SseReloadHandler>("/static/sse/reload");
+
+// Catch-all — forward to upstream backend
+app.route_any::<ProxyForwarder>("/");
+
+// 4. Register TunnelProxy for non-HTTP traffic
+app = app.tunnel_proxy(TunnelProxy {
+    dest: upstream_config.address.clone(),
+});
+
+// 5. Create and start server
+let server = app.server("0.0.0.0:8080");
+server.serve(&shutdown_signal);
 ```
 
-### Upstream Connection Pool
+### TunnelProxy (non-HTTP tunnel)
 
 ```rust
-use foundation_netio::simple_http::client::native::{HttpConnectionPool, HttpClientConnection};
+/// Registered once on HttpApp, cloned into each ConnectionHandler.
+/// Runs on the same valtron thread that owns the connection.
+#[derive(Copy, Clone)]
+pub struct TunnelProxy {
+    pub dest: String,
+}
 
-// Pool manages persistent upstream connections — created once, reused forever
-let pool: HttpConnectionPool<SystemDnsResolver> = HttpConnectionPool::default();
-
-// For each client request, get or create upstream connection:
-let upstream_uri = Uri::parse("http://localhost:3000")?;
-let upstream_conn = pool.create_http_connection(&upstream_uri, None)?;
-// If pooled connection available → reuse. Otherwise → new TCP connect.
-
-// After request/response cycle, return to pool:
-pool.return_to_pool(upstream_conn);
-```
-
-### HTTP: `simple_http` module — iterator-based read/write
-
-`simple_http` uses **iterators** for both reading and writing:
-- **Reading**: `HttpRequestReader` / `HttpResponseReader` are `Iterator` types that yield parts (`IncomingRequestParts` / `IncomingResponseParts`)
-- **Writing**: `Http11RequestIterator` / `Http11ResponseIterator` are `Iterator` types that yield `Vec<u8>` chunks
-
-### HTTP/1 Proxy Flow
-
-```rust
-fn handle_http1_request(
-    client_stream: SharedByteBufferStream<RawStream>,
-    config: Http1Config,
-    route_map: &RouteMap,
-    pool: &HttpConnectionPool<SystemDnsResolver>,
-) -> Result<()> {
-    // Step 1: Parse the incoming request from client
-    let mut reader = HttpRequestReader::new(client_stream.clone(), SimpleHttpBody::default());
-
-    // Step 2: Collect parts — intro/headers are read immediately, body is LAZY
-    let mut method = None;
-    let mut url = None;
-    let mut proto = None;
-    let mut headers = None;
-    let mut lazy_body = None;
-
-    for part in &mut reader {
-        match part? {
-            IncomingRequestParts::Intro(m, u, p) => {
-                method = Some(m); url = Some(u); proto = Some(p);
+impl foundation_http::shared::tunnel_proxy::TunnelProxyTrait for TunnelProxy {
+    fn handle(
+        &self,
+        mut conn: SharedByteBufferStream<RawStream>,
+        _streams: HTTPStreams<RawStream>,
+        _client_ip: &str,
+    ) -> ConnectionResult {
+        // Connect to upstream using foundation_netio raw TCP
+        match foundation_netio::netcap::Connection::connect(&self.dest) {
+            Ok(mut upstream) => {
+                // Bidirectional copy — runs to completion on this valtron thread
+                copy_bidirectional(&mut conn, &mut upstream);
+                ConnectionResult::Take
             }
-            IncomingRequestParts::Headers(h) => { headers = Some(h); }
-            IncomingRequestParts::StreamedBody(body) | IncomingRequestParts::SizedBody(body) => {
-                lazy_body = Some(body);
+            Err(e) => {
+                tracing::error!("Tunnel upstream connect failed: {e}");
+                ConnectionResult::Close(None)
             }
-            IncomingRequestParts::NoBody => { lazy_body = Some(SendSafeBody::None); }
-            _ => {}
         }
     }
+}
+```
 
-    // Step 3: Check local routes — only /static/sse/reload
-    if let Some(handler) = route_map.get(&url.as_ref().unwrap().url) {
-        handler(&method, &headers, &lazy_body, &mut reader, config)?;
-        return Ok(());
+### TunnelProxyTrait (to be added to foundation_http)
+
+```rust
+// foundation_http::shared::tunnel_proxy
+
+/// User-provided handler for non-HTTP connections on the same port.
+/// Invoked when `read_next_request()` fails with a non-transient error.
+/// Runs on the same valtron TaskIterator thread that owns the connection.
+pub trait TunnelProxyTrait: Send + Copy + 'static {
+    fn handle(
+        &self,
+        conn: SharedByteBufferStream<RawStream>,
+        streams: HTTPStreams<RawStream>,
+        client_ip: &str,
+    ) -> ConnectionResult;
+}
+```
+
+**Integration point in `ConnectionHandler::handle_idle()`:**
+```rust
+// Current code (line 224-247 of connection.rs):
+Some(Err(e)) => {
+    if Self::is_transient_error(&e) {
+        // delay + retry
+    } else {
+        // TODO: if self.tunnel_proxy.is_some() → invoke instead of 400
+        let _ = respond::text(&mut self.conn.clone(), 400, "Bad Request");
+        None
     }
+}
+```
 
-    // Step 4: Get pooled upstream connection (reuse if available, new if not)
-    let upstream_conn = pool.create_http_connection(&config.destination_uri, None)?;
+### ProxyForwarder (Serve handler for catch-all)
 
-    // Step 5: Build request with LAZY body, render and write to upstream
-    let request = SimpleIncomingRequest::builder()
-        .with_url(url.unwrap())
-        .with_method(method.unwrap())
-        .with_proto(proto.unwrap())
-        .with_headers(headers.unwrap())
-        .with_some_body(lazy_body)  // LAZY — reads from client stream as rendered
-        .build()?;
+```rust
+/// Forwards HTTP requests to upstream backend, streams response back.
+pub struct ProxyForwarder {
+    pool: Arc<HttpConnectionPool<SystemDnsResolver>>,
+    reload_tx: broadcast::Sender<FileChange>,
+}
 
-    let http11_iter = Http11RequestIterator::new(request);
-    for chunk in http11_iter {
-        upstream_conn.stream.write_all(&chunk?)?;
+impl ServeFactory for ProxyForwarder {
+    fn create(bag: &ContextBag) -> Self {
+        Self {
+            pool: bag.get::<HttpConnectionPool<_>>().expect("pool in context"),
+            reload_tx: bag.get::<broadcast::Sender<FileChange>>().expect("reload tx"),
+        }
     }
+}
 
-    // Step 6: Read upstream response and stream back to client
-    // The client connection is already positioned after the request body was streamed.
-    // We read the response from upstream and write it back through the same client stream.
-    let mut response_reader = HttpResponseReader::new(
-        upstream_conn.stream.clone(),
-        SimpleHttpBody::default(),
-    );
+impl Serve for ProxyForwarder {
+    fn serve(
+        &self,
+        _bag: Arc<ContextBag>,
+        req: SimpleIncomingRequest,
+        mut conn: SharedByteBufferStream<RawStream>,
+    ) -> ConnectionResult {
+        // 1. Get pooled upstream connection
+        let mut upstream = self.pool.create_http_connection(&dest_uri, None)?;
 
-    // Render response parts to client — headers + lazy body stream back to client
-    for part in &mut response_reader {
-        match part? {
-            IncomingResponseParts::Intro(status, proto, reason) => {
-                let response = SimpleOutgoingResponse::builder()
-                    .with_status(status)
-                    .with_proto(proto)
-                    .build()?;
-                for chunk in Http11ResponseIterator::new(response) {
-                    reader.stream_mut().write_all(&chunk?)?;
+        // 2. Forward request via Http11RequestIterator
+        let request = SimpleIncomingRequest::builder()
+            .with_method(req.method)
+            .with_url(req.request_url)
+            .with_proto(req.proto)
+            .with_headers(req.headers)
+            .with_some_body(req.body)
+            .build()?;
+
+        let http11_iter = Http11RequestIterator::new(request);
+        for chunk in http11_iter {
+            upstream.stream.write_all(&chunk?)?;
+        }
+
+        // 3. Read upstream response, stream back to client
+        let mut response_reader = HttpResponseReader::new(
+            upstream.stream.clone(),
+            SimpleHttpBody::default(),
+        );
+        for part in &mut response_reader {
+            match part? {
+                IncomingResponseParts::Intro(status, proto, _) => {
+                    let response = SimpleOutgoingResponse::builder()
+                        .with_status(status)
+                        .with_proto(proto)
+                        .build()?;
+                    Http11::response(response).http_render_to_writer(&mut conn)?;
                 }
+                IncomingResponseParts::Headers(h) => {
+                    // forward headers
+                }
+                IncomingResponseParts::StreamedBody(body) |
+                IncomingResponseParts::SizedBody(body) => {
+                    // stream body to client
+                    stream_body_to_client(&mut conn, body)?;
+                }
+                IncomingResponseParts::NoBody => break,
+                _ => {}
             }
-            IncomingResponseParts::Headers(h) => {
-                // Forward headers to client
-                let response = SimpleOutgoingResponse::builder()
-                    .with_status(Status::OK)  // placeholder, actual status from Intro
-                    .with_headers(h)
-                    .build()?;
-                // Write headers-only response to client
-            }
-            IncomingResponseParts::StreamedBody(body) | IncomingResponseParts::SizedBody(body) => {
-                // Stream body from upstream directly to client
-                stream_body_to_client(reader.stream_mut(), body)?;
-            }
-            IncomingResponseParts::NoBody => { /* done */ }
-            _ => {}
         }
+
+        // 4. Return connection to pool
+        self.pool.return_to_pool(upstream);
+
+        ConnectionResult::Keep
     }
-
-    // Step 7: Return upstream connection to pool for reuse
-    pool.return_to_pool(HttpClientConnection {
-        stream: upstream_conn.stream,
-        host: config.destination_host.clone(),
-        port: config.destination_port,
-    });
-
-    Ok(())
 }
 ```
 
-**Key points:**
-- Upstream connections are **persistent and pooled** — `HttpConnectionPool` manages lifecycle
-- Client body streams **lazily** from client → upstream via `Http11RequestIterator`
-- Response body streams **lazily** from upstream → client
-- After the response is fully relayed, the upstream connection is **returned to the pool**
-
-### TCP Tunnel (protocol-agnostic bridge)
-
-For non-HTTP connections or CONNECT tunnels:
+### Bidirectional Copy (raw TCP tunnel)
 
 ```rust
-fn handle_tunnel(
-    mut client: Connection,
-    tunnel: Tunnel,
-    pool: &HttpConnectionPool<SystemDnsResolver>,
-) -> Result<()> {
-    // Tunnels can also use the pool if they target the same backend
-    let mut upstream_conn = pool.create_http_connection(&tunnel.destination_uri, None)?;
-    copy_bidirectional(&mut client, &mut upstream_conn.stream.inner())?;
-    pool.return_to_pool(upstream_conn);
-    Ok(())
-}
-```
-
-### Bidirectional Copy
-
-```rust
-fn copy_bidirectional<R: Read + Write, S: Read + Write>(
-    a: &mut R,
-    b: &mut S,
-) -> io::Result<()> {
-    // Set read timeouts for non-blocking polling
-    a.set_read_timeout(Some(Duration::from_millis(100)))?;
-    b.set_read_timeout(Some(Duration::from_millis(100)))?;
-
+fn copy_bidirectional<R: Read, W: Write, S: Read, T: Write>(
+    a: &mut SharedByteBufferStream<R>,
+    b: &mut Connection<S, T>,
+) {
+    // Use read timeouts for non-blocking polling under valtron
     let mut buf_a = [0u8; 8192];
     let mut buf_b = [0u8; 8192];
 
     loop {
         match a.read(&mut buf_a) {
             Ok(0) | Err(_) => break,
-            Ok(n) => { b.write_all(&buf_a[..n])?; }
+            Ok(n) => { _ = b.write_all(&buf_a[..n]); }
         }
         match b.read(&mut buf_b) {
             Ok(0) | Err(_) => break,
-            Ok(n) => { a.write_all(&buf_b[..n])?; }
+            Ok(n) => { _ = a.write_all(&buf_b[..n]); }
         }
     }
-    Ok(())
 }
 ```
 
@@ -234,38 +250,42 @@ Mark as `todo!()` or stub — not implemented in current devserver.
 
 ### Task Breakdown
 
-1. [ ] Wire up `foundation_netio::netcap::connection::Listener` for proxy accept loop
-2. [ ] Create `HttpConnectionPool` for upstream connections (shared across all proxy ticks)
-3. [ ] Implement request parsing via `HttpRequestReader` (lazy body)
-4. [ ] Implement route dispatch: `/static/sse/reload` → SSE handler, all others → forward to upstream
-5. [ ] Implement request forwarding: build `SimpleIncomingRequest` with lazy body, render via `Http11RequestIterator`, write to pooled upstream
-6. [ ] Implement response relaying: read from upstream via `HttpResponseReader`, stream back to client
-7. [ ] Implement upstream connection checkin/checkout lifecycle
-8. [ ] Implement TCP tunnel for non-HTTP connections
-9. [ ] Remove hyper/axum/tower/h2/h3 from imports
-10. [ ] Write tests: proxy forwarding, tunnel streaming, connection pool reuse
+1. [ ] Add `TunnelProxyTrait` to `foundation_http::shared::tunnel_proxy`
+2. [ ] Wire `TunnelProxyTrait` into `ConnectionHandler::handle_idle()` — invoke on non-transient parse error instead of 400
+3. [ ] Add `tunnel_proxy()` method to `HttpApp<Arc<dyn Serve>>`
+4. [ ] Create `TunnelProxy` in `foundation_toolings::proxy::tunnel_proxy`
+5. [ ] Create `ProxyForwarder` Serve handler in `foundation_toolings::proxy::handlers`
+6. [ ] Wire `StaticAssetHandler` for reloader.js (already exists in foundation_http)
+7. [ ] Create `SseReloadHandler` Serve handler (see feature 07)
+8. [ ] Build `HttpApp` + `HttpServer` in `ProxyTask`
+9. [ ] Write tests: HTTP forwarding, tunnel proxy, static asset serving
 
 ### Dependencies
 
 ```toml
-foundation_netio = { workspace = true, features = ["multi"] }
+foundation_http = { workspace = true }
+foundation_netio = { workspace = true }
 ```
 
 ## File Changes Summary
 
 | File | Action |
 |------|--------|
-| `backends/foundation_toolings/src/proxy/mod.rs` | Create — ProxyTask with HttpConnectionPool |
-| `backends/foundation_toolings/src/proxy/http1.rs` | Create — HTTP/1 handler using simple_http |
-| `backends/foundation_toolings/src/proxy/tunnel.rs` | Create — TCP tunnel using Connection |
+| `backends/foundation_http/src/shared/tunnel_proxy/mod.rs` | Create — `TunnelProxyTrait` (foundation_http extension) |
+| `backends/foundation_http/src/native/server/connection.rs` | Edit — invoke tunnel proxy in `handle_idle()` on non-transient error |
+| `backends/foundation_http/src/shared/app/mod.rs` | Edit — add `tunnel_proxy()` method to `HttpApp` |
+| `backends/foundation_toolings/src/proxy/mod.rs` | Create — ProxyTask builds HttpApp + HttpServer |
+| `backends/foundation_toolings/src/proxy/handlers.rs` | Create — ProxyForwarder + SseReloadHandler Serve impls |
+| `backends/foundation_toolings/src/proxy/tunnel_proxy.rs` | Create — TunnelProxy TunnelProxyTrait impl |
+| `backends/foundation_toolings/src/proxy/copy.rs` | Create — copy_bidirectional helper |
 
 ## Trade-offs
 
 | Decision | Choice | Rationale |
 |----------|--------|-----------|
+| HTTP server | `foundation_http::HttpServer` | Already valtron-integrated, handles accept loop, keep-alive, routing |
+| Non-HTTP tunnel | `TunnelProxy` on same port | Single port for HTTP + raw TCP, no separate listener |
 | Upstream connections | `HttpConnectionPool` — persistent, reused | Real proxies don't reconnect per request |
-| HTTP parsing | `HttpRequestReader` Iterator | Already built in `simple_http::shared::impls.rs` |
-| Body forwarding | Lazy `SendSafeBody::Stream` | No buffering — streams client → upstream directly |
 | HTTP/2, HTTP/3 | Stub/removed | Not implemented in current devserver anyway |
 
 ---
