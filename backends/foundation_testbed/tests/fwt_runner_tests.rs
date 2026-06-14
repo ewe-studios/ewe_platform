@@ -1,19 +1,20 @@
 #![cfg(feature = "wasm")]
 //! WHY: Feature 12 — the owned runner is the contract contributors rely on
-//! (`wasm-testbed node <crate>`): build → discover → stage → run → exit code.
+//! (`wasm-testbed deno <crate>`): build → discover → stage → run → exit code.
 //! These tests pin that loop programmatically against the real sample crate.
 //!
 //! WHAT: Full red run (the sample contains a deliberate failure → exit 1 with the
 //! failure named), filtered green run (exit 0, summary line), and staging contents
 //! (self-contained harness: runtime + runner + cases.json + module.wasm).
 //!
-//! HOW: Uses the library API the CLI itself dispatches to. Requires `node` and a
-//! Rust wasm32 target — skips (with a message) when node is unavailable.
+//! HOW: Uses the library API the CLI itself dispatches to. The run tests use the
+//! in-process embedded Deno runtime (spec-44) — no external node/deno — so they're
+//! gated behind `wasm-embedded-js`; all need a Rust wasm32 target to build.
 
 use std::path::PathBuf;
 
 use foundation_testbed::wasm::cli::{Browser, OwnedRunArgs};
-use foundation_testbed::wasm::fwt_runner::{run_node, stage};
+use foundation_testbed::wasm::fwt_runner::stage;
 
 fn sample_crate() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("integration/module")
@@ -30,17 +31,11 @@ fn args(filter: Option<&str>) -> OwnedRunArgs {
     }
 }
 
-fn node_available() -> bool {
-    which::which("node").is_ok()
-}
-
+#[cfg(feature = "wasm-embedded-js")]
 #[test]
 fn full_run_is_red_with_the_deliberate_failure_named() {
-    if !node_available() {
-        eprintln!("node not on PATH — skipping");
-        return;
-    }
-    let outcome = run_node(&args(None)).expect("runner executes");
+    use foundation_testbed::wasm::fwt_runner::run_deno;
+    let outcome = run_deno(&args(None)).expect("embedded runner executes");
     assert_eq!(outcome.exit_code, 1, "the sample contains a failing case");
     assert_eq!(outcome.cases.len(), 5);
     assert!(outcome.output.contains("FAILED  fails_with_assertion"));
@@ -53,13 +48,11 @@ fn full_run_is_red_with_the_deliberate_failure_named() {
         .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored"));
 }
 
+#[cfg(feature = "wasm-embedded-js")]
 #[test]
 fn filtered_run_is_green_with_exit_zero() {
-    if !node_available() {
-        eprintln!("node not on PATH — skipping");
-        return;
-    }
-    let outcome = run_node(&args(Some("passes"))).expect("runner executes");
+    use foundation_testbed::wasm::fwt_runner::run_deno;
+    let outcome = run_deno(&args(Some("passes"))).expect("embedded runner executes");
     assert_eq!(outcome.exit_code, 0);
     assert_eq!(outcome.cases.len(), 1);
     assert!(outcome

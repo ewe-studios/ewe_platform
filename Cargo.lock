@@ -2155,12 +2155,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "deno_console"
-version = "0.222.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ed7dede3d073a7d19e5e127756d80a1a8b570d8345e51192968da142ed290319"
-
-[[package]]
 name = "deno_core"
 version = "0.404.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2268,12 +2262,6 @@ dependencies = [
  "parking_lot",
  "tokio",
 ]
-
-[[package]]
-name = "deno_url"
-version = "0.222.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54c190c36940b8ba25043e2258775df3cd4af06f28c8a9efd28b50799efe2977"
 
 [[package]]
 name = "deno_web"
@@ -3662,9 +3650,8 @@ dependencies = [
  "base64 0.22.1",
  "chrono",
  "clap",
- "deno_console",
  "deno_core",
- "deno_url",
+ "deno_error",
  "deno_web",
  "deno_webidl",
  "derive_more",
@@ -3691,6 +3678,7 @@ dependencies = [
  "ssh2",
  "tar",
  "tempfile",
+ "tokio",
  "toml 0.8.23",
  "tracing",
  "tracing-subscriber",

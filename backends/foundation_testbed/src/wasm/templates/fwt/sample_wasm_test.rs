@@ -1,6 +1,6 @@
 //! Sample `#[wasm_test]` cases (owned harness — features 12/13, no wasm-bindgen).
 //!
-//! Run with: `wasm-testbed node <this-crate>` (or `deno` / `web`).
+//! Run with: `wasm-testbed deno <this-crate>` (in-process embedded runtime) or `web`.
 //! Requirements in Cargo.toml:
 //!   [lib] crate-type = ["cdylib"]
 //!   foundation_wasm = { workspace = true, features = ["web"] }

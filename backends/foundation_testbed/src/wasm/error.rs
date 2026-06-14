@@ -86,9 +86,16 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     NoFwtCases(String),
 
-    #[display("JS host runtime not found on PATH: {_0}")]
+    #[display(
+        "the embedded JS runtime is not built in.\n\
+        Rebuild with `--features wasm-embedded-js` to run the owned harness in-process."
+    )]
     #[error(ignore)]
-    HostRuntimeNotFound(String),
+    EmbeddedRuntimeDisabled,
+
+    #[display("embedded JS runtime failed: {_0}")]
+    #[error(ignore)]
+    EmbeddedRunFailed(String),
 
     #[display("required tool `{tool}` not found on PATH — needed because it {why}")]
     #[error(ignore)]

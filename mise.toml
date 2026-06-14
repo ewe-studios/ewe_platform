@@ -977,15 +977,15 @@ echo "Running stress tests..."
 cargo test --package foundation_testing --release -- stress
 """
 
-[tasks."test:wasm-testbed:node"]
-alias = "test-wasm-testbed-node"
-description = "Owned #[wasm_test] harness e2e under node (sample crate + ported JS-yield tests)"
+[tasks."test:wasm-testbed:deno"]
+alias = "test-wasm-testbed-deno"
+description = "Owned #[wasm_test] harness e2e on the EMBEDDED Deno runtime (spec-44) — in-process, zero node/deno install. Sample crate + ported JS-yield tests."
 run = """
-echo "Owned wasm-testbed sample (node, filtered green subset)..."
-cargo run -p foundation_testbed --no-default-features --features wasm --bin wasm-testbed -- node backends/foundation_testbed/integration/module --filter passes
-echo "Ported foundation_core JS-yield tests (node)..."
-cargo run -p foundation_testbed --no-default-features --features wasm --bin wasm-testbed -- node backends/foundation_core/integration/wasm_tests
-echo "✓ owned node harness green"
+echo "Owned wasm-testbed sample (embedded deno, filtered green subset)..."
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_testbed/integration/module --filter passes
+echo "Ported foundation_core JS-yield tests (embedded deno)..."
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat --bin wasm-testbed -- deno backends/foundation_core/integration/wasm_tests
+echo "✓ owned embedded-deno harness green"
 """
 
 [tasks."test:wasm-testbed:web"]

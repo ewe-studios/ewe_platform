@@ -1,24 +1,23 @@
-//! WHY: Feature 12 — contributors run `wasm-testbed node <crate>` instead of
+//! WHY: Feature 12 — contributors run `wasm-testbed deno <crate>` instead of
 //! hand-rolling `cargo build --target wasm32 … && node --test`. The full loop is
-//! owned: build → discover → stage → run → report, zero wasm-bindgen/wasm-pack.
+//! owned: build → discover → stage → run → report, zero wasm-bindgen/wasm-pack,
+//! and (spec-44) zero external `node`/`deno` install.
 //!
-//! WHAT: [`run_node`], [`run_deno`], [`run_web`] — build a `foundation_wasm` cdylib
-//! to wasm32 (LLVM backend), discover `__fwt_` cases, stage a self-contained
-//! harness (embedded `foundation-wasm.js` runtime + generic `runner.mjs` + the
-//! module + `cases.json`), execute it on the chosen host, and surface the exit
-//! code/summary.
+//! WHAT: [`run_deno`], [`run_web`] — build a `foundation_wasm` cdylib to wasm32
+//! (LLVM backend), discover `__fwt_` cases, stage a self-contained harness
+//! (embedded `foundation-wasm.js` runtime + generic `runner.mjs` + the module +
+//! `cases.json`), execute it, and surface the exit code/summary.
 //!
 //! HOW: Staging goes to a temp dir (everything in it is generated; nothing to
-//! commit). The SAME runner script serves all three hosts: node runs it directly,
-//! deno via `deno run -A`, the browser via an `index.html` shell that Playwright
-//! polls for the `test result:` summary (reusing the existing server/browser
-//! plumbing). The runtime assets come from `foundation_wasm_ui`'s `embedded-js`
-//! feature, so the staged harness needs no repo paths.
+//! commit). The SAME runner script serves both hosts: the embedded in-process Deno
+//! runtime (`run_deno` → `embedded_js::run_staged_harness`, via the `op_fwt_*` ops)
+//! and the browser (`run_web` → an `index.html` shell that Playwright polls for the
+//! `test result:` summary). The runtime assets come from `foundation_wasm_ui`'s
+//! `embedded-js` feature, so the staged harness needs no repo paths.
 
 use std::path::{Path, PathBuf};
-use std::process::Command;
 
-use tracing::{debug, info};
+use tracing::info;
 
 use crate::wasm::cli::OwnedRunArgs;
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
@@ -67,6 +66,26 @@ pub fn stage(crate_path: &Path, args: &OwnedRunArgs, stage_dir: &Path) -> Result
         return Err(WasmTestbedError::NoFwtCases(built.wasm_path.display().to_string()).trace());
     }
 
+    stage_from_wasm(&built.wasm_path, &cases, stage_dir)?;
+
+    info!(
+        "staged {} case(s) from {} into {}",
+        cases.len(),
+        built.package_name,
+        stage_dir.display()
+    );
+    Ok(cases)
+}
+
+/// Write the self-contained harness for an ALREADY-built wasm module: the embedded
+/// runtime assets + the generic runner + `index.html` + `cases.json` + the module
+/// itself. Split out of [`stage`] so callers with a prebuilt module (e.g. the
+/// embedded-runtime tests using the `fwt_sample.wasm` fixture) can stage without a
+/// fresh wasm32 build.
+///
+/// # Errors
+/// Fails on any template read or staging-dir write.
+pub fn stage_from_wasm(wasm_path: &Path, cases: &[FwtCase], stage_dir: &Path) -> Result<()> {
     std::fs::create_dir_all(stage_dir).map_err(|e| WasmTestbedError::Io(e).trace())?;
     let write = |name: &str, bytes: &[u8]| -> Result<()> {
         std::fs::write(stage_dir.join(name), bytes).map_err(|e| WasmTestbedError::Io(e).trace())
@@ -83,18 +102,11 @@ pub fn stage(crate_path: &Path, args: &OwnedRunArgs, stage_dir: &Path) -> Result
     )?;
     write("runner.mjs", read_template("fwt/runner.mjs")?.as_bytes())?;
     write("index.html", read_template("fwt/index.html")?.as_bytes())?;
-    write("cases.json", cases_json(&cases).as_bytes())?;
+    write("cases.json", cases_json(cases).as_bytes())?;
     let wasm_bytes =
-        std::fs::read(&built.wasm_path).map_err(|e| WasmTestbedError::WasmReadFailed(e).trace())?;
+        std::fs::read(wasm_path).map_err(|e| WasmTestbedError::WasmReadFailed(e).trace())?;
     write("module.wasm", &wasm_bytes)?;
-
-    info!(
-        "staged {} case(s) from {} into {}",
-        cases.len(),
-        built.package_name,
-        stage_dir.display()
-    );
-    Ok(cases)
+    Ok(())
 }
 
 fn cases_json(cases: &[FwtCase]) -> String {
@@ -123,58 +135,40 @@ fn staged_temp(crate_path: &Path, args: &OwnedRunArgs) -> Result<(tempfile::Temp
     Ok((dir, cases))
 }
 
-fn run_host(host: &str, host_args: &[&str], cwd: &Path) -> Result<(String, i32)> {
-    which::which(host).map_err(|_| WasmTestbedError::HostRuntimeNotFound(host.to_string()).trace())?;
-    let output = Command::new(host)
-        .args(host_args)
-        .current_dir(cwd)
-        .output()
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
-    let stdout = String::from_utf8_lossy(&output.stdout).into_owned();
-    let stderr = String::from_utf8_lossy(&output.stderr);
-    if !stderr.trim().is_empty() {
-        debug!("{host} stderr: {stderr}");
-    }
-    print!("{stdout}");
-    Ok((stdout, output.status.code().unwrap_or(1)))
-}
-
-/// `wasm-testbed node <crate>` — the default owned mode.
+/// `wasm-testbed deno <crate>` — build → discover → stage → run the owned
+/// `#[wasm_test]` harness **in-process** on the embedded Deno runtime (deno_core +
+/// deno_web). No external `node`/`deno` binary; requires the `wasm-embedded-js`
+/// feature (which links V8).
 ///
 /// # Errors
-/// Fails on build/discovery/staging errors or when node is unavailable.
-pub fn run_node(args: &OwnedRunArgs) -> Result<RunOutcome> {
-    preflight(&[
-        ("cargo", "builds the test crate to wasm32"),
-        ("node", "executes the staged runner (install from https://nodejs.org)"),
-    ])?;
-    let crate_path = canonical(&args.crate_path)?;
-    let (dir, cases) = staged_temp(&crate_path, args)?;
-    let (output, exit_code) = run_host("node", &["runner.mjs"], dir.path())?;
-    Ok(RunOutcome {
-        output,
-        exit_code,
-        cases,
-    })
-}
-
-/// `wasm-testbed deno <crate>` — headless wasm under Deno, same runner script.
-///
-/// # Errors
-/// Fails on build/discovery/staging errors or when deno is unavailable.
+/// Fails on build/discovery/staging errors or when the in-process run errors.
+#[cfg(feature = "wasm-embedded-js")]
 pub fn run_deno(args: &OwnedRunArgs) -> Result<RunOutcome> {
-    preflight(&[
-        ("cargo", "builds the test crate to wasm32"),
-        ("deno", "executes the staged runner (install from https://deno.land)"),
-    ])?;
+    preflight(&[("cargo", "builds the test crate to wasm32")])?;
     let crate_path = canonical(&args.crate_path)?;
     let (dir, cases) = staged_temp(&crate_path, args)?;
-    let (output, exit_code) = run_host("deno", &["run", "-A", "runner.mjs"], dir.path())?;
+    let report = crate::wasm::embedded_js::run_staged_harness(dir.path())
+        .map_err(|e| WasmTestbedError::EmbeddedRunFailed(e.to_string()).trace())?;
+    print!("{}", report.output);
+    if !report.output.ends_with('\n') {
+        println!();
+    }
+    let exit_code = report.exit_code();
     Ok(RunOutcome {
-        output,
+        output: report.output,
         exit_code,
         cases,
     })
+}
+
+/// Without the `wasm-embedded-js` feature the in-process runtime isn't compiled in
+/// — surface a clear, actionable error rather than silently shelling out.
+///
+/// # Errors
+/// Always returns [`WasmTestbedError::EmbeddedRuntimeDisabled`].
+#[cfg(not(feature = "wasm-embedded-js"))]
+pub fn run_deno(_args: &OwnedRunArgs) -> Result<RunOutcome> {
+    Err(WasmTestbedError::EmbeddedRuntimeDisabled.trace())
 }
 
 /// `wasm-testbed web <crate>` — serve the staged harness and run it under

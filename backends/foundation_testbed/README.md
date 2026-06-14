@@ -8,7 +8,11 @@ Cargo feature:
   networking, so **no root privileges are required** at runtime.
 - **`wasm`** — a CLI-driven `wasm32-unknown-unknown` test harness: runs
   `#[wasm_test]` cases in a real **browser** (the pure-Rust CDP/BiDi driver, no
-  node/Playwright), **Deno**, or **Cloudflare Workers** (wrangler).
+  node/Playwright) or **Cloudflare Workers** (wrangler).
+- **`wasm-embedded-js`** — adds the **embedded Deno runtime** (spec-44): the owned
+  `#[wasm_test]` harness runs JS **in-process** via `deno_core` + `deno_web` (V8),
+  so `wasm-testbed deno` needs **no `node`/`deno` install** — `cargo build` gives
+  JS test execution for free.
 
 ## What it does
 
@@ -28,8 +32,10 @@ Cargo feature:
 **wasm harness (`wasm`)**
 
 - **Discovery** — enumerate `#[wasm_test]` cases from a built module's exports
-- **Runners** — browser (CDP/BiDi via `foundation_browser`), Deno, Cloudflare
-  Workers; both the custom harness and auto-generated wasm-bindgen test modes
+- **Runners** — the owned harness runs **in-process on the embedded Deno runtime**
+  (`wasm-testbed deno`, with `wasm-embedded-js`) or in a real **browser** (CDP/BiDi
+  via `foundation_browser`, `wasm-testbed web`); plus the wasm-bindgen interop modes
+  and the Cloudflare Workers (wrangler) path
 - **Scaffolding** — `init` writes the per-runner templates into a target project
 
 ## Features & binaries
@@ -41,15 +47,21 @@ are available out of the box. Disable selectively to take just one part.
 |---------|---------|----------|
 | `vms` *(default)* | the VM testbed (`src/vms/`) | qemu backend + ssh2, tar, image, `foundation_netio`, … |
 | `wasm` *(default)* | the wasm harness (`src/wasm/`) | `foundation_browser`, `foundation_wasm_ui`, `foundation_http`, walrus, … |
+| `wasm-embedded-js` | in-process JS runner for `wasm-testbed deno` (spec-44) | `deno_core` + `deno_web` (**links V8** — heavy) + tokio |
 | `cli` *(default)* | the `clap` CLI for the VM testbed binary | clap |
 | `utm` | macOS UTM/Hypervisor backend (with `vms`) | — |
+
+> `wasm-embedded-js` is **not** in the default set: it links V8 (hundreds of MB,
+> notable link time), so a plain `wasm` build (browser testing) stays light. Enable
+> it when you want the zero-install, in-process `deno` runner. It deliberately omits
+> Web Crypto (`crypto.subtle`) — the harness doesn't use it; see spec-44 §4.4.
 
 **Binaries** (each only builds when its features are on):
 
 | Binary | Requires | Purpose |
 |--------|----------|---------|
 | `testbed` | `cli` + `vms` | VM lifecycle CLI (`testbed start windows-build`, …) |
-| `wasm-testbed` | `wasm` | wasm test runner (`wasm-testbed web/node/wrangler <module>`) |
+| `wasm-testbed` | `wasm` | wasm test runner (`wasm-testbed deno/web <module>`; `deno` needs `wasm-embedded-js`) |
 
 > Why `cli` is in the default set: the `testbed` binary is gated on `cli` (its CLI
 > module is `#[cfg(feature = "cli")]` and needs `clap`). Without `cli`, `vms`
@@ -62,16 +74,37 @@ cargo build -p foundation_testbed
 
 # Just the VM CLI:
 cargo build -p foundation_testbed --no-default-features --features vms,cli
-# Just the wasm harness:
+# Just the wasm harness (browser/wrangler — light, no V8):
 cargo build -p foundation_testbed --no-default-features --features wasm
+# wasm harness + the in-process embedded Deno runner (links V8):
+cargo build -p foundation_testbed --no-default-features --features wasm-embedded-js --profile uat
 # vms as a library only (no CLI binary):
 cargo build -p foundation_testbed --no-default-features --features vms
 ```
 
 > **Build profile:** this crate's dev profile uses Cranelift, which currently
 > crashes compiling it — build/test with the `uat` profile (LLVM):
-> `cargo test -p foundation_testbed --profile uat`. The `wasm` runners need a
-> browser/Deno/wrangler installed (`mise run test:browsers`).
+> `cargo test -p foundation_testbed --profile uat`. The `web` runner needs a
+> browser (`mise run test:browsers`); the owned `deno` runner is **in-process**
+> (`wasm-embedded-js`) and needs **nothing installed**.
+
+### Zero-install JS testing (spec-44)
+
+The owned `#[wasm_test]` harness runs entirely in-process — no `node`, no `deno`:
+
+```bash
+# Build → discover #[wasm_test] cases → run headless on the embedded Deno runtime:
+cargo run -p foundation_testbed --no-default-features --features wasm-embedded-js \
+  --profile uat --bin wasm-testbed -- deno path/to/your/wasm-crate
+# or via mise:
+mise run test:wasm-testbed:deno
+```
+
+How it works: `cargo build` links V8 (via `deno_core`), the harness stages a
+self-contained runner (`runner.mjs` + `foundation-wasm.js` + `module.wasm` +
+`cases.json`) and runs it on an embedded `deno_core` + `deno_web` runtime. Byte
+loading + result reporting go through two Rust ops (`op_fwt_read_file`,
+`op_fwt_report`) — no stdout parsing, no external process.
 
 ## Quick start
 

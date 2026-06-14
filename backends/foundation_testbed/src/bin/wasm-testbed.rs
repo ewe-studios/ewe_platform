@@ -29,7 +29,6 @@ fn main() {
     let result = match cli.command {
         Command::Init(args) => init::run(args),
         Command::Test(args) => run_test(&args),
-        Command::Node(args) => run_owned(fwt_runner::run_node(&args)),
         Command::Deno(args) => run_owned(fwt_runner::run_deno(&args)),
         Command::Web(args) => run_owned(fwt_runner::run_web(&args)),
     };
@@ -117,7 +116,7 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
         }
         Mode::BindgenWeb | Mode::BindgenDeno | Mode::BindgenWrangler => {
             // F14 boundary: this is the EXPLICIT wasm-bindgen interop opt-in — not
-            // the owned default. Our crates test via `wasm-testbed node/deno/web`.
+            // the owned default. Our crates test via `wasm-testbed deno/web`.
             tracing::warn!(
                 "INTEROP MODE: running the wasm-bindgen (non-owned) path — \
                  sanctioned only for crates that themselves use wasm-bindgen \

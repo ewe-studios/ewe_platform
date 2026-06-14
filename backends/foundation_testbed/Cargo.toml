@@ -66,10 +66,10 @@ wasm = [
 wasm-embedded-js = [
   "wasm",
   "dep:deno_core",
-  "dep:deno_web",      # TextEncoder/TextDecoder, timers, structuredClone, performance
-  "dep:deno_console",  # console.log/error (the runner's reporting)
-  "dep:deno_url",      # URL / URLSearchParams (deno_web dependency)
-  "dep:deno_webidl",   # WebIDL bindings the above extensions require
+  "dep:deno_web",      # TextEncoder/TextDecoder, timers, console, URL, performance
+  "dep:deno_webidl",   # WebIDL bindings deno_web depends on
+  "dep:deno_error",    # JsErrorBox for the harness ops
+  "dep:tokio",         # current-thread executor for deno_core's event loop
 ]
 
 [dependencies]
@@ -99,10 +99,10 @@ tracing-subscriber = { workspace = true, features = ["env-filter"], optional = t
 # deno_core + the minimal extension set (versions coordinated with deno_core 0.404).
 # Deliberately NO deno_crypto (aes =0.8.3 vs turso aes 0.8.4 — see spec-44 §4.4).
 deno_core = { version = "0.404", optional = true }
-deno_web = { version = "0.282", optional = true }
-deno_console = { version = "0.222", optional = true }
-deno_url = { version = "0.222", optional = true }
+deno_web = { version = "0.282", optional = true }  # console/url/encoding folded in (those crates are now deprecated stubs)
 deno_webidl = { version = "0.251", optional = true }
+deno_error = { version = "0.7", optional = true }  # JsErrorBox for fallible ops
+tokio = { version = "1", features = ["rt", "time"], optional = true }  # drives deno_core's event loop (current-thread)
 
 # clap drives both the vms CLI (`cli`) and the wasm-testbed bin (`wasm`).
 clap = { version = "4", features = ["derive"], optional = true }

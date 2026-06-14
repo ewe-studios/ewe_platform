@@ -122,9 +122,10 @@ fn read_package_name(cargo_toml: &std::path::Path) -> Result<String> {
 /// but they find out NOW instead of at first run.
 fn warn_missing_tools(init_type: &InitType) {
     let needed: &[(&str, &str)] = match init_type {
-        InitType::Node => &[
+        InitType::Owned => &[
+            // The owned harness runs in-process on the embedded Deno runtime
+            // (spec-44) — no node/deno install. Just needs cargo + wasm32.
             ("cargo", "builds #[wasm_test] crates to wasm32"),
-            ("node", "runs the owned harness (https://nodejs.org)"),
         ],
         InitType::Web => &[
             ("cargo", "builds the wasm module"),
@@ -167,7 +168,7 @@ pub fn run(args: InitArgs) -> Result<()> {
     let types = match args.r#type {
         Some(t) => vec![t],
         None => vec![
-            InitType::Node,
+            InitType::Owned,
             InitType::Web,
             InitType::Deno,
             InitType::Wrangler,
@@ -177,8 +178,8 @@ pub fn run(args: InitArgs) -> Result<()> {
     for init_type in &types {
         warn_missing_tools(init_type);
         // The owned mode scaffolds a Rust cases file, not a JS harness dir — the
-        // harness is generated at run time (`wasm-testbed node <crate>`).
-        if matches!(init_type, InitType::Node) {
+        // harness is generated at run time (`wasm-testbed deno <crate>`).
+        if matches!(init_type, InitType::Owned) {
             let dest = crate_path.join("src").join("wasm_tests.rs");
             if dest.exists() {
                 info!("{} already exists — skipping", dest.display());
@@ -189,7 +190,7 @@ pub fn run(args: InitArgs) -> Result<()> {
                 info!(
                     "wrote {} — add `mod wasm_tests;` to lib.rs, set crate-type = [\"cdylib\"], \
                      and depend on foundation_wasm (feature \"web\") + foundation_macros; \
-                     then run: wasm-testbed node {}",
+                     then run: wasm-testbed deno {}",
                     dest.display(),
                     crate_path.display()
                 );
@@ -197,7 +198,7 @@ pub fn run(args: InitArgs) -> Result<()> {
             continue;
         }
         let dir_name = match init_type {
-            InitType::Node => unreachable!("handled above"),
+            InitType::Owned => unreachable!("handled above"),
             InitType::Web => "web",
             InitType::Deno => "deno",
             InitType::Wrangler => "wrangler",
@@ -208,7 +209,7 @@ pub fn run(args: InitArgs) -> Result<()> {
             .map_err(|e| WasmTestbedError::CratePathNotFound(format!("{e}")).trace())?;
 
         let templates = match init_type {
-            InitType::Node => unreachable!("handled above"),
+            InitType::Owned => unreachable!("handled above"),
             InitType::Web => vec!["web/index.html", "web/index.js", "web/loader.js"],
             InitType::Deno => vec!["deno/index.js", "deno/loader.js"],
             InitType::Wrangler => {

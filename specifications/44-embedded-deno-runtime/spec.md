@@ -1,9 +1,10 @@
 # Spec 44 — Embedded Deno runtime for zero-install JS test execution
 
-Status: **PROPOSAL** (2026-06-14) — design + complexity + timeline for review.
-**W1 spike is GREEN** (see §5): an embedded `deno_core` V8 isolate evaluates JS and
-runs `WebAssembly.instantiate` in-process on the `uat` profile, no external binary.
-Remaining work (W2–W7) still pending review. Featureless (single design doc); if
+Status: **IMPLEMENTED** (2026-06-14) — W1–W7 all green (see §5). The owned
+`#[wasm_test]` harness runs entirely **in-process** on an embedded `deno_core` +
+`deno_web` runtime (behind the `wasm-embedded-js` feature, `uat` profile): no
+external `node`/`deno`, the node runner is gone, and the runner tests run the real
+sample crate through V8 with zero install. Open decisions in §9 are resolved inline. Featureless (single design doc); if
 approved it becomes a feature breakdown.
 
 ## 1. Goal
@@ -126,22 +127,25 @@ choosing `deno_core` + extensions over `deno_runtime`.
 
 ### 4.3 Runtime model
 
-`deno_core`'s event loop is **tokio-based**. foundation uses valtron, not tokio.
-The embedded JS runs on a small tokio runtime *inside* the test driver — acceptable
-for a test tool, but it introduces tokio into `foundation_testbed`'s `wasm`
-feature. (Noted as a deliberate trade-off, gated behind `wasm`.)
+`deno_core`'s event loop is **tokio-based** — not a choice: `reactor_tokio.rs` builds
+its timers on `tokio::time::Sleep`, and the loop calls `tokio::runtime::Handle::current()`.
+foundation uses valtron, not tokio; valtron could *poll* the future but can't satisfy
+deno_core's tokio-runtime-context requirements, so a tokio runtime is unavoidable.
+The embedded JS therefore runs on a small **current-thread tokio runtime** (time
+driver only) *inside* the test driver — confined to the `wasm-embedded-js` feature,
+never touching foundation's valtron production runtime.
 
 ## 5. Work breakdown
 
 | # | Work | Output |
 |---|------|--------|
 | W1 | ✅ **DONE (green)**: `deno_core` 0.404 (rusty_v8 / V8 149, prebuilt) builds + links on `uat`; in-process isolate evals `1+1` → `2.0` and runs `WebAssembly.Module`/`Instance`. Code: `src/wasm/embedded_js.rs`, behind the `wasm-embedded-js` sub-feature (`dep:deno_core`, no `deno_crypto`; see §4.4). API note: deno_core 0.404 dropped `JsRuntime::handle_scope` — use the exported `deno_core::scope!(scope, rt)` macro. | go/no-go on the build → **GO** |
-| W2 | Module loader resolving the harness imports from embedded assets + staged dir | loader |
-| W3 | Ops: read-bytes + report-results; run a real sample module's `#[wasm_test]` cases end-to-end | green sample |
-| W4 | Driver returning `RunOutcome`; swap `deno.rs` + the `fwt_runner` host path to it; delete `Command::new`/`which` + `DenoNotFound`/`HostRuntimeNotFound` | embedded runner |
-| W5 | **Drop node**: delete node branches in `runner.mjs`/templates, node refs in `mise.toml`, the node runner | deno-only |
-| W6 | Port `fwt_runner_tests` to the in-process runner (no external deno); CI no longer needs node/deno | tests |
-| W7 | Docs: README "zero-install JS testing"; spec → feature status | docs |
+| W2 | ✅ **DONE (green)**: `build_runtime()` composes `deno_core` + `deno_web` + `deno_webidl` with `FsModuleLoader` (the harness stages to a temp dir, so relative imports resolve from disk — no custom loader needed). `run_module()` drives the event loop on a current-thread **tokio** runtime (deno_core's reactor/timers are tokio — `reactor_tokio.rs`; not optional). Test `loader_runs_relative_import_graph_with_web_globals` proves relative ESM + `TextEncoder`/`TextDecoder` + `setTimeout` + `console` in-process. **Key findings:** `deno_console`/`deno_url` are deprecated (folded into `deno_web`); `deno_web` ships globals as `lazy_loaded_js` IIFEs that are NOT auto-installed — a tiny bootstrap globalizes them via `Deno.core.loadExtScript("ext:deno_web/08_text_encoding.js")` etc.; the `extension!` macro's init fn is `init()` (not `init_ops_and_esm`). | loader + runtime |
+| W3 | ✅ **DONE (green)**: `foundation_fwt` extension with `op_fwt_read_file` (`Uint8Array`, replaces `node:fs`/`fetch`) + `op_fwt_report` (captures result JSON into a `ReportSink` in `OpState`). `runner.mjs` feature-detects the ops; `run_staged_harness()` evaluates it and reads the report → `HarnessReport`. Test `embedded_runs_sample_fixture_end_to_end` runs the real `fwt_sample.wasm` fixture's 5 cases (3 pass, 1 fail, 1 ignored, `should_panic` inverted) in-process. (Also globalized `URL` from `00_url.js`.) | green sample |
+| W4 | ✅ **DONE (green)**: `run_deno` rebuilt on `run_staged_harness` → `RunOutcome` (`exit_code` from failed count); gated `#[cfg(wasm-embedded-js)]` with a clear `EmbeddedRuntimeDisabled` error otherwise. Removed `run_host` + `HostRuntimeNotFound`. (`deno.rs` is the *wasm-bindgen interop* shell-out — left intact; that output needs full Deno, out of the owned-harness scope.) | embedded runner |
+| W5 | ✅ **DONE**: removed the `node` runner (`run_node`) + the `Node` CLI subcommand; `runner.mjs` no longer uses `node:fs`/`process.exit`/`Deno.exit`; `InitType::Node` → `Owned`; `mise` `test:wasm-testbed:node` → `:deno` (embedded). | deno-only |
+| W6 | ✅ **DONE (green)**: `fwt_runner_tests` run the sample crate (built to wasm32) through the embedded runtime — no external node/deno — gated `wasm-embedded-js`; the node-availability skip is gone. | tests |
+| W7 | ✅ **DONE**: README "Zero-install JS testing (spec-44)" section + `wasm-embedded-js` feature row; this spec → IMPLEMENTED. | docs |
 
 ## 6. Complexity
 

@@ -6,19 +6,23 @@
 // the only safe continuation. should_panic verdicts are inverted here (the module
 // cannot observe its own panic under abort semantics).
 //
-// Runs unchanged under node (`node runner.mjs`), deno (`deno run -A runner.mjs`),
-// and the browser (loaded as a module by index.html; results mirror into #output).
+// Runs unchanged under the embedded Deno runtime (foundation_testbed's in-process
+// deno_core; byte loading + result reporting via `op_fwt_*` ops) and the browser
+// (loaded as a module by index.html; bytes via fetch, results mirror into #output).
 
 import { FoundationWasm, TestReports } from "./foundation-wasm.js";
 
 const here = (path) => new URL(path, import.meta.url);
 
+// Embedded runtime exposes `op_fwt_read_file` (local bytes) + `op_fwt_report`
+// (results → Rust). In the browser neither exists: fetch + the #output summary.
+const ops = globalThis.Deno?.core?.ops;
+
 async function loadBytes(url) {
-  if (url.protocol === "http:" || url.protocol === "https:") {
-    return new Uint8Array(await (await fetch(url)).arrayBuffer());
+  if (ops?.op_fwt_read_file) {
+    return new Uint8Array(ops.op_fwt_read_file(decodeURIComponent(url.pathname)));
   }
-  const { readFileSync } = await import("node:fs");
-  return readFileSync(url);
+  return new Uint8Array(await (await fetch(url)).arrayBuffer());
 }
 
 const out = [];
@@ -31,10 +35,12 @@ function print(line) {
   }
 }
 
-function exit(code) {
-  if (globalThis.process?.exit) globalThis.process.exit(code);
-  else if (globalThis.Deno?.exit) globalThis.Deno.exit(code);
-  // Browser: no exit — the summary line in #output is the verdict (Playwright reads it).
+function report(passed, failed, ignored) {
+  // Embedded: hand the structured result to Rust. Browser: the summary line
+  // already printed into #output is the verdict (the page can't set an exit code).
+  if (ops?.op_fwt_report) {
+    ops.op_fwt_report(JSON.stringify({ passed, failed, ignored, output: out.join("\n") }));
+  }
 }
 
 async function runCase(moduleCompiled, testCase) {
@@ -91,10 +97,10 @@ async function main() {
 
   const status = failed === 0 ? "ok" : "FAILED";
   print(`test result: ${status}. ${passed} passed; ${failed} failed; ${ignored} ignored`);
-  exit(failed === 0 ? 0 : 1);
+  report(passed, failed, ignored);
 }
 
 main().catch((error) => {
   print(`test result: FAILED. runner error: ${error?.stack ?? error}`);
-  exit(1);
+  report(0, 1, 0);
 });

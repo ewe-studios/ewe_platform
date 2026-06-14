@@ -19,15 +19,14 @@ pub enum Command {
     /// Build, stage, and run tests for a wasm crate (legacy/interop modes —
     /// the bindgen-* modes are the explicit wasm-bindgen OPT-IN, decision 031)
     Test(TestArgs),
-    /// OWNED default: build → discover `#[wasm_test]` cases → run under node
-    Node(OwnedRunArgs),
-    /// OWNED: same loop under Deno (headless wasm, no browser)
+    /// OWNED default: build → discover `#[wasm_test]` cases → run headless on the
+    /// embedded Deno runtime, in-process (requires `wasm-embedded-js`)
     Deno(OwnedRunArgs),
     /// OWNED: same loop served + run under Playwright on our runtime
     Web(OwnedRunArgs),
 }
 
-/// Arguments shared by the owned `node`/`deno`/`web` runners (features 12/13).
+/// Arguments shared by the owned `deno`/`web` runners (features 12/13).
 #[derive(Parser)]
 pub struct OwnedRunArgs {
     /// Path to the Cargo crate containing `#[wasm_test]` cases
@@ -68,11 +67,12 @@ pub struct InitArgs {
 /// Integration type for the `init` subcommand.
 #[derive(Clone, ValueEnum)]
 pub enum InitType {
-    /// OWNED `#[wasm_test]` scaffolding (a sample cases file — features 12/13)
-    Node,
+    /// OWNED `#[wasm_test]` scaffolding (a sample cases file — features 12/13);
+    /// run via the embedded Deno runtime with `wasm-testbed deno`
+    Owned,
     /// Browser test scaffolding
     Web,
-    /// Deno test scaffolding
+    /// Deno test scaffolding (wasm-bindgen interop)
     Deno,
     /// Cloudflare Workers test scaffolding
     Wrangler,
