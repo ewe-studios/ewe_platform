@@ -3,11 +3,15 @@
 //! Parses CLI arguments, initializes tracing, and dispatches
 //! to the appropriate command handler. All work is synchronous.
 
+#![cfg(feature = "wasm")]
+
 use clap::Parser;
 use foundation_errstacks::ErrorTrace;
 use tracing::error;
 
-use foundation_testbed::wasm::{browser, build, cli, deno, error, fwt_runner, init, server, wasm, wasm_test, wrangler};
+use foundation_testbed::wasm::{
+    browser, build, cli, deno, error, fwt_runner, init, server, wasm, wasm_test, wrangler,
+};
 
 use cli::{Cli, Command};
 use error::WasmTestbedError;
@@ -52,10 +56,12 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
     use cli::Mode;
     use error::{ToTrace, WasmTestbedError};
 
-    let crate_path = std::fs::canonicalize(&args.crate_path)
-        .map_err(|e| WasmTestbedError::Io(e).trace())?;
+    let crate_path =
+        std::fs::canonicalize(&args.crate_path).map_err(|e| WasmTestbedError::Io(e).trace())?;
 
-    let integration_dir = crate_path.join("integrations").join(args.mode.integration_dir());
+    let integration_dir = crate_path
+        .join("integrations")
+        .join(args.mode.integration_dir());
 
     match args.mode {
         Mode::Web | Mode::Deno | Mode::Wrangler => {
@@ -74,7 +80,11 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     tracing::info!("Test output: {}", output.test_result);
                     server.shutdown();
                     if output.exit_code != 0 {
-                        return Err(WasmTestbedError::BrowserTestFailed(output.exit_code, output.test_result).trace());
+                        return Err(WasmTestbedError::BrowserTestFailed(
+                            output.exit_code,
+                            output.test_result,
+                        )
+                        .trace());
                     }
                 }
                 Mode::Deno => {
@@ -94,8 +104,11 @@ fn run_test(args: &cli::TestArgs) -> Result<(), ErrorTrace<WasmTestbedError>> {
                     tracing::info!("Copied wasm to {}", wasm_dest.display());
                     let output = wrangler::run(&integration_dir, None)?;
                     if output.status_code >= 400 {
-                        return Err(WasmTestbedError::WranglerHttpFailed(
-                            format!("status {}", output.status_code)).trace());
+                        return Err(WasmTestbedError::WranglerHttpFailed(format!(
+                            "status {}",
+                            output.status_code
+                        ))
+                        .trace());
                     }
                     println!("{}", output.response_body);
                 }
@@ -142,7 +155,11 @@ fn run_bindgen_web(
     tracing::info!("Running wasm-bindgen (web)...");
     wasm::run_wasm_bindgen(&build.wasm_path, integration_dir, BindgenTarget::Web)?;
 
-    init::write_template_to("bindgen-web/index.html", &build.package_name, integration_dir)?;
+    init::write_template_to(
+        "bindgen-web/index.html",
+        &build.package_name,
+        integration_dir,
+    )?;
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let tests = wasm_test::discover_tests(&bg_wasm)?;
@@ -164,7 +181,9 @@ fn run_bindgen_web(
 
     server.shutdown();
     if output.exit_code != 0 {
-        return Err(WasmTestbedError::BrowserTestFailed(output.exit_code, output.test_result).trace());
+        return Err(
+            WasmTestbedError::BrowserTestFailed(output.exit_code, output.test_result).trace(),
+        );
     }
     Ok(())
 }
@@ -191,15 +210,19 @@ fn run_bindgen_deno(
     if let Ok(content) = std::fs::read_to_string(&js_file) {
         // Add `export { wasm };` at the end of the file
         let patched = format!("{content}\nexport {{ wasm }};\n");
-        std::fs::write(&js_file, patched)
-            .map_err(|e| WasmTestbedError::Io(e).trace())?;
+        std::fs::write(&js_file, patched).map_err(|e| WasmTestbedError::Io(e).trace())?;
     }
 
     let bg_wasm = integration_dir.join(format!("{}_bg.wasm", build.package_name));
     let tests = wasm_test::discover_tests(&bg_wasm)?;
     tracing::info!("Discovered {} tests", tests.len());
 
-    init::write_bindgen_runjs_to("bindgen-deno/run.js", &build.package_name, &tests, integration_dir)?;
+    init::write_bindgen_runjs_to(
+        "bindgen-deno/run.js",
+        &build.package_name,
+        &tests,
+        integration_dir,
+    )?;
 
     let output = deno::run(integration_dir, "run.js")?;
     if !output.stdout.is_empty() {
@@ -229,12 +252,17 @@ fn run_bindgen_wrangler(
         integration_dir,
     )?;
 
-    init::write_template_to("bindgen-wrangler/wrangler.toml", &build.package_name, integration_dir)?;
+    init::write_template_to(
+        "bindgen-wrangler/wrangler.toml",
+        &build.package_name,
+        integration_dir,
+    )?;
 
     let output = wrangler::run(integration_dir, None)?;
     if output.status_code >= 400 {
-        return Err(WasmTestbedError::WranglerHttpFailed(
-            format!("status {}", output.status_code)).trace());
+        return Err(
+            WasmTestbedError::WranglerHttpFailed(format!("status {}", output.status_code)).trace(),
+        );
     }
     println!("{}", output.response_body);
     Ok(())

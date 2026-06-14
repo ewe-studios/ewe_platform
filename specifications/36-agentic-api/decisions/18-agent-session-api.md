@@ -12,6 +12,8 @@ The agentic API has many components (Message API, Context API, ToolCallManager, 
 
 A high-level `AgentSession` constructor handles all initialization and provides a clean entry point. Inspired by Pi's `createAgentSession()` but designed in the Rust/ewe_platform style.
 
+**TODO**: This design needs to match reality and how we use and structure things e.g tools are supposed to be a ToolShed they supply, why did you even come up with a tools(vec![]) or will you have a tool registry which will transform these into a ToolShed? Anyway it makes no sense, there was intent in making the ToolShed explicit with the fields it supplies.
+
 ### API Design
 
 ```rust
@@ -24,7 +26,7 @@ let session = AgentSession::builder()
 let session = AgentSession::builder()
     .provider(my_model_provider)
     .model("claude-sonnet-4-6")
-    .tools(vec!["read", "edit", "write", "search", "bash"])
+    .tools(vec!["read", "edit", "write", "search", "bash"]) // this does not even match our ToolShed approach, fix this.
     .session_store(DocumentStore::sqlite(&conn)?)
     .vector_store(InMemoryVectorStore::new(768))
     .working_memory(WorkingMemory::default())
