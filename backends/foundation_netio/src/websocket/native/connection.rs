@@ -22,7 +22,7 @@ use std::time::Duration;
 
 use crate::websocket::shared::batch_writer::BatchFrameWriter;
 use crate::websocket::shared::error::WebSocketError;
-use crate::websocket::shared::frame::{Opcode, WebSocketFrame};
+use crate::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
 use crate::websocket::shared::message::WebSocketMessage;
 use crate::websocket::native::task::WebSocketTask;
 
@@ -73,6 +73,9 @@ impl WebSocketConnection {
             return Err(WebSocketError::ConnectionClosed);
         }
 
+        // RFC 6455 §5.3: a client MUST mask every frame it sends. (Lenient
+        // servers like Chromium's CDP tolerate unmasked frames; strict ones like
+        // Firefox's WebDriver BiDi close the connection — so this is mandatory.)
         let frame = match message {
             WebSocketMessage::ConnectionEstablished => {
                 return Ok(()); // No frame to send
@@ -80,25 +83,25 @@ impl WebSocketConnection {
             WebSocketMessage::Text(text) => WebSocketFrame {
                 fin: true,
                 opcode: Opcode::Text,
-                mask: None, // Client receives unmasked frames from server
+                mask: Some(generate_mask()),
                 payload: text.into_bytes(),
             },
             WebSocketMessage::Binary(data) => WebSocketFrame {
                 fin: true,
                 opcode: Opcode::Binary,
-                mask: None,
+                mask: Some(generate_mask()),
                 payload: data,
             },
             WebSocketMessage::Ping(data) => WebSocketFrame {
                 fin: true,
                 opcode: Opcode::Ping,
-                mask: None,
+                mask: Some(generate_mask()),
                 payload: data,
             },
             WebSocketMessage::Pong(data) => WebSocketFrame {
                 fin: true,
                 opcode: Opcode::Pong,
-                mask: None,
+                mask: Some(generate_mask()),
                 payload: data,
             },
             WebSocketMessage::Close(code, reason) => {
@@ -107,7 +110,7 @@ impl WebSocketConnection {
                 WebSocketFrame {
                     fin: true,
                     opcode: Opcode::Close,
-                    mask: None,
+                    mask: Some(generate_mask()),
                     payload,
                 }
             }
@@ -180,11 +183,11 @@ impl WebSocketConnection {
     ) -> Result<WebSocketMessage, WebSocketError> {
         match frame.opcode {
             Opcode::Ping => {
-                // Auto-respond with Pong (same payload)
+                // Auto-respond with Pong (same payload). Client frames MUST mask.
                 let pong_frame = WebSocketFrame {
                     fin: true,
                     opcode: Opcode::Pong,
-                    mask: None,
+                    mask: Some(generate_mask()),
                     payload: frame.payload.clone(),
                 };
                 self.send_frame(pong_frame)?;
@@ -234,7 +237,7 @@ impl WebSocketConnection {
         let frame = WebSocketFrame {
             fin: true,
             opcode: Opcode::Close,
-            mask: None,
+            mask: Some(generate_mask()),
             payload,
         };
         self.send_frame(frame)?;

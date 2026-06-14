@@ -2,13 +2,14 @@
 
 use std::borrow::Cow;
 
-/// Which browser to drive. Phase 1 is Chromium-only; the enum reserves the
-/// others so signatures don't churn when BiDi/Firefox lands.
+/// Which browser to drive: Chromium over CDP, or Firefox over WebDriver BiDi.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
 pub enum Browser {
     /// Chromium / Chrome (CDP).
     #[default]
     Chromium,
+    /// Firefox (WebDriver BiDi).
+    Firefox,
 }
 
 impl Browser {
@@ -16,6 +17,7 @@ impl Browser {
     pub(crate) fn binaries(self) -> &'static [&'static str] {
         match self {
             Browser::Chromium => &["chromium", "google-chrome", "chromium-browser", "chrome"],
+            Browser::Firefox => &["firefox", "firefox-developer-edition", "firefox-esr"],
         }
     }
 
@@ -23,6 +25,7 @@ impl Browser {
     pub(crate) fn bin_env(self) -> &'static str {
         match self {
             Browser::Chromium => "PRIMAL_TEST_CHROMIUM_BIN",
+            Browser::Firefox => "PRIMAL_TEST_FIREFOX_BIN",
         }
     }
 
@@ -30,6 +33,7 @@ impl Browser {
     pub(crate) fn mise_task(self) -> &'static str {
         match self {
             Browser::Chromium => "mise run test:browsers:chromium",
+            Browser::Firefox => "mise run test:browsers:firefox",
         }
     }
 }
@@ -56,6 +60,12 @@ impl LaunchConfig {
     #[must_use]
     pub fn chromium() -> Self {
         Self::default()
+    }
+
+    /// Firefox (WebDriver BiDi) with defaults.
+    #[must_use]
+    pub fn firefox() -> Self {
+        Self { browser: Browser::Firefox, headless: true, extra_args: Vec::new() }
     }
 
     /// Toggle headless.

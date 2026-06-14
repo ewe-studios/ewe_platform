@@ -1,10 +1,11 @@
 # Spec 43 — Rust-native browser testing (`#[wasm_ui_server]` + an owned CDP/BiDi driver)
 
-Status: **PHASE 1 COMPLETE** (2026-06-14). The pure-Rust CDP driver, the
+Status: **COMPLETE** (2026-06-14). Both phases ship and are green: the pure-Rust
+driver (CDP **and** WebDriver BiDi behind one `Backend` seam), the
 `#[wasm_ui_server]` macro, the `foundation_http`-backed `TestServer`, live
-server-driven-UI testing across all four protocols against real Chromium, the
-HTTPS dev-cert mode, the `primal-test` helper, and node/Playwright retirement all
-ship and are green. Only Phase 2 (WebDriver BiDi / Firefox) is deferred — see
+server-driven-UI testing across all four protocols against **real Chromium AND
+Firefox**, the HTTPS dev-cert mode, the `primal-test` helper, and node/Playwright
+retirement. Only WebKit/Safari remains explicitly out of scope. See
 [§14 Status](#14-status--what-shipped). Original design pass over the existing
 stack + the Playwright references
 (`@formulas/src.UIFrameworks/src.playwright/{playwright,playwright-python}`).
@@ -312,7 +313,10 @@ We are on **Arch** (`pacman -S chromium`). Debian/Ubuntu use
 6. ✅ **`primal-test` injected helper** — the runtime frame instrument
    (`globalThis.__primalFrames`) + `primal-test.js` (`window.__primalTest`:
    `waitForReactive`/`batchLayout`) + `Page::wait_for_reactive`/`bounding_boxes`.
-7. ☐ **Phase 2 BiDi/Firefox** behind the same trait — deferred.
+7. ✅ **Phase 2 — WebDriver BiDi / Firefox** behind a `Backend` seam: `Page`/
+   `Locator` program against an operation-level [`Backend`] (CDP or BiDi); reads
+   run through `eval` so they're identical on both. Firefox parity is green
+   (locator ops + all four protocols + the helper).
 
 ## 12. Open decisions
 
@@ -382,11 +386,29 @@ paint/layout — with **zero node/Playwright**.
   Chromium via `foundation_browser` (no node, npm, or Playwright).
 - `mise`: `test:browsers[:chromium]`, `test:browser`, `test:cert:regen`.
 
-### Deferred follow-up (Phase 2)
+### Phase 2 — Firefox over WebDriver BiDi (delivered)
 
-- **WebDriver BiDi / Firefox** behind `WireProtocol` — §6, §11.7. The driver's
-  `WireProtocol` seam already isolates CDP so BiDi slots in without touching the
-  `Page`/`Locator`/`TestServer` layers.
+`Page`/`Locator` were lifted onto an operation-level `Backend` trait (navigate,
+evaluate, screenshot, trusted input). Element READS run through `eval`, so they're
+identical across backends; only navigation/evaluate/input differ. Two backends:
+`cdp::backend::CdpBackend` (Chromium) and `bidi::backend::BiDiBackend` (Firefox,
+`browsingContext.*`/`script.*`/`input.performActions`, with `RemoteValue → JSON`).
+`Browser::Firefox` launches Firefox's Remote Agent (BiDi-direct at
+`ws://host:port/session`). Firefox parity is green (`firefox_*` smoke tests):
+locator geometry/attributes/style/input + all four protocols (columnar, Arrow IPC,
+JSON, HTML) + the `primal-test` helper.
+
+Three foundation_netio WS-client interop bugs (surfaced by Firefox's strict
+server, masked by Chromium's lenience) were fixed along the way:
+- the client now **masks** all frames (RFC 6455 §5.3);
+- the upgrade `Host` header carries the **port**;
+- a bodyless request no longer emits **`Content-Length`** (the request-builder
+  twin of the earlier response-builder fix) — strict servers reject a GET with a
+  body.
+
+### Out of scope
+
+- **WebKit/Safari** — no BiDi-direct story on Linux; revisit if needed.
 
 Design narrative for both test modes:
 [`features/01-test-modes.md`](./features/01-test-modes.md).

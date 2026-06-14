@@ -13,14 +13,15 @@
 //! `kill` + `wait` (reap the child), then remove the temp profile.
 
 use std::io::Read;
+use std::net::TcpListener;
 use std::path::PathBuf;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant, SystemTime, UNIX_EPOCH};
 
-use crate::cdp::launch::LaunchConfig;
+use crate::cdp::launch::{Browser, LaunchConfig};
 use crate::error::{BrowserError, Result};
 
-/// A launched browser process + its discovered CDP endpoint.
+/// A launched browser process + its discovered CDP/BiDi endpoint.
 pub struct BrowserProcess {
     child: Child,
     profile_dir: PathBuf,
@@ -28,7 +29,8 @@ pub struct BrowserProcess {
 }
 
 impl BrowserProcess {
-    /// Launch the browser and discover its CDP `webSocketDebuggerUrl`.
+    /// Launch the browser and discover its `webSocketDebuggerUrl` (CDP) or BiDi
+    /// session endpoint.
     ///
     /// # Errors
     /// [`BrowserError::BrowserNotInstalled`] if the binary is missing,
@@ -37,32 +39,60 @@ impl BrowserProcess {
         let binary = resolve_binary(config)?;
         let profile_dir = unique_profile_dir();
         std::fs::create_dir_all(&profile_dir)?;
+        match config.browser {
+            Browser::Chromium => Self::launch_chromium(&binary, config, profile_dir),
+            Browser::Firefox => Self::launch_firefox(&binary, config, profile_dir),
+        }
+    }
 
+    /// Chromium: `--remote-debugging-port=0` + temp profile; discover the CDP WS
+    /// from the `DevToolsActivePort` file Chromium writes when ready.
+    fn launch_chromium(binary: &str, config: &LaunchConfig, profile_dir: PathBuf) -> Result<Self> {
         let mut args = config.base_args();
         args.push(format!("--user-data-dir={}", profile_dir.display()));
         args.push("--remote-debugging-port=0".to_string());
         args.push("about:blank".to_string());
 
-        tracing::debug!(?binary, ?args, "launching browser");
-        let child = Command::new(&binary)
-            .args(&args)
-            .stdout(Stdio::null())
-            .stderr(Stdio::null())
-            .spawn()
-            .map_err(|e| BrowserError::Launch(format!("spawn {binary}: {e}")))?;
+        tracing::debug!(?binary, ?args, "launching chromium");
+        let child = spawn(binary, &args)?;
 
         let ws_url = match discover_ws_url(&profile_dir, Duration::from_secs(20)) {
             Ok(url) => url,
-            Err(e) => {
-                // Don't leak the process if discovery failed.
-                let mut dead = child;
-                let _ = dead.kill();
-                let _ = dead.wait();
-                let _ = std::fs::remove_dir_all(&profile_dir);
-                return Err(e);
-            }
+            Err(e) => return Err(reap(child, &profile_dir, e)),
         };
+        Ok(Self { child, profile_dir, ws_url })
+    }
 
+    /// Firefox: pick a free port for the Remote Agent, launch with BiDi enabled,
+    /// and target the BiDi-direct endpoint `ws://127.0.0.1:<port>/session`. (The
+    /// engine connect retries while Firefox starts listening.) Chromium-shaped
+    /// `extra_args` are not applied to Firefox.
+    fn launch_firefox(binary: &str, config: &LaunchConfig, profile_dir: PathBuf) -> Result<Self> {
+        let port = match free_port() {
+            Ok(p) => p,
+            Err(e) => return Err(reap_dir(&profile_dir, e)),
+        };
+        let mut args = vec!["-no-remote".to_string(), "-profile".to_string()];
+        args.push(profile_dir.display().to_string());
+        if config.headless {
+            args.push("-headless".to_string());
+        }
+        args.push("--remote-debugging-port".to_string());
+        args.push(port.to_string());
+        args.push("about:blank".to_string());
+
+        tracing::debug!(?binary, ?args, "launching firefox");
+        let child = spawn(binary, &args)?;
+        // The Remote Agent takes a beat to bind the port. Wait until it accepts a
+        // TCP connection BEFORE handing back the URL — the engine's connect is
+        // lazy and would otherwise fail permanently against a not-yet-listening
+        // port (Chromium avoids this: it writes DevToolsActivePort only once ready).
+        if let Err(e) = wait_for_port(port, Duration::from_secs(20)) {
+            return Err(reap(child, &profile_dir, e));
+        }
+        // Firefox's BiDi-direct endpoint is `/session` (the root path returns 200
+        // and is not a BiDi socket). `session.new` opens a session over it.
+        let ws_url = format!("ws://127.0.0.1:{port}/session");
         Ok(Self { child, profile_dir, ws_url })
     }
 
@@ -83,6 +113,60 @@ impl Drop for BrowserProcess {
             tracing::warn!("failed to remove browser profile dir: {e}");
         }
     }
+}
+
+/// Spawn the browser with stdio silenced.
+fn spawn(binary: &str, args: &[String]) -> Result<Child> {
+    Command::new(binary)
+        .args(args)
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .spawn()
+        .map_err(|e| BrowserError::Launch(format!("spawn {binary}: {e}")))
+}
+
+/// Kill+reap a child and remove its profile, returning the original error.
+fn reap(mut child: Child, profile_dir: &std::path::Path, err: BrowserError) -> BrowserError {
+    let _ = child.kill();
+    let _ = child.wait();
+    reap_dir(profile_dir, err)
+}
+
+/// Remove a profile dir, returning the original error.
+fn reap_dir(profile_dir: &std::path::Path, err: BrowserError) -> BrowserError {
+    let _ = std::fs::remove_dir_all(profile_dir);
+    err
+}
+
+/// Poll until `127.0.0.1:port` accepts a TCP connection (the browser's remote
+/// agent is listening), or the deadline elapses.
+fn wait_for_port(port: u16, deadline: Duration) -> Result<()> {
+    let start = Instant::now();
+    let addr = format!("127.0.0.1:{port}");
+    loop {
+        if std::net::TcpStream::connect(&addr).is_ok() {
+            return Ok(());
+        }
+        if start.elapsed() >= deadline {
+            return Err(BrowserError::Launch(format!(
+                "browser did not open its remote-debugging port {port} within {}s",
+                deadline.as_secs()
+            )));
+        }
+        std::thread::sleep(Duration::from_millis(50));
+    }
+}
+
+/// Pick a currently-free TCP port (bind :0, read the port, drop the listener).
+/// Small TOCTOU window before the browser binds it — fine for local tests.
+fn free_port() -> Result<u16> {
+    let listener = TcpListener::bind("127.0.0.1:0")
+        .map_err(|e| BrowserError::Launch(format!("pick free port: {e}")))?;
+    let port = listener
+        .local_addr()
+        .map_err(|e| BrowserError::Launch(format!("read free port: {e}")))?
+        .port();
+    Ok(port)
 }
 
 /// Resolve the browser binary: `*_BIN` env var, then candidates on `PATH`.

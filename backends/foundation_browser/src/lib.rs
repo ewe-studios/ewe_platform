@@ -17,6 +17,8 @@
 
 #![allow(clippy::module_name_repetitions)]
 
+pub(crate) mod backend;
+pub(crate) mod bidi;
 pub mod browser;
 pub mod cdp;
 pub mod error;

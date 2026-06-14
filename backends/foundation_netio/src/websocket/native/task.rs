@@ -424,8 +424,16 @@ where
 
                 debug!(state = "Connecting", "Connection established");
 
-                // Build upgrade request
-                let host = state.url.host_str().unwrap_or_default();
+                // Build upgrade request. The `Host` header MUST carry the port
+                // (RFC 7230: authority = host[:port]) — strict servers like
+                // Firefox's WebDriver BiDi validate it for DNS-rebinding
+                // protection and close the channel on a bare host. (Chromium's
+                // CDP is lenient.)
+                let host_only = state.url.host_str().unwrap_or_default();
+                let host = match state.url.port() {
+                    Some(p) => format!("{host_only}:{p}"),
+                    None => host_only.to_string(),
+                };
                 let path = state.url.path();
                 let query = state.url.query();
                 let path_query = match query {
@@ -707,7 +715,6 @@ where
                         debug!("Frame generated for outgoing message: {:?}", &frame);
                         if let Some(frame) = frame {
                             let encoded = frame.encode();
-
                             debug!("Sending {} bytes to stream", encoded.len());
                             if let Err(err) = open_state.stream.write_all(&encoded) {
                                 tracing::error!("Failed to write data to stream: {:?}", err);

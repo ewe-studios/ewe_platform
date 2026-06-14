@@ -1,17 +1,17 @@
-//! # Locator + assertions (spec-43 phase-1 §5)
+//! # Locator + assertions (spec-43 §5)
 //!
-//! WHY: Tests address elements by selector and assert on them; the work
-//! (resolve a node, read geometry/text/attributes/computed style, dispatch
-//! trusted input) is CDP delivered straight from Rust.
+//! WHY: Tests address elements by selector and assert on them. Reads (box, text,
+//! attribute, computed style, visibility, count) run through `Page::eval`, so
+//! they are identical on CDP and BiDi; trusted input goes through the protocol
+//! [`Backend`](crate::backend::Backend) (CDP `Input.*` / BiDi
+//! `input.performActions`).
 //!
 //! WHAT: [`Locator`] (element ops) + [`LocatorAssertions`] (retrying assertions).
 //!
-//! HOW: Resolve the selector to a CDP `nodeId` (`DOM.getDocument` +
-//! `DOM.querySelector`); geometry via `DOM.getBoxModel`, attributes via
-//! `DOM.getAttributes`, computed style via `CSS.getComputedStyleForNode`, text
-//! via a scoped `Runtime.evaluate` (textContent has no dedicated domain), input
-//! via `DOM.focus` + `Input.dispatch{Mouse,Key}Event`/`Input.insertText`.
-//! Assertions retry to a deadline to absorb reactive timing.
+//! HOW: Each read is a small self-contained JS snippet returning a plain value
+//! (so both backends serialize it the same); input computes the element centre
+//! from its box and dispatches trusted pointer/keyboard events. Assertions retry
+//! to a deadline to absorb reactive timing.
 
 use std::time::{Duration, Instant};
 
@@ -32,20 +32,37 @@ impl<'p> Locator<'p> {
         Self { page, selector: selector.into() }
     }
 
-    /// Resolve the selector to a CDP `nodeId` (errors if nothing matches).
-    fn node_id(&self) -> Result<i64> {
-        let doc = self.page.call("DOM.getDocument", json!({ "depth": 0 }))?;
-        let root = doc
-            .get("root")
-            .and_then(|r| r.get("nodeId"))
-            .and_then(Value::as_i64)
-            .ok_or_else(|| BrowserError::Protocol { code: 0, message: "no document root".into() })?;
-        let res = self
-            .page
-            .call("DOM.querySelector", json!({ "nodeId": root, "selector": self.selector }))?;
-        match res.get("nodeId").and_then(Value::as_i64) {
-            Some(id) if id != 0 => Ok(id),
-            _ => Err(BrowserError::SelectorNotFound(self.selector.clone())),
+    /// A JS string literal of the selector, safe to inline in an `eval` snippet.
+    fn sel(&self) -> Value {
+        json!(self.selector)
+    }
+
+    /// The element's box, or `None` when the selector doesn't match.
+    fn box_opt(&self) -> Result<Option<Rect>> {
+        let v = self.page.eval(&format!(
+            "(() => {{ const el=document.querySelector({sel}); if(!el) return null; \
+             const r=el.getBoundingClientRect(); \
+             return {{x:r.x,y:r.y,width:r.width,height:r.height}}; }})()",
+            sel = self.sel()
+        ))?;
+        if v.is_null() {
+            return Ok(None);
+        }
+        let f = |k: &str| v.get(k).and_then(Value::as_f64).unwrap_or(0.0);
+        Ok(Some(Rect { x: f("x"), y: f("y"), width: f("width"), height: f("height") }))
+    }
+
+    /// Focus the element; `Err(SelectorNotFound)` if it doesn't match.
+    fn focus(&self) -> Result<()> {
+        let v = self.page.eval(&format!(
+            "(() => {{ const el=document.querySelector({sel}); if(!el) return false; \
+             el.focus(); return true; }})()",
+            sel = self.sel()
+        ))?;
+        if v.as_bool() == Some(true) {
+            Ok(())
+        } else {
+            Err(BrowserError::SelectorNotFound(self.selector.clone()))
         }
     }
 
@@ -54,25 +71,16 @@ impl<'p> Locator<'p> {
     /// # Errors
     /// Protocol/evaluate error.
     pub fn count(&self) -> Result<usize> {
-        let v = self.page.eval(&format!(
-            "document.querySelectorAll({}).length",
-            json!(self.selector)
-        ))?;
+        let v = self.page.eval(&format!("document.querySelectorAll({}).length", self.sel()))?;
         Ok(usize::try_from(v.as_u64().unwrap_or(0)).unwrap_or(0))
     }
 
     /// The element's bounding box (viewport pixels).
     ///
     /// # Errors
-    /// [`BrowserError::SelectorNotFound`] or a box-model protocol error.
+    /// [`BrowserError::SelectorNotFound`] or an evaluate error.
     pub fn bounding_box(&self) -> Result<Rect> {
-        let id = self.node_id()?;
-        let model = self.page.call("DOM.getBoxModel", json!({ "nodeId": id }))?;
-        model
-            .get("model")
-            .and_then(|m| m.get("content"))
-            .and_then(Rect::from_quad)
-            .ok_or_else(|| BrowserError::Protocol { code: 0, message: "no box model".into() })
+        self.box_opt()?.ok_or_else(|| BrowserError::SelectorNotFound(self.selector.clone()))
     }
 
     /// The element's `textContent`.
@@ -82,7 +90,7 @@ impl<'p> Locator<'p> {
     pub fn text(&self) -> Result<String> {
         let v = self.page.eval(&format!(
             "(document.querySelector({})||{{}}).textContent || ''",
-            json!(self.selector)
+            self.sel()
         ))?;
         Ok(v.as_str().unwrap_or_default().to_string())
     }
@@ -90,70 +98,50 @@ impl<'p> Locator<'p> {
     /// An attribute value, if present.
     ///
     /// # Errors
-    /// [`BrowserError::SelectorNotFound`] or a protocol error.
+    /// [`BrowserError::SelectorNotFound`] or an evaluate error.
     pub fn attribute(&self, name: &str) -> Result<Option<String>> {
-        let id = self.node_id()?;
-        let res = self.page.call("DOM.getAttributes", json!({ "nodeId": id }))?;
-        // `attributes` is a flat [k, v, k, v, …] array.
-        let Some(arr) = res.get("attributes").and_then(Value::as_array) else {
-            return Ok(None);
-        };
-        let mut i = 0;
-        while i + 1 < arr.len() {
-            if arr[i].as_str() == Some(name) {
-                return Ok(arr[i + 1].as_str().map(ToString::to_string));
-            }
-            i += 2;
+        let v = self.page.eval(&format!(
+            "(() => {{ const el=document.querySelector({sel}); if(!el) return {{found:false}}; \
+             return {{found:true, value:el.getAttribute({name})}}; }})()",
+            sel = self.sel(),
+            name = json!(name)
+        ))?;
+        if v.get("found").and_then(Value::as_bool) != Some(true) {
+            return Err(BrowserError::SelectorNotFound(self.selector.clone()));
         }
-        Ok(None)
+        Ok(v.get("value").and_then(Value::as_str).map(ToString::to_string))
     }
 
     /// A computed-style property value.
     ///
     /// # Errors
-    /// [`BrowserError::SelectorNotFound`] or a protocol error.
+    /// [`BrowserError::SelectorNotFound`] or an evaluate error.
     pub fn computed_style(&self, property: &str) -> Result<String> {
-        let id = self.node_id()?;
-        let res = self
-            .page
-            .call("CSS.getComputedStyleForNode", json!({ "nodeId": id }))?;
-        let Some(arr) = res.get("computedStyle").and_then(Value::as_array) else {
-            return Ok(String::new());
-        };
-        for entry in arr {
-            if entry.get("name").and_then(Value::as_str) == Some(property) {
-                return Ok(entry.get("value").and_then(Value::as_str).unwrap_or_default().to_string());
-            }
+        let v = self.page.eval(&format!(
+            "(() => {{ const el=document.querySelector({sel}); if(!el) return null; \
+             return getComputedStyle(el).getPropertyValue({prop}); }})()",
+            sel = self.sel(),
+            prop = json!(property)
+        ))?;
+        if v.is_null() {
+            return Err(BrowserError::SelectorNotFound(self.selector.clone()));
         }
-        Ok(String::new())
+        Ok(v.as_str().unwrap_or_default().trim().to_string())
     }
 
     /// Whether the element is visible (non-empty box, not `display:none`/
-    /// `visibility:hidden`). Returns `Ok(false)` when the selector doesn't match.
+    /// `visibility:hidden`). `Ok(false)` when the selector doesn't match.
     ///
     /// # Errors
-    /// Protocol error other than selector-miss.
+    /// Evaluate error.
     pub fn is_visible(&self) -> Result<bool> {
-        // Must exist.
-        match self.node_id() {
-            Ok(_) => {}
-            Err(BrowserError::SelectorNotFound(_)) => return Ok(false),
-            Err(e) => return Err(e),
-        }
-        // No box model (display:none / detached) → not rendered → not visible.
-        let rect = match self.bounding_box() {
-            Ok(rect) => rect,
-            Err(BrowserError::Protocol { .. } | BrowserError::SelectorNotFound(_)) => {
-                return Ok(false)
-            }
-            Err(e) => return Err(e),
-        };
-        if rect.is_empty() {
-            return Ok(false);
-        }
-        let display = self.computed_style("display").unwrap_or_default();
-        let visibility = self.computed_style("visibility").unwrap_or_default();
-        Ok(display != "none" && visibility != "hidden")
+        let v = self.page.eval(&format!(
+            "(() => {{ const el=document.querySelector({sel}); if(!el) return false; \
+             const r=el.getBoundingClientRect(); const s=getComputedStyle(el); \
+             return r.width>0 && r.height>0 && s.display!=='none' && s.visibility!=='hidden'; }})()",
+            sel = self.sel()
+        ))?;
+        Ok(v.as_bool().unwrap_or(false))
     }
 
     /// Click the element (trusted mouse press+release at its centre).
@@ -162,35 +150,25 @@ impl<'p> Locator<'p> {
     /// [`BrowserError::SelectorNotFound`] or a protocol error.
     pub fn click(&self) -> Result<()> {
         let (x, y) = self.bounding_box()?.center();
-        for kind in ["mousePressed", "mouseReleased"] {
-            self.page.call(
-                "Input.dispatchMouseEvent",
-                json!({ "type": kind, "x": x, "y": y, "button": "left", "clickCount": 1 }),
-            )?;
-        }
-        Ok(())
+        self.page.backend().click_at(x, y)
     }
 
-    /// Move the pointer to the element's centre (trusted `mouseMoved`).
+    /// Move the pointer to the element's centre (trusted).
     ///
     /// # Errors
     /// [`BrowserError::SelectorNotFound`] or a protocol error.
     pub fn hover(&self) -> Result<()> {
         let (x, y) = self.bounding_box()?.center();
-        self.page
-            .call("Input.dispatchMouseEvent", json!({ "type": "mouseMoved", "x": x, "y": y }))?;
-        Ok(())
+        self.page.backend().hover_at(x, y)
     }
 
-    /// Focus the element and insert `text` (does not clear existing content).
+    /// Focus the element and type `text` (does not clear existing content).
     ///
     /// # Errors
     /// [`BrowserError::SelectorNotFound`] or a protocol error.
     pub fn fill(&self, text: &str) -> Result<()> {
-        let id = self.node_id()?;
-        self.page.call("DOM.focus", json!({ "nodeId": id }))?;
-        self.page.call("Input.insertText", json!({ "text": text }))?;
-        Ok(())
+        self.focus()?;
+        self.page.backend().type_text(text)
     }
 
     /// Press a key while the element is focused (named keys + single chars).
@@ -198,44 +176,14 @@ impl<'p> Locator<'p> {
     /// # Errors
     /// [`BrowserError::SelectorNotFound`] or a protocol error.
     pub fn press(&self, key: &str) -> Result<()> {
-        let id = self.node_id()?;
-        self.page.call("DOM.focus", json!({ "nodeId": id }))?;
-        let (code, vk) = key_codes(key);
-        let base = json!({ "key": key, "code": code, "windowsVirtualKeyCode": vk });
-        let mut down = base.clone();
-        down["type"] = json!("keyDown");
-        if key.chars().count() == 1 {
-            down["text"] = json!(key);
-        }
-        self.page.call("Input.dispatchKeyEvent", down)?;
-        let mut up = base;
-        up["type"] = json!("keyUp");
-        self.page.call("Input.dispatchKeyEvent", up)?;
-        Ok(())
+        self.focus()?;
+        self.page.backend().press_key(key)
     }
 
     /// Start an assertion chain.
     #[must_use]
     pub fn expect(&self) -> LocatorAssertions<'_, 'p> {
         LocatorAssertions { locator: self, deadline: Duration::from_secs(5) }
-    }
-}
-
-/// `code` + `windowsVirtualKeyCode` for common keys (enough for component tests).
-fn key_codes(key: &str) -> (&'static str, i64) {
-    match key {
-        "Enter" => ("Enter", 13),
-        "Tab" => ("Tab", 9),
-        "Escape" => ("Escape", 27),
-        " " => ("Space", 32),
-        "ArrowUp" => ("ArrowUp", 38),
-        "ArrowDown" => ("ArrowDown", 40),
-        "ArrowLeft" => ("ArrowLeft", 37),
-        "ArrowRight" => ("ArrowRight", 39),
-        "Home" => ("Home", 36),
-        "End" => ("End", 35),
-        "Backspace" => ("Backspace", 8),
-        _ => ("", 0),
     }
 }
 

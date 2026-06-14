@@ -427,6 +427,197 @@ fn primal_test_helper_and_reactive_settle() {
     });
 }
 
+// ── Phase 2: Firefox over WebDriver BiDi (spec-43 §7) ────────────────────────
+// The SAME Page/Locator API drives Firefox via BiDi (Firefox blocks top-level
+// `data:` navigation, so these go through the served HTTP harness). Skipped
+// gracefully when Firefox isn't installed.
+
+fn firefox_or_skip(config: TestConfig) -> Option<Harness> {
+    use foundation_browser::{Browser, BrowserError};
+    match Harness::setup(TestConfig { browser: Browser::Firefox, ..config }) {
+        Ok(h) => Some(h),
+        Err(BrowserError::BrowserNotInstalled { .. }) => {
+            eprintln!("skipping Firefox test: firefox not installed (mise run test:browsers:firefox)");
+            None
+        }
+        Err(e) => panic!("firefox harness setup: {e}"),
+    }
+}
+
+// Parity with `locator_geometry_attributes_style_and_input` (Chromium #2),
+// served over HTTP (Firefox blocks top-level `data:` navigation). Same Locator
+// surface — count, geometry, visibility, attributes, computed style, trusted
+// click/hover/fill — over BiDi instead of CDP.
+#[test]
+fn firefox_locator_geometry_attributes_style_and_input() {
+    let Some(harness) = firefox_or_skip(TestConfig {
+        html: "<button id='b' data-state='off' style='position:absolute;left:20px;top:30px;width:80px;height:24px'>Go</button>\
+               <div id='hidden' style='display:none'>x</div>\
+               <p class='item'>a</p><p class='item'>b</p>\
+               <input id='in'>\
+               <script>document.getElementById('b').addEventListener('click',function(){this.dataset.state='on';this.textContent='Clicked'});</script>"
+            .into(),
+        headless: !is_headful(),
+        window_size: WINDOW,
+        ..TestConfig::default()
+    }) else {
+        return;
+    };
+
+    harness.run("firefox_locator_geometry_attributes_style_and_input", |_server, page| {
+        page.locator(".item").expect().to_have_count(2)?;
+        let rect = page.locator("#b").bounding_box()?;
+        assert!(rect.x >= 20.0 && rect.y >= 30.0 && rect.width > 0.0, "box: {rect:?}");
+        page.locator("#b").expect().to_be_visible()?;
+        page.locator("#hidden").expect().to_be_hidden()?;
+        page.locator("#b").expect().to_have_attribute("data-state", "off")?;
+        page.locator("#b").click()?;
+        page.locator("#b").expect().to_have_attribute("data-state", "on")?;
+        page.locator("#b").expect().to_have_text("Clicked")?;
+        page.locator("#b").hover()?; // trusted pointer move (no panic = ok)
+        page.locator("#in").fill("hello")?;
+        let val = page.eval("document.getElementById('in').value").unwrap_or_default();
+        assert_eq!(val.as_str(), Some("hello"), "typed text reached the field");
+        Ok(())
+    });
+}
+
+/// Run a Mode-1 DomOp-protocol parity test on Firefox: identical `drive_greeting`
+/// assertions as the Chromium mode1 tests, only the browser + encoder differ.
+fn firefox_mode1(
+    name: &'static str,
+    encoding: foundation_browser::test::Encoding,
+    page: String,
+    sink: impl FnOnce(foundation_browser::test::BroadcastTx) -> foundation_wasm_ui::App,
+) {
+    let Some(harness) = firefox_or_skip(TestConfig {
+        html: page,
+        encoding,
+        headless: !is_headful(),
+        window_size: WINDOW,
+        ..TestConfig::default()
+    }) else {
+        return;
+    };
+    let headful = is_headful();
+    harness.run(name, |server, page| drive_greeting(sink(server.broadcaster()), page, headful));
+}
+
+#[test]
+fn firefox_mode1_columnar_streams_to_real_browser() {
+    use foundation_browser::test::{BroadcastSink, Encoding};
+    use foundation_ui_traits::ColumnarEncoder;
+    use foundation_wasm_ui::App;
+    firefox_mode1(
+        "firefox_mode1_columnar",
+        Encoding::Columnar,
+        protocol_page("firefox · columnar", "protocol=\"arrow\"", "", "", ""),
+        |tx| App::with_protocol(BroadcastSink::with_encoder(ColumnarEncoder, tx)),
+    );
+}
+
+#[test]
+fn firefox_mode1_arrow_ipc_streams_to_real_browser() {
+    use foundation_browser::test::{BroadcastSink, Encoding};
+    use foundation_wasm_ui::{App, ArrowIpcEncoder};
+    firefox_mode1(
+        "firefox_mode1_arrow_ipc",
+        Encoding::Arrow,
+        protocol_page(
+            "firefox · arrow IPC",
+            "protocol=\"arrow\"",
+            "",
+            "<script src=\"/__primal/apache-arrow.js\"></script>",
+            "registerArrowIpc();",
+        ),
+        |tx| App::with_protocol(BroadcastSink::with_encoder(ArrowIpcEncoder, tx)),
+    );
+}
+
+#[test]
+fn firefox_mode1_json_streams_to_real_browser() {
+    use foundation_browser::test::{BroadcastSink, Encoding};
+    use foundation_ui_traits::JsonEncoder;
+    use foundation_wasm_ui::App;
+    firefox_mode1(
+        "firefox_mode1_json",
+        Encoding::Json,
+        protocol_page("firefox · json", "protocol=\"arrow\"", "", "", ""),
+        |tx| App::with_protocol(BroadcastSink::with_encoder(JsonEncoder, tx)),
+    );
+}
+
+#[test]
+fn firefox_mode1_html_streams_to_real_browser() {
+    let page = protocol_page("firefox · html", "", "<div id=\"stage\"></div>", "", "");
+    let Some(harness) = firefox_or_skip(TestConfig {
+        html: page,
+        headless: !is_headful(),
+        window_size: WINDOW,
+        ..TestConfig::default()
+    }) else {
+        return;
+    };
+    let headful = is_headful();
+    harness.run("firefox_mode1_html", |server, page| {
+        for msg in MESSAGES {
+            server.push_html(&format!(
+                "<island data-target=\"#stage\" data-action=\"replace-children\">\
+                 <div id=\"greeting\" class=\"greeting\">{msg}</div></island>"
+            ));
+            page.locator("#greeting").expect().to_have_text(msg)?;
+            watch_pause(headful);
+        }
+        Ok(())
+    });
+}
+
+#[test]
+fn firefox_primal_test_helper_and_reactive_settle() {
+    use foundation_browser::test::{BroadcastSink, Encoding};
+    use foundation_ui_traits::ColumnarEncoder;
+    use foundation_wasm_ui::{html, App};
+
+    let page_html = r##"<!doctype html><html><head><meta charset=utf-8></head><body>
+<mount-stream api="/__primal/stream" transport="sse" protocol="arrow"></mount-stream>
+<script type="module">
+  import { registerWebComponents } from '/__primal/foundation-wasm-ui.js';
+  import { installPrimalTest } from '/__primal/primal-test.js';
+  registerWebComponents();
+  installPrimalTest();
+</script>
+</body></html>"##;
+    let Some(harness) = firefox_or_skip(TestConfig {
+        html: page_html.into(),
+        encoding: Encoding::Columnar,
+        ..TestConfig::default()
+    }) else {
+        return;
+    };
+
+    harness.run("firefox_primal_test_helper_and_reactive_settle", |server, page| {
+        let app = App::with_protocol(BroadcastSink::with_encoder(ColumnarEncoder, server.broadcaster()));
+        let (ctx, rcv) = app.context();
+        let (label, set_label) = ctx.signal(alloc_str("one"));
+        let l = label.clone();
+        app.mount(html! { ctx, rcv, <p id="p">{l.get()}</p> });
+        app.stabilize();
+        assert!(page.wait_for_reactive(40, 4000)?, "DOM settled after mount (BiDi)");
+        page.locator("#p").expect().to_have_text("one")?;
+
+        set_label.set(alloc_str("two"));
+        app.stabilize();
+        assert!(page.wait_for_reactive(40, 4000)?, "DOM settled after update (BiDi)");
+        page.locator("#p").expect().to_have_text("two")?;
+
+        let has_helper = page
+            .eval("typeof window.__primalTest === 'object' && typeof window.__primalTest.waitForReactive === 'function'")
+            .unwrap_or_default();
+        assert_eq!(has_helper.as_bool(), Some(true), "window.__primalTest installed (Firefox)");
+        Ok(())
+    });
+}
+
 fn alloc_str(s: &str) -> String {
     s.to_string()
 }

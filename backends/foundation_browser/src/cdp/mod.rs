@@ -11,6 +11,7 @@
 //! `Page`/`Runtime`/`DOM`/`CSS` domains on that session. All page commands carry
 //! the `sessionId` (flatten mode multiplexes every session over the one socket).
 
+pub(crate) mod backend;
 pub mod launch;
 
 use serde_json::{json, Value};

@@ -102,15 +102,26 @@ fn dispatch(txt: &str, pending: &Pending, subs: &Subs) {
         return;
     };
     if let Some(id) = v.get("id").and_then(Value::as_u64) {
-        let result = if let Some(err) = v.get("error") {
-            Err(BrowserError::Protocol {
-                code: err.get("code").and_then(Value::as_i64).unwrap_or(0),
-                message: err
-                    .get("message")
-                    .and_then(Value::as_str)
-                    .unwrap_or_default()
-                    .to_string(),
-            })
+        let is_error = v.get("error").is_some() || v.get("type").and_then(Value::as_str) == Some("error");
+        let result = if is_error {
+            // CDP: `error: { code, message }`. BiDi: `type:"error"`, `error:"<code>"`
+            // (a string) + a top-level `message`. Handle both shapes.
+            let err = v.get("error");
+            let (code, message) = match err.and_then(Value::as_object) {
+                Some(obj) => (
+                    obj.get("code").and_then(Value::as_i64).unwrap_or(0),
+                    obj.get("message").and_then(Value::as_str).unwrap_or_default().to_string(),
+                ),
+                None => (
+                    0,
+                    v.get("message")
+                        .and_then(Value::as_str)
+                        .or_else(|| err.and_then(Value::as_str))
+                        .unwrap_or("protocol error")
+                        .to_string(),
+                ),
+            };
+            Err(BrowserError::Protocol { code, message })
         } else {
             Ok(v.get("result").cloned().unwrap_or(Value::Null))
         };

@@ -1959,7 +1959,12 @@ impl SimpleIncomingRequestBuilder {
 
         match &body {
             SendSafeBody::None => {
-                headers.insert(SimpleHeader::CONTENT_LENGTH, vec![String::from("0")]);
+                // Absent body → DO NOT auto-add `Content-Length: 0`. A bodyless
+                // request (e.g. a GET, or a WebSocket upgrade) must not declare a
+                // body; strict servers (Firefox's WebDriver BiDi, the `websockets`
+                // lib) reject a GET carrying `Content-Length` as "unsupported
+                // request body" (Chromium's CDP tolerates it). An explicitly-set
+                // `Content-Length` is preserved.
             }
             SendSafeBody::Bytes(inner) => {
                 let content_length = inner
