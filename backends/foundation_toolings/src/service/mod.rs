@@ -90,22 +90,22 @@ impl DevService {
         tracing::info!("Dev service started — press Ctrl+C to stop");
 
         // Drive the signal stream — the valtron engine interleaves this with
-        // all other tasks. We block here because the dev server is the main
-        // process; when a signal arrives, the loop breaks and valtron shuts down.
+        // all other tasks. The stream yields Stream::Pending/Delayed/Ignore
+        // while waiting; only Stream::Next carries the actual SignalEvent.
+        // We loop until a shutdown signal arrives.
         for item in &mut sig_stream {
-            if let Stream::Next(event) = item {
-                match event.kind {
-                    SignalKind::Interrupt | SignalKind::Terminate => {
-                        tracing::info!("Received {}, shutting down", event.kind);
-                        break;
-                    }
-                    SignalKind::Hangup => {
-                        tracing::info!("Received SIGHUP — reload not yet implemented");
-                    }
-                    SignalKind::Quit => {
-                        tracing::info!("Received SIGQUIT — shutting down");
-                        break;
-                    }
+            let Stream::Next(event) = item else { continue };
+            match event.kind {
+                SignalKind::Interrupt | SignalKind::Terminate => {
+                    tracing::info!("Received {}, shutting down", event.kind);
+                    break;
+                }
+                SignalKind::Hangup => {
+                    tracing::info!("Received SIGHUP — reload not yet implemented");
+                }
+                SignalKind::Quit => {
+                    tracing::info!("Received SIGQUIT — shutting down");
+                    break;
                 }
             }
         }
