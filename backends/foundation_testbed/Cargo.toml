@@ -7,7 +7,9 @@ license = "MIT"
 
 [features]
 
-default = ["vms"]
+# Build everything by default (both binaries); consumers opt out with
+# --no-default-features --features <vms|wasm[,cli]> to take just one part.
+default = ["vms", "wasm", "cli"]
 
 # all things vms (QEMU/KVM + the VM-infrastructure deps)
 vms = [
