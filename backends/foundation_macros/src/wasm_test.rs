@@ -94,7 +94,7 @@
 //!
 //! Concatenation order is whatever the linker chooses, so consumers must treat
 //! the section as an UNORDERED set of lines — discovery
-//! (`foundation_wasm_testbed::fwt`) parses it into a name→flags map and sorts
+//! (`foundation_testbed::wasm::fwt`) parses it into a name→flags map and sorts
 //! cases by name. The EXPORT scan is authoritative for which cases exist; the
 //! manifest only enriches them (a case missing a manifest line just gets empty
 //! flags).
