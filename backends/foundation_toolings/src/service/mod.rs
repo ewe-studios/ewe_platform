@@ -4,7 +4,7 @@
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::valtron::{self, Stream};
+use foundation_core::valtron;
 use foundation_nativeapis::signal::{signal_task, SignalKind};
 use foundation_nativeapis::valtron::FileWatcherTask;
 
@@ -80,33 +80,35 @@ impl DevService {
             .map_err(|e| ToolingError::Run(e.to_string()))?;
 
         // -- Signal handler (Ctrl+C / SIGTERM)
-        // This replaces the old shutdown.probe() + sleep(100ms) polling loop.
         // signal_task parks on epoll/kqueue — zero CPU until a signal arrives.
-        let (sig_task, _bus) = signal_task()
+        // Under multi, pool threads drive the task. We just wait on the bus
+        // subscriber queue, whose pop() blocks until a signal event is delivered.
+        let (sig_task, bus) = signal_task()
             .map_err(|e| ToolingError::Watch(e.to_string()))?;
-        let mut sig_stream = valtron::execute(sig_task, None)
+        valtron::send(sig_task)
             .map_err(|e| ToolingError::Watch(e.to_string()))?;
 
+        // Block on the bus subscriber — ConcurrentQueue::pop() blocks via
+        // park_timeout until a signal event arrives. Zero spinning.
+        let sig_sub = bus.subscribe();
         tracing::info!("Dev service started — press Ctrl+C to stop");
 
-        // Drive the signal stream — the valtron engine interleaves this with
-        // all other tasks. The stream yields Stream::Pending/Delayed/Ignore
-        // while waiting; only Stream::Next carries the actual SignalEvent.
-        // We loop until a shutdown signal arrives.
-        for item in &mut sig_stream {
-            let Stream::Next(event) = item else { continue };
-            match event.kind {
-                SignalKind::Interrupt | SignalKind::Terminate => {
-                    tracing::info!("Received {}, shutting down", event.kind);
-                    break;
-                }
-                SignalKind::Hangup => {
-                    tracing::info!("Received SIGHUP — reload not yet implemented");
-                }
-                SignalKind::Quit => {
-                    tracing::info!("Received SIGQUIT — shutting down");
-                    break;
-                }
+        loop {
+            match sig_sub.pop() {
+                Ok(event) => match event.kind {
+                    SignalKind::Interrupt | SignalKind::Terminate => {
+                        tracing::info!("Received {}, shutting down", event.kind);
+                        break;
+                    }
+                    SignalKind::Hangup => {
+                        tracing::info!("Received SIGHUP — reload not yet implemented");
+                    }
+                    SignalKind::Quit => {
+                        tracing::info!("Received SIGQUIT — shutting down");
+                        break;
+                    }
+                },
+                Err(_) => break, // queue closed
             }
         }
 
