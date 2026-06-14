@@ -1,5 +1,13 @@
 // ProjectBuilder trait — pluggable builder interface.
 
+pub mod cargo;
+pub mod wasm;
+pub mod wasm_pack;
+
+pub use cargo::CargoBuilder;
+pub use wasm::WasmBuilder;
+pub use wasm_pack::WasmPackBuilder;
+
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
