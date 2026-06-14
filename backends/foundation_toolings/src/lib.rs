@@ -19,7 +19,7 @@
 
 mod config;
 mod error;
-mod types;
+pub mod types;
 mod vec_ext;
 pub mod builder;
 pub mod proxy;

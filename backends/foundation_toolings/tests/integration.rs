@@ -1,17 +1,14 @@
 // Integration tests for foundation_toolings.
 
-use foundation_toolings::builder::{BuildOutput, CargoBuilder, ProjectBuilder};
+use foundation_toolings::builder::{CargoBuilder, ProjectBuilder};
 use foundation_toolings::watcher::FileChange;
-use foundation_toolings::vec_ext::VecStringExt;
-use foundation_toolings::types::{ProjectDefinition, ProxyRemoteConfig, ProxyType, Http1, Tunnel};
-use foundation_toolings::{DevService, run_dev_server};
-use foundation_toolings::runner::BinaryRunnerTask;
-use foundation_toolings::proxy::{SseReloadHandler, TunnelProxy, TunnelProxyTrait, copy_bidirectional};
+use foundation_toolings::VecStringExt;
+use foundation_toolings::{ProjectDefinition, ProxyRemoteConfig, ProxyType, Http1, Tunnel};
+use foundation_toolings::runner::DurationSleeper;
+use foundation_toolings::proxy::{TunnelProxyTrait, copy_bidirectional};
 
 use std::path::PathBuf;
-use std::sync::Arc;
 use std::time::Duration;
-use concurrent_queue::ConcurrentQueue;
 
 // -- VecStringExt
 
@@ -116,8 +113,6 @@ fn test_tunnel_type() {
 
 #[test]
 fn test_duration_sleeper() {
-    use foundation_toolings::runner::DurationSleeper;
-
     let mut sleeper = DurationSleeper::new();
     assert!(!sleeper.is_done());
 
