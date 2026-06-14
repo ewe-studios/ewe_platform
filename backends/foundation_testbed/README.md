@@ -106,6 +106,15 @@ self-contained runner (`runner.mjs` + `foundation-wasm.js` + `module.wasm` +
 loading + result reporting go through two Rust ops (`op_fwt_read_file`,
 `op_fwt_report`) — no stdout parsing, no external process.
 
+#### Embedded-runtime docs
+
+| Doc | What's inside |
+|-----|---------------|
+| [Overview & architecture](./docs/embedded-js.md) | what it is, why V8/`deno_core` (not `deno_runtime`), the build→discover→stage→run pipeline, the runtime in three parts (composition, globals bootstrap, ops), the tokio loop |
+| [Running JS & wasm tests](./docs/running-js-and-wasm-tests.md) | write `#[wasm_test]` cases, run them in-process, and the execution-core API (`build_runtime` / `run_module` / `run_staged_harness` / `HarnessReport`) for driving JS from Rust |
+| [Extending the runtime](./docs/extending-the-runtime.md) | add a Web global, add a Rust↔JS op, **add Web Crypto (`crypto.subtle`)**, and bump the deno crates |
+| [Internals & decisions](./docs/embedded-js-internals.md) | `lazy_loaded_js`/`loadExtScript`/`__bootstrap`, the `aes`/`deno_crypto` conflict, why tokio not valtron, the op result contract, API-drift notes |
+
 ## Quick start
 
 ```bash
