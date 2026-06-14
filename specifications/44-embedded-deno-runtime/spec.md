@@ -1,8 +1,10 @@
 # Spec 44 — Embedded Deno runtime for zero-install JS test execution
 
-Status: **PROPOSAL** (2026-06-14) — design + complexity + timeline for review. No
-implementation yet. Featureless (single design doc); if approved it becomes a
-feature breakdown.
+Status: **PROPOSAL** (2026-06-14) — design + complexity + timeline for review.
+**W1 spike is GREEN** (see §5): an embedded `deno_core` V8 isolate evaluates JS and
+runs `WebAssembly.instantiate` in-process on the `uat` profile, no external binary.
+Remaining work (W2–W7) still pending review. Featureless (single design doc); if
+approved it becomes a feature breakdown.
 
 ## 1. Goal
 
@@ -89,6 +91,39 @@ instead of `fetch`, avoiding `deno_fetch`/net entirely.)
    (drop `node:fs`/`process.exit` branches; use the report op). Keep
    `foundation-wasm.js` as-is (it's the thing under test).
 
+### 4.4 Deferred capability — Web Crypto (`deno_crypto`) — IMPORTANT
+
+We deliberately **do not** pull `deno_crypto` (Web Crypto: `crypto.subtle`,
+`crypto.getRandomValues`). Two reasons:
+
+1. **Not needed today.** The harness JS uses `WebAssembly`, ES modules, `console`,
+   `TextEncoder`/`TextDecoder`, timers, and `fetch` — none touch Web Crypto, and
+   `foundation-wasm.js` (the code under test) doesn't either.
+2. **It was the build blocker.** Pulling the *full* `deno_runtime` dragged in
+   `deno_crypto`, which pins `aes = "=0.8.3"` (an **exact** pin). The workspace
+   already resolves `aes 0.8.4` via `foundation_db → turso → turso_core → aes-gcm`.
+   Both are in the `0.8.x` compatibility band, which Cargo unifies to **one**
+   version; `=0.8.3 ∩ >=0.8.4 = ∅` → unresolvable. (`foundation_testbed` itself
+   never depends on turso; the clash is purely the shared workspace `Cargo.lock`,
+   because the root `ewe_platform` binary depends on both.) Composing `deno_core` +
+   only the extensions we need removes the `=0.8.3` pin and the workspace resolves.
+
+**Future need (recorded for awareness):** when we want to test/validate wasm or JS
+that *uses* the Web Crypto APIs (e.g. `crypto.subtle.digest`, `getRandomValues`,
+key derivation), we will need crypto in the embedded runtime. Re-add path at that
+point, in order of preference:
+
+- Add a `deno_crypto` release whose `aes` requirement no longer pins `=0.8.3`
+  (i.e. bump `deno_core`/extension set to a version line where the pin is gone or
+  is `>=0.8.4`-compatible) so it unifies with turso's `aes 0.8.4`; **or**
+- if still pinned, provide the needed primitives via a small `#[op2]` shim backed by
+  a RustCrypto `aes`/`sha2` version already in the tree (no new conflicting pin);
+- gate it behind a further sub-feature (e.g. `wasm-embedded-crypto`) so it's opt-in
+  and a plain in-process JS build stays free of the crypto dep tree.
+
+This trade-off (no `crypto.subtle` for now) is the only capability we gave up by
+choosing `deno_core` + extensions over `deno_runtime`.
+
 ### 4.3 Runtime model
 
 `deno_core`'s event loop is **tokio-based**. foundation uses valtron, not tokio.
@@ -100,7 +135,7 @@ feature. (Noted as a deliberate trade-off, gated behind `wasm`.)
 
 | # | Work | Output |
 |---|------|--------|
-| W1 | **Spike**: add the dep, eval `1+1` + a `WebAssembly.instantiate` in-process; confirm rusty_v8 prebuilt V8 resolves on our nightly toolchain + the `uat` (LLVM) profile. | go/no-go on the build |
+| W1 | ✅ **DONE (green)**: `deno_core` 0.404 (rusty_v8 / V8 149, prebuilt) builds + links on `uat`; in-process isolate evals `1+1` → `2.0` and runs `WebAssembly.Module`/`Instance`. Code: `src/wasm/embedded_js.rs`, behind the `wasm-embedded-js` sub-feature (`dep:deno_core`, no `deno_crypto`; see §4.4). API note: deno_core 0.404 dropped `JsRuntime::handle_scope` — use the exported `deno_core::scope!(scope, rt)` macro. | go/no-go on the build → **GO** |
 | W2 | Module loader resolving the harness imports from embedded assets + staged dir | loader |
 | W3 | Ops: read-bytes + report-results; run a real sample module's `#[wasm_test]` cases end-to-end | green sample |
 | W4 | Driver returning `RunOutcome`; swap `deno.rs` + the `fwt_runner` host path to it; delete `Command::new`/`which` + `DenoNotFound`/`HostRuntimeNotFound` | embedded runner |
@@ -156,7 +191,11 @@ fallback.
 
 ## 9. Open decisions (for review)
 
-1. **`deno_core` + extensions vs `deno_runtime`** — lean-and-wire vs fat-and-easy.
+1. ~~**`deno_core` + extensions vs `deno_runtime`**~~ — **DECIDED: `deno_core` +
+   extensions.** `deno_runtime` is unusable here: its `deno_crypto` pins
+   `aes =0.8.3`, conflicting with turso's `aes 0.8.4` in the shared workspace lock
+   (§4.4). `deno_core` + chosen extensions avoids it; cost is no `crypto.subtle`
+   (deferred, §4.4).
 2. **V8 behind a sub-feature** vs always-on with `wasm` (heavy default).
 3. **Keep the deno *binary* fallback** for environments that don't want V8 in the
    build? (i.e. both an embedded runner and a shell-out runner.)

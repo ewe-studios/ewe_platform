@@ -8,6 +8,9 @@ pub mod browser;
 pub mod build;
 pub mod cli;
 pub mod deno;
+// spec-44: in-process JS via the embedded Deno runtime (extra sub-feature).
+#[cfg(feature = "wasm-embedded-js")]
+pub mod embedded_js;
 pub mod error;
 pub mod fwt;
 pub mod fwt_runner;

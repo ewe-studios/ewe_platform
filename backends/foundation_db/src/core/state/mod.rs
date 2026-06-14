@@ -19,3 +19,10 @@ pub mod resource_identifier;
 pub mod store_state_task;
 pub mod traits;
 pub mod types;
+
+// Re-exports for convenience
+pub use file::FileStateStore;
+pub use hash::config_hash;
+pub use helpers::{collect_all, collect_first, drive_to_completion};
+pub use traits::StateStore;
+pub use types::{ResourceState, StateStatus};

@@ -58,6 +58,20 @@ wasm = [
   "dep:tracing-subscriber",
 ]
 
+# spec-44: run the wasm harness JS in-process via an embedded Deno runtime. We
+# compose deno_core + the extensions we actually need (web/console/url/fetch) —
+# NOT the full deno_runtime, whose deno_crypto pins `aes =0.8.3`, conflicting with
+# turso's `aes ^0.8.4` (workspace-wide). We don't need crypto.subtle. No
+# node/deno install. Heavy (links V8), so it's a sub-feature of `wasm`.
+wasm-embedded-js = [
+  "wasm",
+  "dep:deno_core",
+  "dep:deno_web",      # TextEncoder/TextDecoder, timers, structuredClone, performance
+  "dep:deno_console",  # console.log/error (the runner's reporting)
+  "dep:deno_url",      # URL / URLSearchParams (deno_web dependency)
+  "dep:deno_webidl",   # WebIDL bindings the above extensions require
+]
+
 [dependencies]
 # Shared across features.
 foundation_errstacks = { workspace = true }
@@ -80,6 +94,15 @@ foundation_nostd = { workspace = true, optional = true }
 portpicker = { workspace = true, optional = true }
 tempfile = { version = "3", optional = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
+
+# wasm-embedded-js feature — embedded Deno runtime, composed (spec-44, optional).
+# deno_core + the minimal extension set (versions coordinated with deno_core 0.404).
+# Deliberately NO deno_crypto (aes =0.8.3 vs turso aes 0.8.4 — see spec-44 §4.4).
+deno_core = { version = "0.404", optional = true }
+deno_web = { version = "0.282", optional = true }
+deno_console = { version = "0.222", optional = true }
+deno_url = { version = "0.222", optional = true }
+deno_webidl = { version = "0.251", optional = true }
 
 # clap drives both the vms CLI (`cli`) and the wasm-testbed bin (`wasm`).
 clap = { version = "4", features = ["derive"], optional = true }
