@@ -20,7 +20,10 @@
 mod error;
 mod types;
 mod vec_ext;
+pub mod builder;
+pub mod watcher;
 
+pub use builder::*;
 pub use error::*;
 pub use types::*;
 pub use vec_ext::*;
