@@ -1,10 +1,18 @@
 # foundation_testbed
 
-Cross-platform VM testbed using QEMU/KVM for building and testing binaries.
-Launches QEMU as a direct child process (no libvirt) with user-mode networking,
-so **no root privileges are required** at runtime.
+The holistic test harness for the platform — two capabilities, each behind a
+Cargo feature:
+
+- **`vms`** — cross-platform VM testbed using QEMU/KVM for building and testing
+  binaries. Launches QEMU as a direct child process (no libvirt) with user-mode
+  networking, so **no root privileges are required** at runtime.
+- **`wasm`** — a CLI-driven `wasm32-unknown-unknown` test harness: runs
+  `#[wasm_test]` cases in a real **browser** (the pure-Rust CDP/BiDi driver, no
+  node/Playwright), **Deno**, or **Cloudflare Workers** (wrangler).
 
 ## What it does
+
+**VM testbed (`vms`)**
 
 - **Prebuilt image import** — download Vagrant Cloud images (libvirt provider)
   or raw qcow2 images, auto-extracting and caching them
@@ -16,6 +24,54 @@ so **no root privileges are required** at runtime.
   upload artifacts
 - **Health checks** — `doctor` command checks host KVM, QEMU binaries, SSH keys,
   disk space, port availability, and per-VM state
+
+**wasm harness (`wasm`)**
+
+- **Discovery** — enumerate `#[wasm_test]` cases from a built module's exports
+- **Runners** — browser (CDP/BiDi via `foundation_browser`), Deno, Cloudflare
+  Workers; both the custom harness and auto-generated wasm-bindgen test modes
+- **Scaffolding** — `init` writes the per-runner templates into a target project
+
+## Features & binaries
+
+Capabilities are feature-gated; **the default builds both** so the two binaries
+are available out of the box. Disable selectively to take just one part.
+
+| Feature | Enables | Pulls in |
+|---------|---------|----------|
+| `vms` *(default)* | the VM testbed (`src/vms/`) | qemu backend + ssh2, tar, image, `foundation_netio`, … |
+| `wasm` *(default)* | the wasm harness (`src/wasm/`) | `foundation_browser`, `foundation_wasm_ui`, `foundation_http`, walrus, … |
+| `cli` *(default)* | the `clap` CLI for the VM testbed binary | clap |
+| `utm` | macOS UTM/Hypervisor backend (with `vms`) | — |
+
+**Binaries** (each only builds when its features are on):
+
+| Binary | Requires | Purpose |
+|--------|----------|---------|
+| `testbed` | `cli` + `vms` | VM lifecycle CLI (`testbed start windows-build`, …) |
+| `wasm-testbed` | `wasm` | wasm test runner (`wasm-testbed web/node/wrangler <module>`) |
+
+> Why `cli` is in the default set: the `testbed` binary is gated on `cli` (its CLI
+> module is `#[cfg(feature = "cli")]` and needs `clap`). Without `cli`, `vms`
+> builds as a **library** but the `testbed` binary is skipped. `wasm` enables
+> `clap` on its own for `wasm-testbed`.
+
+```bash
+# Default — both binaries:
+cargo build -p foundation_testbed
+
+# Just the VM CLI:
+cargo build -p foundation_testbed --no-default-features --features vms,cli
+# Just the wasm harness:
+cargo build -p foundation_testbed --no-default-features --features wasm
+# vms as a library only (no CLI binary):
+cargo build -p foundation_testbed --no-default-features --features vms
+```
+
+> **Build profile:** this crate's dev profile uses Cranelift, which currently
+> crashes compiling it — build/test with the `uat` profile (LLVM):
+> `cargo test -p foundation_testbed --profile uat`. The `wasm` runners need a
+> browser/Deno/wrangler installed (`mise run test:browsers`).
 
 ## Quick start
 
