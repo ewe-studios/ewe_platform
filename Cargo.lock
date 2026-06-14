@@ -4058,6 +4058,27 @@ name = "foundation_theme"
 version = "0.0.1"
 
 [[package]]
+name = "foundation_toolings"
+version = "0.0.1"
+dependencies = [
+ "concurrent-queue",
+ "derive_more",
+ "foundation_core",
+ "foundation_errstacks",
+ "foundation_http",
+ "foundation_nativeapis",
+ "foundation_netio",
+ "foundation_nostd",
+ "foundation_runtimes",
+ "itertools 0.14.0",
+ "serde",
+ "serde_json",
+ "tracing",
+ "tracing-subscriber",
+ "tracing-test",
+]
+
+[[package]]
 name = "foundation_ui_components"
 version = "0.1.0"
 dependencies = [

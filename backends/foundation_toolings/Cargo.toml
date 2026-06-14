@@ -1,0 +1,33 @@
+[package]
+name = "foundation_toolings"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Development tooling server: reverse proxy, file watcher, hot reload — built on valtron and native APIs, zero async runtime deps"
+keywords = ["devserver", "proxy", "hot-reload", "valtron", "native-apis"]
+
+[dependencies]
+foundation_core = { workspace = true }
+foundation_nativeapis = { workspace = true }
+foundation_netio = { workspace = true }
+foundation_http = { workspace = true }
+foundation_nostd = { workspace = true }
+foundation_runtimes = { workspace = true }
+foundation_errstacks = { workspace = true }
+
+tracing.workspace = true
+derive_more.workspace = true
+itertools = "0.14"
+concurrent-queue = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+tracing-test.workspace = true
+tracing-subscriber.workspace = true
+
+[lints]
+workspace = true

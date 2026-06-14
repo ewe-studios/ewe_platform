@@ -69,6 +69,7 @@ foundation_http = { path = "./backends/foundation_http", version = "0.0.1" }
 foundation_browser = { path = "./backends/foundation_browser", version = "0.0.1" }
 foundation_arrow = { path = "./backends/foundation_arrow", version = "0.0.1" }
 foundation_nativeapis = { path = "./backends/foundation_nativeapis", version = "0.0.1" }
+foundation_toolings = { path = "./backends/foundation_toolings", version = "0.0.1" }
 
 foundation_codegentools = { path = "./backends/foundation_codegentools", version = "0.1.0" }
 foundation_webwasm = { path = "./backends/foundation_webwasm", version = "0.1.0" }
