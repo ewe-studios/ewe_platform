@@ -10,33 +10,100 @@ First read the [architecture overview](./embedded-js.md) so the three parts
 
 ---
 
-## Adding a Web global from `deno_web`
+## How the globals bootstrap works
 
-`deno_web` already *implements* a lot (encoding, timers, URL, streams, blobs,
-structured clone, `performance`, compression, broadcast channel) — it just ships
-them as `lazy_loaded_js` IIFE modules that aren't auto-installed as globals. To
-expose one, load its module in the bootstrap and assign the export.
+This is the single most-extended seam, so it's worth understanding fully.
 
-1. Find the module + export name. The modules live in the `deno_web` crate source
-   (`~/.cargo/registry/src/*/deno_web-*/`). Each ends with `return { … }` listing
-   its exports. Examples already wired: `08_text_encoding.js`, `02_timers.js`,
-   `00_url.js`.
+When you create a `JsRuntime` from `deno_core` + extensions, you get the engine,
+`console`, the module loader, and all the extensions' **ops** (the Rust functions) —
+but **not** the Web API *globals* (`TextEncoder`, `setTimeout`, `URL`, `fetch`, …).
+Those classes are defined in JavaScript that each extension ships as
+**`lazy_loaded_js`**: included in the binary but *not evaluated at startup*, and
+written as IIFEs (not ES modules) that return their exports. In the full
+`deno_runtime` a large bootstrap (`99_main.js`) evaluates them and assigns the
+classes to `globalThis`. We don't pull that runtime, so we run our own tiny
+bootstrap — `BOOTSTRAP_GLOBALS` in `embedded_js.rs`, executed once right after the
+runtime is built:
 
-2. Add to `BOOTSTRAP_GLOBALS` in `embedded_js.rs`:
+```rust
+const BOOTSTRAP_GLOBALS: &str = r#"
+((globalThis) => {
+  const load = globalThis.Deno.core.loadExtScript;
+  const enc = load("ext:deno_web/08_text_encoding.js");
+  const timers = load("ext:deno_web/02_timers.js");
+  const url = load("ext:deno_web/00_url.js");
+  const fetchMod = load("ext:deno_fetch/26_fetch.js");
+  const headers = load("ext:deno_fetch/20_headers.js");
+  const request = load("ext:deno_fetch/23_request.js");
+  const response = load("ext:deno_fetch/23_response.js");
+  Object.assign(globalThis, {
+    TextEncoder: enc.TextEncoder,
+    TextDecoder: enc.TextDecoder,
+    TextEncoderStream: enc.TextEncoderStream,
+    TextDecoderStream: enc.TextDecoderStream,
+    setTimeout: timers.setTimeout,
+    setInterval: timers.setInterval,
+    clearTimeout: timers.clearTimeout,
+    clearInterval: timers.clearInterval,
+    URL: url.URL,
+    URLSearchParams: url.URLSearchParams,
+    fetch: fetchMod.fetch,
+    Headers: headers.Headers,
+    Request: request.Request,
+    Response: response.Response,
+  });
+})(globalThis);
+"#;
+```
+
+Line by line:
+
+- **`Deno.core.loadExtScript(specifier)`** is the deno_core runtime API that
+  evaluates a `lazy_loaded_js` file *on demand* and returns its export object (the
+  thing the IIFE `return {…}`s). The Rust side is `op_load_ext_script`.
+- The **`ext:<crate>/<file>.js`** specifier names a file the extension registered.
+  Find the available files + their export names in the crate source (each IIFE ends
+  with `return { … }`): `~/.cargo/registry/src/*/deno_web-*/` and `…/deno_fetch-*/`.
+- These IIFEs read **`__bootstrap`** (which holds `core` + `primordials`). `deno_core`
+  provides it, and because we never run `99_main.js` (which would delete it), it's
+  still present when `loadExtScript` evaluates them. Modules also pull their own
+  transitive deps via `loadExtScript` internally (e.g. `deno_fetch` modules load
+  `deno_web`/`deno_webidl` ones), so you only list the *top-level* globals you want.
+- **`Object.assign(globalThis, …)`** publishes the classes as real globals, so test
+  code and `foundation-wasm.js` can use `new TextEncoder()`, `fetch(...)`, etc.
+
+Three invariants when extending it:
+
+1. The backing **ops must be registered** — i.e. the owning extension is in the
+   `extensions` vec in `build_runtime_with` (`deno_web`, `deno_fetch`, …). If a
+   global's ops aren't registered, it loads but throws when *used*.
+2. Some extensions need **runtime state in `OpState`** (e.g. `deno_fetch` needs a
+   `PermissionsContainer` — see the fetch wiring in `build_runtime_with`). Add it
+   before the global is *called*, not necessarily before it's defined.
+3. Keep it a **plain script** (`execute_script`), not a module — it runs before any
+   `runner.mjs`/entry module loads, so globals exist by the time tests run.
+
+## Adding a Web global
+
+To expose another API an extension already implements (e.g. `performance`,
+`structuredClone`, `Blob` from `deno_web`):
+
+1. Find the module + export name in the crate source (the IIFE's `return {…}`).
+   `deno_web` ships, among others, `15_performance.js` (`performance`),
+   `02_structured_clone.js` (`structuredClone`), `09_file.js` (`Blob`/`File`).
+2. Add two lines to `BOOTSTRAP_GLOBALS`:
 
    ```js
-   const perf = Deno.core.loadExtScript("ext:deno_web/15_performance.js");
+   const perf = load("ext:deno_web/15_performance.js");
    Object.assign(globalThis, { performance: perf.performance });
    ```
 
-`loadExtScript` returns the module's export object and pulls the module's own
-transitive deps (e.g. `deno_webidl`) automatically; `__bootstrap` (core +
-primordials) is provided by `deno_core`. That's it — no Rust change, because the
-backing ops are already registered by `deno_web::deno_web::init(...)`.
-
-> If a global needs an op `deno_web` doesn't register in our `init` call, or needs
-> extension state we didn't `put`, you've crossed into "new extension" territory —
-> see the next section.
+No Rust change is needed if the backing ops are already registered by the
+extension's `init(...)` (they are, for everything `deno_web`/`deno_fetch` ship). If
+the global needs an op from an extension we *don't* yet include, or needs extension
+state we don't `put`, that's "new extension" territory — see the next section, and
+the [fetch wiring](#a-worked-example-how-fetch-was-added) for a full example of
+both (new extension + `OpState` state).
 
 ---
 
@@ -100,6 +167,114 @@ Ops are how JS calls into Rust. The harness uses two (`op_fwt_read_file`,
 Errors: return `Result<T, deno_error::JsErrorBox>` and build messages with
 `JsErrorBox::generic("…")` (a custom `#[derive(deno_error::JsError)]` enum works
 too). `std::io::Error` is **not** accepted directly — map it.
+
+---
+
+## A worked example: how `fetch` was added
+
+`fetch` is *not* in `deno_web` — it's a separate, heavier extension (`deno_fetch`)
+that also needs runtime state (`OpState`). It's the complete pattern for "add a whole
+extension," so it's worth walking through. All of this is live in `embedded_js.rs`.
+
+1. **Add the crates** to the `wasm-embedded-js` feature + `[dependencies]` — versions
+   coordinated with `deno_core` 0.404 (verify a single `deno_core` with
+   `cargo tree -i deno_core`):
+
+   ```toml
+   deno_fetch = { version = "0.275", optional = true }        # fetch/Request/Response/Headers
+   deno_net   = { version = "0.243", optional = true }        # net/TLS JS deno_fetch lazy-loads
+   deno_permissions = { version = "0.110", optional = true }   # op_fetch's PermissionsContainer
+   sys_traits = { version = "0.1", features = ["real", "libc"], optional = true }  # RealSys
+   rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"], optional = true }
+   ```
+
+   > `deno_net` is needed even for `data:` fetches: deno_fetch's `22_http_client.js`
+   > lazy-loads `ext:deno_net/02_tls.js`, so that extension must be registered or the
+   > whole `fetch` module fails to load. `sys_traits` needs `real` + `libc` (unix) so
+   > `RealSys` implements `EnvHomeDir` for the descriptor parser.
+
+2. **Register the extensions** in `build_runtime_with`'s `extensions` vec —
+   `deno_net` before `deno_fetch`; both have an `init`. `deno_net::init` takes
+   `(root_cert_store_provider, unsafely_ignore_certificate_errors)` (both `None`),
+   `deno_fetch::init` takes an `Options` (it implements `Default`):
+
+   ```rust
+   deno_net::deno_net::init(None, None),
+   deno_fetch::deno_fetch::init(deno_fetch::Options::default()),
+   ```
+
+3. **Install the TLS CryptoProvider.** `deno_tls` (under deno_fetch's HTTP client)
+   uses rustls, which panics without a process-default `CryptoProvider` — in the full
+   runtime deno installs it; we must. Idempotent, once per process, before building:
+
+   ```rust
+   static ONCE: std::sync::Once = std::sync::Once::new();
+   ONCE.call_once(|| { let _ = rustls::crypto::aws_lc_rs::default_provider().install_default(); });
+   ```
+
+4. **Provide the state the ops need.** `op_fetch`/`op_net` read a
+   `deno_permissions::PermissionsContainer` from `OpState` (`check_net_url`). Local
+   test runtime → grant everything; `allow_all` still needs a descriptor parser
+   structurally (`RealSys` is the standard host one). Inject after `JsRuntime::new`,
+   before anything calls `fetch`:
+
+   ```rust
+   let parser = Arc::new(deno_permissions::RuntimePermissionDescriptorParser::new(
+       sys_traits::impls::RealSys,
+   ));
+   runtime
+       .op_state()
+       .borrow_mut()
+       .put(deno_permissions::PermissionsContainer::allow_all(parser));
+   ```
+
+   (`runtime.op_state().borrow_mut().put(…)` is the alternative to an extension
+   `state =` closure — handy when the value isn't an extension option.)
+
+5. **Shim the telemetry bootstrap.** deno_fetch's `26_fetch.js` destructures
+   `__bootstrap.internals.__telemetry` / `.__telemetryUtil` (the full runtime's
+   OpenTelemetry bootstrap). We don't run OTel, so install a no-op shim *before*
+   loading the fetch JS — `TRACING_ENABLED: false` gates the real span code, so the
+   no-ops are never called, they just have to exist:
+
+   ```js
+   const internals = globalThis.__bootstrap.internals;
+   internals.__telemetry ??= { TRACING_ENABLED: false, PROPAGATORS: [],
+     builtinTracer: () => ({ startSpan: () => ({ end(){}, setAttribute(){}, recordException(){}, setStatus(){} }) }),
+     ContextManager: undefined, enterSpan: () => undefined, restoreSnapshot: () => undefined };
+   internals.__telemetryUtil ??= { updateSpanFromClientResponse(){}, updateSpanFromError(){}, updateSpanFromRequest(){} };
+   ```
+
+6. **Globalize the JS** in `BOOTSTRAP_GLOBALS` (deno_fetch's `lazy_loaded_js`):
+
+   ```js
+   const fetchMod = load("ext:deno_fetch/26_fetch.js");   // fetch
+   const headers  = load("ext:deno_fetch/20_headers.js"); // Headers
+   const request  = load("ext:deno_fetch/23_request.js"); // Request
+   const response = load("ext:deno_fetch/23_response.js");// Response
+   Object.assign(globalThis, {
+     fetch: fetchMod.fetch, Headers: headers.Headers,
+     Request: request.Request, Response: response.Response,
+   });
+   ```
+
+7. **Test it hermetically** with a `data:` URL (no network):
+
+   ```rust
+   // tests/embedded_js_tests.rs
+   run_module(entry_with(r#"
+       const res = await fetch("data:text/plain,hello-embedded");
+       if ((await res.text()) !== "hello-embedded") throw new Error("bad fetch");
+   "#))?;
+   ```
+
+**Lesson:** a "whole extension" can drag in the full runtime's assumptions — a
+companion extension (`deno_net`), a host resource (rustls provider), `OpState` state
+(permissions), and even a bootstrap shim (telemetry). When adding one, expect to
+chase a short chain of "X cannot be lazy-loaded" / "Y is undefined" / "Z provider
+not installed" errors; each names exactly the next piece. The general shape stays:
+**crates → `init`s in the vec → host resources/state → bootstrap shims → globalize →
+hermetic test.** `crypto` (below) follows the same shape.
 
 ---
 

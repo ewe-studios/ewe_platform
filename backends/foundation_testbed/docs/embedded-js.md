@@ -84,13 +84,21 @@ JsRuntime::new(RuntimeOptions {
     extensions: vec![
         deno_webidl::deno_webidl::init(),          // WebIDL bindings deno_web needs
         deno_web::deno_web::init(blob_store, None, false, broadcast_channel),
+        deno_net::deno_net::init(None, None),      // net/TLS JS deno_fetch lazy-loads
+        deno_fetch::deno_fetch::init(deno_fetch::Options::default()),
     ],
     ..Default::default()
 })
+// + install the rustls CryptoProvider (deno_tls) and put an allow-all
+//   deno_permissions::PermissionsContainer into OpState (op_fetch reads it).
 ```
 
 `deno_core` already installs `console` and provides the ES module loader and the
-event loop. `deno_web` provides `TextEncoder`/`TextDecoder`, timers, `URL`, etc.
+event loop. `deno_web` provides `TextEncoder`/`TextDecoder`, timers, `URL`, etc.;
+`deno_fetch` (+ `deno_net`) provides `fetch`/`Request`/`Response`/`Headers`. Wiring
+`fetch` pulled in a short chain of full-runtime assumptions (a TLS CryptoProvider, a
+permissions container, a telemetry shim) — see
+[extending → how `fetch` was added](./extending-the-runtime.md#a-worked-example-how-fetch-was-added).
 
 ### 2. The globals bootstrap
 
@@ -103,7 +111,11 @@ right after construction we run a tiny script that loads those modules on demand
 const enc = Deno.core.loadExtScript("ext:deno_web/08_text_encoding.js");
 const timers = Deno.core.loadExtScript("ext:deno_web/02_timers.js");
 const url = Deno.core.loadExtScript("ext:deno_web/00_url.js");
-Object.assign(globalThis, { TextEncoder: enc.TextEncoder, /* …, */ setTimeout: timers.setTimeout, URL: url.URL });
+const fetchMod = Deno.core.loadExtScript("ext:deno_fetch/26_fetch.js");
+Object.assign(globalThis, {
+  TextEncoder: enc.TextEncoder, /* …, */ setTimeout: timers.setTimeout,
+  URL: url.URL, fetch: fetchMod.fetch, /* Headers/Request/Response */
+});
 ```
 
 This is the seam you extend to add more Web globals — see

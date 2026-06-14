@@ -136,8 +136,8 @@ embedded_js::run_module(std::path::Path::new("/abs/path/entry.mjs"))?;
 `run_module` resolves relative imports from disk via `FsModuleLoader`, so an
 `entry.mjs` that does `import { x } from "./util.mjs"` just works. The globals
 installed by the bootstrap (`TextEncoder`, `TextDecoder`, `setTimeout`,
-`setInterval`, `URL`, plus deno_core's `console`) are available; `WebAssembly` is
-native to V8.
+`setInterval`, `URL`, `fetch`/`Request`/`Response`/`Headers`, plus deno_core's
+`console`) are available; `WebAssembly` is native to V8.
 
 ### The smallest possible proof (W1 spike)
 

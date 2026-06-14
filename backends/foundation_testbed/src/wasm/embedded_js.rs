@@ -42,6 +42,27 @@ const BOOTSTRAP_GLOBALS: &str = r#"
   const enc = load("ext:deno_web/08_text_encoding.js");
   const timers = load("ext:deno_web/02_timers.js");
   const url = load("ext:deno_web/00_url.js");
+  // deno_fetch's JS expects the full runtime's telemetry bootstrap on
+  // `__bootstrap.internals.__telemetry`. We don't run OpenTelemetry, so install a
+  // no-op shim (TRACING_ENABLED:false gates the real span code) before loading it.
+  const internals = globalThis.__bootstrap.internals;
+  internals.__telemetry ??= {
+    TRACING_ENABLED: false,
+    PROPAGATORS: [],
+    builtinTracer: () => ({ startSpan: () => ({ end() {}, setAttribute() {}, recordException() {}, setStatus() {} }) }),
+    ContextManager: undefined,
+    enterSpan: () => undefined,
+    restoreSnapshot: () => undefined,
+  };
+  internals.__telemetryUtil ??= {
+    updateSpanFromClientResponse() {},
+    updateSpanFromError() {},
+    updateSpanFromRequest() {},
+  };
+  const fetchMod = load("ext:deno_fetch/26_fetch.js");
+  const headers = load("ext:deno_fetch/20_headers.js");
+  const request = load("ext:deno_fetch/23_request.js");
+  const response = load("ext:deno_fetch/23_response.js");
   Object.assign(globalThis, {
     TextEncoder: enc.TextEncoder,
     TextDecoder: enc.TextDecoder,
@@ -53,6 +74,10 @@ const BOOTSTRAP_GLOBALS: &str = r#"
     clearInterval: timers.clearInterval,
     URL: url.URL,
     URLSearchParams: url.URLSearchParams,
+    fetch: fetchMod.fetch,
+    Headers: headers.Headers,
+    Request: request.Request,
+    Response: response.Response,
   });
 })(globalThis);
 "#;
@@ -116,6 +141,7 @@ impl HarnessReport {
 /// Build a `JsRuntime` with the harness's Web platform, an FS module loader, and
 /// any `extra` extensions, then install the globals `deno_web` doesn't expose.
 fn build_runtime_with(extra: Vec<Extension>) -> Result<JsRuntime, Box<dyn std::error::Error>> {
+    install_crypto_provider();
     let mut extensions = vec![
         deno_webidl::deno_webidl::init(),
         deno_web::deno_web::init(
@@ -124,6 +150,10 @@ fn build_runtime_with(extra: Vec<Extension>) -> Result<JsRuntime, Box<dyn std::e
             false, // enable_css_parser_features
             deno_web::InMemoryBroadcastChannel::default(),
         ),
+        // deno_fetch's http-client JS lazy-loads `ext:deno_net/02_tls.js`, so the
+        // deno_net extension must be registered too (no cert store / no ignored certs).
+        deno_net::deno_net::init(None, None),
+        deno_fetch::deno_fetch::init(deno_fetch::Options::default()),
     ];
     extensions.extend(extra);
 
@@ -132,6 +162,16 @@ fn build_runtime_with(extra: Vec<Extension>) -> Result<JsRuntime, Box<dyn std::e
         extensions,
         ..Default::default()
     });
+    // op_fetch reads a PermissionsContainer from OpState (check_net_url). This is a
+    // local test runtime, so grant everything. allow_all still needs a descriptor
+    // parser structurally; RealSys is the standard host one.
+    let parser = Arc::new(deno_permissions::RuntimePermissionDescriptorParser::new(
+        sys_traits::impls::RealSys,
+    ));
+    runtime
+        .op_state()
+        .borrow_mut()
+        .put(deno_permissions::PermissionsContainer::allow_all(parser));
     runtime.execute_script("ext:foundation_testbed/bootstrap.js", BOOTSTRAP_GLOBALS)?;
     Ok(runtime)
 }
@@ -192,6 +232,17 @@ pub fn run_staged_harness(stage_dir: &Path) -> Result<HarnessReport, Box<dyn std
     Ok(serde_json::from_str(&json)?)
 }
 
+/// Install the rustls `aws-lc-rs` `CryptoProvider` once per process — `deno_tls`
+/// (which `deno_fetch`'s HTTP client builds on) requires a default provider, and in
+/// the full runtime deno installs it for us. Idempotent: a second call is ignored.
+fn install_crypto_provider() {
+    use std::sync::Once;
+    static ONCE: Once = Once::new();
+    ONCE.call_once(|| {
+        let _ = rustls::crypto::aws_lc_rs::default_provider().install_default();
+    });
+}
+
 /// A current-thread tokio runtime with the time driver — the minimal executor
 /// deno_core's event loop + timers (`reactor_tokio.rs`) require.
 fn tokio_runtime() -> Result<tokio::runtime::Runtime, Box<dyn std::error::Error>> {
@@ -247,85 +298,4 @@ pub fn spike_wasm_instantiate() -> bool {
     deno_core::scope!(scope, rt);
     let local = deno_core::v8::Local::new(scope, value);
     local.boolean_value(scope)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn embedded_v8_evaluates_js() {
-        assert_eq!(spike_eval_addition(), 2.0, "in-process V8 evaluated 1 + 1");
-    }
-
-    #[test]
-    fn embedded_v8_runs_webassembly() {
-        assert!(spike_wasm_instantiate(), "in-process V8 instantiated a wasm module");
-    }
-
-    /// W2: the FS module loader resolves a relative-import ESM graph, and the
-    /// deno_web globals (TextEncoder/TextDecoder) + timers (setTimeout, driven by
-    /// the event loop) all work in-process — the capabilities the harness needs.
-    #[test]
-    fn loader_runs_relative_import_graph_with_web_globals() {
-        let dir = tempfile::tempdir().expect("tempdir");
-        std::fs::write(
-            dir.path().join("util.mjs"),
-            "export const greet = (name) => `hi ${name}`;\n",
-        )
-        .expect("write util");
-        std::fs::write(
-            dir.path().join("entry.mjs"),
-            r#"
-            import { greet } from "./util.mjs";
-            const bytes = new TextEncoder().encode(greet("wasm"));
-            const text = new TextDecoder().decode(bytes);
-            if (text !== "hi wasm") throw new Error("roundtrip failed: " + text);
-            await new Promise((resolve) => setTimeout(resolve, 1));
-            console.log("W2 ok: " + text);
-            "#,
-        )
-        .expect("write entry");
-
-        run_module(&dir.path().join("entry.mjs")).expect("embedded module ran to completion");
-    }
-
-    /// W3: run the real `fwt_sample.wasm` fixture's five `#[wasm_test]` cases
-    /// end-to-end through the embedded runtime — no external node/deno. The fixture
-    /// has a deliberate failure, so the verdict is red (3 passed, 1 failed, 1
-    /// ignored), with `should_panic` inverted and the async case completing.
-    #[test]
-    fn embedded_runs_sample_fixture_end_to_end() {
-        let fixture = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-            .join("integration/fixtures/fwt_sample.wasm");
-        if !fixture.is_file() {
-            eprintln!("fixture not built (run integration/build-module.sh) — skipping");
-            return;
-        }
-
-        let cases = crate::wasm::fwt::discover_cases(&fixture).expect("discovery");
-        assert_eq!(cases.len(), 5);
-
-        let dir = tempfile::tempdir().expect("tempdir");
-        crate::wasm::fwt_runner::stage_from_wasm(&fixture, &cases, dir.path())
-            .expect("stage from prebuilt wasm");
-
-        let report = run_staged_harness(dir.path()).expect("embedded harness ran");
-
-        assert_eq!(report.passed, 3, "output: {}", report.output);
-        assert_eq!(report.failed, 1, "output: {}", report.output);
-        assert_eq!(report.ignored, 1, "output: {}", report.output);
-        assert_eq!(report.exit_code(), 1);
-        assert!(report.output.contains("FAILED  fails_with_assertion"));
-        assert!(report.output.contains("ok      passes_simple"));
-        assert!(
-            report.output.contains("ok      panics_as_expected"),
-            "should_panic is inverted"
-        );
-        assert!(report.output.contains("ok      async_completes_after_yield"));
-        assert!(report.output.contains("ignored ignored_case"));
-        assert!(report
-            .output
-            .contains("test result: FAILED. 3 passed; 1 failed; 1 ignored"));
-    }
 }

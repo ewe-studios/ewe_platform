@@ -10,9 +10,10 @@ Cargo feature:
   `#[wasm_test]` cases in a real **browser** (the pure-Rust CDP/BiDi driver, no
   node/Playwright) or **Cloudflare Workers** (wrangler).
 - **`wasm-embedded-js`** — adds the **embedded Deno runtime** (spec-44): the owned
-  `#[wasm_test]` harness runs JS **in-process** via `deno_core` + `deno_web` (V8),
-  so `wasm-testbed deno` needs **no `node`/`deno` install** — `cargo build` gives
-  JS test execution for free.
+  `#[wasm_test]` harness runs JS **in-process** via `deno_core` + `deno_web` +
+  `deno_fetch` (V8) — ES modules, `WebAssembly`, `console`, encoding, timers, `URL`,
+  and `fetch` — so `wasm-testbed deno` needs **no `node`/`deno` install**;
+  `cargo build` gives JS test execution for free.
 
 ## What it does
 
@@ -47,7 +48,7 @@ are available out of the box. Disable selectively to take just one part.
 |---------|---------|----------|
 | `vms` *(default)* | the VM testbed (`src/vms/`) | qemu backend + ssh2, tar, image, `foundation_netio`, … |
 | `wasm` *(default)* | the wasm harness (`src/wasm/`) | `foundation_browser`, `foundation_wasm_ui`, `foundation_http`, walrus, … |
-| `wasm-embedded-js` | in-process JS runner for `wasm-testbed deno` (spec-44) | `deno_core` + `deno_web` (**links V8** — heavy) + tokio |
+| `wasm-embedded-js` | in-process JS runner for `wasm-testbed deno` (spec-44) | `deno_core` + `deno_web` + `deno_fetch`/`deno_net` (**links V8** — heavy) + tokio |
 | `cli` *(default)* | the `clap` CLI for the VM testbed binary | clap |
 | `utm` | macOS UTM/Hypervisor backend (with `vms`) | — |
 
@@ -102,7 +103,8 @@ mise run test:wasm-testbed:deno
 
 How it works: `cargo build` links V8 (via `deno_core`), the harness stages a
 self-contained runner (`runner.mjs` + `foundation-wasm.js` + `module.wasm` +
-`cases.json`) and runs it on an embedded `deno_core` + `deno_web` runtime. Byte
+`cases.json`) and runs it on an embedded `deno_core` + `deno_web` + `deno_fetch`
+runtime. Byte
 loading + result reporting go through two Rust ops (`op_fwt_read_file`,
 `op_fwt_report`) — no stdout parsing, no external process.
 
@@ -114,6 +116,25 @@ loading + result reporting go through two Rust ops (`op_fwt_read_file`,
 | [Running JS & wasm tests](./docs/running-js-and-wasm-tests.md) | write `#[wasm_test]` cases, run them in-process, and the execution-core API (`build_runtime` / `run_module` / `run_staged_harness` / `HarnessReport`) for driving JS from Rust |
 | [Extending the runtime](./docs/extending-the-runtime.md) | add a Web global, add a Rust↔JS op, **add Web Crypto (`crypto.subtle`)**, and bump the deno crates |
 | [Internals & decisions](./docs/embedded-js-internals.md) | `lazy_loaded_js`/`loadExtScript`/`__bootstrap`, the `aes`/`deno_crypto` conflict, why tokio not valtron, the op result contract, API-drift notes |
+
+#### Test templates (`src/wasm/templates/`)
+
+The harness stages tests from embedded templates. They fall into three groups —
+**all are live** (none are dead code), serving distinct flows:
+
+| Group | Files | Used by | Runs on |
+|-------|-------|---------|---------|
+| **`fwt/`** — owned `#[wasm_test]` harness | `runner.mjs`, `index.html`, `sample_wasm_test.rs` | `stage_from_wasm` (runner + html); `wasm-testbed init owned` (sample) | **embedded** deno (`wasm-testbed deno`) **or** a real browser (`wasm-testbed web`) |
+| **`web/` `deno/` `wrangler/`** — custom-harness modes | `index.html`/`index.js`/`loader.js`, … | `wasm-testbed test web\|deno\|wrangler` + `init web\|deno\|wrangler` | browser / **external** `deno` / wrangler (you write the JS) |
+| **`bindgen-*`** — wasm-bindgen interop | `bindgen-{web,deno,wrangler}/…` | `wasm-testbed test bindgen-web\|deno\|wrangler` | browser / **external** `deno` / wrangler |
+
+Note the split: only the **`fwt/` owned harness** runs on the in-process embedded
+runtime (spec-44, zero install). The **custom-harness** and **wasm-bindgen interop**
+modes still shell out to an **external `deno`/browser/wrangler**, because they run
+arbitrary user JS / wasm-bindgen output that needs the full Deno/browser API surface
+(`crypto.subtle`, full `Deno.*`, the whole web platform) our composed
+`deno_core + deno_web + deno_fetch` runtime doesn't fully provide. That's
+intentional and out of spec-44's scope.
 
 ## Quick start
 

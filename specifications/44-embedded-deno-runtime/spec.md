@@ -2,9 +2,12 @@
 
 Status: **IMPLEMENTED** (2026-06-14) — W1–W7 all green (see §5). The owned
 `#[wasm_test]` harness runs entirely **in-process** on an embedded `deno_core` +
-`deno_web` runtime (behind the `wasm-embedded-js` feature, `uat` profile): no
-external `node`/`deno`, the node runner is gone, and the runner tests run the real
-sample crate through V8 with zero install. Open decisions in §9 are resolved inline. Featureless (single design doc); if
+`deno_web` + `deno_fetch` runtime (behind the `wasm-embedded-js` feature, `uat`
+profile): no external `node`/`deno`, the node runner is gone, and the runner tests
+run the real sample crate through V8 with zero install. `fetch`/`Request`/`Response`/
+`Headers` are wired (deno_fetch + deno_net; needed a rustls CryptoProvider, an
+allow-all permissions container, and a no-op telemetry shim — see the README docs).
+Open decisions in §9 are resolved inline. Featureless (single design doc); if
 approved it becomes a feature breakdown.
 
 ## 1. Goal

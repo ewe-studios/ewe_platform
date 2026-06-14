@@ -68,6 +68,11 @@ wasm-embedded-js = [
   "dep:deno_core",
   "dep:deno_web",      # TextEncoder/TextDecoder, timers, console, URL, performance
   "dep:deno_webidl",   # WebIDL bindings deno_web depends on
+  "dep:deno_fetch",    # fetch / Request / Response / Headers
+  "dep:deno_net",      # TLS/net JS deno_fetch's http client lazy-loads (ext:deno_net/02_tls.js)
+  "dep:deno_permissions", # PermissionsContainer that op_fetch/op_net read from OpState
+  "dep:sys_traits",    # RealSys for the permission descriptor parser
+  "dep:rustls",        # install the aws-lc-rs CryptoProvider deno_tls expects
   "dep:deno_error",    # JsErrorBox for the harness ops
   "dep:tokio",         # current-thread executor for deno_core's event loop
 ]
@@ -101,6 +106,11 @@ tracing-subscriber = { workspace = true, features = ["env-filter"], optional = t
 deno_core = { version = "0.404", optional = true }
 deno_web = { version = "0.282", optional = true }  # console/url/encoding folded in (those crates are now deprecated stubs)
 deno_webidl = { version = "0.251", optional = true }
+deno_fetch = { version = "0.275", optional = true }  # fetch / Request / Response / Headers
+deno_net = { version = "0.243", optional = true }    # net/TLS JS deno_fetch lazy-loads
+deno_permissions = { version = "0.110", optional = true }  # op_fetch's PermissionsContainer (allow-all for tests)
+sys_traits = { version = "0.1", features = ["real", "libc"], optional = true }  # RealSys for the permission descriptor parser
+rustls = { version = "0.23", default-features = false, features = ["aws_lc_rs"], optional = true }  # CryptoProvider for deno_tls
 deno_error = { version = "0.7", optional = true }  # JsErrorBox for fallible ops
 tokio = { version = "1", features = ["rt", "time"], optional = true }  # drives deno_core's event loop (current-thread)
 
