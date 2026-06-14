@@ -12,6 +12,11 @@ pub mod valtron;
 #[cfg(all(feature = "ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]
 pub mod ipc;
 
+/// Cross-platform signal handling (SIGINT, SIGTERM, SIGHUP, SIGQUIT).
+/// Feature-gated: requires `signal` feature (enabled by default).
+#[cfg(feature = "signal")]
+pub mod signal;
+
 // ---------------------------------------------------------------------------
 // Crate-root re-exports (backward-compatible API)
 // ---------------------------------------------------------------------------

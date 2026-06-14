@@ -18,6 +18,7 @@ concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
 foundation_macros = { workspace = true, optional = true }
+cfg-if = "1"
 once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
@@ -238,10 +239,16 @@ required-features = ["vfs-turso"]
 
 [features]
 # Default: full platform-native stack.
-default = ["native"]
+default = ["native", "signal"]
 
 # I/O readiness layer — extracted from mio
 poll = []
+
+# Cross-platform signal handling (SIGINT, SIGTERM, SIGHUP, SIGQUIT)
+signal = ["poll"]
+
+# Unix-only signal support (SIGHUP, SIGQUIT)
+signal-unix = ["signal"]
 
 # File descriptor readiness tracking (like tokio's AsyncFd)
 fd = ["poll"]
