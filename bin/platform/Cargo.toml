@@ -18,7 +18,7 @@ foundation_wasm_ui = { workspace = true }
 foundation_packager = { workspace = true }
 # ewe_watch_utils = { workspace = true }
 # ewe_watchers = { workspace = true }
-# ewe_devserver = { workspace = true }
+foundation_toolings = { workspace = true }
 foundation_core = { workspace = true, features = ["multi"] }
 foundation_netio = { workspace = true, features = ["ssl", "multi"] }
 foundation_ai = { workspace = true }

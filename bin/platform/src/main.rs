@@ -9,7 +9,7 @@
 
 mod gen_api;
 mod generate;
-// mod local; // temporarily disabled (ewe_devserver excluded from workspace)
+mod local;
 mod models;
 // mod sandbox;
 // mod sandbox_app;
@@ -34,7 +34,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
     commander = models::register(commander);
     commander = generate::register(commander);
     commander = tcp_capture::register(commander);
-    // commander = local::register(commander); // disabled with ewe_devserver
+    commander = local::register(commander);
     // commander = watchful::register(commander); // disabled with ewe_watchers
     // commander = sandbox_app::register(commander);
     // commander = sandbox::register(commander);
@@ -46,7 +46,7 @@ async fn main() -> std::result::Result<(), BoxedError> {
 
     let matches = commander.get_matches();
     match matches.subcommand() {
-        // Some(("local", arguments)) => local::run(arguments).await?,
+        Some(("local", arguments)) => local::run(arguments)?,
         // Some(("sandbox", arguments)) => sandbox::run(arguments).await?,
         // Some(("sandbox_app", arguments)) => sandbox_app::run(arguments).await?,
         Some(("generate", arguments)) => generate::run(arguments)?,

@@ -17,13 +17,20 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
 
+mod config;
 mod error;
 mod types;
 mod vec_ext;
 pub mod builder;
+pub mod proxy;
+pub mod runner;
+pub mod service;
 pub mod watcher;
 
+pub use config::*;
 pub use builder::*;
 pub use error::*;
+pub use runner::*;
+pub use service::*;
 pub use types::*;
 pub use vec_ext::*;

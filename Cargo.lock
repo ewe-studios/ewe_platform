@@ -3111,6 +3111,7 @@ dependencies = [
  "foundation_packager",
  "foundation_runtimes",
  "foundation_testbed",
+ "foundation_toolings",
  "foundation_wasm",
  "foundation_wasm_ui",
  "http 1.4.0",

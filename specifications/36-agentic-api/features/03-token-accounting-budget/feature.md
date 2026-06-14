@@ -1,0 +1,222 @@
+---
+feature: "Token Accounting & Budget"
+description: "Session-level token ledger built on the existing UsageReport, with a configurable max-token budget that halts generation (correct error, resettable) and exposes the counters memory triggers and budget surfacing consume"
+status: "pending"
+priority: "high"
+depends_on: ["01-message-model", "30-error-handling"]
+estimated_effort: "medium"
+created: 2026-06-14
+last_updated: 2026-06-14
+author: "Main Agent"
+tasks:
+  completed: 0
+  uncompleted: 9
+  total: 9
+  completion_percentage: 0%
+---
+
+# Feature 03: Token Accounting & Budget
+
+> **Review status (2026-06-14):** reviewed against live code. The key insight is confirmed
+> (`Assistant.usage` is a per-*call* delta, so summing across turns doesn't double-count) — **but**
+> a streaming turn clones one `UsageReport` onto every emitted message (thinking+text+each toolcall),
+> so the ledger must record **once per turn, not per message** (else 4× over-count). Also folded:
+> ledger computes its own total from the four token buckets (provider `total_tokens` is inconsistent
+> — Anthropic excludes cache, OpenAI includes it); `u64::MAX` sentinel (budget=0 is valid);
+> `tokens_so_far` dropped (providers emit `GeneratingTokens(None)`); rolling split from the 40k
+> observation-size trigger; `total_cost` sourced; reconcile with existing per-model `CostAccumulator`.
+
+> Resolves **TODO #5**: ObservationMemory should not track token accumulation — a dedicated ledger
+> does. Plugs into `foundation_ai`'s existing `UsageReport` (no parallel counting). Provides the
+> counters that memory generation triggers (F19) and budget surfacing (F29) consume, and the budget
+> halt the loop (F27) enforces.
+
+## WHY: Problem Statement
+
+The agentic loop needs two distinct token measures, and neither should live in the memory layer:
+
+1. **A cumulative session budget** — total tokens spent across the whole session, with an optional
+   ceiling. When exhausted, the agent must **stop generating** and surface a clear, recoverable
+   error until the budget is reset/raised (per TODO #5).
+2. **A rolling "recent interaction" count** — used by F19 to decide when to generate observations
+   (~30k) and reflections (~40k). Decision 03 wrongly implied ObservationMemory tracks this
+   (Decision 02's TODO flags it). It belongs in a ledger the loop owns.
+
+`foundation_ai` already produces `UsageReport { input, output, cache_read, cache_write,
+total_tokens, cost }` (`types/mod.rs:751`) on every `Messages::Assistant` and via
+`ModelState::GeneratingTokens(Option<UsageReport>)`. F03 **accumulates** these — it does not
+re-count tokens.
+
+## WHAT: Solution
+
+### `TokenLedger` (Arc-shared, `&self`)
+
+```rust
+/// Session-level token accounting. Fed by each Assistant message's UsageReport.
+/// Arc-shared; interior mutability via atomics so all methods are &self (valtron-compatible).
+pub struct TokenLedger { inner: Arc<TokenLedgerInner> }
+
+struct TokenLedgerInner {
+    // Cumulative across the whole session (budget basis).
+    total_input:  AtomicU64,
+    total_output: AtomicU64,
+    total_cache_read:  AtomicU64,
+    total_cache_write: AtomicU64,
+    total_cost_micros: AtomicU64,   // cost * 1e6, integral (sources TokenSnapshot.cost)
+    // Rolling counter since the last observation reset (30k recent-interaction trigger only).
+    rolling_tokens: AtomicU64,
+    // Ceiling; u64::MAX sentinel = unlimited (0 is a VALID budget = halt immediately).
+    budget_max_tokens: AtomicU64,
+}
+// NOTE: the budget basis is computed = input+output+cache_read+cache_write (NOT a provider
+// `total_tokens` field — that is inconsistent across providers: Anthropic = input+output,
+// OpenAI = provider total incl. cache). AtomicU64 is available on wasm32-unknown-unknown.
+
+impl TokenLedger {
+    /// Fold one turn's UsageReport into the ledger. **Call ONCE per model turn**, not per emitted
+    /// Assistant message — a streaming turn clones the same UsageReport onto thinking/text/each
+    /// tool-call message (`anthropic_messages_provider.rs:1150,1168`), so per-message would N×-count.
+    /// f64 buckets are folded as `(v.max(0.0).round()) as u64`.
+    pub fn record(&self, usage: &UsageReport);
+
+    /// Cumulative session total (budget basis).
+    pub fn total(&self) -> u64;
+    /// Rolling count since last memory reset (F19 reads this for 30k/40k triggers).
+    pub fn rolling(&self) -> u64;
+    /// Reset the rolling counter (F19 calls after an observation/reflection condenses context).
+    pub fn reset_rolling(&self);
+
+    /// Budget controls.
+    pub fn set_budget(&self, max_tokens: Option<u64>);
+    pub fn remaining(&self) -> Option<u64>;          // None = unlimited
+    pub fn is_exhausted(&self) -> bool;              // total >= budget (when set)
+    /// Snapshot for surfacing to the model / UI (F29).
+    pub fn snapshot(&self) -> TokenSnapshot;
+}
+
+pub struct TokenSnapshot {
+    pub total: u64, pub input: u64, pub output: u64,
+    pub rolling: u64, pub budget: Option<u64>, pub remaining: Option<u64>,
+    pub cost: f64,
+}
+```
+
+`f64` token fields from `UsageReport` (its fields are `f64`) are folded as `u64` via rounding (token
+counts are integral; cost stays `f64`). See OD-03-1.
+
+### Budget enforcement (loop-facing)
+
+The agent loop (F27) checks the ledger at turn boundaries:
+
+```
+before model call:
+    if ledger.is_exhausted() -> emit Stream::Next(Err(AgenticError::BudgetExhausted{ snapshot }))
+                                and halt generation (do NOT call the model)
+after model call:
+    ledger.record(assistant.usage); ledger also feeds AgentProgress::Generating.tokens_so_far
+```
+
+- **Per-request `max_tokens`** (`ModelParams::max_tokens`, `types/mod.rs:381`) is the *output cap per
+  call* — unchanged. The **session budget** is new and orthogonal: it bounds total spend across the
+  whole session.
+- `AgenticError::BudgetExhausted` (taxonomy in F30) carries the `TokenSnapshot`. It is **recoverable**:
+  raising the budget via `set_budget(...)` and re-driving the session resumes generation.
+
+### Wiring to other features
+
+| Consumer | Uses |
+|----------|------|
+| F19 memory triggers | `rolling()` for the **30k** recent-interaction trigger; `reset_rolling()` after condensing. The **40k** reflection trigger is *observation-memory size*, a different quantity F19 measures on the observation store — **not** `rolling` (OD-03-8). |
+| F29 budget surfacing | `snapshot()` → injected into the system prompt so the model knows its remaining budget |
+| F27 loop | `is_exhausted()` halt; `record()` **once per turn** |
+| F02 stream | turn-boundary token totals only; live `tokens_so_far` needs provider changes (providers emit `GeneratingTokens(None)` today — OD-02-4/OD-03-9) |
+
+### Optional: model-side hard stop
+
+Beyond the loop-level halt, F03 can pass a derived `max_tokens` to the model call so a single request
+cannot overshoot the remaining budget: `effective_max = min(params.max_tokens, remaining)`. (OD-03-2.)
+
+## Architecture
+
+```mermaid
+graph TD
+    M[Assistant message + UsageReport] --> L[TokenLedger.record]
+    L --> T[total → budget check]
+    L --> R[rolling → F19 memory triggers]
+    L --> S[snapshot → F29 surface to model]
+    T -->|exhausted| E[AgenticError::BudgetExhausted → halt, resettable]
+```
+
+## HOW: Implementation Steps
+
+1. Define `TokenLedger`/`TokenLedgerInner`/`TokenSnapshot` in `foundation_ai::agentic` (atomics).
+2. `record(usage)` folds `UsageReport` fields; updates total + rolling.
+3. Budget API: `set_budget`/`remaining`/`is_exhausted`/`snapshot`; `reset_rolling`.
+4. Provide `AgenticError::BudgetExhausted{ snapshot }` shape (coordinated with F30).
+5. Helper for the loop: `effective_max_tokens(params)` (OD-03-2).
+6. Unit-test: accumulation, rolling reset, budget exhaustion boundary, snapshot, concurrent `record`
+   (atomics).
+
+## Open Decisions
+
+- **OD-03-1 — `f64`→`u64` folding:** `UsageReport` token fields are `f64`. Round to `u64` for
+  counters (cost stays `f64`)? Rec: yes, `round() as u64`.
+- **OD-03-2 — model-side hard cap:** also clamp per-request `max_tokens` to `remaining`? Rec: yes,
+  cheap defense-in-depth; the loop-level halt is the primary guard.
+- **OD-03-3 — what counts toward `rolling`:** input+output, or output only? Decision 03/Mastra
+  thresholds are about *context size* → input+output of recent turns. Rec: total_tokens of recent
+  turns; F18/F19 confirm against the context-assembly definition.
+- **OD-03-4 — persistence:** recompute `total` from stored per-turn `UsageReport`s on resume;
+  persist only the budget ceiling. Caveat: `rolling` can't be recomputed from raw messages alone —
+  it needs the last observation/reflection marker persisted (F19 stores those records, so the last
+  reset point is recoverable from them).
+- **OD-03-5 — budget basis:** **Resolved → ledger sums `input+output+cache_read+cache_write`** (not
+  the provider-inconsistent `total_tokens` field).
+- **OD-03-6 — record granularity:** **Resolved → once per model turn** (multi-message turns share
+  one `UsageReport`).
+- **OD-03-7 — cost:** **Resolved → `total_cost_micros` atomic** sources `TokenSnapshot.cost`.
+- **OD-03-8 — two triggers:** F03's `rolling` serves the **30k** recent-interaction trigger only;
+  the **40k** reflection trigger measures observation-memory size and is owned by **F19**, not the
+  ledger.
+- **OD-03-9 — live streaming usage:** providers emit `GeneratingTokens(None)`; live `tokens_so_far`
+  is a separate provider enhancement. Scoped out of F03.
+- **OD-03-10 — reconcile with existing `CostAccumulator`:** each provider already holds a
+  `CostAccumulator` and `Model::costing()` returns a running total (`costing.rs:96`). Decide:
+  `TokenLedger` is the **session-level** accumulator (spans turns, models, the budget); the per-model
+  `CostAccumulator` stays the **per-model** cost source the ledger reads from via `record(usage)`.
+  State this so "no parallel counting" holds (ledger aggregates, doesn't re-count).
+
+## Target Files
+
+- `backends/foundation_ai/src/agentic/token_ledger.rs` (new)
+- coordinates with F30 (`AgenticError::BudgetExhausted`), F19, F29, F27
+
+## Tests
+
+```bash
+cargo test -p foundation_ai -- agentic::token_ledger
+```
+
+## Verification
+
+```bash
+cargo build -p foundation_ai
+cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo clippy -p foundation_ai -- -D warnings
+cargo test -p foundation_ai
+```
+
+## Fundamentals Documentation (zero-to-expert) — REQUIRED
+
+Author `fundamentals/` covering: LLM tokenization & usage reporting (input/output/cache tokens,
+provider inconsistencies); pricing models; lock-free counters with atomics (`AtomicU64`, ordering,
+`fetch_add`, sentinel design); budget enforcement & recoverable errors; context-window size vs
+cumulative spend; per-turn vs per-message accounting. (Task — see list.)
+
+## Done When
+
+- `TokenLedger` accumulates from `UsageReport` (no parallel token counting) and exposes
+  total/rolling/budget/snapshot with `&self` atomics.
+- Budget exhaustion halts generation with a recoverable `AgenticError::BudgetExhausted`.
+- ObservationMemory no longer tracks token accumulation (TODO #5) — the ledger owns it.
+- OD-03-1..4 resolved.

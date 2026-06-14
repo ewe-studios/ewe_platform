@@ -88,8 +88,14 @@ impl EventReadiness for BoolSignal {
 /// }
 /// Some(TaskStatus::Depends(Arc::new(readiness)))
 /// ```
-#[derive(Clone)]
 pub struct QueueReadiness<T>(Arc<ConcurrentQueue<T>>);
+
+// Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
+impl<T> Clone for QueueReadiness<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
 
 impl<T> QueueReadiness<T> {
     /// Create a `QueueReadiness` that watches the given queue for messages.
