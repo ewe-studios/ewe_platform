@@ -135,7 +135,7 @@ pub struct LoopDetectorConfig {            // Decision 09 defaults
 detect -> Escalation:
   redirect_count == 0 -> Redirect: inject build_redirect(memory) at front of next turn
   redirect_count == 1 -> SwitchModelOrTemperature: F24 fallback model OR ModelParams.temperature += delta
-  redirect_count >= max_redirects -> Terminate: Stream::Next(Err(AgenticError::LoopDetected(detection)))
+  redirect_count >= max_redirects -> Terminate: Stream::Next(SessionRecord::FailedAction{ error: AgenticError::LoopDetected(detection), trace })
 ```
 
 `build_redirect` (Decision 09): `Messages::User { role: MessageRole::System, content: Text("You appear

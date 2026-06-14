@@ -17,6 +17,17 @@ tasks:
 
 # Feature 04: DocumentStore — scan_from + promoted columns
 
+> **RESOLVED (user, 2026-06-15) — rebuild to match the scru128 decision; no half-measures.** Anything
+> in the current `foundation_db` DocumentStore that contradicts the spec'd scru128-id focus is **wrong
+> code to be fixed, not behavior to preserve**. Concretely (all surfaced in the review banner below and
+> mandated by **Part 0**): `created_at` (1-second resolution) ordering → **`doc_id` scru128 ordering**;
+> `MemoryDocumentStore`'s `"mem-{seq}"` ids → **`foundation_compact` scru128**; the unregistered
+> `020_create_documents.sql` migration → **registered in the runner**; `append`-owns-the-id → **caller
+> can supply the message scru128**. Backward-compat is **not** a reason to keep any of these — where the
+> old shape contradicts the decision we change it and document the break (Part 0 / OD-04-4). The
+> "additive only" notes below mean *additive to the data model* (nullable columns, new methods); the
+> **ordering + id semantics are deliberately rebuilt**.
+
 > **Review status (2026-06-14) — scope expanded.** A depth-5 review found the scru128-cursor
 > premise is **false against the current code**: both backends order by `created_at` (1-second
 > resolution!) not `doc_id`, `MemoryDocumentStore` uses `"mem-{seq}"` ids (not scru128), the
@@ -211,5 +222,8 @@ vs timestamp ordering pitfalls. (Task — see list.)
 - `DocumentStore`/`AsyncDocumentStore` have `scan_from` implemented in SQL + Memory backends.
 - `documents` has nullable `title`/`summary`/`record_type` columns + index; `Document` exposes them;
   the content blob is unchanged and remains source of truth.
-- Existing DocumentStore behavior + tests are unaffected (additive only).
-- OD-04-1..3 resolved.
+- Ordering + id semantics rebuilt to scru128 (Part 0): all scans `ORDER BY doc_id`, `MemoryDocumentStore`
+  mints scru128, `020`+`021` migrations registered, caller can supply the message id. Tests that asserted
+  the old `created_at`/`mem-{seq}` behavior are updated to the corrected semantics (the break is intended,
+  not a regression). Data model changes are additive (nullable columns, new methods).
+- OD-04-1..7 resolved.

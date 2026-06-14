@@ -1,6 +1,6 @@
 # Decision 15: Tool Registration and Discovery via ToolShed
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-12  
 **Updated:** 2026-06-13  
 **Context:** Specification 36 — Agentic API for foundation_ai
@@ -165,6 +165,8 @@ The agent doesn't need to know the difference — all tools implement `ToolImpl`
 ### Tool Versioning
 
 Tools present their interface via their JSON Schema. If a tool's interface changes, the new schema is registered. Versioning is the tool's own concern.
+
+> **RESOLVED (2026-06-15, F01 + F20 + F21):** `ToolShed.others` is **removed**. Zero-tool sessions → **`Option<ToolShed>` at the `ModelInteraction` level**. `ToolImpl::execute` is **sync** (async isn't object-safe; valtron owns concurrency). `ToolShed` gains **`search_files`** (fff) and generalizes `bash` → **`shell`** (bash on linux/macOS, PowerShell on Windows).
 
 ## Rationale
 

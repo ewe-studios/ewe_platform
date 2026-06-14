@@ -20,7 +20,7 @@ related_specs:
   - "specifications/17-foundation-jsonschema"
   - "specifications/18-model-cost-tracking"
 has_features: true
-has_fundamentals: false
+has_fundamentals: true
 features:
   completed: 0
   uncompleted: 32
@@ -70,7 +70,7 @@ implementation detail** lives in `features/NN-*/feature.md`. This file is the hi
 | `foundation_db` | New `DocumentStore`, `VectorStore`, `MemoryStore` traits + all backends |
 | `foundation_vectors` | **New crate** — vector algorithms (flat/IVF/HNSW), BM25, hybrid fusion, code-graph |
 | `foundation_core` | Consumes existing `valtron` (`TaskStatus::Depends`, `Stream`, executors); possible `synca` pub/sub helper |
-| `foundation_rng` | scru128 IDs (already present) — wrapped as `Scru128`/`SessionId` |
+| `foundation_compact` | scru128 IDs (already present) — wrapped as `Scru128`/`SessionId` |
 
 ## Known Issues, Prerequisites & Code Realities
 
@@ -205,7 +205,7 @@ graph LR
 - [ ] Add agentic `Messages` variants: `WorkingMemory`, `Observation`, `Reflection` + entry types
 - [ ] `ModelOutput::ToolCall` gains `depends_on: Vec<String>` + `execution_hint: ExecutionHint`
 - [ ] Remove `ToolShed.others`; update `build_toolshed` + all providers
-- [ ] `Scru128` / `SessionId` wrapper over `foundation_rng`
+- [ ] `Scru128` / `SessionId` wrapper over `foundation_compact`
 - [ ] Define agent stream contract `D = Result<Messages, AgenticError>`, `P = AgentProgress`
 - [ ] `AgentProgress` enum (thin status signals + the "expect-next" protocol)
 

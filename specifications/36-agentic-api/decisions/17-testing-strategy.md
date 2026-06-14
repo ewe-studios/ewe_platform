@@ -1,6 +1,6 @@
 # Decision 17: Testing Strategy
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-12  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -218,6 +218,8 @@ Tests that need to run in WASM use the same patterns but with WASM-compatible ba
 - In-memory vector store (no fjall)
 - Mock model provider (no native model loading)
 - Cloudflare D1 storage (native Turso not available)
+
+> **RESOLVED (2026-06-15, F32):** `MockModelProvider` is driven by **`ModelInteraction`** matchers (NOT regex). Mock implements the object-safe **`RoutableProvider`**.
 
 ## Rationale
 

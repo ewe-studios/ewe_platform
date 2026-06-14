@@ -59,7 +59,7 @@ tasks:
 >    to the JS event loop — never `SleepIterator`/blocking). (OD-23-4, load-bearing.)
 > 8. **Tool errors ALWAYS go back to the LLM** as a `Messages::ToolResult{ error_detail: Some(..) }`
 >    (Decision 16 §Error Surfacing) — not a stream `Err`. The loop continues; the LLM adapts. Only
->    auth/unexpected escalate to `Stream::Next(Err(AgenticError))` (F30).
+>    auth/unexpected escalate to `Stream::Next(SessionRecord::FailedAction{ error, trace })` (F30).
 
 > Implements Decision 04 (DAG execution) + Decision 16 (retry/error surfacing). Owns the
 > `ToolCallManager` **execution** path: staging from `depends_on`/`execution_hint`, valtron-parallel/

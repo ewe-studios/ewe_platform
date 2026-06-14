@@ -1,10 +1,10 @@
 # Decision 13: DocumentStore Trait and Backends
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-12  
 **Context:** Specification 36 — Agentic API for foundation_ai, cross-platform document storage
 
-**TODO**: Should DocumentStore not also support pulling a message from a scru128 e.g any message for this id and after. The ids are temporal, we should benefit from using this property to our advantage.
+> **RESOLVED (2026-06-15, F04):** Yes — `scan_from(key, from_id, limit)` exploits scru128's lexicographic=chronological ordering as a time cursor. The SQL backend uses `WHERE doc_id >= ? ORDER BY doc_id ASC`; the VFS backend uses the fjall offset index for O(1) seeks. e.g any message for this id and after. The ids are temporal, we should benefit from using this property to our advantage.
 
 ## Problem
 

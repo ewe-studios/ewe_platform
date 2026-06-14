@@ -1,6 +1,6 @@
 ---
 feature: "DocumentStore: Cloudflare D1 + KV (AsyncDocumentStore)"
-description: "Implement AsyncDocumentStore for Cloudflare D1 (SQL, async) and Cloudflare KV (key-list), with scan_from_async, reusing the existing D1 bindings — completing the DocumentStore backend set for serverless/wasm"
+description: "Async-first AsyncDocumentStore for Cloudflare: D1 (SQLite, the primary ordered backend) + R2 for large document blobs (e.g. big Message-API records that don't fit SQLite), with KV as an optional best-effort key-value path. scan_from_async; the sync DocumentStore is a valtron wrapper over async. Completes the DocumentStore backend set for serverless/wasm"
 status: "pending"
 priority: "medium"
 depends_on: ["04-documentstore-trait-sql-memory"]
@@ -17,6 +17,29 @@ tasks:
 
 # Feature 06: DocumentStore — Cloudflare D1 + KV
 
+> **RESOLVED (user, 2026-06-15) — design is the target; build/fix/rebuild reality to match. No
+> half-assed work.** The spec states the end desire; where the current code doesn't meet it we build it
+> properly, rebuilding from scratch if that's what getting it right takes. If a CF capability is missing
+> (D1 batch DDL, KV cursor pagination), **we add it** — we own these bindings; we don't declare "this
+> won't work." But we **select tooling sensibly** to what each store is actually good at.
+>
+> **RESOLVED — async-first, sync wraps async via valtron (house rule).** Build for the **async world**:
+> the canonical implementation is **`AsyncDocumentStore`** (`*_async` methods). The **sync `DocumentStore`
+> is a thin valtron wrapper** around the async impl (the same pattern used for every other async trait in
+> the platform). If `AsyncDocumentStore` is missing, F04 adds the trait; F06 supplies CF impls. So we
+> have two traits — `DocumentStore` (sync) and `AsyncDocumentStore` (async) — and async-first means
+> everything just works where needed, with valtron bridging to sync where sensible.
+>
+> **RESOLVED — use the right CF API per job; D1+KV are NOT both mandatory.** foundation_db's CF layer
+> supporting both KV and D1 does not mean F06 must use both. Plan:
+> - **D1 (SQLite, full relational) is the primary ordered backend** — it satisfies the strict
+>   `scan_from`/ordering contract. Even if F06 ships **only D1**, that's a complete win.
+> - **R2 for large documents** — Messages persisted by the Message API (F16) can be large and don't fit
+>   SQLite well. Store the big blob in **R2** (object storage), keyed by doc_id, with D1 holding the
+>   row + promoted columns + the R2 key. (New `R2DocumentStore` / R2-backed blob path.)
+> - **KV only where quick key-value lookup genuinely helps** — best-effort (eventually consistent), not
+>   the ordered backbone. Optional.
+
 > **Review status (2026-06-14) — re-scoped (major gaps found).** The CF bindings are weaker than the
 > draft assumed: (1) `scan_from_async` does **not** exist on `AsyncDocumentStore` yet — F04 must add
 > it first (hard dep). (2) The **KV** binding (`wasm/bindgen/cf/kv.rs`) passes only `prefix` —
@@ -28,24 +51,34 @@ tasks:
 > `AsyncQueryStore` trait/impl signature mismatch + unconfirmed wasm-bindgen-storage compile. D1 is
 > the viable ordered backend; KV is downgraded to best-effort. See OD-06-6..10.
 
-> Implements Decision 13's Cloudflare backends via the **`AsyncDocumentStore`** trait (KV/D1 are
-> Promise-based, async-only on wasm). No `AsyncDocumentStore` impl exists yet (verified). Reuses the
-> existing CF D1 bindings (`wasm/workers_rs/d1.rs`, `wasm/wasm_storage/d1_wasm.rs`). Completes the
-> DocumentStore backend set begun in F04 (SQL+Memory) and F05 (VFS).
+> Implements Decision 13's Cloudflare backends **async-first** via the **`AsyncDocumentStore`** trait
+> (D1/KV/R2 are Promise-based, async-only on wasm); the sync `DocumentStore` is a valtron wrapper over
+> the async impl. No `AsyncDocumentStore` impl exists yet (verified). **D1 is the primary ordered
+> backend; R2 stores large document blobs; KV is optional best-effort.** Reuses the existing CF D1
+> bindings (`wasm/workers_rs/d1.rs`, `wasm/wasm_storage/d1_wasm.rs`) and adds an R2 binding/path where
+> missing. Completes the DocumentStore backend set begun in F04 (SQL+Memory) and F05 (VFS/Fjall).
 
 ## WHY: Problem Statement
 
-For serverless/CF Workers deployments, sessions persist to Cloudflare D1 (SQLite-compatible) or KV.
-Both are **async-only** in the Workers runtime, so they implement `AsyncDocumentStore`
-(`storage_provider.rs:514`), not the sync `DocumentStore`. The trait + the `scan_from_async`
-signature come from F04; F06 supplies the CF implementations. D1 bindings already exist; KV needs the
-key-list document pattern from Decision 13.
+For serverless/CF Workers deployments, sessions persist to Cloudflare. The Workers runtime is
+**async-only**, so the canonical impl is **`AsyncDocumentStore`** (`storage_provider.rs:514`); the sync
+`DocumentStore` is a valtron wrapper over it. The trait + the `scan_from_async` signature come from F04;
+F06 supplies the CF implementations.
+
+**Tool selection (right API per job):** **D1** (SQLite, relational, ordered) is the **primary** backend
+and satisfies the strict `scan_from`/ordering contract. **R2** (object storage) holds **large document
+blobs** — Message-API records (F16) can exceed what fits comfortably in a SQLite row, so the big payload
+lives in R2 keyed by doc_id while D1 keeps the row + promoted columns + the R2 key. **KV** is an
+**optional best-effort** key-value path (eventually consistent), used only where quick KV lookups help —
+never the ordered backbone. Shipping D1 (+ R2 for large blobs) alone is a complete deliverable; KV is
+additive.
 
 ## WHAT: Solution
 
-### D1 backend (SQL, async) — `D1DocumentStore`
+### D1 backend (SQL, async) — `D1DocumentStore` — **PRIMARY**
 
-D1 is SQLite-compatible, so this mirrors `SqlDocumentStore` over the async D1 binding:
+D1 is SQLite-compatible, so this mirrors `SqlDocumentStore` over the async D1 binding and is the
+strictly-ordered CF backend:
 
 - Reuse the **same `documents` schema** (F04's migration `020`+`021`, incl. promoted columns) — D1
   runs the same SQL.
@@ -53,11 +86,32 @@ D1 is SQLite-compatible, so this mirrors `SqlDocumentStore` over the async D1 bi
   existing D1 query binding (`wasm/workers_rs/d1.rs`).
 - `scan_from_async`: `WHERE collection_key=? AND doc_id>=? ORDER BY doc_id ASC LIMIT ?` — same as SQL
   (F04 doc_id ordering), returning `Vec<V>` (async trait returns Vec, not a stream).
-- D1 migrations: ensure F04's `020`/`021` are applied in the D1 schema-init path (OD-06-1).
+- D1 migrations: ensure F04's `020`/`021` are applied in the D1 schema-init path. D1 lacks batch DDL —
+  **add a D1 `exec()` binding or split migrations into per-statement `run()`s** (OD-06-1/OD-06-6); we own
+  the binding, so we add the capability rather than work around it.
+- **Large-blob offload to R2:** when a document exceeds a size threshold, D1 stores the row + promoted
+  columns + an `r2_key`, and the blob goes to R2 (below). Small documents stay inline in D1.
 
-### KV backend (key-list) — `KvDocumentStore`
+### R2 backend (large blobs, async) — `R2DocumentStore` / R2 offload
 
-CF KV is pure key-value; documents use the Decision 13 layout:
+CF **R2** is S3-style object storage for payloads too large for a SQLite row (e.g. big Message-API
+records, F16):
+
+- **`append_async`:** `r2.put("doc/{collection}/{doc_id}", json_or_bytes)`; doc_id = scru128 (F04).
+- **`get`/`scan_from_async`:** R2 has `list({ prefix, cursor, startAfter })` returning
+  lexicographically-ordered keys — scru128 keys are chronological, so `list("doc/{c}/")` + `startAfter`
+  gives ordered range reads; fetch each object by key. Ordering metadata (doc_id list, promoted columns)
+  is best kept in **D1** so range/typed queries stay on the relational backend and R2 holds only the
+  bytes (the recommended split — OD-06-12).
+- **Standalone vs offload:** R2 can back a store on its own, but the **recommended** topology is **D1 as
+  the index/metadata + R2 as the blob store** for large records, transparent behind one
+  `AsyncDocumentStore`.
+
+### KV backend (key-list, async) — `KvDocumentStore` — **OPTIONAL, best-effort**
+
+CF KV is pure key-value and **eventually consistent** (no read-after-write), so it is **optional** and
+**not** the ordered backbone — use only where quick KV lookups help. Documents use the Decision 13
+layout:
 
 | Key | Value |
 |-----|-------|
@@ -84,22 +138,31 @@ feature. They implement `AsyncDocumentStore` (`?Send`, per the trait's `async_tr
 
 ```mermaid
 graph TD
-    AS[AsyncDocumentStore trait - F04] --> D1[D1DocumentStore: SQL over D1 binding]
-    AS --> KV[KvDocumentStore: doc:{c}:{scru128} + list cursor]
-    D1 --> SCH[(documents schema 020+021)]
-    KV --> CFKV[(CF KV: lexicographic list = chronological via scru128)]
+    SY[DocumentStore sync] -->|valtron wrap| AS[AsyncDocumentStore trait - F04]
+    AS --> D1[D1DocumentStore: SQL over D1 binding - PRIMARY/ordered]
+    AS --> R2[R2 offload: large blobs by doc_id]
+    AS -.optional.-> KV[KvDocumentStore: doc:{c}:{scru128} - best-effort]
+    D1 --> SCH[(documents schema 020+021 + r2_key)]
+    D1 -.large blob.-> R2OBJ[(CF R2: doc/{c}/{scru128} objects)]
+    KV -.eventually consistent.-> CFKV[(CF KV: lexicographic list via scru128)]
 ```
 
 ## HOW: Implementation Steps
 
-1. `D1DocumentStore` impl `AsyncDocumentStore` over `wasm/workers_rs/d1.rs`; reuse `documents` schema;
-   ensure `020`/`021` migrations run in the D1 init path.
-2. `scan_from_async` (D1): range query, `Vec<V>`.
-3. `KvDocumentStore` impl `AsyncDocumentStore` over the CF KV binding; `doc:{c}:{scru128}` keys.
-4. `scan_from_async` (KV): `list` with `start` cursor + bulk get.
-5. Resolve "last N" on KV (OD-06-3) and promoted-field handling (OD-06-4).
-6. Tests: against D1/KV bindings (gated; may need miniflare/worker test harness or mock bindings) —
-   append→scan_from ordering parity with SQL/Memory; KV list-cursor correctness.
+1. Ensure **`AsyncDocumentStore`** (F04) is the canonical trait; provide the **sync `DocumentStore` as a
+   valtron wrapper** over the async impl (house rule).
+2. `D1DocumentStore` impl `AsyncDocumentStore` over `wasm/workers_rs/d1.rs` (**primary**); reuse
+   `documents` schema; add the D1 `exec()` binding (or per-statement migration runner) so `020`/`021`
+   apply (OD-06-6).
+3. `scan_from_async` (D1): range query, `Vec<V>`.
+4. **R2 large-blob path:** add/confirm the R2 binding; offload documents over a size threshold to
+   `doc/{c}/{doc_id}` and store the `r2_key` + promoted columns in D1; transparent read-through (OD-06-12).
+5. *(Optional)* `KvDocumentStore` over the CF KV binding (`doc:{c}:{scru128}` keys), extending the KV
+   `list` wrapper to honor `cursor`/`limit` (OD-06-7); explicitly best-effort (OD-06-8).
+6. Resolve "last N" on KV (OD-06-3) and promoted-field handling (OD-06-4) if KV is built.
+7. Tests: against D1/R2/KV bindings (gated; mock bindings or miniflare) — D1 append→scan_from ordering
+   parity with SQL/Memory/Fjall; R2 large-blob round-trip + read-through; KV list-cursor correctness
+   (best-effort).
 
 ## Open Decisions
 
@@ -134,12 +197,27 @@ graph TD
 - **OD-06-11 — `?Send`:** `AsyncDocumentStore` is `async_trait(?Send)` and `StorageItemStream` is
   non-`Send` on wasm; reconcile with the mostly-`Send` agentic layer (how a `Send` caller drives a
   `!Send` future on Workers).
+- **OD-06-12 — R2 topology:** **Resolved (user, 2026-06-15)** → recommended split is **D1 holds the row
+  + promoted columns + `r2_key`; R2 holds the large blob**, transparent behind one `AsyncDocumentStore`.
+  A standalone R2-only store is possible but loses cheap range/typed queries. Decide the **size
+  threshold** for offload (e.g. inline in D1 below N KB, R2 above). The Message API's large records (F16)
+  are the motivating case.
+- **OD-06-13 — sync wrapper:** **Resolved (user, 2026-06-15)** → the sync `DocumentStore` is a **valtron
+  wrapper** over the async impl (house rule: async-first, sync-via-valtron). Confirm the valtron
+  block-on/drive primitive used elsewhere for async→sync and reuse it; don't hand-roll a second bridge.
+- **OD-06-14 — KV is optional:** **Resolved (user, 2026-06-15)** → D1 (+ R2 for blobs) is a complete
+  deliverable; `KvDocumentStore` is additive/best-effort and may be deferred. Don't gate the feature's
+  Done-When on KV parity.
 
 ## Target Files
 
-- `backends/foundation_db/src/wasm/` — `d1_document_store.rs`, `kv_document_store.rs` (new)
-- reuse `wasm/workers_rs/d1.rs`, the CF KV binding; `documents` schema from F04
+- `backends/foundation_db/src/wasm/` — `d1_document_store.rs` (primary), R2 offload path
+  (`r2_document_store.rs`/blob module), `kv_document_store.rs` (optional)
+- reuse `wasm/workers_rs/d1.rs`; add a D1 `exec()` binding + an R2 binding where missing; the CF KV
+  binding (extend `list` cursor) if KV is built; `documents` schema (+`r2_key`) from F04
+- the sync `DocumentStore` valtron wrapper over the async impl (house rule)
 - coordinates with F04 (`AsyncDocumentStore` + `scan_from_async` + doc_id ordering + promoted columns)
+  and F16 (large Message records → R2)
 
 ## Tests
 
@@ -160,14 +238,22 @@ cargo test  -p foundation_db -- document_store::cf
 ## Fundamentals Documentation (zero-to-expert) — REQUIRED
 
 Author `fundamentals/` covering: the Cloudflare Workers runtime & storage model; **D1** (SQLite at
-the edge, prepared statements, no batch DDL); **KV** (eventual consistency, list pagination/cursors,
-1000-key caps, no transactions); read-after-write hazards; async `?Send` bindings on wasm; when KV is
-"best-effort" vs D1 "ordered". (Task — see list.)
+the edge, prepared statements, no batch DDL — and how we add `exec()`); **R2** (S3-style object storage,
+`list`/`startAfter`, when to offload large blobs vs inline in D1); **KV** (eventual consistency, list
+pagination/cursors, 1000-key caps, no transactions); read-after-write hazards; async `?Send` bindings on
+wasm; **async-first design with valtron sync wrappers** (why we build async and bridge to sync); choosing
+the right store per job (D1 ordered, R2 for big blobs, KV best-effort). (Task — see list.)
 
 ## Done When
 
-- `D1DocumentStore` + `KvDocumentStore` implement `AsyncDocumentStore` incl. `scan_from_async`, with
-  ordering parity (doc_id/scru128) with the SQL/Memory/VFS backends.
-- D1 reuses the `documents` schema (020+021); KV uses the `doc:{c}:{scru128}` layout.
+- `D1DocumentStore` implements `AsyncDocumentStore` incl. `scan_from_async`, with ordering parity
+  (doc_id/scru128) with the SQL/Memory/Fjall backends — D1 is the strictly-ordered CF backend.
+- Large documents offload to **R2** (D1 row + promoted columns + `r2_key`; blob in R2), transparent
+  behind the trait; round-trip + read-through verified.
+- The sync `DocumentStore` is a **valtron wrapper** over the async impl (async-first house rule).
+- D1 reuses the `documents` schema (020+021, +`r2_key`); the D1 `exec()`/migration-apply gap is closed
+  (capability added, not worked around).
+- `KvDocumentStore` is **optional/best-effort** (eventually consistent) — its absence does not block the
+  feature; when built it uses the `doc:{c}:{scru128}` layout with proper cursor pagination.
 - Builds for `wasm32` under the CF features; native unaffected.
-- OD-06-1..5 resolved.
+- OD-06-1..14 resolved.

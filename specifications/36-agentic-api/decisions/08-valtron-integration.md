@@ -1,6 +1,6 @@
 # Decision 08: Valtron Task Integration Strategy
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -129,7 +129,7 @@ pub enum AgentLoopState {
     Complete { final_messages: Vec<Message> },
 }
 
-**TODO**: TaskStatus has Depends which will allow tasks to also wait on some indicator to become ready for them to continue executing, this can better enhance how tasks work without spamming TaskStatus::Delayed or TaskStatus::Pending endlessly running in a tight loop and use those two where sensible.
+> **RESOLVED (2026-06-15, F25):** `TaskStatus::Depends(Arc<dyn EventReadiness>)` is used for queue/tool waits, replacing `Pending`/`Delayed` spin loops. `QueueReadiness`/`BoolSignal` implement `EventReadiness`. Backoff uses `Delayed`/`Wait` — the executor yields to the JS event loop (local.rs:2682).
 
 impl TaskIterator for AgentLoop {
     type Ready = AgentEvent;

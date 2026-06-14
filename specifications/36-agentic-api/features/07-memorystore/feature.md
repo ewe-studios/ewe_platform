@@ -15,6 +15,8 @@ tasks:
   completion_percentage: 0%
 ---
 
+**TODO**: Same statement dont let existing API limit you, we build it better, we understand what the limitations are, see if we need to redesign what we need and make it work. If existing traits are to bounded, lets create new specific traits for our usecases that we design for that fit our needs, that is ok.
+
 # Feature 07: MemoryStore
 
 > **Review status (2026-06-14) — crate placement reversed (was fatal).** The typed `MemoryStore`

@@ -1,6 +1,6 @@
 # Decision 04: ToolCallManager Design
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -299,6 +299,8 @@ pub trait ToolCallExecution {
     fn execution_plan(&self) -> ExecutionPlan;
 }
 ```
+
+> **RESOLVED (2026-06-15, F01 + F23):** `ModelOutput::ToolCall` gains **`depends_on: Vec<String>`** + **`execution_hint: ExecutionHint`** with `#[serde(default)]` (F01). DAG staging is implemented in F23.
 
 ## Rationale
 

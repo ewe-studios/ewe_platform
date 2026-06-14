@@ -1,6 +1,6 @@
 # Decision 10: Serialization Format — JSON and Arrow
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -115,7 +115,7 @@ LLM message content can be complex (text, tool calls, thinking blocks, images). 
 
 ### FlatBuffers Fallback
 
-**TODO**: Arrow works in wasm, and it uses flatbuffers underneath so the flatbuffer option is not even necessary
+> **RESOLVED (2026-06-15, F17):** FlatBuffers fallback is **dropped** — Arrow uses FlatBuffers internally and builds on wasm. Also: the promoted columns (`title`/`summary`/`record_type`) from F04 are real Arrow columns alongside the `content` JSON blob, **not** all stuffed in one column. The existing `foundation_arrow` crate + `foundation_macros` derive macros (`ToArrow`/`FromArrow`/`ArrowSchema`) are reused; no new `arrow` dep.
 
 If Arrow proves problematic in certain environments (e.g., WASM), **FlatBuffers** is the fallback format:
 
@@ -159,7 +159,14 @@ Agent Loop → Monitoring (via telemetry)
 
 **Why JSON-encoded content within Arrow?**  
 
-**TODO**: But then we loose all the benefits of arrow for a well structured message that can be easily searched,i get somethings should be json encoded and stuffed into a `content` column, infact we can still stuff the data in the `content` column, but we should extract the sensible fields, scru128, title, summary, whatever makes sense that can be placed into a column on its own for easy search, change, reference.
+> **RESOLVED (2026-06-15, F17 serialization + F04 documentstore):** the `content` JSON blob is kept
+> for full fidelity, **but the sensible fields are promoted to real columns** — `id`
+> (`foundation_compact::Id`/scru128), `record_type`, `role`, `title`, `summary`, `model`,
+> `input_tokens`/`output_tokens`, `created_at` — so Arrow analytics + DocumentStore search can
+> filter/sort/aggregate without parsing the blob. F17 reuses the existing **`foundation_arrow`** crate
+> + `foundation_macros` derive macros (`ToArrow`/`FromArrow`/`ArrowSchema`); the FlatBuffers fallback
+> is dropped (Arrow rides FlatBuffers + builds on wasm). The promoted column set mirrors F04's
+> DocumentStore columns.
 
 - Content is heterogeneous (text, tool calls, thinking, images) — encoding as JSON within Arrow preserves the structure
 - Arrow schema has a `content` column (UTF8) that holds JSON-encoded content

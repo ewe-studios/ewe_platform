@@ -1,6 +1,6 @@
 # Decision 02: Message API Design
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -213,6 +213,8 @@ pub trait MessageStore {
 - Natural ordering without `ORDER BY created_at` queries
 - Time-embedded — listing messages is just ID sorting
 - Collision-free — safe for parallel message generation
+
+> **RESOLVED (2026-06-15, F01 + F03 + F16):** `Messages::User.role` changed from `String` to **`MessageRole` enum** (F01). Memory records use a **`SessionRecord` wrapper enum** (`Conversation { message: Messages }` struct variant + WorkingMemory/Observation/Reflection), NOT inline `Messages` variants — keeps `Messages` provider-pure (F01). Token tracking is in the **`TokenLedger`** (F03), not ObservationMemory. The `&self` pub/sub is a **`&self`-safe broadcaster in `synca`** (F16).
 
 ## Alternatives Considered
 

@@ -19,19 +19,21 @@ tasks:
 
 > **Review status (2026-06-14) — self-review against code (subagent unavailable):**
 > 1. **The stream contract is F02's, and F02 already RESOLVED Decision 11's "this is all stupid" TODO**
->    (Decision 11 line 145). F02 (`02-agent-stream-contract/feature.md:54-55`) pins it:
->    `StreamIterator<D = Result<SessionRecord, AgenticError>, P = AgentProgress>` — **rich `SessionRecord`
->    on `Stream::Next`**, thin `AgentProgress` on `Pending`. So F27 emits
->    `TaskStatus::Ready(Ok(SessionRecord::Conversation{ message }))` for real messages (NOT the
+>    (Decision 11 line 145). F02 pins it:
+>    `StreamIterator<D = SessionRecord, P = AgentProgress>` — **pure `SessionRecord`
+>    on `Stream::Next`** (errors are `SessionRecord::FailedAction` records, NOT a `Result`), thin
+>    `AgentProgress` on `Pending`. So F27 emits
+>    `TaskStatus::Ready(SessionRecord::Conversation{ message })` for real messages (NOT the
 >    `AgentEvent{MessageUpdate{content:String}}` Decision 08/11 sketched — those `String`-payload events
 >    are SUPERSEDED). `AgentProgress` (F02:79) carries the "expect-next" status only. Decision 08/11's
 >    `AgentEvent` enum is **dead** — do not implement it.
-> 2. **The loop is a `TaskIterator`** (`task.rs:392`): `type Ready = Result<SessionRecord, AgenticError>`,
->    `type Pending = AgentProgress`, `type Spawner = <object-safe action>` (Decision 08 line 137 used
->    `BoxedSendExecutionAction` — verify the real spawner type), `fn next_status(&mut self) ->
->    Option<TaskStatus<..>>` (:412). It returns `Init` on setup, `Pending(AgentProgress)` while working,
->    `Ready(Ok/Err)` per record/error, **`Depends`** when waiting on queues/tools (F25/F23), never a
->    `Pending` spin.
+> 2. **The loop is a `TaskIterator`** (`task.rs:392`): `type Ready = SessionRecord` (errors are
+>    `SessionRecord::FailedAction` records, not a `Result`), `type Pending = AgentProgress`,
+>    `type Spawner = <object-safe action>` (Decision 08 line 137 used `BoxedSendExecutionAction` — verify
+>    the real spawner type), `fn next_status(&mut self) -> Option<TaskStatus<..>>` (:412). It returns
+>    `Init` on setup, `Pending(AgentProgress)` while working, `Ready(SessionRecord)` per record (a failure
+>    is `Ready(SessionRecord::FailedAction{..})`), **`Depends`** when waiting on queues/tools (F25/F23),
+>    never a `Pending` spin.
 > 3. **The loop ORCHESTRATES; it owns almost no logic.** It sequences: F26 input pipeline → F24 generate/
 >    stream → extract tool calls → F23 execute workflow → F26 output pipeline (which fires F19 memory +
 >    F28 loop detection) → F25 queue checks. Decision 05 §Agent Loop Integration + Decision 11 §Loop
@@ -45,7 +47,7 @@ tasks:
 >    stream runs as a child task sequenced under the loop so the loop checks PriorityQueue between LLM
 >    steps and sets `CancelCode::PauseForPriority`. With F24's **boxed** stream (`Box<dyn StreamIterator>`,
 >    F24 OD-24-2), the loop pumps the stream and interleaves queue checks. (OD-27-3.)
-> 6. **Errors via `Stream::Next(Err(AgenticError))`** (F30/Decision 16): generation errors → F30 circuit
+> 6. **Errors via `Stream::Next(SessionRecord::FailedAction{ error, trace })`** (F30/Decision 16, F01 §5): generation errors → F30 circuit
 >    breaker (`handle_error` → Continue/RetryReducedContext/SwitchModel/Terminate); tool errors already
 >    became `ToolResult{error_detail}` in F23 (back to LLM, loop continues); loop detection → redirect
 >    from memory (F28). The loop's `handle_error` is Decision 16's `AgentAction` dispatcher.
@@ -95,7 +97,7 @@ pub enum AgentLoopState {
 }
 
 impl TaskIterator for AgentLoop {
-    type Ready   = Result<SessionRecord, AgenticError>;   // F02 contract
+    type Ready   = SessionRecord;   // F02 contract — errors are SessionRecord::FailedAction, not a Result
     type Pending = AgentProgress;                          // F02
     type Spawner = BoxedSendExecutionAction;               // verify real type
 
@@ -116,30 +118,33 @@ InnerAssemble:
     drain PriorityQueue at FRONT (F25) -> if steering: F23.cancel(); inject at front
     InputPipeline.run(&mut ctx) (F26)  -> InnerGenerate
 InnerGenerate (sequenced under loop for interruption, F25/OD-27-3):
-    pump F24 stream; Pending(AgentProgress::Generating); on each msg -> Ready(Ok(Conversation{msg}))
+    pump F24 stream; Pending(AgentProgress::Generating); on each msg -> Ready(Conversation{message:msg})
     between steps: check PriorityQueue -> set PauseForPriority -> break to InnerAssemble
     on done: extract tool calls
         has tools -> InnerToolCalls ; none -> OutputProcessing
 InnerToolCalls -> F23.execute_workflow -> InnerExecuting
 InnerExecuting:
-    drive ToolCallExecTask; Ready(Ok(ToolResult)) per result (already persisted, F23)
+    drive ToolCallExecTask; Ready(Conversation{message:ToolResult}) per result (already persisted, F23)
     on complete -> InnerAssemble (feed results back to LLM)   # inner loop repeats
 OutputProcessing:
     OutputPipeline.run (F26) -> fires F19 memory triggers, F28 loop detect, F16 save (spawned)
     loop detected? -> handle (F28 redirect / escalate)
     -> OuterBoundary
-Ending -> Ready(Ok(SessionRecord::Summary{..})) (F02 OD-02-6) ; flush (F16/F31)
+Ending -> Ready(SessionRecord::Summary{..}) (F02 OD-02-6) ; flush (F16/F31)
 ```
 
 ### Error / circuit breaker (F30 / Decision 16)
 
 ```rust
-fn handle_error(&mut self, e: AgenticError) -> TaskStatus<...> {
-    match self.session.errors.classify(e) {   // F30
+// `report: ErrorTrace<AgenticError>` (foundation_errstacks) — `classify` reads the context kind.
+fn handle_error(&mut self, report: ErrorTrace<AgenticError>) -> TaskStatus<...> {
+    match self.session.errors.classify(&report) {   // F30
         AgentAction::Continue              => /* tool error already a ToolResult; keep going */,
         AgentAction::RetryWithReducedContext => /* Messages::is_context_overflow → trim, retry */,
         AgentAction::SwitchModel           => { self.current_model = self.next_fallback()?; /* F24 */ },
-        AgentAction::Terminate(err)        => return Some(TaskStatus::Ready(Err(err))),
+        AgentAction::Terminate(report)     => return Some(TaskStatus::Ready(SessionRecord::FailedAction{
+                                                  error: report.current_context().clone(),
+                                                  trace: report.to_structured() })),
     }
 }
 ```
@@ -182,12 +187,12 @@ see list.)
 
 ## HOW: Implementation Steps
 
-1. `AgentLoop` + `AgentLoopState`; `TaskIterator` impl (`Ready = Result<SessionRecord, AgenticError>`,
-   `Pending = AgentProgress`) — verify the real `Spawner` type.
+1. `AgentLoop` + `AgentLoopState`; `TaskIterator` impl (`Ready = SessionRecord` — errors are
+   `SessionRecord::FailedAction`, `Pending = AgentProgress`) — verify the real `Spawner` type.
 2. `Initializing` (load context / F31 resume) → `Init`.
 3. `OuterBoundary`: FollowUpQueue drain (F25) → continue or `Ending`.
 4. `InnerAssemble`: PriorityQueue front-drain + F23 cancel on steering; F26 input pipeline.
-5. `InnerGenerate`: pump F24 stream sequenced for interruption; emit `Ready(Ok(Conversation))` +
+5. `InnerGenerate`: pump F24 stream sequenced for interruption; emit `Ready(Conversation)` +
    `Pending(Generating)`; mid-gen priority check (OD-27-3); extract tool calls.
 6. `InnerToolCalls`/`InnerExecuting`: F23 workflow; emit persisted `ToolResult`s; loop back to assemble.
 7. `OutputProcessing`: F26 output pipeline (F19 memory, F28 detect, F16 save); handle loop detection.
@@ -197,7 +202,7 @@ see list.)
 11. Tests (mostly via F32 MockModelProvider): full turn no-tools; turn with parallel tool calls;
     inner-loop repeats until no tools; PriorityQueue interrupts mid-generation (front-inject);
     FollowUpQueue continues outer; memory trigger fires at threshold; loop detection redirects; circuit
-    breaker switches model on repeated failure; error surfaces as `Next(Err)`; resume mid-session;
+    breaker switches model on repeated failure; error surfaces as `Next(FailedAction)`; resume mid-session;
     `Depends` parks (no spin); wasm build.
 
 ## Open Decisions
@@ -238,8 +243,8 @@ cargo test  -p foundation_ai -- agentic::loop
 
 ## Done When
 
-- `AgentLoop` is a valtron `TaskIterator` emitting `Stream::Next(Ok(SessionRecord))` + `Pending(AgentProgress)`
-  (+ `Next(Err)`), running the inner (tools+steering) / outer (follow-up) loop per Decision 05/11;
+- `AgentLoop` is a valtron `TaskIterator` emitting `Stream::Next(SessionRecord)` + `Pending(AgentProgress)`
+  (errors as `Next(SessionRecord::FailedAction)`), running the inner (tools+steering) / outer (follow-up) loop per Decision 05/11;
   PriorityQueue interrupts mid-generation with front-injection; FollowUpQueue continues; F26 processors,
   F19 memory, F28 detection, F30 circuit breaker all wired; waits via `Depends` (no spin); the dead
   `AgentEvent` enum is NOT implemented; builds native + wasm.

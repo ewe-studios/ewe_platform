@@ -1,6 +1,6 @@
 # Decision 16: Error Handling Conventions
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-12  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -12,6 +12,13 @@ The agentic loop spans multiple components (LLM, tools, memory, queues) that can
 - Clear ownership of retry/resilience logic
 
 ## Decision
+
+> **⚠️ SUPERSEDED IN PART — see the two AMENDED notes in §"Error Type → Variant Mapping" below.** The
+> error *taxonomy + classification + circuit-breaker + retry-ownership* decisions still hold, but the
+> **propagation mechanism changed**: errors are no longer a `Result` in the stream's `D` / `Next(Err)`.
+> The stream is **pure `D = SessionRecord`** and failures are **`SessionRecord::FailedAction { error:
+> AgenticError, trace: foundation_errstacks::StructuredErrorTrace }`** records (F02/F01). `AgentEvent` is
+> dead (D08/D11). Read the AMENDED notes before treating any code snippet here as current.
 
 Errors are handled via a **unified `AgenticError` enum** propagated through valtron streams as `Stream::Next(Err(e))`. Retry and resilience logic is owned by model tasks internally — the agent loop does not manage retries.
 
@@ -314,6 +321,10 @@ The agentic error wraps existing error types from the platform:
 | foundation_db | `StorageError` | `AgenticError::MessageStore` |
 | foundation_auth | Auth errors | `AgenticError::Auth` |
 | foundation_errstacks | `ErrorTrace<T>` | Converted to `String` in `Unexpected` |
+
+> **AMENDED (2026-06-15, F02 + F30):** `AgenticError` must be **`Clone + PartialEq + Debug`** (for the F02 stream derives). **`GenerationError` is NOT `Clone`/`PartialEq`** and has NO `ContextOverflow`/`RateLimit` variants — so F30 **flattens** generation failures to a `String`-backed error (not `#[from]`) and classifies overflow via the real **`Messages::is_context_overflow()`**. Retry/resilience owned by model+tool tasks.
+>
+> **AMENDED again (2026-06-15, F02 OD-02-1 + F01 §5 + user):** errors are **no longer carried as `Stream::Next(Err(..))` / a `Result` in `D`.** The stream is **pure `D = SessionRecord`**; a failure is a **`SessionRecord::FailedAction { error: AgenticError, trace: foundation_errstacks::StructuredErrorTrace }`** record on `Stream::Next` (transient, NOT persisted). All agentic errors are **`foundation_errstacks` errors** (`ErrorTrace<AgenticError>`); the in-record `trace` is the owned, JSON-serializable `to_structured()` projection (the live `ErrorTrace` is not `Deserialize`). Consequently `AgenticError` must additionally be **`Serialize + Deserialize`** (the flattened `String`-backed design already makes this possible). Synchronous API methods (`build`/`resume`/`run_turn`/`end`) return `Result<_, ErrorTrace<AgenticError>>`. Every `Stream<Result<AgentEvent, AgenticError>, ..>`, `Stream::Next(Ok/Err(..))`, and `AgentEvent` snippet elsewhere in this document is SUPERSEDED by this note (the original body is retained only for ADR history).
 
 ## Rationale
 

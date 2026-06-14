@@ -1,12 +1,12 @@
 # Decision 14: File Search Integration (fff + Vector Search)
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-12  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
 ## Problem
 
-**TODO**: I will like to split the search tool into two:
+> **RESOLVED (2026-06-15, F18/F22):** Split into **`search()`** (semantic/memory/graph/hybrid — knowledge, F18/F22) vs **`search_file()`** (filesystem via fff, F22). The two tools never call each other; Decision 14's old two-phase fallback is superseded. `search_file` is native-only, target-gated off wasm.
 - search(...): to support semantic search of vector store, memory and old messages, graph search e.g code graphs we've generated which can tell us which file has this given block of code or entity.
 - search_file(...): to use fff  to search the file system.
 

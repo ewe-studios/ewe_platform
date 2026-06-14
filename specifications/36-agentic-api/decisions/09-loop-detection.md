@@ -1,6 +1,6 @@
 # Decision 09: Loop Detection
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -208,6 +208,8 @@ pub struct LoopDetectorConfig {
     pub temperature_delta: f32,       // default: +0.3
 }
 ```
+
+> **RESOLVED (2026-06-15, F28):** Loop detection is an **output processor** (runs inline after each turn), not a separate parallel task. Redirect-from-memory uses observations/reflections.
 
 ## Rationale
 

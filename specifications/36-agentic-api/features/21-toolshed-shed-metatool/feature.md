@@ -23,14 +23,15 @@ tasks:
 >    feature.md resolves CRIT-04). F21 *consumes* the post-F01 `ToolShed` and must NOT reintroduce a
 >    catch-all — discovery is the `shed` tool's job (Decision 15 §"Why no others"). F21's contribution
 >    is the **`shed` tool + the discovery index**, and the `default()` wiring.
-> 2. **The real `ToolShed` fields are concrete `Tool`** for `read/edit/write/search` (:1071-1074),
->    `Option<Tool>` for `bash` (:1075), `Option<MemoryTool>`/`Option<DelegationTool>` for
->    `memory`/`delegate` (:1069-1070), and `shed: Tool` (:1068, NON-optional — matches Decision 15
->    "always present"). So **`shed` is structurally guaranteed**, good. But `read/edit/write/search`
->    being non-`Option` collides with "zero tools registered" (F20 OD-20-4) — **flag: F01 should make
->    them `Option<Tool>`**, else `default()` must install real default `ToolImpl`s for all four. Rec:
->    `default()` wires real defaults (F22 `search`, plus `read`/`edit`/`write` file tools), so the
->    non-`Option` fields are honestly populated.
+> 2. **ToolShed shape — RESOLVED (user, 2026-06-15):**
+>    - **Zero-tool sessions** are handled by the **whole `ToolShed` being optional at the session
+>      level** (`ModelInteraction.tools_shed: Option<ToolShed>`, `types/mod.rs:1083`) — a zero-tool
+>      session passes **`None`**. No per-field `Option<Tool>` change.
+>    - `ToolShed` gains a first-class **`search_files`** field (fff filesystem tool, F22) beside
+>      `search` (knowledge), and **`bash: Option<Tool>` → `shell: Tool`** (bash on linux/macOS,
+>      PowerShell on Windows, OS-selected at runtime) — both via F01.
+>    - So when a `ToolShed` is present, `ToolShed::default()` honestly wires
+>      **`read/edit/write/search/search_files/shell`** (+ always-present `shed`).
 > 3. **The `shed` tool's search uses the SAME VectorStore the registry indexed into** (F20 register
 >    hook → F12 insert with a tool-description namespace). `shed` embeds the LLM's NL query via F15 and
 >    calls `VectorStore::query(vec, k, Some("tools"))`. So F21 hard-depends on **F15 (Embedding) + F12
@@ -75,11 +76,13 @@ impl ToolCallManager {
     pub fn with_defaults(session_id: SessionId, vs: Arc<dyn VectorStore>, emb: Arc<dyn EmbeddingProvider>) -> Self {
         let mgr = Self::new(session_id, vs, emb);
         mgr.register(Arc::new(ShedTool::new(mgr.discovery())));   // always present
-        mgr.register(Arc::new(SearchTool::default()));           // F22 search()
+        mgr.register(Arc::new(SearchTool::default()));           // F22 search() — knowledge
+        mgr.register(Arc::new(SearchFilesTool::default()));      // F22 search_files() — fff filesystem
         mgr.register(Arc::new(ReadTool::default()));
         mgr.register(Arc::new(EditTool::default()));
         mgr.register(Arc::new(WriteTool::default()));
-        // bash/memory/delegate are opt-in (Option fields in ToolShed)
+        mgr.register(Arc::new(ShellTool::default()));            // bash (unix) / PowerShell (windows)
+        // memory/delegate are opt-in (Option fields in ToolShed)
         mgr
     }
 }

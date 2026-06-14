@@ -1,6 +1,6 @@
 # Decision 11: Agentic Loop Architecture
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -142,7 +142,7 @@ After each LLM response, output processors handle side effects:
 
 ### Stream States (Valtron Progress)
 
-**TODO**: This is all stupid, what happened to the rich foundation_ai Messages that has the full rich contexts. I had expected we would send this AgentEvents or atleast have the MessageStart and MesseUpdate contain the `Message` struct instead, if you really wanted the events or else the events are simply the messages we send on the Stream::Pending, which allows us communicate event but let Stream::Next(Message) carry the actual messages.
+> **AMENDED (2026-06-15, F02):** The `AgentEvent` enum with `MessageStart`/`MessageUpdate`/`MessageEnd` was the **wrong** approach. The agentic loop now streams the **rich `Messages`/`SessionRecord` on `Stream::Next`** and thin `AgentProgress` on `Stream::Pending`, mirroring the model layer's `Stream<Messages, ModelState>`. The protocol is advisory (executor interleaves `Ignore`/`Wait`/`Delayed`; `Spread` multiplexes `Next`). that has the full rich contexts. I had expected we would send this AgentEvents or atleast have the MessageStart and MesseUpdate contain the `Message` struct instead, if you really wanted the events or else the events are simply the messages we send on the Stream::Pending, which allows us communicate event but let Stream::Next(Message) carry the actual messages.
 
 The agent loop emits progress via `Stream<Result<AgentEvent, AgenticError>, AgentProgress>`:
 

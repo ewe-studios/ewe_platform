@@ -1,6 +1,6 @@
 ---
 feature: "Agent Stream & Progress Contract"
-description: "The agentic loop's streaming contract — rich SessionRecord on Stream::Next, thin AgentProgress status on Stream::Pending, errors via Next(Err), mirroring the model layer's Stream<Messages, ModelState>"
+description: "The agentic loop's streaming contract — pure SessionRecord on Stream::Next (errors as SessionRecord::FailedAction records, not a Result), thin AgentProgress status on Stream::Pending, mirroring the model layer's Stream<Messages, ModelState>"
 status: "pending"
 priority: "high"
 depends_on: ["01-message-model"]
@@ -41,8 +41,16 @@ on `Stream::Next`, and thin status (`ModelState::{GeneratingTokens, Finished, Er
 taxonomy.
 
 Two more constraints:
-- **Errors** must flow without a new `Stream` variant — `Stream<D,P>` has none (verified). So `D`
-  carries a `Result` (CRIT-05 resolution).
+- **Errors** flow as a **record, not a `Result`** (user, 2026-06-15). Rather than wrap `D` in
+  `Result<…, AgenticError>`, add a **`SessionRecord::FailedAction`** variant carrying the failure (the
+  concrete `AgenticError` kind + `trace: foundation_errstacks::StructuredErrorTrace`, the structured
+  JSON-serializable projection of the errstack chain via `ErrorTrace::to_structured()` — the live
+  `ErrorTrace`/`Report` is not `Deserialize` so it cannot sit in the enum; logged via `tracing` at the
+  failure site, see F01 OD-1-FA) so it communicates *what failed and why*.
+  `FailedAction` is **NOT persisted** to the Message API (a transient signal, not audit content) — so
+  the **stream stays pure `SessionRecord`** (`D = SessionRecord`, no `Result` wrapper). Consumers match
+  `SessionRecord::FailedAction`; F16 skips it on flush. (Supersedes the earlier CRIT-05 `Result`-in-`D`
+  resolution; F01 adds the variant, F30 defines `AgenticError`.)
 - **Memory records** (working/observation/reflection) are produced mid-loop and should be observable
   too — they are already modelled by F01's `SessionRecord`.
 
@@ -52,22 +60,20 @@ Two more constraints:
 
 ```rust
 // The agentic loop is a TaskIterator; consumers see a StreamIterator of:
-StreamIterator<D = Result<SessionRecord, AgenticError>, P = AgentProgress>
+StreamIterator<D = SessionRecord, P = AgentProgress>   // pure SessionRecord — errors are SessionRecord::FailedAction
 ```
 
-- **`Stream::Next(Ok(SessionRecord))`** — the rich record: `Conversation { message: Messages }` for
+- **`Stream::Next(SessionRecord)`** — the rich record: `Conversation { message: Messages }` for
   assistant/tool-result/user, or `WorkingMemory`/`Observation`/`Reflection` when memory is generated.
   `SessionRecord::Conversation` (a **struct variant** per F01) wraps the exact `Messages` the model
   layer produces.
-- **`Stream::Next(Err(AgenticError))`** — an error (no new `Stream` variant; `AgenticError` is F30).
+- **`Stream::Next(SessionRecord::FailedAction)`** — an error record (the `AgenticError` kind + `trace: StructuredErrorTrace`, errstack's serializable chain); NOT a `Result`, NOT persisted. (`AgenticError` is F30; see F01 OD-1-FA.)
 - **`Stream::Pending(AgentProgress)`** — a thin status signal: lifecycle + progress only, **no
   content**. It tells the consumer *what kind of `Next` to expect* (the "expect-next" protocol).
 
-> **OD-02-1 (carries to the user):** `D = Result<SessionRecord, _>` vs `D = Result<Messages, _>`.
-> `SessionRecord` is the superset (conversation **and** memory records on one stream); a
-> conversation-only consumer matches `SessionRecord::Conversation { message }`. The alternative — `Messages`
-> on `Next`, memory visible only via `Pending` signals — is closer to the literal TODO #9 wording
-> but hides the generated memory content. **Recommendation: `SessionRecord`.** Flag for the user.
+> **OD-02-1 — RESOLVED (user):** `D = SessionRecord` (pure — conversation, memory, AND `FailedAction`
+> on one stream; no `Result` wrapper). A conversation-only consumer matches
+> `SessionRecord::Conversation { message }`; errors match `SessionRecord::FailedAction`.
 
 ### `AgentProgress` — thin status signals (the only "events")
 
@@ -94,7 +100,10 @@ pub enum AgentProgress {
     FlushingRecords { count: usize },
     /// Steering/interruption being applied; hint: Conversation{User role=System|Agent}.
     Steering { source: Cow<'static, str> },
-    /// Turn/loop is ending; the final summary record (below) is emitted just before stream end.
+    /// A model interaction / agent turn completed — carries the turn's usage stats (cloned from the
+    /// model's UsageReport) so consumers see per-turn token/cost without re-summing (user, 2026-06-15).
+    TurnComplete { usage: UsageReport },
+    /// Turn/loop is ending; the final summary record is emitted just before stream end.
     SessionEnding,
 }
 
@@ -103,12 +112,13 @@ pub enum AgentProgress {
 pub enum MemoryKind { Working, Observation, Reflection }
 ```
 
-> **Session-final payload (restores Decision 11's `SessionEnd { message_count }`):** before the
-> stream ends (`Iterator::next() → None`), the loop emits a terminal
-> `SessionRecord::Conversation`-adjacent summary — **OD-02-6**: either a dedicated
-> `SessionRecord::Summary { message_count, usage: TokenSnapshot }` variant (cleanest; add to F01) or
-> the caller aggregates. Recommendation: add a `Summary` record so consumers get totals without
-> re-summing. `ToolCallCancelled` above closes the steering/deadlock gap the review flagged.
+> **Summary + usage payload — RESOLVED (user, 2026-06-15):** add a **`SessionRecord::Summary {
+> message_count, usage: TokenSnapshot }`** variant (F01), and the loop emits it **at every completed
+> interaction/turn** (not only at session end) — so consumers see **running token usage** as the
+> session progresses, plus a final one before the stream ends. Its `Stream::Pending` mirror is the
+> **`AgentProgress::TurnComplete { usage }`** variant above (same per-turn usage, on the status
+> channel) — so a UI can update token counters from `Pending` without waiting for the `Next` record.
+> (`ToolCallCancelled` closes the steering/deadlock gap the review flagged.)
 
 This **replaces** Decision 11's `AgentEvent` enum entirely. There is no `MessageStart/Update/End` —
 streaming token deltas are the model layer's concern (it already yields incremental `Messages` /
@@ -123,49 +133,37 @@ sequenceDiagram
     participant L as Agent Loop
     participant C as Caller
     L-->>C: Pending(Generating{model, 12})
-    L-->>C: Next(Ok(Conversation(Assistant{Text})))
+    L-->>C: Next(Conversation(Assistant{Text}))
     L-->>C: Pending(ToolCallRequested{"read_file"})
-    L-->>C: Next(Ok(Conversation(Assistant{ToolCall})))
+    L-->>C: Next(Conversation(Assistant{ToolCall}))
     L-->>C: Pending(ExecutingTools{total:2, completed:0})
-    L-->>C: Next(Ok(Conversation(ToolResult)))      %% completed:1
-    L-->>C: Next(Ok(Conversation(ToolResult)))      %% completed:2
+    L-->>C: Next(Conversation(ToolResult))      %% completed:1
+    L-->>C: Next(Conversation(ToolResult))      %% completed:2
     L-->>C: Pending(ProcessingMemory{Observation})
-    L-->>C: Next(Ok(Observation{..}))
-    L-->>C: Next(Err(AgenticError::Generation(..)))
+    L-->>C: Next(Observation{..})
+    L-->>C: Next(FailedAction{AgenticError::Generation(..), trace})
     L-->>C: Pending(SessionEnding)
 ```
 
 **The protocol is ADVISORY, not a framing guarantee.** The executor freely interleaves `Ignore`,
 `Wait`, and `Delayed` between any `Pending` and the eventual `Next` (`ConcurrentQueueStreamIterator`,
 `streams.rs:370-398`); a single delivery point can emit **multiple** `Next` via `TaskStatus::Spread`
-(`task.rs:217-227`); and a `Next(Err)` may substitute for the promised record. Therefore consumers
+(`task.rs:217-227`); and a `Next(SessionRecord::FailedAction)` may substitute for the promised record. Therefore consumers
 **must key off the record/error content of each `Next`, not item adjacency** — a UI updates its
 "calling tool X" label on the `Pending` hint but must not assume the immediately-following item is
 the promised record. Content-only callers ignore `Pending` entirely.
 
-### Mapping to valtron `TaskStatus`
+### Mapping to valtron `TaskStatus` — **valtron does this; F02 doesn't**
 
-The agent loop (F27) is a `TaskIterator`; its statuses convert to the stream above
-(`TaskStatus → Stream` is valtron-provided):
+> **RESOLVED (user, 2026-06-15):** the `TaskStatus → Stream` conversion is **fully abstracted by
+> valtron** (`From<TaskStatus> for Stream`) — F02 does **not** map it. We only declare the loop's
+> associated types and emit `TaskStatus::{Ready, Pending, Init, Ignore, Wait, Delayed, Spawn, Depends,
+> Spread}`; valtron turns them into the `Stream` the consumer sees.
 
-Verified against `From<TaskStatus> for Stream` (`task.rs:207-231`):
-
-| TaskStatus | Stream | Meaning |
-|-----------|--------|---------|
-| `Ready(Ok(SessionRecord))` | `Next(Ok(record))` | a record produced |
-| `Ready(Err(AgenticError))` | `Next(Err(e))` | an error |
-| `Pending(AgentProgress)` | `Pending(progress)` | status |
-| `Spread(vec)` | `Spread(vec)` | **multiple** records/progress at one delivery point (e.g. batch tool results) |
-| `Init` | `Init` | session bootstrapping |
-| `Ignore` | `Ignore` | polled queues, nothing to emit |
-| `Wait` | `Wait` | yield to the JS event loop (wasm) |
-| `Delayed(d)` | `Delayed(d)` | rate-limit / cooperative wait |
-| `Spawn(_)` | `Ignore` | spawned a sub-task; nothing to emit this tick |
-| `Depends(sig)` | `Ignore` | waiting on a readiness signal (F25) |
-
-So `TaskIterator::Ready = Result<SessionRecord, AgenticError>`, `Pending = AgentProgress` (the
-producer is a `TaskIterator` with `Ready`/`Pending`/`Spawner`; `StreamIterator` `D`/`P` is the
-consumer-facing view after `into_stream_iter()`).
+So all F02 must state: the agent loop (F27) is a `TaskIterator` with
+**`type Ready = SessionRecord`** (errors are `SessionRecord::FailedAction` records, not a `Result`)
+and **`type Pending = AgentProgress`**. The `StreamIterator` `D`/`P` the consumer observes is the
+post-`into_stream_iter()` view — valtron's conversion, not ours.
 
 > **`AgenticError` trait-bound contract (pin now, F30 owns the type):** `Stream<D,P>`/`TaskStatus`
 > only derive `PartialEq`/`Clone`/`Debug` when `D`/`P` do (`streams.rs:77`, `task.rs:142-150`). F01's
@@ -175,23 +173,24 @@ consumer-facing view after `into_stream_iter()`).
 ### Relationship to the model stream
 
 The loop wraps the model's `Stream<Messages, ModelState>` and lifts it:
-- `model Next(Messages)` → `agent Next(Ok(SessionRecord::Conversation { message }))`
+- `model Next(Messages)` → `agent Next(SessionRecord::Conversation { message })`
 - `model Pending(ModelState::GeneratingTokens(_))` → `agent Pending(AgentProgress::Generating{..})`
-  (note: providers currently emit `GeneratingTokens(None)` — no partial usage — so `tokens_so_far`
-  updates only at turn boundaries unless providers are changed; see OD-02-4)
-- `model Pending(ModelState::Error(s))` → `agent Next(Err(AgenticError::Generation(..)))`
+- `model Pending(ModelState::Error(s))` → `agent Next(SessionRecord::FailedAction{..})`
 
-> **Streaming partials (OD-02-5):** the model yields *incremental* `Messages` as tokens arrive. The
-> loop must decide: forward each partial as its own `Conversation` record (consumer sees N partials
-> then a final), or coalesce and emit one final `Conversation` per turn (partials visible only via
-> `Pending`). **Recommendation: coalesce** — emit one final `SessionRecord::Conversation` per model
-> turn; surface streaming progress via `AgentProgress::Generating`. If partials are forwarded, add a
-> `final: bool`/sequence marker. This is the literal heart of TODO #9 — confirm.
+> **Streaming partials (OD-02-5) — RESOLVED (user, 2026-06-15; CONFIRMED against code).** The model
+> layer is designed to **collect partials internally and deliver COMPLETE messages**, not raw partials:
+> the providers accumulate (`accumulated_text`/`accumulated_thinking`/`AccumulatedToolCall`,
+> `InputJsonDelta { partial_json }` — `anthropic_messages_provider.rs:919,937`) and emit complete
+> `Messages`. Models are best placed to know partial vs complete, to chunk, and to **section under
+> memory constraints to avoid OOM**. So the **agent loop forwards COMPLETE `SessionRecord::Conversation`
+> records** — it does **not** deal with partials, and there is **no** `final: bool`/partial-record
+> marker. Live token deltas (if a provider ever streams them) surface only via `AgentProgress::Generating`
+> on the `Pending` channel; the `Next` stream is complete records only.
 
 ## HOW: Implementation Steps
 
 1. Define `AgentProgress` + `MemoryKind` in `foundation_ai::agentic` (new module).
-2. Define the loop's associated types: `type Ready = Result<SessionRecord, AgenticError>;
+2. Define the loop's associated types: `type Ready = SessionRecord;   // errors are SessionRecord::FailedAction, not a Result
    type Pending = AgentProgress;` (the `AgenticError` shell may be a forward-declared stub until F30).
 3. Document the expect-next protocol next to `AgentProgress` (each variant's doc states its Next).
 4. Provide a `From<ModelState> for AgentProgress` and a helper lifting model
@@ -245,7 +244,7 @@ loop mirrors the model layer; trait-bound propagation (`Clone`/`PartialEq`) thro
 
 ## Done When
 
-- `AgentProgress` + the `Result<SessionRecord, AgenticError>` / `AgentProgress` stream contract are
+- `AgentProgress` + the pure-`SessionRecord` / `AgentProgress` stream contract (errors via `FailedAction`) are
   defined and documented with the expect-next protocol.
 - The model-stream lift mapping exists and is tested.
 - No `AgentEvent`-style content-duplicating enum is introduced (TODO #9 honored).

@@ -1,6 +1,6 @@
 # Decision 05: Queue Architecture — PriorityQueue vs FollowUpQueue
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -142,7 +142,9 @@ Agent.prompt("Fix the bug")
    └─ emit(AgentEvent::SessionEnd)
 ```
 
-### Rationale
+#> **RESOLVED (2026-06-15, F25):** `CancelCode` uses **`#[repr(u32)]`** (valid Rust, not `enum CancelCode: u32` which is illegal). `TaskStatus::Depends(Arc<dyn EventReadiness>)` is used for queue waits (not spin loops).
+
+## Rationale
 
 **Why sequenced execution for LLM + Agent?**
 - Gives Agent a chance to check queues between every LLM valtron iteration

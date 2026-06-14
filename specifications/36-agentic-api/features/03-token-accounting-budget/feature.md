@@ -17,6 +17,18 @@ tasks:
 
 # Feature 03: Token Accounting & Budget
 
+> **RESOLVED (user, 2026-06-15; CONFIRMED against code).** Each model already exposes a **cumulative**
+> usage/cost summation over the whole lifetime of interactions with it: every provider holds a
+> `CostAccumulator` that "keeps a running total for the model's lifetime" (`costing.rs:47-49`) and
+> `Model::costing()` returns it (`costing.rs:96-98`). So F03 **builds on that existing cumulative
+> source — it does NOT re-accumulate per-token from scratch.** Division of labor (see OD-03-10):
+> the per-model `CostAccumulator` is the running total *for one model*; `TokenLedger` is the
+> **session-level** aggregate that spans models/turns and owns the **budget**, fed once per turn from
+> the same `UsageReport` the model just accounted (`record(usage)` reads the delta the model already
+> computed). No parallel counting: the ledger aggregates the models' own numbers, it does not re-derive
+> them. Where a model is long-lived, the ledger can seed/reconcile from `Model::costing()` directly
+> instead of replaying turns.
+
 > **Review status (2026-06-14):** reviewed against live code. The key insight is confirmed
 > (`Assistant.usage` is a per-*call* delta, so summing across turns doesn't double-count) — **but**
 > a streaming turn clones one `UsageReport` onto every emitted message (thinking+text+each toolcall),
@@ -94,6 +106,10 @@ impl TokenLedger {
     pub fn snapshot(&self) -> TokenSnapshot;
 }
 
+/// Carried by `SessionRecord::Summary { usage: TokenSnapshot }` (F01) as well as surfaced to model/UI
+/// (F29), so it must derive the SessionRecord-compatible set. `cost: f64` → `PartialEq` only (no
+/// `Eq`/`Hash`), which matches `SessionRecord`.
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct TokenSnapshot {
     pub total: u64, pub input: u64, pub output: u64,
     pub rolling: u64, pub budget: Option<u64>, pub remaining: Option<u64>,
@@ -110,7 +126,8 @@ The agent loop (F27) checks the ledger at turn boundaries:
 
 ```
 before model call:
-    if ledger.is_exhausted() -> emit Stream::Next(Err(AgenticError::BudgetExhausted{ snapshot }))
+    if ledger.is_exhausted() -> emit Stream::Next(SessionRecord::FailedAction{
+                                    error: AgenticError::BudgetExhausted{ snapshot }, trace })
                                 and halt generation (do NOT call the model)
 after model call:
     ledger.record(assistant.usage); ledger also feeds AgentProgress::Generating.tokens_so_far
@@ -129,6 +146,7 @@ after model call:
 | F19 memory triggers | `rolling()` for the **30k** recent-interaction trigger; `reset_rolling()` after condensing. The **40k** reflection trigger is *observation-memory size*, a different quantity F19 measures on the observation store — **not** `rolling` (OD-03-8). |
 | F29 budget surfacing | `snapshot()` → injected into the system prompt so the model knows its remaining budget |
 | F27 loop | `is_exhausted()` halt; `record()` **once per turn** |
+| F01 `SessionRecord::Summary` | `snapshot()` → `TokenSnapshot` carried in the per-interaction `Summary` record (cumulative running spend; the per-turn `UsageReport` delta rides `AgentProgress::TurnComplete`) |
 | F02 stream | turn-boundary token totals only; live `tokens_so_far` needs provider changes (providers emit `GeneratingTokens(None)` today — OD-02-4/OD-03-9) |
 
 ### Optional: model-side hard stop
@@ -180,11 +198,14 @@ graph TD
   ledger.
 - **OD-03-9 — live streaming usage:** providers emit `GeneratingTokens(None)`; live `tokens_so_far`
   is a separate provider enhancement. Scoped out of F03.
-- **OD-03-10 — reconcile with existing `CostAccumulator`:** each provider already holds a
-  `CostAccumulator` and `Model::costing()` returns a running total (`costing.rs:96`). Decide:
-  `TokenLedger` is the **session-level** accumulator (spans turns, models, the budget); the per-model
-  `CostAccumulator` stays the **per-model** cost source the ledger reads from via `record(usage)`.
-  State this so "no parallel counting" holds (ledger aggregates, doesn't re-count).
+- **OD-03-10 — reconcile with existing `CostAccumulator`:** **Resolved (user, 2026-06-15)** → build
+  on the model's existing cumulative source, don't re-accumulate. Each provider already holds a
+  `CostAccumulator` "running total for the model's lifetime" (`costing.rs:47-49`) and `Model::costing()`
+  returns it (`costing.rs:96-98`). `TokenLedger` is the **session-level** accumulator (spans turns,
+  models, the budget); the per-model `CostAccumulator` stays the **per-model** cost source the ledger
+  reads from via `record(usage)` (and may seed/reconcile from `Model::costing()` for long-lived
+  models). "No parallel counting" holds: the ledger aggregates the models' own numbers, never
+  re-derives them.
 
 ## Target Files
 

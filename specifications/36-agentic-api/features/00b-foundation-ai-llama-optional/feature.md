@@ -36,8 +36,20 @@ tasks:
 For the agentic layer to build on wasm, `foundation_ai` must stop unconditionally compiling native,
 C++-linking, and clock-panicking code. Verified blockers owned by this feature:
 
-1. **`infrastructure_llama_cpp` is a non-optional dependency** (`Cargo.toml:25`). It links
-   llama.cpp (C++) and cannot target wasm. `candle` is already optional; llama.cpp is the holdout.
+1. **`infrastructure_llama_cpp` is a non-optional dependency** (`Cargo.toml:25`) whose CMake build
+   (`infrastructure/llama-bindings/build.rs`) compiles llama.cpp C++ via the host toolchain.
+   **Correction (user, 2026-06-15) — llama.cpp DOES support wasm**, and this crate's build.rs already
+   wires the **emscripten SDK** (`EMSDK_DIR`, + commented WebGPU/Dawn scaffolding). The real
+   distinction is the **wasm target**:
+   - **`wasm32-unknown-emscripten`** (browser, emscripten libc/runtime, optional WebGPU/threads) →
+     the C++ build links & runs; **llama.cpp stays available** here.
+   - **`wasm32-unknown-unknown`** (Cloudflare Workers / wasm-bindgen — the target the agentic *subset*
+     uses) → **no** libc/emscripten runtime, so the C++ build can't link.
+   So `llamacpp` is **not** "off all wasm" — it is **excluded only on `wasm32-unknown-unknown`**
+   (CF Workers), and **kept on native + `wasm32-unknown-emscripten`**. Making the dep optional (a
+   `default = ["llamacpp"]` feature) lets the CF-Workers build opt out via `--no-default-features
+   --features agentic`, while an emscripten/browser build keeps `llamacpp` for local inference. (See
+   OD-00b-7 for making the gate target-aware rather than a blanket wasm exclusion.)
 2. **The core error enums embed llama types unconditionally.** `errors/mod.rs:7-9` imports
    `infrastructure_llama_cpp`; `GenerationError` has variants `LlamaCpp` (`:25`), `Tokenization`
    (`:28`), `LlamaModelLoad` (`:49`), `LlamaContextLoad` (`:52`) with `Display` arms (`:90,91,98,99`);
@@ -122,6 +134,16 @@ does not create non-exhaustive matches anywhere. The only matches are the `Displ
 > *error types* are llama's) vs. introduce provider-agnostic equivalents. Recommendation: gate
 > as-is now; generalize later if a non-llama provider needs them.
 
+> **RESOLVED (user, 2026-06-15) — collapse to ONE gated variant (reduce blast radius).** Instead of
+> gating **ten** `GenerationError` variants, introduce a single **consolidating** llama error enum
+> (`LlamaError`, holding the 10 kinds — `LlamaCppError`/`StringToTokenError`/`DecodeError`/… — and the
+> `From` impls for each, living next to the llama backend) and give `GenerationError` **one** gated
+> variant: `#[cfg(feature = "llamacpp")] Llama(LlamaError)`. So the `#[cfg]` surface in the core error
+> enum shrinks from 10 variants + 10 arms to **one** variant + one arm — llama is isolated to a single
+> enum member. **Do the same per provider** (each provider's errors wrap into one variant) so the core
+> `GenerationError`/`ModelErrors` are provider-agnostic except for the single gated wrapper each. This
+> supersedes §2's "gate all 10 variants" — gate the **one** `Llama(LlamaError)` wrapper instead.
+
 ### 3. Gate the backend modules
 
 ```rust
@@ -152,6 +174,17 @@ the `Date.now()` polyfill on wasm. So this is a type-swap with no native behavio
 > serializes as its inner `Duration` (`{secs, nanos}`), which differs from std's
 > `{secs_since_epoch, nanos_since_epoch}` — so a timestamp persisted on native does **not** round-trip
 > to wasm and vice-versa. Tracked as OD-00b-6; not a native regression.
+
+> **RESOLVED (user, 2026-06-15) — yes; make `SystemTime` serde consistent via `duration_since(UNIX_EPOCH)`.**
+> Your insight is right: instead of relying on each platform's default `SystemTime` serde (native std
+> emits `{secs_since_epoch, nanos_since_epoch}`, the wasm polyfill emits its inner `{secs, nanos}`),
+> give `foundation_compact::SystemTime` a **single custom serde** that, on **every** target, serializes
+> `self.duration_since(UNIX_EPOCH)` as `{ secs_since_epoch: u64, nanos_since_epoch: u32 }` and
+> deserializes by `UNIX_EPOCH + Duration::new(secs, nanos)`. Since `duration_since(UNIX_EPOCH)` is
+> well-defined on native, emscripten, WASI, and the `Date.now()` polyfill alike, the wire format is
+> **identical across all targets** — native↔wasm session replay round-trips. This **resolves OD-00b-6**
+> (and is a `foundation_compact` deliverable — F00). The `secs_since_epoch` field name keeps it
+> byte-compatible with std's existing native fixtures.
 
 ### 5. Wire `foundation_compact` / `foundation_compact`
 
@@ -206,12 +239,21 @@ graph TD
   sites; likely native sampling) — pulled forward into 00b/00c. Flag for the wasm build in 00c.
 - **OD-00b-5 — `chrono` dead dep:** `chrono` (`Cargo.toml:37`) has **zero** `src` use →
   **remove it** (cleanest; avoids a wasm-suspect dep). Confirm no feature/transitive need first.
-- **OD-00b-6 — native↔wasm timestamp wire-format divergence:** accept that persisted `SystemTime`
-  differs between native (std shape) and wasm (Duration shape), or make compact's wasm serde emit
-  std's `{secs_since_epoch, nanos_since_epoch}` shape. Recommendation: make compact's wasm serde
-  match std (a Feature 00 follow-up) so cross-platform session replay round-trips.
-
-## Target Files
+- **OD-00b-6 — native↔wasm timestamp wire-format:** **RESOLVED (user, 2026-06-15)** →
+  `foundation_compact::SystemTime` gets a **single custom serde** emitting
+  `duration_since(UNIX_EPOCH)` as `{secs_since_epoch, nanos_since_epoch}` on **every** target →
+  identical wire format everywhere, cross-platform replay round-trips. (F00 deliverable.)
+- **OD-00b-7 (user, 2026-06-15) — target-aware llama gating, not a blanket wasm exclusion:**
+  `infrastructure_llama_cpp`'s build already wires the emscripten SDK, so llama.cpp builds on
+  `wasm32-unknown-emscripten` (browser, WebGPU/threads). Make the gate **target-aware**: keep
+  `llamacpp` enabled on **native + `wasm32-unknown-emscripten`**; exclude it **only** on
+  `wasm32-unknown-unknown` (CF Workers / wasm-bindgen — no libc/emscripten runtime). The agentic
+  `--no-default-features --features agentic` wasm32-unknown-unknown build drops it; an
+  emscripten/browser build keeps it for local inference. **Recommendation:** `default = ["llamacpp"]`
+  + document that the *unknown-unknown* agentic build is the only one that opts out (emscripten target
+  keeps the default). Verify the emscripten build path (EMSDK toolchain) is exercised separately —
+  it's a distinct toolchain from `wasm-bindgen`/`foundation_wasm`. A WebGPU/emscripten **in-browser
+  llama** deployment is a real future option, not excluded by this spec.
 
 - `backends/foundation_ai/Cargo.toml` — optional llama, features, `foundation_compact`/`foundation_compact` deps
 - `backends/foundation_ai/src/errors/mod.rs` — gate llama imports/variants/From/Display

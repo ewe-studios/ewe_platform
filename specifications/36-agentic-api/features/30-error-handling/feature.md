@@ -1,6 +1,6 @@
 ---
-feature: "Error Handling — AgenticError (Clone+PartialEq+Debug), Next(Err) propagation, circuit breaker"
-description: "The unified AgenticError enum (MUST be Clone + PartialEq + Debug so the F02 stream keeps its derives), error propagation via Stream::Next(Err), retry/resilience owned by model+tool tasks, circuit-breaker model fallback, and resolution of the missing GenerationError::ContextOverflow/RateLimit via Messages::is_context_overflow + detection"
+feature: "Error Handling — AgenticError (Clone+PartialEq+Debug+Serialize+Deserialize), FailedAction-record propagation, circuit breaker"
+description: "The unified AgenticError taxonomy (the context C in foundation_errstacks ErrorTrace<C>; MUST be Clone + PartialEq + Debug + Serialize + Deserialize so SessionRecord::FailedAction keeps its derives), error propagation as SessionRecord::FailedAction records on Stream::Next (not a Result), retry/resilience owned by model+tool tasks, circuit-breaker model fallback, and resolution of the missing GenerationError::ContextOverflow/RateLimit via Messages::is_context_overflow + detection"
 status: "pending"
 priority: "high"
 depends_on: ["01-message-model", "02-agent-stream-contract", "24-model-provider-router"]
@@ -18,10 +18,22 @@ tasks:
 # Feature 30: Error Handling
 
 > **Review status (2026-06-14) — self-review against code (subagent unavailable):**
-> 1. **`AgenticError` MUST be `Clone + PartialEq + Debug`** — F02's stream is
->    `D = Result<SessionRecord, AgenticError>` (`02-agent-stream-contract/feature.md:55`) and the
->    `Stream`/`TaskStatus` machinery + tests rely on those derives (F02 review: "`AgenticError` trait
->    bounds pinned"). This is the HARD constraint that reshapes Decision 16's design.
+> 1. **`AgenticError` MUST be `Clone + PartialEq + Debug + Serialize + Deserialize`** — errors now flow
+>    as a **record, not a `Result`**: F02's stream is pure `D = SessionRecord`, and failures are carried
+>    by `SessionRecord::FailedAction { error: AgenticError, trace: StructuredErrorTrace }` (F01 §5, OD-1-FA). Because
+>    `SessionRecord` derives `Clone + PartialEq + Debug + Serialize + Deserialize` for **all** variants,
+>    `AgenticError` must derive the same set. `Clone + PartialEq + Debug` is required by the
+>    `Stream`/`TaskStatus` machinery + tests (F02: "`AgenticError` trait bounds pinned"); **`Serialize +
+>    Deserialize` is newly required** so the enclosing `FailedAction` variant derives cleanly. All
+>    agentic errors are `foundation_errstacks` errors (user, 2026-06-15): the live `ErrorTrace`/`Report`
+>    is `Serialize`-only, so `FailedAction` stores its **owned structured projection**
+>    `StructuredErrorTrace` (via `to_structured()`, `Clone + Debug + Serialize + Deserialize`; add
+>    `PartialEq` upstream — F01 OD-1-FA), while `AgenticError` itself is the matchable taxonomy/context
+>    type carried alongside. This is the HARD constraint that reshapes Decision 16's design — and it makes
+>    OD-30-1 (String-flatten the non-`Clone` generation failure) doubly necessary: a flattened
+>    `{ kind, message: String }` context is what makes `AgenticError` `Clone + PartialEq + Serialize` in
+>    the first place. `AgenticError` is the `C` in `ErrorTrace<C>`/`Report<C>`; F30 builds its errors
+>    with `foundation_errstacks` (declare `serde` + `to_structured` features).
 > 2. **Decision 16's `#[from] GenerationError` BREAKS the derive.** The real `GenerationError`
 >    (`errors/mod.rs:18-69`) is **NOT `Clone` and NOT `PartialEq`** — it wraps `BoxedError` (:22), live
 >    `llama.cpp` error types (`LlamaCppError`, `DecodeError`, …), and `candle_core::Error`. You **cannot**
@@ -40,9 +52,11 @@ tasks:
 >    `GenerationError`. **Rec: (a) detect** — `is_context_overflow` already encodes every provider's
 >    overflow patterns; F30 classifies into its own `GenKind::{ContextOverflow, RateLimit, Other}` at the
 >    boundary. (OD-30-2.)
-> 4. **Errors propagate as `Stream::Next(Err(AgenticError))`** — NO new `Stream` variant
->    (`Stream<D,P>` has none, verified F02). The agent loop (F27) yields `TaskStatus::Ready(Err(e))`
->    which becomes `Stream::Next(Err(e))` (the `task.rs` mapping). Decision 16 §Error Propagation.
+> 4. **Errors propagate as `Stream::Next(SessionRecord::FailedAction{ error, trace })`** — a record, NOT
+>    a `Result`, and NO new `Stream` variant (`Stream<D,P>` has none, verified F02). The agent loop (F27)
+>    yields `TaskStatus::Ready(SessionRecord::FailedAction{ error, trace })` where `error: AgenticError`
+>    is the kind and `trace: StructuredErrorTrace` is the serializable errstack chain (F01 §5/OD-1-FA).
+>    Decision 16 §Error Propagation, as amended by F02 OD-02-1.
 > 5. **Retry/resilience is owned by model + tool tasks, NOT the loop** (Decision 16 §Error Ownership):
 >    model task retries rate-limit/network internally (backoff); tool retry is F23's `ToolRetryConfig`
 >    (non-blocking `Delayed`, F23 OD-23-4). F30 owns the **taxonomy + classification + circuit-breaker
@@ -52,20 +66,22 @@ tasks:
 >    through the router (F24). The `handle_error` → `AgentAction{ Continue / RetryWithReducedContext /
 >    SwitchModel / Terminate }` dispatcher (Decision 16 line 170) lives here; F27 executes the action.
 >    `AgentAction` carries no non-`Clone` payload (it references model ids / the error).
-> 7. **Tool errors do NOT become `Next(Err)`** — they are `Messages::ToolResult{ error_detail }` back to
->    the LLM (Decision 16 §Error Surfacing; already handled in F23). Only generation/auth/loop/unexpected
->    surface as `Next(Err(AgenticError))`. The taxonomy still has an `AgenticError::ToolCall` variant for
+> 7. **Tool errors do NOT become `FailedAction` records** — they are `Messages::ToolResult{ error_detail }`
+>    back to the LLM (Decision 16 §Error Surfacing; already handled in F23). Only generation/auth/loop/
+>    unexpected surface as `Next(SessionRecord::FailedAction)`. The taxonomy still has an `AgenticError::ToolCall` variant for
 >    the rare case a tool failure must terminate (non-recoverable), but the default path is LLM-visible.
 
 > Implements Decision 16 (error handling), corrected for the real (non-`Clone`) underlying errors. Owns
-> the `AgenticError` taxonomy (`Clone+PartialEq+Debug`, flattening non-`Clone` sources at the boundary),
-> `Stream::Next(Err)` propagation, the missing-overflow/rate-limit resolution via detection, the
+> the `AgenticError` taxonomy (`Clone+PartialEq+Debug+Serialize+Deserialize`, the context `C` in
+> `foundation_errstacks::ErrorTrace<C>`, flattening non-`Clone` sources at the boundary),
+> `SessionRecord::FailedAction` propagation, the missing-overflow/rate-limit resolution via detection, the
 > `AgentAction` classifier, and the circuit-breaker model fallback. Retry stays in model/tool tasks.
 
 ## WHY: Problem Statement
 
 The loop spans LLM, tools, memory, storage, auth — each failing differently. The stream carries errors
-as `Next(Err(AgenticError))`, which forces `AgenticError: Clone + PartialEq + Debug` (F02). But the real
+as `Next(SessionRecord::FailedAction{ error: AgenticError, trace: StructuredErrorTrace })`, which forces
+`AgenticError: Clone + PartialEq + Debug + Serialize + Deserialize` (F02/F01). But the real
 `GenerationError` is neither `Clone` nor `PartialEq` and lacks the `ContextOverflow`/`RateLimit`
 variants Decision 16 pattern-matches on. So the unified error type can't just `#[from]` the platform
 errors — it must flatten them at the boundary and classify overflow/rate-limit by detection. This
@@ -158,7 +174,7 @@ graph TD
     POL -->|RetryReducedContext| TRIM[trim context, retry]
     POL -->|SwitchModel| CB[CircuitBreaker -> F24 fallback model]
     POL -->|Continue| LOOP[keep going - tool error is a ToolResult]
-    POL -->|Terminate| END[Stream::Next Err -> session ends]
+    POL -->|Terminate| END[Stream::Next FailedAction -> session ends]
 ```
 
 ## Fundamentals Documentation (zero-to-expert) — REQUIRED
@@ -167,13 +183,17 @@ Author `fundamentals/` covering: error modeling in Rust (enum taxonomies, `Displ
 `#[from]`); **why stream-carried errors force `Clone+PartialEq` and how to flatten non-`Clone` source
 errors at a boundary** (the `GenerationError` problem); detecting vs typing failures (using
 `is_context_overflow`'s provider-pattern matching + rate-limit detection instead of absent enum
-variants); error propagation through valtron streams (`Next(Err)`, no new variant); ownership of
+variants); **`foundation_errstacks` integration — `ErrorTrace<C>`, `to_structured()`/`StructuredErrorTrace`
+serializable views, and carrying errors as data records**; error propagation through valtron streams
+(`Next(SessionRecord::FailedAction)`, no new `Stream` variant); ownership of
 resilience (model/tool tasks retry; the loop only flow-controls); the circuit-breaker / fallback-model
 pattern; tool-error-to-LLM vs terminating. (Task — see list.)
 
 ## HOW: Implementation Steps
 
-1. `AgenticError` (`Clone+PartialEq+Debug`) + `GenerationFailure`/`GenKind`.
+1. `AgenticError` (`Clone+PartialEq+Debug+Serialize+Deserialize`, the `C` in errstack `ErrorTrace<C>`) +
+   `GenerationFailure`/`GenKind`. Declare `foundation_errstacks` with `serde` + `to_structured` features;
+   add `PartialEq` to `StructuredErrorTrace`/`StructuredFrame` upstream (F01 OD-1-FA).
 2. Audit each wrapped error (`StorageError`/`VectorStoreError`/`EmbeddingError`/`ToolCallingError`); for
    any non-`Clone`/non-`PartialEq`, flatten to `String` (OD-30-1).
 3. `from_generation` boundary constructor: classify via `Messages::is_context_overflow(context_window)`
@@ -181,10 +201,11 @@ pattern; tool-error-to-LLM vs terminating. (Task — see list.)
 4. `ErrorPolicy::classify` → `AgentAction` (Decision 16 dispatcher).
 5. `CircuitBreaker` (threshold, fallback iteration via F24).
 6. Ensure `LoopDetection` (F28) + `AuthError` (F29) are `Clone+PartialEq` so they embed.
-7. Tests: `AgenticError` derives `Clone+PartialEq` (compile-asserted); overflow classified via
-   `is_context_overflow`; rate-limit classified; non-`Clone` source flattened; `classify` returns the
-   right `AgentAction` per variant; circuit breaker switches then exhausts → Terminate; error rides
-   `Stream::Next(Err)`; wasm build.
+7. Tests: `AgenticError` derives `Clone+PartialEq+Serialize+Deserialize` (compile-asserted + JSON
+   round-trip); overflow classified via `is_context_overflow`; rate-limit classified; non-`Clone` source
+   flattened; `classify` returns the right `AgentAction` per variant; circuit breaker switches then
+   exhausts → Terminate; error rides `Stream::Next(SessionRecord::FailedAction)` with a populated
+   `StructuredErrorTrace`; wasm build.
 
 ## Open Decisions
 
@@ -227,9 +248,10 @@ cargo test  -p foundation_ai -- agentic::errors
 
 ## Done When
 
-- `AgenticError` is `Clone+PartialEq+Debug` (F02 stream stays derivable) with non-`Clone` sources
-  flattened at the boundary; context-overflow + rate-limit resolved by detection
-  (`is_context_overflow` + string match) rather than absent `GenerationError` variants; errors propagate
-  via `Stream::Next(Err)` (no new variant); `ErrorPolicy::classify`→`AgentAction` + circuit-breaker
-  fallback via F24; retry stays in model/tool tasks; builds native + wasm.
+- `AgenticError` is `Clone+PartialEq+Debug+Serialize+Deserialize` (so `SessionRecord::FailedAction` stays
+  derivable) with non-`Clone` sources flattened at the boundary; context-overflow + rate-limit resolved
+  by detection (`is_context_overflow` + string match) rather than absent `GenerationError` variants;
+  errors propagate via `Stream::Next(SessionRecord::FailedAction{ error, trace })` (no new `Stream`
+  variant; `trace` is errstack's `StructuredErrorTrace`); `ErrorPolicy::classify`→`AgentAction` +
+  circuit-breaker fallback via F24; retry stays in model/tool tasks; builds native + wasm.
 - OD-30-1..5 resolved (OD-30-1 + OD-30-2 flagged for the user); fundamentals authored.

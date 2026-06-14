@@ -33,8 +33,9 @@ tasks:
 >    (F29), (c) `token_budget` retrieved and applied to F03's ledger (F29 OD-29-4). Any failure →
 >    `AgenticError` returned from `build()`/`run_turn` BEFORE a task is spawned. (OD-31-2.)
 > 4. **`run_as_task` uses `execute(agent_loop)`** (Decision 18 line 143). The real loop is F27's
->    `AgentLoop: TaskIterator` → `StreamIterator<D = Result<SessionRecord, AgenticError>, P =
->    AgentProgress>` (F02, NOT Decision 18's `AgentEvent`). `run_turn_stream` returns that stream;
+>    `AgentLoop: TaskIterator` → `StreamIterator<D = SessionRecord, P = AgentProgress>` (F02 — errors are
+>    `SessionRecord::FailedAction` records, NOT a `Result`, NOT Decision 18's `AgentEvent`).
+>    `run_turn_stream` returns that stream;
 >    `run_turn` drains it to the final `SessionRecord::Summary` / collected assistant records.
 > 5. **Resume is deterministic, exact Decision 01 order** (`01-session-architecture.md:58-97`):
 >    (1) load WorkingMemory (F19 `latest_working` / F07), (2) load Observation+Reflection (F19/F07;
@@ -91,18 +92,20 @@ pub struct AgentSessionBuilder {
 impl AgentSession {
     pub fn builder(router: ProviderRouter, toolshed: ToolShed) -> AgentSessionBuilder;
     /// Wire components, RUN PREFLIGHT, then return the session (NOT yet scheduled).
-    pub fn build(builder: AgentSessionBuilder) -> Result<AgentSession, AgenticError>;
+    // All synchronous `Result` errors are foundation_errstacks errors: ErrorTrace<AgenticError>
+    // (user, 2026-06-15). In-stream failures are SessionRecord::FailedAction records, not Results.
+    pub fn build(builder: AgentSessionBuilder) -> Result<AgentSession, ErrorTrace<AgenticError>>;
     /// Rehydrate by SessionId — deterministic Decision 01 order.
     pub fn resume(session_id: SessionId, router: ProviderRouter, toolshed: ToolShed, cfg: AgentConfig)
-        -> Result<AgentSession, AgenticError>;
+        -> Result<AgentSession, ErrorTrace<AgenticError>>;
 
-    pub fn run_turn(&self, prompt: impl Into<Messages>) -> Result<Vec<SessionRecord>, AgenticError>;
+    pub fn run_turn(&self, prompt: impl Into<Messages>) -> Result<Vec<SessionRecord>, ErrorTrace<AgenticError>>;
     pub fn run_turn_stream(&self, prompt: impl Into<Messages>)
-        -> Result<impl StreamIterator<D = Result<SessionRecord, AgenticError>, P = AgentProgress>, AgenticError>;
+        -> Result<impl StreamIterator<D = SessionRecord, P = AgentProgress>, ErrorTrace<AgenticError>>;
 
     pub fn steer(&self, msg: Messages);        // F25 PriorityQueue
     pub fn follow_up(&self, msg: Messages);    // F25 FollowUpQueue
-    pub fn end(&self) -> Result<(), AgenticError>;   // Decision 01 teardown (synchronous flush)
+    pub fn end(&self) -> Result<(), ErrorTrace<AgenticError>>;   // Decision 01 teardown (synchronous flush)
 }
 ```
 

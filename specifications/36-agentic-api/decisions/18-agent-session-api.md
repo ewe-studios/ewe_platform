@@ -1,6 +1,6 @@
 # Decision 18: Agent Session API
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-13  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -12,7 +12,7 @@ The agentic API has many components (Message API, Context API, ToolCallManager, 
 
 A high-level `AgentSession` constructor handles all initialization and provides a clean entry point. Inspired by Pi's `createAgentSession()` but designed in the Rust/ewe_platform style.
 
-**TODO**: This design needs to match reality and how we use and structure things e.g tools are supposed to be a ToolShed they supply, why did you even come up with a tools(vec![]) or will you have a tool registry which will transform these into a ToolShed? Anyway it makes no sense, there was intent in making the ToolShed explicit with the fields it supplies.
+> **AMENDED (2026-06-15, F31):** The builder requires a **`ToolShed` + a `ProviderRouter`** (not `tools(vec![...])`). The ToolShed is the explicit struct with named fields (`read`/`edit`/`write`/`search`/`search_files`/`shell`/`shed`/`memory`/`delegate`); it's built by `ToolShed::default()` or custom-wired., why did you even come up with a tools(vec![]) or will you have a tool registry which will transform these into a ToolShed? Anyway it makes no sense, there was intent in making the ToolShed explicit with the fields it supplies.
 
 ### API Design
 
@@ -79,6 +79,21 @@ AgentSession::builder().provider(...).build()
 ```
 
 ### Interaction API
+
+> **AMENDED (2026-06-15, F02/F31):** the snippet below is SUPERSEDED. `AgentEvent` is dead (D08/D11);
+> the stream is **pure `D = SessionRecord`** with thin `AgentProgress` on `Pending`. Errors are
+> **`SessionRecord::FailedAction` records** (not a `Result` in `D`); synchronous methods return
+> `Result<_, ErrorTrace<AgenticError>>`. The real shape:
+> ```rust
+> for item in session.run_turn_stream("Write a test")? {   // StreamIterator<D=SessionRecord, P=AgentProgress>
+>     match item {
+>         Stream::Next(SessionRecord::Conversation { message }) => render(message),
+>         Stream::Next(SessionRecord::FailedAction { error, trace }) => log_error(error, trace),
+>         Stream::Pending(AgentProgress::Generating { .. })          => show_status(),
+>         _ => {}
+>     }
+> }
+> ```
 
 ```rust
 // Single turn

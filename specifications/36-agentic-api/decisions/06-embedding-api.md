@@ -1,6 +1,6 @@
 # Decision 06: Embedding API Design
 
-**Status:** Proposed  
+**Status:** Accepted  
 **Date:** 2026-06-11  
 **Context:** Specification 36 — Agentic API for foundation_ai
 
@@ -20,7 +20,8 @@ EmbeddingProvider { inner: Arc<EmbeddingProviderInner> }
 ├── cache: Arc<LruCache<EmbeddingKey, EmbeddingVector>>
 ├── dimension_registry: DimensionRegistry
 ├── generation_task: Entry  // valtron task that processes requests
-└── cache_backing: Option<FjallKeyspace>  // optional persistent cache - **TODO**: Make required on native, optional on wasm, till we have one that works in wasm  and cloudflare
+> **RESOLVED (2026-06-15, F15):** fjall backing is cfg-gated (`cfg(not(target_arch="wasm32"))`), **required-on-native** (default-on, with memory-only mode for tests), **absent on wasm** (memory-only cache). The fjall keyspace implementation lives in `foundation_nativeapis` (where fjall resides), consumed by `foundation_ai` via trait.
+└── cache_backing: Option<FjallKeyspace>  // > optional persistent cache — fjall backing is cfg-gated (F15)
 ```
 
 ### LRU Cache
