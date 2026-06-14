@@ -168,46 +168,76 @@ graph TD
 
 - **OD-06-1 — D1 migration application:** how/where F04's `020`/`021` run on D1 (schema-init path,
   one-time). Confirm the D1 binding exposes batch DDL.
+        - Check existing code, i believe in the cloudflare app we run the migration always, see examples in /home/darkvoid/Boxxed/@dev/ewe_platform/examples/cf-login-app and /home/darkvoid/Boxxed/@dev/ewe_platform/examples/cf-valtron-counter
+
 - **OD-06-2 — KV: separate `list:` index or rely on `list(prefix)`:** scru128 keys make
   `list(prefix)` chronological → a separate index is likely unnecessary. Rec: rely on `list`.
+      Cool
+
 - **OD-06-3 — KV "last N":** reverse-index key vs `list`+tail. Rec: for agent sessions (bounded),
   `list`+tail is acceptable; revisit if collections grow large.
+          Explain more to me - also must we do this with KV?
+
+
 - **OD-06-4 — KV promoted fields:** value-stored + client filter vs `record_type` in the key. Rec:
   value-stored now; key-encode only if typed scans dominate.
+        - If we are forcing this, does KV make sense for this then ? Why not focus on R2 and D1 then KV for quick cache like Memories?
+
 - **OD-06-5 — testing harness:** real miniflare/wrangler vs mock KV/D1 bindings. Rec: mock bindings
   for unit parity; integration behind an opt-in flag.
+        - Miniflare and Wrangler all the way, we test it properly, we already do so.
+
 - **OD-06-6 (D1 DDL) — needs binding work:** D1 has only `prepare().run()` (single statement), no
   `exec()`/batch (`bindgen/cf/d1.rs`). The multi-statement `020`/`021` migrations won't apply. Add a
   D1 `exec()` binding (CF `D1Database.exec`) OR split migrations into per-statement `run()`s. **Plus
   register `020`+`021` and ensure `init_schema_async` runs the documents schema on D1 (today it only
   creates the KV table).**
+        We own the code, expand it to be able to do batch
+
 - **OD-06-7 (KV pagination) — needs binding work:** the KV `list` wrapper passes only `prefix`,
   ignores the returned `cursor`, and caps at 1000 keys (`kv_wasm.rs:202-243`). Extend it to loop on
   `cursor`/`list_complete` and accept `limit` before any `scan_*` is correct.
+        - Sure add whats needed also, we dont use worker-rs type definition to our benefit, we should update foundation_db from extracting the js.Object handle but instead make all existing wasm-bindgen stuff use worker-rs types to make life easier.
+
 - **OD-06-8 (KV consistency) — relax parity:** CF KV is eventually consistent (no read-after-write)
   and transactionless. So KV **cannot** honor the strict ordered `scan_from`/parity Done-When. KV is
   **best-effort**; D1 is the strictly-ordered CF backend. Document the divergence (don't claim KV
   parity with SQL/Memory/VFS).
+        Once again are you pushing KV usage in areas that it should not be used in, this makes me think clearly you should not be trying to use KV for such a thing, i think of it as a great way to catch the Memories for a sessionId which makes retrieving them fast and cheap and does not need any scan capability for such, just keys.
+
 - **OD-06-9 (KV range) — skip-until:** CF KV `list` has no native `start`/`startAfter` for arbitrary
   range — only `prefix`+`cursor`. So `scan_from(from_id)` on KV is a **client-side skip-until-from_id**
   while paginating, not a native range seek.
+        Ya, clearly should not be doing this on KV
+
 - **OD-06-10 — pre-existing mismatch:** `AsyncQueryStore::query_async` is declared
   `-> AsyncQueryStream` but D1 impls `-> Vec<SqlRow>` (`d1_wasm.rs:606`); confirm the
   wasm-bindgen-storage path actually compiles for wasm32 before building `D1DocumentStore` on it.
+       Ok we should fix that and ensure it aligns properly.
+
 - **OD-06-11 — `?Send`:** `AsyncDocumentStore` is `async_trait(?Send)` and `StorageItemStream` is
   non-`Send` on wasm; reconcile with the mostly-`Send` agentic layer (how a `Send` caller drives a
   `!Send` future on Workers).
+        - Then ensure we just add the Send trait in wasm to satisfy send warnings, it does not matter anyway in single threaded situations but we may need care in wasm targets that do support multi-threading, lets review, think and talk about this more clearly to nail it right.
+
+
 - **OD-06-12 — R2 topology:** **Resolved (user, 2026-06-15)** → recommended split is **D1 holds the row
   + promoted columns + `r2_key`; R2 holds the large blob**, transparent behind one `AsyncDocumentStore`.
   A standalone R2-only store is possible but loses cheap range/typed queries. Decide the **size
   threshold** for offload (e.g. inline in D1 below N KB, R2 above). The Message API's large records (F16)
   are the motivating case.
+      Why do you need a threshold, but i guess i see your point, since its cloudflare just maintain the split forget threshold, we also look use both and it works and also lets us ensure its good, else we set the threshold very small e.g the size of a sqlite page and anything beyond that goes to R2.
+  
+  
 - **OD-06-13 — sync wrapper:** **Resolved (user, 2026-06-15)** → the sync `DocumentStore` is a **valtron
   wrapper** over the async impl (house rule: async-first, sync-via-valtron). Confirm the valtron
   block-on/drive primitive used elsewhere for async→sync and reuse it; don't hand-roll a second bridge.
+      Yes, but if we hit a wall that makes this hard, its always ok in rare cases to duplicate if its the cleanest option.
+
 - **OD-06-14 — KV is optional:** **Resolved (user, 2026-06-15)** → D1 (+ R2 for blobs) is a complete
   deliverable; `KvDocumentStore` is additive/best-effort and may be deferred. Don't gate the feature's
   Done-When on KV parity.
+        Ya, KvDocumentStore should not exists, use it as our Memory cache, that idea is useless
 
 ## Target Files
 

@@ -182,14 +182,23 @@ vs full schema) and its token tradeoff. (Task — see list.)
 - **OD-21-1 — ToolShed field optionality:** make `read/edit/write/search` `Option<Tool>` in F01 (rec)
   vs `default()` always installs real defaults. Rec: `default()` installs real defaults so the
   non-`Option` fields are honestly filled; coordinate with F01/F20 OD-20-4. Flag.
+        We said if ToolShed is option then ToolShed is Option<T>, if supplied then bloddy supply this important tools always, we can have defaults.
+
 - **OD-21-2 — discovery deps:** `shed` hard-requires F15 + F12. On wasm both work (in-memory). Confirm
   the `"tools"` namespace convention.
+        Yes, tools should work in wasm, and whatever implementation is used knows the context and environment and how to work, implementation details.
+
 - **OD-21-3 — summary vs schema:** include full `Tool` schema for top-k hits in `ShedResult` (rec, one
   round trip) vs name/description only (LLM must re-discover to call). Flag the tradeoff.
+      The point of the ToolShed is the mandatory always avaiable tools, so AI knows how to work with it, the toolshed then lets it discover and know more about other tools, the ToolShed toolset is very small, full schema is good, put once and then AI knows it all already, we just ensure not to printy print and remove useless spacing or better yet provide a more compact format it will understand.
+
 - **OD-21-4 — re-index on update:** re-embed a tool's description on re-register (last-wins, F20
   OD-20-5). Rec: re-index.
+        If we dont let re-registeration then we dont need to re-embed, see 20 point on not allowing it.
+
 - **OD-21-5 — category source:** `ToolDefinition.category` is implementer-supplied; default `"general"`.
   Confirm.
+        Sure, if we have a standard category then make it an Enum with a Custom state for user supplied types.
 
 ## Target Files
 

@@ -32,6 +32,8 @@ tasks:
 >    (the DAG executor F23 owns concurrency), or (b) return a **`TaskIterator`** the F23 DAG pumps. Rec
 >    (a): sync + object-safe; F23 parallelism comes from valtron `broadcast`, not per-tool async. The
 >    Decision-15 `async fn` signature MUST be reconciled — flag for the user.
+        Makes no sense to me, we already write async_traits right? why not just write an async trait with an async method.
+
 > 3. **`Args` is a JSON-Schema wrapper, not a builder of params.** `ToolDefinition.arguments` should be
 >    `Args` (the existing type at :633, built via `foundation_jsonschema::scheme`), so a tool's schema
 >    flows unchanged into `Tool.arguments` and out through `ToolFormatter::format_tools` (:1147). Decision
@@ -206,14 +208,24 @@ schema pipeline; wrapping external tools (MCP/HTTP/CLI) behind one trait; inject
 
 - **OD-20-1 — execute signature (load-bearing):** sync `fn execute` (object-safe, valtron concurrency)
   vs `TaskIterator` return. **Rec: sync** — reconcile Decision 15's `async fn`. Flag for the user.
+
+        Makes no sense to me, we already write async_traits right? why not just write an async trait with an async method. That types implement, then we can valtron it for the sync version.
+
 - **OD-20-2 — ToolDefinition vs Tool:** keep `ToolDefinition` distinct (carries `category`) and convert
   to `Tool`, vs use `Tool` directly. Rec: keep `ToolDefinition` (category is shed-only metadata).
+        If we consolidate it and we gain or dont loose value then just consolidate.
+
 - **OD-20-3 — register mutability:** `&self` + `RwLock` (rec) vs `&mut self`. Decision 08 forces `&self`.
+    Interior mutability is good for the struct impleemnting this, we can also have a Inner struct type that the main one wraps in a Arc<RwLock<ToolManagerInner>> etc.
+
 - **OD-20-4 — ToolShed optionality with zero tools:** real `ToolShed` has non-`Option`
   `read/edit/write/search`. With nothing registered, either F01 makes them `Option<Tool>` or
   build_toolshed installs no-op stubs. Rec: F01 makes them `Option`. Flag F01/F21 reconciliation.
+        I think make it Option<ToolShed>, no need for complicated messes.
+
 - **OD-20-5 — duplicate registration:** last-wins (rec, Decision 15 versioning = "new schema
   registered") vs error. Rec: last-wins.
+        Throw an error, its going to be a init anyway, so why bother, let the binary or whatever fails so they can go fix it.
 
 ## Target Files
 

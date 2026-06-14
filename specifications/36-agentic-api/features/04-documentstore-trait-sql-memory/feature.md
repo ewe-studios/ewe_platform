@@ -172,22 +172,35 @@ graph LR
 ## Open Decisions
 
 - **OD-04-1 — promoted-field population:** `append_with(...)` vs `PromotableDocument` trait. Rec: trait.
+        - Lets discuss, explain to me further
+
 - **OD-04-2 — `scan_from` inclusivity:** `>= from_id` (inclusive) so resume can re-anchor on a known
   id, with the caller skipping the first if already seen. Rec: inclusive.
+      Sure, sounds good
+
 - **OD-04-3 — does the fjall offset index (F05) supersede `scan_from` for file backends?** No —
   `scan_from` is the trait-level contract; F05's index is the *implementation* that makes it fast on
   NDJSON. SQL backends satisfy it natively.
+        Sure, good with me
+
 - **OD-04-4 (decisive) — doc_id ordering:** **Resolved → `doc_id` is the authoritative scru128
   order on all backends** (Part 0); `scan`/`scan_all`/`scan_from` all `ORDER BY doc_id`. This changes
   existing scans from coarse `created_at` ordering to strict id ordering — acceptable (more correct),
   but document it.
+      - Yes, make it very clear and we can also provide api options to use the `created_at` date, nothing stops us, we own the surface anyway
+
 - **OD-04-5 — caller-supplied ids:** **Resolved → add `append_with_id`** so the agentic message
   scru128 is the `doc_id` (lets F16/F18 anchor `scan_from` on a known message id).
+      Cool
+
 - **OD-04-6 — `Document`-returning read path:** **Resolved → add `scan_documents`/`scan_documents_from`**
   so promoted columns are observable (plain `scan` still returns `V`).
+      Good with me
+
 - **OD-04-7 — async/CF scope:** `scan_from_async` signature lands in F04; its **backend impls** land
   with VFS (F05) and CF KV/D1 (F06). Decision 13's "all backends" is satisfied across F04–F06, not
   in one feature (the existing code already only ships SQL+Memory).
+        I always like to say it: keep async traits and Sync traits separate, let async traits method have *_async suffixes in name to avoid conflict, this lets users clearly use which works for their environment and context.
 
 ## Target Files
 

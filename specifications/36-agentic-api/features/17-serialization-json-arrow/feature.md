@@ -110,10 +110,16 @@ trade-off; Arrow ↔ JSON interop; why FlatBuffers-as-fallback is redundant. (Ta
 
 - **OD-17-1 — Arrow crate:** `arrow`/`arrow2`; wasm-buildability. Rec: `arrow` (mainline, wasm-ok);
   confirm wasm32 build.
+    Rather confused, we used the `arrow-rs` crate, so how did arrow and arrow2 appear, check what we use currently in `foundation_arrow`.
+
 - **OD-17-2 — column set:** exactly which fields promote (match F04). Rec: id/session/type/role/title/
   summary/model/in_tokens/out_tokens/created_at + content blob.
+      You know the structure, you know what we can search and what makes it efficiently for searrching and column level representation, use wise review and sense and detailed it in feature.
+
 - **OD-17-3 — content encoding in Arrow:** JSON string (rec) vs nested Arrow union. Rec: JSON string
   in `content` (avoids complex nested Arrow types; columns carry the searchable bits).
+      Cool
+
 - **OD-17-4 — where it lives:** `foundation_ai::agentic::serde` vs a shared crate. Rec: `foundation_ai`.
 
 ## Target Files

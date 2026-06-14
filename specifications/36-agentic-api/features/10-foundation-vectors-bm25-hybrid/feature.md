@@ -17,6 +17,8 @@ tasks:
 
 # Feature 10: foundation_vectors — BM25 + hybrid fusion
 
+**TODO**: I have reached the limits of my knowledge, lets do web research and select the best answers for these for the different platforms we wish to support, then add foundation_docs to teach me from zero to hero on all these topics in detail and depth.
+
 > Implements Decision 07's **TODO #7**: pure vector search misses exact keyword matches; pure keyword
 > misses semantic intent. The production answer is a **hybrid** of BM25 (keyword) + vector
 > (semantic), fused with Reciprocal Rank Fusion (RRF). Adds BM25 and the fusion layer to

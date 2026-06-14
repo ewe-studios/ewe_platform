@@ -179,25 +179,38 @@ graph TD
 
 - **OD-03-1 — `f64`→`u64` folding:** `UsageReport` token fields are `f64`. Round to `u64` for
   counters (cost stays `f64`)? Rec: yes, `round() as u64`.
+        Sure
+
 - **OD-03-2 — model-side hard cap:** also clamp per-request `max_tokens` to `remaining`? Rec: yes,
   cheap defense-in-depth; the loop-level halt is the primary guard.
+
 - **OD-03-3 — what counts toward `rolling`:** input+output, or output only? Decision 03/Mastra
   thresholds are about *context size* → input+output of recent turns. Rec: total_tokens of recent
   turns; F18/F19 confirm against the context-assembly definition.
+      Explain to me clearly, dont understand, what do other harness do, can we learn from them ? I would also assume input + output honestly but lets verify, we have explorations on them anyway.
+
 - **OD-03-4 — persistence:** recompute `total` from stored per-turn `UsageReport`s on resume;
   persist only the budget ceiling. Caveat: `rolling` can't be recomputed from raw messages alone —
   it needs the last observation/reflection marker persisted (F19 stores those records, so the last
   reset point is recoverable from them).
+      - Just persist it then, add a new SessionRecord type for this that gets persisted by MessageAPI, you can also add a cheap cache for it like we do for Memory/Memories.
+o
 - **OD-03-5 — budget basis:** **Resolved → ledger sums `input+output+cache_read+cache_write`** (not
   the provider-inconsistent `total_tokens` field).
+        - why is the total_tokens inconsistent, just for my learning
+
 - **OD-03-6 — record granularity:** **Resolved → once per model turn** (multi-message turns share
   one `UsageReport`).
 - **OD-03-7 — cost:** **Resolved → `total_cost_micros` atomic** sources `TokenSnapshot.cost`.
+
 - **OD-03-8 — two triggers:** F03's `rolling` serves the **30k** recent-interaction trigger only;
   the **40k** reflection trigger measures observation-memory size and is owned by **F19**, not the
   ledger.
+
 - **OD-03-9 — live streaming usage:** providers emit `GeneratingTokens(None)`; live `tokens_so_far`
   is a separate provider enhancement. Scoped out of F03.
+          - Generating or Generated ? Also why cant they provide tokens so far, they already if i remember provide that in model Usage statics right? Models tell us this not providers if i remember correctly.
+
 - **OD-03-10 — reconcile with existing `CostAccumulator`:** **Resolved (user, 2026-06-15)** → build
   on the model's existing cumulative source, don't re-accumulate. Each provider already holds a
   `CostAccumulator` "running total for the model's lifetime" (`costing.rs:47-49`) and `Model::costing()`
@@ -206,6 +219,8 @@ graph TD
   reads from via `record(usage)` (and may seed/reconcile from `Model::costing()` for long-lived
   models). "No parallel counting" holds: the ledger aggregates the models' own numbers, never
   re-derives them.
+
+        - Ok, so providers also provide usage stats, good
 
 ## Target Files
 

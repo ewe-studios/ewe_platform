@@ -191,33 +191,53 @@ graph TD
 - **OD-05-1 — keyspace layout:** one keyspace per collection vs one keyspace with `{collection}\0…`
   composite keys; either way each access pattern is its own **partition** (OD-05-11). Rec: composite
   collection keys, multiple partitions per index type.
+          - Whats the advantages of both, present it to me, so we have clarity and decide once and for all
+
 - **OD-05-2 — delete strategy:** tombstone-in-index + periodic file compaction vs immediate rewrite.
   Rec: tombstone + compaction at a threshold (append-only friendly).
+      Sounds good
+
 - **OD-05-3 — index value contents:** offset+len only, or also `record_type`/`title` for index-only
   filters. Rec: include them (cheap, avoids file reads for typed scans).
+    Ok
+
 - **OD-05-4 — crash recovery:** tail-rebuild on open (rec) vs full reindex vs fsync-per-append.
+
 - **OD-05-5 — which `VfsFileSystem` impl:** `native_fs` (real disk) + the **real fjall-backed** VFS
   (Part A) now; the generic `V: VfsFileSystem` keeps libsql/d1 deltas open. The old `FjallFs` shim is
   renamed to `InMemoryVfsFileSystem` (in-memory, test/ephemeral only — not durable).
+      Good
+
 - **OD-05-6 — append serialization:** **Resolved (user, 2026-06-15) → single writer + batch**, NOT a
   mutex. Exactly one writer per collection ⇒ no concurrent append, no race; offset is computed
   (`current_file_offset + accumulated_batch_bytes`) and **returned from `append`**, not reserved under a
   lock. Batched flush. Supersedes the earlier per-collection `Mutex` recommendation.
+      This needs to be made clear in depth and detail on how we will make it work, usually Mutex is what helps enforce a single writer, so we need to make it clear, also if Mutex is used the RLock to support multiple readers + 1 writer, but lets make it clear exactly what we mean to implement and how it works.
+
 - **OD-05-7 — collection-key → filename encoding:** keys like `session:{id}:messages` contain `:`.
   Encode via the already-pulled `hex` (or base32/percent). Rec: hex.
+        Sure, if it does not add issues, i am good
+
 - **OD-05-8 — `scan_from` materialization:** eager-materialize (matches all existing backends:
   `memory_document_store.rs:66-81` locks→clones→builds iterator) vs lazy seek-on-`.next()` (needs
   `Send` handle plumbing in the boxed iterator). Rec: eager now (low-risk); lazy as a perf follow-up.
+        - Should not each backend implementation decides how it works internally, why  should the surface and trait care?
+
 - **OD-05-9 — tail-rebuild high-water-mark:** persist a `__hwm` key (last indexed offset) vs derive
   `max(offset+len)` over all index entries on open. Rec: store an explicit `__hwm` index key. (The
   `SingleWriter` already holds this in memory; persist it for crash recovery.)
+      Sure, but be detailed in the spec, we need depth to understand this clearly
+
 - **OD-05-10 — last-N read strategy:** **Resolved (user, 2026-06-15)** → serve "last N" by **copying the
   in-flight batch first**; if `batch.len() < N`, pull the remaining `N - batch.len()` from the persisted
   store (fjall reverse-range + `read_at`). Newest records (still batched) need no disk read.
+        Sweet
+
 - **OD-05-11 — multi-partition index family:** **Resolved (user, 2026-06-15)** → use **one fjall
   partition per index** (primary `doc_id→offset`, secondary `record_type→doc_ids`, optional title/time
   partitions) for fast filtered retrieval, rather than a single offset index. Each partition is an
   ordered LSM; the batch flush updates all relevant partitions atomically with the file write.
+        Cool
 
 ## Target Files
 

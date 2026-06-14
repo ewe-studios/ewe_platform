@@ -227,11 +227,16 @@ Resolved:
 Open:
 - **OD-00-5 — rand vendoring scope** (minimal subset vs whole crate). Rec: minimal subset; enumerate it
   (scru128 entropy; F08/F09 k-means/HNSW seeding; loop-detector temperature jitter).
+      - The whole capability - lets own everything once and for all.
+
 - **OD-00-6 — `foundation_wasm` as the wasm entropy host** vs a thin direct `js-sys` Crypto binding.
   Rec: `foundation_wasm` (one host abstraction, already powering the executor's JS yielding) — confirm
   it exposes (or can expose) crypto.
+      - We build for each gated by a feature flag, allow things to work correctly when either is used.
+
 - **OD-00-7 — licence/attribution:** getrandom + rand are MIT/Apache-2.0; vendor with licence headers +
   a `VENDORED.md` (source + version + local modifications).
+      - Sure we respect licenses, vendor them
 
 ## Target Files
 

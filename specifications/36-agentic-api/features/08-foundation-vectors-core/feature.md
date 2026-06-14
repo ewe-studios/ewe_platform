@@ -26,6 +26,8 @@ tasks:
 > `[workspace.dependencies]` (F12 needs it), `serde = { workspace = true }`, `[lints] workspace =
 > true`, `edition.workspace = true` (2021). See OD-08-6/7/8.
 
+**TODO**: Why does any of these need to leak there, if its a problem, move it all into foundation_vector and let it own it all fully
+
 > First feature of the new **`foundation_vectors`** crate (verified: does not exist; `backends/*`
 > workspace glob auto-includes it). Implements Decision 07's "algorithms owned by us" — starting with
 > the core types, distance metrics, and flat (brute-force) scan. IVF/HNSW (F09), BM25/hybrid (F10),
@@ -56,6 +58,8 @@ backends/foundation_vectors/
 
 WASM-safe: no `fjall`/`memmap2`/`rayon` in the default build; `rayon` is an **optional** feature
 (`parallel`) target-gated to native for large flat scans.
+
+**TODO**: why is rayon even needed, why not build ontop valtron?
 
 ### Vector + metrics
 
@@ -139,23 +143,33 @@ graph TD
   (F12) enforces a fixed dimension at insert (Decision 07). Rec: both.
 - **OD-08-3 — tie-breaking:** by id ascending for deterministic results. Rec: yes.
 - **OD-08-4 — SIMD:** portable scalar now; native SIMD feature later. Rec: defer.
+      Whats the block for SIMD ?
+
 - **OD-08-5 — no_std (revised):** `BinaryHeap`/`Vec` are in `alloc` ✓, and `f32::total_cmp` is in
   `core` ✓, **but `f32::sqrt` is `std`-only** — cosine's norm needs it. Options: (a) add `libm` for
   `sqrt` in no_std, (b) rank on squared-norm forms avoiding sqrt, (c) restrict no_std to the
   normalized-dot path (store normalized → cosine==dot, no sqrt at query). Rec: (a) `libm` (clean) or
   (c). Don't claim no_std without resolving sqrt.
+      My knowledge is lacking but i remember DOOM had a CPU friendly way to do sqrt, would not that resolve issues here in no std land ?
+
 - **OD-08-6 (mandatory) — f32 ordering:** `OrderedScore(f32)` newtype, manual `Ord` via
   `total_cmp`, NaN = least. The heap key + NaN guard in one place. (Not `ordered-float` dep — keep it
   ours/no_std.)
+
 - **OD-08-7 — cosine zero/empty-vector policy:** `score(Cosine,…)` when `‖a‖` or `‖b‖` is 0 (→ 0/0
   NaN) → return a score that sorts as least (never selected); query must be normalized when OD-08-1
   is on. Define explicitly.
+        Ya, my knowledge lacks, we need fundamental documents explain vector store adn their algorithmn to make me go zero to genius. Research the web, select the best option here
+
 - **OD-08-8 — type ownership:** `VectorMatch`/`DistanceMetric` are **owned by `foundation_vectors`**;
   `foundation_db`'s `VectorStore` (F12) **re-exports** them (Decision 07 double-defines — update it).
+      Ya, maybe VectorStore should be in `foundation_vectors too
+
 - **OD-08-9 — borrowed-iterator vs streaming backends:** `flat_top_k`'s `(&str,&[f32])` iterator
   fits in-memory (F12) but not the D1/KV fetch-then-search path (F14, deserializes on the fly). Either
   narrow the "fallback for all backends" claim to eager/in-memory backends, or add an owned/streaming
   `flat_top_k` variant. Rec: add an owned variant when F14 needs it.
+        Ya, explain more, i dont understand, lets talk on it
 
 ## Target Files
 

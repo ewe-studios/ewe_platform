@@ -200,18 +200,30 @@ The loop wraps the model's `Stream<Messages, ModelState>` and lifts it:
 ## Open Decisions
 
 - **OD-02-1 (user):** `SessionRecord` vs `Messages` as `Next`'s payload (see above). Rec: `SessionRecord`.
+      Ya SessionRecord so we can carry all the other important facts without bloating what Providers and models sees or leaking it in there.
+
 - **OD-02-2:** `tokens_so_far` source — **Resolved → `Option<u64>`**, `None` until providers thread
   partial usage. (Related: OD-02-4.)
+        Not sure i understand but review the models they provide usage stats  tracking too, might resolve this already
+
 - **OD-02-3:** `#[non_exhaustive]` — **Resolved → applied to both `AgentProgress` and `MemoryKind`.**
+
 - **OD-02-4:** providers emit `GeneratingTokens(None)` today (verified) — change them to emit
   `Some(usage)` for live `tokens_so_far`, or accept turn-boundary-only updates? Rec: turn-boundary
   now; partial-usage is a separate provider enhancement.
+          Also dont understand, if the models already expose usage and stats method, whats stopping us from getting this info on every turn and using them?
+
 - **OD-02-5 (user — heart of TODO #9):** forward streaming partials as N `Conversation` records, or
   **coalesce** to one final per turn? Rec: coalesce.
+       Models should own this, review existing foundation_ai, i believe they were designed already to handle this. But confirm
+
 - **OD-02-6:** add `SessionRecord::Summary { message_count, usage }` (to F01) for the session-final
   payload, or have callers aggregate? Rec: add `Summary`.
+          Yes summary, once again see what the models already provide, you might be already be able to get these from them.
+
 - **OD-02-7 (dependency):** `AgenticError` (F30) is a forward-ref; until F30 lands, F02 uses a local
   stub with the pinned bounds (`Clone + PartialEq + Debug`). Track F30 as a soft dependency.
+        Dont understand explain to me so we can conclude.
 
 ## Target Files
 

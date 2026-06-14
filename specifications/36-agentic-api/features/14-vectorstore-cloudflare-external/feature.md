@@ -17,6 +17,9 @@ tasks:
 
 # Feature 14: VectorStore — Cloudflare + external backends
 
+**TODO**: I have reached the limits of my knowledge, lets do web research and select the best answers for these for the different platforms we wish to support, then add foundation_docs to teach me from zero to hero on all these topics in detail and depth. Also if wasm is not possible in some areas that is ok.
+If CF does not work with vectorstore, then that is fine, if it has an API for it then lets use that and not waste time trying to build one in unless its really viable else dont waste effort.
+
 > **Review status (2026-06-14) — broken references + a decision conflict:**
 > 1. **F12 never actually defines `AsyncVectorStore`** (it's only in F12's review note, not its trait
 >    block) — this dependency is a phantom until **F12's WHAT/HOW/Done-When add the

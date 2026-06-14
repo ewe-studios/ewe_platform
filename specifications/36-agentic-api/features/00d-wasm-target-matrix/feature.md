@@ -86,7 +86,7 @@ pure-Rust CDP/BiDi driver, Deno, CF Workers; built with `walrus` + `foundation_b
 
 - **emscripten** (`wasm32-unknown-emscripten`): build via the vendored EMSDK (`tools/emsdk`), run in
   node/browser (WebGPU). Add an emscripten runner.
-- **WASI** (`wasm32-wasip1` / `wasm32-wasip2`): run under a **WASI runtime** (wasmtime or wasmer — pick,
+- **WASI** (`wasm32-wasip1` / `wasm32-wasip2`): run under a **WASI runtime** (**TODO**: wasmtime - i think its time to write a proper foundation_wasmtime to own this)
   OD-00d-3). Add a `wasi` harness runner that loads the `.wasm` + WASI imports and asserts output.
 - A **target enum** in the harness (`unknown-unknown | emscripten | wasip1 | wasip2`) + per-target
   runner, so a test declares which targets it must pass on.
@@ -149,15 +149,24 @@ how to write **target-OS-aware cfg** (not blanket `target_arch`); building/runni
 
 - **OD-00d-1 — scope of host backends in `foundation_wasm`:** full WASI preview2 component host now, or
   preview1 first + preview2 follow-up. Rec: wasip1 first (broader runtime support), wasip2 next.
+      **TODO**: Review, come up with two features for each, lets review and see whats possible and what we need to do and the scale for it.
+
 - **OD-00d-2 — which crates are required on which targets:** the matrix table above is the proposal;
   confirm (esp. whether `foundation_db` fjall/native is gated native-only or native+emscripten).
+      Its about where it works, if it wworks with native + emscripten then we make it work and gate them properly.
+
 - **OD-00d-3 — WASI runtime for the harness:** `wasmtime` vs `wasmer`. Rec: `wasmtime` (reference impl,
   best preview2/component support).
+        - We go wasmtime always - ignore everything else, as said a foundation_wasmtime should own this layers and allow us provide a nice API to set the imports and get an executable that exposes the exports for the wasm executed via wasmtime, a lot of value is here even for future work. We build out what we need now.
+
 - **OD-00d-4 — emscripten in CI:** EMSDK is vendored (`tools/emsdk`); confirm the CI build wires it and
   whether emscripten is gated behind a testbed feature.
+          - Yes its time to invest more in this and get this build target working well.
+
 - **OD-00d-5 — spec-wide cfg refactor:** replace blanket `cfg(target_arch="wasm32")` across the agentic
   features with the target_os discriminators. Rec: do it as part of each feature's wasm gating, with
   this feature owning the canonical pattern + the audit checklist.
+       - Feature it and plan it properly, understand the dependency chain and where and when it must land, its our opportunity to make it all worthwhile here. Lets get it right
 
 ## Target Files
 

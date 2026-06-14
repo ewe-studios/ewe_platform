@@ -17,6 +17,8 @@ tasks:
 
 # Feature 09: foundation_vectors — IVF + HNSW
 
+**TODO**: I have reached the limits of my knowledge, lets do web research and select the best answers for these for the different platforms we wish to support, then add foundation_docs to teach me from zero to hero on all these topics in detail and depth.
+
 > **Review status (2026-06-14) — trait redesign + likely split.** Folded: (1) `&mut self`
 > mutators violate Decision 08's `&self`+interior-mutability rule (an `Arc<dyn VectorIndex>` can't
 > call `&mut self`) → **`&self` mutators with internal `RwLock`**, and **fallible** (`insert ->
@@ -119,6 +121,7 @@ graph TD
    serial==parallel; wasm32 build; large-set smoke.
 
 ## Open Decisions
+
 
 - **OD-09-1 — index selection:** automatic promotion (flat→IVF→HNSW at size thresholds) vs explicit
   config per store. Rec: explicit config with a sensible default (flat<8k, IVF<100k, HNSW above).

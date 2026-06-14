@@ -121,8 +121,14 @@ filesystem search (why split); token-budgeted context packing; replayability of 
   queries a prebuilt graph (F11 query path) or is unavailable. Rec: prebuilt-graph query if present.
 - **OD-18-4 — search_file on wasm:** fff is native-only (Decision 14). wasm `search_file` returns a
   clear "unsupported on wasm" result. Confirm.
+        - Just use basic FileSystem operations if possible via whatever vfs is there else not supported
+
 - **OD-18-5 — ContextProvider ownership boundary:** it consumes F19's memory outputs + triggers F19;
   F19 owns generation. Confirm the split.
+      Explain the diference more clearly so i know whats the best division and boundary
+
+
+        
 
 ## Target Files
 

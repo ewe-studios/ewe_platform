@@ -158,13 +158,21 @@ graph TD
 - **OD-00c-1 (user) — wasm scope:** wasm = agentic machinery only; built-in HTTP providers are
   native-only until a fetch-based client lands. Confirm. (This re-scopes the spec's "everything
   builds on wasm" criterion: machinery yes, built-in remote providers no.)
+      - Lets invest in getting this right - adding fetch based clients that make this easy for http client requests, we have all the capabilities and we own the own platform crates, we can do this well. Lets come up with a design that works for native and wasm, even the http API client has Send() and some methods that we can more than represent with fetch if possible, lets review and come up with a design that works and just feels right, we can discuss it if we have holes or questions to answer.
+
 - **OD-00c-2 (prerequisite) — `foundation_auth` on wasm:** verify it builds with `wasm` feature; if
   not, prerequisite fix.
+    do so, and document the fix clearly, feel free to create 000a,00b features if needed to own the work and scope it right
+
 - **OD-00c-3 — future wasm HTTP transport:** building a `web-sys`/fetch `SimpleHttpClient` + SSE in
   `foundation_netio` (so wasm gets real built-in providers) is a **separate future feature / spec**.
   Record it; do not attempt here.
+      - Lets investigate it, think about it, feature it and do it, then also see how we can do one using our foundation_wasm crate as well and add it to foundation_http with feature gating, making life even more seamless across native and wasm, lets think about it deeply and see how we can design it, if we need a new API surface for both native and wasm to work, lets think about it and design, then review and when we are happy, feature it and schedule for working.
+
+    
 - **OD-00c-4 — `huggingface_gguf_provider` gating:** confirm 00b gated it behind `llamacpp` (it must
   be, since it imports `foundation_deployment` + `infrastructure_llama_cpp`).
+    - Of course
 
 ## Target Files
 

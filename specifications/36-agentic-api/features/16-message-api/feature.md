@@ -148,12 +148,20 @@ valtron tasks; scru128 time-ordering for replay. (Task — see list.)
 
 - **OD-16-1 — pub/sub mechanism:** `ThreadSafeBroadcaster` (interior Mutex) vs ConcurrentQueue-of-receivers.
   Rec: a small `&self` broadcaster helper (possibly elevated into `foundation_core::synca`).
+        ConcurrentQueueOfRecevers is not that better ?
+
 - **OD-16-2 — backpressure:** write_buffer full (ConcurrentQueue push fails) → block? force-flush?
   Rec: force-flush synchronously when full (never drop records).
+        - We can have an innerQueue which has a bounded window to cache these and if reached and no one is consuming then this means we have problems and need to panic and report fast, something is broken and wrong.
+
 - **OD-16-3 — crash before flush:** records in the buffer are lost on crash (no WAL). Accept (the gaps
   Q-04), or add periodic forced flush / WAL? Rec: short flush interval + flush-on-end; WAL later.
+        Why not WAL it, this even makes the backpressure easier to deal with and crash safe, cacache is there for our needs.
+
 - **OD-16-4 — index which records:** only text-bearing conversation + memory records get embedded
   (skip pure tool-call args?). Rec: embed user/assistant text + observation/reflection; skip raw blobs.
+      Good
+
 - **OD-16-5 — StoredRecord shape:** `{ id: Scru128, record: SessionRecord, created_at }`. Confirm.
 
 ## Target Files

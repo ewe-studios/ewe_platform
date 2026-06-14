@@ -17,6 +17,8 @@ tasks:
 
 # Feature 11: foundation_vectors — code-graph (graphify-derived)
 
+**TODO**: I have reached the limits of my knowledge, lets do web research and select the best answers for these for the different platforms we wish to support, then add foundation_docs to teach me from zero to hero on all these topics in detail and depth. Also if wasm is not possible in some areas that is ok.
+
 > **Fidelity review (2026-06-14) — important corrections to the source study below:**
 > 1. **"One generic walker drives all languages" is FALSE.** Only ~12 languages use
 >    `_extract_generic`+`LanguageConfig`; ~11 have **bespoke extractors** — including **Rust
@@ -278,13 +280,19 @@ goes from zero to expert in code knowledge-graphs:
   first, rest incrementally. Rec: priority set first; `LanguageConfig` makes the rest additive. **This
   is realistically several features — likely split (11a extraction core + priority langs, 11b graph
   build/cluster/analyze, 11c query + LLM pass). Flag for the user.**
+      - Focus on rust for now, we get it right for rust so we get the correct design and functionality in place then another feature for JS and Ts, Python. Others are deferred.
+
 - **OD-11-2 — graph lib:** `petgraph` vs own adjacency. Rec: `petgraph` (mature, pure-Rust, wasm-ok).
 - **OD-11-3 — Leiden in Rust:** vetted crate vs implement. Rec: evaluate a pure-Rust leiden/louvain
   crate; Decision 07 says own algorithms, but clustering is well-defined — wrap if wasm-safe.
+      Check for crate that do this that can work in wasm else own algorithmns
+
 - **OD-11-4 — tree-sitter grammar deps:** 25 grammar crates is heavy. Gate each language behind a
   feature so consumers pull only what they need. Rec: per-language features, a `code-graph-common` set.
 - **OD-11-5 — wasm:** build is native (tree-sitter C); query is portable. Confirm the split (prebuilt
   graph.json queried on wasm). tree-sitter does have a wasm build — future option to also build on wasm.
+      Ya, sometimes may not just work in wasm and may need a tool to build the graph.json and let them load it, that is fine, dont force it where its not possible.
+
 - **OD-11-6 — graph storage:** in-memory + json now; persist to fjall/DocumentStore (F05/F13) for
   large repos? Rec: json now; fjall-backed later.
 - **OD-11-7 — incremental correctness:** `update` re-extracts changed files but cross-file `uses`/call

@@ -176,16 +176,25 @@ see list.)
   published lib. (a) git/path dependency on `fff-core`+`fff-grep`, (b) vendor those two crates, (c)
   reimplement a minimal native grep. Rec: (a) path/git dep on `fff-core`+`fff-grep` target-gated; fall
   back to (c) if their deps (libgit2 vendored, heed/LMDB) bloat the build. **Flag for the user.**
+      I shared https://crates.io/crates/fff-search
+
 - **OD-22-2 — search-result shape:** unify `search` and `search_file` into one `SearchResult` JSON, or
   distinct shapes. Rec: distinct (`KnowledgeHit{source,score,content,ref}` vs `FffMatch{path,line,..}`)
   — they're genuinely different.
+        Yes different, important for agnet to know, in fact we should make `search` - `search_context`  - so its clear its searching context, memories, etc not files
+
 - **OD-22-3 — graph on wasm:** `search(Graph)` queries a prebuilt graph if present else unavailable
   (F18 OD-18-3). Confirm parity with F18.
+          Yes, prebuilt, so it loads and search the prebuild json or whatever file format makes sense.
+
 - **OD-22-4 — search_file placement:** the real `ToolShed` has a `search` field but no `search_file`
   slot. Register `search_file` as a normal tool (shed-discoverable) rather than a named field. Rec:
   yes (don't add a struct field; keep `ToolShed` as F01 defines it).
+        Of course add it, the idea is the fields are the mandatory ones supplied, the toolshed owns any discovery needed, absolutely add it.
+
 - **OD-22-5 — fff root:** the search root (workspace dir) is session/config-supplied. Rec: an
   `AgentConfig::workspace_root: Option<PathBuf>`; `search_file` disabled if unset on native.
+        `search_file` - implementation based, nothing stops wasm from using in memory or vfs based search that works in its environment.
 
 ## Target Files
 

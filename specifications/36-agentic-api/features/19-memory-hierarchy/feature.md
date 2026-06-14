@@ -187,11 +187,16 @@ valtron sub-task. (Task — see list.)
   `scan_from(last_obs_id, …)` so the source is exactly what triggered it.
 - **OD-19-3 — working-memory detection:** explicit user request only, or also a per-turn memory-model
   scan. Rec: explicit-request-now; periodic scan behind a config flag (cost). Confirm.
+        Sure, the point is to make this seamless, where possible we use memory model to extract these especially if the model responding can also mark where it finds explict things to be put in working memory and also explict user requests.
+
 - **OD-19-4 — generation scheduling:** `schedule` (deferred, bottom of local queue — non-urgent) vs
   `lift` (priority). Rec: `schedule` for observation/reflection (non-urgent, Decision 08 row), so the
   agent keeps responding; the loop reads the result on a later boundary.
+        Can also broadcast to other workers in multi-threading so it works in background and does not block.
+
 - **OD-19-5 — reflection failure:** if the memory model errors mid-reflection, keep the existing
   observation memory (do NOT replace) and emit a `MessageEvent::Error`; retry next trigger. Confirm.
+      Correct.
 
 ## Target Files
 

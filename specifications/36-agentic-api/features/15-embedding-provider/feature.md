@@ -132,11 +132,18 @@ latency); valtron task + channel response pattern; cache hit-rate measurement & 
 
 - **OD-15-1 — generation routing:** via F24 ProviderRouter (embedding model may differ from chat
   model). Rec: route through F24; embedding model configurable.
+    Then add specific API for embeddings or a EmbeddingProvider router so its a separate API layer
+
 - **OD-15-2 — cache key hash:** fast non-crypto hash (xxhash) of text. Rec: xxhash.
+
 - **OD-15-3 — fjall required-on-native:** required vs optional. Decision 06 says required on native.
   Rec: optional-but-default-on; a memory-only mode for tests.
+        Sure, memory for tests, but we also test fjall implementation too
+
 - **OD-15-4 — batch trigger:** size threshold + time window. Rec: both (e.g. 32 texts or 50ms).
+
 - **OD-15-5 — sentence-level chunking:** deferred (nlprule). Confirm whole-text first.
+      Why deffrered - sentence level is better and there are rust crate to help where needed and fallback can be whole text if in a platform where it cant be done.
 
 ## Target Files
 

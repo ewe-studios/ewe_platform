@@ -183,29 +183,50 @@ graph TD
   - **(c) duplicate the structs** — no wire change, but reintroduces the divergence we're trying to kill.
   **Rec: (a) flatten** if the internally-tagged-enum test passes, else (b) with a documented wire change.
   This is the one open hole in F07 — flagged for the user.
+
+      Unless the SessionRecord is hard to  serialize, why do we even need any of this, should not what we store just be the SessionRecord? Explain to me better and lets talk about it.
+  
 - **OD-07-2 — fjall vs KV:** is `KvMemoryStore` sufficient, fjall a perf-only opt-in? Rec: yes.
+        Implement both, then we can use whichever we want. This is the time to get it all right and done.
+
 - **OD-07-3 — derived-cache semantics:** MemoryStore is a cache over DocumentStore; resume falls back
   to a DocumentStore scan if a tier snapshot is absent. Confirm.
+        Yes, exactly, i am even wondering why MemoryStore needs to wrap a DocumentStore, the whole point of it is just a Memorystore probably for testing or caching, but whatever owns those two should own the drop down to DocumentStore and not MemoryStore itself.
+
 - **OD-07-4 — crate placement:** **Resolved → typed `MemoryStore` in `foundation_ai::agentic`**
   (it names `SessionId`/snapshots; `foundation_db` can't depend on `foundation_ai`). It uses the
   `&str`-keyed `KeyValueStore` from `foundation_db`. `FjallMemoryStore` → `foundation_nativeapis`
   (fjall's home).
+      Ya, i can see your wrapping DocumentStore cuasing issues here. Why not just split them and let something own both and use them properly then they each can stay where they are and use waht works, more so why MemoryStore use SessionId - which are just scru128 ids?
+
 - **OD-07-5 — async variant:** `AsyncMemoryStore` mirrors `AsyncKeyValueStore`'s **`(?Send)`**
   constraint (it cannot be `Send + Sync` like the sync trait) — needed for CF KV on wasm.
+      ahaha ya, now you are just being stupid here, why do we need this ?
+
 - **OD-07-6 — version/CAS:** snapshots carry `version: u64` but `set_*` is last-writer-wins. Define
   concurrent-writer behavior: unconditional overwrite (rec, single-agent-per-session) vs compare-
   version CAS. Rec: unconditional now; note the single-writer assumption.
+      Why and for what ? Explain to me clearly the issue
+
 - **OD-07-7 — fallback addressing:** "latest of tier T" via `DocumentStore` requires either separate
   collections per tier or scan-and-filter by `record_type` (F04 promoted column!). Rec: filter by
   `record_type` via F04's `scan_documents`; re-populate `MemoryStore` on a fallback hit.
+        Explain to me again and be detailed so i  understand the issue
+
 - **OD-07-8 — single-key bundle vs per-tier keys:** **Resolved (user, 2026-06-15)** → store the whole
   `MemoryBundle` under **one key** `memory:{session_id}` so `hydrate` is one get (hot resume path). The
   live session caches the bundle, so `set_*` mutates in memory + writes once (no RMW round-trip). If a
   backend ever needs per-tier keys, add a `BulkKeyValueStore::get_many(&[key])` extension trait rather
   than N blind round-trips — don't let the bounded `KeyValueStore` shape force a slow hydrate.
+
+        Explain to me again and be detailed so i  understand the issue
+
 - **OD-07-9 — API doesn't inherit KV's by-value `set`:** **Resolved (user, 2026-06-15)** → `MemoryStore`
   is our purpose-built trait: `set_*` takes `&Snapshot`, serialization happens once at the bundle
   boundary; we do not propagate `KeyValueStore::set`'s by-value clone into the MemoryStore API.
+
+        Explain to me again and be detailed so i  understand the issue
+
 
 ## Target Files
 

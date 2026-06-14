@@ -228,21 +228,32 @@ graph TD
 
 - **OD-00b-1 — llama error gating:** gate the 10 variants as llama-only now vs introduce
   provider-agnostic equivalents. Recommendation: gate now, generalize later.
+      - Generalize, isolate the specific errors to the specific providers and add Error variants that can hold each and gate those, this reduces the main error from containing alot of provider specific variants to just one.
+
 - **OD-00b-2 — `agentic` vs `llamacpp`-off:** `--no-default-features` (no llamacpp) is the wasm
   surface; `agentic` stays a marker until 00c proves what it must gate.
+    - i dont understand this, ask me with more clarity on what you mean here.
+  
 - **OD-00b-3 — timestamp serde (native):** **Resolved → no native fixture change** (compact
   re-exports std on native). See OD-00b-6 for the cross-platform divergence.
+
 - **OD-00b-4 — RNG dep overlap:** `foundation_ai` already has non-optional `fastrand`,
   `rand 0.10`, `rand_chacha 0.10` (`Cargo.toml:34-36`). `rand`/`rand_chacha` pull getrandom and may
   break wasm (same class as 00a's `rand` issue). Decide: consolidate onto `foundation_compact`, or make
   `rand`/`rand_chacha` native-only. **Recommendation: make them native-only here** (audit their use
   sites; likely native sampling) — pulled forward into 00b/00c. Flag for the wasm build in 00c.
+      - With foundation_compat - all rand usage comes from it, we then do the work to present the right rand for the right platform: native / wasm / wasm with wasi / wasi with emscrypten- thats why `foundation_compat` exists - to own all these
+
 - **OD-00b-5 — `chrono` dead dep:** `chrono` (`Cargo.toml:37`) has **zero** `src` use →
   **remove it** (cleanest; avoids a wasm-suspect dep). Confirm no feature/transitive need first.
+    Sounds good
+
 - **OD-00b-6 — native↔wasm timestamp wire-format:** **RESOLVED (user, 2026-06-15)** →
   `foundation_compact::SystemTime` gets a **single custom serde** emitting
   `duration_since(UNIX_EPOCH)` as `{secs_since_epoch, nanos_since_epoch}` on **every** target →
   identical wire format everywhere, cross-platform replay round-trips. (F00 deliverable.)
+      Great
+
 - **OD-00b-7 (user, 2026-06-15) — target-aware llama gating, not a blanket wasm exclusion:**
   `infrastructure_llama_cpp`'s build already wires the emscripten SDK, so llama.cpp builds on
   `wasm32-unknown-emscripten` (browser, WebGPU/threads). Make the gate **target-aware**: keep
@@ -254,6 +265,8 @@ graph TD
   keeps the default). Verify the emscripten build path (EMSDK toolchain) is exercised separately —
   it's a distinct toolchain from `wasm-bindgen`/`foundation_wasm`. A WebGPU/emscripten **in-browser
   llama** deployment is a real future option, not excluded by this spec.
+
+    Lets us also invest in getting our  build platform right so we can build for wasm, native and make this seamless. Its ok to if we can move alot of our build.rs logic into foundation_testbed and make it easy to pull it in and call, if not, we can also create a `foundation_buildtools` to own such concerns, think about this and tell me what you think.
 
 - `backends/foundation_ai/Cargo.toml` — optional llama, features, `foundation_compact`/`foundation_compact` deps
 - `backends/foundation_ai/src/errors/mod.rs` — gate llama imports/variants/From/Display
