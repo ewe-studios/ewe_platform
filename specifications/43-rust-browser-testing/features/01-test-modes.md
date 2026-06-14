@@ -1,9 +1,11 @@
 # Feature 01 — Two test modes: native-App-streamed (Mode 1) + wasm-in-browser (Mode 2)
 
 Status: **Mode 1 DELIVERED** (2026-06-14) — native-App streaming is green across
-all four protocols against real Chromium. **Mode 2** (wasm-in-browser) shares the
-same `TestServer` transport and is supported but exercised mainly via the existing
-testbed. Mode 1 is primary for component testing; Mode 2 for full end-to-end.
+all four protocols against **real Chromium (CDP) AND Firefox (WebDriver BiDi)**,
+which share one `Page`/`Locator` via a `Backend` seam (see "Cross-browser" below).
+**Mode 2** (wasm-in-browser) shares the same `TestServer` transport and is
+supported but exercised mainly via the existing testbed. Mode 1 is primary for
+component testing; Mode 2 for full end-to-end.
 
 ## The fork
 
@@ -298,6 +300,13 @@ delimited by its framing / connection close, not a declared length. An
 is preserved. Bodies that ARE present (`Text`/`Bytes`) still get the correct
 `Content-Length`. With that, `SseStream` works directly and we use it.
 
+**The request-builder twin (found in phase 2).** `SimpleIncomingRequestBuilder::build`
+had the same bug for `SendSafeBody::None`: it stamped `Content-Length: 0` on
+bodyless requests. Chromium's CDP tolerates a GET upgrade carrying it; Firefox's
+WebDriver BiDi server (and the `websockets` lib) reject it as "unsupported request
+body" and never complete the handshake. Same fix — an absent request body emits no
+`Content-Length`. This is why the WS upgrade now interoperates with strict servers.
+
 ## `Take` already IS "take and owned"
 
 The worry that `ConnectionResult::Take` would let the worker reap/close the socket
@@ -310,6 +319,50 @@ stream — no new variant required.
 Verified end-to-end: a frame pushed from Rust (`server.push_frame`) reaches a real
 browser's `EventSource` over SSE (base64-decoded in the page), the stream stays
 open, and teardown drops the connections cleanly.
+
+## Cross-browser: CDP + BiDi behind one `Backend` (phase 2)
+
+The same `Page`/`Locator`/`TestServer`/Mode-1 stack drives **Chromium (CDP)** and
+**Firefox (WebDriver BiDi)**. The seam is an operation-level `Backend` trait
+(navigate / evaluate / screenshot / trusted pointer+key input). The trick that
+keeps it small: every element READ (box, text, attribute, computed style,
+visibility, count) is implemented ONCE in `Locator` in terms of `Backend::evaluate`,
+so it's identical on both wires; only navigate/evaluate/screenshot/input are
+backend-specific.
+
+- `CdpBackend` → `Page.navigate` / `Runtime.evaluate` / `Input.dispatch*`.
+- `BiDiBackend` → `browsingContext.navigate` / `script.evaluate` /
+  `input.performActions`, plus a `RemoteValue → JSON` converter so `eval` returns
+  the same shape CDP's `returnByValue` does. (Return plain objects from eval
+  snippets — DOM objects like `DOMRect` have no own-enumerable props and serialize
+  empty.)
+
+Firefox launch (`Browser::Firefox`): the Remote Agent is BiDi-direct at
+`ws://host:port/session`; `session.new` opens a connection-scoped session, then
+`browsingContext.getTree` gives the default context. Pre-pick a free port, wait
+until it accepts a TCP connection (the engine's connect is lazy and would
+otherwise fail against a not-yet-listening port — Chromium sidesteps this by
+writing `DevToolsActivePort` only when ready). **Firefox blocks top-level `data:`
+navigation**, so BiDi tests serve over the HTTP harness. Parity is green:
+`firefox_*` smoke tests cover locator geometry/attributes/style/input + all four
+protocols + the `primal-test` helper.
+
+### Three foundation_netio WS-client bugs Firefox surfaced
+
+Chromium's CDP server is lenient; Firefox's BiDi server is strict and exposed
+genuine RFC violations (all fixed at the source, benefiting every WS client):
+
+1. **Unmasked client frames.** RFC 6455 §5.3 requires a client to mask every
+   frame. The client sent `mask: None`; Firefox closes the connection on the
+   first unmasked frame. Now masked via `generate_mask()`.
+2. **`Host` header without the port.** `host_str()` dropped the port; the upgrade
+   `Host` must be the authority `host:port` (RFC 7230). Firefox validates it for
+   DNS-rebinding protection and closes on a bare host.
+3. **`Content-Length` on a bodyless GET** — see the request-builder twin above.
+
+Debugging method worth keeping: a raw TCP logger + a strict reference client
+(`python websockets`) pinned each divergence by comparing the exact bytes our
+client sent vs. what a Firefox-accepted client sends.
 
 ## Open decisions
 
