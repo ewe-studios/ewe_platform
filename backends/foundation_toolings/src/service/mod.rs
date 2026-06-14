@@ -1,12 +1,11 @@
 // DevService — valtron-coordinated top-level dev server.
-// Wires watchers, builder, runner, and HTTP proxy together.
+// Wires watchers, builder, runner, signal handling together.
 
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
-use foundation_core::synca::OnSignal;
-use foundation_core::valtron;
-use foundation_nativeapis::shared::WatchEvent;
+use foundation_core::valtron::{self, Stream};
+use foundation_nativeapis::signal::{signal_task, SignalKind};
 use foundation_nativeapis::valtron::FileWatcherTask;
 
 use crate::builder::{CargoBuilder, ProjectBuilderTask};
@@ -24,21 +23,16 @@ impl DevService {
         Self { project }
     }
 
-    /// Start the dev service. Spawns watchers/builder/runner as valtron
-    /// TaskIterators, then blocks until shutdown signal.
+    /// Start the dev service. Spawns watchers/builder/runner/signal as valtron
+    /// TaskIterators, then waits for a signal event (SIGINT/SIGTERM).
     ///
     /// # Errors
     /// Returns an error if any component fails to spawn.
-    pub fn start(
-        &self,
-        shutdown: &Arc<OnSignal>,
-    ) -> Result<(), ToolingError> {
+    pub fn start(&self) -> Result<(), ToolingError> {
         // -- Shared queues
-        let _build_changes_queue: Arc<ConcurrentQueue<WatchEvent>> =
-            Arc::new(ConcurrentQueue::unbounded());
         let build_complete_queue: Arc<ConcurrentQueue<()>> =
             Arc::new(ConcurrentQueue::unbounded());
-        let _running_queue: Arc<ConcurrentQueue<()>> =
+        let running_queue: Arc<ConcurrentQueue<()>> =
             Arc::new(ConcurrentQueue::unbounded());
 
         // -- File watcher (build dirs)
@@ -80,19 +74,40 @@ impl DevService {
         let runner = BinaryRunnerTask::new(
             self.project.clone(),
             build_complete_queue,
-            _running_queue,
+            running_queue,
         );
         valtron::execute(runner, None)
             .map_err(|e| ToolingError::Run(e.to_string()))?;
 
-        // -- Block until shutdown signal
-        tracing::info!("Dev service started — waiting for shutdown signal");
-        loop {
-            if shutdown.probe() {
-                tracing::info!("Shutdown signal received, stopping dev service");
-                break;
+        // -- Signal handler (Ctrl+C / SIGTERM)
+        // This replaces the old shutdown.probe() + sleep(100ms) polling loop.
+        // signal_task parks on epoll/kqueue — zero CPU until a signal arrives.
+        let (sig_task, _bus) = signal_task()
+            .map_err(|e| ToolingError::Watch(e.to_string()))?;
+        let mut sig_stream = valtron::execute(sig_task, None)
+            .map_err(|e| ToolingError::Watch(e.to_string()))?;
+
+        tracing::info!("Dev service started — press Ctrl+C to stop");
+
+        // Drive the signal stream — the valtron engine interleaves this with
+        // all other tasks. We block here because the dev server is the main
+        // process; when a signal arrives, the loop breaks and valtron shuts down.
+        for item in &mut sig_stream {
+            if let Stream::Next(event) = item {
+                match event.kind {
+                    SignalKind::Interrupt | SignalKind::Terminate => {
+                        tracing::info!("Received {}, shutting down", event.kind);
+                        break;
+                    }
+                    SignalKind::Hangup => {
+                        tracing::info!("Received SIGHUP — reload not yet implemented");
+                    }
+                    SignalKind::Quit => {
+                        tracing::info!("Received SIGQUIT — shutting down");
+                        break;
+                    }
+                }
             }
-            std::thread::sleep(std::time::Duration::from_millis(100));
         }
 
         Ok(())
@@ -105,8 +120,6 @@ impl DevService {
 /// Returns an error if any component fails to start.
 pub fn run_dev_server(project: ProjectDefinition) -> Result<(), ToolingError> {
     let dev_service = DevService::new(project);
-    let shutdown = Arc::new(OnSignal::new());
-
     let _guard = valtron::initialize_pool(42, None);
-    dev_service.start(&shutdown)
+    dev_service.start()
 }
