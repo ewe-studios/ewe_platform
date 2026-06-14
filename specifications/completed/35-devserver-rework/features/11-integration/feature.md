@@ -1,12 +1,12 @@
 ---
 feature: "Integration Tests"
 description: "End-to-end tests: spawn dev service, verify proxy forwarding, verify file-change-triggered rebuild, verify SSE reload"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["08-dev-service"]
 estimated_effort: "medium"
 created: 2026-06-01
-last_updated: 2026-06-01
+last_updated: "2026-06-15"
 ---
 
 # Feature: Integration Tests

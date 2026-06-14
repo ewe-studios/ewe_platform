@@ -1,9 +1,9 @@
 ---
 description: "Migrate ewe_devserver from crates/devserver into backends/foundation_toolings as a tokio/axum-free dev server built on ewe_platform primitives (valtron task iterators, foundation_nativeapis watchers, foundation_core networking). Remove all tokio, axum, async-trait, hyper server dependencies. Rebuild proxy, file watching, cargo building, SSE reload, and HTTP dev service using platform-native constructs."
-status: "pending"
+status: "complete"
 priority: "high"
 created: 2026-06-01
-updated: 2026-06-01
+updated: "2026-06-15"
 author: "Main Agent"
 metadata:
   version: "1.0"
@@ -27,7 +27,7 @@ tasks:
   completed: 0
   uncompleted: 0
   total: 0
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # DevServer Rework — foundation_toolings Migration
@@ -63,17 +63,17 @@ Migrate the devserver (`crates/devserver`) into a new crate `backends/foundation
 
 | Feature | Description | Status |
 |---------|-------------|--------|
-| [01-crate-scaffolding](features/01-crate-scaffolding/) | Create `backends/foundation_toolings/` with clean Cargo.toml, module structure, error types | pending |
-| [02-task-operators](features/02-task-operators/) | Replace async `Operator` trait with valtron `TaskIterator` — all devserver components become TaskIterators | pending |
-| [03-native-watching](features/03-native-watching/) | Replace `DirectoryWatcher` (notify-based) with `NativeWatcher` from foundation_nativeapis | pending |
-| [04-cargo-builder](features/04-cargo-builder/) | Pluggable `ProjectBuilder` trait — multiple builders (cargo, wasm, JS), `should_build(FileChange)` dispatch, BackgroundJobRegistry backpressure | pending |
-| [05-binary-runner](features/05-binary-runner/) | Replace `BinaryApp` (tokio::spawn loops) with `BinaryRunnerTask` managing `std::process::Child` lifecycle | pending |
-| [06-native-proxy](features/06-native-proxy/) | Replace hyper/axum/tower proxy with foundation_http (HttpServer, Serve, TunnelProxy) | pending |
-| [07-sse-reload](features/07-sse-reload/) | SseReloadHandler as foundation_http Serve impl — ConnectionResult::Take owns connection | pending |
-| [08-dev-service](features/08-dev-service/) | Replace `HttpDevService` with valtron-coordinated `DevService` — spawn all components as child tasks | pending |
-| [09-api-compat](features/09-api-compat/) | Public API surface: `ProjectDefinition`, `ProxyRemoteConfig`, `ProxyType`, `Http1`/`Http2`/`Http3`, `VecStringExt` — preserve signatures where possible | pending |
-| [10-cleanup](features/10-cleanup/) | Deprecate/remove `crates/devserver`, update workspace Cargo.toml, update templates/examples/bin/platform imports | pending |
-| [11-integration](features/11-integration/) | End-to-end tests: spawn dev service, verify proxy forwarding, verify file-change-triggered rebuild, verify SSE reload | pending |
+| [01-crate-scaffolding](features/01-crate-scaffolding/) | Create `backends/foundation_toolings/` with clean Cargo.toml, module structure, error types | complete |
+| [02-task-operators](features/02-task-operators/) | Replace async `Operator` trait with valtron `TaskIterator` — all devserver components become TaskIterators | complete |
+| [03-native-watching](features/03-native-watching/) | Replace `DirectoryWatcher` (notify-based) with `NativeWatcher` from foundation_nativeapis | complete |
+| [04-cargo-builder](features/04-cargo-builder/) | Pluggable `ProjectBuilder` trait — multiple builders (cargo, wasm, JS), `should_build(FileChange)` dispatch, BackgroundJobRegistry backpressure | complete |
+| [05-binary-runner](features/05-binary-runner/) | Replace `BinaryApp` (tokio::spawn loops) with `BinaryRunnerTask` managing `std::process::Child` lifecycle | complete |
+| [06-native-proxy](features/06-native-proxy/) | Replace hyper/axum/tower proxy with foundation_http (HttpServer, Serve, TunnelProxy) | complete |
+| [07-sse-reload](features/07-sse-reload/) | SseReloadHandler as foundation_http Serve impl — ConnectionResult::Take owns connection | complete |
+| [08-dev-service](features/08-dev-service/) | Replace `HttpDevService` with valtron-coordinated `DevService` — spawn all components as child tasks | complete |
+| [09-api-compat](features/09-api-compat/) | Public API surface: `ProjectDefinition`, `ProxyRemoteConfig`, `ProxyType`, `Http1`/`Http2`/`Http3`, `VecStringExt` — preserve signatures where possible | complete |
+| [10-cleanup](features/10-cleanup/) | Deprecate/remove `crates/devserver`, update workspace Cargo.toml, update templates/examples/bin/platform imports | complete |
+| [11-integration](features/11-integration/) | End-to-end tests: spawn dev service, verify proxy forwarding, verify file-change-triggered rebuild, verify SSE reload | complete |
 
 ## Architecture
 
@@ -141,20 +141,20 @@ Migrate the devserver (`crates/devserver`) into a new crate `backends/foundation
 
 ## Success Criteria
 
-- [ ] `backends/foundation_toolings/` compiles with `cargo check -p foundation_toolings`
-- [ ] **Zero** tokio, axum, async-trait, tower, hyper, h2, h3 dependencies in foundation_toolings
-- [ ] **Zero** `tokio::sync::broadcast` usage — replaced with platform primitives
-- [ ] **Zero** `tokio::process::Command` — replaced with `std::process::{Command, Child}`
-- [ ] **Zero** `tokio::net::TcpListener` — replaced with `foundation_netio::netcap::Listener`
-- [ ] **Zero** `tokio::io::{AsyncRead, AsyncWrite}` — replaced with `std::io::{Read, Write}` + poll-layer
-- [ ] **Zero** `axum::response::Sse` — replaced with raw HTTP SSE response generator
-- [ ] All `Operator` types become `TaskIterator` implementations
-- [ ] `HttpDevService` equivalent works: accepts `ProjectDefinition`, starts dev server via valtron
-- [ ] Proxy HTTP/1 forwarding works (source → destination)
-- [ ] File change → cargo build → binary restart chain works
-- [ ] SSE reload endpoint works (browser reloads on file change)
-- [ ] `crates/devserver` is deprecated, templates/examples updated to use foundation_toolings
-- [ ] Cross-platform: compiles on Linux, macOS (Windows stubs acceptable)
+- [x] `backends/foundation_toolings/` compiles with `cargo check -p foundation_toolings`
+- [x] **Zero** tokio, axum, async-trait, tower, hyper, h2, h3 dependencies in foundation_toolings
+- [x] **Zero** `tokio::sync::broadcast` usage — replaced with platform primitives
+- [x] **Zero** `tokio::process::Command` — replaced with `std::process::{Command, Child}`
+- [x] **Zero** `tokio::net::TcpListener` — replaced with `foundation_netio::netcap::Listener`
+- [x] **Zero** `tokio::io::{AsyncRead, AsyncWrite}` — replaced with `std::io::{Read, Write}` + poll-layer
+- [x] **Zero** `axum::response::Sse` — replaced with raw HTTP SSE response generator
+- [x] All `Operator` types become `TaskIterator` implementations
+- [x] `HttpDevService` equivalent works: accepts `ProjectDefinition`, starts dev server via valtron
+- [x] Proxy HTTP/1 forwarding works (source → destination)
+- [x] File change → cargo build → binary restart chain works
+- [x] SSE reload endpoint works (browser reloads on file change)
+- [x] `crates/devserver` is deprecated, templates/examples updated to use foundation_toolings
+- [x] Cross-platform: compiles on Linux, macOS (Windows stubs acceptable)
 
 ## Module References
 

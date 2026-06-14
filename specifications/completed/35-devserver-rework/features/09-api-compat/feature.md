@@ -1,12 +1,12 @@
 ---
 feature: "API Compatibility"
 description: "Preserve public API surface: ProjectDefinition, ProxyRemoteConfig, ProxyType, Http1/2/3, VecStringExt — minimize consumer breakage"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["01-crate-scaffolding", "02-task-operators", "06-native-proxy", "08-dev-service"]
 estimated_effort: "small"
 created: 2026-06-01
-last_updated: 2026-06-01
+last_updated: "2026-06-15"
 ---
 
 # Feature: API Compatibility

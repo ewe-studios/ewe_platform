@@ -1,12 +1,12 @@
 ---
 feature: "Task Operators"
 description: "Replace async Operator trait with valtron TaskIterator — all devserver components become TaskIterators"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-crate-scaffolding"]
 estimated_effort: "medium"
 created: 2026-06-01
-last_updated: 2026-06-01
+last_updated: "2026-06-15"
 ---
 
 # Feature: Task Operators

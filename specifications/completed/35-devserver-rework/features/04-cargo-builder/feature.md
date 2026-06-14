@@ -1,12 +1,12 @@
 ---
 feature: "Project Builder"
 description: "Pluggable ProjectBuilder trait — multiple builders per task, each decides via should_build(FileChange) whether to run, submitted as Arc<dyn ProjectBuilder> to BackgroundJobRegistry for natural backpressure"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["02-task-operators", "03-native-watching"]
 estimated_effort: "medium"
 created: "2026-06-01"
-last_updated: "2026-06-14"
+last_updated: "2026-06-15"
 ---
 
 # Feature: Project Builder

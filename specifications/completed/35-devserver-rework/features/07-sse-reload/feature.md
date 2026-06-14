@@ -1,12 +1,12 @@
 ---
 feature: "SSE Reload"
 description: "Serve both /static/sse/reloader.js (StaticAssetHandler) and /static/sse/reload (SseReloadHandler) — foundation_toolings owns the complete reload chain"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["06-native-proxy"]
 estimated_effort: "small"
 created: "2026-06-01"
-last_updated: "2026-06-14"
+last_updated: "2026-06-15"
 ---
 
 # Feature: SSE Reload

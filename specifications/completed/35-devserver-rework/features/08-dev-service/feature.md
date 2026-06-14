@@ -1,12 +1,12 @@
 ---
 feature: "Dev Service"
 description: "Replace HttpDevService with valtron-coordinated DevService — watchers/builders/runners as TaskIterators, HttpServer runs inline"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["02-task-operators", "03-native-watching", "04-cargo-builder", "05-binary-runner", "06-native-proxy", "07-sse-reload"]
 estimated_effort: "medium"
 created: "2026-06-01"
-last_updated: "2026-06-14"
+last_updated: "2026-06-15"
 ---
 
 # Feature: Dev Service

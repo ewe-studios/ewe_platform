@@ -1,12 +1,12 @@
 ---
 feature: "Binary Runner"
 description: "BinaryRunnerTask manages std::process::Child lifecycle — spawns to background, uses Depends to park between state transitions"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["02-task-operators", "04-cargo-builder"]
 estimated_effort: "small"
 created: "2026-06-01"
-last_updated: "2026-06-14"
+last_updated: "2026-06-15"
 ---
 
 # Feature: Binary Runner

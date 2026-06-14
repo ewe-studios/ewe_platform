@@ -1,12 +1,12 @@
 ---
 feature: "Native Proxy"
 description: "Use foundation_http (HttpServer + HttpApp + Serve) for HTTP/1 proxy + SSE routing, with TunnelProxy for raw TCP tunneling on the same port"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["02-task-operators"]
 estimated_effort: "small"
 created: "2026-06-01"
-last_updated: "2026-06-14"
+last_updated: "2026-06-15"
 ---
 
 # Feature: Native Proxy

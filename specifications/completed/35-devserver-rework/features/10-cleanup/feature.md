@@ -1,12 +1,12 @@
 ---
 feature: "Cleanup"
 description: "Deprecate/remove crates/devserver, update workspace Cargo.toml, update templates/examples/bin/platform imports to use foundation_toolings"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["08-dev-service", "09-api-compat", "11-integration"]
 estimated_effort: "small"
 created: 2026-06-01
-last_updated: 2026-06-01
+last_updated: "2026-06-15"
 ---
 
 # Feature: Cleanup
