@@ -6,7 +6,28 @@ description = "Cross-platform VM testbed using QEMU/KVM for building and testing
 license = "MIT"
 
 [features]
-default = ["qemu"]
+
+default = ["vms"]
+
+# all things vms (QEMU/KVM + the VM-infrastructure deps)
+vms = [
+  "qemu",
+  "dep:foundation_netio",
+  "dep:ssh2",
+  "dep:indicatif",
+  "dep:tar",
+  "dep:flate2",
+  "dep:xz2",
+  "dep:dirs",
+  "dep:anyhow",
+  "dep:image",
+  "dep:libc",
+  "dep:chrono",
+  "dep:toml",
+  "dep:fs2",
+  "dep:sha2",
+  "dep:whoami",
+]
 
 # Linux: QEMU/KVM backend
 qemu = []
@@ -20,67 +41,75 @@ cli = ["dep:clap"]
 # All providers (for testing on a machine with both)
 all-providers = ["qemu", "utm"]
 
+# wasm32 test harness: browser (pure-Rust CDP/BiDi), Deno, Cloudflare Workers.
+wasm = [
+  "dep:clap",
+  "dep:walrus",
+  "dep:foundation_codegen",
+  "dep:foundation_wasm_ui",
+  "dep:foundation_http",
+  "dep:foundation_browser",
+  "dep:foundation_macros",
+  "dep:foundation_nostd",
+  "dep:tempfile",
+  "dep:portpicker",
+  "dep:tracing-subscriber",
+]
+
 [dependencies]
+# Shared across features.
 foundation_errstacks = { workspace = true }
 foundation_core = { workspace = true, features = ["multi"] }
-foundation_netio = { workspace = true, features = ["multi"] }
-
-# CLI
-clap = { version = "4", features = ["derive"], optional = true }
-
-# Networking / VM communication
-ssh2 = { version = "0.9", features = ["vendored-openssl"] }
-
-# Process management
 which = "7"
-
-# Progress / UX
-indicatif = "0.17"
-
-# Archive / compression
-tar = "0.4"
-flate2 = "1"
-xz2 = "0.1"
-
-# Auth / utils
 base64 = "0.22"
-dirs = "6"
 tracing = "0.1"
-
-# Serialization
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-
-# Error handling
-anyhow = "1"
 derive_more = { version = "2", features = ["display", "error", "from"] }
 
-# Image processing (screenshot validation)
-image = "0.25"
+# wasm feature — the wasm32 test harness (optional, enabled by `wasm`).
+walrus = { workspace = true, optional = true }
+foundation_codegen = { workspace = true, optional = true }
+foundation_wasm_ui = { workspace = true, features = ["embedded-js"], optional = true }
+foundation_http = { workspace = true, optional = true }
+foundation_browser = { workspace = true, optional = true }
+foundation_macros = { workspace = true, optional = true }
+foundation_nostd = { workspace = true, optional = true }
+portpicker = { workspace = true, optional = true }
+tempfile = { version = "3", optional = true }
+tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
 
-# Process checks (kill(pid, 0) for stale detection)
-libc = "0.2"
+# clap drives both the vms CLI (`cli`) and the wasm-testbed bin (`wasm`).
+clap = { version = "4", features = ["derive"], optional = true }
 
-# Time formatting (state timestamps)
-chrono = "0.4"
-
-# Config file parsing
-toml = "0.8"
-
-# Disk space checking (doctor command)
-fs2 = "0.4"
-
-# Checksums (export manifest SHA256)
-sha2 = "0.10"
-
-# Hostname detection (export manifest creator)
-whoami = "2"
+# vms feature — VM infrastructure deps (optional, enabled by `vms`).
+foundation_netio = { workspace = true, features = ["multi"], optional = true }
+ssh2 = { version = "0.9", features = ["vendored-openssl"], optional = true }  # SSH to guests
+indicatif = { version = "0.17", optional = true }  # progress UX
+tar = { version = "0.4", optional = true }          # archive
+flate2 = { version = "1", optional = true }         # gzip
+xz2 = { version = "0.1", optional = true }          # xz
+dirs = { version = "6", optional = true }           # paths
+anyhow = { version = "1", optional = true }         # vms error handling
+image = { version = "0.25", optional = true }       # screenshot validation
+libc = { version = "0.2", optional = true }         # kill(pid, 0) stale checks
+chrono = { version = "0.4", optional = true }       # state timestamps
+toml = { version = "0.8", optional = true }         # config parsing
+fs2 = { version = "0.4", optional = true }          # disk-space (doctor)
+sha2 = { version = "0.10", optional = true }        # export manifest checksums
+whoami = { version = "2", optional = true }         # export manifest creator
 
 [dev-dependencies]
 serial_test = "3"
 tempfile = "3"
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
 
 [[bin]]
 name = "testbed"
 path = "src/bin/testbed.rs"
 required-features = ["cli"]
+
+[[bin]]
+name = "wasm-testbed"
+path = "src/bin/wasm-testbed.rs"
+required-features = ["wasm"]

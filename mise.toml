@@ -84,7 +84,7 @@ echo "✓ WASM targets installed"
 [tasks."setup:playwright"]
 alias = "setup-playwright"
 description = "Install Playwright + chromium for the owned wasm-testbed web runner (spec-39 feature 12)"
-dir = "backends/foundation_wasm_testbed/integration"
+dir = "backends/foundation_testbed/integration"
 run = """
 echo "Installing Playwright (browser runner for wasm-testbed web)..."
 npm install
@@ -982,9 +982,9 @@ alias = "test-wasm-testbed-node"
 description = "Owned #[wasm_test] harness e2e under node (sample crate + ported JS-yield tests)"
 run = """
 echo "Owned wasm-testbed sample (node, filtered green subset)..."
-cargo run -p foundation_wasm_testbed -- node backends/foundation_wasm_testbed/integration/module --filter passes
+cargo run -p foundation_testbed --no-default-features --features wasm --bin wasm-testbed -- node backends/foundation_testbed/integration/module --filter passes
 echo "Ported foundation_core JS-yield tests (node)..."
-cargo run -p foundation_wasm_testbed -- node backends/foundation_core/integration/wasm_tests
+cargo run -p foundation_testbed --no-default-features --features wasm --bin wasm-testbed -- node backends/foundation_core/integration/wasm_tests
 echo "✓ owned node harness green"
 """
 
@@ -994,7 +994,7 @@ description = "Owned #[wasm_test] harness e2e in the browser (Playwright, headle
 depends = ["setup:playwright"]
 run = """
 echo "Owned wasm-testbed sample in the browser (headless chromium)..."
-cargo run -p foundation_wasm_testbed -- web backends/foundation_wasm_testbed/integration/module --filter passes --headless
+cargo run -p foundation_testbed --no-default-features --features wasm --bin wasm-testbed -- web backends/foundation_testbed/integration/module --filter passes --headless
 echo "✓ owned web harness green"
 """
 

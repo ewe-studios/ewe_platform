@@ -3356,13 +3356,20 @@ dependencies = [
  "derive_more",
  "dirs 6.0.0",
  "flate2",
+ "foundation_browser",
+ "foundation_codegen",
  "foundation_core",
  "foundation_errstacks",
+ "foundation_http",
+ "foundation_macros",
  "foundation_netio",
+ "foundation_nostd",
+ "foundation_wasm_ui",
  "fs2",
  "image",
  "indicatif 0.17.11",
  "libc",
+ "portpicker",
  "serde",
  "serde_json",
  "serial_test",
@@ -3372,6 +3379,9 @@ dependencies = [
  "tempfile",
  "toml 0.8.23",
  "tracing",
+ "tracing-subscriber",
+ "tracing-test",
+ "walrus",
  "which 7.0.3",
  "whoami",
  "xz2",
@@ -3428,32 +3438,6 @@ dependencies = [
  "toml_edit 0.22.27",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "foundation_wasm_testbed"
-version = "0.0.1"
-dependencies = [
- "clap",
- "derive_more",
- "foundation_browser",
- "foundation_codegen",
- "foundation_core",
- "foundation_errstacks",
- "foundation_http",
- "foundation_macros",
- "foundation_nostd",
- "foundation_wasm_ui",
- "portpicker",
- "serde",
- "serde_json",
- "serial_test",
- "tempfile",
- "tracing",
- "tracing-subscriber",
- "tracing-test",
- "walrus",
- "which 7.0.3",
 ]
 
 [[package]]

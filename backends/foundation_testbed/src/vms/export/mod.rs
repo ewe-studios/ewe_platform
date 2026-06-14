@@ -1,0 +1,281 @@
+//! VM Export — export running/stopped VMs as qcow2 + manifest images.
+//!
+//! Supports local export, shrink/optimization, and upload to R2/S3/Local/HTTP stores.
+//! Post-factum compression (gzip/xz) is available for maximum file size reduction.
+
+mod compress;
+mod manifest;
+mod shrink;
+mod store_upload;
+
+pub use compress::{Compression, compress_qcow2_with, decompress, ensure_decompressed, is_compressed};
+pub use manifest::ExportManifest;
+pub use shrink::{compress_qcow2, shrink_disk, size_comparison};
+pub use store_upload::upload_to_store;
+
+use std::path::{Path, PathBuf};
+
+use crate::vms::config::{self, get_profile, ImageStore, VmProfile, Result, TestbedError};
+use crate::vms::ssh;
+use crate::vms::state;
+
+/// Options for exporting a VM.
+#[derive(Debug, Default)]
+pub struct ExportOptions {
+    /// Local output path (default: `.build/export/<name>.qcow2`).
+    pub out: Option<PathBuf>,
+    /// Upload to a named image store.
+    pub store: Option<String>,
+    /// Version tag for the export.
+    pub version: String,
+    /// Include bootstrap marker (VM is pre-bootstrapped).
+    pub include_bootstrap: bool,
+    /// Clean up VM internal state before export.
+    pub clean: bool,
+    /// Zero-fill and compress qcow2 (slower, smaller file).
+    pub shrink: bool,
+    /// Post-factum compression algorithm (gzip/xz) applied after qemu-img -c.
+    pub compression: Compression,
+    /// Human-readable notes for the export.
+    pub notes: String,
+}
+
+/// Export a VM to a local file or upload to a store.
+pub fn export_vm(name: &str, opts: &ExportOptions) -> Result<PathBuf> {
+    let profile = get_profile(name).cloned()?;
+
+    // Step 1: Determine output path
+    let export_dir = opts
+        .out
+        .as_ref()
+        .map(|p| p.parent().unwrap_or(Path::new(".")).to_path_buf())
+        .unwrap_or_else(|| {
+            let dir = PathBuf::from(".build/export");
+            let _ = std::fs::create_dir_all(&dir);
+            dir
+        });
+
+    let output_name = opts
+        .out
+        .clone()
+        .unwrap_or_else(|| export_dir.join(format!("{}-{}.qcow2", name, opts.version)));
+
+    // Ensure output directory exists
+    if let Some(parent) = output_name.parent() {
+        std::fs::create_dir_all(parent).map_err(|e| TestbedError::Qcow2Error {
+            message: format!("creating export directory: {e}"),
+        })?;
+    }
+
+    // Step 2: Check if VM is running
+    let vm_state = state::load(name).ok();
+    let is_running = vm_state.as_ref().and_then(|s| s.pid).is_some();
+
+    println!("Exporting VM '{}' ({})...", profile.name, if is_running { "running" } else { "stopped" });
+
+    // Step 3: If shrink requested and VM is running, zero-fill before stopping
+    if opts.shrink && is_running {
+        println!("  Shrinking disk (fstrim + zero-fill)...");
+        let mut session = ssh::connect(&profile)?;
+        shrink_disk(&mut session, profile.os)?;
+    }
+
+    // Step 4: Stop VM if running
+    let was_running = is_running;
+    if is_running {
+        println!("  Stopping VM...");
+        stop_vm(&profile, &vm_state)?;
+    }
+
+    // Step 5: Copy disk image to a staging location for processing
+    let disk_path = profile.image_cache_path();
+    let staging = output_name.parent()
+        .map(|p| p.join(format!(".export-staging-{}-{}.qcow2", profile.name, std::process::id())))
+        .unwrap_or_else(|| output_name.with_extension("staging"));
+    println!("  Copying disk image...");
+    std::fs::copy(&disk_path, &staging).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("copying disk image: {e}"),
+    })?;
+
+    // Track which file is the current working copy during processing
+    let mut current_file = staging.clone();
+
+    // Step 6: If shrink requested, compress via qemu-img
+    if opts.shrink {
+        let qemu_compressed = current_file.with_extension("qcow2.shrink");
+        println!("  Compressing qcow2 (qemu-img)...");
+        compress_qcow2(&current_file, &qemu_compressed)?;
+        let _ = std::fs::remove_file(&current_file);
+        current_file = qemu_compressed;
+
+        let (orig, comp, ratio) = size_comparison(&disk_path, &current_file)?;
+        println!("  qemu-img size: {:.2} GB -> {:.2} GB ({:.1}%)",
+            orig as f64 / 1_073_741_824.0,
+            comp as f64 / 1_073_741_824.0,
+            ratio);
+    }
+
+    // Apply post-factum compression if requested
+    if opts.compression != Compression::None {
+        let final_compressed = current_file.with_extension(format!("qcow2{}", opts.compression.extension()));
+        println!("  Applying {} compression...", opts.compression.extension().trim_start_matches('.'));
+        compress_qcow2_with(&current_file, &final_compressed, opts.compression)?;
+        if current_file != staging {
+            let _ = std::fs::remove_file(&current_file);
+        } else {
+            let _ = std::fs::remove_file(&staging);
+        }
+        current_file = final_compressed;
+
+        let (orig, comp, ratio) = size_comparison(&disk_path, &current_file)?;
+        println!("  Final size: {:.2} GB -> {:.2} GB ({:.1}%)",
+            orig as f64 / 1_073_741_824.0,
+            comp as f64 / 1_073_741_824.0,
+            ratio);
+    }
+
+    // Rename final result to output path
+    std::fs::rename(&current_file, &output_name).map_err(|e| TestbedError::Qcow2Error {
+        message: format!("moving export to {output_name:?}: {e}"),
+    })?;
+
+    // Step 7: Detect installed tools if VM was running
+    let installed_tools = if was_running {
+        let mut session = ssh::connect(&profile).ok();
+        session.as_mut().and_then(|s| detect_installed_tools(s, profile.os).ok())
+            .unwrap_or_default()
+    } else {
+        std::collections::HashMap::new()
+    };
+
+    let bootstrap_version = if opts.include_bootstrap { 3 } else { 0 };
+
+    // Step 8: Generate and write manifest
+    let manifest = ExportManifest::new(
+        &profile,
+        &output_name,
+        &opts.version,
+        installed_tools,
+        bootstrap_version,
+        &opts.notes,
+    )?;
+    manifest.write_to(&output_name)?;
+    println!("  Manifest written: {}", output_name.with_extension("qcow2.manifest.json").display());
+
+    // Step 9: Upload to store if specified
+    if let Some(ref store_name) = opts.store {
+        let store = resolve_store(store_name)?;
+        let manifest_path = output_name.with_extension("qcow2.manifest.json");
+        println!("  Uploading to store '{}'...", store_name);
+        upload_to_store(&store, &output_name, &manifest_path)?;
+    }
+
+    // Print import instructions
+    let env_key = format!("TESTBED_IMAGE_{}", name.to_uppercase().replace('-', "_"));
+    println!("\nExport complete: {}", output_name.display());
+    if let Some(ref store_name) = opts.store {
+        println!("  Also uploaded to store: {store_name}");
+        println!("  Import: add [[image_stores]] entry for '{store_name}' in testbed.toml, then:");
+        println!("    ewe_platform testbed import {name}");
+    } else {
+        println!("  Import (env override): export {env_key}={}", output_name.display());
+        println!("  Import (adopt): ewe_platform testbed adopt {name} --disk {}", output_name.display());
+    }
+
+    Ok(output_name)
+}
+
+fn stop_vm(profile: &VmProfile, vm_state: &Option<state::VmState>) -> Result<()> {
+    let Some(s) = vm_state else {
+        return Err(TestbedError::VmNotRunning { name: profile.name.to_string() });
+    };
+
+    // Try graceful shutdown via monitor socket
+    if s.monitor_socket.is_empty() {
+        if let Some(pid) = s.pid {
+            unsafe { libc::kill(pid as i32, libc::SIGTERM) };
+        }
+        return Ok(());
+    }
+
+    use std::io::{Read, Write};
+    use std::os::unix::net::UnixStream;
+
+    if let Ok(mut stream) = UnixStream::connect(&s.monitor_socket) {
+        let _ = stream.write_all(b"system_powerdown\n");
+        let mut response = String::new();
+        let _ = stream.read_to_string(&mut response);
+    }
+
+    // Wait briefly for process to exit
+    if let Some(pid) = s.pid {
+        for _ in 0..30 {
+            std::thread::sleep(std::time::Duration::from_millis(500));
+            if unsafe { libc::kill(pid as i32, 0) } != 0 {
+                return Ok(()); // Process exited
+            }
+        }
+        // Force kill after timeout
+        unsafe { libc::kill(pid as i32, libc::SIGKILL) };
+    }
+
+    // Clean up state
+    let _ = state::delete(profile.name);
+
+    Ok(())
+}
+
+fn resolve_store(name: &str) -> Result<ImageStore> {
+    config::get_image_store(name).ok_or_else(|| TestbedError::Qcow2Error {
+        message: format!("image store '{name}' not found in testbed.toml"),
+    })
+}
+
+/// Detect installed tools via SSH.
+fn detect_installed_tools(
+    session: &mut ssh::VmSession,
+    os: crate::vms::config::GuestOs,
+) -> Result<std::collections::HashMap<String, String>> {
+    let mut tools = std::collections::HashMap::new();
+
+    match os {
+        crate::vms::config::GuestOs::Linux | crate::vms::config::GuestOs::MacOS => {
+            // rustc
+            if let Ok(out) = ssh::exec(session, "rustc --version 2>/dev/null || echo MISSING")
+                && let Some(ver) = out.trim().strip_prefix("rustc ") {
+                    tools.insert("rust".to_string(), ver.trim().to_string());
+                }
+            // node
+            if let Ok(out) = ssh::exec(session, "node --version 2>/dev/null || echo MISSING")
+                && let Some(ver) = out.trim().strip_prefix('v') {
+                    tools.insert("node".to_string(), ver.to_string());
+                }
+            // nu
+            if let Ok(out) = ssh::exec(session, "nu --version 2>/dev/null || echo MISSING")
+                && let Some(ver) = out.split_whitespace().last() {
+                    tools.insert("nu".to_string(), ver.to_string());
+                }
+            // mise
+            if let Ok(out) = ssh::exec(session, "mise --version 2>/dev/null || echo MISSING")
+                && let Some(ver) = out.trim().lines().next() {
+                    tools.insert("mise".to_string(), ver.trim().to_string());
+                }
+        }
+        crate::vms::config::GuestOs::Windows => {
+            if let Ok((out, _)) = ssh::exec_ps_windows(session,
+                "try { (rustc --version).Split(' ')[1] } catch { 'MISSING' }",
+            )
+                && out.trim() != "MISSING" {
+                    tools.insert("rust".to_string(), out.trim().to_string());
+                }
+            if let Ok((out, _)) = ssh::exec_ps_windows(session,
+                "try { (node --version).TrimStart('v') } catch { 'MISSING' }",
+            )
+                && out.trim() != "MISSING" {
+                    tools.insert("node".to_string(), out.trim().to_string());
+                }
+        }
+    }
+
+    Ok(tools)
+}
