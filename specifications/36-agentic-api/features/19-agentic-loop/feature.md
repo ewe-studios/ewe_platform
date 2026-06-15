@@ -17,6 +17,36 @@ tasks:
 
 # Feature 19: Agentic Loop
 
+> **Hermes turn-loop analysis (TODO resolved, 2026-06-15).** Hermes's `run_conversation()` does:
+> generate task_id → append user message → build/reuse cached system prompt → check if preflight
+> compression needed (>50% context) → build messages → inject ephemeral prompt layers (budget warnings,
+> context pressure) → apply prompt caching markers (Anthropic) → interruptible API call → parse
+> (tool_calls → execute + loop back; text → persist + flush memory + return).
+>
+> **What we adopt (two ideas worth integrating):**
+>
+> 1. **Preflight context compression (new OD-19-6).** Currently our loop only handles context overflow
+>    **reactively** (F02 `RetryWithReducedContext` in `handle_error` — after the model call already
+>    failed). Hermes does it **proactively**: before the model call, check if the assembled context
+>    exceeds a threshold of the model's context window. If so, compress and re-assemble. Crucially,
+>    **our memory hierarchy (F15) already IS a compression layer** — reflection summaries and distilled
+>    observations are compressed representations of raw messages. Preflight compression should prefer
+>    swapping raw messages for their memory-tier equivalents (cheap, already computed) over on-the-fly
+>    summarization (expensive, what Hermes does). See OD-19-6 for the full cascade.
+>
+> 2. **Ephemeral prompt layers (new OD-19-7).** Hermes injects budget warnings and context-pressure
+>    signals as ephemeral system prompt additions. We can do the same: when context usage is high
+>    (e.g. >70%), inject a brief system-level note like "Context is at 78% capacity — prefer concise
+>    responses and avoid requesting large tool outputs." This nudges the model toward shorter responses
+>    and more selective tool use, reducing the chance of hitting the ceiling. The injection point is
+>    F14's input processor pipeline (a lightweight `ContextPressureProcessor` that reads `TokenLedger`
+>    and conditionally prepends the ephemeral layer). Removed after the turn — never persisted.
+>
+> **What we already cover:** interruptible API call (OD-19-3 mid-gen steering), prompt caching
+> (provider-level concern in F12, not loop-level), task_id generation (scru128 in F06), tool-call
+> loop (inner loop in Decision 11). These map 1:1 to our existing design.
+
+
 > **Review status (2026-06-14) — self-review against code (subagent unavailable):**
 > 1. **The stream contract is F03's, and F03 already RESOLVED Decision 11's "this is all stupid" TODO**
 >    (Decision 11 line 145). F03 pins it:
@@ -193,7 +223,9 @@ see list.)
    `SessionRecord::FailedAction`, `Pending = AgentProgress`) — verify the real `Spawner` type.
 2. `Initializing` (load context / F20 resume) → `Init`.
 3. `OuterBoundary`: FollowUpQueue drain (F13) → continue or `Ending`.
-4. `InnerAssemble`: PriorityQueue front-drain + F11 cancel on steering; F14 input pipeline.
+4. `InnerAssemble`: PriorityQueue front-drain + F11 cancel on steering; F14 input pipeline
+   (includes `ContextPressureProcessor` — OD-19-7); F16 `assemble()`; **preflight compression check**
+   (OD-19-6): if `context.token_count > threshold * model.context_window`, compress + re-assemble.
 5. `InnerGenerate` (tight in-line): pump F12 stream step-wise; emit `Ready(Conversation)` +
    `Pending(Generating)`; mid-gen priority check (OD-19-3); on done call **`F17 LoopDetector::check()`
    synchronously** and redirect/escalate inline if a loop; else extract tool calls.
@@ -238,6 +270,35 @@ see list.)
 - **OD-19-5 — Summary record:** emit `SessionRecord::Summary{ message_count, usage }` at end (F01 has the
   variant; usage = `TokenSnapshot` per F04). Confirmed.
 
+- **OD-19-6 — preflight context compression (from Hermes analysis).** Before the model call, check if
+  the assembled context exceeds `preflight_compression_threshold` (default 0.85) of the model's context
+  window. If so, proactively compress and re-assemble — avoids a wasted round-trip that will fail with
+  context overflow. Check lives in `InnerAssemble` after `F16.assemble()`, before `InnerGenerate`.
+  This is the **proactive** counterpart to F02's **reactive** `RetryWithReducedContext`.
+
+  **Compression strategy — memory IS compression.** F15's memory hierarchy already produces compressed
+  representations of the conversation: reflection summaries, distilled observations, semantic recall.
+  Preflight compression should **lean on what memory already has** rather than re-summarizing on the
+  fly. The compression cascade:
+  1. **Replace older raw messages with their memory-tier equivalents.** If F15 has already distilled a
+     block of messages into a reflection summary, swap the raw messages for the summary in the assembled
+     context. The information is preserved (compressed, not lost).
+  2. **Drop low-relevance semantic recall** (F16 fills remaining budget with recalled context — these
+     are the first to go when space is tight).
+  3. **Truncate verbose tool results** (keep the first N lines / structured summary).
+  4. **Only as a last resort:** invoke F15 distillation synchronously to summarize a block that hasn't
+     been distilled yet (this is the expensive path Hermes takes; our memory tier means we rarely need it).
+
+  Config: `AgentConfig.preflight_compression_threshold: f32` (0.0 = disabled, 0.85 = default).
+  Rec: implement.
+
+- **OD-19-7 — ephemeral context-pressure prompt layer (from Hermes analysis).** When context usage
+  exceeds a warning threshold (e.g. >70%), inject a brief ephemeral system-level note nudging the model
+  toward concise responses and selective tool use. Implemented as a lightweight F14 input processor
+  (`ContextPressureProcessor`) that reads `TokenLedger` and conditionally prepends the layer. The layer
+  is ephemeral — removed after the turn, never persisted to the session. Config:
+  `AgentConfig.context_pressure_threshold: f32` (0.0 = disabled, 0.70 = default). Rec: implement.
+
 ## Target Files
 
 - `backends/foundation_ai/src/agentic/loop.rs` (new) — `AgentLoop`, `AgentLoopState`
@@ -268,4 +329,6 @@ cargo test  -p foundation_ai -- agentic::loop
   PriorityQueue interrupts mid-generation with front-injection; FollowUpQueue continues; F14 processors,
   F15 memory, F17 detection, F02 circuit breaker all wired; waits via `Depends` (no spin); the dead
   `AgentEvent` enum is NOT implemented; builds native + wasm.
-- OD-19-1..5 resolved (OD-19-2/27-3 flagged); fundamentals authored.
+- Preflight context compression (OD-19-6) proactively compresses before model call when context >85%.
+- Ephemeral context-pressure layer (OD-19-7) nudges model toward concise output when context >70%.
+- OD-19-1..7 resolved; fundamentals authored.
