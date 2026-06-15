@@ -59,7 +59,10 @@ impl Validate for OneOfValidator {
             } else {
                 ValidationErrorKind::OneOfMultipleValid
             };
-            Err(ValidationErrorBuilder::new(instance_path.materialize(), Location::new()).build(kind))
+            Err(
+                ValidationErrorBuilder::new(instance_path.materialize(), Location::new())
+                    .build(kind),
+            )
         }
     }
 

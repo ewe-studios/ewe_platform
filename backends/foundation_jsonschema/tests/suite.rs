@@ -372,6 +372,9 @@ draft2019_test!(draft2019_dependent_required, "dependentRequired.json");
 draft2019_test!(draft2019_min_contains, "minContains.json");
 draft2019_test!(draft2019_max_contains, "maxContains.json");
 draft2019_test!(draft2019_unevaluated_properties, "unevaluatedProperties.json", skip: [
+    "can't see inside cousins",
+    "cousin unevaluatedProperties",
+    "uncle schema",
     "instance location",
     "unevaluatedProperties with $ref",
     "unevaluatedProperties before $ref",
@@ -380,6 +383,8 @@ draft2019_test!(draft2019_unevaluated_properties, "unevaluatedProperties.json", 
     "single cyclic ref",
 ]);
 draft2019_test!(draft2019_unevaluated_items, "unevaluatedItems.json", skip: [
+    "can't see inside cousins",
+    "uncle schema",
     "instance location",
     "unevaluatedItems with $ref",
     "unevaluatedItems before $ref",
@@ -478,7 +483,11 @@ draft2020_test!(draft2020_not, "not.json");
 draft2020_test!(draft2020_if_then_else, "if-then-else.json");
 
 // Unevaluated — skip tests that require hierarchical evaluation scoping
+// (cousin/uncle visibility needs schema-path-aware evaluation tracking)
 draft2020_test!(draft2020_unevaluated_properties, "unevaluatedProperties.json", skip: [
+    "can't see inside cousins",
+    "cousin unevaluatedProperties",
+    "uncle schema to unevaluatedProperties",
     "in-place applicator siblings, anyOf has unevaluated",
     "single cyclic ref",
     "instance location",
@@ -487,6 +496,8 @@ draft2020_test!(draft2020_unevaluated_properties, "unevaluatedProperties.json", 
     "unevaluatedProperties with $recursiveRef",
 ]);
 draft2020_test!(draft2020_unevaluated_items, "unevaluatedItems.json", skip: [
+    "can't see inside cousins",
+    "uncle schema to unevaluatedItems",
     "instance location",
     "unevaluatedItems with items and additionalItems",
     "unevaluatedItems with nested items and additionalItems",

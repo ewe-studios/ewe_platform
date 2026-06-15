@@ -103,8 +103,7 @@ impl ValidationContext {
 
     /// Mark an array index as evaluated (for unevaluatedItems tracking).
     pub fn mark_item_evaluated(&mut self, index: usize) {
-        self.evaluated_items
-            .insert((self.schema_depth, index));
+        self.evaluated_items.insert((self.schema_depth, index));
     }
 
     /// Check if an array index was evaluated at the current schema depth.
