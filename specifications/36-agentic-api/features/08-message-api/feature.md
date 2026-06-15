@@ -27,7 +27,7 @@ tasks:
 >    `Broadcaster::broadcast` fan-out/cleanup. `subscribe()` returns mpp `Receiver` (drop Decision 02's
 >    `Arc<ConcurrentQueue>`). (OD-08-1 = build commitment.)
 > 3. **Reads use F06's `scan_documents`/`scan_documents_from`** (`Document`-returning, carry `id` +
->    promoted columns) — NOT `scan`/`scan_all` (return `V`, no id). `StoredRecord.id` needs them.
+>    promoted columns) — NOT `scan`/`scan_all` (return `V`, no id). `SessionRecord.id` needs them.
 > 4. **`semantic_search` hydration:** F28 `query` returns id+score only; F06 has no `get` — **add F06
 >    `get_many(ids) -> Vec<Document>`** (or accept N `scan_from(id,1)`). (OD-08-10.)
 > 5. **flush task type is `SpawnInfo`** (not `Entry`); the periodic trigger is `TaskStatus::Delayed(5s)`;
@@ -71,10 +71,10 @@ struct MessageInner {
 
 impl MessageApi {
     pub fn append(&self, record: SessionRecord);                         // buffered, returns immediately
-    pub fn recent(&self, n: usize) -> Vec<StoredRecord>;                 // DocumentStore.scan
-    pub fn all(&self) -> impl Iterator<Item = StoredRecord>;             // scan_all
-    pub fn scan_from(&self, id: &Scru128, n: usize) -> Vec<StoredRecord>;// F06 temporal cursor
-    pub fn semantic_search(&self, query: &str, k: usize) -> Vec<StoredRecord>; // embed + VectorStore.query(ns)
+    pub fn recent(&self, n: usize) -> Vec<SessionRecord>;                 // DocumentStore.scan
+    pub fn all(&self) -> impl Iterator<Item = SessionRecord>;             // scan_all
+    pub fn scan_from(&self, id: &Scru128, n: usize) -> Vec<SessionRecord>;// F06 temporal cursor
+    pub fn semantic_search(&self, query: &str, k: usize) -> Vec<SessionRecord>; // embed + VectorStore.query(ns)
     pub fn flush(&self) -> Result<(), AgenticError>;                     // drain buffer → disk (+ index)
     pub fn subscribe(&self) -> Receiver<MessageEvent>;                   // pub/sub
 }
@@ -164,7 +164,9 @@ valtron tasks; scru128 time-ordering for replay. (Task — see list.)
   (skip pure tool-call args?). Rec: embed user/assistant text + observation/reflection; skip raw blobs.
       Good
 
-- **OD-08-5 — StoredRecord shape:** `{ id: Scru128, record: SessionRecord, created_at }`. Confirm.
+- **OD-08-5 — SessionRecord carries its own id:** no wrapper needed. `SessionRecord` variants carry
+  their scru128 id + timestamp (F01). The Message API returns `SessionRecord` directly from
+  `recent()`/`scan_from()`/`all()`/`semantic_search()`.
 
 ## Target Files
 

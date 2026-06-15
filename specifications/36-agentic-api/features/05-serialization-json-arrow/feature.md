@@ -64,8 +64,8 @@ Arrow schema (messages):
 ```rust
 pub trait ArrowSerializable {
     fn arrow_schema() -> arrow::datatypes::Schema;
-    fn to_record_batch(records: &[StoredRecord]) -> Result<RecordBatch, SerError>;
-    fn from_record_batch(batch: &RecordBatch) -> Result<Vec<StoredRecord>, SerError>;
+    fn to_record_batch(records: &[SessionRecord]) -> Result<RecordBatch, SerError>;
+    fn from_record_batch(batch: &RecordBatch) -> Result<Vec<SessionRecord>, SerError>;
 }
 ```
 
