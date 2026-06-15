@@ -3,7 +3,7 @@ feature: "Loop Detection — two-tier (inline exact/SimHash/tool-call + backgrou
 description: "Two-tier LLM repetition loop detection: INLINE (exact, fuzzy SimHash via ahash, sorted-key tool-call patterns — microseconds, in F19's tight loop) + BACKGROUND (semantic embedding cosine similarity — valtron task parked via Depends(QueueReadiness) on a shared ConcurrentQueue, steers via F13 PriorityQueue on detection, zero CPU while idle). Redirect from F15 memory, escalate (model switch / temperature bump), terminate after max_redirects"
 status: "pending"
 priority: "high"
-depends_on: ["01-message-model", "15-memory-hierarchy"]
+depends_on: ["01-message-model", "13-steering-queues-depends", "15-memory-hierarchy", "20-agent-session-api"]
 estimated_effort: "medium"
 created: 2026-06-14
 last_updated: 2026-06-14

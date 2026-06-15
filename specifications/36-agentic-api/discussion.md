@@ -618,3 +618,32 @@ open items. Applying to F00/F01 now and rolling through the rest as I touch each
    - **`TwoStepJson`**: first call generates raw text summary; second call (can be even smaller model)
      extracts structured entries via JSON schema. More reliable but 2× cost/latency.
    Both implemented; selected at runtime per `MemoryConfig.parse_strategy`.
+
+## M. Fresh review resolutions (2026-06-15)
+
+8 gaps from a fresh-eyes review. All resolved:
+
+1. **`send_async_trait` macro (critical):** F00e owns it — must build the proc-macro before any
+   consumer feature (F07, F28, etc.) lands. It wraps `#[async_trait]` on native, adds `SendWrapper`
+   on single-threaded wasm. F00e is Phase 0 — lands before Phase 1.
+
+2. **F08 depends on Phase 3 vectors (important):** Fixed — removed F28/F31 from F08's `depends_on`.
+   Core append/flush/pub-sub works without vectors. `semantic_search` is gated on optional vector
+   feature.
+
+3. **F14↔F20↔F19 circular dep (minor):** Fixed — removed F20 from F14's `depends_on`. F14 adds
+   extension methods to `AgentSession` but doesn't need F20 to exist.
+
+4. **`foundation_cedar` doesn't exist (important):** NOT A GAP — `foundation_cedar` crate exists at
+   `backends/foundation_cedar`. Agent missed it.
+
+5. **F09→F28→F25 chain (minor):** Fixed — F09's register hook depends on F24 (flat index), not F28→F25.
+   F28 no longer hard-depends on F25 (IVF/HNSW) — flat index is enough for in-memory.
+
+6. **F17 missing F20 dep (minor):** Fixed — added F20 to F17's `depends_on` (uses `AgentSession.steer()`).
+
+7. **Broadcaster design conflict F08 vs F14 (important):** Fixed — F08 now references F14's bounded
+   fan-out broadcaster. No duplicate design.
+
+8. **Dual VectorStore location (minor):** Fixed — `foundation_vectors` owns the trait/types.
+   `foundation_ai` uses it via optional feature-gated dep (no duplicate module).

@@ -1,9 +1,9 @@
 ---
 feature: "VectorStore trait + in-memory backend (namespace-scoped)"
-description: "The VectorStore trait in foundation_db (insert/query/delete with session namespace scoping + dimension enforcement), backed by foundation_vectors algorithms, with an in-memory backend as the default + universal fallback"
+description: "The VectorStore trait + in-memory backend (insert/query/delete with session namespace scoping + dimension enforcement), lives in foundation_vectors (Item #16). FlatIndex from F24; swappable to IVF/HNSW (F25) via config. foundation_db re-exports for convenience."
 status: "pending"
 priority: "high"
-depends_on: ["24-foundation-vectors-core", "25-foundation-vectors-ivf-hnsw"]
+depends_on: ["24-foundation-vectors-core"]
 estimated_effort: "medium"
 created: 2026-06-14
 last_updated: 2026-06-14

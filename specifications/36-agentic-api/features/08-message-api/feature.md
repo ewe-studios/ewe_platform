@@ -1,9 +1,9 @@
 ---
-feature: "Message API — write-buffered append-only store with pub/sub + vector index"
-description: "The session's authoritative append-only record log: Arc<MessageInner> over DocumentStore, a write buffer + flush valtron task, &self pub/sub for listeners, vector indexing via EmbeddingProvider+VectorStore, and recent/all/scan_from/semantic_search"
+feature: "Message API — write-buffered append-only store with pub/sub + optional vector index"
+description: "The session's authoritative append-only record log: Arc<MessageInner> over DocumentStore, a write buffer + flush valtron task, &self pub/sub for listeners, optional vector indexing via EmbeddingProvider+VectorStore (gated; core append/flush/pub-sub works without vectors), and recent/all/scan_from/semantic_search"
 status: "pending"
 priority: "high"
-depends_on: ["01-message-model", "06-documentstore-trait-sql-memory", "28-vectorstore-trait-inmemory", "31-embedding-provider"]
+depends_on: ["01-message-model", "06-documentstore-trait-sql-memory"]
 estimated_effort: "large"
 created: 2026-06-14
 last_updated: 2026-06-14
@@ -91,9 +91,9 @@ impl MessageApi {
 
 ### `&self` pub/sub — CRIT-02 fix
 
-`Broadcaster<T>` needs `&mut self` (verified), unusable behind `Arc`. Resolve with a **`&self`-safe**
-mechanism: a `ConcurrentQueue<Sender>` registry or a small `ThreadSafeBroadcaster` (interior
-`Mutex<Vec<Sender>>` + `&self subscribe/broadcast`). Events:
+Pub/sub uses F14's **bounded fan-out broadcaster** (per-subscriber `ConcurrentQueue`, `try_push` never
+blocks, eviction on `max_retries` consecutive failures). Lives in `foundation_core::synca::mpp`. The
+Message API holds it via `Arc`, so `subscribe()` and `broadcast()` are `&self`. Events:
 
 ```rust
 pub enum MessageEvent { Appended { id: Scru128, variant: &'static str }, Flushed { count: usize }, Error { msg: String } }
