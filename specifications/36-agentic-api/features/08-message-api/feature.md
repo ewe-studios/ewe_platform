@@ -39,7 +39,9 @@ tasks:
 >    `MessageEvent::Error` is emitted — never blocks durability (OD-08-9).
 > 7. **Memory snapshots** (`SessionRecord::{WorkingMemory,Observation,Reflection}`) traverse the **same**
 >    append→flush→index path with `record_type` set. **`foundation_ai::agentic` module** creation is
->    owned by F01/F03 (precondition). Crash-before-flush loss is accepted (WAL deferred) — stated.
+>    owned by F01/F03 (precondition). **WAL is target-gated** (hole #15): native uses `cacache` for
+>    crash-safe WAL; wasm uses an in-memory buffer or a Cloudflare-native alternative (KV/D1-backed).
+>    No WAL on wasm = accept crash-before-flush loss (F08 OD-08-3 already documents this).
 
 > Implements Decision 02. The **authoritative, append-only audit log** of every session record
 > (`SessionRecord` from F01). Never compacted. Backed by `DocumentStore` (F06), indexed in

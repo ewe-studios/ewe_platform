@@ -56,6 +56,11 @@ backends/foundation_vectors/
     ├── flat.rs     # flat-scan top-k (sequential)
     ├── store.rs    # VectorStore trait + VectorEntry + in-memory backend (moved from foundation_db, Item #16)
     └── sqrt.rs     # SqrtStrategy enum + 3 implementations: NormalizedVectors, Libm, FastInvSqrt (OD-24-5)
+
+// Also in foundation_ai (hole #14):
+backends/foundation_ai/src/agentic/vectors.rs  // feature-gated VectorStore module
+    // If the vector store feature is not enabled, it's simply not used.
+    // The Message API's semantic indexing is optional — the agentic loop works without it.
 ```
 
 WASM-safe: no `fjall`/`memmap2`/`rayon` in the default build. **No rayon at all (Item #16):** rayon

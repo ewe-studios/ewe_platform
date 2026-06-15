@@ -569,3 +569,47 @@ open items. Applying to F00/F01 now and rolling through the rest as I touch each
 - **F29:** OD-29-5 reuse the existing libSQL/SQLite connection layer.
 - **F31:** OD-31-5 **sentence-level chunking now** (rust crate; whole-text fallback where unavailable),
   matching F26 nlprule.
+- **F32:** OD-32-1 fff integration details.
+
+## L. Hole analysis resolutions (2026-06-15)
+
+8 potential holes surfaced by the spec review. All resolved:
+
+1. **#4 — Memory trigger race (critical): RESOLVED → `is_generating: AtomicBool` gate** in
+   `MemoryInner`. `check_triggers` returns `MemoryAction::None` if `is_generating` is true. Generation
+   task sets it to true on start, false on completion. Prevents duplicate/overlapping observations.
+
+2. **#7 — Broadcaster deadlock risk (critical): RESOLVED → never block, try-push + skip.** Broadcaster
+   attempts `try_push` on each subscriber's queue. If full, increment failure counter and move to next
+   subscriber. After all pushed, advance. Optional brief wait (micro/nanoseconds) before retrying a
+   skipped subscriber, but never block the hot path. Eviction fires after `max_retries` consecutive failures.
+
+3. **#8 — MemoryCoordinator dual-write atomicity (important): RESOLVED → DocumentStore first, always.**
+   Audit log (DocumentStore) is written first. Only on success is the cache (MemoryStore) updated. On
+   cache write failure: warn + retry on next access (the fallback scan already handles this). On audit
+   write failure: do NOT update the cache — cache becomes stale until rebuild from the DocumentStore.
+   Worst case: MemoryStore rebuilds from what was safely persisted by DocumentStore.
+
+4. **#13 — async ToolImpl → valtron bridge (important): NOT A GAP.** Valtron already has
+   `FutureTask` (`executors/future_task.rs`) — wraps any `Future` into a `TaskIterator` using a no-op
+   waker. `ToolImpl::execute` async future → `FutureTask::new(tool.execute(args))` → regular valtron task.
+   Cancellation = drop the `FutureTask` → future dropped → Rust cleanup fires.
+
+5. **#14 — VectorStore circular dependency (important): RESOLVED → `VectorStore` module in
+   `foundation_ai`, feature-gated.** If the vector store feature is not enabled, it's simply not used.
+   The Message API's semantic indexing is optional — the agentic loop works without it.
+
+6. **#15 — cacache WAL is native-only (important): RESOLVED → target-gated WAL.** Native uses
+   `cacache` for crash-safe WAL. Wasm uses an in-memory buffer or a Cloudflare-native alternative
+   (KV/D1-backed). No WAL on wasm = accept crash-before-flush loss (F08 OD-08-3 already documents this).
+
+7. **#16 — SemanticLoopTask embedder async confusion (important): NOT A GAP.** The semantic task is a
+   valtron `TaskIterator` — it spawns embedding work as a valtron sub-task (via `FutureTask` for async
+   embedders, or sync execution for local models). The semantic task parks via `Depends(QueueReadiness)`
+   on a shared result queue, wakes when results arrive, computes cosine, steers via PriorityQueue.
+   No async confusion — valtron handles the async bridge internally.
+
+8. **#17 — Memory model parsing strategy (important): DISCUSS.** The memory model generates
+   observations/reflections via text. Need a strategy to parse into structured `Vec<ObservationEntry>` /
+   `Vec<ReflectionEntry>`. Small models are the target for generation. Need to decide: JSON schema output
+   (structured), text parsing with regex/LLM follow-up, or a hybrid. See hole #17 discussion below.

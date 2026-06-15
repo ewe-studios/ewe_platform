@@ -54,6 +54,7 @@ struct MemoryInner {
     ledger: TokenLedger,                     // F04 — rolling() trigger + reset_rolling()
     router: ProviderRouter,                  // F12 — resolves the memory model
     config: MemoryConfig,
+    is_generating: AtomicBool,               // gate: prevent concurrent generation (hole #4)
 }
 
 pub struct MemoryConfig {

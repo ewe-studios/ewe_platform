@@ -138,10 +138,14 @@ impl<T: Clone> Broadcaster<T> {
     /// Create a new subscriber. Returns the receiver end (the queue).
     pub fn subscribe(&self, capacity: usize) -> Arc<ConcurrentQueue<T>>;
 
-    /// Fan out to all subscribers. Paces by the SLOWEST consumer:
-    /// tries to push to every subscriber before advancing.
+    /// Fan out to all subscribers. NEVER blocks — try-push only.
     ///
-    /// If a subscriber's queue is full (push returns Err), increment its failure count.
+    /// For each subscriber, attempt `try_push`. If the queue is full, increment
+    /// `consecutive_failures` and move to the next subscriber. After pushing to
+    /// all, advance. Optional brief wait (micro/nanoseconds) before re-trying a
+    /// skipped subscriber, but never block the hot path (prevents single-threaded
+    /// wasm deadlock where the consumer can't drain while broadcaster holds the lock).
+    ///
     /// After `max_retries` consecutive failures, EVICT that subscriber from the list
     /// (the queue is closed so the extension task sees PopError::Closed and cleans up).
     /// Healthy consumers are never blocked by a dead/slow one beyond the retry window.
@@ -151,7 +155,8 @@ impl<T: Clone> Broadcaster<T> {
 
 **Backpressure policy:**
 - **Per-subscriber bounded queue** — each `subscribe(capacity)` creates a `ConcurrentQueue::bounded(capacity)`.
-- **Slowest consumer paces delivery** — broadcaster pushes to ALL subscribers before advancing. All must receive.
+- **Never blocks** — `try_push` only. If a queue is full, increment failure counter, skip to next.
+  Optional brief wait before retrying skipped subscribers, but the broadcaster never holds up the hot path.
 - **Delivery tracking** — each slot tracks `delivered_up_to` (the index of the last successfully delivered event).
 - **Eviction on max-retry failure** — if a subscriber's queue is full and `consecutive_failures >= max_retries`, the broadcaster **evicts** that subscriber: closes its queue and removes it from the list. The extension task sees `PopError::Closed` and cleans up. Healthy consumers continue unblocked.
 - **Success resets the counter** — a successful push resets `consecutive_failures` to 0.

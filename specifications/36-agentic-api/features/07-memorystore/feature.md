@@ -127,8 +127,14 @@ config (OD-07-2 — KV path is sufficient; fjall is a perf-only opt-in). Keys `{
 **`MemoryCoordinator`** (held by `AgentSession`, F20) owns `{ MemoryStore (cache), DocumentStore (audit
 log) }` and is the only thing that bridges them:
 
-- **Dual-write:** when the loop (F15) produces a memory record, the coordinator appends it to the
-  `DocumentStore` (audit/replay) **and** `set`s it on the `MemoryStore` (latest pointer).
+- **Dual-write (audit first, always):** when the loop (F15) produces a memory record, the coordinator
+  appends it to the `DocumentStore` (audit/replay) **first**. Only on DocumentStore success does it
+  `set` on the `MemoryStore` (latest pointer). **Ordering is strict:**
+  - DocumentStore succeeds, MemoryStore fails → warn + retry on next access (the fallback scan handles
+    this). The audit trail is intact.
+  - DocumentStore fails → **do NOT** update MemoryStore. The cache becomes stale until rebuilt from the
+    DocumentStore. Worst case: MemoryStore rebuilds from what was safely persisted.
+  - MemoryStore is a **derived cache, never the sole record**. (Hole #8 resolved.)
 - **Hydrate + fallback on resume:** `MemoryStore.hydrate()` is the fast path; if a tier is missing (e.g.
   crash before the cache write), the coordinator falls back to a `DocumentStore` scan filtered by
   `record_type` for the latest record of that tier, then **re-populates** the cache. So MemoryStore is a
