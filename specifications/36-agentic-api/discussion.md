@@ -21,8 +21,8 @@ you decide → I update the affected features → I ask before moving on. Status
 |---|------|---------|--------|
 | 1 | **Async-first traits + Send/?Send on wasm** — ✅ one `Send` trait + single-threaded-wasm adapter; emscripten = native | all traits (06,07,09,11,12,23,…) | ✅ resolved (§A1) |
 | 2 | **New platform crates greenlight** — ✅ wasm fetch client NOW (F00f); `foundation_wasmtime` last; `foundation_buildtools` dedicated (w/ 00d); `foundation_docs` mdBook (Phase 3) | 00c,00d,23,30,31 | ✅ resolved (§B) |
-| 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** (not a valtron task / output processor) | 14,17,19 | ⏳ up next |
-| 4 | **Access control via `foundation_auth` + Cedar** — surface shape; embedded vs hosted policies | 18 | ⬜ |
+| 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** — ✅ (a); control inline, memory+persist spawned | 14,17,19 | ✅ resolved (§H1) |
+| 4 | **Access control via `foundation_auth` + Cedar** — surface shape; embedded vs hosted policies | 18 | ⏳ up next |
 | 5 | **MemoryStore**: stores `SessionRecord` directly; a coordinator (AgentSession?) owns it + DocumentStore; key by bare scru128 vs `SessionId` newtype | 07,20 | ⬜ |
 | 6 | **`run_turn` streams, not Vec-collects** (collect = opt-in wrapper) | 20 | ⬜ |
 | 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** (arrow zero-copy) | 22,26,27,28,29 | ⬜ |
@@ -422,12 +422,19 @@ the loop."*
   F17). More uniform with the rest of the executor, but adds cross-task sync and makes "stop right now and
   redirect" harder.
 
-**My recommendation (matches your lean):** **(a)** — the *inner* loop is a tight, in-line controlled
-section inside F19 where we own stop/redirect; **loop detection is a cheap synchronous check in the inner
-step**, not an output processor and not a separate valtron task. The *outer* concerns (memory generation,
-persistence) can still be spawned/scheduled valtron work. This resolves F17 OD-17-1 (→ inner-loop check),
-F14 OD-14-4 (→ loop-detector slot lives in the loop, not the output pipeline), and F19 OD-19-4. **Confirm
-and I'll rewrite F17/F19/F14 around it.**
+**✅ RESOLVED (user, 2026-06-15) — Item #3 → option (a).** The inner loop is a **tight in-line controlled
+construct** inside F19; **loop detection is a synchronous check called in the loop**, not an output
+processor and not a separate valtron task.
+- **Inline in the tight loop:** generation pump (with the mid-gen PriorityQueue **steering** check),
+  tool-call extraction + execution, the **`LoopDetector::check()`** call, and the **stop/redirect**
+  decision. F19 owns this control flow directly (still within its valtron `TaskIterator`, just not
+  decomposed into a spawned sub-task per step).
+- **Spawned/background (non-blocking):** memory generation (observation/reflection) + record persistence
+  stay scheduled valtron work (F19 OD-19-4 / F15-4 "broadcast to background workers").
+- **F17** owns the *detector* logic (SimHash/exact/tool-call + `LoopDetection`); **F19 calls it**.
+  Resolves OD-17-1 → "synchronous inner-loop check."
+- **F14** removes the loop-detector slot from the output pipeline (OD-14-4); the output pipeline keeps
+  only memory-triggers + persistence (spawned).
 
 ### H2. Access control = **foundation_auth + Cedar policies**, not a hand-rolled minimal trait — [RESOLVED direction]
 F18 OD-18-1/2/3: *"why do we need anything foundation_auth doesn't already provide? It's ok to create a

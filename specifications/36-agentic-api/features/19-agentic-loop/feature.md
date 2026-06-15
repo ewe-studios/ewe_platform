@@ -117,20 +117,20 @@ OuterBoundary:
 InnerAssemble:
     drain PriorityQueue at FRONT (F13) -> if steering: F11.cancel(); inject at front
     InputPipeline.run(&mut ctx) (F14)  -> InnerGenerate
-InnerGenerate (sequenced under loop for interruption, F13/OD-19-3):
+InnerGenerate (TIGHT in-line loop, step-wise for interruption — F13/OD-19-3/Item #3):
     pump F12 stream; Pending(AgentProgress::Generating); on each msg -> Ready(Conversation{message:msg})
-    between steps: check PriorityQueue -> set PauseForPriority -> break to InnerAssemble
-    on done: extract tool calls
+    between steps: check PriorityQueue -> set PauseForPriority -> break to InnerAssemble   # steering, inline
+    on done: LoopDetector::check(&turn) (F17, SYNC inline)  -> if loop: redirect(memory)/escalate inline
+             extract tool calls
         has tools -> InnerToolCalls ; none -> OutputProcessing
 InnerToolCalls -> F11.execute_workflow -> InnerExecuting
 InnerExecuting:
     drive ToolCallExecTask; Ready(Conversation{message:ToolResult}) per result (already persisted, F11)
-    on complete -> InnerAssemble (feed results back to LLM)   # inner loop repeats
-OutputProcessing:
-    OutputPipeline.run (F14) -> fires F15 memory triggers, F17 loop detect, F08 save (spawned)
-    loop detected? -> handle (F17 redirect / escalate)
+    on complete -> InnerAssemble (feed results back to LLM)   # inner loop repeats (max_inner_iterations guard)
+OutputProcessing (deferrable, NON-control):
+    spawn F15 memory triggers + F08 save (background valtron work — never block the loop)   # Item #3 boundary
     -> OuterBoundary
-Ending -> Ready(SessionRecord::Summary{..}) (F03 OD-03-6) ; flush (F08/F20)
+Ending -> Ready(SessionRecord::Summary{..}) (F04) ; flush (F08/F20)
 ```
 
 ### Error / circuit breaker (F02 / Decision 16)
@@ -165,12 +165,14 @@ graph TD
     IA -->|drain Priority FRONT + F14 input| GEN[InnerGenerate pump F12 stream]
     GEN -->|Next Ok Conversation| C[caller]
     GEN -->|priority mid-gen| IA
-    GEN -->|tool calls| TC[InnerToolCalls -> F11 DAG]
-    GEN -->|no tools| OP[OutputProcessing F14]
+    GEN -->|on done: F17 LoopDetector::check SYNC inline| LD{loop?}
+    LD -->|yes| RD[redirect from memory / escalate - inline]
+    RD --> IA
+    LD -->|no, tool calls| TC[InnerToolCalls -> F11 DAG]
+    LD -->|no, no tools| OP[OutputProcessing - spawn only]
     TC --> EX[InnerExecuting -> ToolResult persisted]
     EX --> IA
-    OP -->|F15 memory + F17 detect + F08 save| OB
-    OP -->|loop detected| RD[F17 redirect/escalate]
+    OP -->|spawn F15 memory + F08 save - background, non-blocking| OB
     GEN -->|error| HE[handle_error F02 circuit breaker -> F12 fallback]
 ```
 
@@ -192,10 +194,13 @@ see list.)
 2. `Initializing` (load context / F20 resume) → `Init`.
 3. `OuterBoundary`: FollowUpQueue drain (F13) → continue or `Ending`.
 4. `InnerAssemble`: PriorityQueue front-drain + F11 cancel on steering; F14 input pipeline.
-5. `InnerGenerate`: pump F12 stream sequenced for interruption; emit `Ready(Conversation)` +
-   `Pending(Generating)`; mid-gen priority check (OD-19-3); extract tool calls.
-6. `InnerToolCalls`/`InnerExecuting`: F11 workflow; emit persisted `ToolResult`s; loop back to assemble.
-7. `OutputProcessing`: F14 output pipeline (F15 memory, F17 detect, F08 save); handle loop detection.
+5. `InnerGenerate` (tight in-line): pump F12 stream step-wise; emit `Ready(Conversation)` +
+   `Pending(Generating)`; mid-gen priority check (OD-19-3); on done call **`F17 LoopDetector::check()`
+   synchronously** and redirect/escalate inline if a loop; else extract tool calls.
+6. `InnerToolCalls`/`InnerExecuting`: F11 workflow; emit persisted `ToolResult`s; loop back to assemble
+   (guarded by `max_inner_iterations`).
+7. `OutputProcessing`: **spawn** F15 memory triggers + F08 save as background valtron work (non-blocking);
+   no loop detection here (it moved inline — Item #3).
 8. `handle_error` (F02 `AgentAction`) + circuit breaker model switch via F12.
 9. `Ending`: emit `Summary` (F03 OD-03-6), flush (F08/F20).
 10. Waits via `Depends`; never block; backoff via F11 `Delayed`.
@@ -207,24 +212,31 @@ see list.)
 
 ## Open Decisions
 
-- **OD-19-1 — Ready payload:** `SessionRecord` (F03 rec) vs `Messages`. F03 already chose `SessionRecord`
-  (superset: conversation + memory on one stream). Confirm alignment with F03 OD-03-1.
-        Yes, ensure alignment
+> **RESOLVED (user, 2026-06-15) — Item #3 / discussion §H1: the inner loop is a TIGHT, in-line controlled
+> construct; loop detection is a synchronous check INSIDE it.** The inner cycle (generate → extract tool
+> calls → execute → feed back → repeat) is **explicit control-flow code in F19** — still inside the
+> `AgentLoop` valtron `TaskIterator`, but **not decomposed into a spawned sub-task per step**. F19 owns,
+> **inline**: the generation pump (with the mid-gen PriorityQueue **steering** check, OD-19-3), tool
+> execution (F11), the **`LoopDetector::check()`** call (F17), and the **stop/redirect** decision — so we
+> have direct, tight control to halt and redirect. **Spawned/background (non-blocking):** memory
+> generation (F15) + record persistence (F08) stay scheduled valtron work. Loop detection is **NOT** an
+> F14 output processor (OD-14-4) and **NOT** a sibling valtron task (supersedes F17 OD-17-1's
+> output-processor rec).
 
-- **OD-19-2 — AgentEvent is dead:** confirm Decision 08/11's `AgentEvent{MessageUpdate{String}}` enum is
-  NOT implemented (superseded by rich `SessionRecord` on `Next`, F03). Rec: dead — delete from scope.
-          Yes
-
-- **OD-19-3 — mid-gen interruption (load-bearing):** sequenced composition pumping F12's boxed stream
-  with between-step PriorityQueue checks. Rec: yes; confirm the boxed stream is pumpable step-wise.
-        Explain to me in discussion wish to understand better
-
-- **OD-19-4 — inner-loop termination:** inner repeats while the LLM emits tool calls; a max-iterations
-  guard prevents runaway (independent of F17 loop detection). Rec: add `config.max_inner_iterations`.
-        Loop interaction is always somthing i have wondereed about, should it to be in the inner loop so its tight and controlled instead of a valtron task? Its where the agent is returning values to us and where we control the inner loop task, where we have better control to stop, and redirect it.
-
-- **OD-19-5 — Summary record:** emit `SessionRecord::Summary{ message_count, usage }` at end (F03
-  OD-03-6 adds the variant to F01). Confirm F01 has it.
+- **OD-19-1 — Ready payload:** **Resolved → `SessionRecord`** (F04 rec; superset of conversation + memory
+  on one stream); aligned with F04.
+- **OD-19-2 — AgentEvent is dead:** **Resolved → dead**, not implemented (superseded by rich
+  `SessionRecord` on `Next`, F04).
+- **OD-19-3 — mid-gen interruption (load-bearing):** **Resolved (Item #3)** → the tight inner loop pumps
+  F12's boxed model stream **step-wise** and checks the PriorityQueue **between steps**; on a steering
+  message it cancels (F13 `PauseForPriority`) and re-assembles. This is the in-line "stop and redirect"
+  control. (Explanation: because the loop drives the boxed stream one chunk at a time rather than awaiting
+  the whole turn, it can interleave a queue check and break — no separate task, no cross-task signalling.)
+- **OD-19-4 — inner loop is tight + in-line (load-bearing): Resolved (Item #3).** The inner loop is the
+  tight controlled construct above (not a separate valtron task). It repeats while the LLM emits tool
+  calls; a `config.max_inner_iterations` guard prevents runaway (independent of F17 detection).
+- **OD-19-5 — Summary record:** emit `SessionRecord::Summary{ message_count, usage }` at end (F01 has the
+  variant; usage = `TokenSnapshot` per F04). Confirmed.
 
 ## Target Files
 

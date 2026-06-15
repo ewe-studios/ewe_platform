@@ -18,17 +18,14 @@ tasks:
 # Feature 17: Loop Detection
 
 > **Review status (2026-06-14) — self-review against code (subagent unavailable):**
-> 1. **NEEDS USER RULING — Decision 08 vs Decision 11 conflict on the detector's execution model.**
->    Decision 08 (`08-valtron-integration.md:25`) lists LoopDetector as a **`sequenced` parallel valtron
->    task** running alongside the loop; Decision 11 (`11-agentic-loop-architecture.md:141`) lists it as an
->    **output processor** ("LoopDetector | Checks for repetition loops | Always"). These are mutually
->    exclusive wirings and F14 OD-14-4 explicitly defers the choice here. **Recommendation: output
->    processor (Decision 11).** Rationale: detection is a cheap, synchronous `check(&ModelOutput)` over a
->    sliding window — it needs the assistant message the loop just produced, which the F14 output pipeline
->    hands it directly; a separate sequenced task would need a shared output buffer + cross-task sync for
->    no benefit (Decision 09's embedding-based semantic detection, the only expensive path, is deferred).
->    A processor is simpler, deterministically ordered, and trivially testable. **Flag for the user; F14
->    keeps the slot open either way.**
+> 1. **RESOLVED (user, 2026-06-15; Item #3 / §H1) — neither Decision 08 nor Decision 11's wiring.**
+>    Decision 08 listed LoopDetector as a `sequenced` parallel valtron task; Decision 11 as an output
+>    processor. **Both are superseded:** the detector is a **synchronous check called directly by F19's
+>    tight inner loop**. F17 owns the detector (`check(&ModelOutput) -> Option<LoopDetection>` over the
+>    sliding window + the `LoopDetection` type); F19 calls it inline after each model turn and handles
+>    redirect/escalate in-line — max control, no cross-task sync, deterministic, trivially testable. The
+>    F14 output-pipeline slot is removed (OD-14-4). (Decision 09's embedding semantic detection, the only
+>    expensive path, stays deferred.)
 > 2. **The window holds `ModelOutput`** (Decision 09 line 46 `window: VecDeque<ModelOutput>`), the real
 >    enum (`types/mod.rs:863`). Exact match = `ModelOutput` `PartialEq` (it derives `PartialEq`, :862) —
 >    `last == prev` works as Decision 09 line 80 assumes. Tool-call detection compares
@@ -58,8 +55,8 @@ tasks:
 
 > Implements Decision 09. Detects repetition loops (exact / fuzzy SimHash / tool-call; semantic
 > deferred), redirects the LLM using F15 memory, escalates (model switch / temperature) on persistence,
-> and terminates after `max_redirects`. **Resolves the Decision 08-vs-11 execution-model question:
-> recommended as an OUTPUT PROCESSOR (F14) — flagged for the user.**
+> and terminates after `max_redirects`. **Execution model RESOLVED (Item #3 / §H1): a synchronous check
+> called inline by F19's tight inner loop** (neither an output processor nor a sequenced task).
 
 ## WHY: Problem Statement
 
@@ -95,7 +92,7 @@ pub enum LoopDetection {
 }
 
 impl LoopDetector {
-    /// Cheap synchronous check over the latest assistant output. Called by F14's output pipeline.
+    /// Cheap synchronous check over the latest assistant output. Called INLINE by F19's tight inner loop.
     pub fn check(&mut self, output: &ModelOutput) -> LoopDetection;
     /// Build a redirect Messages::User{ System } from F15 memory (Decision 09 build_redirect).
     pub fn build_redirect(&self, memory: &MemoryHierarchy) -> Messages;
@@ -165,9 +162,9 @@ Author `fundamentals/` covering: LLM repetition loops (why they happen, the cost
 (exact equality, **SimHash/locality-sensitive hashing** for near-duplicate text, Hamming-distance
 similarity, tool-call pattern hashing with stable key ordering); the escalation ladder (memory redirect
 → model/temperature change → terminate) and why memory-grounded redirects beat generic nudges; the
-execution-model choice (output processor vs sequenced task — the tradeoffs); making detection types
-`Clone+PartialEq` to ride the error stream; why semantic (embedding) detection is deferred. (Task — see
-list.)
+execution-model choice (why an **inline synchronous check in the tight inner loop** beats an output
+processor or a sequenced task — Item #3); making detection types `Clone+PartialEq` to ride the error
+stream; why semantic (embedding) detection is deferred. (Task — see list.)
 
 ## HOW: Implementation Steps
 
@@ -186,10 +183,13 @@ list.)
 
 ## Open Decisions
 
-- **OD-17-1 — execution model (NEEDS USER RULING):** output processor (Decision 11, **rec**) vs sequenced
-  parallel task (Decision 08). Rec: output processor — cheap sync check, gets the output directly from
-  F14, no cross-task sync. **Flag for the user.**
-        Explain more to me, add to discussion
+- **OD-17-1 — execution model: RESOLVED (user, 2026-06-15; Item #3 / discussion §H1).** **Neither** an
+  output processor **nor** a sequenced parallel task — loop detection is a **synchronous check invoked
+  directly by F19's tight inner loop**. F17 owns the **detector** (the SimHash/exact/tool-call logic +
+  `LoopDetection` type + sliding window); F19 **calls `LoopDetector::check(&turn) -> Option<LoopDetection>`**
+  inline after each model turn and handles redirect/escalate in-line (max control over stop/redirect, no
+  cross-task sync). The earlier "output processor" recommendation is superseded; the F14 output-pipeline
+  slot is removed.
 
 - **OD-17-2 — tool-call arg hashing:** sort `HashMap` keys before hashing for determinism (rec) — raw
   iteration order is unstable.

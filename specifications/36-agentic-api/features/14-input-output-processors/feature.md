@@ -1,6 +1,6 @@
 ---
 feature: "Input/Output Processors — the Mastra-style processor interface"
-description: "The composable processor pipeline: input processors (working-memory/history/recall/reflection injectors) that transform the AgentContext before each LLM call, and output processors (message-saver/embedding/observation-trigger/loop-detector/working-memory-updater) that handle side effects after each response — fully specified trait (process return, skip, dedup by id, priority order)"
+description: "The composable processor pipeline: input processors (working-memory/history/recall/reflection injectors) that transform the AgentContext before each LLM call, and output processors (message-saver/embedding/observation-trigger/working-memory-updater) that handle deferrable side effects after each response — fully specified trait (process return, skip, dedup by id, priority order). Loop detection is NOT a processor: it's an inline check in F19's tight inner loop (Item #3)"
 status: "pending"
 priority: "high"
 depends_on: ["16-context-provider-assembly", "08-message-api", "15-memory-hierarchy"]
@@ -27,8 +27,9 @@ tasks:
 >    (output). `AgentContext` is F16's assembled-context type (`16-context-provider-assembly/
 >    feature.md:38` `assemble(..) -> AgentContext`). Input processors *mutate* it pre-LLM; output
 >    processors *consume* the LLM result + emit side effects. F14 does NOT re-implement memory/recall —
->    it sequences F16 (assembly), F15 (memory triggers), F08 (save/index), F17 (loop detect) as
->    processors. (Boundary: F14 = the pipeline, F16/F15/F08/F17 = the work.)
+>    it sequences F16 (assembly), F15 (memory triggers), F08 (save/index) as processors. **Loop
+>    detection (F17) is NOT a processor** — it's an inline check in F19 (Item #3). (Boundary: F14 = the
+>    pipeline, F16/F15/F08 = the work; F17 = inline in F19.)
 > 3. **The input processors largely DUPLICATE F16's `assemble` order** (Decision 11 §Input Processors:
 >    WorkingMemoryInjector/MessageHistoryLoader/SemanticRecall/ReflectionInjector/ObservationInjector vs
 >    F16's exact assembly order). **OD-14-1 (load-bearing):** decide whether F16 `assemble` IS the input
@@ -49,16 +50,16 @@ tasks:
 >    `next_status`. (OD-14-3.)
 > 6. **Dedup by `id()` + priority order** (Decision 11 lines 116-124): `HashSet<&str>` of processor ids,
 >    first occurrence wins; execute sorted by `priority()`. Both `id()` and `priority()` are trait methods.
-> 7. **`LoopDetector` as an output processor is the Decision 08-vs-11 conflict** (Decision 08 line 25:
->    LoopDetector = a *sequenced parallel task*; Decision 11 line 141: LoopDetector = an *output
->    processor*). **F17 resolves which.** F14 exposes a `LoopDetectorProcessor` ONLY if F17 picks the
->    processor model; otherwise the loop detector is a sibling task F19 composes. **NEEDS USER RULING —
->    deferred to F17.** F14 keeps the output-processor list open so either wiring works.
+> 7. **`LoopDetector` is NOT an output processor — RESOLVED (user, 2026-06-15; Item #3 / §H1).** It's a
+>    **synchronous check inside F19's tight inner loop** (F17 owns the detector; F19 calls it inline).
+>    There is **no `LoopDetectorProcessor`** and no output-pipeline slot for it. The output pipeline holds
+>    only deferrable side-effects (save/embed/memory-triggers), which F19 spawns as background work.
 
 > Fully specifies Decision 11's Mastra-style processor interface: an **input** pipeline that transforms
 > the `AgentContext` before each LLM call and an **output** pipeline that handles side effects after
 > each response, both composable, deduplicated by id, ordered by priority, fallible, skippable, and
-> non-blocking. Owns the pipeline; F16/F15/F08/F17 own the work each processor does.
+> non-blocking. Owns the pipeline; F16/F15/F08 own the work each processor does (F17 loop detection runs
+> inline in F19, not as a processor — Item #3).
 
 ## WHY: Problem Statement
 
@@ -123,8 +124,8 @@ delegate into F16's assembly surfaces (OD-14-1: these ARE F16's `assemble` steps
 
 **Output** (priority order): `MessageSaver` (critical — F08 append) → `EmbeddingGenerator` (F31, spawns)
 → `ObservationTrigger` / `ReflectionTrigger` (F15 `check_triggers` → spawn generate) →
-`WorkingMemoryUpdater` (F15, on new fact) → `LoopDetectorProcessor` (F17 — only if F17 picks the
-processor model; else omitted).
+`WorkingMemoryUpdater` (F15, on new fact). **No `LoopDetectorProcessor`** — loop detection is an inline
+inner-loop check in F19 (Item #3 / OD-14-4), not a processor.
 
 ### Non-blocking output (OD-14-3)
 
@@ -150,7 +151,8 @@ graph TD
     CTX --> LLM[LLM call F12/F19]
     LLM --> TO[TurnOutput]
     subgraph Output pipeline post-LLM
-    MS[MessageSaver critical F08] --> EG[EmbeddingGenerator spawn F31] --> OT[ObservationTrigger spawn F15] --> WU[WorkingMemoryUpdater F15] --> LD[LoopDetector F17 if processor-model]
+    MS[MessageSaver critical F08] --> EG[EmbeddingGenerator spawn F31] --> OT[ObservationTrigger spawn F15] --> WU[WorkingMemoryUpdater F15]
+    %% no LoopDetector here — it's an inline inner-loop check in F19 (Item #3)
     end
     TO --> MS
     OT -. valtron schedule .-> MEM[(F15 memory gen)]
@@ -173,7 +175,8 @@ F31/F17. (Task — see list.)
 3. `SpawnSink` so output processors schedule valtron tasks (F15/F31) without blocking.
 4. Default input processors over F16 assembly (resolve OD-14-1: assemble == default pipeline).
 5. Default output processors: MessageSaver (F08, critical) / EmbeddingGenerator (F31) / Observation+
-   ReflectionTrigger (F15) / WorkingMemoryUpdater (F15) / LoopDetector slot (F17-gated).
+   ReflectionTrigger (F15) / WorkingMemoryUpdater (F15). **No LoopDetector processor** (inline in F19 —
+   Item #3).
 6. Tests: dedup keeps first by id; priority ordering; `Skipped` vs `Failed` distinct; critical failure
    aborts, non-critical logs+continues; output processor spawns (doesn't block); input pipeline
    reproduces Decision 03 order (replay determinism); wasm build.
@@ -192,13 +195,13 @@ F31/F17. (Task — see list.)
 - **OD-14-3 — output non-blocking:** processors spawn valtron tasks via `SpawnSink`, never block (rec).
         Surface in discussion, show me options and lets talk about it
 
-- **OD-14-4 — LoopDetector placement:** output processor vs sibling sequenced task — **deferred to F17**
-  (Decision 08-vs-11). F14 leaves the slot open. NEEDS USER RULING (in F17).
-        Surface in discussion, show me options and lets talk about it, see my point about moving loop detection into inner loop to ensure we dont complicate this when we can own a tight checking process in the loop
-
-- **OD-14-5 — pipeline mutability:** can callers add/remove processors at runtime, or fixed at build?
-  Rec: fixed at session build (Decision 11 composes once); runtime mutation deferred.
-        Yes, fixed at session build
+- **OD-14-4 — LoopDetector placement: RESOLVED (user, 2026-06-15; Item #3 / §H1).** Loop detection is
+  **NOT an output processor** — it's a **synchronous check inside F19's tight inner loop** (F17 owns the
+  detector, F19 calls it inline). **Remove the loop-detector slot from the output pipeline.** The output
+  pipeline keeps only the **deferrable, non-control** concerns — **memory-generation triggers (F15) +
+  record persistence (F08), which F19 spawns as background valtron work** (never block the loop).
+- **OD-14-5 — pipeline mutability: RESOLVED (user) → fixed at session build** (Decision 11 composes once;
+  runtime mutation deferred).
 
 ## Target Files
 
@@ -227,5 +230,5 @@ cargo test  -p foundation_ai -- agentic::processors
 - `InputProcessor`/`OutputProcessor` fully specified (Applied/Skipped/Failed outcome, dedup by id,
   priority order, critical handling); input pipeline reproduces Decision 03 assembly order
   deterministically; output processors spawn valtron work without blocking; default processors wire to
-  F16/F15/F08/F31; LoopDetector slot deferred to F17; builds native + wasm.
-- OD-14-1..5 resolved (OD-14-1 flagged; OD-14-4 deferred to F17); fundamentals authored.
+  F16/F15/F08/F31; **no LoopDetector processor** (inline in F19 — Item #3); builds native + wasm.
+- OD-14-1..5 resolved (OD-14-1 flagged; OD-14-4 → inline in F19); fundamentals authored.
