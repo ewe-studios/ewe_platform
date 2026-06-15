@@ -48,18 +48,21 @@ for all backends.
 
 ```
 backends/foundation_vectors/
-├── Cargo.toml      # pure Rust; no_std-friendly where possible; optional rayon (native) for parallel scan
+├── Cargo.toml      # pure Rust; no_std-friendly where possible; NO rayon (Item #16)
 └── src/
     ├── lib.rs
     ├── metric.rs   # DistanceMetric + the math
     ├── vector.rs   # Vector + dimension handling
-    └── flat.rs     # flat-scan top-k
+    ├── flat.rs     # flat-scan top-k (sequential)
+    └── store.rs    # VectorStore trait + VectorEntry + in-memory backend (moved from foundation_db, Item #16)
 ```
 
-WASM-safe: no `fjall`/`memmap2`/`rayon` in the default build; `rayon` is an **optional** feature
-(`parallel`) target-gated to native for large flat scans.
-
-**TODO**: why is rayon even needed, why not build ontop valtron?
+WASM-safe: no `fjall`/`memmap2`/`rayon` in the default build. **No rayon at all (Item #16):** rayon
+saturates all CPU cores via work-stealing, starving valtron's thread pool. Instead:
+- **Multi-threaded targets (native + emscripten):** chunk the scan and spawn to valtron's background
+  thread queue. Workers pick up chunks alongside other valtron tasks — no core starvation.
+- **Single-threaded wasm (unknown-unknown, wasip1/p2):** sequential scan (no threads exist).
+- **One concurrency substrate — valtron — everywhere.**
 
 ### Vector + metrics
 
@@ -102,9 +105,10 @@ pub fn flat_top_k<'a>(
   `T: Ord`; `f32` is only `PartialOrd`). `OrderedScore(f32)` impls `Ord` via `f32::total_cmp`
   (available in `core`, so no_std-safe) with **NaN ordered as least** (so NaN scores are never
   selected — the NaN guard lives here). Memory O(k), one pass. `k == 0` → empty `Vec`.
-- Optional `parallel` feature: rayon chunks the entries on native; identical results.
-- This is what the in-memory `VectorStore` (F28) uses, and the fallback for backends without native
-  ANN (F29/F30).
+- **No rayon (Item #16).** Parallel scan uses valtron background threads on multi-threaded targets;
+  sequential on single-threaded wasm. Identical results.
+- This is what the in-memory `VectorStore` (now in this crate, Item #16) uses, and the fallback for
+  backends without native ANN (F29/F30).
 
 ### Numerics & determinism
 
@@ -127,13 +131,14 @@ graph TD
 
 ## HOW: Implementation Steps
 
-1. Create the crate (`backends/foundation_vectors`, pure Rust, `[features] parallel = ["dep:rayon"]`).
+1. Create the crate (`backends/foundation_vectors`, pure Rust, no rayon).
 2. `Vector` + `DistanceMetric` + `score`/`try_score` with the higher-is-better convention.
 3. Normalized-vector option for cosine (OD-24-1).
-4. `flat_top_k` with bounded min-heap; NaN/tie handling.
-5. Optional rayon `parallel` flat scan (native), identical results to serial.
-6. Tests: metric correctness (known vectors), top-k correctness vs naive sort, k>n, empty, NaN,
-   tie-determinism, serial==parallel; wasm32 build.
+4. `flat_top_k` with bounded min-heap; NaN/tie handling. Sequential by default.
+5. Parallel scan via valtron background threads (multi-threaded targets); sequential on single-threaded wasm.
+6. `VectorStore` trait + `VectorEntry` + in-memory backend (moved from F28/foundation_db, Item #16).
+7. Tests: metric correctness (known vectors), top-k correctness vs naive sort, k>n, empty, NaN,
+   tie-determinism, sequential==parallel; wasm build.
 
 ## Open Decisions
 
@@ -161,9 +166,11 @@ graph TD
   is on. Define explicitly.
         Ya, my knowledge lacks, we need fundamental documents explain vector store adn their algorithmn to make me go zero to genius. Research the web, select the best option here
 
-- **OD-24-8 — type ownership:** `VectorMatch`/`DistanceMetric` are **owned by `foundation_vectors`**;
-  `foundation_db`'s `VectorStore` (F28) **re-exports** them (Decision 07 double-defines — update it).
-      Ya, maybe VectorStore should be in `foundation_vectors too
+- **OD-24-8 — type ownership: RESOLVED (user, 2026-06-15; Item #16) → `foundation_vectors` owns it
+  all.** `VectorStore` trait, `VectorEntry`, `VectorMetadata`, `VectorStoreConfig`, `VectorMatch`,
+  `DistanceMetric` — all live in `foundation_vectors`. `foundation_db` re-exports for convenience.
+  The in-memory backend (formerly F28's scope) also lives here. F28 becomes "VectorStore in-memory
+  backend" within `foundation_vectors`, not a `foundation_db` deliverable.
 
 - **OD-24-9 — borrowed-iterator vs streaming backends:** `flat_top_k`'s `(&str,&[f32])` iterator
   fits in-memory (F28) but not the D1/KV fetch-then-search path (F30, deserializes on the fly). Either
@@ -187,9 +194,8 @@ cargo build -p foundation_vectors --target wasm32-unknown-unknown
 
 ```bash
 cargo build -p foundation_vectors
-cargo build -p foundation_vectors --features parallel
 cargo build -p foundation_vectors --target wasm32-unknown-unknown
-cargo clippy -p foundation_vectors --all-features -- -D warnings
+cargo clippy -p foundation_vectors -- -D warnings
 cargo test  -p foundation_vectors
 ```
 
@@ -202,7 +208,9 @@ geometry, when each applies, normalization making cosine==dot); top-k selection 
 
 ## Done When
 
-- `foundation_vectors` builds (native + wasm + `parallel`); `DistanceMetric` (cosine/L2/dot) and
+- `foundation_vectors` builds (native + wasm, no rayon); `DistanceMetric` (cosine/L2/dot) and
   `flat_top_k` are correct (tested vs naive) with deterministic ties and NaN safety.
+- `VectorStore` trait + in-memory backend live here (Item #16); `foundation_db` re-exports.
+- Parallel scan uses valtron background threads (multi-threaded), sequential on single-threaded wasm.
 - The higher-is-better score convention is uniform (ready for IVF/HNSW in F25).
-- OD-24-1..5 resolved.
+- OD-24-1..8 resolved.

@@ -189,10 +189,10 @@ valtron sub-task. (Task — see list.)
   scan. Rec: explicit-request-now; periodic scan behind a config flag (cost). Confirm.
         Sure, the point is to make this seamless, where possible we use memory model to extract these especially if the model responding can also mark where it finds explict things to be put in working memory and also explict user requests.
 
-- **OD-15-4 — generation scheduling:** `schedule` (deferred, bottom of local queue — non-urgent) vs
-  `lift` (priority). Rec: `schedule` for observation/reflection (non-urgent, Decision 08 row), so the
-  agent keeps responding; the loop reads the result on a later boundary.
-        Can also broadcast to other workers in multi-threading so it works in background and does not block.
+- **OD-15-4 — generation scheduling: RESOLVED (user, 2026-06-15; Item #15) → background valtron task.**
+  Use `broadcast` to run on another worker in multi-thread mode (non-blocking background). In single-
+  thread mode valtron interleaves cooperatively. The assembler (F16) is synchronous hot-path; the
+  generator (F15) is background — this separation confirmed by the Item #15 boundary decision.
 
 - **OD-15-5 — reflection failure:** if the memory model errors mid-reflection, keep the existing
   observation memory (do NOT replace) and emit a `MessageEvent::Error`; retry next trigger. Confirm.

@@ -128,9 +128,12 @@ filesystem search (why split); token-budgeted context packing; replayability of 
   clear "unsupported on wasm" result. Confirm.
         - Just use basic FileSystem operations if possible via whatever vfs is there else not supported
 
-- **OD-16-5 — ContextProvider ownership boundary:** it consumes F15's memory outputs + triggers F15;
-  F15 owns generation. Confirm the split.
-      Explain the diference more clearly so i know whats the best division and boundary
+- **OD-16-5 — ContextProvider ownership boundary: RESOLVED (user, 2026-06-15; Item #15) → keep
+  separate.** F16 (ContextProvider) = assembler: reads F15's snapshots from F07 MemoryStore, packs the
+  prompt in deterministic order within budget. Synchronous, on the hot path. F15 (MemoryHierarchy) =
+  generator: watches counters, calls memory model, writes snapshots to F08+F07. Background valtron task.
+  Handoff via F07 (F15 writes latest, F16 reads). F16 checks thresholds and tells F15 to generate; F15
+  does the work. The generator is background, the assembler is hot-path — never mix them.
 
 
         

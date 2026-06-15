@@ -96,8 +96,8 @@ threshold vs explicit config).
 
 - Seeded RNG (`foundation_compact`) for k-means init + HNSW layer assignment → reproducible builds
   (OD-25-4).
-- Pure Rust, no SIMD/native deps in the portable path; `parallel` (rayon) feature for native build
-  acceleration only, identical results.
+- Pure Rust, no SIMD/native deps in the portable path. Parallel via valtron background threads
+  on multi-threaded targets; sequential on single-threaded wasm (Item #16).
 - Serialization via `postcard`/`bincode` (no_std-friendly, WASM-safe).
 
 ## Architecture

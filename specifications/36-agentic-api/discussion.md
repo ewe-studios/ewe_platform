@@ -33,8 +33,8 @@ you decide → I update the affected features → I ask before moving on. Status
 | 12 | **Loop-detection internals** — ✅ two-tier: inline (exact/SimHash `ahash`/sorted-key tool-call) + background semantic (valtron task, `Depends(QueueReadiness)` on shared ConcurrentQueue, steers via PriorityQueue); sort args at detection boundary, not BTreeMap | 17 | ✅ resolved (Item #12) |
 | 13 | **Tool cancellation** — ✅ async execute (Item #1) + drop-based cancellation (valtron stops polling → future drops → Rust cleanup); no CancelToken/PID/SIGKILL ladder; implementers own their Drop; also resolved F09 OD-09-1..5 + F11 OD-11-1..5 | 09,11 | ✅ resolved (Item #13) |
 | 14 | **`agentic` cargo feature** — ✅ keep as real feature gate (`default = ["llamacpp", "agentic"]`), orthogonal to target; agentic module splits `shared/native/wasm{web,wasi}`; `target_family = "wasm"` everywhere (not `target_arch`); emscripten routes to `native` (no runtime code difference) | 00b,00c | ✅ resolved (Item #14) |
-| 15 | **ContextProvider ↔ MemoryHierarchy boundary** — who generates vs who assembles | 15,16 | ⬜ |
-| 16 | **Vectors crate ownership** — move `VectorStore` fully into `foundation_vectors`; rayon vs valtron for parallel scan | 24,28,29 | ⬜ |
+| 15 | **ContextProvider ↔ MemoryHierarchy boundary** — ✅ keep separate: F15 generates + persists memory (background valtron task), F16 assembles prompt (synchronous, budget-constrained); F07 MemoryStore is the handoff; F16 checks thresholds + tells F15 to generate | 15,16 | ✅ resolved (Item #15) |
+| 16 | **Vectors crate ownership** — ✅ `VectorStore` moves fully into `foundation_vectors` (trait+types+in-memory backend); drop rayon entirely; parallel scan = valtron background threads (multi-threaded targets), sequential = single-threaded wasm; one concurrency substrate | 24,28,29 | ✅ resolved (Item #16) |
 | 17 | **RAG research items** (Phase 3, research-gated) — SIMD/no_std sqrt, IVF/HNSW params, BM25/RRF, code-graph, CF vector API; paired with `foundation_docs` | 24–32 | 🔬 deferred to Phase 3 |
 
 Quick confirmations (likely fast — bundle as we reach them): #6, #7, #9-rolling, #15.
@@ -207,12 +207,13 @@ from here that aren't purely research:
 - **F08 "move it all into `foundation_vectors`":** yes — `VectorStore` (currently F12 in `foundation_db`)
   and the `VectorMatch`/`DistanceMetric` types **move fully into `foundation_vectors`**; `foundation_db`
   re-exports if needed. Confirms OD-08-8. **[RESOLVED]**
-- **F08 "why rayon, not valtron?":** **[DISCUSS]** — rayon is a data-parallel work-stealing pool for
-  CPU-bound fan-out (brute-force scan). valtron is our cooperative task executor. We *can* express
-  parallel scan as valtron `broadcast` tasks and drop the rayon dep (keeps wasm clean, one concurrency
-  model). Cost: valtron isn't a CPU-saturating thread pool the way rayon is, so very large native scans
-  may be slower. **Proposal:** default to a plain sequential scan (wasm-safe, no dep); offer an *optional*
-  native parallel path built on valtron `broadcast` rather than rayon. Confirm.
+- **F08 "why rayon, not valtron?":** **✅ RESOLVED (user, 2026-06-15; Item #16) — drop rayon entirely.**
+  rayon is actively harmful: it saturates all CPU cores via work-stealing, **starving valtron's own thread
+  pool** — valtron tasks/work won't run while rayon holds all cores. Instead: **multi-threaded targets
+  (native + emscripten)** chunk the scan and spawn to valtron's existing background thread queue (workers
+  pick up chunks alongside other valtron tasks, no core starvation). **Single-threaded wasm
+  (unknown-unknown, wasip1/p2)** uses sequential scan (no threads exist). **One concurrency substrate —
+  valtron — everywhere.** No `parallel` feature, no rayon dep.
 
 ---
 
@@ -287,13 +288,17 @@ DocumentStore) and A1 (async-first, drop the `?Send` mirror):
   fan-out pub/sub, a concurrent queue of receivers avoids a central lock and is lock-free on the hot path
   — **agreed, it's better** for the broadcast case; I'll spec the receiver-queue. Confirm.
 
-### D8. F18 OD-18-5 — ContextProvider vs MemoryHierarchy boundary — [DISCUSS]
-*"Explain the difference so I know the best division."* **MemoryHierarchy (F19)** *generates and owns* the
-memory tiers (it runs the memory model, writes working/observation/reflection). **ContextProvider (F18)**
-*consumes* those outputs and **assembles the prompt** for the next turn (packs system + memory + recent
-messages + retrieved context within the token budget) and *triggers* F19 when thresholds are hit. Split:
-F19 = "make and store memories," F18 = "pick what goes into this prompt." **Rec:** keep them separate with
-that boundary. Confirm.
+### D8. F18 OD-18-5 — ContextProvider vs MemoryHierarchy boundary — **✅ RESOLVED (Item #15)**
+**✅ RESOLVED (user, 2026-06-15; Item #15) — keep separate.** Clear boundary:
+- **F15 MemoryHierarchy = generator.** Watches token counters, fires observation/reflection generation
+  via a smaller memory model, pushes snapshots to F08 (audit) + F07 (cache). Background valtron task.
+- **F16 ContextProvider = assembler.** Reads F15's outputs from F07 (MemoryStore), assembles the prompt
+  in deterministic order within the token budget (system → working → reflection → observation-if-newer
+  → recent → recall). Synchronous — must finish before the LLM call.
+- **Handoff point:** F07 MemoryStore (F15 writes latest, F16 reads latest).
+- **Trigger coupling:** F16 (or the loop on its behalf) checks thresholds and tells F15 to generate.
+  F15 does the work. The generator is background, the assembler is hot-path — mixing them would couple
+  lifecycles.
 
 ### D9. F08 OD-08-9 — borrowed vs streaming iterator — [DISCUSS, vectors/Phase 3]
 `flat_top_k` takes a `(&str, &[f32])` iterator — fine for in-memory stores, but the D1/KV/R2 fetch path

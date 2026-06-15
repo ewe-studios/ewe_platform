@@ -32,8 +32,11 @@ tasks:
 > for F16 (return `VectorEntry` refs or post-filter). (8) define `VectorStoreStats`, `flush` no-op,
 > query/`insert_batch` dimension checks; state "volatile — persistence is F29/F30". See OD-28-5..9.
 
-> Implements Decision 07's `foundation_db::VectorStore` storage contract + the in-memory backend.
-> Storage lives in `foundation_db`; the *algorithms* come from `foundation_vectors` (F24/F25).
+> **SCOPE UPDATED (Item #16, 2026-06-15):** `VectorStore` trait, types, AND the in-memory backend all
+> move into **`foundation_vectors`** (not `foundation_db`). `foundation_db` re-exports for convenience.
+> This crate owns everything vector: algorithms + trait + in-memory store. Persistent backends (F29) and
+> CF backends (F30) depend on `foundation_vectors` for the trait.
+>
 > Resolves the gaps' **cross-session isolation** issue: `query` takes a **namespace** so multiple
 > sessions sharing one store don't contaminate each other's recall.
 
@@ -48,7 +51,7 @@ requirements from the gaps analysis: **dimension consistency** (mixing dims brea
 
 ## WHAT: Solution
 
-### Trait (in `foundation_db`)
+### Trait (in `foundation_vectors` — Item #16; `foundation_db` re-exports)
 
 ```rust
 pub struct VectorEntry { pub id: String, pub vector: Vec<f32>, pub metadata: VectorMetadata }
@@ -134,8 +137,8 @@ recall. (Task — see list.)
 ## HOW: Implementation Steps
 
 1. `VectorStore` trait + `VectorEntry`/`VectorMetadata`/`VectorStoreConfig`/`VectorStoreError` in
-   `foundation_db`; re-export `VectorMatch`/`DistanceMetric` from `foundation_vectors`.
-2. `InMemoryVectorStore` with per-namespace shards + `foundation_vectors` index.
+   `foundation_vectors` (Item #16); `foundation_db` re-exports for downstream convenience.
+2. `InMemoryVectorStore` in `foundation_vectors` with per-namespace shards + flat/IVF/HNSW index.
 3. Dimension enforcement on insert; namespace scoping on query.
 4. `insert_batch`/`delete`/`flush`/`stats`.
 5. Tests: insert/query correctness vs flat ground truth; dimension-mismatch error; **namespace
@@ -145,37 +148,38 @@ recall. (Task — see list.)
 
 - **OD-28-1 — index choice per store:** `FlatIndex` default; config selects IVF/HNSW (F25). Rec:
   config-driven, flat default.
-- **OD-28-2 — `foundation_db` → `foundation_vectors` dep:** add it (algorithms). Confirm no cycle
-  (foundation_vectors is leaf). Add `foundation_vectors` to `[workspace.dependencies]` (F24 OD-24-8).
+- **OD-28-2 — crate location: RESOLVED (user, 2026-06-15; Item #16) → all in `foundation_vectors`.**
+  Trait + types + in-memory backend live in `foundation_vectors`. `foundation_db` adds a dep on
+  `foundation_vectors` and re-exports. No cycle (foundation_vectors is leaf).
 - **OD-28-3 — namespace as metadata vs separate shard:** separate shard (rec — cleaner isolation +
   per-namespace index) vs a metadata filter on one index. Rec: shard.
 - **OD-28-4 — normalization:** normalize on insert (cosine==dot) vs per-query. Rec: on insert.
 
 ## Target Files
 
-- `backends/foundation_db/src/core/storage_provider.rs` — `VectorStore` trait + types
-- `backends/foundation_db/src/core/backends/in_memory_vector_store.rs` (new)
-- `backends/foundation_db/Cargo.toml` — `foundation_vectors` dep
+- `backends/foundation_vectors/src/store.rs` (new) — `VectorStore` trait + types (Item #16)
+- `backends/foundation_vectors/src/in_memory.rs` (new) — `InMemoryVectorStore`
+- `backends/foundation_db/` — re-export `VectorStore`/types from `foundation_vectors`; add dep
 
 ## Tests
 
 ```bash
-cargo test -p foundation_db -- vector_store
-cargo build -p foundation_db --target wasm32-unknown-unknown
+cargo test -p foundation_vectors -- store
+cargo build -p foundation_vectors --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
-cargo build -p foundation_db
-cargo build -p foundation_db --target wasm32-unknown-unknown
-cargo clippy -p foundation_db -- -D warnings
-cargo test  -p foundation_db -- vector_store
+cargo build -p foundation_vectors
+cargo build -p foundation_vectors --target wasm32-unknown-unknown
+cargo clippy -p foundation_vectors -- -D warnings
+cargo test  -p foundation_vectors -- store
 ```
 
 ## Done When
 
-- `VectorStore` trait + `InMemoryVectorStore` work over `foundation_vectors`; dimension enforced;
-  **namespace isolation** verified; `&self` concurrent insert/query safe; builds native + wasm.
-- `VectorMatch`/`DistanceMetric` are re-exported from `foundation_vectors` (no double-definition).
+- `VectorStore` trait + `InMemoryVectorStore` live in `foundation_vectors` (Item #16); dimension
+  enforced; **namespace isolation** verified; `&self` concurrent insert/query safe; builds native + wasm.
+- `foundation_db` re-exports `VectorStore`/types from `foundation_vectors` (no double-definition).
 - OD-28-1..4 resolved; fundamentals authored.
