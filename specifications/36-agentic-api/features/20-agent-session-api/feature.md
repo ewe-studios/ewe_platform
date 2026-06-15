@@ -85,6 +85,9 @@ pub struct AgentSessionBuilder {
     memory_model: Option<ModelId>,
     session_id: Option<SessionId>,
     doc_store: Option<Arc<dyn DocumentStore>>, // default in-memory (F06)
+    memory_store: Option<Arc<dyn MemoryStore>>,// default KvMemoryStore (F07); cache only
+    // AgentSession builds a MemoryCoordinator { doc_store, memory_store } and HOLDS it (Item #5/§A3):
+    // dual-write memory records + cache->audit fallback live in the coordinator, not in MemoryStore.
     vector_store: Option<Arc<dyn VectorStore>>,// default InMemoryVectorStore (F28)
     config: AgentConfig,                       // Decision 18 defaults
 }

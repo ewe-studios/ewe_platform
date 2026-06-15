@@ -23,8 +23,8 @@ you decide → I update the affected features → I ask before moving on. Status
 | 2 | **New platform crates greenlight** — ✅ wasm fetch client NOW (F00f); `foundation_wasmtime` last; `foundation_buildtools` dedicated (w/ 00d); `foundation_docs` mdBook (Phase 3) | 00c,00d,23,30,31 | ✅ resolved (§B) |
 | 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** — ✅ (a); control inline, memory+persist spawned | 14,17,19 | ✅ resolved (§H1) |
 | 4 | **Access control via `foundation_auth` + Cedar** — ✅ domain methods + generic authorize; foundation_cedar engine; embedded default / hosted optional | 18 | ✅ resolved (§H2) |
-| 5 | **MemoryStore**: stores `SessionRecord` directly; a coordinator (AgentSession?) owns it + DocumentStore; key by bare scru128 vs `SessionId` newtype | 07,20 | ⏳ up next |
-| 6 | **`run_turn` streams, not Vec-collects** (collect = opt-in wrapper) | 20 | ⬜ |
+| 5 | **MemoryStore**: ✅ stores latest `SessionRecord`/tier (one key/session); `MemoryCoordinator` facade owns it + DocumentStore (AgentSession holds it); keep `SessionId` newtype | 07,20 | ✅ resolved (§A3) |
+| 6 | **`run_turn` streams, not Vec-collects** (collect = opt-in wrapper) | 20 | ⏳ up next |
 | 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** (arrow zero-copy) | 22,26,27,28,29 | ⬜ |
 | 8 | **Provider router / object-safety** — confirm `RoutableProvider` (boxed stream, support detection, embedding routing, fallback ownership) | 12,21 | ⬜ |
 | 9 | **Token accounting details** — mid-stream `tokens_so_far` now or later; `rolling` = input+output | 03,04 | ⬜ |
@@ -90,20 +90,20 @@ F07: *"should not what we store just be the `SessionRecord`?"*, *"why does Memor
 DocumentStore… whatever owns those two should own the drop-down to DocumentStore, not MemoryStore
 itself,"* *"why does MemoryStore use `SessionId` — which are just scru128 ids?"*
 
-**Decision:**
-1. **MemoryStore stores `SessionRecord` values directly** (the memory variants), keyed by id — **no
-   separate `*Snapshot` structs**, no `MemoryBundle` factoring. This dissolves F07 OD-07-1 entirely
-   (the serde-flatten hole disappears — we store the record we already have).
-2. **MemoryStore does NOT wrap DocumentStore.** They're siblings. A higher-level coordinator (the session
-   / context layer) owns *both* and decides when to fall back from the cache to the audit log. MemoryStore
-   stays a dumb, fast latest-pointer cache.
-3. **Key by the raw scru128 id type**, not a `SessionId` newtype, since `SessionId` *is* a scru128
-   (`foundation_compact::Id`). (Minor: confirm we want the bare id everywhere vs the newtype for
-   type-safety — **[DISCUSS]** if you care; I lean bare id per your note.)
-
-**[DISCUSS]:** who is the "coordinator that owns both"? Likely the `AgentSession` (F31) or a small
-`SessionStore` facade. I'll propose `AgentSession` owns `{ MessageApi(DocumentStore), MemoryStore }` and
-does the fallback. Confirm.
+**✅ RESOLVED (user, 2026-06-15) — Item #5.**
+1. **MemoryStore stores `SessionRecord` values directly** (the memory variants), **no `*Snapshot` structs,
+   no `MemoryBundle`**. Shape: the **latest memory `SessionRecord` per tier** (working/observation/
+   reflection) under **one key per session** (a small `tier → SessionRecord` map) → `hydrate` is one get.
+   Dissolves F07 OD-07-1 (the serde-flatten hole disappears — we store the record we already have).
+2. **MemoryStore does NOT wrap DocumentStore.** A **dedicated coordinator facade** (provisional name
+   **`MemoryCoordinator`**) owns *both* `{ MemoryStore (cache), DocumentStore (audit) }` and does the
+   **dual-write** (memory record → audit log **and** cache) + the **cache→audit fallback** on a miss
+   (scan DocumentStore by `record_type`, re-populate cache). **`AgentSession` (F20) holds the
+   coordinator** — keeps the logic in one focused, unit-testable place and AgentSession lean. MemoryStore
+   stays a dumb fast latest-pointer cache.
+3. **Keep `SessionId` as a struct** wrapping `foundation_compact::Id` with convenient methods + easy
+   (transparent) serde — type-safe, zero wire overhead (F01 already defines it; ensure the convenience
+   methods are there). Not the bare id.
 
 ### A4. Models/providers already expose usage stats — read them, don't reinvent — [RESOLVED]
 F02/F03, repeatedly: *"if the models already expose usage and stats method, what's stopping us from
