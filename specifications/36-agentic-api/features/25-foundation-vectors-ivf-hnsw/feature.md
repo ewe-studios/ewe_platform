@@ -58,7 +58,9 @@ pub trait VectorIndex: Send + Sync {
     fn search(&self, query: &[f32], k: usize) -> Result<Vec<VectorMatch>, VectorError>;
     fn len(&self) -> usize;
     /// Serialize the built index — SELF-DESCRIBING: embeds kind tag + metric + dimension + params +
-    /// version. WASM-safe (postcard). No metric is passed back in.
+    /// version. WASM-safe. Encoding (Item #7 / §H4): a compact self-describing header (serde/postcard)
+    /// + the **columnar vector shards in arrow** (near-zero-copy on load). The backend (F29:
+    /// fjall/SQLite/R2) just persists/loads these bytes; the trait owns the (de)serialization.
     fn to_bytes(&self) -> Vec<u8>;
 }
 
@@ -115,7 +117,8 @@ graph TD
 1. `VectorIndex` trait + `FlatIndex` impl (wraps F24).
 2. IVF: k-means (seeded), posting lists, `nprobe` search, incremental insert.
 3. HNSW: layered graph build, greedy search, `ef_*` params, soft-delete.
-4. Serialize/deserialize (postcard) for both; round-trip tests.
+4. Serialize/deserialize for both — compact serde/postcard header + columnar vector shards in arrow
+   (Item #7 / §H4); round-trip tests.
 5. Recall benchmarks vs flat-scan ground truth (IVF ≥0.9 @ nprobe, HNSW ≥0.95 @ ef).
 6. Tests: insert/search/remove; recall vs flat; serialize round-trip; determinism (seeded);
    serial==parallel; wasm32 build; large-set smoke.

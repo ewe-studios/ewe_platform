@@ -293,9 +293,10 @@ goes from zero to expert in code knowledge-graphs:
   graph.json queried on wasm). tree-sitter does have a wasm build — future option to also build on wasm.
       Ya, sometimes may not just work in wasm and may need a tool to build the graph.json and let them load it, that is fine, dont force it where its not possible.
 
-- **OD-27-6 — graph storage:** in-memory + json now; persist to fjall/DocumentStore (F22/F29) for
-  large repos? Rec: json now; fjall-backed later.
-          We should implement them both, with a trait to own the surface
+- **OD-27-6 — graph storage: RESOLVED (user, 2026-06-15; Item #7 / §H4).** **Implement both** behind a
+  **trait** that exposes `to_bytes()`/`from_bytes()`; the backend persists the bytes (in-memory, or
+  fjall/DocumentStore for large repos). Graph **metadata is not columnar → plain serde/JSON** (human-
+  inspectable graph.json stays); use arrow only for any columnar sidecar (e.g. node-embedding matrices).
 
 - **OD-27-7 — incremental correctness:** `update` re-extracts changed files but cross-file `uses`/call
   resolution may span unchanged files — define the re-resolution scope (graphify re-resolves globally).

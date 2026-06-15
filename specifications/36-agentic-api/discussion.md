@@ -25,8 +25,8 @@ you decide → I update the affected features → I ask before moving on. Status
 | 4 | **Access control via `foundation_auth` + Cedar** — ✅ domain methods + generic authorize; foundation_cedar engine; embedded default / hosted optional | 18 | ✅ resolved (§H2) |
 | 5 | **MemoryStore**: ✅ stores latest `SessionRecord`/tier (one key/session); `MemoryCoordinator` facade owns it + DocumentStore (AgentSession holds it); keep `SessionId` newtype | 07,20 | ✅ resolved (§A3) |
 | 6 | **`run_turn` streams, not Vec-collects** — ✅ stream primary; thin collect wrapper; terminal FailedAction→Err | 20 | ✅ resolved (§H3) |
-| 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** (arrow zero-copy) | 22,26,27,28,29 | ⏳ up next |
-| 8 | **Provider router / object-safety** — confirm `RoutableProvider` (boxed stream, support detection, embedding routing, fallback ownership) | 12,21 | ⬜ |
+| 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** — ✅ arrow default for columnar (BM25/vectors), serde elsewhere | 22,26,27,28,29 | ✅ resolved (§H4) |
+| 8 | **Provider router / object-safety** — confirm `RoutableProvider` (boxed stream, support detection, embedding routing, fallback ownership) | 12,21 | ⏳ up next |
 | 9 | **Token accounting details** — mid-stream `tokens_so_far` now or later; `rolling` = input+output | 03,04 | ⬜ |
 | 10 | **Error handling depth** — flatten non-Clone `GenerationError`→String; overflow/rate-limit by detection (show what it looks like) | 02 | ⬜ |
 | 11 | **Input/output processors** — default `assemble` pipeline; `ProcessorOutcome` 3-state; output spawns | 14 | ⬜ |
@@ -467,15 +467,16 @@ gets each — saves memory, they can collect if they want."*
 terminal `SessionRecord::FailedAction` surfaces as `Err(ErrorTrace<AgenticError>)` from the wrapper (the
 stream itself keeps errors in-band as `FailedAction` records). Default guidance: prefer the stream.
 
-### H4. Storage traits **own their (de)serialization**; backends persist efficiently — [RESOLVED, confirms your read]
+### H4. Storage traits **own their (de)serialization**; backends persist efficiently — ✅ RESOLVED (Item #7)
 F26 OD-26-4, F27 OD-27-6, F29 OD-29-5: *"whatever stores them handles serialization… `to_bytes`/
 `from_bytes` makes it easy to test/validate, else the trait returns it after pulling it out efficiently…
 we can use arrow here for zero-copy."*
 
-**You read it right.** The index/store **trait** exposes `to_bytes`/`from_bytes` (cheap to unit-test +
-validate); the **backend** (disk / R2 / KV / fjall) decides how to persist efficiently. Large columnar
-payloads (BM25 inverted index, vector shards) can use **arrow** for near-zero-copy. So both
-"in-memory + JSON" *and* a persisted backend exist behind one trait (your "implement both" — F27 OD-27-6).
+**✅ RESOLVED (user, 2026-06-15) — Item #7.** The index/store **trait exposes `to_bytes()`/`from_bytes()`**
+(self-contained, trivial to unit-test); the **backend** (disk / R2 / KV / fjall) decides how to persist
+the bytes. **Encoding: arrow is the default for the columnar payloads** (BM25 inverted index, vector
+shards) for near-zero-copy; **plain serde elsewhere** (graph metadata, small indexes). Both "in-memory"
+and a persisted backend exist behind one trait (your "implement both" — F27 OD-27-6).
 
 ### H5. HTTP-in-wasm — reinforces `foundation_http` (B1) — [RESOLVED direction]
 F30 OD-30-2/30-4: *"if it's HTTP we should be able to call it in wasm too, right?"*, *"investigate what we

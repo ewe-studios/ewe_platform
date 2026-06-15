@@ -127,9 +127,11 @@ graph TD
 - **OD-26-3 — RRF default k:** 60 (common default). Rec: 60, configurable.
     Great, defauilt and configurable
 
-- **OD-26-4 — BM25 persistence size:** the inverted index can be large; share the F29
-  serialize/persist path. Rec: yes, `to_bytes`/`from_bytes` like `VectorIndex`.
-        This is why we ensure its via a trait and whatever stores them can store them efficiently e.g on disk, r2, KV etc, so whatever stores them handles the serialization and to_bytes and from_bytes makes it easy to test and validate else the trait returns it after pulling it out efficiently and same for storing, confirm if this make sense or if i misunderstood here. We can also use arrow here for efficient zero memory copy since its all memory efficient format.
+- **OD-26-4 — BM25 persistence: RESOLVED (user, 2026-06-15; Item #7 / §H4).** The index **trait exposes
+  `to_bytes()`/`from_bytes()`** (self-contained, trivial to unit-test); the **backend** (disk/R2/KV/fjall)
+  decides where to persist the bytes. The BM25 **inverted index is columnar → arrow is the default
+  encoding** (near-zero-copy); plain serde for smaller structures. Same `to_bytes`/`from_bytes` shape as
+  `VectorIndex` (F28/F29).
 
 
 - **OD-26-5 — where hybrid lives:** `foundation_vectors` (algorithms) vs F16 (orchestration). Rec:
