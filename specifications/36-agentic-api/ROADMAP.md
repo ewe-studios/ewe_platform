@@ -12,6 +12,8 @@ re-numbering (see `discussion.md` §F for the rationale).
 - `00d-wasm-target-matrix` — the 4-target matrix + target_os cfg discipline.
 - `00e-unified-send-async-traits` — collapse the `?Send` split: one `Send` async-trait surface for all
   `foundation_db` store traits + `SendWrapper` adapter on single-threaded wasm (Item #1 / §A1).
+- `00f-wasm-fetch-http-client` — wasm `fetch` client backend for `foundation_netio` (consistent client
+  API native+wasm + SSE over `ReadableStream`); unblocks wasm providers (00c) + external REST (F30).
 
 ## Phase 1 — Core machinery (in-memory impls + full tests)
 - `01-message-model` — type substrate (MessageRole, SessionId, ToolCall deps, SessionRecord).
@@ -51,12 +53,17 @@ re-numbering (see `discussion.md` §F for the rationale).
 - `31-embedding-provider` — embedding provider + router; sentence-level chunking.
 - `32-search-tools` — `search_context` + `search_file` (fff-search).
 
-## Phase 4 — Platform investments (new crates; see `discussion.md` §B — not yet authored)
-- `foundation_http` — fetch-based client (native + wasm), unblocks remote providers on wasm.
-- `foundation_wasmtime` — wasmtime host wrapper. **LAST** (user-deferred); 00d's WASI(wasmtime) test
-  runner lands together with it. Nothing in core machinery depends on it.
-- `foundation_buildtools` — build-time concerns (EMSDK wiring, target detection, `build.rs` helpers).
-- `foundation_docs` — zero-to-hero fundamentals (vectors/ANN, BM25, code-graphs, embeddings, wasm…).
+## Platform investments (new crates; scheduled per `discussion.md` §B)
+- **`00f-wasm-fetch-http-client` (Phase 0, EARLY — user)** — add a wasm `fetch` client backend to
+  `foundation_netio` (native client `SimpleHttpClient` already exists; `foundation_http` is the *server*).
+  One consistent client API native+wasm + SSE over `ReadableStream`. Unblocks wasm providers (00c) +
+  external REST (F30).
+- `foundation_buildtools` (with **00d**) — dedicated crate for build-time concerns (EMSDK wiring, target
+  detection, `build.rs` helpers); authored when 00d wires the build matrix.
+- `foundation_docs` (**Phase 3**) — mdBook fundamentals (vectors/ANN, BM25, code-graphs, embeddings, wasm…);
+  per-feature "Fundamentals" sections become chapters.
+- `foundation_wasmtime` (**LAST**, user-deferred) — wasmtime host wrapper; 00d's WASI(wasmtime) runner
+  lands together with it. Nothing in core machinery depends on it.
 
 ---
 

@@ -20,8 +20,8 @@ you decide → I update the affected features → I ask before moving on. Status
 | # | Item | Touches | Status |
 |---|------|---------|--------|
 | 1 | **Async-first traits + Send/?Send on wasm** — ✅ one `Send` trait + single-threaded-wasm adapter; emscripten = native | all traits (06,07,09,11,12,23,…) | ✅ resolved (§A1) |
-| 2 | **New platform crates greenlight** — `foundation_http` (fetch), `foundation_wasmtime`, `foundation_buildtools`, `foundation_docs`: which now vs later? | 00c,00d,23,30,31; all "fundamentals" | ⏳ up next |
-| 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** (not a valtron task / output processor) | 14,17,19 | ⬜ |
+| 2 | **New platform crates greenlight** — ✅ wasm fetch client NOW (F00f); `foundation_wasmtime` last; `foundation_buildtools` dedicated (w/ 00d); `foundation_docs` mdBook (Phase 3) | 00c,00d,23,30,31 | ✅ resolved (§B) |
+| 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** (not a valtron task / output processor) | 14,17,19 | ⏳ up next |
 | 4 | **Access control via `foundation_auth` + Cedar** — surface shape; embedded vs hosted policies | 18 | ⬜ |
 | 5 | **MemoryStore**: stores `SessionRecord` directly; a coordinator (AgentSession?) owns it + DocumentStore; key by bare scru128 vs `SessionId` newtype | 07,20 | ⬜ |
 | 6 | **`run_turn` streams, not Vec-collects** (collect = opt-in wrapper) | 20 | ⬜ |
@@ -132,22 +132,25 @@ which selects the right backend per target. Remove the dead `chrono` dep (OD-00b
 
 ## B. New-crate proposals (you asked me to think and tell you)
 
-### B1. `foundation_http` — a fetch-based HTTP client for native + wasm — [DISCUSS, lean YES]
-F00c: *"add fetch-based clients… a design that works for native and wasm… even the HTTP API client has
-`Send()` and methods we can represent with fetch… come up with a design that feels right."*
+### B1. wasm `fetch` HTTP **client** — ✅ RESOLVED: build NOW (early) — owned by new F00f
+F00c: *"add fetch-based clients… a design that works for native and wasm… come up with a design that feels
+right."* **Decision (user, 2026-06-15): build it now, early.**
 
-**Why:** today built-in remote providers (anthropic/openai) are native-only because the HTTP client isn't
-wasm-capable. A unified client unlocks **real providers on wasm/CF** and removes the "machinery-only on
-wasm" caveat (F00c OD-00c-1/3).
+**Grounded reality (verified in code — important correction):**
+- The HTTP **client** is **`foundation_netio::simple_http::SimpleHttpClient`** (+ SSE
+  `event_source::ReconnectingEventSourceTask`). It is **native-only** (`netcap`/TCP/rustls) and
+  `foundation_ai` providers already use it (`openai_responses_provider.rs:17`).
+- **`foundation_http` is a server framework** (native TCP + CF Workers serving), **not** a client — so
+  this is **not** a greenfield crate.
+- `foundation_netio` has **no wasm/fetch** path today.
 
-**Proposed shape:** a single `HttpClient` trait with **one async surface**, two feature-gated backends:
-- native → `reqwest`/our `foundation_netio` transport;
-- wasm → `web-sys`/`fetch` (and a `foundation_wasm` host variant, as you suggested), incl. streaming
-  responses (SSE) via `ReadableStream`.
-
-`foundation_http` owns the trait + both backends; providers depend on it instead of a native client. SSE
-streaming maps to fetch's `ReadableStream`. **[DISCUSS]:** crate name (`foundation_http` vs fold into
-`foundation_netio`), and whether the first cut is request/response only with SSE as a fast-follow.
+**So the real work:** add a **wasm `fetch` client backend to `foundation_netio`** presenting the **same
+`SimpleHttpClient`-shaped API** (one consistent surface native+wasm — your F30-4 ask), incl. **SSE over
+fetch `ReadableStream`** so streaming providers work on wasm/CF. Reuses **`foundation_auth::AuthCredential`**
+for keys (already owned). One `Send` async surface per Item #1. Unblocks: **00c** real wasm providers,
+**F30** TurboPuffer/external REST on wasm. Owned by **[Feature 00f](features/00f-wasm-fetch-http-client/feature.md)**
+(Phase 0, early). Open sub-decisions live in 00f (client trait extraction, fetch streaming, `foundation_wasm`
+host vs direct `web-sys`).
 
 ### B2. `foundation_wasmtime` — wasmtime host wrapper — ✅ RESOLVED: DEFERRED to last (Phase 4)
 F00d: *"wasmtime always — ignore everything else; a `foundation_wasmtime` should own this layer and give a
@@ -166,26 +169,19 @@ native/in-memory tests) needs it, and that one dependent is itself deferrable. *
 - Scope when we get there: minimal testbed-driving API (load + run + assert exports) first; the fuller
   imports/exports host is future work.
 
-### B3. Build tooling — `foundation_buildtools` vs fold into `foundation_testbed` — [DISCUSS]
-F00b: *"invest in getting the build platform right… it's ok to move a lot of `build.rs` logic into
-`foundation_testbed`, or create a `foundation_buildtools` to own such concerns — think about it and tell
-me."*
+### B3. `foundation_buildtools` — ✅ RESOLVED: dedicated crate, built when 00d needs it
+F00b: *"invest in getting the build platform right… create a `foundation_buildtools` to own such
+concerns."* **Decision (user, 2026-06-15): a dedicated `foundation_buildtools`** (not folded into the
+testbed) — build-time concerns (EMSDK wiring, target detection, `build.rs` helpers, codegen) are a
+different lifecycle and crates need them at build time without pulling a test harness. **Authored when
+00d wires the wasm/emscripten build matrix** (its first real consumer); the testbed can also use it.
 
-**My recommendation: a dedicated `foundation_buildtools`.** Reason: `foundation_testbed` is a *test
-harness* (pulled in as a dev-dependency / runner); build-time concerns (EMSDK wiring, target detection,
-`build.rs` helpers, codegen) are a *different lifecycle* and many crates need them at build time without
-pulling a whole test harness. A small `foundation_buildtools` that crates use in `build.rs` (and which the
-testbed can also use) keeps the dependency direction clean. **Your call.**
-
-### B4. `foundation_docs` — zero-to-hero teaching docs — [RESOLVED direction, scope to DISCUSS]
+### B4. `foundation_docs` — ✅ RESOLVED: mdBook crate, authored alongside Phase 3
 F08–F11, F14, repeatedly: *"I've reached the limits of my knowledge — web research, select the best
-answers, add `foundation_docs` to teach me from zero to hero."*
-
-**Decision:** a `foundation_docs` home for the deep "fundamentals" writeups (vector search & ANN
-algorithms, BM25/RRF, code-graphs, embeddings, LSM/fjall, arrow, wasm targets, etc.). The per-feature
-"Fundamentals Documentation (zero-to-expert)" sections become **chapters in `foundation_docs`** rather
-than scattered. **[DISCUSS]:** is `foundation_docs` a crate of markdown (mdBook-style) or doc-comment
-modules? I lean an mdBook-style markdown crate, web-published, with runnable examples where possible.
+answers, add `foundation_docs` to teach me from zero to hero."* **Decision (user, 2026-06-15): an
+mdBook-style markdown crate**, web-published, runnable examples where possible. The per-feature
+"Fundamentals Documentation (zero-to-expert)" sections become **chapters**, **written as each phase lands
+— concentrated in Phase 3 (RAG/vectors/embeddings)** where most of the "teach me / research" asks live.
 
 ---
 
