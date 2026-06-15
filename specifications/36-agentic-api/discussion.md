@@ -242,22 +242,22 @@ against a **stub** `AgenticError` with the required trait bounds, and F30 later 
 dependency" = F02 can be built first as long as the stub exists. Nothing to decide — it's a build-ordering
 note. (The machinery-first re-numbering will put F30 early precisely to avoid stubs.)
 
-### D3. F02/F03 — "Generating vs Generated" and "why no tokens_so_far?" — [DISCUSS]
-`ModelState::GeneratingTokens(Option<UsageReport>)` is the *in-progress* state; providers currently emit
-`None` (no partial usage mid-stream). Your question: *"why can't they provide tokens-so-far — models tell
-us this, not providers?"* Reality: the **cumulative** number is always available via `Model::costing()`
-(A4). The **mid-stream partial** count would require the provider to populate `Some(usage)` on each delta,
-which the streaming providers don't do today. **Proposal:** use `costing()` for budget/accounting (exact,
-per turn); treat live mid-stream `tokens_so_far` as an optional provider enhancement (populate
-`Some(usage)` from the provider's own counter). Rename the state to make sense if you prefer. Confirm
-whether mid-stream live counts matter to you now, or are a later nicety.
+### D3. F02/F03 — "Generating vs Generated" and "why no tokens_so_far?" — **✅ RESOLVED (user, 2026-06-15) — add the capability once and for all.**
+Every streaming provider populates `Some(usage)` on **each** delta of `ModelState::GeneratingTokens`:
+- Providers track a running cumulative count as they receive text tokens (including tool-call argument tokens).
+- `GeneratingTokens(Some(usage))` carries the live cumulative count (input from the turn's prompt, output so-far).
+- The ledger uses `Model::costing()` for the authoritative post-turn total; the mid-stream count is a **live**
+  reading (useful for budget checks mid-generation — stop early if budget exceeded).
+- Per-provider change: native HTTP providers (they already parse streaming deltas) + llamacpp/candle backends.
+- F03's stream contract already has the `Some(usage)` slot — providers just don't populate it yet (now they will).
 
-### D4. F03 OD-03-3 — what counts toward the "rolling" memory-trigger count? — [DISCUSS/RESEARCH]
-The rolling counter decides when to summarize context (observation ~30k). Question is whether it counts
-**input+output** or **output only**. *What other harnesses do:* context-window managers (e.g. Mastra,
-Letta/MemGPT) measure **total context size = input+output of recent turns**, because the trigger is "the
-prompt is getting too big." **Rec (matches your instinct):** input+output of recent turns. I'll verify
-against F18's context-assembly definition so the number means the same thing in both places.
+### D4. F03 OD-03-3 — what counts toward the "rolling" memory-trigger count? — **✅ RESOLVED (user) — input+output of recent turns.**
+The rolling counter counts **input+output** of recent turns (what Mastra, Letta/MemGPT do). This matches
+the real cost: the trigger is "the prompt is getting too big to fit in the window," and the input side
+(system prompts + memory + tool definitions + recent messages) dominates the context size. The 30k
+threshold means "the next prompt will be roughly 30k tokens of recent context." Counting output-only
+would fire the trigger too late. F04's `rolling()` aggregates both; F15's observation trigger fires when
+`rolling() >= 30k`.
 
 ### D5. F03 OD-03-5 — *"why is `total_tokens` inconsistent, for my learning."*
 Providers compute the `total_tokens` field differently: **Anthropic** reports `input + output` and lists
@@ -279,14 +279,13 @@ DocumentStore) and A1 (async-first, drop the `?Send` mirror):
   Not MemoryStore's job anymore.
 - **OD-07-8/9** → resolved by A3 (store the record; `&`-taking API).
 
-### D7. F16 OD-16-1/2/3 — pub/sub + backpressure + WAL — [RESOLVED, one DISCUSS]
+### D7. F16 OD-16-1/2/3 — pub/sub + backpressure + WAL — [RESOLVED]
 - **OD-16-2 [RESOLVED]:** bounded inner queue; if it fills and nobody's consuming, **panic and report
-  fast** (something is broken). Your call.
-- **OD-16-3 [RESOLVED]:** **WAL it** (you pointed at `cacache`) — crash-safe + makes backpressure easier.
-  I'll spec a `cacache`-backed write-ahead log for the message buffer.
-- **OD-16-1 [DISCUSS]:** *"ConcurrentQueueOfReceivers — isn't that better?"* than a Mutex broadcaster. For
-  fan-out pub/sub, a concurrent queue of receivers avoids a central lock and is lock-free on the hot path
-  — **agreed, it's better** for the broadcast case; I'll spec the receiver-queue. Confirm.
+  fast** (something is broken).
+- **OD-16-3 [RESOLVED]:** **WAL it** (pointed at `cacache`) — crash-safe + makes backpressure easier.
+  `cacache`-backed write-ahead log for the message buffer.
+- **OD-16-1 [RESOLVED]:** **ConcurrentQueue of receivers** — fan-out pub/sub avoids a central lock,
+  lock-free on the hot path. Already resolved via the bounded fan-out broadcaster (F08, Item #11).
 
 ### D8. F18 OD-18-5 — ContextProvider vs MemoryHierarchy boundary — **✅ RESOLVED (Item #15)**
 **✅ RESOLVED (user, 2026-06-15; Item #15) — keep separate.** Clear boundary:

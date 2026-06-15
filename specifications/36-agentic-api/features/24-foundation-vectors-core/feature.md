@@ -150,12 +150,19 @@ graph TD
 - **OD-24-4 — SIMD:** portable scalar now; native SIMD feature later. Rec: defer.
       Whats the block for SIMD ?
 
-- **OD-24-5 — no_std (revised):** `BinaryHeap`/`Vec` are in `alloc` ✓, and `f32::total_cmp` is in
-  `core` ✓, **but `f32::sqrt` is `std`-only** — cosine's norm needs it. Options: (a) add `libm` for
-  `sqrt` in no_std, (b) rank on squared-norm forms avoiding sqrt, (c) restrict no_std to the
-  normalized-dot path (store normalized → cosine==dot, no sqrt at query). Rec: (a) `libm` (clean) or
-  (c). Don't claim no_std without resolving sqrt.
-      My knowledge is lacking but i remember DOOM had a CPU friendly way to do sqrt, would not that resolve issues here in no std land ?
+- **OD-24-5 — no_std sqrt: RESOLVED (user, 2026-06-15) — normalized vectors primary + libm fallback.**
+  The DOOM / fast inverse square root (`0x5f3759df`) was designed for 1999 CPUs without hardware sqrt.
+  On modern targets (x86/SSE, ARM/NEON, wasm), hardware sqrt is faster and the DOOM trick is both
+  slower and less accurate (1-3% error). Benchmarks confirm this
+  ([rust-isqrt](https://github.com/k0nserv/rust-isqrt)).
+
+  **Primary: store normalized vectors** (L2-normalized on insert → cosine = dot product at query, no
+  sqrt needed). This is what real vector databases do (Elasticsearch, Milvus, Pinecone). For embeddings
+  this is correct — they're compared by direction, not magnitude.
+
+  **Fallback: `libm::sqrtf`** — for cases that still need sqrt (normalizing on insert, L2 distance).
+  Pure Rust, works everywhere including wasm32-unknown-unknown, accurate (glibc-level precision).
+  The `libm` crate is the Rust project's own no_std math library.
 
 - **OD-24-6 (mandatory) — f32 ordering:** `OrderedScore(f32)` newtype, manual `Ord` via
   `total_cmp`, NaN = least. The heap key + NaN guard in one place. (Not `ordered-float` dep — keep it
