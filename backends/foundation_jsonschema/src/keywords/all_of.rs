@@ -26,15 +26,12 @@ impl AllOfValidator {
 
 impl Validate for AllOfValidator {
     fn is_valid(&self, instance: &Value, ctx: &mut ValidationContext) -> bool {
-        // Save state before any branch runs — all branches start from this base
-        let base_state = ctx.save_evaluation_state();
-
         for schema in &self.schemas {
-            // Each branch starts from the base state, then merges its results
-            ctx.restore_evaluation_state(&base_state);
+            let state = ctx.save_evaluation_state();
             if !schema.is_valid(instance, ctx) {
                 return false;
             }
+            ctx.merge_evaluation_state(&state);
         }
         true
     }
@@ -45,11 +42,10 @@ impl Validate for AllOfValidator {
         instance_path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> Result<(), ValidationError> {
-        let base_state = ctx.save_evaluation_state();
-
         for schema in &self.schemas {
-            ctx.restore_evaluation_state(&base_state);
+            let state = ctx.save_evaluation_state();
             schema.validate(instance, instance_path, ctx)?;
+            ctx.merge_evaluation_state(&state);
         }
         Ok(())
     }
@@ -61,13 +57,12 @@ impl Validate for AllOfValidator {
         ctx: &mut ValidationContext,
     ) -> ErrorIterator {
         let mut errors: Vec<ValidationError> = Vec::new();
-        let base_state = ctx.save_evaluation_state();
-
         for schema in &self.schemas {
-            ctx.restore_evaluation_state(&base_state);
+            let state = ctx.save_evaluation_state();
             for e in schema.iter_errors(instance, instance_path, ctx) {
                 errors.push(e);
             }
+            ctx.merge_evaluation_state(&state);
         }
         Box::new(errors.into_iter())
     }

@@ -256,38 +256,40 @@ graph TD
 - **OD-00b-3 — timestamp serde (native):** **Resolved → no native fixture change** (compact
   re-exports std on native). See OD-00b-6 for the cross-platform divergence.
 
-- **OD-00b-4 — RNG dep overlap:** `foundation_ai` already has non-optional `fastrand`,
-  `rand 0.10`, `rand_chacha 0.10` (`Cargo.toml:34-36`). `rand`/`rand_chacha` pull getrandom and may
-  break wasm (same class as 00a's `rand` issue). Decide: consolidate onto `foundation_compact`, or make
-  `rand`/`rand_chacha` native-only. **Recommendation: make them native-only here** (audit their use
-  sites; likely native sampling) — pulled forward into 00b/00c. Flag for the wasm build in 00c.
-      - With foundation_compat - all rand usage comes from it, we then do the work to present the right rand for the right platform: native / wasm / wasm with wasi / wasi with emscrypten- thats why `foundation_compat` exists - to own all these
+- **OD-00b-4 — RNG dep overlap: RESOLVED (user, 2026-06-15).** All `rand`/`rand_chacha` usage in
+  `foundation_ai` routes through `foundation_compact` — which owns the right RNG backend per platform
+  (native / wasm / wasm+wasi / wasm+emscripten). Remove the direct `rand 0.10` / `rand_chacha 0.10`
+  deps from `foundation_ai/Cargo.toml`; replace call sites with `foundation_compact::rng`. `fastrand`
+  stays (candle-gated, native-only).
 
-- **OD-00b-5 — `chrono` dead dep:** `chrono` (`Cargo.toml:37`) has **zero** `src` use →
-  **remove it** (cleanest; avoids a wasm-suspect dep). Confirm no feature/transitive need first.
-    Sounds good
+- **OD-00b-5 — `chrono` dead dep: RESOLVED (user, 2026-06-15).** Remove `chrono` from
+  `foundation_ai/Cargo.toml` — zero `src` uses, avoids a wasm-suspect dep. Confirm no transitive need
+  first (likely none — `chrono` is not re-exported).
 
-- **OD-00b-6 — native↔wasm timestamp wire-format:** **RESOLVED (user, 2026-06-15)** →
+- **OD-00b-6 — native↔wasm timestamp wire-format: RESOLVED (user, 2026-06-15).** →
   `foundation_compact::SystemTime` gets a **single custom serde** emitting
   `duration_since(UNIX_EPOCH)` as `{secs_since_epoch, nanos_since_epoch}` on **every** target →
   identical wire format everywhere, cross-platform replay round-trips. (F00 deliverable.)
-      Great
 
-- **OD-00b-7 (user, 2026-06-15) — target-aware llama gating, not a blanket wasm exclusion:**
-  `infrastructure_llama_cpp`'s build already wires the emscripten SDK, so llama.cpp builds on
-  `wasm32-unknown-emscripten` (browser, WebGPU/threads). Make the gate **target-aware**: keep
-  `llamacpp` enabled on **native + `wasm32-unknown-emscripten`**; exclude it **only** on
-  `wasm32-unknown-unknown` (CF Workers / wasm-bindgen — no libc/emscripten runtime). The llamacpp dep
-  is **target-gated** in Cargo.toml (`cfg(any(not(target_family = "wasm"), target_os = "emscripten"))`)
-  so `cargo build --target wasm32-unknown-unknown` automatically excludes it with default features;
-  emscripten/browser builds keep it for local inference. **Updated (Item #14):** `default = ["llamacpp",
-  "agentic"]` — wasm exclusion is via target gates, not feature manipulation. Verify the emscripten build path (EMSDK toolchain) is exercised separately —
-  it's a distinct toolchain from `wasm-bindgen`/`foundation_wasm`. A WebGPU/emscripten **in-browser
-  llama** deployment is a real future option, not excluded by this spec.
+- **OD-00b-7 — target-aware llama gating: RESOLVED (user, 2026-06-15).** The llamacpp dep is
+  **target-gated** in Cargo.toml (`cfg(any(not(target_family = "wasm"), target_os = "emscripten"))`) —
+  builds on native + `wasm32-unknown-emscripten` (browser, WebGPU/threads), excluded on
+  `wasm32-unknown-unknown` (CF Workers / no libc). `default = ["llamacpp", "agentic"]` — wasm exclusion
+  is via target gates, not feature manipulation. The emscripten build path (EMSDK toolchain) is verified
+  separately (F00d); WebGPU/emscripten in-browser llama is a real future option.
 
-    Lets us also invest in getting our  build platform right so we can build for wasm, native and make this seamless. Its ok to if we can move alot of our build.rs logic into foundation_testbed and make it easy to pull it in and call, if not, we can also create a `foundation_buildtools` to own such concerns, think about this and tell me what you think.
+- **OD-00b-8 — build tooling (`foundation_buildtools`): RESOLVED (user, 2026-06-15).** Create a
+  **`foundation_buildtools`** crate to own cross-platform `build.rs` logic — target detection helpers,
+  EMSDK wiring, C/C++ compilation flags per target, wasm-bindgen post-processing, and any shared build
+  scaffolding that today is duplicated across `infrastructure_llama_cpp/build.rs`,
+  `foundation_testbed`, and other crates. `foundation_testbed` is the wrong home (it's a test harness,
+  not a build substrate). `foundation_buildtools` is a `build-dependencies`-only crate — consumed in
+  `build.rs`, never linked into the runtime. Scoped as a **Phase 0 deliverable** alongside F00d (the
+  target matrix needs it). Implementation detail: a new feature or folded into F00d's HOW steps.
 
-- `backends/foundation_ai/Cargo.toml` — optional llama, features, `foundation_compact`/`foundation_compact` deps
+## Target Files
+
+- `backends/foundation_ai/Cargo.toml` — optional llama, features, `foundation_compact` deps
 - `backends/foundation_ai/src/errors/mod.rs` — gate llama imports/variants/From/Display
 - `backends/foundation_ai/src/backends/mod.rs` — gate `llamacpp`/`llamacpp_helpers`/`huggingface_gguf_provider`
 - `backends/foundation_ai/src/{lib.rs}` — gate llama re-exports; registry compiles backend-less
@@ -330,4 +332,4 @@ is/ isn't wasm-portable; `SystemTime` portability; default-feature blast radius.
   are made wasm-safe in 00c. The wasm target build proves target gating only.)
 - All `SystemTime::now()` route through `foundation_compact`; `foundation_compact`/`foundation_compact`
   wired; `chrono` removed (OD-00b-5).
-- OD-00b-1..6 resolved and folded in.
+- OD-00b-1..8 resolved and folded in.

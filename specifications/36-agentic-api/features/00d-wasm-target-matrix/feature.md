@@ -152,13 +152,20 @@ how to write **target-OS-aware cfg** (not blanket `target_arch`); building/runni
 
 ## Open Decisions
 
-- **OD-00d-1 — scope of host backends in `foundation_wasm`:** full WASI preview2 component host now, or
-  preview1 first + preview2 follow-up. Rec: wasip1 first (broader runtime support), wasip2 next.
-      **TODO**: Review, come up with two features for each, lets review and see whats possible and what we need to do and the scale for it.
+- **OD-00d-1 — scope of host backends in `foundation_wasm`: PARTIALLY RESOLVED (user, 2026-06-15).**
+  Split into two sub-features within F00d's implementation:
+  - **F00d-a (wasip1 host backend):** WASI preview1 syscalls (`random_get`, `clock_time_get`, `fd_*`).
+    Broader runtime support (wasmtime, wasmer, Deno, Node). Ships first.
+  - **F00d-b (wasip2 host backend):** WASI preview2 component model (`wasi:random`, `wasi:clocks`,
+    `wasi:http`). Requires WIT bindings + the component model toolchain. Ships second.
+  Both are Phase 0 deliverables within F00d — not deferred. The HOW steps should reflect the sequencing.
+  Needs a review of what each requires (research task before implementation).
 
-- **OD-00d-2 — which crates are required on which targets:** the matrix table above is the proposal;
-  confirm (esp. whether `foundation_db` fjall/native is gated native-only or native+emscripten).
-      Its about where it works, if it wworks with native + emscripten then we make it work and gate them properly.
+- **OD-00d-2 — which crates are required on which targets: RESOLVED (user, 2026-06-15).** The matrix
+  table above is confirmed. The rule: if it works on a target, we make it work and gate properly.
+  `foundation_db` fjall/native is gated to **native + emscripten** (fjall compiles with emscripten's
+  libc; verify). Pure-Rust crates (foundation_compact, foundation_vectors, agentic shared) target all
+  four.
 
 - **OD-00d-3 — WASI runtime for the harness: RESOLVED (user, 2026-06-15) → `wasmtime` always** (no
   wasmer). Owned by a dedicated **`foundation_wasmtime`** crate (nice API: set host imports, get an
@@ -166,16 +173,18 @@ how to write **target-OS-aware cfg** (not blanket `target_arch`); building/runni
   machinery depends on it, so the WASI runner here lands together with `foundation_wasmtime`. The other
   00d runners (native/unknown-unknown/emscripten) are not blocked.
 
-- **OD-00d-4 — emscripten in CI:** EMSDK is vendored (`tools/emsdk`); confirm the CI build wires it and
-  whether emscripten is gated behind a testbed feature.
-          - Yes its time to invest more in this and get this build target working well.
+- **OD-00d-4 — emscripten in CI: RESOLVED (user, 2026-06-15).** Invest in getting the emscripten build
+  target working well. EMSDK is vendored (`tools/emsdk`); wire it into CI, gate behind a testbed
+  feature (`emscripten`), and exercise the emscripten runner in the CI matrix. The
+  `foundation_buildtools` crate (F00b OD-00b-8) owns the EMSDK wiring helpers.
 
-- **OD-00d-5 — spec-wide cfg refactor: PARTIALLY RESOLVED (Item #14, 2026-06-15).** All spec features
-  now use `target_family = "wasm"` instead of `target_arch = "wasm32"`. The finer target_os discriminators
-  (unknown-unknown vs emscripten vs wasi) are this feature's remaining deliverable — the canonical
-  patterns are defined in §1 above. Feature it and plan it properly, understand the dependency chain
-  and where and when it must land.
-       - Lets get it right
+- **OD-00d-5 — spec-wide cfg refactor: RESOLVED (user, 2026-06-15).** All spec features use
+  `target_family = "wasm"` (Item #14). The finer target_os discriminators (unknown-unknown vs
+  emscripten vs wasi) are this feature's deliverable — the canonical patterns in §1 above are the
+  spec-wide standard. F00d's HOW step 1 audits all agentic crates and replaces blanket gates with
+  target_os-aware gates where the distinction matters (e.g. native C tooling → native+emscripten,
+  not blanket "not wasm"). The dependency chain: F00 (entropy/time already target-aware) → F00d
+  (establishes patterns + audits crates) → all subsequent features follow the patterns.
 
 ## Target Files
 
@@ -212,5 +221,6 @@ cargo clippy --workspace -- -D warnings
 - `foundation_testbed` can build + run tests on `unknown-unknown` (existing), emscripten, wasip1, wasip2.
 - The agentic pure-Rust crates compile across the matrix; native-C tooling (fff/llama) is gated to
   native+emscripten, not "all wasm".
-- The canonical target_os cfg pattern is documented + adopted (OD-00d-5). OD-00d-1..4 resolved;
-  fundamentals authored.
+- The canonical target_os cfg pattern is documented + adopted (OD-00d-5). OD-00d-1..5 resolved;
+  fundamentals authored. `foundation_buildtools` crate exists (OD-00b-8) for cross-platform build
+  helpers.

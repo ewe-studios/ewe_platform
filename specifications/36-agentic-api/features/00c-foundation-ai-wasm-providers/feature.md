@@ -52,30 +52,37 @@ for `Stream::Delayed`. The review disproved this:
 
 ## WHAT: Solution
 
-### Decision: wasm builds the agentic machinery, not the built-in remote providers
+### Decision: wasm builds the agentic machinery AND the remote providers
 
-On wasm, `foundation_ai` exposes the **provider trait** + the agentic layer; the **concrete
-OpenAI/Anthropic providers and their native transport are `cfg(not(target_family = "wasm"))`**. A
-wasm deployment supplies a wasm-compatible provider (a future fetch-based provider, or the
-`ModelProviderRouter` (F12) routing to one, or a mock). This is the only correct scope until a wasm
-HTTP client exists. **OD-00c-1 (user): confirm this scoping.**
+With F00f delivering `FetchHttpClient` behind the `HttpClient` trait (same API as native
+`SimpleHttpClient`), the built-in OpenAI/Anthropic providers **switch from hard `SimpleHttpClient` to
+`HttpClient`** and build on wasm. The native transport continues to use `SimpleHttpClient`; on wasm
+the providers use `FetchHttpClient` (web_sys fetch + ReadableStream SSE). Both implement the same
+`HttpClient` trait — calling code is identical.
 
-### 1. cfg-gate the native HTTP providers + transport off wasm
+### 1. Switch providers from `SimpleHttpClient` to the `HttpClient` trait (F00f)
+
+The built-in providers (`openai_provider`, `openai_responses_provider`,
+`anthropic_messages_provider`) currently hold a concrete `SimpleHttpClient` in their struct fields.
+Switch these to `Arc<dyn HttpClient>` (F00f's trait). On native, construct with `SimpleHttpClient`;
+on wasm, construct with `FetchHttpClient`. The provider code itself is target-agnostic — it calls
+`client.send()` / `client.send_streaming()` regardless of platform.
 
 ```rust
-// backends/mod.rs — these depend on the native SimpleHttpClient / EventSource
-#[cfg(not(target_family = "wasm"))] pub mod openai_provider;
-#[cfg(not(target_family = "wasm"))] pub mod openai_responses_provider;
-#[cfg(not(target_family = "wasm"))] pub mod anthropic_messages_provider;
+// Example: openai_provider.rs
+pub struct OpenAiProvider {
+    client: Arc<dyn HttpClient>,  // was: SimpleHttpClient
+    // ...
+}
 ```
 
-Any always-compiled re-exports of these providers / their types move behind the same cfg. The
-provider **trait** (`ModelProvider`/`Model`), `ModelInteraction`, `Messages`, `ToolShed`, etc. stay
-target-agnostic. Audit `lib.rs` for unconditional provider re-exports.
+The provider **trait** (`ModelProvider`/`Model`), `ModelInteraction`, `Messages`, `ToolShed`, etc.
+stay target-agnostic. Audit `lib.rs` for any unconditional re-exports of native-only types.
 
-> The `thread::sleep` calls live inside these now-gated modules → no wasm issue; left unchanged on
-> native. (If a future wasm fetch-provider needs backoff, it uses `Stream::Delayed` from its
-> streaming impl — but that's the future provider's concern, not this feature.)
+> The `thread::sleep` calls in the non-streaming `execute_request` paths are native-only retry logic.
+> On wasm, non-streaming calls use the same `HttpClient.send()` without blocking sleep — retry
+> backoff on wasm uses `TaskStatus::Delayed` (valtron scheduling, F00). The streaming paths use
+> `send_streaming()` which works identically on both platforms.
 
 ### 2. Remove dead deps
 
@@ -132,53 +139,59 @@ emscripten), `wasm/web/` (unknown-unknown: SendWrapper, fetch, web-sys), `wasm/w
 ```mermaid
 graph TD
     subgraph "native (default features, native target)"
-        N[foundation_ai] --> NP[OpenAI/Anthropic providers + native HTTP/SSE]
+        N[foundation_ai] --> NP[OpenAI/Anthropic providers via HttpClient trait]
+        NP --> NS[SimpleHttpClient: native TCP/TLS]
         N --> NL[llama/candle backends]
         N --> NA[agentic/shared + agentic/native]
     end
-    subgraph "wasm (default features, wasm target — target gates exclude native-only)"
-        W[foundation_ai] --> WT[ModelProvider trait + types]
+    subgraph "wasm (default features, wasm target)"
+        W[foundation_ai] --> WP[OpenAI/Anthropic providers via HttpClient trait]
+        WP --> WF[FetchHttpClient: web_sys fetch + ReadableStream SSE]
         W --> WA[agentic/shared + agentic/wasm/web or wasi]
-        W -.target-gated out.-> WP[built-in HTTP providers]
         W -.target-gated out.-> WL[llama/candle backends]
-        WX[wasm deployment] -->|supplies| WI[wasm provider: future fetch-based / router / mock]
-        WI -.implements.-> WT
     end
 ```
 
 ## HOW: Implementation Steps
 
-1. Confirm 00b landed (llama optional, error enums gated, `foundation_compact`/`foundation_compact` wired).
-2. cfg-gate `openai_provider`/`openai_responses_provider`/`anthropic_messages_provider` (+ re-exports)
-   off wasm. Keep the `ModelProvider`/`Model` trait + interaction types target-agnostic.
-3. Delete dead `rand`/`rand_chacha`/`chrono` deps.
+1. Confirm 00b landed (llama optional, error enums gated, `foundation_compact` wired) and **F00f
+   landed** (HttpClient trait + FetchHttpClient in foundation_netio).
+2. Switch providers from `SimpleHttpClient` to `Arc<dyn HttpClient>` (F00f). Keep the
+   `ModelProvider`/`Model` trait + interaction types target-agnostic.
+3. Delete dead `rand`/`rand_chacha`/`chrono` deps (OD-00b-4/5 confirmed they're dead).
 4. Target-gate `foundation_auth` (`wasm` feature on wasm; default on native). Verify it builds on
    wasm (OD-00c-2) — if not, file/await the `foundation_auth` wasm fix.
 5. Make `foundation_deployment` optional under `llamacpp`/`candle`.
-6. `cargo build -p foundation_ai --target wasm32-unknown-unknown`;
+6. Handle `thread::sleep` in non-streaming paths: on wasm, replace with non-blocking retry via
+   `TaskStatus::Delayed` (the providers are now target-agnostic, so blocking sleep needs a wasm path).
+7. `cargo build -p foundation_ai --target wasm32-unknown-unknown`;
    target-gate any residual native usage surfaced (the build error list is the worklist).
-7. Native default build + suite — **no behavior change**.
+8. Native default build + suite — **no behavior change**.
 
 ## Open Decisions
 
-- **OD-00c-1 (user) — wasm scope:** wasm = agentic machinery only; built-in HTTP providers are
-  native-only until a fetch-based client lands. Confirm. (This re-scopes the spec's "everything
-  builds on wasm" criterion: machinery yes, built-in remote providers no.)
-      - Lets invest in getting this right - adding fetch based clients that make this easy for http client requests, we have all the capabilities and we own the own platform crates, we can do this well. Lets come up with a design that works for native and wasm, even the http API client has Send() and some methods that we can more than represent with fetch if possible, lets review and come up with a design that works and just feels right, we can discuss it if we have holes or questions to answer.
+- **OD-00c-1 — wasm scope: RESOLVED (user, 2026-06-15).** Wasm builds the agentic machinery AND the
+  built-in remote providers — **not** native-only. The user directed: invest in fetch-based clients so
+  HTTP providers work seamlessly across native and wasm. This is delivered by **F00f** (wasm fetch HTTP
+  client in `foundation_netio`), which provides `FetchHttpClient` behind the same `HttpClient` trait
+  the native `SimpleHttpClient` implements. Once F00f lands, F00c un-gates the providers on wasm.
+  The original "machinery-only on wasm" criterion is **superseded** — both machinery and remote
+  providers build on wasm.
 
-- **OD-00c-2 (prerequisite) — `foundation_auth` on wasm:** verify it builds with `wasm` feature; if
-  not, prerequisite fix.
-    do so, and document the fix clearly, feel free to create 000a,00b features if needed to own the work and scope it right
+- **OD-00c-2 — `foundation_auth` on wasm: RESOLVED (user, 2026-06-15).** Verify and fix
+  `foundation_auth` to build on wasm with its `wasm` feature. Document the fix clearly. If the fix is
+  substantial, create a dedicated sub-feature to own the scope. This is a prerequisite — must land
+  before F00c completes.
 
-- **OD-00c-3 — future wasm HTTP transport:** building a `web-sys`/fetch `SimpleHttpClient` + SSE in
-  `foundation_netio` (so wasm gets real built-in providers) is a **separate future feature / spec**.
-  Record it; do not attempt here.
-      - Lets investigate it, think about it, feature it and do it, then also see how we can do one using our foundation_wasm crate as well and add it to foundation_http with feature gating, making life even more seamless across native and wasm, lets think about it deeply and see how we can design it, if we need a new API surface for both native and wasm to work, lets think about it and design, then review and when we are happy, feature it and schedule for working.
+- **OD-00c-3 — wasm HTTP transport: RESOLVED (user, 2026-06-15) → delivered by F00f.** The user
+  directed: investigate, feature it, and do it. This became **Feature 00f** (wasm fetch HTTP client) —
+  a `FetchHttpClient` in `foundation_netio` behind the `HttpClient` trait, plus SSE over fetch
+  `ReadableStream`. F00f depends on F00e (Send async traits). F00c consumes F00f's deliverable to
+  un-gate providers on wasm. **Not deferred — scheduled as Phase 0.**
 
-    
-- **OD-00c-4 — `huggingface_gguf_provider` gating:** confirm 00b gated it behind `llamacpp` (it must
-  be, since it imports `foundation_deployment` + `infrastructure_llama_cpp`).
-    - Of course
+- **OD-00c-4 — `huggingface_gguf_provider` gating: RESOLVED (user, 2026-06-15).** Confirmed: F00b
+  gates it behind `llamacpp` (it imports `foundation_deployment` + `infrastructure_llama_cpp`).
+  Verified.
 
 ## Target Files
 
@@ -217,11 +230,11 @@ Cloudflare Workers runtime & `?Send` futures; how a wasm deployment supplies a p
 ## Done When
 
 - `foundation_ai` builds for `wasm32-unknown-unknown` with **default features** (`llamacpp` + `agentic`)
-  — target gates automatically exclude native-only providers and llamacpp dep. No `--no-default-features`.
+  — target gates automatically exclude llamacpp dep. Providers work on wasm via `HttpClient` trait
+  (F00f). No `--no-default-features`.
 - Native default build + suite unchanged.
 - Dead deps removed; `foundation_auth` target-gated and wasm-buildable.
 - All cfg gates use `target_family = "wasm"` (not `target_arch = "wasm32"`).
-- OD-00c-1 (scope) confirmed by the user; OD-00c-3 (wasm fetch client) recorded as a future feature.
-- **Phase 0 complete:** `foundation_compact`, `foundation_compact`, `foundation_ai` (machinery) build
-  native + wasm; the agentic features (01+) can assume the substrate. wasm *remote inference* awaits
-  the future fetch-based transport.
+- OD-00c-1..4 resolved. Remote providers work on wasm via F00f's `HttpClient` trait.
+- **Phase 0 complete:** `foundation_compact`, `foundation_ai` (machinery + remote providers) build
+  native + wasm; the agentic features (01+) can assume the substrate.
