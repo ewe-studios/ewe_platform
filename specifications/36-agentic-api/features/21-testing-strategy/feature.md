@@ -196,9 +196,11 @@ stores, no native model). (Task — see list.)
   matchers (rec, user requirement) replacing Decision 17's `Regex`. Confirm the matcher closure shape.
         Lets lay it out in a discussion to discuss so you can show me the API options to choose the best
 
-- **OD-21-2 — mock implements RoutableProvider (load-bearing):** implement F12's object-safe trait (rec)
-  vs the full `ModelProvider` (assoc types, hard). Rec: `RoutableProvider` — F19/F20 take a router. Flag.
-            Explain the issue here to me, is ModelProvider not object safe ?
+- **OD-21-2 — mock implements `RoutableProvider`: RESOLVED (user, Item #8 / §H6).** **`ModelProvider` is
+  NOT object-safe** — it has associated types (`type Config`/`type Model`) and `generate`/`stream` return
+  `impl StreamIterator` (RPIT), so it can't be `dyn`-ed. The mock therefore implements F12's object-safe
+  **`RoutableProvider`** (concrete signatures, boxed stream), which is what F19/F20 take (an
+  `Arc<dyn RoutableProvider>` router) — not the assoc-typed `ModelProvider`.
 
 - **OD-21-3 — message builders:** provide `mock_text`/`mock_tool_call`/`mock_text_usage` (rec) — raw
   `Messages::Assistant` is too verbose and `UsageReport` must flow for ledger tests.

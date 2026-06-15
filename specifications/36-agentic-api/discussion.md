@@ -26,8 +26,8 @@ you decide → I update the affected features → I ask before moving on. Status
 | 5 | **MemoryStore**: ✅ stores latest `SessionRecord`/tier (one key/session); `MemoryCoordinator` facade owns it + DocumentStore (AgentSession holds it); keep `SessionId` newtype | 07,20 | ✅ resolved (§A3) |
 | 6 | **`run_turn` streams, not Vec-collects** — ✅ stream primary; thin collect wrapper; terminal FailedAction→Err | 20 | ✅ resolved (§H3) |
 | 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** — ✅ arrow default for columnar (BM25/vectors), serde elsewhere | 22,26,27,28,29 | ✅ resolved (§H4) |
-| 8 | **Provider router / object-safety** — confirm `RoutableProvider` (boxed stream, support detection, embedding routing, fallback ownership) | 12,21 | ⏳ up next |
-| 9 | **Token accounting details** — mid-stream `tokens_so_far` now or later; `rolling` = input+output | 03,04 | ⬜ |
+| 8 | **Provider router / object-safety** — ✅ RoutableProvider + boxed stream; rule-then-get_one; F12 single-winner, fallback in F02/F04 | 12,21 | ✅ resolved (§H6) |
+| 9 | **Token accounting details** — mid-stream `tokens_so_far` now or later; `rolling` = input+output | 03,04 | ⏳ up next |
 | 10 | **Error handling depth** — flatten non-Clone `GenerationError`→String; overflow/rate-limit by detection (show what it looks like) | 02 | ⬜ |
 | 11 | **Input/output processors** — default `assemble` pipeline; `ProcessorOutcome` 3-state; output spawns | 14 | ⬜ |
 | 12 | **Loop-detection internals** — SimHash reuse; ordered-list arg hashing (not HashMap) | 17 | ⬜ |
@@ -496,6 +496,13 @@ That's the entire reason for the **`RoutableProvider`** adapter (F12): an object
 **concrete** method signatures (`Box<dyn StreamIterator<D=Messages,P=ModelState>>` instead of `impl`) that
 wraps a concrete `ModelProvider` so the router can hold `Arc<dyn RoutableProvider>`. (This also answers F21
 — the mock implements `RoutableProvider`, not the assoc-typed `ModelProvider`.)
+
+**✅ CONFIRMED (user, 2026-06-15) — Item #8:** (a) `RoutableProvider` + boxed stream is the erased
+surface; (b) routing = **rule first (optional explicit route map), then `get_one(model_id)` probe**
+(`NotFound` = provider doesn't serve it); (c) F12 resolves a **single winner** per `model_id` now (keeps a
+`Vec` for future), and the **multi-provider fallback iteration belongs to F02/F04** (error handling /
+budget), not the router; (d) embedding routing resolves like chat (the embedding `model_id` goes through
+the same router).
 
 ## I. Structural: "if resolved, why is it still under Open Decisions?" — [RESOLVED, applying]
 F00, F01: the `## Open Decisions` section was listing already-**Resolved** items. Fix (spec-wide): each

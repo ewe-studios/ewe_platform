@@ -175,26 +175,27 @@ declared-capability routing vs explicit rules; designing for future multi-provid
 
 ## Open Decisions
 
-- **OD-12-1 — erased surface (load-bearing):** `RoutableProvider` adapter (rec) — required because
-  `dyn ModelProvider` is impossible (associated types). Reshapes Decision 18's `Arc<dyn ModelProvider>`
-  to `ProviderRouter`. **Flag for the user.**
-        Interesting, explain to me, i want to understand the blocker, so i understand in the discussions and  we layout what to do
+> **RESOLVED (user, 2026-06-15; Item #8 / discussion §H6).** **Why `dyn ModelProvider` is impossible:**
+> `Model { type Formatter; … }` and `ModelProvider { type Config; type Model; … }` have **associated
+> types**, and `generate`/`stream` return **`impl StreamIterator`** (RPIT). A trait is only `dyn`-able with
+> no unbound associated types and no RPIT methods — `ModelProvider` violates both → `Arc<dyn
+> ModelProvider>` can't exist. Hence the **`RoutableProvider`** adapter.
 
-- **OD-12-2 — boxed stream:** `Box<dyn StreamIterator<D=Messages,P=ModelState>>` to erase
-  `Model::stream`'s `impl StreamIterator`. Rec: yes. Confirm the boxing is acceptable on the hot path.
-        Sure, but explain to me, so i understand in the discussions, and we layout our approach
-
-- **OD-12-3 — support detection:** `get_one(model_id)` resolving vs `NotFound` as the `serves` signal,
-  plus an optional explicit route map. Rec: both (rule first, then `get_one`).
-        Sure, but explain to me, so i understand in the discussions, and we layout our approach
-
-- **OD-12-4 — embedding routing:** F31 routes embeddings through F12 (embedding model may differ).
-  Rec: yes; `embedding_model` resolves like chat. Confirm F31↔F12 contract.
-        Sure, but explain to me, so i understand in the discussions, and we layout our approach
-
-- **OD-12-5 — same-model fallback:** ship single-winner now, keep `Vec<usize>` for F02. Confirm the
-  fallback iteration belongs to F02, not F12.
-        Sure, but explain to me, so i understand in the discussions, and we layout our approach
+- **OD-12-1 — erased surface: RESOLVED → `RoutableProvider` adapter.** Object-safe trait with **concrete**
+  signatures wrapping a concrete `ModelProvider`; the router holds `Arc<dyn RoutableProvider>` (reshapes
+  Decision 18's `Arc<dyn ModelProvider>`).
+- **OD-12-2 — boxed stream: RESOLVED → yes.** `RoutableProvider::stream` returns
+  `Box<dyn StreamIterator<D=Messages,P=ModelState>>` to erase `Model::stream`'s `impl StreamIterator`. The
+  per-turn boxing is negligible vs. model latency.
+- **OD-12-3 — support detection: RESOLVED → rule first, then `get_one` probe.** Check an optional explicit
+  `model_id → provider` route map first; otherwise try each provider's `get_one(model_id)` and use the one
+  that resolves (`NotFound` = doesn't serve it). Zero-config default + explicit override.
+- **OD-12-4 — embedding routing: RESOLVED → yes, resolves like chat.** F31 routes the embedding `model_id`
+  through the same router (embedding model may differ from chat); same resolution path.
+- **OD-12-5 — same-model fallback: RESOLVED → F12 single-winner; fallback in F02/F04.** F12 resolves one
+  winning provider per `model_id` now (keeps a `Vec` for the future); the retry/circuit-breaker
+  fallback **iteration** across providers belongs to **F02** (error handling) / **F04** (budget), not the
+  router.
 
 ## Target Files
 
