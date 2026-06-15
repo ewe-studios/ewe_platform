@@ -1,6 +1,6 @@
 ---
 feature: "Access Control & Budget Surfacing — SessionAccessProvider + AllowAllAccess + budget retrieval"
-description: "The agentic access-control trait (named SessionAccessProvider to avoid the existing foundation_ai::AuthProvider credentials collision), an AllowAllAccess impl for local/no-auth, retrieval of a user's token budget that is surfaced to the model, and a bridge to foundation_auth"
+description: "The agentic access-control trait SessionAccessProvider (domain methods can_use_tool/model/session/spend + generic authorize escape hatch; named to avoid the foundation_ai::AuthProvider credentials collision), authorization via foundation_cedar (Cedar policies, embedded-default/hosted-optional PolicyStore), identity via foundation_auth, a trivial AllowAllAccess impl, and token-budget surfaced to the model via F04's ledger"
 status: "pending"
 priority: "high"
 depends_on: ["01-message-model", "04-token-accounting-budget"]
@@ -16,6 +16,25 @@ tasks:
 ---
 
 # Feature 18: Access Control & Budget Surfacing
+
+> **RESOLVED (user, 2026-06-15) — Item #4 / discussion §H2: authorize with `foundation_cedar`; don't
+> hand-roll RBAC.** This SUPERSEDES the "minimal bespoke trait + bridge-only, RBAC deferred" framing in
+> the review note below.
+> - **Authn/identity:** `foundation_auth` (`AuthCredential`/JWT/OAuth) supplies the **principal**.
+> - **Authz:** **`foundation_cedar`** (`cedar-policy 4.11`) — engine + request/response + `PolicyStore`.
+>   Tool/model/session gating is expressed as **Cedar policies**, not bespoke if-chains.
+> - **`SessionAccessProvider` trait (abstract, in `foundation_ai::agentic`):** ergonomic **domain
+>   methods** — `can_use_tool(principal, name)`, `can_use_model(principal, id)`,
+>   `can_access_session(principal, sid)`, `can_spend(principal, budget)` — **plus a generic
+>   `authorize(principal, action, resource) -> Decision`** escape hatch for custom policies.
+> - **Impls:** `CedarAccess` (real — evaluates Cedar against a `PolicyStore`: **embedded default**
+>   `InMemory`/`File`, **hosted optional** `Sql`/`Kv` by config) and **`AllowAllAccess`** (trivial, no
+>   Cedar dep — local/tests). The *trait* doesn't hard-depend on Cedar; `CedarAccess` does.
+> - **wasm/CF:** Cedar is pure Rust → authz works on wasm; `KvPolicyStore` is the edge/hosted path.
+> - **Budget surfacing (unchanged):** `token_budget(principal)` caps F04's `TokenLedger`; remaining
+>   budget is noted to the model. (Still load-bearing.)
+> - The naming stays **`SessionAccessProvider`** (avoids the `foundation_ai::AuthProvider` *credentials*
+>   collision — still valid). `UserId`/principal comes from `foundation_auth`, not a bespoke `UserId(String)`.
 
 > **Review status (2026-06-14) — self-review against code (subagent unavailable):**
 > 1. **The naming collision is REAL and verified.** `foundation_ai::types::AuthProvider`
@@ -162,27 +181,26 @@ intermediate traits" (Decision 12). (Task — see list.)
    limit → `BudgetExhausted`); session/model forbidden errors; remaining-budget note present; bridge
    maps token→user; `AuthError` is `Clone+PartialEq`; wasm build.
 
-## Open Decisions
+## Resolved Decisions (Item #4, user 2026-06-15)
 
-- **OD-18-1 — trait minimality:** core = session + model + budget; tool-gating + RBAC optional (rec, per
-  user's Decision 12 TODO "Agent owns the session"). Confirm the minimal surface.
-        Show me the options, why do we need anything that foundation_auth does not already provide, its ok to create a custom trait that internally builds on foundation_auth.
-
-- **OD-18-2 — foundation_auth coupling:** bridge adapter (rec) — don't make `foundation_auth` a hard dep
-  of the core trait; `AllowAllAccess` needs no auth crate. Confirm.
-        We use foundation_auth where it make sense, we have cedar policies in there that makes it easy to do authorization, and i see no reason to bring it in here, whats the problem ?
-
-- **OD-18-3 — UserId source:** define `UserId(String)` here vs reuse a `foundation_auth` id (none found).
-  Rec: define here; bridge maps.
-        We should use cedar policies that allows more refined control via user attribution and cedar policies that can even be local or hosted anywhere.
-
-- **OD-18-4 — budget surfacing mechanism (load-bearing):** cap F04 ledger + system-prompt note (rec) vs
-  only error-on-exhaust. Rec: both (proactive note + hard cap). Confirm.
-        Explain more to me, add to discussion
-        
-- **OD-18-5 — tool gating placement:** F11 consults `can_use_tool` before a stage (rec, default allow)
-  vs F09 at registration. Rec: F11 (per-call, per-user). Confirm.
-        Explain more to me, add to discussion
+- **OD-18-1 — surface shape: RESOLVED → domain methods + generic escape hatch.** `SessionAccessProvider`
+  exposes `can_use_tool`/`can_use_model`/`can_access_session`/`can_spend` **plus**
+  `authorize(principal, action, resource) -> Decision`. Not a "minimal session-only" trait — authz is
+  real (Cedar), tool-gating included.
+- **OD-18-2 — `foundation_cedar` + `foundation_auth`: RESOLVED → use them deliberately.** Authz via
+  `foundation_cedar` (Cedar policies), identity via `foundation_auth`. The *abstract* trait doesn't
+  hard-depend on Cedar; the `CedarAccess` impl does (`AllowAllAccess` needs neither). No "avoid the dep"
+  bridge.
+- **OD-18-3 — principal/attribution: RESOLVED → from `foundation_auth`; refine via Cedar.** No bespoke
+  `UserId(String)`; the principal is the authenticated identity, and Cedar policies do attribute-based
+  refinement. Policies are **local or hosted** via the `PolicyStore` backends (embedded default
+  `InMemory`/`File`; hosted optional `Sql`/`Kv`).
+- **OD-18-4 — budget surfacing: RESOLVED → both** (proactive system-prompt note **and** hard cap via
+  F04's `TokenLedger`). `token_budget(principal)` sets the ledger budget at session build; on halt the
+  session reports the limit; the model also sees the remaining budget so it can be concise.
+- **OD-18-5 — tool gating placement: RESOLVED → F11, per-call.** F11's `execute_workflow` calls
+  `can_use_tool(principal, name)` before a stage (default allow under `AllowAllAccess`); denial →
+  `AgenticError::ToolNotAuthorized`. Per-call/per-user (not at F09 registration).
         
 
 ## Target Files

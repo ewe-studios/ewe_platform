@@ -22,8 +22,8 @@ you decide → I update the affected features → I ask before moving on. Status
 | 1 | **Async-first traits + Send/?Send on wasm** — ✅ one `Send` trait + single-threaded-wasm adapter; emscripten = native | all traits (06,07,09,11,12,23,…) | ✅ resolved (§A1) |
 | 2 | **New platform crates greenlight** — ✅ wasm fetch client NOW (F00f); `foundation_wasmtime` last; `foundation_buildtools` dedicated (w/ 00d); `foundation_docs` mdBook (Phase 3) | 00c,00d,23,30,31 | ✅ resolved (§B) |
 | 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** — ✅ (a); control inline, memory+persist spawned | 14,17,19 | ✅ resolved (§H1) |
-| 4 | **Access control via `foundation_auth` + Cedar** — surface shape; embedded vs hosted policies | 18 | ⏳ up next |
-| 5 | **MemoryStore**: stores `SessionRecord` directly; a coordinator (AgentSession?) owns it + DocumentStore; key by bare scru128 vs `SessionId` newtype | 07,20 | ⬜ |
+| 4 | **Access control via `foundation_auth` + Cedar** — ✅ domain methods + generic authorize; foundation_cedar engine; embedded default / hosted optional | 18 | ✅ resolved (§H2) |
+| 5 | **MemoryStore**: stores `SessionRecord` directly; a coordinator (AgentSession?) owns it + DocumentStore; key by bare scru128 vs `SessionId` newtype | 07,20 | ⏳ up next |
 | 6 | **`run_turn` streams, not Vec-collects** (collect = opt-in wrapper) | 20 | ⬜ |
 | 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** (arrow zero-copy) | 22,26,27,28,29 | ⬜ |
 | 8 | **Provider router / object-safety** — confirm `RoutableProvider` (boxed stream, support detection, embedding routing, fallback ownership) | 12,21 | ⬜ |
@@ -442,13 +442,20 @@ custom trait that internally builds on foundation_auth,"* *"we have Cedar polici
 authorization easy — I see no reason not to,"* *"use Cedar policies for refined control via user
 attribution, local or hosted."*
 
-**Decision:** F18's access trait is a thin **custom surface that internally builds on `foundation_auth` +
-Cedar**. Authorization (tool gating, session/model access) is expressed as **Cedar policies**;
-`UserId`/attribution come from `foundation_auth` (confirmed: `foundation_ai` already uses
-`foundation_auth::AuthCredential` pervasively — `types/mod.rs:1458`, every provider). No bespoke RBAC, no
-"don't depend on foundation_auth" stance — we depend on it deliberately. `AllowAllAccess` becomes a
-trivial allow-all Cedar policy (or a bypass) for tests. **[DISCUSS] only the surface shape** (what the
-custom trait's methods are) and whether Cedar runs embedded vs hosted.
+**✅ RESOLVED (user, 2026-06-15) — Item #4.** Grounded correction: authz lives in **`foundation_cedar`**
+(`cedar-policy 4.11` — engine + request/response + a `PolicyStore` trait with `InMemory`/`File`/`Sql`/`Kv`
+backends), and **`foundation_auth`** owns authentication/identity (`AuthCredential`, JWT/OAuth). F18's
+access control is a **thin custom trait in `foundation_ai::agentic`**:
+- **Surface:** ergonomic **domain methods** — `can_use_tool(principal, name)`, `can_use_model(principal,
+  id)`, `can_access_session(principal, sid)`, `can_spend(principal, budget)` — **plus a generic
+  `authorize(principal, action, resource) -> Decision`** escape hatch for custom policies.
+- **Principal/attribution:** from `foundation_auth` (the authenticated identity).
+- **Authorization:** Cedar via `foundation_cedar` — the real impl `CedarAccess` evaluates against a
+  `PolicyStore`; **embedded default** (`InMemoryPolicyStore` tests / `FilePolicyStore` local), **hosted
+  optional** (`Sql`/`Kv` PolicyStore) by config ("local or hosted anywhere").
+- **Trait is abstract** so the trivial **`AllowAllAccess`** impl needs no Cedar; `CedarAccess` is the
+  Cedar-backed impl. Cedar is pure Rust → works on wasm/CF (the `KvPolicyStore` is the edge path).
+- Resolves OD-18-1..5 (use foundation_auth/cedar deliberately; no "avoid the dep" bridge).
 
 ### H3. `run_turn` **streams**, doesn't collect into a `Vec` — [RESOLVED direction]
 F20 OD-20-3: *"why are we collecting into Vec? Should we not stream it via a valtron stream and the user
