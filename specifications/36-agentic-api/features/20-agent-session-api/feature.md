@@ -102,9 +102,13 @@ impl AgentSession {
     pub fn resume(session_id: SessionId, router: ProviderRouter, toolshed: ToolShed, cfg: AgentConfig)
         -> Result<AgentSession, ErrorTrace<AgenticError>>;
 
-    pub fn run_turn(&self, prompt: impl Into<Messages>) -> Result<Vec<SessionRecord>, ErrorTrace<AgenticError>>;
+    // PRIMARY: stream each SessionRecord as produced (low memory, stop-early). Errors are in-band
+    // SessionRecord::FailedAction records (F02/F01).
     pub fn run_turn_stream(&self, prompt: impl Into<Messages>)
         -> Result<impl StreamIterator<D = SessionRecord, P = AgentProgress>, ErrorTrace<AgenticError>>;
+    // Thin convenience wrapper: drains the stream into a Vec for simple callers; a terminal
+    // FailedAction surfaces as Err. Prefer run_turn_stream. (Item #6)
+    pub fn run_turn(&self, prompt: impl Into<Messages>) -> Result<Vec<SessionRecord>, ErrorTrace<AgenticError>>;
 
     pub fn steer(&self, msg: Messages);        // F13 PriorityQueue
     pub fn follow_up(&self, msg: Messages);    // F13 FollowUpQueue
@@ -204,9 +208,11 @@ exists; why the ToolShed+Router shape (not `tools(vec)`/`dyn ModelProvider`) is 
   (rec, user requirement). Confirm the exact checks + that failure returns before `execute`.
         When we construct the AgentSession it validates what is required to ensure it matches expectation.
 
-- **OD-20-3 — run_turn return:** `Vec<SessionRecord>` (collected this turn) vs a single final record.
-  Rec: `Vec<SessionRecord>` (conversation + any memory snapshots produced). Confirm.
-      Why are we collecting into Vec ? Should we not stream it via valtron stream and user get it each, saves memory and they can collect it if they want. Explain further to me
+- **OD-20-3 — run_turn return: RESOLVED (user, 2026-06-15; Item #6 / §H3).** **`run_turn_stream` is the
+  primary API** — it yields each `SessionRecord` as produced (low memory, stop-early, `AgentProgress` on
+  `Pending`). **`run_turn` stays only as a thin convenience wrapper** that drains the stream into
+  `Vec<SessionRecord>` for simple callers; a terminal `FailedAction` surfaces as `Err`. The stream itself
+  keeps errors in-band as `FailedAction` records.
 
 - **OD-20-4 — recent count:** Decision 01 fixes `recent(10)`; F16 assembly says "last N within budget".
   Rec: resume seeds with 10; F16 may include more if budget allows. Reconcile + confirm.

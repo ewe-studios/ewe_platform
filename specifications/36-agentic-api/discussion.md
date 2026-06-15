@@ -24,8 +24,8 @@ you decide → I update the affected features → I ask before moving on. Status
 | 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** — ✅ (a); control inline, memory+persist spawned | 14,17,19 | ✅ resolved (§H1) |
 | 4 | **Access control via `foundation_auth` + Cedar** — ✅ domain methods + generic authorize; foundation_cedar engine; embedded default / hosted optional | 18 | ✅ resolved (§H2) |
 | 5 | **MemoryStore**: ✅ stores latest `SessionRecord`/tier (one key/session); `MemoryCoordinator` facade owns it + DocumentStore (AgentSession holds it); keep `SessionId` newtype | 07,20 | ✅ resolved (§A3) |
-| 6 | **`run_turn` streams, not Vec-collects** (collect = opt-in wrapper) | 20 | ⏳ up next |
-| 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** (arrow zero-copy) | 22,26,27,28,29 | ⬜ |
+| 6 | **`run_turn` streams, not Vec-collects** — ✅ stream primary; thin collect wrapper; terminal FailedAction→Err | 20 | ✅ resolved (§H3) |
+| 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** (arrow zero-copy) | 22,26,27,28,29 | ⏳ up next |
 | 8 | **Provider router / object-safety** — confirm `RoutableProvider` (boxed stream, support detection, embedding routing, fallback ownership) | 12,21 | ⬜ |
 | 9 | **Token accounting details** — mid-stream `tokens_so_far` now or later; `rolling` = input+output | 03,04 | ⬜ |
 | 10 | **Error handling depth** — flatten non-Clone `GenerationError`→String; overflow/rate-limit by detection (show what it looks like) | 02 | ⬜ |
@@ -457,13 +457,15 @@ access control is a **thin custom trait in `foundation_ai::agentic`**:
   Cedar-backed impl. Cedar is pure Rust → works on wasm/CF (the `KvPolicyStore` is the edge path).
 - Resolves OD-18-1..5 (use foundation_auth/cedar deliberately; no "avoid the dep" bridge).
 
-### H3. `run_turn` **streams**, doesn't collect into a `Vec` — [RESOLVED direction]
+### H3. `run_turn` **streams**, doesn't collect into a `Vec` — ✅ RESOLVED (Item #6)
 F20 OD-20-3: *"why are we collecting into Vec? Should we not stream it via a valtron stream and the user
 gets each — saves memory, they can collect if they want."*
 
-**Decision:** the streaming `run_turn_stream` is the **primary** API (yields each `SessionRecord` as it's
-produced — low memory, caller can stop early). `run_turn` (collect-to-`Vec`) becomes a **thin convenience
-wrapper** the caller opts into when they want the whole turn materialized. Default guidance: stream.
+**✅ RESOLVED (user, 2026-06-15) — Item #6.** `run_turn_stream` is the **primary** API (yields each
+`SessionRecord` as produced — low memory, stop-early, `AgentProgress` on `Pending`). `run_turn` stays as a
+**thin convenience wrapper** that drains the stream into `Vec<SessionRecord>` for simple callers; a
+terminal `SessionRecord::FailedAction` surfaces as `Err(ErrorTrace<AgenticError>)` from the wrapper (the
+stream itself keeps errors in-band as `FailedAction` records). Default guidance: prefer the stream.
 
 ### H4. Storage traits **own their (de)serialization**; backends persist efficiently — [RESOLVED, confirms your read]
 F26 OD-26-4, F27 OD-27-6, F29 OD-29-5: *"whatever stores them handles serialization… `to_bytes`/
