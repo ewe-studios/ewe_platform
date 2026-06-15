@@ -198,11 +198,17 @@ graph TD
   The in-memory backend (formerly F28's scope) also lives here. F28 becomes "VectorStore in-memory
   backend" within `foundation_vectors`, not a `foundation_db` deliverable.
 
-- **OD-24-9 — borrowed-iterator vs streaming backends:** `flat_top_k`'s `(&str,&[f32])` iterator
-  fits in-memory (F28) but not the D1/KV fetch-then-search path (F30, deserializes on the fly). Either
-  narrow the "fallback for all backends" claim to eager/in-memory backends, or add an owned/streaming
-  `flat_top_k` variant. Rec: add an owned variant when F30 needs it.
-        Ya, explain more, i dont understand, lets talk on it
+- **OD-24-9 — borrowed vs owned iterator: RESOLVED (user, 2026-06-15) — two functions (Option A).**
+  Users pick whichever fits their environment:
+
+  ```rust
+  /// In-memory: zero-copy borrowed iterator.
+  pub fn flat_top_k<'a>(query: &[f32], entries: impl Iterator<Item = (&'a str, &'a [f32])>, k: usize, metric: DistanceMetric) -> Vec<VectorMatch>;
+  /// Fetch-based backends (D1/KV/R2): owned iterator — deserialize on the fly.
+  pub fn flat_top_k_owned(query: &[f32], entries: impl Iterator<Item = (String, Vec<f32>)>, k: usize, metric: DistanceMetric) -> Vec<VectorMatch>;
+  ```
+  Same internal logic (bounded min-heap, NaN guard, tie-breaking), identical results. No trait
+  gymnastics — two clear functions.
 
 ## Target Files
 
