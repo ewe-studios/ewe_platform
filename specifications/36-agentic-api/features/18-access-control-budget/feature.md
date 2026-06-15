@@ -166,14 +166,24 @@ intermediate traits" (Decision 12). (Task — see list.)
 
 - **OD-18-1 — trait minimality:** core = session + model + budget; tool-gating + RBAC optional (rec, per
   user's Decision 12 TODO "Agent owns the session"). Confirm the minimal surface.
+        Show me the options, why do we need anything that foundation_auth does not already provide, its ok to create a custom trait that internally builds on foundation_auth.
+
 - **OD-18-2 — foundation_auth coupling:** bridge adapter (rec) — don't make `foundation_auth` a hard dep
   of the core trait; `AllowAllAccess` needs no auth crate. Confirm.
+        We use foundation_auth where it make sense, we have cedar policies in there that makes it easy to do authorization, and i see no reason to bring it in here, whats the problem ?
+
 - **OD-18-3 — UserId source:** define `UserId(String)` here vs reuse a `foundation_auth` id (none found).
   Rec: define here; bridge maps.
+        We should use cedar policies that allows more refined control via user attribution and cedar policies that can even be local or hosted anywhere.
+
 - **OD-18-4 — budget surfacing mechanism (load-bearing):** cap F04 ledger + system-prompt note (rec) vs
   only error-on-exhaust. Rec: both (proactive note + hard cap). Confirm.
+        Explain more to me, add to discussion
+        
 - **OD-18-5 — tool gating placement:** F11 consults `can_use_tool` before a stage (rec, default allow)
   vs F09 at registration. Rec: F11 (per-call, per-user). Confirm.
+        Explain more to me, add to discussion
+        
 
 ## Target Files
 

@@ -115,10 +115,15 @@ filesystem search (why split); token-budgeted context packing; replayability of 
 ## Open Decisions
 
 - **OD-16-1 — INCON-03:** inject observation only if newer than latest reflection (rec). Confirm.
+          Sure, share with me to touch base
+
 - **OD-16-2 — budget packing:** when recall + recent exceed budget, drop oldest recall first
   (rec) vs summarize. Rec: drop recall, keep recent + working + reflection.
+        Make sense
+
 - **OD-16-3 — graph search availability:** code-graph (F27) is native-build; on wasm, `search(Graph)`
   queries a prebuilt graph (F27 query path) or is unavailable. Rec: prebuilt-graph query if present.
+        
 - **OD-16-4 — search_file on wasm:** fff is native-only (Decision 14). wasm `search_file` returns a
   clear "unsupported on wasm" result. Confirm.
         - Just use basic FileSystem operations if possible via whatever vfs is there else not supported

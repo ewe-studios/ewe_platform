@@ -183,13 +183,22 @@ F31/F17. (Task — see list.)
 - **OD-14-1 — input pipeline vs F16 assemble (load-bearing):** `assemble` is the default input pipeline
   (named reorderable steps) — rec; preserves Decision 03 deterministic order for resume. Flag (replay
   determinism).
+        Surface in discussion, show me options and lets talk about it
+
 - **OD-14-2 — outcome type:** three-state `ProcessorOutcome` (rec) vs `Result<bool>`. Rec: three-state
   (skip ≠ fail).
+        Surface in discussion, show me options and lets talk about it
+
 - **OD-14-3 — output non-blocking:** processors spawn valtron tasks via `SpawnSink`, never block (rec).
+        Surface in discussion, show me options and lets talk about it
+
 - **OD-14-4 — LoopDetector placement:** output processor vs sibling sequenced task — **deferred to F17**
   (Decision 08-vs-11). F14 leaves the slot open. NEEDS USER RULING (in F17).
+        Surface in discussion, show me options and lets talk about it, see my point about moving loop detection into inner loop to ensure we dont complicate this when we can own a tight checking process in the loop
+
 - **OD-14-5 — pipeline mutability:** can callers add/remove processors at runtime, or fixed at build?
   Rec: fixed at session build (Decision 11 composes once); runtime mutation deferred.
+        Yes, fixed at session build
 
 ## Target Files
 

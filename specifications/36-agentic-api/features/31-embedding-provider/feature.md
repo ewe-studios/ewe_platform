@@ -141,6 +141,7 @@ latency); valtron task + channel response pattern; cache hit-rate measurement & 
         Sure, memory for tests, but we also test fjall implementation too
 
 - **OD-31-4 — batch trigger:** size threshold + time window. Rec: both (e.g. 32 texts or 50ms).
+        Sureface in discussion, show me options and lets talk about it
 
 - **OD-31-5 — sentence-level chunking:** deferred (nlprule). Confirm whole-text first.
       Why deffrered - sentence level is better and there are rust crate to help where needed and fallback can be whole text if in a platform where it cant be done.

@@ -194,15 +194,24 @@ stores, no native model). (Task — see list.)
 
 - **OD-21-1 — match on ModelInteraction, not regex (load-bearing):** `Fn(&ModelInteraction) -> bool`
   matchers (rec, user requirement) replacing Decision 17's `Regex`. Confirm the matcher closure shape.
+        Lets lay it out in a discussion to discuss so you can show me the API options to choose the best
+
 - **OD-21-2 — mock implements RoutableProvider (load-bearing):** implement F12's object-safe trait (rec)
   vs the full `ModelProvider` (assoc types, hard). Rec: `RoutableProvider` — F19/F20 take a router. Flag.
+            Explain the issue here to me, is ModelProvider not object safe ?
+
 - **OD-21-3 — message builders:** provide `mock_text`/`mock_tool_call`/`mock_text_usage` (rec) — raw
   `Messages::Assistant` is too verbose and `UsageReport` must flow for ledger tests.
+        Do the full work, verbosity is good, we can always create helper methods to make it easier to construct and set default UsageReport that can be overidden/updated especially testing session budget controls.
+
 - **OD-21-4 — mock location:** `foundation_ai::agentic::testing` (behind a `testing`/`dev` feature) vs
   `foundation_testing`. Rec: `foundation_ai` under a `testing` feature (close to the types); reuse
   `foundation_testing` only for `TestHarness`. Confirm.
+        Ya in foundation_ai is best.
+
 - **OD-21-5 — wasm test runner:** `wasm-bindgen-test` for the deterministic tier vs build-only. Rec: at
   least build-only on wasm now; wasm-bindgen-test for a smoke subset. Confirm scope.
+      We own our own wasm test runners in testbed where did wasm-bindgen even come from to be needed.
 
 ## Target Files
 

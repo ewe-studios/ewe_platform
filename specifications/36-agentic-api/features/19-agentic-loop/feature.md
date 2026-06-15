@@ -209,12 +209,20 @@ see list.)
 
 - **OD-19-1 — Ready payload:** `SessionRecord` (F03 rec) vs `Messages`. F03 already chose `SessionRecord`
   (superset: conversation + memory on one stream). Confirm alignment with F03 OD-03-1.
+        Yes, ensure alignment
+
 - **OD-19-2 — AgentEvent is dead:** confirm Decision 08/11's `AgentEvent{MessageUpdate{String}}` enum is
   NOT implemented (superseded by rich `SessionRecord` on `Next`, F03). Rec: dead — delete from scope.
+          Yes
+
 - **OD-19-3 — mid-gen interruption (load-bearing):** sequenced composition pumping F12's boxed stream
   with between-step PriorityQueue checks. Rec: yes; confirm the boxed stream is pumpable step-wise.
+        Explain to me in discussion wish to understand better
+
 - **OD-19-4 — inner-loop termination:** inner repeats while the LLM emits tool calls; a max-iterations
   guard prevents runaway (independent of F17 loop detection). Rec: add `config.max_inner_iterations`.
+        Loop interaction is always somthing i have wondereed about, should it to be in the inner loop so its tight and controlled instead of a valtron task? Its where the agent is returning values to us and where we control the inner loop task, where we have better control to stop, and redirect it.
+
 - **OD-19-5 — Summary record:** emit `SessionRecord::Summary{ message_count, usage }` at end (F03
   OD-03-6 adds the variant to F01). Confirm F01 has it.
 

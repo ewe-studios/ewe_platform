@@ -123,6 +123,7 @@ discipline. (Task — see list.)
   Research; may over-fetch + filter.
 - **OD-29-5 — reuse existing libSQL/SQLite infra:** foundation_db already has SQL backends — reuse
   the connection/query layer rather than new clients. Confirm.
+      Sure make sense
 
 ## Target Files
 

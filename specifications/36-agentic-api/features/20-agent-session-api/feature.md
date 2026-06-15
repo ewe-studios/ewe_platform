@@ -195,14 +195,23 @@ exists; why the ToolShed+Router shape (not `tools(vec)`/`dyn ModelProvider`) is 
 
 - **OD-20-1 — builder requireds:** `builder(router, toolshed)` both required (rec, per user) vs optional
   with defaults. Rec: both required (the user mandated explicit ToolShed + a provider/router).
+        Ya, show me code, be detailed, show me depth, so we know how it looks like, add to discussions.
+
 - **OD-20-2 — preflight scope (load-bearing):** tools-registered + access + budget before scheduling
   (rec, user requirement). Confirm the exact checks + that failure returns before `execute`.
+        When we construct the AgentSession it validates what is required to ensure it matches expectation.
+
 - **OD-20-3 — run_turn return:** `Vec<SessionRecord>` (collected this turn) vs a single final record.
   Rec: `Vec<SessionRecord>` (conversation + any memory snapshots produced). Confirm.
+      Why are we collecting into Vec ? Should we not stream it via valtron stream and user get it each, saves memory and they can collect it if they want. Explain further to me
+
 - **OD-20-4 — recent count:** Decision 01 fixes `recent(10)`; F16 assembly says "last N within budget".
   Rec: resume seeds with 10; F16 may include more if budget allows. Reconcile + confirm.
+          Seeds ? Explain further, if you mean the default value for N then ok, but configurable
+
 - **OD-20-5 — end synchronicity:** synchronous flush/drain (rec — no valtron join primitive, F08
   review #5) vs a teardown task. Rec: synchronous.
+        Sure, but explain to me, so i understand and how it fits in here and why.
 
 ## Target Files
 

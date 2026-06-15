@@ -212,15 +212,24 @@ pattern; tool-error-to-LLM vs terminating. (Task — see list.)
 - **OD-02-1 — flatten vs derive (load-bearing):** flatten non-`Clone` source errors to `String` at the
   boundary (rec — `GenerationError` can't be `Clone`/`PartialEq`) vs make every source `Clone` (huge,
   touches llama/candle). Rec: flatten. **Departs from Decision 16's `#[from]` — flag for the user.**
+      Is this respecting our foundation_errstack rules, is it not Clone ?
+
 - **OD-02-2 — overflow/rate-limit (load-bearing):** detect via `is_context_overflow` + rate-limit string
   match (rec) vs add `GenerationError::{ContextOverflow,RateLimit}` variants. Rec: detect (overflow
   patterns already exist); add variants only if detection proves insufficient. Flag.
+      Yes, make sense, add more depth so we knopw what this looks like and can decide upfront in feautre write up
+
 - **OD-02-3 — context reduction:** on `ContextOverflow`, how to trim (drop oldest recall first, F16
   OD-16-2). Rec: reuse F16's budget-packing drop order.
+      Surface in discussion with examples for clarity
+
 - **OD-02-4 — retry ownership:** model/tool tasks retry; loop does not (Decision 16). Confirm no
   agent-level retry loop.
+          Yes, tool and model owns retry, not the loop
+
 - **OD-02-5 — Unexpected catch-all:** `Unexpected(String)` for `ErrorTrace<T>` and anything unmapped
   (Decision 16 line 316). Confirm.
+          Sure
 
 ## Target Files
 

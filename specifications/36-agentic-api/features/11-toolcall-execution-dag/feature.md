@@ -211,6 +211,7 @@ as the resilience strategy (vs terminating). (Task — see list.)
 - **OD-11-5 — cancel granularity:** can an in-flight sync `execute` be aborted mid-call? Sync tools
   can't be preempted; cancel applies *between* calls/stages + sets the signal future calls observe.
   Rec: between-call cancellation; document that a long sync tool finishes its current call.
+        When if a tool allows us to send signal to it to cancel e.g cmd processes, then great, if not then we wait for it to finish, this though means some thread mayblock for ever, so its also good to get the pid for any thread or spawned processes incase, a native platform kill signal needs to be sent to properly clean this up (lets think and design this properly).
 
 ## Target Files
 

@@ -121,11 +121,18 @@ provider REST API adapters; when to relax ordering/consistency guarantees. (Task
 - **OD-30-2 — external scope:** **Resolved (user, 2026-06-15) → TurboPuffer REQUIRED** (native REST
   adapter over our HTTP client; no crate); **Pinecone + Chroma deferred**. Split into
   **14a (CF: Vectorize + D1/KV, wasm)** and **14b (TurboPuffer REST adapter, native)**.
+      If its http we should be albe to call it in wasm too right?
+
 - **OD-30-3 — D1/KV best-effort:** explicitly document KV's eventual-consistency + 1000-cap mean
   KV-vector is best-effort; D1 fetch is bounded by row count. (Inherits F23.)
+
 - **OD-30-4 — async transport on wasm:** external HTTP providers are native-only (wasm has no HTTP —
   00c). CF backends are wasm. State the split.
+        Yes, lets investigate what we can use in wasm and design it to fit existing http client methods we are used to or create a new wasm http stack and let wasm owned that, it wont leak anyway outside wasm. But interested to see if we can keep a consistent triat or API methods with native.
+
+
 - **OD-30-5 — credentials:** provider API keys via config/`SessionAccessProvider` (F08), never committed.
+        Does not foundation_ai already own this, please check and validate, it should have some credential maangement capability else we add this.
 
 ## Target Files
 

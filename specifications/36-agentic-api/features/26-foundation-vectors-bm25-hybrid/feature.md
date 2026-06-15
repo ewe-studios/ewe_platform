@@ -118,13 +118,23 @@ graph TD
 
 - **OD-26-1 — tokenization:** simple unicode split now vs `nlprule`/stemming. Rec: simple now,
   pluggable tokenizer trait so F31's nlprule can be shared.
+      - ya but lets implement nlprule too, no use wasting time if we can get it right at the start
+
 - **OD-26-2 — reranker:** hook-only here (no model); a concrete cross-encoder is a later/provider
   feature. Rec: trait hook now.
+          Implement both, ensure depth in feature
+
 - **OD-26-3 — RRF default k:** 60 (common default). Rec: 60, configurable.
+    Great, defauilt and configurable
+
 - **OD-26-4 — BM25 persistence size:** the inverted index can be large; share the F29
   serialize/persist path. Rec: yes, `to_bytes`/`from_bytes` like `VectorIndex`.
+        This is why we ensure its via a trait and whatever stores them can store them efficiently e.g on disk, r2, KV etc, so whatever stores them handles the serialization and to_bytes and from_bytes makes it easy to test and validate else the trait returns it after pulling it out efficiently and same for storing, confirm if this make sense or if i misunderstood here. We can also use arrow here for efficient zero memory copy since its all memory efficient format.
+
+
 - **OD-26-5 — where hybrid lives:** `foundation_vectors` (algorithms) vs F16 (orchestration). Rec:
   the `fuse`/BM25 primitives here; F16 wires the actual session search.
+        `fuse` - explain furhter, do you mean the fuse file system ? 
 
 ## Target Files
 

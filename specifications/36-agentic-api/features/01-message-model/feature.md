@@ -491,6 +491,8 @@ Re-export new public types from the crate root with `///` docs (WHY/WHAT/HOW per
 
 ## Open Decisions
 
+**TODO**: If resolved why is it still opened ?
+
 Resolved during review (recommendation taken; override if desired):
 - **OD-1 — `ChatMessage.role`:** keep `String` (template helper, maps to provider wire roles, not
   a session record). **Resolved: keep String.**

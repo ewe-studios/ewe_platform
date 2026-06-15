@@ -295,8 +295,11 @@ goes from zero to expert in code knowledge-graphs:
 
 - **OD-27-6 — graph storage:** in-memory + json now; persist to fjall/DocumentStore (F22/F29) for
   large repos? Rec: json now; fjall-backed later.
+          We should implement them both, with a trait to own the surface
+
 - **OD-27-7 — incremental correctness:** `update` re-extracts changed files but cross-file `uses`/call
   resolution may span unchanged files — define the re-resolution scope (graphify re-resolves globally).
+        Surface in discussion so we can talk and touch base on it
 
 ## Target Files
 

@@ -213,6 +213,8 @@ chronological, machine-id embedding); vendoring strategy (own-vs-depend, trimmin
 
 ## Open Decisions
 
+**TODO**: If resolved why is it still opened ?
+
 Resolved:
 - **OD-00-1 — wasm sleep:** **Resolved → not owned here; executor yields to the JS loop
   (`local.rs:2682`); backoff = `TaskStatus::Delayed`/`Wait` (00c).** (The `SleepIterator` framing was wrong.)

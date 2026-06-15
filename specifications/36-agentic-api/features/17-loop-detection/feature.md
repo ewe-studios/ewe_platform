@@ -189,12 +189,22 @@ list.)
 - **OD-17-1 — execution model (NEEDS USER RULING):** output processor (Decision 11, **rec**) vs sequenced
   parallel task (Decision 08). Rec: output processor — cheap sync check, gets the output directly from
   F14, no cross-task sync. **Flag for the user.**
+        Explain more to me, add to discussion
+
 - **OD-17-2 — tool-call arg hashing:** sort `HashMap` keys before hashing for determinism (rec) — raw
   iteration order is unstable.
+        We can change it into a list to force order, we own the surface we can make it better
+
 - **OD-17-3 — SimHash hasher:** reuse F31's non-crypto 64-bit hasher (rec); don't add a second.
+        Sure, lets talk on it, tell me more, why its important and our options.
+
 - **OD-17-4 — termination error:** `AgenticError::LoopDetected(LoopDetection)` (Decision 16) — requires
   `LoopDetection: Clone+PartialEq+Debug` (done). Confirm.
+        Sure, surface in design, share in discussion so we atleast touch base on it
+
 - **OD-17-5 — semantic detection:** deferred (Decision 09). Confirm v1 ships exact+fuzzy+tool-call only.
+        Sure, surface in design, share in discussion so we atleast touch base on it
+        
 
 ## Target Files
 

@@ -178,14 +178,23 @@ declared-capability routing vs explicit rules; designing for future multi-provid
 - **OD-12-1 — erased surface (load-bearing):** `RoutableProvider` adapter (rec) — required because
   `dyn ModelProvider` is impossible (associated types). Reshapes Decision 18's `Arc<dyn ModelProvider>`
   to `ProviderRouter`. **Flag for the user.**
+        Interesting, explain to me, i want to understand the blocker, so i understand in the discussions and  we layout what to do
+
 - **OD-12-2 — boxed stream:** `Box<dyn StreamIterator<D=Messages,P=ModelState>>` to erase
   `Model::stream`'s `impl StreamIterator`. Rec: yes. Confirm the boxing is acceptable on the hot path.
+        Sure, but explain to me, so i understand in the discussions, and we layout our approach
+
 - **OD-12-3 — support detection:** `get_one(model_id)` resolving vs `NotFound` as the `serves` signal,
   plus an optional explicit route map. Rec: both (rule first, then `get_one`).
+        Sure, but explain to me, so i understand in the discussions, and we layout our approach
+
 - **OD-12-4 — embedding routing:** F31 routes embeddings through F12 (embedding model may differ).
   Rec: yes; `embedding_model` resolves like chat. Confirm F31↔F12 contract.
+        Sure, but explain to me, so i understand in the discussions, and we layout our approach
+
 - **OD-12-5 — same-model fallback:** ship single-winner now, keep `Vec<usize>` for F02. Confirm the
   fallback iteration belongs to F02, not F12.
+        Sure, but explain to me, so i understand in the discussions, and we layout our approach
 
 ## Target Files
 
