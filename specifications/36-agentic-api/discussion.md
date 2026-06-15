@@ -11,6 +11,36 @@ needs web research + a `foundation_docs` writeup before we decide.
 
 ---
 
+# OPEN AGENDA — work top-to-bottom, one at a time
+
+Consolidated list of every item still needing your decision (deduped across §A–§K). Order is by
+leverage: foundational/cross-cutting first (resolving them unblocks the rest). For each, we: discuss →
+you decide → I update the affected features → I ask before moving on. Status updates inline as we go.
+
+| # | Item | Touches | Status |
+|---|------|---------|--------|
+| 1 | **Async-first traits + Send/?Send on wasm** — one `Send` async trait with a wasm adapter, or keep the split? | all traits (06,07,09,11,12,23,…) | ⏳ up next |
+| 2 | **New platform crates greenlight** — `foundation_http` (fetch), `foundation_wasmtime`, `foundation_buildtools`, `foundation_docs`: which now vs later? | 00c,00d,23,30,31; all "fundamentals" | ⬜ |
+| 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** (not a valtron task / output processor) | 14,17,19 | ⬜ |
+| 4 | **Access control via `foundation_auth` + Cedar** — surface shape; embedded vs hosted policies | 18 | ⬜ |
+| 5 | **MemoryStore**: stores `SessionRecord` directly; a coordinator (AgentSession?) owns it + DocumentStore; key by bare scru128 vs `SessionId` newtype | 07,20 | ⬜ |
+| 6 | **`run_turn` streams, not Vec-collects** (collect = opt-in wrapper) | 20 | ⬜ |
+| 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** (arrow zero-copy) | 22,26,27,28,29 | ⬜ |
+| 8 | **Provider router / object-safety** — confirm `RoutableProvider` (boxed stream, support detection, embedding routing, fallback ownership) | 12,21 | ⬜ |
+| 9 | **Token accounting details** — mid-stream `tokens_so_far` now or later; `rolling` = input+output | 03,04 | ⬜ |
+| 10 | **Error handling depth** — flatten non-Clone `GenerationError`→String; overflow/rate-limit by detection (show what it looks like) | 02 | ⬜ |
+| 11 | **Input/output processors** — default `assemble` pipeline; `ProcessorOutcome` 3-state; output spawns | 14 | ⬜ |
+| 12 | **Loop-detection internals** — SimHash reuse; ordered-list arg hashing (not HashMap) | 17 | ⬜ |
+| 13 | **Tool/process cancellation** — PID/handle tracking + native kill signal design | 11 | ⬜ |
+| 14 | **`agentic` cargo feature** — keep the on/off flag for the agentic layer? | 00b,00c | ⬜ |
+| 15 | **ContextProvider ↔ MemoryHierarchy boundary** — who generates vs who assembles | 15,16 | ⬜ |
+| 16 | **Vectors crate ownership** — move `VectorStore` fully into `foundation_vectors`; rayon vs valtron for parallel scan | 24,28,29 | ⬜ |
+| 17 | **RAG research items** (Phase 3, research-gated) — SIMD/no_std sqrt, IVF/HNSW params, BM25/RRF, code-graph, CF vector API; paired with `foundation_docs` | 24–32 | 🔬 deferred to Phase 3 |
+
+Quick confirmations (likely fast — bundle as we reach them): #6, #7, #9-rolling, #15.
+
+---
+
 ## A. Cross-cutting decisions (these gate many features — settle first)
 
 ### A1. Async-first traits, `_async`-suffixed, valtron-wraps-sync — [RESOLVED, one sub-point to DISCUSS]
