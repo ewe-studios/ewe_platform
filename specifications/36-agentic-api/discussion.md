@@ -603,11 +603,12 @@ open items. Applying to F00/F01 now and rolling through the rest as I touch each
    `cacache` for crash-safe WAL. Wasm uses an in-memory buffer or a Cloudflare-native alternative
    (KV/D1-backed). No WAL on wasm = accept crash-before-flush loss (F08 OD-08-3 already documents this).
 
-7. **#16 — SemanticLoopTask embedder async confusion (important): NOT A GAP.** The semantic task is a
-   valtron `TaskIterator` — it spawns embedding work as a valtron sub-task (via `FutureTask` for async
-   embedders, or sync execution for local models). The semantic task parks via `Depends(QueueReadiness)`
-   on a shared result queue, wakes when results arrive, computes cosine, steers via PriorityQueue.
-   No async confusion — valtron handles the async bridge internally.
+7. **#16 — SemanticLoopTask embedder (important): NOT A GAP.** The semantic task is a valtron
+   `TaskIterator` with sync `next_status()`. The `EmbeddingProvider` exposes **both** `embed()` (sync,
+   for local models — a forward pass, no async needed) and `embed_async()` (for external HTTP APIs).
+   The semantic loop task calls `embed()` directly from `next_status()` — it uses a local embedding
+   model, which is why it runs as a background valtron task in the first place (local compute, not
+   network). External callers (F08 flush-index path) use `embed_async()` wrapped in `FutureTask` if needed.
 
 8. **#17 — Memory model parsing strategy (important): RESOLVED (user, 2026-06-15) → config-driven,
    both implemented.** `MemoryParseStrategy` enum in `MemoryConfig`:

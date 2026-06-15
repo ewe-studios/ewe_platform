@@ -157,7 +157,7 @@ pub struct LoopDetectorConfig {            // Decision 09 defaults
 pub struct SemanticLoopTask {
     queue: Arc<ConcurrentQueue<Vec<ModelOutput>>>,   // shared with LoopDetector
     readiness: QueueReadiness<Vec<ModelOutput>>,     // for TaskStatus::Depends
-    embedder: Arc<dyn EmbeddingProvider>,            // F31
+    embedder: Arc<dyn EmbeddingProvider>,            // F31 — uses embed() (sync) for local models
     session: AgentSession,                           // for session.steer() on detection
     threshold: f32,                                  // cosine similarity threshold
 }
