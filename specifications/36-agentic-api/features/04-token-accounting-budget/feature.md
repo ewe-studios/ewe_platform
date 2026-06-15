@@ -35,8 +35,9 @@ tasks:
 > so the ledger must record **once per turn, not per message** (else 4× over-count). Also folded:
 > ledger computes its own total from the four token buckets (provider `total_tokens` is inconsistent
 > — Anthropic excludes cache, OpenAI includes it); `u64::MAX` sentinel (budget=0 is valid);
-> `tokens_so_far` dropped (providers emit `GeneratingTokens(None)`); rolling split from the 40k
-> observation-size trigger; `total_cost` sourced; reconcile with existing per-model `CostAccumulator`.
+> `tokens_so_far` is **live** (providers emit `GeneratingTokens(Some(usage))` per delta — Item #9, OD-04-9);
+> rolling = input+output of recent turns (Item #9, OD-04-3), split from the 40k observation-size trigger;
+> `total_cost` sourced; reconcile with existing per-model `CostAccumulator`.
 
 > Resolves **TODO #5**: ObservationMemory should not track token accumulation — a dedicated ledger
 > does. Plugs into `foundation_ai`'s existing `UsageReport` (no parallel counting). Provides the
@@ -147,7 +148,7 @@ after model call:
 | F18 budget surfacing | `snapshot()` → injected into the system prompt so the model knows its remaining budget |
 | F19 loop | `is_exhausted()` halt; `record()` **once per turn** |
 | F01 `SessionRecord::Summary` | `snapshot()` → `TokenSnapshot` carried in the per-interaction `Summary` record (cumulative running spend; the per-turn `UsageReport` delta rides `AgentProgress::TurnComplete`) |
-| F03 stream | turn-boundary token totals only; live `tokens_so_far` needs provider changes (providers emit `GeneratingTokens(None)` today — OD-03-4/OD-04-9) |
+| F03 stream | per-turn authoritative totals (ledger) **plus** live `tokens_so_far` from `GeneratingTokens(Some(usage))` per delta (Item #9 — OD-03-4/OD-04-9) |
 
 ### Optional: model-side hard stop
 
@@ -184,10 +185,11 @@ graph TD
 - **OD-04-2 — model-side hard cap:** also clamp per-request `max_tokens` to `remaining`? Rec: yes,
   cheap defense-in-depth; the loop-level halt is the primary guard.
 
-- **OD-04-3 — what counts toward `rolling`:** input+output, or output only? Decision 03/Mastra
-  thresholds are about *context size* → input+output of recent turns. Rec: total_tokens of recent
-  turns; F16/F15 confirm against the context-assembly definition.
-      Explain to me clearly, dont understand, what do other harness do, can we learn from them ? I would also assume input + output honestly but lets verify, we have explorations on them anyway.
+- **OD-04-3 — what counts toward `rolling`: RESOLVED (user, 2026-06-15; Item #9) → input + output of
+  recent turns.** *(What other harnesses do: context-window managers — Mastra, Letta/MemGPT — measure
+  total context size = input+output of recent turns, because the trigger is "the prompt is getting too
+  big to fit / too expensive," not "we generated a lot." So input+output is the right basis.)* F16/F15
+  use the same definition for context assembly so the number means the same thing in both places.
 
 - **OD-04-4 — persistence:** recompute `total` from stored per-turn `UsageReport`s on resume;
   persist only the budget ceiling. Caveat: `rolling` can't be recomputed from raw messages alone —
@@ -207,9 +209,14 @@ o
   the **40k** reflection trigger measures observation-memory size and is owned by **F15**, not the
   ledger.
 
-- **OD-04-9 — live streaming usage:** providers emit `GeneratingTokens(None)`; live `tokens_so_far`
-  is a separate provider enhancement. Scoped out of F04.
-          - Generating or Generated ? Also why cant they provide tokens so far, they already if i remember provide that in model Usage statics right? Models tell us this not providers if i remember correctly.
+- **OD-04-9 — live streaming usage: RESOLVED (user, 2026-06-15; Item #9) → build it NOW (in scope).**
+  Streaming providers emit `ModelState::GeneratingTokens(Some(usage))` per delta (F03 OD-03-4), so
+  `tokens_so_far` is **live** during generation. *(Naming: the state is `GeneratingTokens` — the
+  in-progress phase; "Generated" would be the final. And yes — the model/provider knows the running
+  count: input is known at start, output accrues per delta, and several provider stream APIs send usage
+  events. So we read it per delta rather than only at turn end.)* The ledger still records the
+  authoritative per-turn total once per turn (OD-04-6); live `tokens_so_far` feeds `AgentProgress` for
+  UI/budget-awareness.
 
 - **OD-04-10 — reconcile with existing `CostAccumulator`:** **Resolved (user, 2026-06-15)** → build
   on the model's existing cumulative source, don't re-accumulate. Each provider already holds a

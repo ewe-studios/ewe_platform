@@ -86,7 +86,9 @@ pub enum AgentProgress {
     /// Loading context/memory; hint: recalled records or first assistant record.
     Initializing { step: Cow<'static, str> },
     /// Model is generating; hint: Conversation{Assistant Text|Thinking}.
-    /// `tokens_so_far` = None until providers emit partial usage (today they don't — OD-03-4).
+    /// `tokens_so_far` = live in-flight count for this turn (input + output-so-far); providers emit
+    /// `GeneratingTokens(Some(usage))` per delta (Item #9 / OD-03-4). `Option` only for the brief
+    /// pre-first-delta window.
     Generating { model: ModelId, tokens_so_far: Option<u64> },
     /// Assistant requested a tool; hint: Conversation{Assistant content=ToolCall}.
     ToolCallRequested { name: String },
@@ -202,16 +204,16 @@ The loop wraps the model's `Stream<Messages, ModelState>` and lifts it:
 - **OD-03-1 (user):** `SessionRecord` vs `Messages` as `Next`'s payload (see above). Rec: `SessionRecord`.
       Ya SessionRecord so we can carry all the other important facts without bloating what Providers and models sees or leaking it in there.
 
-- **OD-03-2:** `tokens_so_far` source — **Resolved → `Option<u64>`**, `None` until providers thread
-  partial usage. (Related: OD-03-4.)
-        Not sure i understand but review the models they provide usage stats  tracking too, might resolve this already
-
+- **OD-03-2 — `tokens_so_far` source: RESOLVED (user, 2026-06-15; Item #9) → LIVE.** Now `Some(u64)`
+  during generation, not `None`. `tokens_so_far = input (known at start) + output-so-far (counted from
+  deltas)`; the streaming providers populate it (OD-03-4). The cumulative lifetime total is still
+  available via `Model::costing()` (Item-A4); this is the *in-flight* count for the current turn.
 - **OD-03-3:** `#[non_exhaustive]` — **Resolved → applied to both `AgentProgress` and `MemoryKind`.**
-
-- **OD-03-4:** providers emit `GeneratingTokens(None)` today (verified) — change them to emit
-  `Some(usage)` for live `tokens_so_far`, or accept turn-boundary-only updates? Rec: turn-boundary
-  now; partial-usage is a separate provider enhancement.
-          Also dont understand, if the models already expose usage and stats method, whats stopping us from getting this info on every turn and using them?
+- **OD-03-4 — providers emit live usage: RESOLVED (user, 2026-06-15; Item #9) → build it NOW.** Change the
+  streaming providers to emit **`ModelState::GeneratingTokens(Some(usage))`** per delta (output tokens
+  accumulate as deltas arrive; input known at start; some provider stream APIs also send usage events —
+  Anthropic `message_delta.usage`, OpenAI `stream_options.include_usage`). This is an in-scope provider
+  enhancement (foundation_ai backends), not deferred. `AgentProgress::Generating.tokens_so_far` is live.
 
 - **OD-03-5 (user — heart of TODO #9):** forward streaming partials as N `Conversation` records, or
   **coalesce** to one final per turn? Rec: coalesce.
