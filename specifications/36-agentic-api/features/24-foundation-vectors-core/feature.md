@@ -48,13 +48,14 @@ for all backends.
 
 ```
 backends/foundation_vectors/
-├── Cargo.toml      # pure Rust; no_std-friendly where possible; NO rayon (Item #16)
+├── Cargo.toml      # pure Rust; libm (unconditional default); NO rayon (Item #16)
 └── src/
     ├── lib.rs
     ├── metric.rs   # DistanceMetric + the math
     ├── vector.rs   # Vector + dimension handling
     ├── flat.rs     # flat-scan top-k (sequential)
-    └── store.rs    # VectorStore trait + VectorEntry + in-memory backend (moved from foundation_db, Item #16)
+    ├── store.rs    # VectorStore trait + VectorEntry + in-memory backend (moved from foundation_db, Item #16)
+    └── sqrt.rs     # SqrtStrategy enum + 3 implementations: NormalizedVectors, Libm, FastInvSqrt (OD-24-5)
 ```
 
 WASM-safe: no `fjall`/`memmap2`/`rayon` in the default build. **No rayon at all (Item #16):** rayon
@@ -131,12 +132,15 @@ graph TD
 
 ## HOW: Implementation Steps
 
-1. Create the crate (`backends/foundation_vectors`, pure Rust, no rayon).
+1. Create the crate (`backends/foundation_vectors`, pure Rust, libm dep, no rayon).
 2. `Vector` + `DistanceMetric` + `score`/`try_score` with the higher-is-better convention.
-3. Normalized-vector option for cosine (OD-24-1).
-4. `flat_top_k` with bounded min-heap; NaN/tie handling. Sequential by default.
-5. Parallel scan via valtron background threads (multi-threaded targets); sequential on single-threaded wasm.
-6. `VectorStore` trait + `VectorEntry` + in-memory backend (moved from F28/foundation_db, Item #16).
+3. `SqrtStrategy` enum + 3 implementations (OD-24-5): `NormalizedVectors` (no sqrt at query),
+   `Libm` (default, pure Rust, everywhere), `FastInvSqrt` (DOOM trick, included). Config-driven — all
+   three always present, selected at construction via `VectorStoreConfig.sqrt_strategy`.
+4. Normalized-vector handling for cosine (OD-24-1) — normalize on insert when strategy requests it.
+5. `flat_top_k` with bounded min-heap; NaN/tie handling. Sequential by default.
+6. Parallel scan via valtron background threads (multi-threaded targets); sequential on single-threaded wasm.
+7. `VectorStore` trait + `VectorEntry` + in-memory backend (moved from F28/foundation_db, Item #16).
 7. Tests: metric correctness (known vectors), top-k correctness vs naive sort, k>n, empty, NaN,
    tie-determinism, sequential==parallel; wasm build.
 
@@ -150,19 +154,34 @@ graph TD
 - **OD-24-4 — SIMD:** portable scalar now; native SIMD feature later. Rec: defer.
       Whats the block for SIMD ?
 
-- **OD-24-5 — no_std sqrt: RESOLVED (user, 2026-06-15) — normalized vectors primary + libm fallback.**
-  The DOOM / fast inverse square root (`0x5f3759df`) was designed for 1999 CPUs without hardware sqrt.
-  On modern targets (x86/SSE, ARM/NEON, wasm), hardware sqrt is faster and the DOOM trick is both
-  slower and less accurate (1-3% error). Benchmarks confirm this
+- **OD-24-5 — no_std sqrt: RESOLVED (user, 2026-06-15) — all three implemented, config-driven,
+  default `libm`.** Not feature-flagged — a config enum selects the strategy at runtime per store.
+  The DOOM / fast inverse square root (`0x5f3759df`) was designed for 1999 CPUs without hardware
+  sqrt. On modern targets (x86/SSE, ARM/NEON, wasm), hardware sqrt is faster and the DOOM trick
+  is both slower and less accurate (1-3% error). Benchmarks confirm this
   ([rust-isqrt](https://github.com/k0nserv/rust-isqrt)).
 
-  **Primary: store normalized vectors** (L2-normalized on insert → cosine = dot product at query, no
-  sqrt needed). This is what real vector databases do (Elasticsearch, Milvus, Pinecone). For embeddings
-  this is correct — they're compared by direction, not magnitude.
+  ```rust
+  /// How to compute sqrt (needed for L2 distance, cosine normalization).
+  /// Config-driven — all three implementations are present; default is Libm.
+  pub enum SqrtStrategy {
+      /// Normalize vectors on insert → cosine = dot product at query. No sqrt needed at query time.
+      NormalizedVectors,
+      /// libm::sqrtf — pure Rust, works everywhere, accurate (glibc-level precision).
+      Libm,
+      /// Fast inverse square root (0x5f3759df + 1 Newton iteration). Educational; not faster on modern hardware.
+      FastInvSqrt,
+  }
+  ```
 
-  **Fallback: `libm::sqrtf`** — for cases that still need sqrt (normalizing on insert, L2 distance).
-  Pure Rust, works everywhere including wasm32-unknown-unknown, accurate (glibc-level precision).
-  The `libm` crate is the Rust project's own no_std math library.
+  - **`NormalizedVectors`**: store L2-normalized vectors so cosine = dot product. No sqrt at query.
+    This is what Elasticsearch, Milvus, Pinecone do. For embeddings this is correct (direction, not magnitude).
+  - **`Libm`** (default): `libm::sqrtf` — pure Rust, works everywhere including wasm32-unknown-unknown,
+    accurate. The Rust project's own no_std math library. Used for normalizing on insert, L2 distance.
+  - **`FastInvSqrt`**: DOOM/Quake trick. Included for completeness/educational value; slower + less
+    accurate on modern hardware.
+  - All three are always present — no feature flags. The strategy is set in `VectorStoreConfig` at
+    construction. `libm` is an unconditional dependency (needed by the default).
 
 - **OD-24-6 (mandatory) — f32 ordering:** `OrderedScore(f32)` newtype, manual `Ord` via
   `total_cmp`, NaN = least. The heap key + NaN guard in one place. (Not `ordered-float` dep — keep it
