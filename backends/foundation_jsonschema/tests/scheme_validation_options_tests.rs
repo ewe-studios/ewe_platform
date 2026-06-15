@@ -7,9 +7,7 @@ use serde_json::json;
 
 #[test]
 fn schema_returns_reference() {
-    let opts = scheme::object()
-        .required("name", scheme::string())
-        .build();
+    let opts = scheme::object().required("name", scheme::string()).build();
 
     let schema = opts.schema();
     assert_eq!(schema["type"], "object");
@@ -18,11 +16,7 @@ fn schema_returns_reference() {
 
 #[test]
 fn schema_preserves_constraints() {
-    let opts = scheme::string()
-        .min_len(1)
-        .max_len(255)
-        .email()
-        .build();
+    let opts = scheme::string().min_len(1).max_len(255).email().build();
 
     let schema = opts.schema();
     assert_eq!(schema["type"], "string");
@@ -35,10 +29,7 @@ fn schema_preserves_constraints() {
 
 #[test]
 fn into_schema_takes_ownership() {
-    let opts = scheme::integer()
-        .min(0)
-        .max(100)
-        .build();
+    let opts = scheme::integer().min(0).max(100).build();
 
     let schema = opts.into_schema();
     assert_eq!(schema["type"], "integer");
@@ -49,25 +40,30 @@ fn into_schema_takes_ownership() {
 #[test]
 fn into_schema_nested_object() {
     let opts = scheme::object()
-        .required("user", scheme::object()
-            .required("id", scheme::integer())
-            .required("name", scheme::string())
+        .required(
+            "user",
+            scheme::object()
+                .required("id", scheme::integer())
+                .required("name", scheme::string()),
         )
         .build();
 
     let schema = opts.into_schema();
-    assert_eq!(schema["properties"]["user"]["properties"]["id"]["type"], "integer");
-    assert_eq!(schema["properties"]["user"]["properties"]["name"]["type"], "string");
+    assert_eq!(
+        schema["properties"]["user"]["properties"]["id"]["type"],
+        "integer"
+    );
+    assert_eq!(
+        schema["properties"]["user"]["properties"]["name"]["type"],
+        "string"
+    );
 }
 
 // ── clone_schema() accessor ────────────────────────────────────
 
 #[test]
 fn clone_schema_returns_clone() {
-    let opts = scheme::array()
-        .items(scheme::string())
-        .min_items(1)
-        .build();
+    let opts = scheme::array().items(scheme::string()).min_items(1).build();
 
     let cloned = opts.clone_schema();
     assert_eq!(cloned["type"], "array");
@@ -164,12 +160,7 @@ fn primitive_compile_chain_string() {
 
 #[test]
 fn primitive_compile_chain_integer() {
-    let validator = scheme::integer()
-        .min(1)
-        .max(100)
-        .build()
-        .compile()
-        .unwrap();
+    let validator = scheme::integer().min(1).max(100).build().compile().unwrap();
 
     assert!(validator.is_valid(&json!(50)));
     assert!(!validator.is_valid(&json!(0)));

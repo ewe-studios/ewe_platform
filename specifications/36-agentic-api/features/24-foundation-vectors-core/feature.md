@@ -26,7 +26,9 @@ tasks:
 > `[workspace.dependencies]` (F28 needs it), `serde = { workspace = true }`, `[lints] workspace =
 > true`, `edition.workspace = true` (2021). See OD-24-6/7/8.
 
-**TODO**: Why does any of these need to leak there, if its a problem, move it all into foundation_vector and let it own it all fully
+> **RESOLVED (user, Item #16 / OD-24-8):** `foundation_vectors` owns everything — `VectorStore` trait,
+> `VectorEntry`, `VectorMetadata`, `VectorStoreConfig`, `VectorMatch`, `DistanceMetric`, and the
+> in-memory backend. `foundation_db` re-exports for convenience. No type leakage.
 
 > First feature of the new **`foundation_vectors`** crate (verified: does not exist; `backends/*`
 > workspace glob auto-includes it). Implements Decision 07's "algorithms owned by us" — starting with
@@ -155,8 +157,15 @@ graph TD
 - **OD-24-2 — dimension mismatch:** `debug_assert!` + checked `try_score(-> Result)`; the VectorStore
   (F28) enforces a fixed dimension at insert (Decision 07). Rec: both.
 - **OD-24-3 — tie-breaking:** by id ascending for deterministic results. Rec: yes.
-- **OD-24-4 — SIMD:** portable scalar now; native SIMD feature later. Rec: defer.
-      Whats the block for SIMD ?
+- **OD-24-4 — SIMD: deferred, block explained.** The block is **portability**: Rust's `std::arch`
+  SIMD intrinsics are target-specific (`x86_64::_mm256_*` for AVX2, `aarch64::*` for NEON,
+  `wasm32::*` for wasm SIMD). Writing a single SIMD implementation that works everywhere requires
+  either (a) multiple target-gated implementations (x86 + ARM + wasm = 3 codepaths), or (b) using
+  `std::simd` (the portable SIMD API, currently nightly-only as of Rust 1.82+). Neither is blocking
+  for correctness — the scalar path is correct and fast enough for typical agent session sizes
+  (hundreds to low-thousands of vectors). SIMD is a **perf optimization** for the >10k vector case
+  (IVF/HNSW flat scan within a cluster). Rec: ship scalar now; add SIMD behind a `simd` feature
+  gate when `std::simd` stabilizes or when benchmarks show it matters.
 
 - **OD-24-5 — no_std sqrt: RESOLVED (user, 2026-06-15) — all three implemented, config-driven,
   default `libm`.** Not feature-flagged — a config enum selects the strategy at runtime per store.
@@ -191,10 +200,25 @@ graph TD
   `total_cmp`, NaN = least. The heap key + NaN guard in one place. (Not `ordered-float` dep — keep it
   ours/no_std.)
 
-- **OD-24-7 — cosine zero/empty-vector policy:** `score(Cosine,…)` when `‖a‖` or `‖b‖` is 0 (→ 0/0
-  NaN) → return a score that sorts as least (never selected); query must be normalized when OD-24-1
-  is on. Define explicitly.
-        Ya, my knowledge lacks, we need fundamental documents explain vector store adn their algorithmn to make me go zero to genius. Research the web, select the best option here
+- **OD-24-7 — cosine zero/empty-vector policy: RESOLVED.** Concrete policy:
+
+  When either vector has zero magnitude (`‖a‖ == 0` or `‖b‖ == 0`), the cosine formula produces
+  `0/0 = NaN`. The policy:
+
+  1. **`score(Cosine, a, b)`** checks if either norm is zero. If so, returns `f32::NEG_INFINITY`
+     (which `OrderedScore` sorts as least — the NaN guard). A zero-magnitude vector is semantically
+     "no direction" and should never match anything.
+  2. **Insert-time rejection:** `VectorStore::insert` rejects zero-magnitude vectors with a
+     `VectorStoreError::ZeroVector` error. This catches the problem at the source (embedding models
+     should never produce zero vectors; if they do, it's a bug worth surfacing).
+  3. **Query-time guard:** if a zero vector somehow gets past insert (e.g. loaded from a pre-existing
+     store), the `score` function returns `NEG_INFINITY` — it's never selected in top-k.
+  4. **When `NormalizedVectors` (OD-24-1) is on:** vectors are L2-normalized on insert (dividing by
+     `‖v‖`). A zero vector can't be normalized (division by zero), so insert-time rejection catches
+     it before normalization is attempted.
+
+  This is what Elasticsearch, Milvus, and Pinecone do: reject zero vectors at insert, treat any
+  that leak through as non-matching. The fundamentals docs will cover this in depth.
 
 - **OD-24-8 — type ownership: RESOLVED (user, 2026-06-15; Item #16) → `foundation_vectors` owns it
   all.** `VectorStore` trait, `VectorEntry`, `VectorMetadata`, `VectorStoreConfig`, `VectorMatch`,

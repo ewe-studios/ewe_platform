@@ -202,18 +202,18 @@ stores, no native model). (Task — see list.)
   **`RoutableProvider`** (concrete signatures, boxed stream), which is what F19/F20 take (an
   `Arc<dyn RoutableProvider>` router) — not the assoc-typed `ModelProvider`.
 
-- **OD-21-3 — message builders:** provide `mock_text`/`mock_tool_call`/`mock_text_usage` (rec) — raw
-  `Messages::Assistant` is too verbose and `UsageReport` must flow for ledger tests.
-        Do the full work, verbosity is good, we can always create helper methods to make it easier to construct and set default UsageReport that can be overidden/updated especially testing session budget controls.
+- **OD-21-3 — message builders: RESOLVED (user, 2026-06-15).** Do the full work — provide verbose
+  builders (`mock_text`/`mock_tool_call`/`mock_text_usage`) with default `UsageReport` that can be
+  overridden/updated, especially for testing session budget controls. Helpers make construction easy
+  but carry real `UsageReport` so F04 ledger/budget/memory-trigger tests work.
 
-- **OD-21-4 — mock location:** `foundation_ai::agentic::testing` (behind a `testing`/`dev` feature) vs
-  `foundation_testing`. Rec: `foundation_ai` under a `testing` feature (close to the types); reuse
-  `foundation_testing` only for `TestHarness`. Confirm.
-        Ya in foundation_ai is best.
+- **OD-21-4 — mock location: RESOLVED (user, 2026-06-15).** `foundation_ai::agentic::testing` behind
+  a `testing` feature. Reuse `foundation_testing` only for `TestHarness`.
 
-- **OD-21-5 — wasm test runner:** `wasm-bindgen-test` for the deterministic tier vs build-only. Rec: at
-  least build-only on wasm now; wasm-bindgen-test for a smoke subset. Confirm scope.
-      We own our own wasm test runners in testbed where did wasm-bindgen even come from to be needed.
+- **OD-21-5 — wasm test runner: RESOLVED (user, 2026-06-15).** We own our own wasm test runners in
+  testbed — **no `wasm-bindgen-test`**. The deterministic tier (MockModelProvider + in-memory stores)
+  builds for wasm and runs on our testbed infrastructure. Build-only verification via
+  `cargo build --target wasm32-unknown-unknown`; actual test execution via the owned testbed runners.
 
 ## Target Files
 

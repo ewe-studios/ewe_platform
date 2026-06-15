@@ -17,7 +17,10 @@ tasks:
 
 # Feature 27: foundation_vectors — code-graph (graphify-derived)
 
-**TODO**: I have reached the limits of my knowledge, lets do web research and select the best answers for these for the different platforms we wish to support, then add foundation_docs to teach me from zero to hero on all these topics in detail and depth. Also if wasm is not possible in some areas that is ok.
+> **RESEARCH REQUIRED:** Fundamentals docs (11 files, listed below) must cover code knowledge-graphs,
+> tree-sitter, Leiden clustering, and budgeted graph traversal from zero to expert. Web research needed
+> for: Leiden pure-Rust crate evaluation (OD-27-3), tree-sitter wasm grammar toolchain. Wasm is OK to
+> not support for build — a native tool builds the graph, wasm loads and queries it (OD-27-5 resolved).
 
 > **Fidelity review (2026-06-14) — important corrections to the source study below:**
 > 1. **"One generic walker drives all languages" is FALSE.** Only ~12 languages use
@@ -260,8 +263,9 @@ goes from zero to expert in code knowledge-graphs:
 
 1. Crate module `code_graph`; tree-sitter + per-language grammar deps (native, feature-gated).
 2. `LanguageConfig` + the generic `walk` (imports/classes/functions); node/edge/relation/confidence.
-3. Per-language configs + import handlers + inheritance for the priority languages (Rust, Python, JS/TS,
-   Go, Java first; then the rest of the 25). OD-27-1.
+3. **Rust bespoke extractor** — hand-written walker for `struct_item`/`enum_item`/`trait_item`/
+   `function_item`/`impl_item`/`use_declaration`/`call_expression`, Rust-specific import resolution
+   (`use foo::bar`), trait inheritance (`impl Trait for Struct`). OD-27-1: Rust only first.
 4. `walk_calls` + `label_to_nid` + member-call exclusion + `raw_calls` + `seen_call_pairs` dedup.
 5. Rationale extraction (comment prefixes + docstrings → node attribute).
 6. Two-pass `extract()` + content-hash cache + absolute→relative id remap + cross-file INFERRED `uses`.
@@ -276,11 +280,14 @@ goes from zero to expert in code knowledge-graphs:
 
 ## Open Decisions
 
-- **OD-27-1 — language coverage scope:** all 25 now vs a priority set (Rust/Python/JS-TS/Go/Java)
-  first, rest incrementally. Rec: priority set first; `LanguageConfig` makes the rest additive. **This
-  is realistically several features — likely split (11a extraction core + priority langs, 11b graph
-  build/cluster/analyze, 11c query + LLM pass). Flag for the user.**
-      - Focus on rust for now, we get it right for rust so we get the correct design and functionality in place then another feature for JS and Ts, Python. Others are deferred.
+- **OD-27-1 — language coverage scope: RESOLVED (user, 2026-06-15).** **Rust only first.** Get the
+  design and functionality right for Rust, then a separate follow-on feature for JS/TS + Python.
+  All others deferred. Note: Rust uses a **bespoke extractor** (`extract_rust` in graphify, not the
+  generic `_extract_generic`+`LanguageConfig` walker), so the Rust walker is hand-written — the
+  generic `LanguageConfig` pattern applies to the follow-on languages. The feature split is:
+  - **F27a (this feature):** extraction core + Rust walker + graph build + dedup + query
+  - **F27b (follow-on):** JS/TS + Python walkers (these may use `LanguageConfig` generic walker)
+  - **F27c (follow-on):** Leiden clustering + analysis + LLM semantic pass
 
 - **OD-27-2 — graph lib:** `petgraph` vs own adjacency. Rec: `petgraph` (mature, pure-Rust, wasm-ok).
 - **OD-27-3 — Leiden in Rust:** vetted crate vs implement. Rec: evaluate a pure-Rust leiden/louvain
@@ -289,9 +296,10 @@ goes from zero to expert in code knowledge-graphs:
 
 - **OD-27-4 — tree-sitter grammar deps:** 25 grammar crates is heavy. Gate each language behind a
   feature so consumers pull only what they need. Rec: per-language features, a `code-graph-common` set.
-- **OD-27-5 — wasm:** build is native (tree-sitter C); query is portable. Confirm the split (prebuilt
-  graph.json queried on wasm). tree-sitter does have a wasm build — future option to also build on wasm.
-      Ya, sometimes may not just work in wasm and may need a tool to build the graph.json and let them load it, that is fine, dont force it where its not possible.
+- **OD-27-5 — wasm: RESOLVED (user, 2026-06-15).** Build (AST extraction) is native-only (tree-sitter
+  C grammars don't compile to wasm32-unknown-unknown via `cc`). Query over a prebuilt graph is
+  pure Rust → wasm-safe. A CLI/native tool builds the `graph.json`; wasm deployments load and query
+  it. Don't force wasm build where it's not possible.
 
 - **OD-27-6 — graph storage: RESOLVED (user, 2026-06-15; Item #7 / §H4).** **Implement both** behind a
   **trait** that exposes `to_bytes()`/`from_bytes()`; the backend persists the bytes (in-memory, or

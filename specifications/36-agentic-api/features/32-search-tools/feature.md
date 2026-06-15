@@ -1,6 +1,6 @@
 ---
-feature: "Search Tools — split search() (semantic/memory/graph) vs search_file() (fff, native-only)"
-description: "Two distinct tools per Decision 14 TODO #6: search() over the Context API's knowledge surfaces (semantic message recall, memory vectors, code-graph) and search_file() over the real filesystem via fff (native-only, target-gated, wasm returns unsupported). Both are ToolImpls registered with the ToolCallManager"
+feature: "Search Tools — split search_context() (semantic/memory/graph) vs search_file() (fff + VFS)"
+description: "Two distinct tools per Decision 14 TODO #6: search_context() over the Context API's knowledge surfaces (semantic message recall, memory vectors, code-graph) and search_file() over the filesystem via fff (native, target-gated) or VFS (wasm). Both are ToolImpls with ToolShed fields, registered with the ToolCallManager"
 status: "pending"
 priority: "high"
 depends_on: ["09-toolimpl-registry", "16-context-provider-assembly"]
@@ -15,136 +15,130 @@ tasks:
   completion_percentage: 0%
 ---
 
-# Feature 32: Search Tools — `search()` vs `search_file()`
+# Feature 32: Search Tools — `search_context()` vs `search_file()`
 
-> **Review status (2026-06-14) — self-review against code (subagent unavailable):**
-> 1. **The split is already half-built in F16.** `ContextProvider` (`16-context-provider-assembly/
->    feature.md:57-72`) already defines `search(query, SearchMode, k)` (Semantic/Memory/Graph/Hybrid)
->    and `search_file(query, FileSearchKind)` (fff, native; wasm unsupported). **F32 owns the *tool
->    surface* — the `SearchTool`/`SearchFileTool` `ToolImpl`s — that wrap F16's methods.** F32 does NOT
->    re-implement recall; it adapts the F16 Context API into two `ToolImpl`s the LLM calls. (OD-16-5
->    already assigns generation to F15; here the boundary is F16=capability, F32=tool wrapper.)
-> 2. **fff is an EXTERNAL Rust workspace OUTSIDE this repo** — verified at
->    `/home/darkvoid/Boxxed/@formulas/src.rust/src.FileSystemAPIs/src.Search/fff` (crates `fff-core`,
->    `fff-grep`, `fff-query-parser`, `fff-mcp`, edition 2024, third-party authors). `fff-core/Cargo.toml`
->    pulls **`rayon`, `git2`, `heed`, `memmap2`, `notify`** (all native-only) — exactly Decision 14's
->    native-only list. So `search_file` MUST be **target-gated `cfg(not(target_family="wasm"))`**, NOT
->    feature-gated (memory `feedback_target_gate_native_tooling`). **How fff is consumed is an open
->    integration question (OD-32-1):** it is not a workspace member here and not on crates.io as a
->    library — options: (a) git/path dependency on the external workspace, (b) vendor `fff-core`/
->    `fff-grep`, (c) reimplement a minimal native grep. Flag for the user.
-> 3. **Decision 14 conflated `search`'s fff-fallback; TODO #6 splits it.** Old Decision 14
->    (`SearchMode::Filesystem` → fff→vector fallback) is SUPERSEDED by the user's split (Decision 14
->    TODO #6, echoed in F16): `search` is knowledge-only (NO fff), `search_file` is filesystem-only (fff,
->    no vector fallback). F32 implements the *split*, not the old two-phase. The two tools never call
->    each other.
-> 4. **`search` modes map to existing subsystems:** Semantic → F08 `semantic_search` (message vectors,
->    ns=session); Memory → F28 query over observation/reflection vectors (F07/F15 content); Graph →
->    F27 code-graph (`find_entity`/`callers`/`neighborhood`); Hybrid → F26 fusion. All reached via F16's
->    `search`. On wasm, Graph degrades to a prebuilt-graph query or is unavailable (F16 OD-16-3).
-> 5. **Both are `ToolImpl`s (F09), sync `execute`** (F09 OD-09-1). They are wired by F10's
->    `with_defaults` as the `search` field of the `ToolShed` (`search_file` is an extra registered tool,
->    not a named `ToolShed` field — the real `ToolShed` has `search` but no `search_file` slot, so
->    `search_file` rides as a normal registered tool discoverable via `shed`). (OD-32-4.)
-> 6. **wasm `search_file` returns a clean unsupported result, never a panic** (Decision 14 §Platform):
->    `ToolCallResult { content: Text("search_file is unavailable on wasm; use search() for knowledge
->    recall"), error_detail: Some("unsupported_on_wasm") }`. The LLM sees it and adapts.
+> **Review status (2026-06-14) — self-review against code, UPDATED 2026-06-15 per user rulings:**
+> 1. **The split is already half-built in F16.** `ContextProvider` already defines
+>    `search(query, SearchMode, k)` (Semantic/Memory/Graph/Hybrid) and `search_file(query,
+>    FileSearchKind)` (fff, native; VFS on wasm). **F32 owns the *tool surface* — the
+>    `SearchContextTool`/`SearchFileTool` `ToolImpl`s — that wrap F16's methods.** F32 does NOT
+>    re-implement recall; it adapts the F16 Context API into two `ToolImpl`s the LLM calls.
+> 2. **fff is published on crates.io as `fff-search`** (user-provided, OD-32-1 resolved). Consume via
+>    the published crate — no vendoring or reimplementation needed. Native deps (`rayon`, `git2`,
+>    `heed`, `memmap2`, `notify`) mean the fff-backed path is target-gated
+>    `cfg(not(target_family="wasm"))`.
+> 3. **RENAMED: `search` → `search_context`** (user, OD-32-2) — makes it clear the tool searches
+>    context/memories/knowledge, not files. The LLM sees `search_context` and understands it's for
+>    knowledge recall.
+> 4. **Both tools are `ToolShed` fields** (user, OD-32-4) — `search_context` in the existing `search`
+>    slot, `search_file` added as a new mandatory field. Both are always-present default tools.
+> 5. **wasm `search_file` uses VFS-based search** (user, OD-32-5) — NOT unsupported. Nothing stops wasm
+>    from using in-memory or VFS-based file search within its environment. Only the fff-backed native
+>    path is target-gated; wasm gets a VFS search implementation.
 
 > Implements Decision 14 TODO #6 (the search split). Owns the two **search tools** the LLM calls:
-> `search` (knowledge — semantic/memory/graph/hybrid, wraps F16) and `search_file` (filesystem — fff,
-> native-only, wasm-unsupported). Both are `ToolImpl`s (F09) wired into the `ToolShed` (F10).
+> `search_context` (knowledge — semantic/memory/graph/hybrid, wraps F16) and `search_file` (filesystem
+> — fff on native, VFS on wasm). Both are `ToolImpl`s (F09) wired into the `ToolShed` (F10) as
+> mandatory fields.
 
 ## WHY: Problem Statement
 
 The agent has two genuinely different "search" needs that were conflated: **knowledge recall** ("what
 did I decide about auth?", "which entity defines `foo`?") and **filesystem search** ("grep
 `auth_check(` across the repo"). Decision 14 TODO #6 (the user's explicit ruling) splits them so the
-LLM picks the right one and so the filesystem path (fff, native-only) doesn't leak into wasm builds.
-F16 added the *capabilities*; this feature exposes them as two distinct, well-described tools.
+LLM picks the right one. F16 added the *capabilities*; this feature exposes them as two distinct,
+well-described tools. The name `search_context` (not `search`) makes the knowledge-recall purpose
+unambiguous to the LLM.
 
 ## WHAT: Solution
 
-### `search` — knowledge tool (wraps F16, all platforms)
+### `search_context` — knowledge tool (wraps F16, all platforms)
 
 ```rust
 // backends/foundation_ai/src/agentic/tools/search.rs
-pub struct SearchTool { context: ContextProvider }   // F16
+pub struct SearchContextTool { context: ContextProvider }   // F16
 
 #[derive(Serialize, Deserialize)]
-pub struct SearchArgs { pub query: String, pub mode: SearchMode, pub k: usize }
+pub struct SearchContextArgs { pub query: String, pub mode: SearchMode, pub k: usize }
 // SearchMode { Semantic, Memory, Graph, Hybrid } — re-exported from F16
 
-impl ToolImpl for SearchTool {
-    fn definition(&self) -> ToolDefinition { /* name="search", description steers Semantic/Memory/Graph/Hybrid, NOT files */ }
+/// Result shape — distinct from search_file (important for agent to distinguish knowledge vs file hits).
+#[derive(Serialize, Deserialize)]
+pub struct KnowledgeHit { pub source: String, pub score: f32, pub content: String, pub record_ref: Option<String> }
+
+impl ToolImpl for SearchContextTool {
+    fn definition(&self) -> ToolDefinition { /* name="search_context", description below */ }
     fn execute(&self, args: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        let a: SearchArgs = parse(args)?;
+        let a: SearchContextArgs = parse(args)?;
         let res = self.context.search(&a.query, a.mode, a.k);   // F16
         Ok(ToolCallResult { content: UserModelContent::Text(json(res)), error_detail: None })
     }
 }
 ```
 
-### `search_file` — filesystem tool (fff, native-only, target-gated)
+### `search_file` — filesystem tool (fff on native, VFS on wasm)
+
+Both platforms get a working `search_file` — the implementation differs by target:
+
+- **Native (`cfg(not(target_family = "wasm"))`):** uses `fff-search` crate (published on crates.io,
+  OD-32-1 resolved) for grep/find/multi_grep over the real filesystem.
+- **Wasm (`cfg(target_family = "wasm")`):** uses a **VFS-based search** implementation over the
+  platform's VFS (`VfsFileSystem` from `foundation_nativeapis`). Grep = iterate VFS files, match
+  content; Find = iterate VFS directory entries, match path pattern. Limited to files loaded into the
+  VFS (no unbounded filesystem), but functional — the agent can search workspace files that have been
+  loaded.
 
 ```rust
 pub struct SearchFileTool {
     #[cfg(not(target_family = "wasm"))]
-    fff: FffSearch,    // F16's fff binding (grep/find/multi_grep) — native only
+    backend: FffSearchBackend,         // fff-search crate — real filesystem
+    #[cfg(target_family = "wasm")]
+    backend: VfsSearchBackend,         // VFS-based search — in-memory / loaded files
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct SearchFileArgs { pub query: String, pub kind: FileSearchKind, pub paths: Option<Vec<String>> }
-pub enum FileSearchKind { Grep, Find, MultiGrep }   // maps to fff grep/find/multi_grep (Decision 14)
+pub enum FileSearchKind { Grep, Find, MultiGrep }
+
+/// Result shape — distinct from search_context (path+line vs source+score).
+#[derive(Serialize, Deserialize)]
+pub struct FffMatch { pub path: String, pub line_number: u32, pub content: String, pub score: f32 }
 
 impl ToolImpl for SearchFileTool {
-    fn definition(&self) -> ToolDefinition { /* name="search_file", description: real filesystem, native-only */ }
+    fn definition(&self) -> ToolDefinition { /* name="search_file", description below */ }
 
-    #[cfg(not(target_family = "wasm"))]
     fn execute(&self, args: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         let a: SearchFileArgs = parse(args)?;
-        let matches = match a.kind {
-            FileSearchKind::Grep      => self.fff.grep(&a.query),
-            FileSearchKind::Find      => self.fff.find(&a.query),
-            FileSearchKind::MultiGrep => self.fff.multi_grep(&a.query, a.paths.unwrap_or_default().as_slice()),
-        }.map_err(|e| ToolError::Execution { tool: "search_file".into(), reason: e.to_string() })?;
+        let matches = self.backend.search(&a.query, a.kind, a.paths.as_deref())?;
         Ok(ToolCallResult { content: UserModelContent::Text(json(matches)), error_detail: None })
-    }
-
-    #[cfg(target_family = "wasm")]
-    fn execute(&self, _args: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
-        Ok(ToolCallResult {
-            content: UserModelContent::Text(TextContent { content:
-                "search_file is unavailable on wasm; use search() for knowledge recall".into(), signature: None }),
-            error_detail: Some("unsupported_on_wasm".into()),
-        })
     }
 }
 ```
 
-`FffSearch` (the `grep`/`find`/`multi_grep` wrapper, `FffMatch { path, line_number, content, score }`)
-is defined in F16 / consumed here; the **fff dependency wiring is OD-32-1** (external workspace).
+`FffSearchBackend` wraps the `fff-search` crate; `VfsSearchBackend` implements the same `FileSearch`
+trait over the VFS. Both return `Vec<FffMatch>`.
 
 ### Tool descriptions (steer the LLM to the right tool)
 
-- `search`: "Search your knowledge — semantic recall over prior messages, distilled memory
+- `search_context`: "Search your knowledge — semantic recall over prior messages, distilled memory
   (observations/reflections), and the code-graph (which file defines an entity). NOT the live
   filesystem — use `search_file` for that."
-- `search_file`: "Search the real filesystem with fff: grep file content, find by path pattern,
-  multi-file grep. Native only. NOT for memory recall — use `search`."
+- `search_file`: "Search files: grep file content, find by path pattern, multi-file grep. NOT for
+  memory recall — use `search_context`."
 
 ## Architecture
 
 ```mermaid
 graph TD
-    LLM -->|search| ST[SearchTool ToolImpl]
+    LLM -->|search_context| ST[SearchContextTool ToolImpl]
     LLM -->|search_file| SFT[SearchFileTool ToolImpl]
     ST --> CTX[ContextProvider.search F16]
     CTX --> SEM[Semantic: F08 message vectors]
     CTX --> MEM[Memory: F28 obs/refl vectors]
     CTX --> GR[Graph: F27 code-graph]
     CTX --> HY[Hybrid: F26 fusion]
-    SFT -->|cfg not wasm| FFF[FffSearch: fff grep/find/multi_grep - native]
-    SFT -->|cfg wasm| UNS[unsupported_on_wasm result]
+    SFT -->|cfg not wasm| FFF[FffSearchBackend: fff-search crate - native]
+    SFT -->|cfg wasm| VFS[VfsSearchBackend: VFS-based grep/find - wasm]
 ```
 
 ## Fundamentals Documentation (zero-to-expert) — REQUIRED
@@ -159,42 +153,46 @@ see list.)
 
 ## HOW: Implementation Steps
 
-1. `SearchTool: ToolImpl` wrapping F16 `ContextProvider::search` (Semantic/Memory/Graph/Hybrid).
-2. `SearchFileTool: ToolImpl`, target-gated execute (native fff vs wasm unsupported result).
-3. Resolve fff consumption (OD-32-1: git/path dep vs vendor vs minimal reimpl) — wire `FffSearch`.
-4. `FileSearchKind` → fff `grep`/`find`/`multi_grep`; serialize `FffMatch` into `ToolCallResult`.
-5. Tool descriptions that disambiguate the two tools (steer the LLM).
-6. Register both in F10 `with_defaults` (`search` = ToolShed.search field; `search_file` = extra
-   registered tool, shed-discoverable).
-7. Tests: `search` each mode dispatches to the right F16 path; `search_file` grep/find/multi_grep
-   (native, against a temp dir); wasm `search_file` returns unsupported (no panic, builds clean);
-   both validate args; descriptions present. wasm build excludes fff entirely.
+1. `SearchContextTool: ToolImpl` wrapping F16 `ContextProvider::search` (Semantic/Memory/Graph/Hybrid).
+2. `SearchFileTool: ToolImpl` with `FffSearchBackend` (native) + `VfsSearchBackend` (wasm).
+3. `FileSearch` trait abstracting the backend; `FffSearchBackend` wraps `fff-search` crate (crates.io).
+4. `VfsSearchBackend` implements grep/find over VFS files (wasm — iterates loaded VFS entries).
+5. `FileSearchKind` → backend `search()`; distinct `FffMatch` result shape.
+6. `KnowledgeHit` result shape for `search_context` (distinct from `FffMatch`).
+7. Tool descriptions that disambiguate the two tools (steer the LLM).
+8. Register both in F10 `with_defaults` — `search_context` = `ToolShed.search` field (renamed),
+   `search_file` = new `ToolShed.search_file` field (added per user ruling).
+9. Tests: `search_context` each mode dispatches to the right F16 path; `search_file` grep/find/
+   multi_grep (native, against a temp dir); wasm `search_file` VFS search works against loaded files;
+   both validate args; descriptions present; distinct result shapes verified.
 
 ## Open Decisions
 
-- **OD-32-1 — fff consumption (load-bearing):** fff is an external workspace, not a repo member / not a
-  published lib. (a) git/path dependency on `fff-core`+`fff-grep`, (b) vendor those two crates, (c)
-  reimplement a minimal native grep. Rec: (a) path/git dep on `fff-core`+`fff-grep` target-gated; fall
-  back to (c) if their deps (libgit2 vendored, heed/LMDB) bloat the build. **Flag for the user.**
-      I shared https://crates.io/crates/fff-search
+- **OD-32-1 — fff consumption: RESOLVED (user, 2026-06-15).** fff is published on crates.io as
+  **`fff-search`** (https://crates.io/crates/fff-search). Consume via the published crate — no
+  vendoring, no reimplementation. Target-gated (`cfg(not(target_family = "wasm"))`) because fff's
+  native deps (rayon, git2, heed, memmap2, notify) don't build for wasm.
 
-- **OD-32-2 — search-result shape:** unify `search` and `search_file` into one `SearchResult` JSON, or
-  distinct shapes. Rec: distinct (`KnowledgeHit{source,score,content,ref}` vs `FffMatch{path,line,..}`)
-  — they're genuinely different.
-        Yes different, important for agnet to know, in fact we should make `search` - `search_context`  - so its clear its searching context, memories, etc not files
+- **OD-32-2 — search-result shape: RESOLVED (user, 2026-06-15).** Distinct shapes — important for
+  the agent to distinguish knowledge hits from file hits. `KnowledgeHit { source, score, content,
+  record_ref }` for `search_context`, `FffMatch { path, line_number, content, score }` for
+  `search_file`. **ALSO: rename `search` → `search_context`** so it's clear the tool searches
+  context/memories/knowledge, not files.
 
-- **OD-32-3 — graph on wasm:** `search(Graph)` queries a prebuilt graph if present else unavailable
-  (F16 OD-16-3). Confirm parity with F16.
-          Yes, prebuilt, so it loads and search the prebuild json or whatever file format makes sense.
+- **OD-32-3 — graph on wasm: RESOLVED (user, 2026-06-15).** `search_context(Graph)` loads and queries
+  a prebuilt graph (JSON or whatever format makes sense, F27). If no prebuilt graph is present, the
+  Graph mode returns an empty result (not an error).
 
-- **OD-32-4 — search_file placement:** the real `ToolShed` has a `search` field but no `search_file`
-  slot. Register `search_file` as a normal tool (shed-discoverable) rather than a named field. Rec:
-  yes (don't add a struct field; keep `ToolShed` as F01 defines it).
-        Of course add it, the idea is the fields are the mandatory ones supplied, the toolshed owns any discovery needed, absolutely add it.
+- **OD-32-4 — search_file placement: RESOLVED (user, 2026-06-15).** **Add `search_file` as a
+  `ToolShed` field** — it is a mandatory default tool, same as `search` (now `search_context`). The
+  `ToolShed` fields are the mandatory always-present tools; the shed also handles discovery for any
+  additional registered tools.
 
-- **OD-32-5 — fff root:** the search root (workspace dir) is session/config-supplied. Rec: an
-  `AgentConfig::workspace_root: Option<PathBuf>`; `search_file` disabled if unset on native.
-        `search_file` - implementation based, nothing stops wasm from using in memory or vfs based search that works in its environment.
+- **OD-32-5 — search_file on wasm: RESOLVED (user, 2026-06-15).** `search_file` is NOT unsupported on
+  wasm — nothing stops wasm from using in-memory or VFS-based search within its environment. The
+  implementation is target-dependent: **native uses `fff-search`** (real filesystem), **wasm uses
+  `VfsSearchBackend`** (VFS-based grep/find over loaded files). The search root is
+  session/config-supplied (`AgentConfig::workspace_root`); on wasm it points to the VFS root.
 
 ## Target Files
 
@@ -221,8 +219,9 @@ cargo test  -p foundation_ai -- agentic::tools::search
 
 ## Done When
 
-- `search` (knowledge: semantic/memory/graph/hybrid via F16) and `search_file` (filesystem: fff,
-  native-only) are two distinct `ToolImpl`s with disambiguating descriptions; `search_file` is
-  target-gated and returns a clean unsupported result on wasm (no panic, no fff in the wasm build);
-  both registered via F10; the two tools never call each other (the split, not the old two-phase).
-- OD-32-1..5 resolved (OD-32-1 flagged for the user); fundamentals authored.
+- `search_context` (knowledge: semantic/memory/graph/hybrid via F16) and `search_file` (filesystem:
+  fff on native, VFS on wasm) are two distinct `ToolImpl`s with disambiguating descriptions and
+  distinct result shapes (`KnowledgeHit` vs `FffMatch`); both are `ToolShed` fields (mandatory
+  default tools); both work on all platforms (fff native, VFS wasm); the two tools never call each
+  other (the split, not the old two-phase).
+- OD-32-1..5 resolved; fundamentals authored.

@@ -73,9 +73,8 @@ impl Validate for DependentSchemasValidator {
             for (name, schema) in &self.dependencies {
                 if obj.contains_key(name) {
                     let state = ctx.save_evaluation_state();
-                    let sub_errors: Vec<ValidationError> = schema
-                        .iter_errors(instance, instance_path, ctx)
-                        .collect();
+                    let sub_errors: Vec<ValidationError> =
+                        schema.iter_errors(instance, instance_path, ctx).collect();
                     if sub_errors.is_empty() {
                         // Success — keep the marks.
                     } else {

@@ -58,7 +58,11 @@ use crate::referencing::{Registry, VocabularySet};
 use foundation_errstacks::IntoErrorTrace;
 use serde_json::Value;
 
-#[allow(clippy::cast_precision_loss, clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#[allow(
+    clippy::cast_precision_loss,
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss
+)]
 fn value_to_u64(value: &Value) -> Option<u64> {
     value.as_u64().or_else(|| {
         value.as_f64().and_then(|f| {
@@ -166,7 +170,15 @@ fn compile_node(schema: &Value, ctx: &CompilerContext) -> Result<SchemaNode, Val
 
     // Process each keyword
     for (key, value) in schema_obj {
-        if ref_suppresses && has_ref && key != "$ref" {
+        // In Draft 4/6/7/2019-09, $ref suppresses sibling keywords in the same
+        // schema object. In Draft 2020-12, all keywords are evaluated alongside $ref.
+        // However, $id, $anchor, $dynamicAnchor, and $recursiveAnchor must always
+        // be processed for URI resolution and dynamic ref tracking.
+        let is_uri_keyword = matches!(
+            key.as_str(),
+            "$id" | "$anchor" | "$dynamicAnchor" | "$recursiveAnchor"
+        );
+        if ref_suppresses && has_ref && key != "$ref" && !is_uri_keyword {
             continue;
         }
 
@@ -262,12 +274,15 @@ fn compile_keyword(
         // Draft 2019-09/2020-12 treat them as annotation-only (skip compilation).
         // contentSchema only exists in 2019-09+ (vocabulary enforcement gates it).
         // All content keywords are annotation-only in 2019-09/2020-12.
-        "contentEncoding" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) =>
-            compile_content_encoding(value, ctx, schema_obj),
-        "contentMediaType" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) =>
-            Some(compile_content_media_type(value, ctx, schema_obj)),
-        "contentSchema" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) =>
-            compile_content_schema(value, ctx, schema_obj),
+        "contentEncoding" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) => {
+            compile_content_encoding(value, ctx, schema_obj)
+        }
+        "contentMediaType" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) => {
+            Some(compile_content_media_type(value, ctx, schema_obj))
+        }
+        "contentSchema" if !matches!(ctx.draft, Draft::Draft201909 | Draft::Draft202012) => {
+            compile_content_schema(value, ctx, schema_obj)
+        }
         // Legacy
         "dependencies" => compile_dependencies(value, ctx),
         // Unknown keywords and handled-inline keywords — skip
@@ -370,25 +385,47 @@ fn compile_format(value: &Value, ctx: &CompilerContext<'_>) -> BoxedValidator {
 
 // ── Number ─────────────────────────────────────────────────────────────
 
-fn compile_minimum(value: &Value, ctx: &CompilerContext<'_>, schema_obj: &serde_json::Map<String, Value>) -> BoxedValidator {
+fn compile_minimum(
+    value: &Value,
+    ctx: &CompilerContext<'_>,
+    schema_obj: &serde_json::Map<String, Value>,
+) -> BoxedValidator {
     let limit = value.as_f64().unwrap_or(0.0);
     // In Draft 4, exclusiveMinimum is a boolean modifier for minimum.
     let exclusive = if ctx.draft == Draft::Draft4 {
-        schema_obj.get("exclusiveMinimum").and_then(Value::as_bool).unwrap_or(false)
+        schema_obj
+            .get("exclusiveMinimum")
+            .and_then(Value::as_bool)
+            .unwrap_or(false)
     } else {
         false
     };
-    Box::new(MinimumValidator::new(limit, exclusive, ctx.schema_path.clone()))
+    Box::new(MinimumValidator::new(
+        limit,
+        exclusive,
+        ctx.schema_path.clone(),
+    ))
 }
 
-fn compile_maximum(value: &Value, ctx: &CompilerContext<'_>, schema_obj: &serde_json::Map<String, Value>) -> BoxedValidator {
+fn compile_maximum(
+    value: &Value,
+    ctx: &CompilerContext<'_>,
+    schema_obj: &serde_json::Map<String, Value>,
+) -> BoxedValidator {
     let limit = value.as_f64().unwrap_or(0.0);
     let exclusive = if ctx.draft == Draft::Draft4 {
-        schema_obj.get("exclusiveMaximum").and_then(Value::as_bool).unwrap_or(false)
+        schema_obj
+            .get("exclusiveMaximum")
+            .and_then(Value::as_bool)
+            .unwrap_or(false)
     } else {
         false
     };
-    Box::new(MaximumValidator::new(limit, exclusive, ctx.schema_path.clone()))
+    Box::new(MaximumValidator::new(
+        limit,
+        exclusive,
+        ctx.schema_path.clone(),
+    ))
 }
 
 fn compile_exclusive_minimum(value: &Value, ctx: &CompilerContext<'_>) -> Option<BoxedValidator> {
@@ -774,7 +811,9 @@ fn compile_contains(
     schema_obj: &serde_json::Map<String, Value>,
 ) -> Option<BoxedValidator> {
     let sub_ctx = ctx.push_keyword("contains");
-    let Ok(node) = compile_node(value, &sub_ctx) else { return None };
+    let Ok(node) = compile_node(value, &sub_ctx) else {
+        return None;
+    };
     let mut validator = ContainsValidator::new(node);
 
     // minContains and maxContains are Draft 2019-09+.

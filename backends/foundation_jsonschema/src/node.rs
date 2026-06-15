@@ -71,8 +71,8 @@ impl SchemaNode {
         path: &LazyLocation<'_>,
         ctx: &mut ValidationContext,
     ) -> ErrorIterator {
-        match self {
-            Self::AlwaysValid => Box::new(core::iter::empty()),
+        let errors: ErrorIterator = match self {
+            Self::AlwaysValid => Box::new(core::iter::empty::<ValidationError>()),
             Self::AlwaysInvalid { schema_path: _ } => Box::new(core::iter::once(
                 crate::error::ValidationErrorKind::FalseSchema.into_error_trace(),
             )),
@@ -85,6 +85,7 @@ impl SchemaNode {
                 }
                 Box::new(errors.into_iter())
             }
-        }
+        };
+        errors
     }
 }

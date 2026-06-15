@@ -43,11 +43,10 @@ impl Validate for UniqueItemsValidator {
             Ok(())
         } else if let Value::Array(arr) = instance {
             let (first, second) = find_duplicate(arr).unwrap_or((0, 1));
-            Err(ValidationErrorBuilder::new(
-                instance_path.materialize(),
-                self.schema_path.clone(),
+            Err(
+                ValidationErrorBuilder::new(instance_path.materialize(), self.schema_path.clone())
+                    .build(ValidationErrorKind::UniqueItems { first, second }),
             )
-            .build(ValidationErrorKind::UniqueItems { first, second }))
         } else {
             unreachable!()
         }
@@ -144,7 +143,12 @@ fn find_duplicate(arr: &[Value]) -> Option<(usize, usize)> {
             let h = value_hash(item);
             if !seen.insert(h) {
                 // Hash collision — verify with exact comparison.
-                if let Some((j, _)) = arr.iter().take(i).enumerate().find(|(_, prev)| values_equal(prev, item)) {
+                if let Some((j, _)) = arr
+                    .iter()
+                    .take(i)
+                    .enumerate()
+                    .find(|(_, prev)| values_equal(prev, item))
+                {
                     return Some((j, i));
                 }
             }

@@ -17,7 +17,9 @@ tasks:
 
 # Feature 26: foundation_vectors — BM25 + hybrid fusion
 
-**TODO**: I have reached the limits of my knowledge, lets do web research and select the best answers for these for the different platforms we wish to support, then add foundation_docs to teach me from zero to hero on all these topics in detail and depth.
+> **RESEARCH REQUIRED:** Fundamentals docs must cover BM25 scoring, inverted indexes, tokenization/
+> stemming, hybrid retrieval, RRF, and cross-encoder reranking from zero to expert. Web research
+> needed to validate parameter defaults and platform-specific tokenizer availability.
 
 > Implements Decision 07's **TODO #7**: pure vector search misses exact keyword matches; pure keyword
 > misses semantic intent. The production answer is a **hybrid** of BM25 (keyword) + vector
@@ -38,18 +40,35 @@ WASM).
 
 ```rust
 /// Classic BM25 over a tokenized corpus. Higher score = more relevant (matches F24 convention).
-pub struct Bm25Index { /* inverted index: term → postings(doc_id, tf); doc lengths; avgdl; df */ }
+/// &self everywhere (Decision 08) — interior RwLock for concurrent insert/search.
+pub struct Bm25Index { inner: RwLock<Bm25Inner> /* inverted index: term → postings(doc_id, tf); doc lengths; avgdl; df */ }
 
 impl Bm25Index {
-    pub fn insert(&mut self, id: &str, text: &str);   // tokenize → update postings
-    pub fn remove(&mut self, id: &str);
-    pub fn search(&self, query: &str, k: usize) -> Vec<VectorMatch>;  // BM25(k1=1.2, b=0.75)
-    pub fn to_bytes(&self)/from_bytes(...)            // persistence (F29)
+    pub fn new(tokenizer: Box<dyn Tokenizer>) -> Self;
+    pub fn insert(&self, id: &str, text: &str);    // tokenize → update postings (&self + write lock)
+    pub fn remove(&self, id: &str);                 // &self + write lock
+    pub fn search(&self, query: &str, k: usize) -> Vec<VectorMatch>;  // BM25(k1=1.2, b=0.75), read lock
+    pub fn to_bytes(&self) -> Vec<u8>;              // persistence (F29)
 }
+pub fn load_bm25(bytes: &[u8]) -> Result<Bm25Index, VectorError>;  // reconstruct from bytes
 ```
 
-- **Tokenization:** lowercase + simple unicode word-split now; optional `nlprule`/stemming later
-  (consistent with F31's embedding tokenization note). OD-26-1.
+- **Tokenization (OD-26-1 resolved):** two-tier via a `Tokenizer` trait:
+
+  ```rust
+  pub trait Tokenizer: Send + Sync {
+      fn tokenize(&self, text: &str) -> Vec<String>;
+  }
+
+  pub struct SimpleTokenizer;      // lowercase + unicode word-split, always available, zero deps
+  pub struct NlpRuleTokenizer;     // nlprule-based: stemming, lemmatization, sentence-split
+  ```
+
+  **`NlpRuleTokenizer`** (nlprule crate) is the default on platforms where it builds (native +
+  emscripten); **`SimpleTokenizer`** is the fallback on wasm or when nlprule data files are absent.
+  The index is constructed with a tokenizer instance — no feature flag, runtime selection. nlprule
+  ships Rust-native language data for English (primary); additional languages are additive.
+  `SimpleTokenizer` handles the cold-start and any platform where nlprule can't build.
 - **Params:** `k1=1.2`, `b=0.75` defaults (tunable). Standard BM25 scoring with `df`/`idf`,
   term-frequency saturation, length normalization.
 - Returns `VectorMatch { id, score }` (BM25 score; higher better) — same shape as vector results so
@@ -74,9 +93,23 @@ pub fn fuse(vector: &[VectorMatch], keyword: &[VectorMatch], k: usize, strat: Fu
   recommended default.
 - **Alpha:** min-max normalize each list, weighted sum. Needs score normalization (the thing RRF
   avoids) — offered for tuning.
-- **Rerank (optional, native/feature):** a cross-encoder pass over the fused top-N for precision.
-  This requires a model → it's an **optional hook** (`trait Reranker { fn rerank(query, candidates)
-  -> Vec<VectorMatch> }`), not implemented here; F31/provider supplies one. OD-26-2.
+- **Rerank (concrete implementation, OD-26-2 resolved):** a cross-encoder pass over the fused top-N
+  for precision. Both the trait AND a concrete `ModelReranker` are implemented here:
+
+  ```rust
+  pub trait Reranker: Send + Sync {
+      fn rerank(&self, query: &str, candidates: Vec<VectorMatch>, texts: &[&str]) -> Vec<VectorMatch>;
+  }
+
+  /// Routes (query, candidate_text) pairs through the agentic ProviderRouter (F12) to get a
+  /// relevance score per pair. Re-sorts candidates by model-assigned relevance, returns top-k.
+  pub struct ModelReranker { router: Arc<dyn RoutableProvider> }
+  impl Reranker for ModelReranker { /* score pairs via router, re-sort by relevance */ }
+  ```
+
+  `hybrid_search` accepts `Option<&dyn Reranker>` — when provided, the fused top-N is re-ranked
+  before returning top-k. The `ModelReranker` uses the session's embedding/chat model via F12's
+  `RoutableProvider` to score relevance (a lightweight inference call, not a full generation).
 
 ### Hybrid search entry point
 
@@ -110,22 +143,21 @@ graph TD
 
 1. `Bm25Index` — tokenizer, inverted index, BM25 scoring, insert/remove, serialize.
 2. `FusionStrategy` + `fuse` (RRF + alpha); RRF rank-based, alpha min-max normalized.
-3. `Reranker` trait (hook only) + `hybrid_search` orchestration.
+3. `Reranker` trait + `ModelReranker` (concrete, routes through F12) + `hybrid_search` orchestration.
 4. Tests: BM25 correctness vs known rankings; RRF fusion on synthetic lists; alpha bounds (0→BM25,
    1→vector); hybrid end-to-end with F24/F25 indexes; serialize round-trip; wasm32 build.
 
 ## Open Decisions
 
-- **OD-26-1 — tokenization:** simple unicode split now vs `nlprule`/stemming. Rec: simple now,
-  pluggable tokenizer trait so F31's nlprule can be shared.
-      - ya but lets implement nlprule too, no use wasting time if we can get it right at the start
+- **OD-26-1 — tokenization: RESOLVED (user, 2026-06-15).** Implement BOTH: `SimpleTokenizer`
+  (lowercase + unicode word-split, fallback) AND `NlpRuleTokenizer` (nlprule crate, stemming/
+  lemmatization, default where it builds). Pluggable `Tokenizer` trait. No "deferred" — get it right
+  at the start.
 
-- **OD-26-2 — reranker:** hook-only here (no model); a concrete cross-encoder is a later/provider
-  feature. Rec: trait hook now.
-          Implement both, ensure depth in feature
+- **OD-26-2 — reranker: RESOLVED (user, 2026-06-15).** Implement BOTH: the `Reranker` trait AND a
+  concrete `ModelReranker` that routes through F12's `RoutableProvider`. Not hook-only — full depth.
 
-- **OD-26-3 — RRF default k:** 60 (common default). Rec: 60, configurable.
-    Great, defauilt and configurable
+- **OD-26-3 — RRF default k: RESOLVED (user, 2026-06-15).** 60 (common default), configurable.
 
 - **OD-26-4 — BM25 persistence: RESOLVED (user, 2026-06-15; Item #7 / §H4).** The index **trait exposes
   `to_bytes()`/`from_bytes()`** (self-contained, trivial to unit-test); the **backend** (disk/R2/KV/fjall)
@@ -134,9 +166,12 @@ graph TD
   `VectorIndex` (F28/F29).
 
 
-- **OD-26-5 — where hybrid lives:** `foundation_vectors` (algorithms) vs F16 (orchestration). Rec:
-  the `fuse`/BM25 primitives here; F16 wires the actual session search.
-        `fuse` - explain furhter, do you mean the fuse file system ? 
+- **OD-26-5 — where hybrid lives: RESOLVED (user, 2026-06-15).** The `fuse()` function (named for
+  "rank fusion" — merging two ranked result lists into one, NOT the FUSE filesystem) and the BM25
+  primitives live in `foundation_vectors` (algorithms crate). F16 wires the actual session search by
+  calling `hybrid_search()` from here. Clarification: `fuse(vector_results, keyword_results, k,
+  strategy)` takes two `Vec<VectorMatch>` and produces one merged `Vec<VectorMatch>` — it is a pure
+  rank-fusion function, nothing to do with filesystems.
 
 ## Target Files
 
@@ -168,7 +203,9 @@ vs alpha-weighting (min-max); cross-encoder rerankers. (Task — see list.)
 
 ## Done When
 
-- `Bm25Index` (insert/search/remove/serialize) is correct; `fuse` (RRF default + alpha) and
-  `hybrid_search` work with F24/F25 indexes; `Reranker` is a hook.
-- Builds native + wasm; BM25 + fusion tested vs known rankings.
+- `Bm25Index` (`&self`, interior `RwLock`, insert/search/remove/serialize) is correct; two tokenizers
+  implemented (`SimpleTokenizer` + `NlpRuleTokenizer`); `fuse` (RRF default + alpha) and
+  `hybrid_search` work with F24/F25 indexes; `ModelReranker` (concrete, via F12) + `Reranker` trait.
+- Builds native + wasm (nlprule on native, simple-unicode fallback on wasm); BM25 + fusion + rerank
+  tested vs known rankings.
 - OD-26-1..5 resolved.

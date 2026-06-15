@@ -77,11 +77,13 @@ fn user_profile_invalid() {
 fn nested_address() {
     let validator = scheme::object()
         .required("name", scheme::string().min_len(1))
-        .required("address", scheme::object()
-            .required("street", scheme::string())
-            .required("city", scheme::string())
-            .required("zip", scheme::string().len(5).pattern(r"^\d{5}$"))
-            .strict()
+        .required(
+            "address",
+            scheme::object()
+                .required("street", scheme::string())
+                .required("city", scheme::string())
+                .required("zip", scheme::string().len(5).pattern(r"^\d{5}$"))
+                .strict(),
         )
         .build()
         .compile()
@@ -113,11 +115,13 @@ fn nested_address() {
 fn tag_list_validation() {
     let validator = scheme::object()
         .required("name", scheme::string())
-        .required("tags", scheme::array()
-            .items(scheme::string().min_len(1).max_len(20))
-            .min_items(1)
-            .max_items(5)
-            .unique()
+        .required(
+            "tags",
+            scheme::array()
+                .items(scheme::string().min_len(1).max_len(20))
+                .min_items(1)
+                .max_items(5)
+                .unique(),
         )
         .build()
         .compile()
@@ -209,11 +213,7 @@ fn circle_rectangle_discriminated() {
 #[test]
 fn coordinate_tuple() {
     let validator = scheme::array()
-        .prefix_items(vec![
-            scheme::number(),
-            scheme::number(),
-            scheme::number(),
-        ])
+        .prefix_items(vec![scheme::number(), scheme::number(), scheme::number()])
         .len(3)
         .build()
         .compile()
@@ -230,8 +230,9 @@ fn coordinate_tuple() {
 fn priority_enum() {
     let validator = scheme::object()
         .required("task", scheme::string())
-        .required("priority", scheme::string()
-            .enum_values(vec!["low".into(), "medium".into(), "high".into()])
+        .required(
+            "priority",
+            scheme::string().enum_values(vec!["low".into(), "medium".into(), "high".into()]),
         )
         .build()
         .compile()
@@ -277,18 +278,23 @@ fn build_with_assert_format() {
 #[test]
 fn complex_nested() {
     let validator = scheme::object()
-        .required("users", scheme::array()
-            .items(scheme::object()
-                .required("id", scheme::integer().min(1))
-                .required("name", scheme::string().min_len(1))
-                .optional("email", scheme::string().email())
-                .strict()
-            )
-            .min_items(1)
+        .required(
+            "users",
+            scheme::array()
+                .items(
+                    scheme::object()
+                        .required("id", scheme::integer().min(1))
+                        .required("name", scheme::string().min_len(1))
+                        .optional("email", scheme::string().email())
+                        .strict(),
+                )
+                .min_items(1),
         )
-        .required("metadata", scheme::object()
-            .required("total", scheme::integer().min(1))
-            .optional("page", scheme::integer().min(1))
+        .required(
+            "metadata",
+            scheme::object()
+                .required("total", scheme::integer().min(1))
+                .optional("page", scheme::integer().min(1)),
         )
         .strict()
         .build()

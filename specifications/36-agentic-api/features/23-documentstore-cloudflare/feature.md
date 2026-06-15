@@ -107,33 +107,21 @@ records, F08):
   the index/metadata + R2 as the blob store** for large records, transparent behind one
   `AsyncDocumentStore`.
 
-### KV backend (key-list, async) — `KvDocumentStore` — **OPTIONAL, best-effort**
+### KV — **NOT a DocumentStore backend** (resolved, user 2026-06-15)
 
-CF KV is pure key-value and **eventually consistent** (no read-after-write), so it is **optional** and
-**not** the ordered backbone — use only where quick KV lookups help. Documents use the Decision 13
-layout:
+CF KV is eventually consistent (no read-after-write), has no transactions, no native range queries,
+and caps `list` at 1000 keys with no `startAfter`. It **cannot** honor the strict `scan_from`/ordering
+contract that `DocumentStore` requires. **KV is NOT used as a `DocumentStore` backend.**
 
-| Key | Value |
-|-----|-------|
-| `doc:{collection}:{doc_id}` | JSON document |
-| `list:{collection}` | ordered index of doc_ids (or rely on KV `list({prefix})`) |
-
-- **`append_async`:** `kv.put("doc:{c}:{id}", json)`; doc_id = scru128 (F06). Because scru128 sorts
-  chronologically and KV `list(prefix)` returns keys **lexicographically**, `list("doc:{c}:")` is
-  already time-ordered — so a separate `list:` key may be unnecessary (OD-23-2).
-- **`scan_from_async`:** `kv.list({ prefix: "doc:{c}:", start: "doc:{c}:{from_id}" })` → take `limit`
-  → bulk `get` each. KV `list` supports a cursor/`start` for range.
-- **`scan_async`(last N):** KV `list` is ascending only; for "last N" either keep a reverse index or
-  `list` all + take tail (bounded by collection size — OD-23-3).
-- **Promoted columns:** KV can't index by column; store `record_type`/`title` in the value and filter
-  client-side, or encode `record_type` into the key (`doc:{c}:{type}:{id}`) for prefix filtering
-  (OD-23-4).
+KV's legitimate role: a **fast cache for `MemoryStore` (F07)** — keyed by `memory:{session_id}`,
+storing the latest `SessionMemory` snapshot for cheap retrieval. This is a simple get/put by session
+key, no scanning, no ordering. This usage belongs to F07's `KvMemoryStore`, not F23.
 
 ### Platform gating
 
-Both are `#[cfg(target_family = "wasm")]` (CF Workers) and behind the relevant `foundation_db` wasm
-feature. They implement `AsyncDocumentStore` (one unified `Send` async trait — F00e/§A1; the CF binding's
-`!Send` future is wrapped in `SendWrapper` on single-threaded wasm).
+D1 and R2 are `#[cfg(target_family = "wasm")]` (CF Workers) and behind the relevant `foundation_db`
+wasm feature. They implement `AsyncDocumentStore` (one unified `Send` async trait — F00e/§A1; the CF
+binding's `!Send` future is wrapped in `SendWrapper` on single-threaded wasm).
 
 ## Architecture
 
@@ -142,7 +130,6 @@ graph TD
     SY[DocumentStore sync] -->|valtron wrap| AS[AsyncDocumentStore trait - F06]
     AS --> D1[D1DocumentStore: SQL over D1 binding - PRIMARY/ordered]
     AS --> R2[R2 offload: large blobs by doc_id]
-    AS -.optional.-> KV[KvDocumentStore: doc:{c}:{scru128} - best-effort]
     D1 --> SCH[(documents schema 020+021 + r2_key)]
     D1 -.large blob.-> R2OBJ[(CF R2: doc/{c}/{scru128} objects)]
     KV -.eventually consistent.-> CFKV[(CF KV: lexicographic list via scru128)]
@@ -158,12 +145,9 @@ graph TD
 3. `scan_from_async` (D1): range query, `Vec<V>`.
 4. **R2 large-blob path:** add/confirm the R2 binding; offload documents over a size threshold to
    `doc/{c}/{doc_id}` and store the `r2_key` + promoted columns in D1; transparent read-through (OD-23-12).
-5. *(Optional)* `KvDocumentStore` over the CF KV binding (`doc:{c}:{scru128}` keys), extending the KV
-   `list` wrapper to honor `cursor`/`limit` (OD-23-7); explicitly best-effort (OD-23-8).
-6. Resolve "last N" on KV (OD-23-3) and promoted-field handling (OD-23-4) if KV is built.
-7. Tests: against D1/R2/KV bindings (gated; mock bindings or miniflare) — D1 append→scan_from ordering
-   parity with SQL/Memory/Fjall; R2 large-blob round-trip + read-through; KV list-cursor correctness
-   (best-effort).
+5. Tests: against D1/R2 via **miniflare/wrangler** (we test it properly, we already do so — OD-23-5)
+   — D1 append→scan_from ordering parity with SQL/Memory/Fjall; R2 large-blob round-trip +
+   read-through; D1+R2 transparent offload verified end-to-end.
 
 ## Open Decisions
 
@@ -171,45 +155,20 @@ graph TD
   one-time). Confirm the D1 binding exposes batch DDL.
         - Check existing code, i believe in the cloudflare app we run the migration always, see examples in /home/darkvoid/Boxxed/@dev/ewe_platform/examples/cf-login-app and /home/darkvoid/Boxxed/@dev/ewe_platform/examples/cf-valtron-counter
 
-- **OD-23-2 — KV: separate `list:` index or rely on `list(prefix)`:** scru128 keys make
-  `list(prefix)` chronological → a separate index is likely unnecessary. Rec: rely on `list`.
-      Cool
+- **OD-23-2 through OD-23-4, OD-23-7 through OD-23-9 — KV as DocumentStore: REMOVED (user,
+  2026-06-15).** KV is NOT a DocumentStore backend — it cannot honor `scan_from`/ordering, is eventually
+  consistent, has no range queries, and caps list at 1000 keys. KV's role is **MemoryStore cache only**
+  (F07 `KvMemoryStore` — simple get/put by session key). All KV-as-DocumentStore ODs are moot.
 
-- **OD-23-3 — KV "last N":** reverse-index key vs `list`+tail. Rec: for agent sessions (bounded),
-  `list`+tail is acceptable; revisit if collections grow large.
-          Explain more to me - also must we do this with KV?
+- **OD-23-5 — testing harness: RESOLVED (user, 2026-06-15).** Miniflare and Wrangler — we test it
+  properly, we already do so. No mock bindings for unit parity; real miniflare for integration.
 
-
-- **OD-23-4 — KV promoted fields:** value-stored + client filter vs `record_type` in the key. Rec:
-  value-stored now; key-encode only if typed scans dominate.
-        - If we are forcing this, does KV make sense for this then ? Why not focus on R2 and D1 then KV for quick cache like Memories?
-
-- **OD-23-5 — testing harness:** real miniflare/wrangler vs mock KV/D1 bindings. Rec: mock bindings
-  for unit parity; integration behind an opt-in flag.
-        - Miniflare and Wrangler all the way, we test it properly, we already do so.
-
-- **OD-23-6 (D1 DDL) — needs binding work:** D1 has only `prepare().run()` (single statement), no
-  `exec()`/batch (`bindgen/cf/d1.rs`). The multi-statement `020`/`021` migrations won't apply. Add a
-  D1 `exec()` binding (CF `D1Database.exec`) OR split migrations into per-statement `run()`s. **Plus
-  register `020`+`021` and ensure `init_schema_async` runs the documents schema on D1 (today it only
-  creates the KV table).**
-        We own the code, expand it to be able to do batch
-
-- **OD-23-7 (KV pagination) — needs binding work:** the KV `list` wrapper passes only `prefix`,
-  ignores the returned `cursor`, and caps at 1000 keys (`kv_wasm.rs:202-243`). Extend it to loop on
-  `cursor`/`list_complete` and accept `limit` before any `scan_*` is correct.
-        - Sure add whats needed also, we dont use worker-rs type definition to our benefit, we should update foundation_db from extracting the js.Object handle but instead make all existing wasm-bindgen stuff use worker-rs types to make life easier.
-
-- **OD-23-8 (KV consistency) — relax parity:** CF KV is eventually consistent (no read-after-write)
-  and transactionless. So KV **cannot** honor the strict ordered `scan_from`/parity Done-When. KV is
-  **best-effort**; D1 is the strictly-ordered CF backend. Document the divergence (don't claim KV
-  parity with SQL/Memory/VFS).
-        Once again are you pushing KV usage in areas that it should not be used in, this makes me think clearly you should not be trying to use KV for such a thing, i think of it as a great way to catch the Memories for a sessionId which makes retrieving them fast and cheap and does not need any scan capability for such, just keys.
-
-- **OD-23-9 (KV range) — skip-until:** CF KV `list` has no native `start`/`startAfter` for arbitrary
-  range — only `prefix`+`cursor`. So `scan_from(from_id)` on KV is a **client-side skip-until-from_id**
-  while paginating, not a native range seek.
-        Ya, clearly should not be doing this on KV
+- **OD-23-6 (D1 DDL): RESOLVED (user, 2026-06-15).** We own the code — expand the D1 binding to
+  support batch DDL (`exec()` / multi-statement). Add a D1 `exec()` binding wrapping CF's
+  `D1Database.exec`. Register `020`+`021` and ensure `init_schema_async` runs the documents schema
+  on D1 (today it only creates the KV table). Also: migrate existing wasm-bindgen bindings to use
+  **worker-rs types** instead of extracting raw `js_sys::Object` handles — makes the binding layer
+  cleaner and type-safe.
 
 - **OD-23-10 — pre-existing mismatch:** `AsyncQueryStore::query_async` is declared
   `-> AsyncQueryStream` but D1 impls `-> Vec<SqlRow>` (`d1_wasm.rs:606`); confirm the
@@ -223,12 +182,11 @@ graph TD
   surface to reconcile.
 
 
-- **OD-23-12 — R2 topology:** **Resolved (user, 2026-06-15)** → recommended split is **D1 holds the row
-  + promoted columns + `r2_key`; R2 holds the large blob**, transparent behind one `AsyncDocumentStore`.
-  A standalone R2-only store is possible but loses cheap range/typed queries. Decide the **size
-  threshold** for offload (e.g. inline in D1 below N KB, R2 above). The Message API's large records (F08)
-  are the motivating case.
-      Why do you need a threshold, but i guess i see your point, since its cloudflare just maintain the split forget threshold, we also look use both and it works and also lets us ensure its good, else we set the threshold very small e.g the size of a sqlite page and anything beyond that goes to R2.
+- **OD-23-12 — R2 topology: RESOLVED (user, 2026-06-15).** D1 holds the row + promoted columns +
+  `r2_key`; R2 holds the large blob. Transparent behind one `AsyncDocumentStore`. **Threshold: the
+  size of a SQLite page** (4KB default) — anything beyond that goes to R2. This is deliberately small
+  to ensure D1 rows stay lean and R2 handles the heavy lifting. Both D1 and R2 are always used
+  together (not one or the other) — the split is the default topology, not optional.
   
   
 - **OD-23-13 — sync wrapper:** **Resolved (user, 2026-06-15)** → the sync `DocumentStore` is a **valtron
@@ -236,17 +194,16 @@ graph TD
   block-on/drive primitive used elsewhere for async→sync and reuse it; don't hand-roll a second bridge.
       Yes, but if we hit a wall that makes this hard, its always ok in rare cases to duplicate if its the cleanest option.
 
-- **OD-23-14 — KV is optional:** **Resolved (user, 2026-06-15)** → D1 (+ R2 for blobs) is a complete
-  deliverable; `KvDocumentStore` is additive/best-effort and may be deferred. Don't gate the feature's
-  Done-When on KV parity.
-        Ya, KvDocumentStore should not exists, use it as our Memory cache, that idea is useless
+- **OD-23-14 — KvDocumentStore: REMOVED (user, 2026-06-15).** `KvDocumentStore` does not exist. KV is
+  used **only** as a MemoryStore cache (F07 `KvMemoryStore`) — simple key-value get/put for session
+  memories. D1 + R2 is the complete DocumentStore deliverable for CF.
 
 ## Target Files
 
 - `backends/foundation_db/src/wasm/` — `d1_document_store.rs` (primary), R2 offload path
-  (`r2_document_store.rs`/blob module), `kv_document_store.rs` (optional)
-- reuse `wasm/workers_rs/d1.rs`; add a D1 `exec()` binding + an R2 binding where missing; the CF KV
-  binding (extend `list` cursor) if KV is built; `documents` schema (+`r2_key`) from F06
+  (`r2_document_store.rs`/blob module). NO `kv_document_store.rs` (KV is for MemoryStore only, F07).
+- reuse `wasm/workers_rs/d1.rs`; add a D1 `exec()` binding + an R2 binding where missing;
+  `documents` schema (+`r2_key`) from F06; migrate existing bindings to worker-rs types
 - the sync `DocumentStore` valtron wrapper over the async impl (house rule)
 - coordinates with F06 (`AsyncDocumentStore` + `scan_from_async` + doc_id ordering + promoted columns)
   and F08 (large Message records → R2)
@@ -285,7 +242,6 @@ the right store per job (D1 ordered, R2 for big blobs, KV best-effort). (Task �
 - The sync `DocumentStore` is a **valtron wrapper** over the async impl (async-first house rule).
 - D1 reuses the `documents` schema (020+021, +`r2_key`); the D1 `exec()`/migration-apply gap is closed
   (capability added, not worked around).
-- `KvDocumentStore` is **optional/best-effort** (eventually consistent) — its absence does not block the
-  feature; when built it uses the `doc:{c}:{scru128}` layout with proper cursor pagination.
-- Builds for `wasm32` under the CF features; native unaffected.
+- NO `KvDocumentStore` — KV is for MemoryStore cache only (F07), not DocumentStore.
+- Builds for `wasm32` under the CF features; native unaffected. Tests via miniflare/wrangler.
 - OD-23-1..14 resolved.

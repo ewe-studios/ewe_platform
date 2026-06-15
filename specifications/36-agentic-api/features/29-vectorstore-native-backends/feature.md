@@ -60,20 +60,60 @@ dimension enforcement). Differences are purely storage + query path:
 - Store vectors via libSQL's `vector(...)` BLOB type; query with `vector_top_k()` (DiskANN index).
 - **Research (Decision 07):** does the Rust libSQL/Turso client expose `vector_top_k()`? index config?
   D1 compatibility (D1 is libSQL-derived)? Fallback to `foundation_vectors` if native unavailable.
-- Namespace = a `namespace` column + `WHERE namespace = ?` in the top-k query.
+- **Namespace filtering (OD-29-4 — load-bearing):** `vector_top_k('idx', vec, k)` is a table-valued
+  function over the **whole index** — it **cannot** accept a `WHERE namespace = ?` filter. Two
+  strategies:
+  1. **Over-fetch + post-filter (default):** call `vector_top_k('idx', vec, k')` with `k' = k * 4`
+     (configurable multiplier), then filter results by `namespace` in application code, take top `k`.
+     Risk: if the namespace is a small fraction of the index, under-return is possible. Mitigate by
+     increasing the multiplier or falling back to strategy 2.
+  2. **Index-per-namespace:** create a separate DiskANN index per namespace (`CREATE INDEX
+     idx_{ns} ...`). Eliminates the filter problem but increases storage and DDL ops. Better for
+     long-lived sessions with many vectors.
+  The strategy is config-driven (`NamespaceStrategy::OverFetch { multiplier }` or `PerNamespace`).
+  Default: `OverFetch { multiplier: 4 }`.
+- **Crate split:** the default `turso` crate (0.5.3) has **NO `vector_top_k`/DiskANN** — only scalar
+  `vector_distance_cos/l2/dot` (full-scan). DiskANN `vector_top_k` is in the optional **`libsql`**
+  crate only. So: `libsql` feature → native DiskANN; default `turso` → scalar full-scan OR route to
+  `foundation_vectors::flat_top_k` as fallback (OD-29-7).
 
 ### SQLite — `sqlite-vec` (optional) + fallback
 
-- If `sqlite-vec` extension loads: `vec0` virtual table, native KNN.
-- Else: store vectors as BLOBs, fetch (namespace-filtered) + `foundation_vectors::flat_top_k`.
-- **Research:** `sqlite-vec` extension loading in Rust (rusqlite/libsql), availability, vec0 schema.
+- **With `sqlite-vec`:** load the extension at connection init, create `vec0` virtual tables per
+  namespace (`vec0_{ns}`), use native `vec0` KNN queries. `sqlite-vec` provides
+  `vec_distance_cosine`/`vec_distance_l2` + a `vec0` virtual table that wraps brute-force KNN with
+  columnar vector storage. Schema per namespace:
+  ```sql
+  CREATE VIRTUAL TABLE vec0_{ns} USING vec0(id TEXT PRIMARY KEY, embedding float[{dim}]);
+  ```
+  Query: `SELECT id, distance FROM vec0_{ns} WHERE embedding MATCH ? ORDER BY distance LIMIT ?`.
+  Namespace isolation is structural (one virtual table per namespace).
+- **Without `sqlite-vec` (fallback):** store vectors as BLOBs in a regular table
+  (`vectors(id TEXT, namespace TEXT, vector BLOB, metadata TEXT)`); fetch all rows matching
+  `WHERE namespace = ?`, deserialize, pass to `foundation_vectors::flat_top_k`. This is O(n) per
+  namespace but correct.
+- **Extension loading:** via the `libsql`/`rusqlite` `load_extension` API (path to `.so`/`.dylib`).
+  Feature-gated: `sqlite-vec` feature enables the extension path; absent = BLOB fallback.
+- **No standalone SQLite client exists in the repo** — this backend runs on the local-file
+  `libsql`/`turso` connection (reuse F29's Turso/libSQL connection layer, not a new `rusqlite` dep).
 
 ### fjall — serialized vectors + persisted IVF
 
-- Store `id → (vector bytes, metadata)` in a fjall partition per namespace.
-- Build/load a `foundation_vectors` IVF index (F25); persist via the F25 self-describing
-  `to_bytes`/`load_index`. Query = load index → `search` within namespace.
-- **Research:** fjall keyspace design for vector+metadata co-location; index persistence cadence.
+- **Storage layout:** one fjall keyspace per store, partitioned by namespace:
+  - **Vector partition** (`vec:{ns}:{id}`): key = namespaced id, value = serialized `VectorEntry`
+    (vector bytes as `[f32]` → little-endian `&[u8]`, plus `VectorMetadata`).
+  - **Index partition** (`idx:{ns}`): single key per namespace, value = the F25 `VectorIndex`
+    serialized bytes (`to_bytes()` — self-describing: kind tag + metric + dimension + params +
+    vectors).
+- **Insert:** write to the vector partition; mark the namespace index as stale.
+- **Query:** load the persisted index (`load_index(bytes)` → `Box<dyn VectorIndex>`), call
+  `.search(query, k)`. If the index is stale (inserts since last build), either rebuild (if few
+  inserts) or fall back to `flat_top_k` over the vector partition scan.
+- **Index persistence cadence:** persist index bytes on `flush()`; rebuild the stale tail on open
+  (same crash-recovery model as F22). A background valtron task can rebuild periodically if the
+  stale count exceeds a threshold (e.g. 100 inserts since last build).
+- **Namespace isolation:** structural — each namespace has its own partitions. `query` reads only the
+  target namespace's partition.
 
 ### Shared concerns
 
@@ -119,8 +159,10 @@ discipline. (Task — see list.)
 - **OD-29-2 — sqlite-vec optionality:** feature-gate; flat fallback when absent.
 - **OD-29-3 — fjall index persistence cadence:** rebuild-on-open vs incremental persist. Rec:
   persist index bytes (F25) on flush; rebuild tail on open.
-- **OD-29-4 — namespace + native KNN:** column filter pre/post native top-k (DiskANN may not filter).
-  Research; may over-fetch + filter.
+- **OD-29-4 — namespace + native KNN: PARTIALLY RESOLVED.** `vector_top_k` CANNOT filter by namespace
+  (it's a whole-index TVF). Two strategies documented in WHAT: over-fetch+post-filter (default,
+  `k' = k * multiplier`) or index-per-namespace. Config-driven `NamespaceStrategy` enum. The
+  multiplier default (4) and the per-namespace DDL cost need benchmarking during implementation.
 - **OD-29-5 — reuse existing libSQL/SQLite infra:** foundation_db already has SQL backends — reuse
   the connection/query layer rather than new clients. Confirm.
       Sure make sense

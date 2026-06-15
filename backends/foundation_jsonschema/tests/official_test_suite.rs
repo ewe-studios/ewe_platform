@@ -46,10 +46,7 @@ fn run_suite_file(path: &Path, draft: Draft, skip_groups: &[&str]) {
         {
             Ok(v) => v,
             Err(e) => {
-                eprintln!(
-                    "COMPILE FAIL: {file_name} / {} — {e}",
-                    group.description
-                );
+                eprintln!("COMPILE FAIL: {file_name} / {} — {e}", group.description);
                 failed += group.tests.len();
                 continue;
             }
@@ -69,9 +66,7 @@ fn run_suite_file(path: &Path, draft: Draft, skip_groups: &[&str]) {
         }
     }
 
-    eprintln!(
-        "{file_name}: {passed} passed, {failed} failed, {skipped} skipped"
-    );
+    eprintln!("{file_name}: {passed} passed, {failed} failed, {skipped} skipped");
     assert_eq!(
         failed, 0,
         "{file_name}: {failed} test(s) failed (see FAIL lines above)"

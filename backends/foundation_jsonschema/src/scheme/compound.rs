@@ -8,12 +8,9 @@ use super::Value;
 #[must_use]
 pub fn any_of(schemas: Vec<Value>) -> Value {
     Value::Object(
-        [(
-            "anyOf".into(),
-            Value::Array(schemas),
-        )]
-        .into_iter()
-        .collect(),
+        [("anyOf".into(), Value::Array(schemas))]
+            .into_iter()
+            .collect(),
     )
 }
 
@@ -27,12 +24,9 @@ pub fn union(schemas: Vec<Value>) -> Value {
 #[must_use]
 pub fn one_of(schemas: Vec<Value>) -> Value {
     Value::Object(
-        [(
-            "oneOf".into(),
-            Value::Array(schemas),
-        )]
-        .into_iter()
-        .collect(),
+        [("oneOf".into(), Value::Array(schemas))]
+            .into_iter()
+            .collect(),
     )
 }
 
@@ -40,12 +34,9 @@ pub fn one_of(schemas: Vec<Value>) -> Value {
 #[must_use]
 pub fn all_of(schemas: Vec<Value>) -> Value {
     Value::Object(
-        [(
-            "allOf".into(),
-            Value::Array(schemas),
-        )]
-        .into_iter()
-        .collect(),
+        [("allOf".into(), Value::Array(schemas))]
+            .into_iter()
+            .collect(),
     )
 }
 
@@ -58,33 +49,22 @@ pub fn intersection(left: Value, right: Value) -> Value {
 /// Create a `not` schema. The instance must NOT validate against the sub-schema.
 #[must_use]
 pub fn not(schema: impl Into<Value>) -> Value {
-    Value::Object(
-        [("not".into(), schema.into())]
-            .into_iter()
-            .collect(),
-    )
+    Value::Object([("not".into(), schema.into())].into_iter().collect())
 }
 
 /// Create an `if/then` conditional schema.
 #[must_use]
 pub fn if_then(if_schema: Value, then_schema: Value) -> Value {
     Value::Object(
-        [
-            ("if".into(), if_schema),
-            ("then".into(), then_schema),
-        ]
-        .into_iter()
-        .collect(),
+        [("if".into(), if_schema), ("then".into(), then_schema)]
+            .into_iter()
+            .collect(),
     )
 }
 
 /// Create an `if/then/else` conditional schema.
 #[must_use]
-pub fn if_then_else(
-    if_schema: Value,
-    then_schema: Value,
-    else_schema: Value,
-) -> Value {
+pub fn if_then_else(if_schema: Value, then_schema: Value, else_schema: Value) -> Value {
     Value::Object(
         [
             ("if".into(), if_schema),

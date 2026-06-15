@@ -28,6 +28,15 @@ use super::resource::{Resource, ResourceRef};
 use super::spec;
 use super::uri;
 
+/// Normalize a URI string for use as a registry lookup key.
+///
+/// WHY: RFC 3986 §6.2.2.1 specifies that schemes and hostnames are
+/// case-insensitive. Without normalization, `http://Example.COM` and
+/// `http://example.com` would be treated as different URIs.
+fn normalize_uri(raw: &str) -> String {
+    uri::normalize(raw)
+}
+
 /// A prepared registry of JSON Schema resources indexed by URI.
 ///
 /// WHY: During schema compilation, `$ref` keywords need O(log n) lookup of
@@ -121,9 +130,10 @@ impl RegistryBuilder {
 
         // Phase 1: Register all user-provided resources
         for (uri, schema) in &self.pending {
+            let norm = normalize_uri(uri);
             let draft = Draft::detect(schema).unwrap_or(self.default_draft);
-            known_uris.insert(uri.clone());
-            resources.insert(uri.clone(), Resource::with_draft(schema.clone(), draft));
+            known_uris.insert(norm.clone());
+            resources.insert(norm, Resource::with_draft(schema.clone(), draft));
         }
 
         // Phase 2: BFS crawl — discover sub-resources, anchors, and external refs
@@ -131,7 +141,8 @@ impl RegistryBuilder {
             alloc::collections::VecDeque::new();
 
         for (uri, _schema) in &self.pending {
-            queue.push_back((uri.clone(), uri.clone()));
+            let norm = normalize_uri(uri);
+            queue.push_back((norm.clone(), norm));
         }
 
         while let Some((base_uri, resource_uri)) = queue.pop_front() {
@@ -159,7 +170,8 @@ impl RegistryBuilder {
             let refs: Vec<String> = std::mem::take(&mut external_refs);
             for ext_uri in refs {
                 let fragmentless = ext_uri.split('#').next().unwrap_or(&ext_uri).to_string();
-                if known_uris.contains(&fragmentless) {
+                let norm = normalize_uri(&fragmentless);
+                if known_uris.contains(&norm) {
                     continue;
                 }
 
@@ -174,15 +186,15 @@ impl RegistryBuilder {
                 })?;
 
                 let draft = Draft::detect(&resolved_value).unwrap_or(self.default_draft);
-                known_uris.insert(fragmentless.clone());
+                known_uris.insert(norm.clone());
                 resources.insert(
-                    fragmentless.clone(),
+                    norm.clone(),
                     Resource::with_draft(resolved_value.clone(), draft),
                 );
 
                 // Crawl the newly resolved resource
                 let mut sub_queue = alloc::collections::VecDeque::new();
-                sub_queue.push_back((fragmentless.clone(), fragmentless.clone()));
+                sub_queue.push_back((norm.clone(), norm.clone()));
                 while let Some((base, res_uri)) = sub_queue.pop_front() {
                     let Some(resource) = resources.get(&res_uri) else {
                         continue;
@@ -232,7 +244,7 @@ fn crawl_schema(
 
     // Handle $id — creates a new sub-resource
     if let Some(id) = analysis.id {
-        let resolved_id = resolve_id(base_uri, id);
+        let resolved_id = normalize_uri(&resolve_id(base_uri, id));
         if !known_uris.contains(&resolved_id) {
             known_uris.insert(resolved_id.clone());
             resources.insert(
@@ -248,7 +260,10 @@ fn crawl_schema(
         let entry = AnchorEntry {
             is_dynamic: matches!(anchor, Anchor::Dynamic { .. }),
         };
-        anchors.insert((effective_base.clone(), anchor.name().to_string()), entry);
+        anchors.insert(
+            (normalize_uri(&effective_base), anchor.name().to_string()),
+            entry,
+        );
     }
 
     // Collect $ref targets
@@ -309,21 +324,21 @@ impl Registry {
     /// Look up a resource by URI.
     #[must_use]
     pub fn get_resource(&self, uri: &str) -> Option<ResourceRef<'_>> {
+        let norm = normalize_uri(uri);
         self.resources
-            .get(uri)
+            .get(&norm)
             .map(|r| ResourceRef::new(r.contents(), r.draft()))
     }
 
     /// Look up an anchor by base URI and anchor name.
     #[must_use]
     pub fn get_anchor<'a>(&'a self, base_uri: &str, name: &str) -> Option<Anchor<'a>> {
-        let entry = self
-            .anchors
-            .get(&(base_uri.to_string(), name.to_string()))?;
-        let resource = self.get_resource(base_uri)?;
+        let norm = normalize_uri(base_uri);
+        let entry = self.anchors.get(&(norm.clone(), name.to_string()))?;
+        let resource = self.get_resource(&norm)?;
 
         // Find the actual sub-schema with this anchor
-        let contents = self.find_anchor_contents(base_uri, name)?;
+        let contents = self.find_anchor_contents(&norm, name)?;
         let resource_ref = ResourceRef::new(contents, resource.draft());
 
         if entry.is_dynamic {
@@ -356,7 +371,7 @@ impl Registry {
     /// Check if the registry contains a resource at the given URI.
     #[must_use]
     pub fn contains_resource(&self, uri: &str) -> bool {
-        self.resources.contains_key(uri)
+        self.resources.contains_key(&normalize_uri(uri))
     }
 
     /// Resolve a URI reference against a base, using the registry's knowledge.
@@ -367,7 +382,7 @@ impl Registry {
         reference: &str,
     ) -> Result<String, super::uri::UriError> {
         let resolved = uri::resolve_against(base, reference)?;
-        Ok(resolved.without_fragment().to_string())
+        Ok(normalize_uri(resolved.without_fragment()))
     }
 }
 

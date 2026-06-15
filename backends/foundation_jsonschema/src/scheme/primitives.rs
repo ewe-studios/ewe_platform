@@ -1,6 +1,6 @@
 //! Primitive type schema builders — string, integer, number, boolean, null.
 
-use super::{ValidationOptions, BTreeMap, Value};
+use super::{BTreeMap, ValidationOptions, Value};
 
 /// Builder for JSON Schema string type.
 ///
@@ -25,14 +25,16 @@ impl StringSchema {
     /// Set minimum string length (`"minLength"`).
     #[must_use]
     pub fn min_len(mut self, n: usize) -> Self {
-        self.schema.insert("minLength".into(), Value::Number(n.into()));
+        self.schema
+            .insert("minLength".into(), Value::Number(n.into()));
         self
     }
 
     /// Set maximum string length (`"maxLength"`).
     #[must_use]
     pub fn max_len(mut self, n: usize) -> Self {
-        self.schema.insert("maxLength".into(), Value::Number(n.into()));
+        self.schema
+            .insert("maxLength".into(), Value::Number(n.into()));
         self
     }
 
@@ -45,7 +47,8 @@ impl StringSchema {
     /// Set regex pattern (`"pattern"`).
     #[must_use]
     pub fn pattern(mut self, re: &str) -> Self {
-        self.schema.insert("pattern".into(), Value::String(re.into()));
+        self.schema
+            .insert("pattern".into(), Value::String(re.into()));
         self
     }
 
@@ -117,14 +120,19 @@ impl StringSchema {
     /// Wrap this type in `anyOf` with `null` — makes the field accept `null` values.
     #[must_use]
     pub fn optional(mut self) -> Self {
-        let inner = Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect());
+        let inner = Value::Object(
+            self.schema
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        );
         self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
-        self.schema.insert("anyOf".into(), Value::Array(vec![
-            inner,
-            Value::Object(null_schema),
-        ]));
+        self.schema.insert(
+            "anyOf".into(),
+            Value::Array(vec![inner, Value::Object(null_schema)]),
+        );
         self
     }
 
@@ -132,10 +140,10 @@ impl StringSchema {
     #[must_use]
     pub fn nullable(mut self) -> Self {
         if let Some(Value::String(t)) = self.schema.get("type").cloned() {
-            self.schema.insert("type".into(), Value::Array(vec![
-                Value::String(t),
-                Value::String("null".into()),
-            ]));
+            self.schema.insert(
+                "type".into(),
+                Value::Array(vec![Value::String(t), Value::String("null".into())]),
+            );
         }
         self
     }
@@ -143,7 +151,8 @@ impl StringSchema {
     /// Add a description to the schema (`"description"`).
     #[must_use]
     pub fn description(mut self, desc: &str) -> Self {
-        self.schema.insert("description".into(), Value::String(desc.into()));
+        self.schema
+            .insert("description".into(), Value::String(desc.into()));
         self
     }
 
@@ -157,7 +166,12 @@ impl StringSchema {
     /// Build and return the raw JSON Schema document.
     #[must_use]
     pub fn build_schema(&self) -> Value {
-        Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        Value::Object(
+            self.schema
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        )
     }
 
     /// Build the schema and return `ValidationOptions` with it embedded.
@@ -191,35 +205,40 @@ impl IntegerSchema {
     /// Set minimum value (inclusive, `"minimum"`).
     #[must_use]
     pub fn min(mut self, n: i64) -> Self {
-        self.schema.insert("minimum".into(), Value::Number(n.into()));
+        self.schema
+            .insert("minimum".into(), Value::Number(n.into()));
         self
     }
 
     /// Set maximum value (inclusive, `"maximum"`).
     #[must_use]
     pub fn max(mut self, n: i64) -> Self {
-        self.schema.insert("maximum".into(), Value::Number(n.into()));
+        self.schema
+            .insert("maximum".into(), Value::Number(n.into()));
         self
     }
 
     /// Set exclusive minimum (Draft 6+, `"exclusiveMinimum"`).
     #[must_use]
     pub fn exclusive_min(mut self, n: i64) -> Self {
-        self.schema.insert("exclusiveMinimum".into(), Value::Number(n.into()));
+        self.schema
+            .insert("exclusiveMinimum".into(), Value::Number(n.into()));
         self
     }
 
     /// Set exclusive maximum (Draft 6+, `"exclusiveMaximum"`).
     #[must_use]
     pub fn exclusive_max(mut self, n: i64) -> Self {
-        self.schema.insert("exclusiveMaximum".into(), Value::Number(n.into()));
+        self.schema
+            .insert("exclusiveMaximum".into(), Value::Number(n.into()));
         self
     }
 
     /// Set multiple-of divisor (`"multipleOf"`).
     #[must_use]
     pub fn multiple_of(mut self, n: i64) -> Self {
-        self.schema.insert("multipleOf".into(), Value::Number(n.into()));
+        self.schema
+            .insert("multipleOf".into(), Value::Number(n.into()));
         self
     }
 
@@ -264,10 +283,10 @@ impl IntegerSchema {
         self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
-        self.schema.insert("anyOf".into(), Value::Array(vec![
-            inner,
-            Value::Object(null_schema),
-        ]));
+        self.schema.insert(
+            "anyOf".into(),
+            Value::Array(vec![inner, Value::Object(null_schema)]),
+        );
         self
     }
 
@@ -275,10 +294,10 @@ impl IntegerSchema {
     #[must_use]
     pub fn nullable(mut self) -> Self {
         if let Some(Value::String(t)) = self.schema.get("type").cloned() {
-            self.schema.insert("type".into(), Value::Array(vec![
-                Value::String(t),
-                Value::String("null".into()),
-            ]));
+            self.schema.insert(
+                "type".into(),
+                Value::Array(vec![Value::String(t), Value::String("null".into())]),
+            );
         }
         self
     }
@@ -286,7 +305,8 @@ impl IntegerSchema {
     /// Add a description to the schema (`"description"`).
     #[must_use]
     pub fn description(mut self, desc: &str) -> Self {
-        self.schema.insert("description".into(), Value::String(desc.into()));
+        self.schema
+            .insert("description".into(), Value::String(desc.into()));
         self
     }
 
@@ -300,7 +320,12 @@ impl IntegerSchema {
     /// Build and return the raw JSON Schema document.
     #[must_use]
     pub fn build_schema(&self) -> Value {
-        Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        Value::Object(
+            self.schema
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        )
     }
 
     /// Build the schema and return `ValidationOptions` with it embedded.
@@ -332,35 +357,50 @@ impl NumberSchema {
     /// Set minimum value (inclusive, `"minimum"`).
     #[must_use]
     pub fn min(mut self, n: f64) -> Self {
-        self.schema.insert("minimum".into(), serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number));
+        self.schema.insert(
+            "minimum".into(),
+            serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number),
+        );
         self
     }
 
     /// Set maximum value (inclusive, `"maximum"`).
     #[must_use]
     pub fn max(mut self, n: f64) -> Self {
-        self.schema.insert("maximum".into(), serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number));
+        self.schema.insert(
+            "maximum".into(),
+            serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number),
+        );
         self
     }
 
     /// Set exclusive minimum (Draft 6+, `"exclusiveMinimum"`).
     #[must_use]
     pub fn exclusive_min(mut self, n: f64) -> Self {
-        self.schema.insert("exclusiveMinimum".into(), serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number));
+        self.schema.insert(
+            "exclusiveMinimum".into(),
+            serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number),
+        );
         self
     }
 
     /// Set exclusive maximum (Draft 6+, `"exclusiveMaximum"`).
     #[must_use]
     pub fn exclusive_max(mut self, n: f64) -> Self {
-        self.schema.insert("exclusiveMaximum".into(), serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number));
+        self.schema.insert(
+            "exclusiveMaximum".into(),
+            serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number),
+        );
         self
     }
 
     /// Set multiple-of divisor (`"multipleOf"`).
     #[must_use]
     pub fn multiple_of(mut self, n: f64) -> Self {
-        self.schema.insert("multipleOf".into(), serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number));
+        self.schema.insert(
+            "multipleOf".into(),
+            serde_json::Number::from_f64(n).map_or(Value::Null, Value::Number),
+        );
         self
     }
 
@@ -395,10 +435,10 @@ impl NumberSchema {
         self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
-        self.schema.insert("anyOf".into(), Value::Array(vec![
-            inner,
-            Value::Object(null_schema),
-        ]));
+        self.schema.insert(
+            "anyOf".into(),
+            Value::Array(vec![inner, Value::Object(null_schema)]),
+        );
         self
     }
 
@@ -406,10 +446,10 @@ impl NumberSchema {
     #[must_use]
     pub fn nullable(mut self) -> Self {
         if let Some(Value::String(t)) = self.schema.get("type").cloned() {
-            self.schema.insert("type".into(), Value::Array(vec![
-                Value::String(t),
-                Value::String("null".into()),
-            ]));
+            self.schema.insert(
+                "type".into(),
+                Value::Array(vec![Value::String(t), Value::String("null".into())]),
+            );
         }
         self
     }
@@ -417,7 +457,8 @@ impl NumberSchema {
     /// Add a description to the schema (`"description"`).
     #[must_use]
     pub fn description(mut self, desc: &str) -> Self {
-        self.schema.insert("description".into(), Value::String(desc.into()));
+        self.schema
+            .insert("description".into(), Value::String(desc.into()));
         self
     }
 
@@ -431,7 +472,12 @@ impl NumberSchema {
     /// Build and return the raw JSON Schema document.
     #[must_use]
     pub fn build_schema(&self) -> Value {
-        Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        Value::Object(
+            self.schema
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        )
     }
 
     /// Build the schema and return `ValidationOptions` with it embedded.
@@ -464,7 +510,8 @@ impl BooleanSchema {
     /// Add a description to the schema (`"description"`).
     #[must_use]
     pub fn description(mut self, desc: &str) -> Self {
-        self.schema.insert("description".into(), Value::String(desc.into()));
+        self.schema
+            .insert("description".into(), Value::String(desc.into()));
         self
     }
 
@@ -482,10 +529,10 @@ impl BooleanSchema {
         self.schema.clear();
         let mut null_schema = serde_json::Map::default();
         null_schema.insert("type".into(), Value::String("null".into()));
-        self.schema.insert("anyOf".into(), Value::Array(vec![
-            inner,
-            Value::Object(null_schema),
-        ]));
+        self.schema.insert(
+            "anyOf".into(),
+            Value::Array(vec![inner, Value::Object(null_schema)]),
+        );
         self
     }
 
@@ -493,10 +540,10 @@ impl BooleanSchema {
     #[must_use]
     pub fn nullable(mut self) -> Self {
         if let Some(Value::String(t)) = self.schema.get("type").cloned() {
-            self.schema.insert("type".into(), Value::Array(vec![
-                Value::String(t),
-                Value::String("null".into()),
-            ]));
+            self.schema.insert(
+                "type".into(),
+                Value::Array(vec![Value::String(t), Value::String("null".into())]),
+            );
         }
         self
     }
@@ -504,7 +551,12 @@ impl BooleanSchema {
     /// Build and return the raw JSON Schema document.
     #[must_use]
     pub fn build_schema(&self) -> Value {
-        Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        Value::Object(
+            self.schema
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        )
     }
 
     /// Build the schema and return `ValidationOptions` with it embedded.
@@ -536,14 +588,20 @@ impl NullSchema {
     /// Add a description to the schema (`"description"`).
     #[must_use]
     pub fn description(mut self, desc: &str) -> Self {
-        self.schema.insert("description".into(), Value::String(desc.into()));
+        self.schema
+            .insert("description".into(), Value::String(desc.into()));
         self
     }
 
     /// Build and return the raw JSON Schema document.
     #[must_use]
     pub fn build_schema(&self) -> Value {
-        Value::Object(self.schema.iter().map(|(k, v)| (k.clone(), v.clone())).collect())
+        Value::Object(
+            self.schema
+                .iter()
+                .map(|(k, v)| (k.clone(), v.clone()))
+                .collect(),
+        )
     }
 
     /// Build the schema and return `ValidationOptions` with it embedded.

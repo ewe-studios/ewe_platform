@@ -15,10 +15,11 @@
 //!
 //! # Examples
 //!
+//! ## Direct pipeline: build → compile → validate
+//!
 //! ```
 //! use foundation_jsonschema::scheme;
 //!
-//! // Direct pipeline: build → compile → validate
 //! let validator = scheme::object()
 //!     .required("name", scheme::string().min_len(1))
 //!     .required("age", scheme::integer().min(0).max(150))
@@ -27,8 +28,90 @@
 //!     .compile()
 //!     .unwrap();
 //!
-//! // Extract raw JSON Schema
+//! let ok = validator.is_valid(&serde_json::json!({"name": "Alice", "age": 30}));
+//! assert!(ok);
+//! ```
+//!
+//! ## Extract raw JSON Schema
+//!
+//! ```
+//! use foundation_jsonschema::scheme;
+//!
 //! let schema = scheme::string().min_len(1).max_len(100).build_schema();
+//! assert_eq!(schema["minLength"], 1);
+//! assert_eq!(schema["maxLength"], 100);
+//! ```
+//!
+//! ## User profile schema with optional fields
+//!
+//! ```
+//! use foundation_jsonschema::scheme;
+//!
+//! let validator = scheme::object()
+//!     .required("username", scheme::string().min_len(3).max_len(32))
+//!     .required("email", scheme::string().email())
+//!     .optional("bio", scheme::string().max_len(500))
+//!     .optional("avatar_url", scheme::string().uri().nullable())
+//!     .strict()
+//!     .build()
+//!     .compile()
+//!     .unwrap();
+//!
+//! // Minimal user (only required fields)
+//! assert!(validator.is_valid(&serde_json::json!({
+//!     "username": "alice",
+//!     "email": "alice@example.com"
+//! })));
+//!
+//! // Full user with optional fields
+//! assert!(validator.is_valid(&serde_json::json!({
+//!     "username": "alice",
+//!     "email": "alice@example.com",
+//!     "bio": "Hello world"
+//! })));
+//! ```
+//!
+//! ## Coordinate tuple (fixed-length array)
+//!
+//! ```
+//! use foundation_jsonschema::scheme;
+//!
+//! let schema = scheme::array()
+//!     .prefix_items(vec![
+//!         scheme::number().build_schema(),  // x
+//!         scheme::number().build_schema(),  // y
+//!         scheme::number().build_schema(),  // z
+//!     ])
+//!     .build_schema();
+//!
+//! assert_eq!(schema["prefixItems"].as_array().unwrap().len(), 3);
+//! ```
+//!
+//! ## Discriminated union (oneOf with const discriminator)
+//!
+//! ```
+//! use foundation_jsonschema::{scheme, ValidationOptions};
+//! use serde_json::json;
+//!
+//! let schema = scheme::one_of(vec![
+//!     scheme::object()
+//!         .required("type", scheme::literal(json!("circle")))
+//!         .required("radius", scheme::number().positive())
+//!         .strict()
+//!         .build_schema(),
+//!     scheme::object()
+//!         .required("type", scheme::literal(json!("rectangle")))
+//!         .required("width", scheme::number().positive())
+//!         .required("height", scheme::number().positive())
+//!         .strict()
+//!         .build_schema(),
+//! ]);
+//!
+//! let validator = ValidationOptions::new().build(&schema).unwrap();
+//!
+//! assert!(validator.is_valid(&json!({"type": "circle", "radius": 5.0})));
+//! assert!(validator.is_valid(&json!({"type": "rectangle", "width": 3.0, "height": 4.0})));
+//! assert!(!validator.is_valid(&json!({"type": "circle", "width": 3.0})));
 //! ```
 
 pub mod array;
@@ -38,7 +121,7 @@ pub mod object;
 pub mod primitives;
 pub mod reference;
 
-pub use array::{ArraySchema, array, array_of};
+pub use array::{array, array_of, ArraySchema};
 pub use compound::{all_of, any_of, if_then, if_then_else, intersection, not, one_of, union};
 pub use literal::{literal, r#enum};
 pub use object::{object, ObjectSchema};

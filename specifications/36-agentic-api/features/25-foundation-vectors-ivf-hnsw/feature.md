@@ -17,7 +17,10 @@ tasks:
 
 # Feature 25: foundation_vectors — IVF + HNSW
 
-**TODO**: I have reached the limits of my knowledge, lets do web research and select the best answers for these for the different platforms we wish to support, then add foundation_docs to teach me from zero to hero on all these topics in detail and depth.
+> **RESEARCH REQUIRED:** Fundamentals docs must cover ANN algorithms (IVF k-means, HNSW graph
+> construction), recall/latency/memory trade-offs, serialization formats, and wasm memory limits from
+> zero to expert. Web research needed before implementation to evaluate `instant-distance` (OD-25-13),
+> wasm memory ceiling (OD-25-12), and the recall benchmark corpus design (OD-25-11).
 
 > **Review status (2026-06-14) — trait redesign + likely split.** Folded: (1) `&mut self`
 > mutators violate Decision 08's `&self`+interior-mutability rule (an `Arc<dyn VectorIndex>` can't

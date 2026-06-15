@@ -12,11 +12,7 @@ use super::Value;
 /// ```
 #[must_use]
 pub fn literal(value: Value) -> Value {
-    Value::Object(
-        [("const".into(), value)]
-            .into_iter()
-            .collect(),
-    )
+    Value::Object([("const".into(), value)].into_iter().collect())
 }
 
 /// Create an enum schema that matches one of the given values (`"enum"`).

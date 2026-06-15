@@ -58,14 +58,14 @@ fn one_of_validates_exactly_one() {
     use foundation_jsonschema::validator_for;
 
     let schema = scheme::one_of(vec![
-        scheme::string().build_schema(),       // matches strings
-        scheme::integer().build_schema(),      // matches integers
+        scheme::string().build_schema(),  // matches strings
+        scheme::integer().build_schema(), // matches integers
     ]);
 
     let v = validator_for(&schema).unwrap();
     assert!(v.is_valid(&json!("hello"))); // matches string only
-    assert!(v.is_valid(&json!(42)));      // matches integer only
-    assert!(!v.is_valid(&json!(true)));   // matches neither
+    assert!(v.is_valid(&json!(42))); // matches integer only
+    assert!(!v.is_valid(&json!(true))); // matches neither
 }
 
 // ── all_of / intersection ──────────────────────────────────────
@@ -73,8 +73,12 @@ fn one_of_validates_exactly_one() {
 #[test]
 fn all_of_produces_allof_keyword() {
     let schema = scheme::all_of(vec![
-        scheme::object().required("a", scheme::string()).build_schema(),
-        scheme::object().required("b", scheme::integer()).build_schema(),
+        scheme::object()
+            .required("a", scheme::string())
+            .build_schema(),
+        scheme::object()
+            .required("b", scheme::integer())
+            .build_schema(),
     ]);
     assert_eq!(schema.as_object().unwrap().keys().next().unwrap(), "allOf");
     assert_eq!(schema["allOf"].as_array().unwrap().len(), 2);
@@ -85,8 +89,12 @@ fn all_of_validates_all() {
     use foundation_jsonschema::validator_for;
 
     let schema = scheme::all_of(vec![
-        scheme::object().required("a", scheme::string()).build_schema(),
-        scheme::object().required("b", scheme::integer()).build_schema(),
+        scheme::object()
+            .required("a", scheme::string())
+            .build_schema(),
+        scheme::object()
+            .required("b", scheme::integer())
+            .build_schema(),
     ]);
     let v = validator_for(&schema).unwrap();
     assert!(v.is_valid(&json!({"a": "hi", "b": 1})));
@@ -97,7 +105,9 @@ fn all_of_validates_all() {
 #[test]
 fn intersection_is_shorthand_for_all_of_two() {
     let left = scheme::string().build_schema();
-    let right = scheme::object().required("a", scheme::string()).build_schema();
+    let right = scheme::object()
+        .required("a", scheme::string())
+        .build_schema();
 
     let intersection_schema = scheme::intersection(left.clone(), right.clone());
     let all_of_schema = scheme::all_of(vec![left, right]);
@@ -139,8 +149,12 @@ fn not_with_builder() {
 #[test]
 fn if_then_produces_correct_schema() {
     let schema = scheme::if_then(
-        scheme::object().required("type", scheme::literal(json!("circle"))).build_schema(),
-        scheme::object().required("radius", scheme::number()).build_schema(),
+        scheme::object()
+            .required("type", scheme::literal(json!("circle")))
+            .build_schema(),
+        scheme::object()
+            .required("radius", scheme::number())
+            .build_schema(),
     );
     assert_eq!(schema.as_object().unwrap().keys().next().unwrap(), "if");
     assert!(schema.get("then").is_some());
@@ -152,8 +166,12 @@ fn if_then_validates_conditional() {
     use foundation_jsonschema::validator_for;
 
     let schema = scheme::if_then(
-        scheme::object().required("role", scheme::literal(json!("admin"))).build_schema(),
-        scheme::object().required("permissions", scheme::array().items(scheme::string())).build_schema(),
+        scheme::object()
+            .required("role", scheme::literal(json!("admin")))
+            .build_schema(),
+        scheme::object()
+            .required("permissions", scheme::array().items(scheme::string()))
+            .build_schema(),
     );
     let v = validator_for(&schema).unwrap();
     // non-admin: no permissions required
@@ -167,9 +185,15 @@ fn if_then_validates_conditional() {
 #[test]
 fn if_then_else_produces_correct_schema() {
     let schema = scheme::if_then_else(
-        scheme::object().required("kind", scheme::literal(json!("a"))).build_schema(),
-        scheme::object().required("x", scheme::integer()).build_schema(),
-        scheme::object().required("y", scheme::string()).build_schema(),
+        scheme::object()
+            .required("kind", scheme::literal(json!("a")))
+            .build_schema(),
+        scheme::object()
+            .required("x", scheme::integer())
+            .build_schema(),
+        scheme::object()
+            .required("y", scheme::string())
+            .build_schema(),
     );
     assert!(schema.get("if").is_some());
     assert!(schema.get("then").is_some());
@@ -181,9 +205,16 @@ fn if_then_else_validates() {
     use foundation_jsonschema::validator_for;
 
     let schema = scheme::if_then_else(
-        scheme::object().required("active", scheme::literal(json!(true))).build_schema(),
-        scheme::object().required("active", scheme::literal(json!(true))).required("since", scheme::string()).build_schema(),
-        scheme::object().required("active", scheme::literal(json!(false))).build_schema(),
+        scheme::object()
+            .required("active", scheme::literal(json!(true)))
+            .build_schema(),
+        scheme::object()
+            .required("active", scheme::literal(json!(true)))
+            .required("since", scheme::string())
+            .build_schema(),
+        scheme::object()
+            .required("active", scheme::literal(json!(false)))
+            .build_schema(),
     );
     let v = validator_for(&schema).unwrap();
     // active true with since: valid

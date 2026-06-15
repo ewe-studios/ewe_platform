@@ -17,8 +17,11 @@ tasks:
 
 # Feature 30: VectorStore — Cloudflare + external backends
 
-**TODO**: I have reached the limits of my knowledge, lets do web research and select the best answers for these for the different platforms we wish to support, then add foundation_docs to teach me from zero to hero on all these topics in detail and depth. Also if wasm is not possible in some areas that is ok.
-If CF does not work with vectorstore, then that is fine, if it has an API for it then lets use that and not waste time trying to build one in unless its really viable else dont waste effort.
+> **RESEARCH REQUIRED:** Fundamentals docs must cover managed/serverless vector DBs (CF Vectorize,
+> TurboPuffer REST API), fetch-then-search vs native ANN, wasm HTTP transport, and credential
+> management. Web research needed to validate CF Vectorize binding availability (OD-30-1) and
+> TurboPuffer REST API shape. If CF Vectorize doesn't have a runtime binding, don't force it — use
+> their API if available, otherwise focus on D1 fetch-then-search.
 
 > **Review status (2026-06-14) — broken references + a decision conflict:**
 > 1. **F28 never actually defines `AsyncVectorStore`** (it's only in F28's review note, not its trait
@@ -120,26 +123,36 @@ provider REST API adapters; when to relax ordering/consistency guarantees. (Task
 
 - **OD-30-1 — CF Vectorize availability:** is the binding in our worker stack? If yes, prefer it over
   D1/KV fetch-then-search. Research.
-- **OD-30-2 — external scope:** **Resolved (user, 2026-06-15) → TurboPuffer REQUIRED** (native REST
-  adapter over our HTTP client; no crate); **Pinecone + Chroma deferred**. Split into
-  **14a (CF: Vectorize + D1/KV, wasm)** and **14b (TurboPuffer REST adapter, native)**.
-      If its http we should be albe to call it in wasm too right?
+- **OD-30-2 — external scope: RESOLVED (user, 2026-06-15).** TurboPuffer REQUIRED (native REST
+  adapter); Pinecone + Chroma deferred. **Updated: TurboPuffer should work on wasm too** — if it's
+  HTTP, wasm can call it via F00f's `FetchHttpClient` (wasm fetch over `web_sys`). The split becomes:
+  - **14a (CF native: Vectorize + D1, wasm)** — CF-specific bindings
+  - **14b (TurboPuffer REST adapter, all platforms)** — uses F00f `HttpClient` trait (native HTTP
+    client on native, `FetchHttpClient` on wasm). The REST adapter is platform-agnostic.
 
-- **OD-30-3 — D1/KV best-effort:** explicitly document KV's eventual-consistency + 1000-cap mean
-  KV-vector is best-effort; D1 fetch is bounded by row count. (Inherits F23.)
+- **OD-30-3 — D1/KV best-effort:** D1 fetch is bounded by row count for client-side flat search.
+  KV-vector is best-effort (eventual consistency, 1000-key cap, inherits F23 caveats). Document these
+  limitations explicitly.
 
-- **OD-30-4 — async transport on wasm:** external HTTP providers are native-only (wasm has no HTTP —
-  00c). CF backends are wasm. State the split.
-        Yes, lets investigate what we can use in wasm and design it to fit existing http client methods we are used to or create a new wasm http stack and let wasm owned that, it wont leak anyway outside wasm. But interested to see if we can keep a consistent triat or API methods with native.
+- **OD-30-4 — async transport on wasm: RESOLVED (user, 2026-06-15).** External HTTP providers CAN
+  work on wasm — F00f provides the `FetchHttpClient` (wasm fetch via `web_sys`) and F00f's `HttpClient`
+  trait is the consistent API surface across platforms. Design:
+  - `HttpClient` trait (F00f) has `send` / `send_streaming` — same interface native + wasm.
+  - Native: uses the platform HTTP client (reqwest/hyper).
+  - Wasm: uses `FetchHttpClient` (web_sys fetch, F00f).
+  - The TurboPuffer adapter takes an `Arc<dyn HttpClient>` — platform-agnostic.
+  - CF-specific backends (Vectorize, D1) use CF bindings (wasm-only, not HTTP).
 
-
-- **OD-30-5 — credentials:** provider API keys via config/`SessionAccessProvider` (F08), never committed.
-        Does not foundation_ai already own this, please check and validate, it should have some credential maangement capability else we add this.
+- **OD-30-5 — credentials: NEEDS VALIDATION.** Check whether `foundation_ai` already has credential
+  management capability (e.g. via `AuthProvider` / the model layer's config). If it does, reuse it
+  for external vector store API keys. If not, add credential management — API keys via config or
+  `SessionAccessProvider` (F18), never committed to source. This is a pre-implementation research
+  task.
 
 ## Target Files
 
-- `backends/foundation_db/src/wasm/{cf_vectorize, d1_vector, kv_vector}_store.rs` (wasm)
-- `backends/foundation_db/src/core/backends/{pinecone, chroma, turbopuffer}_vector_store.rs` (native HTTP)
+- `backends/foundation_db/src/wasm/{cf_vectorize, d1_vector}_store.rs` (wasm, CF-specific)
+- `backends/foundation_db/src/core/backends/turbopuffer_vector_store.rs` (all platforms via HttpClient)
 - feature-gated per backend
 
 ## Tests
@@ -159,6 +172,7 @@ cargo test  -p foundation_db -- vector_store
 
 ## Done When
 
-- CF (Vectorize and/or D1/KV) + **TurboPuffer (REST adapter)** implement `AsyncVectorStore` with
-  dimension + namespace; CF builds wasm, external builds native; parity tests (mock) pass.
-- Best-effort caveats documented; fundamentals authored. OD-30-1..5 resolved (incl. 14a/14b split).
+- CF (Vectorize and/or D1) + **TurboPuffer (REST adapter, all platforms via HttpClient)** implement
+  `AsyncVectorStore` with dimension + namespace; CF builds wasm; TurboPuffer builds **native + wasm**
+  (via F00f `HttpClient` trait); parity tests (mock) pass.
+- Best-effort caveats documented; fundamentals authored. OD-30-1..5 resolved.
