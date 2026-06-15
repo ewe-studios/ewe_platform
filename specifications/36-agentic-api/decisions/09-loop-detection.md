@@ -209,7 +209,7 @@ pub struct LoopDetectorConfig {
 }
 ```
 
-> **RESOLVED (2026-06-15, F28):** Loop detection is an **output processor** (runs inline after each turn), not a separate parallel task. Redirect-from-memory uses observations/reflections.
+> **RESOLVED (2026-06-15, F17):** Loop detection is an **output processor** (runs inline after each turn), not a separate parallel task. Redirect-from-memory uses observations/reflections.
 
 ## Rationale
 

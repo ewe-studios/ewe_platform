@@ -300,7 +300,7 @@ pub trait ToolCallExecution {
 }
 ```
 
-> **RESOLVED (2026-06-15, F01 + F23):** `ModelOutput::ToolCall` gains **`depends_on: Vec<String>`** + **`execution_hint: ExecutionHint`** with `#[serde(default)]` (F01). DAG staging is implemented in F23.
+> **RESOLVED (2026-06-15, F01 + F11):** `ModelOutput::ToolCall` gains **`depends_on: Vec<String>`** + **`execution_hint: ExecutionHint`** with `#[serde(default)]` (F01). DAG staging is implemented in F11.
 
 ## Rationale
 

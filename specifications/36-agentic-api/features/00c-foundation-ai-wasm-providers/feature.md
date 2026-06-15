@@ -57,7 +57,7 @@ for `Stream::Delayed`. The review disproved this:
 On wasm, `foundation_ai` exposes the **provider trait** + the agentic layer; the **concrete
 OpenAI/Anthropic providers and their native transport are `cfg(not(target_arch = "wasm32"))`**. A
 wasm deployment supplies a wasm-compatible provider (a future fetch-based provider, or the
-`ModelProviderRouter` (F24) routing to one, or a mock). This is the only correct scope until a wasm
+`ModelProviderRouter` (F12) routing to one, or a mock). This is the only correct scope until a wasm
 HTTP client exists. **OD-00c-1 (user): confirm this scoping.**
 
 ### 1. cfg-gate the native HTTP providers + transport off wasm
@@ -120,7 +120,7 @@ candle   = ["candle-nn", "candle-transformers", "tokenizers", "dep:foundation_de
 ### 5. `agentic` marks the wasm surface
 
 The wasm build is `cargo build -p foundation_ai --no-default-features --features agentic --target
-wasm32-unknown-unknown`. It includes: types, the agentic module (F02+), the provider trait, storage
+wasm32-unknown-unknown`. It includes: types, the agentic module (F03+), the provider trait, storage
 glue — and **excludes** llama/candle backends (00b) and the native HTTP providers (this feature).
 
 ## Architecture

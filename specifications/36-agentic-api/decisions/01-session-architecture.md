@@ -132,7 +132,7 @@ Users prefer naming sessions ("fix auth bug", "write API spec"). A deterministic
 
 ## Implications
 
-> **RESOLVED (2026-06-15, F00 + F01):** SessionId folds a **machine id into the scru128 entropy region** (F01 `from_name`/`new`). The `foundation_rng` crate is **folded into `foundation_compact`** (F00); scru128 ids live in `foundation_compact::ids`. Session resume is detailed in F31.
+> **RESOLVED (2026-06-15, F00 + F01):** SessionId folds a **machine id into the scru128 entropy region** (F01 `from_name`/`new`). The `foundation_rng` crate is **folded into `foundation_compact`** (F00); scru128 ids live in `foundation_compact::ids`. Session resume is detailed in F20.
 
 ## Implications
 

@@ -219,7 +219,7 @@ Tests that need to run in WASM use the same patterns but with WASM-compatible ba
 - Mock model provider (no native model loading)
 - Cloudflare D1 storage (native Turso not available)
 
-> **RESOLVED (2026-06-15, F32):** `MockModelProvider` is driven by **`ModelInteraction`** matchers (NOT regex). Mock implements the object-safe **`RoutableProvider`**.
+> **RESOLVED (2026-06-15, F21):** `MockModelProvider` is driven by **`ModelInteraction`** matchers (NOT regex). Mock implements the object-safe **`RoutableProvider`**.
 
 ## Rationale
 

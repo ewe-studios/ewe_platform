@@ -214,7 +214,7 @@ pub trait MessageStore {
 - Time-embedded — listing messages is just ID sorting
 - Collision-free — safe for parallel message generation
 
-> **RESOLVED (2026-06-15, F01 + F03 + F16):** `Messages::User.role` changed from `String` to **`MessageRole` enum** (F01). Memory records use a **`SessionRecord` wrapper enum** (`Conversation { message: Messages }` struct variant + WorkingMemory/Observation/Reflection), NOT inline `Messages` variants — keeps `Messages` provider-pure (F01). Token tracking is in the **`TokenLedger`** (F03), not ObservationMemory. The `&self` pub/sub is a **`&self`-safe broadcaster in `synca`** (F16).
+> **RESOLVED (2026-06-15, F01 + F04 + F08):** `Messages::User.role` changed from `String` to **`MessageRole` enum** (F01). Memory records use a **`SessionRecord` wrapper enum** (`Conversation { message: Messages }` struct variant + WorkingMemory/Observation/Reflection), NOT inline `Messages` variants — keeps `Messages` provider-pure (F01). Token tracking is in the **`TokenLedger`** (F04), not ObservationMemory. The `&self` pub/sub is a **`&self`-safe broadcaster in `synca`** (F08).
 
 ## Alternatives Considered
 

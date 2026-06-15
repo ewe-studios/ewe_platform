@@ -22,7 +22,7 @@ created: 2026-06-14
 8. **Work one item at a time** (one type, one migration site) — TDD: serde round-trip test first.
 9. Place tests per the Rust testing convention (`tests/` dir).
 10. Report to Main Agent when done (do not commit). Wait for verification.
-11. After commit: delete `compacted.md`, update `./PROGRESS.md`, move to Feature 02.
+11. After commit: delete `compacted.md`, update `./PROGRESS.md`, move to Feature 03.
 12. **ALWAYS UPDATE ../../LEARNINGS.md** after each milestone.
 
 ## Critical Notes

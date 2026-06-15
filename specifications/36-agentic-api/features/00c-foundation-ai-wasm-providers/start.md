@@ -22,7 +22,7 @@ created: 2026-06-14
 7. **One item at a time:** convert one provider's backoff to `Stream::Delayed` → native green +
    backoff test → next provider → … → gate deps → wasm build green.
 8. Report to Main Agent (no commit). Wait for verification.
-9. After commit: delete `compacted.md`, update `./PROGRESS.md`, move to Feature 02.
+9. After commit: delete `compacted.md`, update `./PROGRESS.md`, move to Feature 03.
 10. **ALWAYS UPDATE ../../LEARNINGS.md.**
 
 ## Critical Notes

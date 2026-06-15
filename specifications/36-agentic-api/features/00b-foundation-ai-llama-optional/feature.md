@@ -170,7 +170,7 @@ the `Date.now()` polyfill on wasm. So this is a type-swap with no native behavio
 
 > `Duration` and `UNIX_EPOCH` are re-exported by `foundation_compact`. **Serde caveat (corrected):**
 > on **native** the swap is byte-identical because `foundation_compact` re-exports `std::time`
-> (`std/mod.rs:3`), so F01/F17 native fixtures are unaffected. On **wasm**, compact's `SystemTime`
+> (`std/mod.rs:3`), so F01/F05 native fixtures are unaffected. On **wasm**, compact's `SystemTime`
 > serializes as its inner `Duration` (`{secs, nanos}`), which differs from std's
 > `{secs_since_epoch, nanos_since_epoch}` — so a timestamp persisted on native does **not** round-trip
 > to wasm and vice-versa. Tracked as OD-00b-6; not a native regression.

@@ -6,10 +6,10 @@
 
 ## Problem
 
-> **RESOLVED (2026-06-15, F29):** An `AllowAllAccess` impl provides always-allowed auth for local/no-auth deployments., we can add a always allowed authentication implementation for local or where auth is disabled.
+> **RESOLVED (2026-06-15, F18):** An `AllowAllAccess` impl provides always-allowed auth for local/no-auth deployments., we can add a always allowed authentication implementation for local or where auth is disabled.
 
 The agentic API needs persistent storage for sessions, messages, and memory snapshots. It also needs authentication and authorization for:
-- Session access control (who can read/write a session) **RESOLVED (2026-06-15, F29):** Session access control matters because: (a) the agentic layer surfaces the **user + their token budget** to the model so generation can be bounded; (b) sessions can be **shared** (owner has read/write; `shared_with` users have read-only); (c) tool calls are gated by tool-level permissions. The trait is named **`SessionAccessProvider`** to avoid the existing `foundation_ai::AuthProvider` (provider credentials) collision.
+- Session access control (who can read/write a session) **RESOLVED (2026-06-15, F18):** Session access control matters because: (a) the agentic layer surfaces the **user + their token budget** to the model so generation can be bounded; (b) sessions can be **shared** (owner has read/write; `shared_with` users have read-only); (c) tool calls are gated by tool-level permissions. The trait is named **`SessionAccessProvider`** to avoid the existing `foundation_ai::AuthProvider` (provider credentials) collision.
 - Tool call permission gating (which tools a user can invoke)
 - Model access control (which models a user can use)
 - Usage tracking and billing (token consumption per user/org)

@@ -226,7 +226,7 @@ Resolved:
 
 Open:
 - **OD-00-5 — rand vendoring scope** (minimal subset vs whole crate). Rec: minimal subset; enumerate it
-  (scru128 entropy; F08/F09 k-means/HNSW seeding; loop-detector temperature jitter).
+  (scru128 entropy; F24/F25 k-means/HNSW seeding; loop-detector temperature jitter).
       - The whole capability - lets own everything once and for all.
 
 - **OD-00-6 — `foundation_wasm` as the wasm entropy host** vs a thin direct `js-sys` Crypto binding.

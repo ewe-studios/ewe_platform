@@ -12,7 +12,7 @@ The agentic API has many components (Message API, Context API, ToolCallManager, 
 
 A high-level `AgentSession` constructor handles all initialization and provides a clean entry point. Inspired by Pi's `createAgentSession()` but designed in the Rust/ewe_platform style.
 
-> **AMENDED (2026-06-15, F31):** The builder requires a **`ToolShed` + a `ProviderRouter`** (not `tools(vec![...])`). The ToolShed is the explicit struct with named fields (`read`/`edit`/`write`/`search`/`search_files`/`shell`/`shed`/`memory`/`delegate`); it's built by `ToolShed::default()` or custom-wired., why did you even come up with a tools(vec![]) or will you have a tool registry which will transform these into a ToolShed? Anyway it makes no sense, there was intent in making the ToolShed explicit with the fields it supplies.
+> **AMENDED (2026-06-15, F20):** The builder requires a **`ToolShed` + a `ProviderRouter`** (not `tools(vec![...])`). The ToolShed is the explicit struct with named fields (`read`/`edit`/`write`/`search`/`search_files`/`shell`/`shed`/`memory`/`delegate`); it's built by `ToolShed::default()` or custom-wired., why did you even come up with a tools(vec![]) or will you have a tool registry which will transform these into a ToolShed? Anyway it makes no sense, there was intent in making the ToolShed explicit with the fields it supplies.
 
 ### API Design
 
@@ -80,7 +80,7 @@ AgentSession::builder().provider(...).build()
 
 ### Interaction API
 
-> **AMENDED (2026-06-15, F02/F31):** the snippet below is SUPERSEDED. `AgentEvent` is dead (D08/D11);
+> **AMENDED (2026-06-15, F03/F20):** the snippet below is SUPERSEDED. `AgentEvent` is dead (D08/D11);
 > the stream is **pure `D = SessionRecord`** with thin `AgentProgress` on `Pending`. Errors are
 > **`SessionRecord::FailedAction` records** (not a `Result` in `D`); synchronous methods return
 > `Result<_, ErrorTrace<AgenticError>>`. The real shape:

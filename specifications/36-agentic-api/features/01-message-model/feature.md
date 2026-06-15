@@ -35,7 +35,7 @@ tasks:
 > — so every interaction is **time-ordered and addressable by default**, without the Message API
 > minting ids separately. `SessionRecord` (below) reuses the wrapped `Messages.id` for conversation
 > records and mints its own for memory records. **Consequences:**
-> - **F16 Message API:** `append` no longer needs to mint/return the id — the `Messages`/`SessionRecord`
+> - **F08 Message API:** `append` no longer needs to mint/return the id — the `Messages`/`SessionRecord`
 >   already carries `id`; `append` reads it (still used as the `DocumentStore` `doc_id`, preserving
 >   arrival==id ordering since ids are minted at message construction time).
 > - **Migration:** every `Messages::{User,Assistant,ToolResult}` construction site (providers, costing)
@@ -58,10 +58,10 @@ Five concrete gaps exist in `foundation_ai::types` today:
    must be persisted to and replayed from the same ordered log as conversation, but they are
    **not** provider messages and must never be sent verbatim to an LLM. No type expresses this.
 3. **`ModelOutput::ToolCall` cannot express dependencies** (`types/mod.rs:870`). The ToolCall DAG
-   executor (F23) needs the LLM to declare `depends_on` + an `execution_hint`; without schema
+   executor (F11) needs the LLM to declare `depends_on` + an `execution_hint`; without schema
    fields the LLM has no way to express ordering. (Decision 04)
 4. **`ToolShed.others` exists** (`types/mod.rs:1076`) but the agentic design replaces dynamic
-   discovery with the `shed` meta-tool (F21). The field must be removed and the five provider
+   discovery with the `shed` meta-tool (F10). The field must be removed and the five provider
    `flatten_tools` functions updated. (CRIT-04)
 5. **There is no `SessionId` type.** `foundation_compact` exposes `new_scru128() -> Id` and
    `scru128::Id`, but nothing wraps it into a time-ordered, machine-unique, name-derivable
@@ -199,7 +199,7 @@ ToolCall {
 #[serde(rename_all = "lowercase")]
 pub enum ExecutionHint {
     #[default]
-    Unspecified, // ToolCallManager decides (F23)
+    Unspecified, // ToolCallManager decides (F11)
     Parallel,    // run with other independent calls
     Sequential,  // run after depends_on completes
 }
@@ -208,7 +208,7 @@ pub enum ExecutionHint {
 `#[serde(default)]` means existing serialized tool calls (without these fields) deserialize with
 `depends_on: []` and `execution_hint: Unspecified` — **non-breaking on the wire**. The fields are
 also surfaced into the tool **JSON schema** sent to the LLM, but that schema generation lives in
-F21 (ToolShed); F01 only adds the data fields.
+F10 (ToolShed); F01 only adds the data fields.
 
 ### 4. `ToolShed`: remove `others`, split `search`/`search_files`, generalize `bash`→`shell`
 
@@ -220,8 +220,8 @@ pub struct ToolShed {
     pub read: Tool,
     pub edit: Tool,
     pub write: Tool,
-    pub search: Tool,                     // KNOWLEDGE search (semantic/memory/graph) — F18/F22
-    pub search_files: Tool,               // NEW (user): FILESYSTEM search via fff-search — F22
+    pub search: Tool,                     // KNOWLEDGE search (semantic/memory/graph) — F16/F32
+    pub search_files: Tool,               // NEW (user): FILESYSTEM search via fff-search — F32
     pub shell: Tool,                      // NEW (user, was `bash: Option<Tool>`): cross-platform shell —
                                           //      bash on linux/macOS, PowerShell on Windows (OS-selected at runtime)
     // REMOVED: pub others: Option<Vec<Tool>>,
@@ -230,17 +230,17 @@ pub struct ToolShed {
 ```
 
 Three changes to the real `ToolShed` (`types/mod.rs:1067`):
-1. **Remove `others`** — discovery is the `shed` meta-tool's job (F21). Delete the
+1. **Remove `others`** — discovery is the `shed` meta-tool's job (F10). Delete the
    `if let Some(others) = &shed.others { ... }` block in the five provider
    `flatten_tools(shed: &ToolShed) -> Vec<Tool>` functions.
-2. **Add `search_files`** (user, 2026-06-15) — the filesystem-search tool (fff, F22) is a **first-class
+2. **Add `search_files`** (user, 2026-06-15) — the filesystem-search tool (fff, F32) is a **first-class
    named field** beside the knowledge `search`. Update `flatten_tools` to include it.
 3. **Generalize `bash: Option<Tool>` → `shell: Tool`** (user) — a cross-platform shell tool; the
    `ToolImpl` runs **bash** on linux/macOS and **PowerShell** on Windows. Update `flatten_tools` (old
    `bash` Option branch → required `shell`).
 
 > A **zero-tool session** uses `Option<ToolShed> = None` at the `ModelInteraction` level (not per-field
-> options); when a `ToolShed` is present, `ToolShed::default()` (F21) honestly wires
+> options); when a `ToolShed` is present, `ToolShed::default()` (F10) honestly wires
 > `read/edit/write/search/search_files/shell` (+ `shed`).
 
 ### 5. Agentic session-record types (KEY DESIGN — see OD-3)
@@ -276,11 +276,11 @@ pub enum SessionRecord {
         reflection_token_count_after: u64,
     },
 
-    /// An error surfaced into the stream as a record rather than a `Result` (F02/F30).
+    /// An error surfaced into the stream as a record rather than a `Result` (F03/F02).
     /// **Transient — NOT persisted** to the session log: it is dropped by the persistence layer
-    /// (F16) and exists only so the consumer-facing stream can deliver failures in-band.
+    /// (F08) and exists only so the consumer-facing stream can deliver failures in-band.
     ///
-    /// Carries the taxonomy `error` (the matchable kind; `AgenticError` is owned by F30, constrained
+    /// Carries the taxonomy `error` (the matchable kind; `AgenticError` is owned by F02, constrained
     /// `Clone + PartialEq + Debug + Serialize + Deserialize`) and `trace`, the **structured,
     /// JSON-serializable** projection of the live `foundation_errstacks` error chain produced by
     /// `ErrorTrace::to_structured()` (`StructuredErrorTrace` = `current_context: String` +
@@ -290,24 +290,24 @@ pub enum SessionRecord {
     /// `tracing`. See OD-1-FA.
     FailedAction { error: AgenticError, trace: foundation_errstacks::StructuredErrorTrace },
 
-    /// Per-interaction completion marker emitted at the end of every completed interaction (F02):
+    /// Per-interaction completion marker emitted at the end of every completed interaction (F03):
     /// how many records the interaction produced and the **cumulative** session usage at that point.
-    /// `usage` is F03's `TokenSnapshot` (total/rolling/budget/cost) — a running rollup, NOT the per-turn
+    /// `usage` is F04's `TokenSnapshot` (total/rolling/budget/cost) — a running rollup, NOT the per-turn
     /// `UsageReport` delta (that delta rides `AgentProgress::TurnComplete` on the `Pending` channel).
-    /// Lets consumers track running spend and lets the ledger (F03) reconcile without re-scanning the log.
+    /// Lets consumers track running spend and lets the ledger (F04) reconcile without re-scanning the log.
     Summary { message_count: u64, usage: TokenSnapshot },
 }
 ```
 
-> **FailedAction + Summary are forward-referenced by F02/F03 (resolved here in F01).** `FailedAction`
-> is the in-band error record the agent stream emits instead of a `Result` (F02 §"Mapping"); it is
-> **not** written to the persisted log (F16 skips it). `Summary` is the `Next`-channel counterpart of
-> `AgentProgress::TurnComplete`, persisted at each completed interaction (F02 §AgentProgress, F03 ledger
-> reconcile). Pinned cross-feature types: `AgenticError` (F30, must be
-> `Clone + PartialEq + Debug + Serialize + Deserialize`) and **`TokenSnapshot` (F03**, derives
+> **FailedAction + Summary are forward-referenced by F03/F04 (resolved here in F01).** `FailedAction`
+> is the in-band error record the agent stream emits instead of a `Result` (F03 §"Mapping"); it is
+> **not** written to the persisted log (F08 skips it). `Summary` is the `Next`-channel counterpart of
+> `AgentProgress::TurnComplete`, persisted at each completed interaction (F03 §AgentProgress, F04 ledger
+> reconcile). Pinned cross-feature types: `AgenticError` (F02, must be
+> `Clone + PartialEq + Debug + Serialize + Deserialize`) and **`TokenSnapshot` (F04**, derives
 > `Clone + PartialEq + Debug + Serialize + Deserialize`; its `cost: f64` is fine — `SessionRecord` is
 > `PartialEq` only, no `Eq`/`Hash`). `TokenSnapshot` is therefore a **forward-reference** like
-> `AgenticError`: define against a stub until F03 lands. `UsageReport` already exists (`types/mod.rs:751`).
+> `AgenticError`: define against a stub until F04 lands. `UsageReport` already exists (`types/mod.rs:751`).
 >
 > **OD-1-FA — `FailedAction` carries errstack's structured trace, not a live `Report`.** All agentic
 > errors are `foundation_errstacks` errors (user, 2026-06-15), which already provide a JSON-serializable
@@ -319,7 +319,7 @@ pub enum SessionRecord {
 > `foundation_errstacks` (declare them in `foundation_ai`). **One trivial upstream add:**
 > `StructuredErrorTrace`/`StructuredFrame` currently derive `Clone, Debug` but **not `PartialEq`** —
 > `SessionRecord` derives `PartialEq`, so add `PartialEq` (pure-data structs of `String`/`Vec`/`Option`,
-> trivially derivable) to keep `SessionRecord: PartialEq`. F30 must keep `AgenticError` (the taxonomy
+> trivially derivable) to keep `SessionRecord: PartialEq`. F02 must keep `AgenticError` (the taxonomy
 > context type) `Clone + PartialEq + Debug + Serialize + Deserialize`.
 
 > **Timestamp policy (resolved — ED-B):** all agentic types use `std::time::SystemTime`, matching
@@ -372,7 +372,7 @@ pub struct TimeRange { pub from: SystemTime, pub to: SystemTime }
 `WorkingMemory`/`Observation`/`Reflection` directly to `Messages` would force **every** provider
 `match self { ... }` (generate, stream, format, costing) to handle variants that must never reach
 a provider — churn across all 5 backends with a constant "unreachable/skip" arm. The wrapper keeps
-`Messages` exactly provider-shaped, isolates agentic concerns, and gives the Message API (F16) a
+`Messages` exactly provider-shaped, isolates agentic concerns, and gives the Message API (F08) a
 single clean log element. This is flagged as **OD-3** for the reviewer to confirm/override.
 
 ### Type Relationships
@@ -414,9 +414,9 @@ classDiagram
     SessionRecord --> MemoryFact
     SessionRecord --> ObservationEntry
     SessionRecord --> ReflectionEntry
-    SessionRecord --> AgenticError : FailedAction (F30 forward-ref)
+    SessionRecord --> AgenticError : FailedAction (F02 forward-ref)
     SessionRecord --> StructuredErrorTrace : FailedAction trace (foundation_errstacks)
-    SessionRecord --> TokenSnapshot : Summary (F03 forward-ref)
+    SessionRecord --> TokenSnapshot : Summary (F04 forward-ref)
 ```
 
 ## Migration Surface (re-verified after review)
@@ -470,18 +470,18 @@ old JSON (no fields) deserializes to empty/`Unspecified`.
 
 ### Step 5 — Remove `ToolShed.others`
 Delete the field; delete the five `flatten_tools` `others` blocks. Confirm `flatten_tools` still
-compiles and returns the fixed shed tools. (The `shed` meta-tool itself is F21.)
+compiles and returns the fixed shed tools. (The `shed` meta-tool itself is F10.)
 
 ### Step 6 — Agentic record types
 Add `SessionRecord` + `MemoryFact`/`ObservationEntry`/`ObservationKind`/`ReflectionEntry` (new
 `types/agentic.rs`, re-exported from `types`). Serde round-trip tests for each persisted variant
 against the Decision 03 JSON shapes.
 
-`SessionRecord::FailedAction`/`Summary` pull in three cross-feature types: **`AgenticError`** (F30),
-**`foundation_errstacks::StructuredErrorTrace`**, and **`TokenSnapshot`** (F03). Because F30 and F03
+`SessionRecord::FailedAction`/`Summary` pull in three cross-feature types: **`AgenticError`** (F02),
+**`foundation_errstacks::StructuredErrorTrace`**, and **`TokenSnapshot`** (F04). Because F02 and F04
 also depend on F01, `AgenticError` and `TokenSnapshot` are **forward-references**: F01 defines the
-variants against minimal shells (or `#[cfg]`/local stubs) and F30/F03 fill them — the same forward-decl
-pattern F02 uses.
+variants against minimal shells (or `#[cfg]`/local stubs) and F02/F04 fill them — the same forward-decl
+pattern F03 uses.
 Add `foundation_errstacks` to `foundation_ai`'s deps with the **`serde` + `to_structured`** features
 (needed for `StructuredErrorTrace: Serialize + Deserialize`), and land the trivial upstream `PartialEq`
 derive on `StructuredErrorTrace`/`StructuredFrame` (F01 OD-1-FA) so `SessionRecord` stays `PartialEq`.
@@ -498,7 +498,7 @@ Resolved during review (recommendation taken; override if desired):
   `Messages` provider-pure (reviewer concurred — inline would force "skip" arms across 5 providers).
 - **OD-4 — module placement:** **Resolved: new `types/agentic.rs`**, re-exported, to avoid
   bloating the ~1600-line `types/mod.rs` (`ExecutionHint` stays in `types/mod.rs` by `ModelOutput`).
-- **OD-5 — `depends_on` referential integrity:** **Resolved: F23 (executor) validates**; F01
+- **OD-5 — `depends_on` referential integrity:** **Resolved: F11 (executor) validates**; F01
   carries data only.
 - **ED-B (timestamp policy):** **Resolved: `SystemTime` crate-wide** (matches existing
   `Messages::Assistant`); Decision 03 ISO strings are illustrative.

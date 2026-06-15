@@ -129,7 +129,7 @@ pub enum AgentLoopState {
     Complete { final_messages: Vec<Message> },
 }
 
-> **RESOLVED (2026-06-15, F25):** `TaskStatus::Depends(Arc<dyn EventReadiness>)` is used for queue/tool waits, replacing `Pending`/`Delayed` spin loops. `QueueReadiness`/`BoolSignal` implement `EventReadiness`. Backoff uses `Delayed`/`Wait` — the executor yields to the JS event loop (local.rs:2682).
+> **RESOLVED (2026-06-15, F13):** `TaskStatus::Depends(Arc<dyn EventReadiness>)` is used for queue/tool waits, replacing `Pending`/`Delayed` spin loops. `QueueReadiness`/`BoolSignal` implement `EventReadiness`. Backoff uses `Delayed`/`Wait` — the executor yields to the JS event loop (local.rs:2682).
 
 impl TaskIterator for AgentLoop {
     type Ready = AgentEvent;

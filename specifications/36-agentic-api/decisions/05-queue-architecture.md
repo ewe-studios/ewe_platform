@@ -142,7 +142,7 @@ Agent.prompt("Fix the bug")
    └─ emit(AgentEvent::SessionEnd)
 ```
 
-#> **RESOLVED (2026-06-15, F25):** `CancelCode` uses **`#[repr(u32)]`** (valid Rust, not `enum CancelCode: u32` which is illegal). `TaskStatus::Depends(Arc<dyn EventReadiness>)` is used for queue waits (not spin loops).
+#> **RESOLVED (2026-06-15, F13):** `CancelCode` uses **`#[repr(u32)]`** (valid Rust, not `enum CancelCode: u32` which is illegal). `TaskStatus::Depends(Arc<dyn EventReadiness>)` is used for queue waits (not spin loops).
 
 ## Rationale
 

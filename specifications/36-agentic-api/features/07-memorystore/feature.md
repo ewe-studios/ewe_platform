@@ -3,7 +3,7 @@ feature: "MemoryStore — fast latest-memory retrieval per session"
 description: "A MemoryStore trait (over KeyValueStore + optional fjall) that stores the newest Working/Observation/Reflection snapshot per SessionId for O(1) hydration on resume — distinct from the append-only DocumentStore audit log"
 status: "pending"
 priority: "high"
-depends_on: ["01-message-model", "04-documentstore-trait-sql-memory"]
+depends_on: ["01-message-model", "06-documentstore-trait-sql-memory"]
 estimated_effort: "medium"
 created: 2026-06-14
 last_updated: 2026-06-14
@@ -129,14 +129,14 @@ This is the universal path. (Per-tier keys remain a fallback for any backend tha
 ### Optional native fjall keyspace
 
 On native, a `FjallMemoryStore` uses a dedicated fjall partition for locality and fast point-reads,
-mirroring the F05 index philosophy. fjall reads are cheap and local, so it may key **per session**
+mirroring the F22 index philosophy. fjall reads are cheap and local, so it may key **per session**
 (`{session_id}` → bundle, single read, consistent with KV) or **per tier** (`{session_id}:{tier}`,
 avoids any RMW) — either satisfies `hydrate`. Same trait; chosen by config. (OD-07-2 — is the KV path
 sufficient, making fjall a perf-only option? Rec: yes, fjall is opt-in.)
 
 ### Relationship to DocumentStore (source of truth)
 
-Writing memory is **dual**: the loop (F19) appends the snapshot to `DocumentStore` (audit, replay)
+Writing memory is **dual**: the loop (F15) appends the snapshot to `DocumentStore` (audit, replay)
 **and** updates `MemoryStore` (latest pointer). On resume, `MemoryStore.hydrate()` is the fast path;
 if a snapshot is missing (e.g. crash before MemoryStore write), fall back to a `DocumentStore`
 `scan` for the latest record of that tier. So MemoryStore is a **derived cache**, never the sole
@@ -146,8 +146,8 @@ record. OD-07-3.
 
 ```mermaid
 graph TD
-    F19[memory generation] -->|append snapshot| DS[(DocumentStore audit log)]
-    F19 -->|overwrite latest| MS[(MemoryStore)]
+    F15[memory generation] -->|append snapshot| DS[(DocumentStore audit log)]
+    F15 -->|overwrite latest| MS[(MemoryStore)]
     Resume[session resume] -->|hydrate O(1)| MS
     Resume -.fallback if missing.-> DS
     MS --> KV[KvMemoryStore over KeyValueStore]
@@ -165,7 +165,7 @@ graph TD
 4. `FjallMemoryStore` (native, opt-in) impl in `foundation_nativeapis`.
 5. `hydrate` (one get) + `clear` (one delete); document the DocumentStore fallback contract.
 6. Tests: set/get/overwrite per tier; single-get hydrate bundle; clear; missing-tier → None; KV + fjall
-   parity; fallback-to-DocumentStore (integration with F04, filter by `record_type`).
+   parity; fallback-to-DocumentStore (integration with F06, filter by `record_type`).
 
 ## Open Decisions
 
@@ -209,8 +209,8 @@ graph TD
       Why and for what ? Explain to me clearly the issue
 
 - **OD-07-7 — fallback addressing:** "latest of tier T" via `DocumentStore` requires either separate
-  collections per tier or scan-and-filter by `record_type` (F04 promoted column!). Rec: filter by
-  `record_type` via F04's `scan_documents`; re-populate `MemoryStore` on a fallback hit.
+  collections per tier or scan-and-filter by `record_type` (F06 promoted column!). Rec: filter by
+  `record_type` via F06's `scan_documents`; re-populate `MemoryStore` on a fallback hit.
         Explain to me again and be detailed so i  understand the issue
 
 - **OD-07-8 — single-key bundle vs per-tier keys:** **Resolved (user, 2026-06-15)** → store the whole
@@ -233,7 +233,7 @@ graph TD
 - `backends/foundation_ai/src/agentic/memory_store.rs` (new) — typed `MemoryStore` +
   `AsyncMemoryStore` (`?Send`) + `MemoryBundle` + `KvMemoryStore<K: KeyValueStore>`
 - `backends/foundation_nativeapis/src/.../fjall_memory_store.rs` (new, native, fjall) — optional perf backend
-- coordinates with F01 (snapshot structs — factoring), F04 (DocumentStore fallback via `record_type`), F19 (writer)
+- coordinates with F01 (snapshot structs — factoring), F06 (DocumentStore fallback via `record_type`), F15 (writer)
 
 ## Tests
 

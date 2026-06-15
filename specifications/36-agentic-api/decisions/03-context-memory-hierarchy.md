@@ -5,8 +5,8 @@
 **Context:** Specification 36 — Agentic API for foundation_ai
 
 
-> **RESOLVED (2026-06-15, F05 + F07):** Fast seek on NDJSON is solved by the **fjall offset-index sidecar** (F05) mapping scru128 → byte offset for O(1) `scan_from` seeks. SQL/Turso/D1 backends use native indexes (no sidecar needed). A `MemoryStore` (F07) provides fast latest-snapshot hydration per SessionId, complementing the offset index.
-> **RESOLVED (2026-06-15, F05 + F07):** The fjall offset-index sidecar is implemented in **F05** (VFS + fjall index) beside NDJSON files, mapping scru128 → byte offset for O(1) seeks. SQL/Turso backends use native indexes (no sidecar needed). A `MemoryStore` (F07) provides fast latest-snapshot hydration per SessionId, complementing the offset index.
+> **RESOLVED (2026-06-15, F22 + F07):** Fast seek on NDJSON is solved by the **fjall offset-index sidecar** (F22) mapping scru128 → byte offset for O(1) `scan_from` seeks. SQL/Turso/D1 backends use native indexes (no sidecar needed). A `MemoryStore` (F07) provides fast latest-snapshot hydration per SessionId, complementing the offset index.
+> **RESOLVED (2026-06-15, F22 + F07):** The fjall offset-index sidecar is implemented in **F22** (VFS + fjall index) beside NDJSON files, mapping scru128 → byte offset for O(1) seeks. SQL/Turso backends use native indexes (no sidecar needed). A `MemoryStore` (F07) provides fast latest-snapshot hydration per SessionId, complementing the offset index.
 
 ## Problem
 
@@ -222,8 +222,8 @@ Observation memory is **NOT** directly included in context — it has been conde
 
 ### External vector database (Pinecone, Chroma)
 
-> **AMENDED (2026-06-15, F12–F14):** External vector DBs ARE now supported behind the `VectorStore`/`AsyncVectorStore` trait. **TurboPuffer is a REQUIRED implementation** (native REST adapter over our own HTTP client); Pinecone + Chroma are **DEFERRED** (trait-ready, not implemented).
-> **AMENDED (2026-06-15, F12–F14):** External vector DBs ARE now supported behind the `VectorStore`/`AsyncVectorStore` trait. **TurboPuffer is a REQUIRED implementation** (native REST adapter over our own HTTP client); Pinecone + Chroma are **DEFERRED** (trait-ready, not implemented).
+> **AMENDED (2026-06-15, F28–F30):** External vector DBs ARE now supported behind the `VectorStore`/`AsyncVectorStore` trait. **TurboPuffer is a REQUIRED implementation** (native REST adapter over our own HTTP client); Pinecone + Chroma are **DEFERRED** (trait-ready, not implemented).
+> **AMENDED (2026-06-15, F28–F30):** External vector DBs ARE now supported behind the `VectorStore`/`AsyncVectorStore` trait. **TurboPuffer is a REQUIRED implementation** (native REST adapter over our own HTTP client); Pinecone + Chroma are **DEFERRED** (trait-ready, not implemented).
 
 - **Pros:** Managed, scalable
 - **Cons:** External dependency, network latency, not WASM-compatible, data privacy concerns

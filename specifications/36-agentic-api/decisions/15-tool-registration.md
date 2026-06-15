@@ -166,7 +166,7 @@ The agent doesn't need to know the difference — all tools implement `ToolImpl`
 
 Tools present their interface via their JSON Schema. If a tool's interface changes, the new schema is registered. Versioning is the tool's own concern.
 
-> **RESOLVED (2026-06-15, F01 + F20 + F21):** `ToolShed.others` is **removed**. Zero-tool sessions → **`Option<ToolShed>` at the `ModelInteraction` level**. `ToolImpl::execute` is **sync** (async isn't object-safe; valtron owns concurrency). `ToolShed` gains **`search_files`** (fff) and generalizes `bash` → **`shell`** (bash on linux/macOS, PowerShell on Windows).
+> **RESOLVED (2026-06-15, F01 + F09 + F10):** `ToolShed.others` is **removed**. Zero-tool sessions → **`Option<ToolShed>` at the `ModelInteraction` level**. `ToolImpl::execute` is **sync** (async isn't object-safe; valtron owns concurrency). `ToolShed` gains **`search_files`** (fff) and generalizes `bash` → **`shell`** (bash on linux/macOS, PowerShell on Windows).
 
 ## Rationale
 

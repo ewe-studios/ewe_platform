@@ -32,7 +32,7 @@ All vector search algorithms are implemented in Rust in `foundation_vectors`, re
 - **IVF (Inverted File Index)** — cluster-based approximate nearest neighbor for 1k-100k vectors
 - **HNSW (Hierarchical Navigable Small World)** — graph-based ANN for >100k vectors
 
-> **RESOLVED (2026-06-15, F10):** BM25 + hybrid fusion (RRF / rerank / alpha weighting) are implemented in **F10** (`foundation_vectors::bm25`). RRF is the default; alpha-weighting for tuning; optional cross-encoder reranker hook.
+> **RESOLVED (2026-06-15, F26):** BM25 + hybrid fusion (RRF / rerank / alpha weighting) are implemented in **F26** (`foundation_vectors::bm25`). RRF is the default; alpha-weighting for tuning; optional cross-encoder reranker hook.
 
 **Distance metrics:**
 - Cosine similarity (primary for text embeddings)
