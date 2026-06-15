@@ -23,7 +23,8 @@ tasks:
 > scan. (3) **Conform to foundation_db conventions**: use `StorageResult`/`StorageError` (+ vector
 > variants) not a bespoke `VectorStoreError`; decide `query` stream-vs-`Vec` explicitly (Decision 07
 > uses `Vec` — record the deviation from the `StorageItemStream` norm). (4) **Add `AsyncVectorStore`**
-> (`#[async_trait(?Send)]`) — F30's CF/D1 backends need it (biggest omission). (5) **Two-level
+> — a **single `Send` async trait** (Item #1 / §A1, owned by F00e — **not** `?Send`; single-threaded
+> wasm wraps `!Send` futures in `SendWrapper`); F30's CF/D1 backends need it. (5) **Two-level
 > locking**: outer `RwLock` for shard lookup + inner lock for shard mutation (a single
 > `RwLock<HashMap>` serializes all inserts). (6) **F28 owns** adding `foundation_vectors` to root
 > `[workspace.dependencies]` + `foundation_db/Cargo.toml` (absent today). (7) **metadata-on-match**:
@@ -68,7 +69,8 @@ pub trait VectorStore: Send + Sync {
 
 /// Async mirror for Promise-based backends (CF D1/KV/Vectorize, external HTTP) — F29/F30 consume it.
 /// Mirrors the crate's other `Async*Store` traits. THIS IS A REAL F28 DELIVERABLE (not just a note).
-#[async_trait::async_trait(?Send)]
+/// One unified `Send` async trait (Item #1 / §A1 / F00e); single-threaded wasm wraps !Send futures.
+#[foundation_compact::send_async_trait]   // Send everywhere; SendWrapper on single-threaded wasm
 pub trait AsyncVectorStore {
     async fn insert_async(&self, id: &str, vector: &[f32], metadata: VectorMetadata) -> Result<(), VectorStoreError>;
     async fn query_async(&self, vector: &[f32], top_k: usize, namespace: Option<&str>) -> Result<Vec<VectorMatch>, VectorStoreError>;

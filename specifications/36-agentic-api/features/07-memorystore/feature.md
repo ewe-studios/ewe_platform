@@ -36,7 +36,8 @@ tasks:
 >   `BulkKeyValueStore { get_many(&[key]) }` extension rather than living with N round-trips. (OD-07-8.)
 > - **`set` clones by value:** our `set_*` takes `&Snapshot`; the bundle path serializes once. We don't
 >   inherit the by-value clone at the MemoryStore API. (OD-07-9.)
-> - **Async `(?Send)`:** kept (mirrors `AsyncKeyValueStore`), already OD-07-5.
+> - **Async surface:** one unified **`Send`** async trait (Item #1, §A1) — **no `?Send` mirror**;
+>   single-threaded wasm uses the `SendWrapper`-style adapter. See OD-07-5.
 >
 > So `MemoryStore` is **our** trait; `KvMemoryStore`/`FjallMemoryStore` are impls that adapt the storage
 > substrate to it — the substrate does not dictate the API.
@@ -49,9 +50,9 @@ tasks:
 > `KvMemoryStore` serializes `SessionId`/snapshots over the `&str`-keyed, JSON-valued
 > `KeyValueStore`. The optional `FjallMemoryStore` lives in **`foundation_nativeapis`** (where `fjall`
 > actually is — not `foundation_db`). Also: `KeyValueStore::set` takes `value` **by value** (clone),
-> there is **no bulk get** (`hydrate` = 3 sequential gets), `AsyncMemoryStore` must be `(?Send)` (to
-> match `AsyncKeyValueStore`), and the F01 snapshot factoring is messier than "share the struct"
-> (shapes differ). See revised OD-07-1/4/5 + OD-07-6/7.
+> there is **no bulk get** (`hydrate` = 3 sequential gets), the async surface is a single unified `Send`
+> trait (Item #1/§A1 — `?Send` mirror dropped), and the F01 snapshot factoring is messier than "share the
+> struct" (shapes differ). See revised OD-07-1/4/5 + OD-07-6/7.
 
 > Implements the user's MemoryStore idea: "a new MemoryStore that works on top of fjall, the usual
 > `KeyValueStore` trait and its implementers, storing the latest/last Memories per `SessionId` for
@@ -199,9 +200,12 @@ graph TD
   (fjall's home).
       Ya, i can see your wrapping DocumentStore cuasing issues here. Why not just split them and let something own both and use them properly then they each can stay where they are and use waht works, more so why MemoryStore use SessionId - which are just scru128 ids?
 
-- **OD-07-5 — async variant:** `AsyncMemoryStore` mirrors `AsyncKeyValueStore`'s **`(?Send)`**
-  constraint (it cannot be `Send + Sync` like the sync trait) — needed for CF KV on wasm.
-      ahaha ya, now you are just being stupid here, why do we need this ?
+- **OD-07-5 — async variant: DISSOLVED (user, 2026-06-15; Item #1, discussion §A1).** There is **no
+  `?Send` mirror**. There is **one `Send` async trait surface** spec-wide; on single-threaded wasm
+  (`unknown-unknown`/CF/`wasip1`) a `SendWrapper`-style adapter (in `foundation_compact`/`foundation_wasm`)
+  makes the `!Send` KV/Promise futures present as `Send` (sound — no real threads); native + emscripten
+  require genuine `Send` and skip the adapter. So `MemoryStore`'s async surface is a normal `Send` async
+  trait — no special-casing here.
 
 - **OD-07-6 — version/CAS:** snapshots carry `version: u64` but `set_*` is last-writer-wins. Define
   concurrent-writer behavior: unconditional overwrite (rec, single-agent-per-session) vs compare-
@@ -231,7 +235,7 @@ graph TD
 ## Target Files
 
 - `backends/foundation_ai/src/agentic/memory_store.rs` (new) — typed `MemoryStore` +
-  `AsyncMemoryStore` (`?Send`) + `MemoryBundle` + `KvMemoryStore<K: KeyValueStore>`
+  `AsyncMemoryStore` (unified `Send`, §A1) + `MemoryBundle` + `KvMemoryStore<K: KeyValueStore>`
 - `backends/foundation_nativeapis/src/.../fjall_memory_store.rs` (new, native, fjall) — optional perf backend
 - coordinates with F01 (snapshot structs — factoring), F06 (DocumentStore fallback via `record_type`), F15 (writer)
 
@@ -257,12 +261,13 @@ Author `fundamentals/` covering: derived caches vs source-of-truth & invalidatio
 fallback patterns; KV access patterns for latest-snapshot reads (**single-key bundle vs per-tier keys**,
 why one get beats N); **designing purpose-fit traits instead of being bounded by a substrate trait**
 (when to add a `BulkKeyValueStore` extension); **crate dependency direction** (why a trait can't name
-types from a crate that depends on it); last-writer-wins vs CAS/versioning; `?Send` async mirrors.
+types from a crate that depends on it); last-writer-wins vs CAS/versioning; the unified `Send` async
+trait + single-threaded-wasm `SendWrapper` adapter (§A1).
 (Task — see list.)
 
 ## Done When
 
-- `MemoryStore` (+ `AsyncMemoryStore` `?Send` mirror) is defined **in `foundation_ai::agentic`** (not
+- `MemoryStore` (+ `AsyncMemoryStore`, one unified `Send` trait — §A1) is defined **in `foundation_ai::agentic`** (not
   `foundation_db`); `KvMemoryStore` works over any `KeyValueStore` via a single-key bundle; an optional
   native `FjallMemoryStore` exists in `foundation_nativeapis`.
 - `hydrate()` is **one get** on resume; missing tiers fall back to a DocumentStore `record_type` scan and

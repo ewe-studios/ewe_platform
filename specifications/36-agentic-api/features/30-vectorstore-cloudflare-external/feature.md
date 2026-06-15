@@ -23,7 +23,8 @@ If CF does not work with vectorstore, then that is fine, if it has an API for it
 > **Review status (2026-06-14) — broken references + a decision conflict:**
 > 1. **F28 never actually defines `AsyncVectorStore`** (it's only in F28's review note, not its trait
 >    block) — this dependency is a phantom until **F28's WHAT/HOW/Done-When add the
->    `#[async_trait(?Send)]` signature**, or F30 owns defining it.
+>    `AsyncVectorStore` signature** (a single `Send` async trait — Item #1 / §A1 / F00e, **not** `?Send`),
+>    or F30 owns defining it.
 > 2. **External vector DBs — RESOLVED (user, 2026-06-15):** they ARE supported, **behind the existing
 >    `VectorStore`/`AsyncVectorStore` trait** (F28) — Decision 07's blanket rejection is reversed (a
 >    decisions write-back must amend Decision 07 to record this). **Scope now:** **TurboPuffer is a
@@ -57,7 +58,8 @@ Chroma/TurboPuffer cover managed scale. All behind one trait so the agentic laye
 
 ## WHAT: Solution
 
-All implement **`AsyncVectorStore`** (`#[async_trait(?Send)]`, F28) — these are network/Promise-based.
+All implement **`AsyncVectorStore`** (one unified `Send` async trait — Item #1 / §A1 / F00e; single-threaded
+wasm wraps the `!Send` fetch/Promise futures in `SendWrapper`) — these are network/Promise-based.
 
 ### Cloudflare
 

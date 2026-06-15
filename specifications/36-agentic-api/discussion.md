@@ -19,8 +19,8 @@ you decide → I update the affected features → I ask before moving on. Status
 
 | # | Item | Touches | Status |
 |---|------|---------|--------|
-| 1 | **Async-first traits + Send/?Send on wasm** — one `Send` async trait with a wasm adapter, or keep the split? | all traits (06,07,09,11,12,23,…) | ⏳ up next |
-| 2 | **New platform crates greenlight** — `foundation_http` (fetch), `foundation_wasmtime`, `foundation_buildtools`, `foundation_docs`: which now vs later? | 00c,00d,23,30,31; all "fundamentals" | ⬜ |
+| 1 | **Async-first traits + Send/?Send on wasm** — ✅ one `Send` trait + single-threaded-wasm adapter; emscripten = native | all traits (06,07,09,11,12,23,…) | ✅ resolved (§A1) |
+| 2 | **New platform crates greenlight** — `foundation_http` (fetch), `foundation_wasmtime`, `foundation_buildtools`, `foundation_docs`: which now vs later? | 00c,00d,23,30,31; all "fundamentals" | ⏳ up next |
 | 3 | **Inner loop = tight controlled construct; loop detection INSIDE it** (not a valtron task / output processor) | 14,17,19 | ⬜ |
 | 4 | **Access control via `foundation_auth` + Cedar** — surface shape; embedded vs hosted policies | 18 | ⬜ |
 | 5 | **MemoryStore**: stores `SessionRecord` directly; a coordinator (AgentSession?) owns it + DocumentStore; key by bare scru128 vs `SessionId` newtype | 07,20 | ⬜ |
@@ -56,17 +56,26 @@ This **reverses** several earlier OD "recommendations" that proposed sync/object
 async — specifically **F20 OD-20-1** (ToolImpl `execute`), and the framing in **F04/F06** (sync
 `DocumentStore` vs `AsyncDocumentStore`). New rule: async-first everywhere, sync is the valtron shim.
 
-**[DISCUSS] the one open piece — `Send`/`?Send` on wasm.** Async traits today are split `Send` (native)
-vs `?Send` (wasm/CF, because JS Promises aren't `Send`). You wrote (F06, F07 OD-07-5): *"just add the
-`Send` trait in wasm to satisfy send warnings, it doesn't matter in single-threaded situations, but we may
-need care in wasm targets that support multi-threading — let's review and talk."*
-- **My take:** on `wasm32-unknown-unknown`/CF Workers everything is single-threaded, so a `Send` bound is
-  *vacuously satisfiable* — we can keep **one** `Send` async trait and, on wasm, wrap the `!Send` JS
-  futures so they present as `Send` (sound because there's no real concurrency). On
-  `wasm32-unknown-emscripten` (threads) we'd need genuine care.
-- **Proposal:** one `Send` async-trait surface; a wasm adapter that makes JS futures `Send` on
-  single-threaded targets; revisit only for emscripten-threads. **Your call** — this removes the whole
-  `?Send` mirror (and kills F07 OD-07-5, simplifies F06 OD-06-11).
+**✅ RESOLVED (user, 2026-06-15) — Item #1.** One unified **`Send` async-trait surface everywhere** (no
+`?Send` mirror). On the **single-threaded** wasm targets (`wasm32-unknown-unknown`, CF Workers,
+`wasm32-wasip1`) a **`SendWrapper`-style adapter** makes the `!Send` JS/Promise futures present as `Send`
+— sound because nothing actually crosses threads there. The assert-`Send` adapter is **gated to
+single-threaded targets only**; **`wasm32-unknown-emscripten` is treated like native** (it has real
+threads → require genuine `Send`, no adapter). **Consequences to fold spec-wide:**
+- Drop every `#[async_trait(?Send)]` / `(?Send)` trait split → one `Send` async trait.
+- **F07 OD-07-5 dissolved** (no `AsyncMemoryStore` `?Send` mirror); **F23 OD-23-11 dissolved**
+  (`AsyncDocumentStore` is `Send`); same for `AsyncVectorStore` (F28/F30), the CF providers, ToolImpl,
+  RoutableProvider.
+- The adapter lives once (in `foundation_compact` or `foundation_wasm`), `cfg`-selected by
+  target_os/threads; `StorageItemStream`/futures wrap through it on single-threaded wasm.
+- Native + emscripten paths require real `Send` and don't use the adapter.
+
+**Applies to ALL existing async traits, fixed at once (user, 2026-06-15).** Not just the agentic stores —
+the whole `foundation_db` family migrates off `#[async_trait(?Send)]`: **`AsyncQueryStore`,
+`AsyncKeyValueStore`, `AsyncBlobStore`, `AsyncRateLimiterStore`, `AsyncDocumentStore`** (+ F28
+`AsyncVectorStore`) and every backend impl (memory/turso/json_file/libsql/r2/d1/kv). This concrete
+refactor is owned by the new **[Feature 00e](features/00e-unified-send-async-traits/feature.md)**
+(Phase 0). Consumer features (F06/F07/F09/F12/F23/F28/F30) just drop their `?Send` mentions.
 
 ### A2. KV is **only** the Memory cache — never a DocumentStore — [RESOLVED]
 F06: *"KvDocumentStore should not exist, use it as our Memory cache, that idea is useless"*; F07: KV is

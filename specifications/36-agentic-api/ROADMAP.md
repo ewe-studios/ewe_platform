@@ -10,6 +10,8 @@ re-numbering (see `discussion.md` §F for the rationale).
 - `00b-foundation-ai-llama-optional` — optional llama, target-aware gating, generalized provider errors.
 - `00c-foundation-ai-wasm-providers` — wasm provider surface (fetch-client work → Phase 4).
 - `00d-wasm-target-matrix` — the 4-target matrix + target_os cfg discipline.
+- `00e-unified-send-async-traits` — collapse the `?Send` split: one `Send` async-trait surface for all
+  `foundation_db` store traits + `SendWrapper` adapter on single-threaded wasm (Item #1 / §A1).
 
 ## Phase 1 — Core machinery (in-memory impls + full tests)
 - `01-message-model` — type substrate (MessageRole, SessionId, ToolCall deps, SessionRecord).

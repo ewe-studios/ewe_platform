@@ -132,7 +132,8 @@ layout:
 ### Platform gating
 
 Both are `#[cfg(target_arch = "wasm32")]` (CF Workers) and behind the relevant `foundation_db` wasm
-feature. They implement `AsyncDocumentStore` (`?Send`, per the trait's `async_trait(?Send)`).
+feature. They implement `AsyncDocumentStore` (one unified `Send` async trait — F00e/§A1; the CF binding's
+`!Send` future is wrapped in `SendWrapper` on single-threaded wasm).
 
 ## Architecture
 
@@ -215,10 +216,11 @@ graph TD
   wasm-bindgen-storage path actually compiles for wasm32 before building `D1DocumentStore` on it.
        Ok we should fix that and ensure it aligns properly.
 
-- **OD-23-11 — `?Send`:** `AsyncDocumentStore` is `async_trait(?Send)` and `StorageItemStream` is
-  non-`Send` on wasm; reconcile with the mostly-`Send` agentic layer (how a `Send` caller drives a
-  `!Send` future on Workers).
-        - Then ensure we just add the Send trait in wasm to satisfy send warnings, it does not matter anyway in single threaded situations but we may need care in wasm targets that do support multi-threading, lets review, think and talk about this more clearly to nail it right.
+- **OD-23-11 — `?Send`: RESOLVED (user, 2026-06-15; Item #1 / §A1, owned by [F00e](../00e-unified-send-async-traits/feature.md)).**
+  `AsyncDocumentStore` becomes a **single `Send` async trait** (no `?Send`); on single-threaded wasm the
+  CF binding's `!Send` future is wrapped in `SendWrapper` so it presents as `Send`. Native + emscripten
+  use genuine `Send`. So a `Send` caller on Workers drives the future through the adapter — no `?Send`
+  surface to reconcile.
 
 
 - **OD-23-12 — R2 topology:** **Resolved (user, 2026-06-15)** → recommended split is **D1 holds the row
