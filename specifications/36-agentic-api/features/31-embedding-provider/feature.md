@@ -155,14 +155,14 @@ latency); valtron task + channel response pattern; cache hit-rate measurement & 
 
 ```bash
 cargo test -p foundation_ai -- agentic::embedding
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai -- -D warnings
 cargo test  -p foundation_ai -- agentic::embedding
 ```

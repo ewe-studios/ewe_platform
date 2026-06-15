@@ -507,8 +507,8 @@ Resolved during review (recommendation taken; override if desired):
 
 Resolved by user ruling (2026-06-14):
 - **OD-6 — wasm scope:** **Resolved → [Feature 00b](../00b-foundation-ai-llama-optional/feature.md).** The
-  agentic layer is a feature-gated subset (`--no-default-features --features agentic`) that builds
-  on wasm with native model backends excluded. F01 assumes F00 landed.
+  agentic layer is a feature-gated subset (`features = ["agentic"]`, default ON) that builds
+  on wasm with native model backends target-gated out. F01 assumes F00 landed.
 - **OD-7 — machine identity:** **Resolved → fold a machine id into the entropy region** (honors
   Decision 01's "machine-attributable" property). See SessionId `new()`/`from_name()` + Step 3b.
 

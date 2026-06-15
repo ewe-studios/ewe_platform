@@ -121,7 +121,7 @@ pub enum ToolBehavior {
     Fails(ToolError),
     FailsThenSucceeds { failures: u32, error: ToolError, result: ToolCallResult },  // F11 retry tests
 }
-impl ToolImpl for MockTool { /* definition + sync execute per behavior */ }
+impl ToolImpl for MockTool { /* definition + async execute per behavior */ }
 ```
 
 ### Test tiers (Decision 17)
@@ -229,14 +229,14 @@ stores, no native model). (Task — see list.)
 cargo test -p foundation_ai --features testing -- agentic
 cargo test -p foundation_ai --features testing,candle -- agentic        # Candle tier
 cargo test -p foundation_ai --features testing -- --ignored             # llama.cpp / TestHarness tier
-cargo build -p foundation_ai --no-default-features --features agentic,testing --target wasm32-unknown-unknown
+cargo build -p foundation_ai --features testing --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
 cargo build -p foundation_ai --features testing
-cargo build -p foundation_ai --no-default-features --features agentic,testing --target wasm32-unknown-unknown
+cargo build -p foundation_ai --features testing --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai --features testing -- -D warnings
 cargo test  -p foundation_ai --features testing -- agentic
 ```

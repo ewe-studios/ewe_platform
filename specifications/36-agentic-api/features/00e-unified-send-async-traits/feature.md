@@ -71,7 +71,7 @@ A small **cfg-selected `async_trait` wrapper** owns the asymmetry, so individual
 
 /// Asserts Send for a !Send future. SOUND ONLY on single-threaded targets — gated by cfg so it
 /// cannot be named on native/emscripten. Mirrors `send_wrapper::SendWrapper` but ours/no-dep.
-#[cfg(all(target_arch = "wasm32", not(target_os = "emscripten"), /* single-threaded */))]
+#[cfg(all(target_family = "wasm", not(target_os = "emscripten"), /* single-threaded */))]
 pub struct SendWrapper<T>(/* T, !Send-but-asserted-Send */);
 ```
 
@@ -116,7 +116,7 @@ graph TD
 - **OD-00e-1 — adapter home:** `foundation_compact` (compatibility crate, rec) vs `foundation_wasm`.
   Rec: `foundation_compact` (it already owns per-target compatibility; §A5).
 - **OD-00e-2 — single-thread detection:** how to cfg "single-threaded wasm" precisely —
-  `target_arch="wasm32"` + `not(target_os="emscripten")` + `not(target_feature="atomics")`. Confirm the
+  `target_family="wasm"` + `not(target_os="emscripten")` + `not(target_feature="atomics")`. Confirm the
   `atomics` feature is the right multi-thread discriminator (wasm threads ⇒ `atomics`).
 - **OD-00e-3 — macro vs hand-cfg:** a `send_async_trait` macro (rec) vs each trait writing the cfg
   attribute inline. Rec: macro (one place, no drift).

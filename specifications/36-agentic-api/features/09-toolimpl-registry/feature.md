@@ -73,16 +73,19 @@ registry. Without these the tool-call loop has wire types but nothing behind the
 
 ## WHAT: Solution
 
-### The `ToolImpl` contract (object-safe, sync — OD-09-1)
+### The `ToolImpl` contract (async-first — OD-09-1, Item #1 + Item #13)
 
 ```rust
 // backends/foundation_ai/src/agentic/tools/mod.rs
+#[async_trait]
 pub trait ToolImpl: Send + Sync {
     /// The LLM-facing definition (name, description, JSON-Schema args).
     fn definition(&self) -> ToolDefinition;
 
-    /// Run the tool with validated arguments. SYNC + object-safe (valtron owns concurrency, F11).
-    fn execute(&self, arguments: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError>;
+    /// Run the tool with validated arguments. ASYNC (Item #1: async-first everywhere).
+    /// Cancellation = valtron stops polling the future and drops it. Drop-based cleanup
+    /// handles process kills, connection closes, etc. — implementers own their cleanup.
+    async fn execute(&self, arguments: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError>;
 }
 
 pub struct ToolDefinition {
@@ -129,7 +132,7 @@ impl ToolCallManager {
 
     /// Look up + validate args against the tool's Args.validator, then execute.
     /// (Pure execution; F11 owns scheduling/persistence/retry — this is the inner call.)
-    pub fn execute_one(&self, call: &ToolCallRequest) -> Result<ToolCallResult, ToolError>;
+    pub async fn execute_one(&self, call: &ToolCallRequest) -> Result<ToolCallResult, ToolError>;
 
     /// Build the ModelInteraction.tools_shed from the registry (Decision 15 build_toolshed).
     pub fn build_toolshed(&self) -> ToolShed;
@@ -175,7 +178,7 @@ graph TD
     MI --> FMT[provider ToolFormatter.format_tools]
     FMT --> LLM[LLM sees tool schemas + depends_on/hint]
     LLM -->|ModelOutput::ToolCall| REQ[ToolCallRequest]
-    REQ -->|execute_one: validate args then run| RUN[ToolImpl.execute sync]
+    REQ -->|execute_one: validate args then run| RUN[ToolImpl.execute async]
     RUN --> RES[ToolCallResult -> Messages::ToolResult]
     REG -.register hook.-> IDX[(VectorStore index for shed F10)]
 ```
@@ -183,19 +186,20 @@ graph TD
 ## Fundamentals Documentation (zero-to-expert) — REQUIRED
 
 Author `fundamentals/` covering: LLM function/tool calling (what a tool definition is, how providers
-consume it, the request/result round trip); **object-safe trait design** (why `impl Future`/`async fn`
-break `dyn`, sync-trait + valtron concurrency); registries with `&self` interior mutability over `Arc`
-(why `&mut self` fails behind `Arc`); JSON-Schema argument validation (`foundation_jsonschema`
-`ValidationOptions`/`Validator`, validate-before-execute); the `ToolImpl`→`Tool`→`ToolShed`→provider
-schema pipeline; wrapping external tools (MCP/HTTP/CLI) behind one trait; injecting DAG hint fields
-(`depends_on`/`execution_hint`) into tool schemas so the LLM can declare dependencies. (Task — see list.)
+consume it, the request/result round trip); **async trait design** (`#[async_trait]` for `dyn`-safe async
+methods; `async fn` returns a boxed future behind `Arc<dyn ToolImpl>`); **drop-based cancellation**
+(valtron stops polling → future dropped → resources cleaned up; implementers own their `Drop` logic for
+processes/connections); registries with `&self` interior mutability over `Arc` (why `&mut self` fails
+behind `Arc`); JSON-Schema argument validation (`foundation_jsonschema` `ValidationOptions`/`Validator`,
+validate-before-execute); the `ToolImpl`→`Tool`→`ToolShed`→provider schema pipeline; wrapping external
+tools (MCP/HTTP/CLI) behind one trait; injecting DAG hint fields (`depends_on`/`execution_hint`) into
+tool schemas so the LLM can declare dependencies. (Task — see list.)
 
 ## HOW: Implementation Steps
 
-1. `ToolImpl` trait (sync `execute`, OD-09-1) + `ToolDefinition`/`ToolCallResult`/`ToolError`
-   (`Clone+PartialEq+Debug`).
-2. `ToolDefinition -> foundation_ai::types::Tool` conversion (reuse existing `Args`).
-3. `ToolCallManager` registry (`&self` `register`/`get`/`names` over `RwLock<HashMap>`).
+1. `ToolImpl` trait (async `execute`, OD-09-1) + `ToolCallResult`/`ToolError` (`Clone+PartialEq+Debug`).
+   `Tool` gains `category: Option<String>` (OD-09-2).
+2. `ToolCallManager` registry (`&self` `register`/`get`/`names` over `Arc<RwLock<Inner>>`, OD-09-3).
 4. `execute_one`: lookup → validate args via `Args.validator` → call `execute` → map errors.
 5. `build_toolshed` populating the post-F01 `ToolShed` (no `others`); inject `depends_on`/
    `execution_hint` into each tool schema.
@@ -206,26 +210,29 @@ schema pipeline; wrapping external tools (MCP/HTTP/CLI) behind one trait; inject
 
 ## Open Decisions
 
-- **OD-09-1 — execute signature (load-bearing):** sync `fn execute` (object-safe, valtron concurrency)
-  vs `TaskIterator` return. **Rec: sync** — reconcile Decision 15's `async fn`. Flag for the user.
+- **OD-09-1 — execute signature: RESOLVED (user, 2026-06-15; Item #1 + Item #13) → async.** `execute`
+  is `async fn` via `#[async_trait]` (boxed future behind `Arc<dyn ToolImpl>` — dyn-safe). Consistent
+  with Item #1 (async-first everywhere). **Cancellation is drop-based:** valtron stops polling the
+  future and drops it → Rust's ownership cleanup fires (process handles, connections, etc.).
+  Implementers own their `Drop` logic for resources. No `CancelToken`/`ProcessHandle`/SIGKILL ladder
+  needed — the framework just drops the future. Tools that do blocking sync work inside the async fn
+  are the implementer's concern, not the framework's.
 
-        Makes no sense to me, we already write async_traits right? why not just write an async trait with an async method. That types implement, then we can valtron it for the sync version.
+- **OD-09-2 — ToolDefinition vs Tool: RESOLVED (user, 2026-06-15) → consolidate.** `ToolDefinition`
+  merges into `Tool` (add `category: Option<String>` to `Tool` for shed discovery). One type, no
+  conversion. `category` is `None` for tools that don't use shed.
 
-- **OD-09-2 — ToolDefinition vs Tool:** keep `ToolDefinition` distinct (carries `category`) and convert
-  to `Tool`, vs use `Tool` directly. Rec: keep `ToolDefinition` (category is shed-only metadata).
-        If we consolidate it and we gain or dont loose value then just consolidate.
+- **OD-09-3 — register mutability: RESOLVED (user, 2026-06-15) → `&self` + `Arc<RwLock<Inner>>`.** 
+  `ToolCallManager { inner: Arc<RwLock<ToolCallManagerInner>> }` — `register`/`deregister` take
+  `&self`, write-lock the inner. Reads (`get`/`names`/`build_toolshed`) take a read-lock.
 
-- **OD-09-3 — register mutability:** `&self` + `RwLock` (rec) vs `&mut self`. Decision 08 forces `&self`.
-    Interior mutability is good for the struct impleemnting this, we can also have a Inner struct type that the main one wraps in a Arc<RwLock<ToolManagerInner>> etc.
+- **OD-09-4 — ToolShed optionality: RESOLVED (user, 2026-06-15) → `Option<ToolShed>`.** 
+  `ModelInteraction.tools_shed` becomes `Option<ToolShed>`. With zero tools registered,
+  `build_toolshed` returns `None` — no stubs, no complicated messes. F01 makes it `Option`.
 
-- **OD-09-4 — ToolShed optionality with zero tools:** real `ToolShed` has non-`Option`
-  `read/edit/write/search`. With nothing registered, either F01 makes them `Option<Tool>` or
-  build_toolshed installs no-op stubs. Rec: F01 makes them `Option`. Flag F01/F10 reconciliation.
-        I think make it Option<ToolShed>, no need for complicated messes.
-
-- **OD-09-5 — duplicate registration:** last-wins (rec, Decision 15 versioning = "new schema
-  registered") vs error. Rec: last-wins.
-        Throw an error, its going to be a init anyway, so why bother, let the binary or whatever fails so they can go fix it.
+- **OD-09-5 — duplicate registration: RESOLVED (user, 2026-06-15) → error.** Registering a tool with
+  an already-taken name returns `ToolError::DuplicateTool(name)`. Registration happens at init; a
+  duplicate is a bug the developer should fix immediately.
 
 ## Target Files
 
@@ -238,22 +245,23 @@ schema pipeline; wrapping external tools (MCP/HTTP/CLI) behind one trait; inject
 
 ```bash
 cargo test -p foundation_ai -- agentic::tools
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai -- -D warnings
 cargo test  -p foundation_ai -- agentic::tools
 ```
 
 ## Done When
 
-- `ToolImpl` (object-safe, sync `execute`) + `ToolCallManager` registry (`&self`) register/look up/
-  validate/build the `ToolShed` (no `others`, `shed` always present); arguments validated against the
-  tool's JSON Schema before execution; DAG hint fields injected into schemas; external tools wrap
-  behind the one trait; builds native + wasm.
-- OD-09-1..5 resolved (OD-09-1 + OD-09-4 flagged for the user); fundamentals authored.
+- `ToolImpl` (async `execute` via `#[async_trait]`, dyn-safe behind `Arc`) + `ToolCallManager` registry
+  (`&self` over `Arc<RwLock<Inner>>`) register/look up/validate/build `Option<ToolShed>` (no `others`);
+  cancellation is drop-based (valtron drops the future); duplicate registration errors; arguments
+  validated against JSON Schema before execution; DAG hint fields injected into schemas; `Tool` gains
+  `category` (consolidated from `ToolDefinition`); builds native + wasm.
+- OD-09-1..5 all resolved; fundamentals authored.

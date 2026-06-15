@@ -132,14 +132,14 @@ trade-off; Arrow ↔ JSON interop; why FlatBuffers-as-fallback is redundant. (Ta
 
 ```bash
 cargo test -p foundation_ai -- agentic::serialization
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai -- -D warnings
 cargo test  -p foundation_ai -- agentic::serialization
 ```

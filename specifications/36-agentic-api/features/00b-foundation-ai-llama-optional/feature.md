@@ -71,22 +71,34 @@ C++-linking, and clock-panicking code. Verified blockers owned by this feature:
 ```toml
 # foundation_ai/Cargo.toml
 [dependencies]
-infrastructure_llama_cpp = { workspace = true, optional = true }
 foundation_compact = { workspace = true }          # time + entropy + scru128 (folded foundation_rng, F00)
 
+# llamacpp dep is target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
+[target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
+infrastructure_llama_cpp = { workspace = true, optional = true }
+
 [features]
-default = ["llamacpp"]                               # native default = current behavior
+default = ["llamacpp", "agentic"]                    # full experience by default
 llamacpp = ["dep:infrastructure_llama_cpp"]
+agentic  = []                                        # gates pub mod agentic (Item #14)
 # candle stays as-is (already optional)
-agentic = []                                         # wasm-safe surface marker (see 00c)
 # metal/vulkan/cuda/... now route through llamacpp for clarity:
 metal  = ["llamacpp", "infrastructure_llama_cpp/metal"]
 vulkan = ["llamacpp", "infrastructure_llama_cpp/vulkan"]
 # (same pattern for cuda/cuda_static/android/openmp/mtmd)
 ```
 
+**Item #14 decisions applied:**
+- `agentic` is a **real capability feature** (not a marker), default ON. Orthogonal to target.
+- `llamacpp` dep is **target-gated** in Cargo.toml so `cargo build --target wasm32-unknown-unknown` just
+  works with default features — no `--no-default-features` gymnastics.
+- All wasm gates use **`target_family = "wasm"`** (covers wasm32 + wasm64), not `target_arch = "wasm32"`.
+- The `agentic` module splits into **`shared/`** (target-agnostic), **`native/`** (`not(wasm) || emscripten`),
+  **`wasm/web/`** (unknown-unknown: SendWrapper, fetch, web-sys), **`wasm/wasi/`** (wasip1/p2).
+- Emscripten routes to `native/` (real pthreads, genuine Send, same runtime behavior as native).
+
 External blast radius is ~zero: only `bin/platform` depends on `foundation_ai` (default features),
-so `default = ["llamacpp"]` keeps it working (verified in the F00 review).
+so `default = ["llamacpp", "agentic"]` keeps it working (verified in the F00 review).
 
 ### 2. Gate the error enums
 
@@ -202,8 +214,8 @@ graph TD
         N --> NH[HTTP providers]
         N --> NC[foundation_compact = std::time]
     end
-    subgraph "wasm-bound build (--no-default-features --features agentic)"
-        W[foundation_ai] -.excluded.-> WL[llama.cpp + llama error variants]
+    subgraph "wasm build (default features, target gates exclude native-only)"
+        W[foundation_ai] -.target-gated out.-> WL[llama.cpp + llama error variants]
         W --> WH[HTTP providers — wasm-safety completed in 00c]
         W --> WC[foundation_compact = Date.now polyfill]
         W --> WR[foundation_compact ids]
@@ -221,8 +233,8 @@ graph TD
 5. Audit `lib.rs`/registry for unconditional llama re-exports / `ModelProviders` references; gate.
 6. Migrate `SystemTime` → `foundation_compact::SystemTime` crate-wide (type + call sites).
 7. `cargo build -p foundation_ai` (default) — **byte-unchanged behavior**; run the suite.
-8. `cargo build -p foundation_ai --no-default-features --features agentic` (native, no backends) —
-   must compile (proves the error/backends gating is complete). Full wasm target build is 00c.
+8. `cargo build -p foundation_ai --target wasm32-unknown-unknown` (default features, wasm target) —
+   must compile (proves the target gates exclude native-only code). Full wasm provider story is 00c.
 
 ## Open Decisions
 
@@ -230,9 +242,16 @@ graph TD
   provider-agnostic equivalents. Recommendation: gate now, generalize later.
       - Generalize, isolate the specific errors to the specific providers and add Error variants that can hold each and gate those, this reduces the main error from containing alot of provider specific variants to just one.
 
-- **OD-00b-2 — `agentic` vs `llamacpp`-off:** `--no-default-features` (no llamacpp) is the wasm
-  surface; `agentic` stays a marker until 00c proves what it must gate.
-    - i dont understand this, ask me with more clarity on what you mean here.
+- **OD-00b-2 — `agentic` feature vs wasm gating: RESOLVED (user, 2026-06-15; Item #14).** Two
+  orthogonal axes — never conflate:
+  - **`agentic` = capability feature** (`default = ["llamacpp", "agentic"]`). Gates `pub mod agentic`.
+    Orthogonal to target. A model-only consumer: `default-features = false, features = ["llamacpp"]`.
+  - **wasm = target gates** (`cfg(target_family = "wasm")` everywhere, not `target_arch`). Native-only
+    code (HTTP providers, llamacpp dep) is target-gated in Cargo.toml + code. `cargo build --target
+    wasm32-unknown-unknown` works with default features — no `--no-default-features` needed.
+  - **Agentic module directory split:** `shared/` (target-agnostic), `native/` (not-wasm + emscripten),
+    `wasm/web/` (unknown-unknown), `wasm/wasi/` (wasip1/p2). Emscripten routes to `native/` (real
+    pthreads, same runtime behavior — build toolchain is `foundation_buildtools`' concern, not runtime).
   
 - **OD-00b-3 — timestamp serde (native):** **Resolved → no native fixture change** (compact
   re-exports std on native). See OD-00b-6 for the cross-platform divergence.
@@ -258,11 +277,11 @@ graph TD
   `infrastructure_llama_cpp`'s build already wires the emscripten SDK, so llama.cpp builds on
   `wasm32-unknown-emscripten` (browser, WebGPU/threads). Make the gate **target-aware**: keep
   `llamacpp` enabled on **native + `wasm32-unknown-emscripten`**; exclude it **only** on
-  `wasm32-unknown-unknown` (CF Workers / wasm-bindgen — no libc/emscripten runtime). The agentic
-  `--no-default-features --features agentic` wasm32-unknown-unknown build drops it; an
-  emscripten/browser build keeps it for local inference. **Recommendation:** `default = ["llamacpp"]`
-  + document that the *unknown-unknown* agentic build is the only one that opts out (emscripten target
-  keeps the default). Verify the emscripten build path (EMSDK toolchain) is exercised separately —
+  `wasm32-unknown-unknown` (CF Workers / wasm-bindgen — no libc/emscripten runtime). The llamacpp dep
+  is **target-gated** in Cargo.toml (`cfg(any(not(target_family = "wasm"), target_os = "emscripten"))`)
+  so `cargo build --target wasm32-unknown-unknown` automatically excludes it with default features;
+  emscripten/browser builds keep it for local inference. **Updated (Item #14):** `default = ["llamacpp",
+  "agentic"]` — wasm exclusion is via target gates, not feature manipulation. Verify the emscripten build path (EMSDK toolchain) is exercised separately —
   it's a distinct toolchain from `wasm-bindgen`/`foundation_wasm`. A WebGPU/emscripten **in-browser
   llama** deployment is a real future option, not excluded by this spec.
 
@@ -277,9 +296,9 @@ graph TD
 ## Tests
 
 ```bash
-cargo build -p foundation_ai                                       # default (llamacpp) — unchanged
+cargo build -p foundation_ai                                       # default (llamacpp+agentic) — unchanged
 cargo test  -p foundation_ai                                       # native suite green
-cargo build -p foundation_ai --no-default-features --features agentic   # native, backend-less, compiles
+cargo build -p foundation_ai --target wasm32-unknown-unknown       # wasm with default features — target gates work
 cargo clippy -p foundation_ai -- -D warnings
 ```
 
@@ -287,12 +306,12 @@ cargo clippy -p foundation_ai -- -D warnings
 
 ```bash
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai -- -D warnings
-cargo clippy -p foundation_ai --no-default-features --features agentic -- -D warnings
 cargo fmt -- --check
 cargo test -p foundation_ai
 grep -rn "std::time::SystemTime" backends/foundation_ai/src    # expect: empty (all → foundation_compact)
+grep -rn "target_arch.*wasm32" backends/foundation_ai/src      # expect: empty (all → target_family = "wasm")
 ```
 
 ## Fundamentals Documentation (zero-to-expert) — REQUIRED
@@ -305,10 +324,10 @@ is/ isn't wasm-portable; `SystemTime` portability; default-feature blast radius.
 ## Done When
 
 - `foundation_ai` builds + tests pass on the **default** feature set with **no behavior change**.
-- `foundation_ai` compiles with `--no-default-features --features agentic` — this proves the
-  **llama backend modules + the 10 llama error variants are fully gated out**. (It does *not* yet
+- `foundation_ai` compiles with `cargo build --target wasm32-unknown-unknown` (default features) —
+  target gates automatically exclude llama backend modules + llama error variants. (It does *not* yet
   remove the always-compiled `foundation_auth`/`foundation_deployment`/HTTP-provider deps — those
-  are made wasm-safe in 00c. The native backend-less build proves error/module gating only.)
+  are made wasm-safe in 00c. The wasm target build proves target gating only.)
 - All `SystemTime::now()` route through `foundation_compact`; `foundation_compact`/`foundation_compact`
   wired; `chrono` removed (OD-00b-5).
 - OD-00b-1..6 resolved and folded in.

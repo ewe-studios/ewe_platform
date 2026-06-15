@@ -28,7 +28,7 @@ tasks:
 >    `/home/darkvoid/Boxxed/@formulas/src.rust/src.FileSystemAPIs/src.Search/fff` (crates `fff-core`,
 >    `fff-grep`, `fff-query-parser`, `fff-mcp`, edition 2024, third-party authors). `fff-core/Cargo.toml`
 >    pulls **`rayon`, `git2`, `heed`, `memmap2`, `notify`** (all native-only) — exactly Decision 14's
->    native-only list. So `search_file` MUST be **target-gated `cfg(not(target_arch="wasm32"))`**, NOT
+>    native-only list. So `search_file` MUST be **target-gated `cfg(not(target_family="wasm"))`**, NOT
 >    feature-gated (memory `feedback_target_gate_native_tooling`). **How fff is consumed is an open
 >    integration question (OD-32-1):** it is not a workspace member here and not on crates.io as a
 >    library — options: (a) git/path dependency on the external workspace, (b) vendor `fff-core`/
@@ -88,7 +88,7 @@ impl ToolImpl for SearchTool {
 
 ```rust
 pub struct SearchFileTool {
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     fff: FffSearch,    // F16's fff binding (grep/find/multi_grep) — native only
 }
 
@@ -99,7 +99,7 @@ pub enum FileSearchKind { Grep, Find, MultiGrep }   // maps to fff grep/find/mul
 impl ToolImpl for SearchFileTool {
     fn definition(&self) -> ToolDefinition { /* name="search_file", description: real filesystem, native-only */ }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     fn execute(&self, args: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         let a: SearchFileArgs = parse(args)?;
         let matches = match a.kind {
@@ -110,7 +110,7 @@ impl ToolImpl for SearchFileTool {
         Ok(ToolCallResult { content: UserModelContent::Text(json(matches)), error_detail: None })
     }
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(target_family = "wasm")]
     fn execute(&self, _args: HashMap<String, ArgType>) -> Result<ToolCallResult, ToolError> {
         Ok(ToolCallResult {
             content: UserModelContent::Text(TextContent { content:
@@ -151,7 +151,7 @@ graph TD
 
 Author `fundamentals/` covering: knowledge search vs filesystem search (why the conflation was wrong,
 how tool descriptions steer the LLM); semantic/memory/graph/hybrid retrieval modes (what each queries);
-**target-gating native-only tooling** (`cfg(not(target_arch="wasm32"))` vs feature gates, and why fff's
+**target-gating native-only tooling** (`cfg(not(target_family="wasm"))` vs feature gates, and why fff's
 `heed`/`memmap2`/`git2`/`rayon`/`notify` force it); integrating an external (out-of-repo) Rust tool
 (dependency strategies: git/path dep vs vendoring vs reimplementation); graceful wasm degradation (a
 tool that returns "unsupported" instead of failing the build); fff's grep/find/frecency model. (Task —
@@ -207,14 +207,14 @@ see list.)
 
 ```bash
 cargo test -p foundation_ai -- agentic::tools::search
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai -- -D warnings
 cargo test  -p foundation_ai -- agentic::tools::search
 ```

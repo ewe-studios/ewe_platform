@@ -131,7 +131,7 @@ layout:
 
 ### Platform gating
 
-Both are `#[cfg(target_arch = "wasm32")]` (CF Workers) and behind the relevant `foundation_db` wasm
+Both are `#[cfg(target_family = "wasm")]` (CF Workers) and behind the relevant `foundation_db` wasm
 feature. They implement `AsyncDocumentStore` (one unified `Send` async trait — F00e/§A1; the CF binding's
 `!Send` future is wrapped in `SendWrapper` on single-threaded wasm).
 

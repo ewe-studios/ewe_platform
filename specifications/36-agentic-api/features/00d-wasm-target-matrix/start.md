@@ -26,8 +26,9 @@ created: 2026-06-15
 
 ## Critical Notes
 
-- **target_os-aware, not blanket `target_arch="wasm32"`** — emscripten/WASI have far more std than
+- **target_os-aware, not blanket `target_family="wasm"`** — emscripten/WASI have far more std than
   unknown-unknown. Native-C tooling (fff/llama) → native+emscripten; pure Rust → all four.
+  (Item #14: all spec features migrated from `target_arch="wasm32"` to `target_family="wasm"`.)
 - `mise.toml` already adds `wasm32-wasip1`; EMSDK is vendored at `tools/emsdk`.
 
 ---

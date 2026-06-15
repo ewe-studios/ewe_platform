@@ -43,10 +43,10 @@ tasks:
 >    (Decision 04 §Dependency detection: "Default: Parallel").
 > 5. **Parallelism uses valtron, not threads/async.** Decision 04/08: parallel stage → valtron
 >    `broadcast` (global queue → may run on another thread in multi-thread mode; single-thread executor
->    interleaves). Sequential stage → run in order, feed prior results. `ToolImpl::execute` is **sync**
->    (F09 OD-09-1), so a stage's calls are driven as valtron sub-tasks; the manager's own task yields
+>    interleaves). Sequential stage → run in order, feed prior results. `ToolImpl::execute` is **async**
+>    (F09 OD-09-1, Item #1 + Item #13), driven as valtron sub-tasks; the manager's own task yields
 >    `Pending(AgentProgress::ExecutingTools{ completed, total })` between completions (no blocking in
->    `next_status`).
+>    `next_status`). **Cancellation = drop the future** (valtron stops polling → cleanup via `Drop`).
 > 6. **Interruption reads the PriorityQueue + cancel signal from F13** (Decision 04 §Interruption +
 >    Decision 05): before starting each stage, check `priority_queue.is_empty()`; if not, set
 >    `cancel_signal = CancelCode::PauseForPriority` (F13's `Arc<AtomicU32>`), cancel in-progress calls,
@@ -193,25 +193,36 @@ as the resilience strategy (vs terminating). (Task — see list.)
 
 ## Open Decisions
 
-- **OD-11-1 — default fail mode:** parallel stages default `CollectAll` (Decision 04). Confirm.
-- **OD-23-2 — sequential result feed shape:** how a prior result is injected into the next call's args
-  (by tool-call id reference). Rec: results keyed by `call.id`; the next tool reads referenced ids from
-  a results map. Confirm the reference mechanism.
-    Sure this make sense to me, we can definitely do this, its owned by the tool call manager - probably it spawns a ToolExecution struct that owns this execution reqquest the manager delegates to which it spawns into a task into valtron who spawns all the tool calls and manages their lifecycle and the result for the request which the manager waits on to finish before dealing with the next set - isolating tool call requests (the group) from others.
+- **OD-11-1 — default fail mode: RESOLVED (user, 2026-06-15; Item #13).** Parallel stages default
+  `CollectAll` (Decision 04). Confirmed.
 
-- **OD-23-3 — persist durability:** accept F16 buffered append (crash-before-flush loss, F16 OD-16-3)
-  vs force-flush tool results. Rec: accept buffered + short flush interval; document the residual gap.
-  Flag.
-      Yes, we accept potential lost here but that is ok, the tool calls can be repeated and the tools should ensure and own idempotency anyway in whatever logic they do, each could even have internal storage to ensure previous requests by some checksum can be validated to have been done and need not repeat, its left to each tool  - not the managers concern.
+- **OD-11-2 — sequential result feed: RESOLVED (user, 2026-06-15; Item #13).** Results keyed by
+  `call.id` in a results map. The manager spawns a `ToolExecution` struct per request group, which it
+  delegates into a valtron task that spawns all the tool calls and manages their lifecycle + result
+  collection. Each group is isolated — the manager waits for one group to finish before dealing with
+  the next.
 
-- **OD-11-4 — backoff mechanism (load-bearing):** `TaskStatus::Delayed(backoff)` (rec) — NEVER
-  `sleep()`/`SleepIterator` (blocks executor; breaks wasm). Confirm.
-          You have TaskStatus::Wait, TaskStatus::Delayed, TaskStatus::Depends - Sleep iterator should never be used anywhere in this work. The valtron engine has owned these concerns and how they should be handled per environment.
+- **OD-11-3 — persist durability: RESOLVED (user, 2026-06-15; Item #13) → accept buffered.** Crash-
+  before-flush loss is acceptable. Tool calls can be repeated; **tools own their own idempotency**
+  (internal checksums, dedup, etc.) — not the manager's concern.
 
-- **OD-11-5 — cancel granularity:** can an in-flight sync `execute` be aborted mid-call? Sync tools
-  can't be preempted; cancel applies *between* calls/stages + sets the signal future calls observe.
-  Rec: between-call cancellation; document that a long sync tool finishes its current call.
-        When if a tool allows us to send signal to it to cancel e.g cmd processes, then great, if not then we wait for it to finish, this though means some thread mayblock for ever, so its also good to get the pid for any thread or spawned processes incase, a native platform kill signal needs to be sent to properly clean this up (lets think and design this properly).
+- **OD-11-4 — backoff mechanism: RESOLVED (user, 2026-06-15; Item #13) → `TaskStatus::Delayed`.** 
+  `Delayed`/`Wait`/`Depends` only. `SleepIterator` must NEVER be used anywhere in this work. Valtron
+  owns timing concerns per environment (native thread park, wasm JS event loop yield).
+
+- **OD-11-5 — cancellation: RESOLVED (user, 2026-06-15; Item #13) → async execute + drop-based
+  cancellation.** `ToolImpl::execute` is now `async fn` (F09 OD-09-1, Item #1 + Item #13). Valtron
+  drives the future by polling it. **Cancellation = valtron stops polling the future and drops it.**
+  Rust's drop-based cleanup fires automatically — `Child::drop` kills processes, connections close,
+  file handles release. No `CancelToken`/`ProcessHandle`/SIGTERM ladder needed.
+
+  On PriorityQueue steering (F13): valtron stops polling in-flight tool futures → they drop → cleanup
+  happens → manager persists partial results (what completed before cancel) → control returns to F19.
+
+  Implementers own their cleanup: if a tool spawns a child process, its `Drop` impl should kill it.
+  If a tool does blocking sync work inside an async fn, that's the implementer's problem — we can't
+  save stupid. The framework's contract: your future will be dropped on cancellation, handle your
+  resources.
 
 ## Target Files
 
@@ -223,14 +234,14 @@ as the resilience strategy (vs terminating). (Task — see list.)
 
 ```bash
 cargo test -p foundation_ai -- agentic::tools::exec
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai -- -D warnings
 cargo test  -p foundation_ai -- agentic::tools::exec
 ```
@@ -241,4 +252,4 @@ cargo test  -p foundation_ai -- agentic::tools::exec
   modes); each request + result is persisted to the Message API before delivery; per-tool retry uses
   non-blocking `TaskStatus::Delayed` backoff (no `sleep`); tool errors return to the LLM; PriorityQueue
   steering interrupts between stages via cancel signal + `TaskStatus::Depends`; builds native + wasm.
-- OD-11-1..5 resolved (OD-11-3 + OD-11-4 flagged); fundamentals authored.
+- OD-11-1..5 all resolved; fundamentals authored.

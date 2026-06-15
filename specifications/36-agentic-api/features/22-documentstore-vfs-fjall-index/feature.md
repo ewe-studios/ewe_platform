@@ -105,7 +105,7 @@ The substrate already exists: `foundation_nativeapis` has a VFS with **offset I/
 > that is a separate `VfsDocumentStore<V>` — don't conflate them.
 
 ```rust
-// foundation_nativeapis, behind feature = "vfs-fjall", #[cfg(not(target_arch = "wasm32"))]
+// foundation_nativeapis, behind feature = "vfs-fjall", #[cfg(not(target_family = "wasm"))]
 // Real traits (shared/vfs/traits.rs): VfsFileSystem (open/create), VfsFile (read_at/write_at/size),
 // SeekableVfsFile (seek). NOT a single `Vfs` trait.
 pub struct FjallDocumentStore<V: VfsFileSystem> {

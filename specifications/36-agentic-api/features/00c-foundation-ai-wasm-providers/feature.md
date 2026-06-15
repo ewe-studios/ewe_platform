@@ -32,7 +32,7 @@ for `Stream::Delayed`. The review disproved this:
 
 1. **No wasm HTTP/SSE transport exists (the real blocker).** `foundation_netio`'s `SimpleHttpClient`
    and `ReconnectingEventSourceTask` are native-only — `simple_http/client/mod.rs` gates them
-   `#[cfg(all(feature = "multi", not(target_arch = "wasm32")))]`; there is no `web-sys`/fetch client
+   `#[cfg(all(feature = "multi", not(target_family = "wasm")))]`; there is no `web-sys`/fetch client
    anywhere. These native types are held in **always-compiled** provider struct fields
    (`openai_provider.rs:161,483`, `anthropic_messages_provider.rs:573`) and used by `stream()`. So
    the built-in providers **cannot link on wasm**, full stop, regardless of any sleep/auth/rand fix.
@@ -55,7 +55,7 @@ for `Stream::Delayed`. The review disproved this:
 ### Decision: wasm builds the agentic machinery, not the built-in remote providers
 
 On wasm, `foundation_ai` exposes the **provider trait** + the agentic layer; the **concrete
-OpenAI/Anthropic providers and their native transport are `cfg(not(target_arch = "wasm32"))`**. A
+OpenAI/Anthropic providers and their native transport are `cfg(not(target_family = "wasm"))`**. A
 wasm deployment supplies a wasm-compatible provider (a future fetch-based provider, or the
 `ModelProviderRouter` (F12) routing to one, or a mock). This is the only correct scope until a wasm
 HTTP client exists. **OD-00c-1 (user): confirm this scoping.**
@@ -64,9 +64,9 @@ HTTP client exists. **OD-00c-1 (user): confirm this scoping.**
 
 ```rust
 // backends/mod.rs — these depend on the native SimpleHttpClient / EventSource
-#[cfg(not(target_arch = "wasm32"))] pub mod openai_provider;
-#[cfg(not(target_arch = "wasm32"))] pub mod openai_responses_provider;
-#[cfg(not(target_arch = "wasm32"))] pub mod anthropic_messages_provider;
+#[cfg(not(target_family = "wasm"))] pub mod openai_provider;
+#[cfg(not(target_family = "wasm"))] pub mod openai_responses_provider;
+#[cfg(not(target_family = "wasm"))] pub mod anthropic_messages_provider;
 ```
 
 Any always-compiled re-exports of these providers / their types move behind the same cfg. The
@@ -95,9 +95,9 @@ target-agnostic. Audit `lib.rs` for unconditional provider re-exports.
 [dependencies]
 foundation_auth = { workspace = true, default-features = false }   # drop turso
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
+[target.'cfg(target_family = "wasm")'.dependencies]
 foundation_auth = { workspace = true, default-features = false, features = ["wasm"] }
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_auth = { workspace = true }                              # native default (incl. turso if needed elsewhere)
 ```
 
@@ -117,24 +117,30 @@ llamacpp = ["dep:infrastructure_llama_cpp", "dep:foundation_deployment"]
 candle   = ["candle-nn", "candle-transformers", "tokenizers", "dep:foundation_deployment"]
 ```
 
-### 5. `agentic` marks the wasm surface
+### 5. wasm builds with default features (Item #14)
 
-The wasm build is `cargo build -p foundation_ai --no-default-features --features agentic --target
-wasm32-unknown-unknown`. It includes: types, the agentic module (F03+), the provider trait, storage
-glue — and **excludes** llama/candle backends (00b) and the native HTTP providers (this feature).
+**`agentic` and wasm are orthogonal axes (Item #14).** The wasm build is simply
+`cargo build -p foundation_ai --target wasm32-unknown-unknown` — **default features stay on**
+(`llamacpp` + `agentic`). Target gates in Cargo.toml and code automatically exclude native-only
+deps and modules. No `--no-default-features` needed.
+
+The agentic module itself splits: `shared/` (target-agnostic, bulk of code), `native/` (non-wasm +
+emscripten), `wasm/web/` (unknown-unknown: SendWrapper, fetch, web-sys), `wasm/wasi/` (wasip1/p2).
 
 ## Architecture
 
 ```mermaid
 graph TD
-    subgraph "native (default)"
+    subgraph "native (default features, native target)"
         N[foundation_ai] --> NP[OpenAI/Anthropic providers + native HTTP/SSE]
         N --> NL[llama/candle backends]
+        N --> NA[agentic/shared + agentic/native]
     end
-    subgraph "wasm (--no-default-features --features agentic)"
-        W[foundation_ai agentic surface] --> WT[ModelProvider trait + types]
-        W --> WA[agentic loop/memory/tools]
-        W -.native-only, excluded.-> WP[built-in HTTP providers]
+    subgraph "wasm (default features, wasm target — target gates exclude native-only)"
+        W[foundation_ai] --> WT[ModelProvider trait + types]
+        W --> WA[agentic/shared + agentic/wasm/web or wasi]
+        W -.target-gated out.-> WP[built-in HTTP providers]
+        W -.target-gated out.-> WL[llama/candle backends]
         WX[wasm deployment] -->|supplies| WI[wasm provider: future fetch-based / router / mock]
         WI -.implements.-> WT
     end
@@ -149,7 +155,7 @@ graph TD
 4. Target-gate `foundation_auth` (`wasm` feature on wasm; default on native). Verify it builds on
    wasm (OD-00c-2) — if not, file/await the `foundation_auth` wasm fix.
 5. Make `foundation_deployment` optional under `llamacpp`/`candle`.
-6. `cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown`;
+6. `cargo build -p foundation_ai --target wasm32-unknown-unknown`;
    target-gate any residual native usage surfaced (the build error list is the worklist).
 7. Native default build + suite — **no behavior change**.
 
@@ -187,14 +193,14 @@ graph TD
 ```bash
 cargo build -p foundation_ai                                       # native default — unchanged
 cargo test  -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai -- -D warnings
 cargo fmt -- --check
 cargo test -p foundation_ai
@@ -210,10 +216,11 @@ Cloudflare Workers runtime & `?Send` futures; how a wasm deployment supplies a p
 
 ## Done When
 
-- `foundation_ai` builds for `wasm32-unknown-unknown` under `--no-default-features --features agentic`
-  — exposing the agentic machinery + provider trait, **without** the native HTTP providers.
+- `foundation_ai` builds for `wasm32-unknown-unknown` with **default features** (`llamacpp` + `agentic`)
+  — target gates automatically exclude native-only providers and llamacpp dep. No `--no-default-features`.
 - Native default build + suite unchanged.
 - Dead deps removed; `foundation_auth` target-gated and wasm-buildable.
+- All cfg gates use `target_family = "wasm"` (not `target_arch = "wasm32"`).
 - OD-00c-1 (scope) confirmed by the user; OD-00c-3 (wasm fetch client) recorded as a future feature.
 - **Phase 0 complete:** `foundation_compact`, `foundation_compact`, `foundation_ai` (machinery) build
   native + wasm; the agentic features (01+) can assume the substrate. wasm *remote inference* awaits

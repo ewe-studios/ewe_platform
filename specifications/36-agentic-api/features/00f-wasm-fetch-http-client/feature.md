@@ -67,7 +67,7 @@ types (already shared, re-exported by `foundation_http`).
 ### 2. wasm `fetch` backend
 
 ```
-foundation_netio/src/simple_http/client/wasm/   (#[cfg(target_arch = "wasm32")])
+foundation_netio/src/simple_http/client/wasm/   (#[cfg(target_family = "wasm")])
 ├── client.rs     — FetchHttpClient: builds a web_sys::Request, awaits fetch(), maps Response
 ├── stream.rs     — ReadableStream -> ByteStream (SSE/chunked)
 └── headers.rs    — SimpleHeaders <-> web_sys::Headers
@@ -151,7 +151,7 @@ cargo test  -p foundation_netio -- simple_http::client
 
 ```bash
 cargo clippy -p foundation_netio -- -D warnings
-cargo build -p foundation_ai --target wasm32-unknown-unknown --no-default-features --features agentic   # providers compile on wasm
+cargo build -p foundation_ai --target wasm32-unknown-unknown   # providers compile on wasm
 ```
 
 ## Fundamentals Documentation (zero-to-expert) — REQUIRED

@@ -1,234 +1,291 @@
 ---
-feature: "Input/Output Processors — the Mastra-style processor interface"
-description: "The composable processor pipeline: input processors (working-memory/history/recall/reflection injectors) that transform the AgentContext before each LLM call, and output processors (message-saver/embedding/observation-trigger/working-memory-updater) that handle deferrable side effects after each response — fully specified trait (process return, skip, dedup by id, priority order). Loop detection is NOT a processor: it's an inline check in F19's tight inner loop (Item #3)"
+feature: "Internal Pipeline & Extension Hooks — fixed internal steps, pub/sub fan-out, steer-to-hook"
+description: "The agent loop's internal pipeline is fixed (no processor traits): F16 assembles context, F19 calls the model, F08 saves, F15 checks memory triggers, F31 embeds — all in a deterministic order. User extensions are valtron tasks that subscribe to F08's pub/sub broadcaster (bounded per-subscriber queues, slowest-consumer pacing, eviction on max-retry failure) and steer via F13's queues. AgentSession exposes all handles."
 status: "pending"
 priority: "high"
-depends_on: ["16-context-provider-assembly", "08-message-api", "15-memory-hierarchy"]
+depends_on: ["08-message-api", "13-steering-queues-depends", "15-memory-hierarchy", "16-context-provider-assembly", "19-agentic-loop", "20-agent-session-api"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-15
 author: "Main Agent"
 tasks:
   completed: 0
-  uncompleted: 11
-  total: 11
+  uncompleted: 8
+  total: 8
   completion_percentage: 0%
 ---
 
-# Feature 14: Input/Output Processors
+# Feature 14: Internal Pipeline & Extension Hooks
 
-> **Review status (2026-06-14) — self-review against code (subagent unavailable):**
-> 1. **Decision 11 sketches but does NOT fully specify the trait.** It shows `InputProcessorWorkflow`
->    with dedup-by-`id()` + priority order (lines 109-128) and tables of processors, but leaves the
->    `process` return type, the *skip* mechanism, and the output-processor trait undefined. F14 owns the
->    **full** spec (the requirements §F30 task: "Input/output processor interface fully specified (return
->    type, skip, dedup)").
-> 2. **Processors operate on F16's `AgentContext`** (input) and on the turn's new `SessionRecord`s
->    (output). `AgentContext` is F16's assembled-context type (`16-context-provider-assembly/
->    feature.md:38` `assemble(..) -> AgentContext`). Input processors *mutate* it pre-LLM; output
->    processors *consume* the LLM result + emit side effects. F14 does NOT re-implement memory/recall —
->    it sequences F16 (assembly), F15 (memory triggers), F08 (save/index) as processors. **Loop
->    detection (F17) is NOT a processor** — it's an inline check in F19 (Item #3). (Boundary: F14 = the
->    pipeline, F16/F15/F08 = the work; F17 = inline in F19.)
-> 3. **The input processors largely DUPLICATE F16's `assemble` order** (Decision 11 §Input Processors:
->    WorkingMemoryInjector/MessageHistoryLoader/SemanticRecall/ReflectionInjector/ObservationInjector vs
->    F16's exact assembly order). **OD-14-1 (load-bearing):** decide whether F16 `assemble` IS the input
->    pipeline (processors are just its named, reorderable steps) OR processors wrap a bare context and
->    F16 is one processor. Rec: **`assemble` is the default input pipeline; processors let callers
->    insert/replace steps** — so the deterministic Decision 03 order (which F16+F20 resume depend on) is
->    preserved unless a caller deliberately overrides. Flag (this affects replay determinism).
-> 4. **`process` must be fallible + skippable + non-blocking.** Return
->    `ProcessorOutcome` = `{ Applied, Skipped(reason), Failed(AgenticError) }` rather than `Result<()>`
->    so a processor can *cleanly skip* (e.g. SemanticRecall when recent messages already fill the budget)
->    distinct from *failing*. A failed non-critical processor (recall, embedding) logs + continues
->    (Decision 16 "memory/vector error → continue"); a failed critical processor (MessageSaver) escalates.
->    (OD-14-2.)
-> 5. **Output processors that do real work run as valtron sub-tasks, not inline.** ObservationTrigger →
->    F15 generate (a `schedule`d task, F15 OD-15-4); EmbeddingGenerator → F31 (non-blocking, F31 OD-31-6);
->    LoopDetector → F17. So an output processor's `process` either does cheap synchronous work (save id,
->    check a counter) OR **spawns** a valtron task and returns `Applied` immediately — it must NEVER block
->    `next_status`. (OD-14-3.)
-> 6. **Dedup by `id()` + priority order** (Decision 11 lines 116-124): `HashSet<&str>` of processor ids,
->    first occurrence wins; execute sorted by `priority()`. Both `id()` and `priority()` are trait methods.
-> 7. **`LoopDetector` is NOT an output processor — RESOLVED (user, 2026-06-15; Item #3 / §H1).** It's a
->    **synchronous check inside F19's tight inner loop** (F17 owns the detector; F19 calls it inline).
->    There is **no `LoopDetectorProcessor`** and no output-pipeline slot for it. The output pipeline holds
->    only deferrable side-effects (save/embed/memory-triggers), which F19 spawns as background work.
-
-> Fully specifies Decision 11's Mastra-style processor interface: an **input** pipeline that transforms
-> the `AgentContext` before each LLM call and an **output** pipeline that handles side effects after
-> each response, both composable, deduplicated by id, ordered by priority, fallible, skippable, and
-> non-blocking. Owns the pipeline; F16/F15/F08 own the work each processor does (F17 loop detection runs
-> inline in F19, not as a processor — Item #3).
+> **Major rewrite (2026-06-15; Item #11).** The `InputProcessor`/`OutputProcessor` trait abstraction is
+> **removed entirely**. It mixed two concerns: (1) the framework's internal sequencing (which is fixed
+> and deterministic) and (2) user extension points (which are valtron tasks, not processors). The new
+> design:
+> - **Internal pipeline = fixed, not a trait.** F19 calls F16/F15/F08/F31/F17 directly in Decision 03's
+>   deterministic order. No `ProcessorOutcome`, no priority numbers, no dedup-by-id.
+> - **User extensions = valtron tasks** that observe via F08 pub/sub and steer via F13 queues.
+>   `AgentSession` exposes all handles (`message_api()`, `ledger()`, `steering_queues()`,
+>   `memory_coordinator()`) so extension tasks can hook in.
+> - **Pub/sub broadcaster** (F08, elevated into `foundation_core::synca::mpp`) with bounded per-subscriber
+>   queues, slowest-consumer pacing, delivery tracking, and eviction on max-retry failure.
 
 ## WHY: Problem Statement
 
-The agent loop must, before each LLM call, inject working memory + reflections + recent + recalled
-messages, and after each response, save messages, index embeddings, check memory/loop triggers, and
-update working memory. Hard-coding this into the loop makes it rigid and untestable. Decision 11's
-answer (from Mastra) is **processors**: small, composable, named units the loop runs in order. But
-Decision 11 left the trait under-specified (no return type, skip, or output trait). This feature pins
-it down.
+The agent loop must, before each LLM call, assemble context (working memory + reflections +
+observations + history + recall) and, after each response, save records, index embeddings, and check
+memory triggers. These are the framework's **fixed internal responsibilities** — they run in a
+deterministic order that resume depends on. Wrapping them in a processor trait adds complexity without
+value: nobody should reorder the core sequence.
+
+But users DO need to **observe** what the agent does and **steer** it from outside — a monitoring
+dashboard, a safety guardrail, an orchestrator agent, a custom RAG injector. These are **separate
+valtron tasks** that read the session's event stream and inject steering/follow-up messages. They don't
+need to be "processors" inside the loop — they need handles to the session's pub/sub and queues.
 
 ## WHAT: Solution
 
-```rust
-// backends/foundation_ai/src/agentic/processors.rs
-pub enum ProcessorOutcome {
-    Applied,                 // processor ran and changed state
-    Skipped(&'static str),   // deliberately did nothing (e.g. recall not needed) — NOT an error
-    Failed(AgenticError),    // ran and errored
-}
+### 1. Fixed internal pipeline (no trait, no abstraction)
 
-pub trait InputProcessor: Send + Sync {
-    fn id(&self) -> &'static str;          // dedup key
-    fn priority(&self) -> i32;             // execution order (lower = earlier)
-    fn critical(&self) -> bool { false }   // if true, Failed aborts the turn; else logs + continues
-    /// Transform the context in place before the LLM call.
-    fn process(&self, ctx: &mut AgentContext) -> ProcessorOutcome;
-}
+F19's agent loop calls its dependencies directly in Decision 03's deterministic order:
 
-pub trait OutputProcessor: Send + Sync {
-    fn id(&self) -> &'static str;
-    fn priority(&self) -> i32;
-    fn critical(&self) -> bool { false }
-    /// React to the LLM result + the turn's new records. May SPAWN a valtron task and
-    /// return Applied immediately — must NOT block.
-    fn process(&self, turn: &TurnOutput, spawn: &mut SpawnSink) -> ProcessorOutcome;
-}
+```text
+PRE-LLM (every turn):
+  1. F16 assemble context:
+     system prompt → working memory (F15) → reflections (F15, SCRU128-latest) →
+     observations (only if newer than reflection — INCON-03) →
+     recent messages (F08) → semantic recall (F08, fills remaining budget)
+  2. F04 budget check (is_exhausted? → halt)
 
-pub struct InputPipeline  { processors: Vec<Box<dyn InputProcessor>> }
-pub struct OutputPipeline { processors: Vec<Box<dyn OutputProcessor>> }
+MODEL CALL:
+  3. F12 router → provider.stream(model_id, interaction, params)
+  4. F17 loop detection check (synchronous, inline — Item #3)
 
-impl InputPipeline {
-    pub fn run(&self, ctx: &mut AgentContext) -> Vec<(&'static str, ProcessorOutcome)> {
-        let mut seen = HashSet::new();
-        let mut ps: Vec<_> = self.processors.iter().filter(|p| seen.insert(p.id())).collect();
-        ps.sort_by_key(|p| p.priority());
-        ps.into_iter().map(|p| {
-            let out = p.process(ctx);
-            if let ProcessorOutcome::Failed(ref e) = out { if p.critical() { /* abort */ } else { log(e) } }
-            (p.id(), out)
-        }).collect()
-    }
-}
-// OutputPipeline::run mirrors this, threading a SpawnSink so processors can schedule valtron tasks.
+POST-LLM (every turn):
+  5. F08 message_api.append(record)        — buffered, returns immediately
+  6. F04 ledger.record(usage)              — once per turn (not per message)
+  7. F15 memory triggers (check_triggers → spawn generate if threshold hit)
+  8. F31 embed (spawned, non-blocking)
+  9. F08 broadcaster.broadcast(event)      — fans out to all subscribers
 ```
 
-### The default processors (Decision 11 tables)
+This is **not configurable**. The order is fixed. The loop calls these directly — no trait
+indirection, no priority sorting, no dedup. Deterministic by construction.
 
-**Input** (priority order): `WorkingMemoryInjector` (always) → `ReflectionInjector` (if reflections) →
-`ObservationInjector` (only if obs newer than latest reflection — F16 INCON-03) → `MessageHistoryLoader`
-(recent N) → `SemanticRecall` (fills remaining budget; `Skipped` when recent already fills it). All
-delegate into F16's assembly surfaces (OD-14-1: these ARE F16's `assemble` steps, named + reorderable).
+### 2. Extension hooks via `AgentSession`
 
-**Output** (priority order): `MessageSaver` (critical — F08 append) → `EmbeddingGenerator` (F31, spawns)
-→ `ObservationTrigger` / `ReflectionTrigger` (F15 `check_triggers` → spawn generate) →
-`WorkingMemoryUpdater` (F15, on new fact). **No `LoopDetectorProcessor`** — loop detection is an inline
-inner-loop check in F19 (Item #3 / OD-14-4), not a processor.
-
-### Non-blocking output (OD-14-3)
+`AgentSession` (F20) owns all the internal components and exposes them via methods. An extension task
+gets a clone of the session handle (it's `Arc`-backed, cheap) and hooks in:
 
 ```rust
-impl OutputProcessor for ObservationTrigger {
-    fn process(&self, _t: &TurnOutput, spawn: &mut SpawnSink) -> ProcessorOutcome {
-        match self.memory.check_triggers() {            // F15 — cheap counter read
-            MemoryAction::None => ProcessorOutcome::Skipped("below threshold"),
-            action => { spawn.schedule(self.memory.generate(action)); ProcessorOutcome::Applied }  // valtron, not inline
+impl AgentSession {
+    // --- Existing (F20) ---
+    pub fn steer(&self, msg: Messages);               // F13 PriorityQueue (interrupt)
+    pub fn follow_up(&self, msg: Messages);            // F13 FollowUpQueue (defer)
+
+    // --- Extension handles (NEW — F14) ---
+    pub fn message_api(&self) -> &MessageApi;          // subscribe to events, read records
+    pub fn ledger(&self) -> &TokenLedger;              // read token/budget state
+    pub fn steering_queues(&self) -> &SteeringQueues;  // low-level queue access
+    pub fn memory_coordinator(&self) -> &MemoryCoordinator; // read memory state
+}
+```
+
+An extension task is a plain valtron task:
+
+```rust
+fn my_guardrail_task(session: AgentSession) -> impl TaskIterator {
+    let rx = session.message_api().subscribe();   // per-subscriber bounded queue
+    move |_| {
+        match rx.pop() {
+            Ok(MessageEvent::Appended { id, variant }) => {
+                let record = session.message_api().scan_from(&id, 1);
+                if looks_dangerous(&record) {
+                    session.steer(Messages::User {
+                        role: MessageRole::System,
+                        content: "Stop — safety violation detected".into(),
+                        ..
+                    });
+                }
+                Some(TaskStatus::Ignore)  // keep running
+            }
+            Err(PopError::Empty) => {
+                // Park until the subscriber queue has something:
+                Some(TaskStatus::Depends(session.message_api().subscriber_readiness(&rx)))
+            }
+            Err(PopError::Closed) => None,  // session ended, clean up
         }
     }
 }
 ```
 
+### 3. Pub/sub broadcaster — bounded fan-out with eviction
+
+The `&self`-safe broadcaster (F08, elevated into `foundation_core::synca::mpp`) fans out
+`MessageEvent`s to all subscribers. Design:
+
+```rust
+pub struct Broadcaster<T> {
+    subscribers: Mutex<Vec<SubscriberSlot<T>>>,
+}
+
+struct SubscriberSlot<T> {
+    queue: Arc<ConcurrentQueue<T>>,    // bounded, per-subscriber
+    delivered_up_to: u64,              // index tracking
+    consecutive_failures: u32,         // push failures (queue full)
+}
+
+impl<T: Clone> Broadcaster<T> {
+    /// Create a new subscriber. Returns the receiver end (the queue).
+    pub fn subscribe(&self, capacity: usize) -> Arc<ConcurrentQueue<T>>;
+
+    /// Fan out to all subscribers. Paces by the SLOWEST consumer:
+    /// tries to push to every subscriber before advancing.
+    ///
+    /// If a subscriber's queue is full (push returns Err), increment its failure count.
+    /// After `max_retries` consecutive failures, EVICT that subscriber from the list
+    /// (the queue is closed so the extension task sees PopError::Closed and cleans up).
+    /// Healthy consumers are never blocked by a dead/slow one beyond the retry window.
+    pub fn broadcast(&self, event: T);
+}
+```
+
+**Backpressure policy:**
+- **Per-subscriber bounded queue** — each `subscribe(capacity)` creates a `ConcurrentQueue::bounded(capacity)`.
+- **Slowest consumer paces delivery** — broadcaster pushes to ALL subscribers before advancing. All must receive.
+- **Delivery tracking** — each slot tracks `delivered_up_to` (the index of the last successfully delivered event).
+- **Eviction on max-retry failure** — if a subscriber's queue is full and `consecutive_failures >= max_retries`, the broadcaster **evicts** that subscriber: closes its queue and removes it from the list. The extension task sees `PopError::Closed` and cleans up. Healthy consumers continue unblocked.
+- **Success resets the counter** — a successful push resets `consecutive_failures` to 0.
+
+### 4. Lifecycle — session end closes all queues
+
+When `AgentSession::end()` runs (Decision 01 teardown):
+1. Close the broadcaster — all subscriber queues are closed → extension tasks see `PopError::Closed` → they return `None` from `next_status` → valtron cleans them up.
+2. Close F13 steering queues (PriorityQueue + FollowUpQueue) — any pending `Depends` wakes up and sees the closed queue.
+3. Standard F20 teardown continues (flush F08, drain queues, persist memory, etc.).
+
+Extension tasks don't need explicit shutdown signals — queue closure IS the signal.
+
 ## Architecture
 
 ```mermaid
 graph TD
-    subgraph Input pipeline pre-LLM
-    WMI[WorkingMemoryInjector] --> RI[ReflectionInjector] --> OI[ObservationInjector INCON-03] --> MH[MessageHistoryLoader] --> SR[SemanticRecall skip if full]
+    subgraph Fixed Internal Pipeline - F19 loop
+    ASM[F16 assemble context] --> BUD[F04 budget check]
+    BUD --> MODEL[F12 router → model call]
+    MODEL --> LD[F17 loop detection inline]
+    LD --> SAVE[F08 append record]
+    SAVE --> LED[F04 ledger.record]
+    LED --> MEM[F15 memory triggers spawn]
+    MEM --> EMB[F31 embed spawn]
+    EMB --> PUB[F08 broadcaster.broadcast]
     end
-    SR --> CTX[AgentContext -> LLM]
-    CTX --> LLM[LLM call F12/F19]
-    LLM --> TO[TurnOutput]
-    subgraph Output pipeline post-LLM
-    MS[MessageSaver critical F08] --> EG[EmbeddingGenerator spawn F31] --> OT[ObservationTrigger spawn F15] --> WU[WorkingMemoryUpdater F15]
-    %% no LoopDetector here — it's an inline inner-loop check in F19 (Item #3)
+
+    subgraph Extension Tasks - valtron tasks
+    PUB --> |MessageEvent| EXT1[Guardrail task]
+    PUB --> |MessageEvent| EXT2[Dashboard task]
+    PUB --> |MessageEvent| EXT3[Orchestrator agent]
+    EXT1 --> |steer/follow_up| Q[F13 SteeringQueues]
+    EXT3 --> |steer/follow_up| Q
+    Q --> ASM
     end
-    TO --> MS
-    OT -. valtron schedule .-> MEM[(F15 memory gen)]
+
+    SESSION[AgentSession] --> |exposes handles| EXT1
+    SESSION --> |exposes handles| EXT2
+    SESSION --> |exposes handles| EXT3
 ```
 
 ## Fundamentals Documentation (zero-to-expert) — REQUIRED
 
-Author `fundamentals/` covering: the processor/middleware pattern (composable pipelines, ordering,
-dedup, separation of pipeline from work); input vs output processors (context transformation vs side
-effects); the three-state outcome (Applied/Skipped/Failed) and why *skip* ≠ *fail*; critical vs
-non-critical processors and graceful degradation (Decision 16); **non-blocking output processors**
-(spawn a valtron task, return immediately — never block `next_status`); priority ordering & determinism
-(why input order must stay stable for resume replay); how the default processors map onto F16/F15/F08/
-F31/F17. (Task — see list.)
+Author `fundamentals/` covering: **fixed vs configurable pipelines** (why an internal pipeline should
+be deterministic and not exposed as a trait when resume/replay depends on ordering); the
+**observe-and-steer extension pattern** (subscribe to events, inject steering messages — vs the
+processor/middleware pattern and why it's a better separation of concerns for an agentic loop);
+**bounded fan-out pub/sub** (per-subscriber queues, slowest-consumer pacing, delivery tracking,
+eviction on failure — why this beats a shared queue or unbounded broadcast); **queue closure as
+lifecycle signal** (cooperative shutdown via `PopError::Closed`); how `AgentSession` as the
+handle-exposing facade enables extension composition without coupling. (Task — see list.)
 
 ## HOW: Implementation Steps
 
-1. `ProcessorOutcome`; `InputProcessor`/`OutputProcessor` traits (`id`/`priority`/`critical`/`process`).
-2. `InputPipeline`/`OutputPipeline` (`run`: dedup by id, sort by priority, critical-vs-log handling).
-3. `SpawnSink` so output processors schedule valtron tasks (F15/F31) without blocking.
-4. Default input processors over F16 assembly (resolve OD-14-1: assemble == default pipeline).
-5. Default output processors: MessageSaver (F08, critical) / EmbeddingGenerator (F31) / Observation+
-   ReflectionTrigger (F15) / WorkingMemoryUpdater (F15). **No LoopDetector processor** (inline in F19 —
-   Item #3).
-6. Tests: dedup keeps first by id; priority ordering; `Skipped` vs `Failed` distinct; critical failure
-   aborts, non-critical logs+continues; output processor spawns (doesn't block); input pipeline
-   reproduces Decision 03 order (replay determinism); wasm build.
+1. Remove `InputProcessor`/`OutputProcessor`/`ProcessorOutcome`/`InputPipeline`/`OutputPipeline` —
+   these no longer exist.
+2. Document the fixed internal pipeline order in F19's loop (the sequence above — this IS the spec for
+   what F19 calls and in what order).
+3. Add extension handle methods to `AgentSession` (F20): `message_api()`, `ledger()`,
+   `steering_queues()`, `memory_coordinator()`.
+4. Build the bounded fan-out `Broadcaster<T>` in `foundation_core::synca::mpp`:
+   `subscribe(capacity)` → per-subscriber `ConcurrentQueue::bounded`; `broadcast(event)` →
+   slowest-consumer push with delivery tracking + eviction on `max_retries` consecutive failures.
+5. Integrate broadcaster into F08 `MessageApi` — `broadcast(MessageEvent)` after each append/flush.
+6. Wire `AgentSession::end()` to close all subscriber queues + steering queues (lifecycle cleanup).
+7. Tests: broadcaster fans out to N subscribers; slow subscriber evicted after max_retries; evicted
+   subscriber sees `PopError::Closed`; healthy subscribers continue after eviction; session end
+   closes all queues; extension task observes events and steers successfully; fixed pipeline order
+   matches Decision 03; wasm build.
 
 ## Open Decisions
 
-- **OD-14-1 — input pipeline vs F16 assemble (load-bearing):** `assemble` is the default input pipeline
-  (named reorderable steps) — rec; preserves Decision 03 deterministic order for resume. Flag (replay
-  determinism).
-        Surface in discussion, show me options and lets talk about it
+- **OD-14-1 — input pipeline: RESOLVED (user, 2026-06-15; Item #11).** No input pipeline trait. F16
+  `assemble` runs directly in F19 in Decision 03's fixed order. Not configurable.
 
-- **OD-14-2 — outcome type:** three-state `ProcessorOutcome` (rec) vs `Result<bool>`. Rec: three-state
-  (skip ≠ fail).
-        Surface in discussion, show me options and lets talk about it
+- **OD-14-2 — outcome type: DISSOLVED (2026-06-15; Item #11).** No `ProcessorOutcome` — there are no
+  processors. Internal steps return their natural types (`AgentContext`, `Result`, etc.).
 
-- **OD-14-3 — output non-blocking:** processors spawn valtron tasks via `SpawnSink`, never block (rec).
-        Surface in discussion, show me options and lets talk about it
+- **OD-14-3 — output non-blocking: DISSOLVED (2026-06-15; Item #11).** No output processor trait.
+  F15 memory generation and F31 embedding are spawned as valtron tasks directly by F19 (already the
+  design from Item #3). No `SpawnSink` abstraction needed.
 
-- **OD-14-4 — LoopDetector placement: RESOLVED (user, 2026-06-15; Item #3 / §H1).** Loop detection is
-  **NOT an output processor** — it's a **synchronous check inside F19's tight inner loop** (F17 owns the
-  detector, F19 calls it inline). **Remove the loop-detector slot from the output pipeline.** The output
-  pipeline keeps only the **deferrable, non-control** concerns — **memory-generation triggers (F15) +
-  record persistence (F08), which F19 spawns as background valtron work** (never block the loop).
-- **OD-14-5 — pipeline mutability: RESOLVED (user) → fixed at session build** (Decision 11 composes once;
-  runtime mutation deferred).
+- **OD-14-4 — LoopDetector placement: RESOLVED (user, 2026-06-15; Item #3 / §H1).** Inline in F19's
+  tight loop. Unchanged.
+
+- **OD-14-5 — pipeline mutability: DISSOLVED (2026-06-15; Item #11).** No pipeline to mutate. The
+  internal sequence is fixed. Extension tasks are independent valtron tasks — they're added/removed
+  by spawning/stopping them, not by mutating a pipeline.
+
+- **OD-14-6 — extension hook contract: RESOLVED (user, 2026-06-15; Item #11).** `AgentSession`
+  exposes `message_api()` / `ledger()` / `steering_queues()` / `memory_coordinator()`. Extensions
+  subscribe via `message_api().subscribe(capacity)`, steer via `session.steer()` /
+  `session.follow_up()`. Lifecycle: session end closes all queues → `PopError::Closed`.
+
+- **OD-14-7 — pub/sub backpressure: RESOLVED (user, 2026-06-15; Item #11).** Per-subscriber bounded
+  `ConcurrentQueue`; slowest consumer paces delivery; delivery index tracking; eviction after
+  `max_retries` consecutive push failures (queue closes, extension sees `PopError::Closed`, healthy
+  consumers continue). Success resets the failure counter.
 
 ## Target Files
 
-- `backends/foundation_ai/src/agentic/processors.rs` (new) — traits, pipelines, default processors
-- coordinates F16 (`AgentContext`, assembly), F15 (memory triggers/updates), F08 (save/index), F31
-  (embedding), F17 (loop detector), F19 (the loop that runs the pipelines)
+- `foundation_core::synca::mpp` — bounded fan-out `Broadcaster<T>` (elevated from F08)
+- `backends/foundation_ai/src/agentic/session.rs` — extension handle methods on `AgentSession`
+- coordinates F08 (pub/sub events), F13 (steering queues), F19 (fixed pipeline), F20 (session facade)
 
 ## Tests
 
 ```bash
-cargo test -p foundation_ai -- agentic::processors
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo test -p foundation_core -- synca::mpp::broadcaster
+cargo test -p foundation_ai -- agentic::session::extension
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
+cargo build -p foundation_core
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
+cargo clippy -p foundation_core -- -D warnings
 cargo clippy -p foundation_ai -- -D warnings
-cargo test  -p foundation_ai -- agentic::processors
+cargo test -p foundation_core -- synca::mpp
+cargo test -p foundation_ai -- agentic::session
 ```
 
 ## Done When
 
-- `InputProcessor`/`OutputProcessor` fully specified (Applied/Skipped/Failed outcome, dedup by id,
-  priority order, critical handling); input pipeline reproduces Decision 03 assembly order
-  deterministically; output processors spawn valtron work without blocking; default processors wire to
-  F16/F15/F08/F31; **no LoopDetector processor** (inline in F19 — Item #3); builds native + wasm.
-- OD-14-1..5 resolved (OD-14-1 flagged; OD-14-4 → inline in F19); fundamentals authored.
+- Internal pipeline is fixed and deterministic (F19 calls F16/F08/F15/F31/F17/F04 directly — no
+  processor traits, no priority ordering).
+- `AgentSession` exposes `message_api()` / `ledger()` / `steering_queues()` / `memory_coordinator()`
+  for extension tasks.
+- Bounded fan-out `Broadcaster<T>` in `foundation_core::synca::mpp` with per-subscriber queues,
+  slowest-consumer pacing, delivery tracking, and eviction on max-retry failure.
+- Session end closes all subscriber + steering queues (lifecycle cleanup).
+- Extension tasks can observe events and steer without touching the internal pipeline.
+- OD-14-1..7 resolved; fundamentals authored.

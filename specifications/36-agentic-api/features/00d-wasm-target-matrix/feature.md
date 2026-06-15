@@ -25,8 +25,9 @@ tasks:
 
 ## WHY: Problem Statement
 
-The spec gates wasm with blanket **`cfg(target_arch = "wasm32")`** / `cfg(not(target_arch="wasm32"))`.
-That is too coarse — it lumps four *very different* targets together:
+The spec originally gated wasm with blanket **`cfg(target_arch = "wasm32")`** / `cfg(not(target_arch="wasm32"))`.
+**Item #14 resolved:** all gates now use `target_family = "wasm"` (covers wasm32 + wasm64). But even
+`target_family` is too coarse — it lumps four *very different* targets together:
 
 | Target | std? | time | threads | host | net/HTTP | use |
 |--------|------|------|---------|------|----------|-----|
@@ -44,17 +45,17 @@ emscripten/wasi, polyfill only on `unknown-unknown`).
 
 ## WHAT: Solution
 
-### 1. cfg discipline — target_os-aware, not blanket target_arch
+### 1. cfg discipline — target_os-aware, not blanket target_family
 
-Establish the canonical discriminators (used spec-wide):
+Establish the canonical discriminators (used spec-wide, all using `target_family = "wasm"`):
 
 ```rust
 // the RESTRICTIVE no-std browser/CF target (the one needing polyfills + JS host):
-#[cfg(all(target_arch = "wasm32", target_os = "unknown"))]
-// emscripten (libc + threads + WebGPU; llama works):
-#[cfg(all(target_arch = "wasm32", target_os = "emscripten"))]
+#[cfg(all(target_family = "wasm", not(target_os = "emscripten"), not(target_os = "wasi")))]
+// emscripten (libc + threads + WebGPU; llama works — routes to native/ in agentic module):
+#[cfg(all(target_family = "wasm", target_os = "emscripten"))]
 // WASI preview 1 / preview 2:
-#[cfg(all(target_arch = "wasm32", target_os = "wasi"))]   // (+ target_env "p1"/"p2" where needed)
+#[cfg(all(target_family = "wasm", target_os = "wasi"))]   // (+ target_env "p1"/"p2" where needed)
 ```
 
 Audit the agentic crates' wasm gates: native-only C tooling (fff's heed/git2/memmap2, llama's CMake)
@@ -65,7 +66,7 @@ stays gated to **native + emscripten** where it actually builds; pure-Rust agent
 
 `foundation_wasm` today: a nostd WASM/JS interop runtime; the **`web`** feature enables the JS host ABI
 (`wasm_import_module = "abi"` imports, timers, `host_apply`) — that's the `unknown-unknown`/browser
-path. Its cfg gates on `target_arch` (`wasm32`/`wasm64`), not `target_os`. Needed:
+path. Its cfg gates on `target_family = "wasm"`, not `target_os`. Needed:
 
 - **Make the host abstraction target-OS-aware.** The `web` (JS) host stays for unknown-unknown +
   emscripten-in-browser. Add a **WASI host backend** (`wasi` feature) — under wasip1/p2 there is no JS
@@ -169,10 +170,12 @@ how to write **target-OS-aware cfg** (not blanket `target_arch`); building/runni
   whether emscripten is gated behind a testbed feature.
           - Yes its time to invest more in this and get this build target working well.
 
-- **OD-00d-5 — spec-wide cfg refactor:** replace blanket `cfg(target_arch="wasm32")` across the agentic
-  features with the target_os discriminators. Rec: do it as part of each feature's wasm gating, with
-  this feature owning the canonical pattern + the audit checklist.
-       - Feature it and plan it properly, understand the dependency chain and where and when it must land, its our opportunity to make it all worthwhile here. Lets get it right
+- **OD-00d-5 — spec-wide cfg refactor: PARTIALLY RESOLVED (Item #14, 2026-06-15).** All spec features
+  now use `target_family = "wasm"` instead of `target_arch = "wasm32"`. The finer target_os discriminators
+  (unknown-unknown vs emscripten vs wasi) are this feature's remaining deliverable — the canonical
+  patterns are defined in §1 above. Feature it and plan it properly, understand the dependency chain
+  and where and when it must land.
+       - Lets get it right
 
 ## Target Files
 
@@ -198,7 +201,7 @@ cargo test  -p foundation_testbed --features wasm -- matrix   # per-target runne
 cargo build -p foundation_compact --target wasm32-wasip1
 cargo build -p foundation_compact --target wasm32-wasip2
 cargo build -p foundation_wasm --features wasi --target wasm32-wasip1
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-wasip1
+cargo build -p foundation_ai --target wasm32-wasip1
 cargo clippy --workspace -- -D warnings
 ```
 

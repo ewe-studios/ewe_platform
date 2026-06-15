@@ -209,27 +209,81 @@ pattern; tool-error-to-LLM vs terminating. (Task — see list.)
 
 ## Open Decisions
 
-- **OD-02-1 — flatten vs derive (load-bearing):** flatten non-`Clone` source errors to `String` at the
-  boundary (rec — `GenerationError` can't be `Clone`/`PartialEq`) vs make every source `Clone` (huge,
-  touches llama/candle). Rec: flatten. **Departs from Decision 16's `#[from]` — flag for the user.**
-      Is this respecting our foundation_errstack rules, is it not Clone ?
+- **OD-02-1 — flatten vs derive: RESOLVED (user, 2026-06-15; Item #10).** Yes, flatten — and it
+  **respects foundation_errstacks rules**. Here's why: `ErrorTrace<C>` is NOT Clone (it holds
+  `Vec<Frame>`, and `Frame` stores `Box<dyn FrameImpl>` — trait objects can't be cloned). That's by
+  design — the live trace is for logging at the failure site. `StructuredErrorTrace` (from
+  `to_structured()`) IS Clone+Serialize — it's all owned `String`/`Vec<StructuredFrame>`. So the
+  correct errstack pattern is:
+  1. Build `ErrorTrace<AgenticError>` at the failure site (full context chain + attachments)
+  2. Log: `tracing::error!("{trace:?}")` (live trace, full stack)
+  3. Flatten: `trace.to_structured()` → `StructuredErrorTrace` (Clone+Serialize, goes into stream)
+  4. `SessionRecord::FailedAction { error: AgenticError, trace: StructuredErrorTrace }`
+  `AgenticError` is the context `C` — the matchable kind/taxonomy. `GenerationError` (the source) is
+  `Debug`-only (wraps `BoxedError`, `LlamaCppError`, `candle_core::Error`) — so it's `to_string()`-
+  flattened into `GenerationFailure { kind: GenKind, message: String }` at the boundary. Same for any
+  non-Clone source (`StorageError`, `VectorStoreError`, etc.). This departs from Decision 16's
+  `#[from]` but IS the correct errstack pattern.
 
-- **OD-02-2 — overflow/rate-limit (load-bearing):** detect via `is_context_overflow` + rate-limit string
-  match (rec) vs add `GenerationError::{ContextOverflow,RateLimit}` variants. Rec: detect (overflow
-  patterns already exist); add variants only if detection proves insufficient. Flag.
-      Yes, make sense, add more depth so we knopw what this looks like and can decide upfront in feautre write up
+- **OD-02-2 — overflow/rate-limit detection: RESOLVED (user, 2026-06-15; Item #10) → detect, not new
+  variants.** The existing code already solves both:
 
-- **OD-02-3 — context reduction:** on `ContextOverflow`, how to trim (drop oldest recall first, F16
-  OD-16-2). Rec: reuse F16's budget-packing drop order.
-      Surface in discussion with examples for clarity
+  **Context overflow** — `Messages::is_context_overflow(context_window)` (`types/mod.rs:967-1008`):
+  (a) Pattern-matches `error_detail` against 15 provider-specific `OVERFLOW_PATTERNS` (lines 944-960:
+  Anthropic "prompt is too long", OpenAI "exceeds the context window", Bedrock, Gemini, Grok, Groq,
+  OpenRouter, Copilot, llama.cpp, LM Studio, MiniMax, Kimi, + generic fallbacks); (b) silent-overflow
+  status codes (400/413 no body — Cerebras/Mistral); (c) usage-exceeds-window (z.ai: successful stop
+  but `input_tokens > context_window`). Already comprehensive.
 
-- **OD-02-4 — retry ownership:** model/tool tasks retry; loop does not (Decision 16). Confirm no
-  agent-level retry loop.
-          Yes, tool and model owns retry, not the loop
+  **Rate-limit** — providers already detect + format 429: `anthropic_messages_provider.rs:1649` and
+  `openai_provider.rs:1481,1508` format "Rate limit exceeded: {detail}"; OpenAI also has
+  `OpenAIError::RateLimit { retry_after }` (`openai_provider.rs:1587`). Providers **already retry
+  internally** on 429/5xx with backoff. The boundary classifier string-matches the formatted error:
+  ```rust
+  fn detect_rate_limit(e: &GenerationError) -> bool {
+      let msg = e.to_string().to_lowercase();
+      msg.contains("rate limit") || msg.contains("429") || msg.contains("too many requests")
+  }
+  ```
+  No new `GenerationError` variants needed — detection on existing outputs is sufficient and already
+  covers every provider we support.
 
-- **OD-02-5 — Unexpected catch-all:** `Unexpected(String)` for `ErrorTrace<T>` and anything unmapped
-  (Decision 16 line 316). Confirm.
-          Sure
+- **OD-02-3 — context reduction on overflow: RESOLVED (user, 2026-06-15; Item #10) → reflection-first
+  trim, then drop observations + old turns.** Key insight: reflections ARE the condensed form of
+  observations — when space is tight, never keep both. The cascade:
+
+  **KEEP (never drop):**
+  1. System prompt + tools
+  2. Current turn (recent user + last assistant)
+  3. Working memory (small, current-turn scratchpad)
+  4. Reflections (already condensed knowledge — this IS the compressed form)
+
+  **REDUCE (in order):**
+  5. **Observations** → check SCRU128 ordering: if a reflection is more recent than the observations
+     it covers, DROP the observations (reflection subsumes them). If observations are newer (no
+     covering reflection yet), **trigger reflection generation FIRST** (F15), then drop observations.
+  6. Older conversation turns (oldest first)
+  7. Tool results (truncate long outputs before dropping turns)
+
+  **Safety net:** trimming only removes items from the **live context window** — the full conversation
+  history, observations, and tool results remain in the **Message API** (F08). If the model needs
+  more detail after a trim, it can pull from the persisted store (tool call or recall). Nothing is
+  lost, only deprioritized from the working set.
+
+  On `GenKind::ContextOverflow` → `AgentAction::RetryWithReducedContext`: the loop (F19) asks F15 to
+  ensure reflections are current, then calls F16's `ContextProvider::assemble()` with a **reduced
+  budget** (e.g. 80% of `context_window`). F16's assembler naturally drops lower-priority items to
+  fit, using this ordering. No special trim logic in F02 — F16 handles packing, F15 handles
+  reflection generation, F02 only classifies and emits the action.
+
+- **OD-02-4 — retry ownership: RESOLVED (user, 2026-06-15; Item #10).** Model + tool tasks own retry;
+  the loop does NOT retry. Providers already retry on 429/5xx internally with backoff
+  (`is_retryable_status` in anthropic/openai providers); F11 owns tool retry (`ToolRetryConfig`,
+  non-blocking `Delayed` backoff). F02 owns the taxonomy + classification + circuit-breaker decision,
+  not per-call retry loops.
+
+- **OD-02-5 — Unexpected catch-all: RESOLVED (user, 2026-06-15; Item #10).** `Unexpected(String)` for
+  `ErrorTrace<T>` and anything unmapped. Confirmed.
 
 ## Target Files
 
@@ -243,14 +297,14 @@ pattern; tool-error-to-LLM vs terminating. (Task — see list.)
 
 ```bash
 cargo test -p foundation_ai -- agentic::errors
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 ```
 
 ## Verification
 
 ```bash
 cargo build -p foundation_ai
-cargo build -p foundation_ai --no-default-features --features agentic --target wasm32-unknown-unknown
+cargo build -p foundation_ai --target wasm32-unknown-unknown
 cargo clippy -p foundation_ai -- -D warnings
 cargo test  -p foundation_ai -- agentic::errors
 ```
@@ -263,4 +317,4 @@ cargo test  -p foundation_ai -- agentic::errors
   errors propagate via `Stream::Next(SessionRecord::FailedAction{ error, trace })` (no new `Stream`
   variant; `trace` is errstack's `StructuredErrorTrace`); `ErrorPolicy::classify`→`AgentAction` +
   circuit-breaker fallback via F12; retry stays in model/tool tasks; builds native + wasm.
-- OD-02-1..5 resolved (OD-02-1 + OD-02-2 flagged for the user); fundamentals authored.
+- OD-02-1..5 all resolved; fundamentals authored.

@@ -27,12 +27,12 @@ you decide → I update the affected features → I ask before moving on. Status
 | 6 | **`run_turn` streams, not Vec-collects** — ✅ stream primary; thin collect wrapper; terminal FailedAction→Err | 20 | ✅ resolved (§H3) |
 | 7 | **Storage traits own `to_bytes`/`from_bytes`; backends persist** — ✅ arrow default for columnar (BM25/vectors), serde elsewhere | 22,26,27,28,29 | ✅ resolved (§H4) |
 | 8 | **Provider router / object-safety** — ✅ RoutableProvider + boxed stream; rule-then-get_one; F12 single-winner, fallback in F02/F04 | 12,21 | ✅ resolved (§H6) |
-| 9 | **Token accounting details** — mid-stream `tokens_so_far` now or later; `rolling` = input+output | 03,04 | ⏳ up next |
-| 10 | **Error handling depth** — flatten non-Clone `GenerationError`→String; overflow/rate-limit by detection (show what it looks like) | 02 | ⬜ |
-| 11 | **Input/output processors** — default `assemble` pipeline; `ProcessorOutcome` 3-state; output spawns | 14 | ⬜ |
-| 12 | **Loop-detection internals** — SimHash reuse; ordered-list arg hashing (not HashMap) | 17 | ⬜ |
-| 13 | **Tool/process cancellation** — PID/handle tracking + native kill signal design | 11 | ⬜ |
-| 14 | **`agentic` cargo feature** — keep the on/off flag for the agentic layer? | 00b,00c | ⬜ |
+| 9 | **Token accounting details** — ✅ live `tokens_so_far` via `GeneratingTokens(Some(usage))` per delta; `rolling` = input+output of recent turns | 03,04 | ✅ resolved (Item #9) |
+| 10 | **Error handling depth** — ✅ flatten to `GenerationFailure{kind,message}` (errstack-correct); detect overflow (15 patterns) + rate-limit (429 string); reflection-first context trim; Message API as safety net | 02 | ✅ resolved (Item #10) |
+| 11 | **Internal pipeline + extension hooks** — ✅ kill processor traits; fixed internal pipeline (F19 calls F16/F08/F15/F31 directly); extensions are valtron tasks that subscribe (bounded fan-out broadcaster w/ eviction) + steer via F13; AgentSession exposes all handles | 14 | ✅ resolved (Item #11) |
+| 12 | **Loop-detection internals** — ✅ two-tier: inline (exact/SimHash `ahash`/sorted-key tool-call) + background semantic (valtron task, `Depends(QueueReadiness)` on shared ConcurrentQueue, steers via PriorityQueue); sort args at detection boundary, not BTreeMap | 17 | ✅ resolved (Item #12) |
+| 13 | **Tool cancellation** — ✅ async execute (Item #1) + drop-based cancellation (valtron stops polling → future drops → Rust cleanup); no CancelToken/PID/SIGKILL ladder; implementers own their Drop; also resolved F09 OD-09-1..5 + F11 OD-11-1..5 | 09,11 | ✅ resolved (Item #13) |
+| 14 | **`agentic` cargo feature** — ✅ keep as real feature gate (`default = ["llamacpp", "agentic"]`), orthogonal to target; agentic module splits `shared/native/wasm{web,wasi}`; `target_family = "wasm"` everywhere (not `target_arch`); emscripten routes to `native` (no runtime code difference) | 00b,00c | ✅ resolved (Item #14) |
 | 15 | **ContextProvider ↔ MemoryHierarchy boundary** — who generates vs who assembles | 15,16 | ⬜ |
 | 16 | **Vectors crate ownership** — move `VectorStore` fully into `foundation_vectors`; rayon vs valtron for parallel scan | 24,28,29 | ⬜ |
 | 17 | **RAG research items** (Phase 3, research-gated) — SIMD/no_std sqrt, IVF/HNSW params, BM25/RRF, code-graph, CF vector API; paired with `foundation_docs` | 24–32 | 🔬 deferred to Phase 3 |
@@ -219,11 +219,20 @@ from here that aren't purely research:
 ## D. Per-feature DISCUSS items (my explanation + recommendation for each)
 
 ### D1. F00b OD-00b-2 — *"I don't understand this, ask me with clarity."*
-The OD asked: is the wasm build surface just `--no-default-features` (which drops llamacpp), and is the
-`agentic` cargo feature merely a *marker* until 00c decides what it must gate? **Plain-English question
-for you:** do you want a dedicated **`agentic` feature flag** that turns the agentic API on/off
-independently of providers, or should the agentic API always be compiled in (no flag)? My rec: keep an
-`agentic` feature so a consumer can depend on `foundation_ai` purely for models without the agentic layer.
+**✅ RESOLVED (user, 2026-06-15; Item #14).** The `agentic` cargo feature and wasm target gating are
+**two orthogonal axes** — never conflate them:
+
+1. **`agentic` = capability feature gate.** `default = ["llamacpp", "agentic"]`. A model-only consumer
+   uses `default-features = false, features = ["llamacpp"]`. Orthogonal to target.
+2. **wasm = target gates** (`cfg(target_family = "wasm")` everywhere, NOT `target_arch = "wasm32"` —
+   covers wasm32 + wasm64). Native-only code (HTTP providers, llamacpp dep) is target-gated, not
+   feature-gated. `cargo build --target wasm32-unknown-unknown` just works with default features.
+3. **Agentic module directory split:** `shared/` (target-agnostic, 95%+ of code), `native/` (non-wasm +
+   emscripten), `wasm/` → `web/` (unknown-unknown: SendWrapper, fetch, web-sys) + `wasi/` (wasip1/p2).
+4. **Emscripten routes to `native/`** — at the Rust runtime code level it has real pthreads, genuine
+   Send, libc, thread::sleep, native HTTP client. The only emscripten-specific concern is build toolchain
+   (EMSDK in build.rs → `foundation_buildtools`), not runtime code. If emscripten-specific runtime logic
+   emerges later, split then.
 
 ### D2. F02 OD-02-7 — *"don't understand, explain."* (forward-reference / soft dependency)
 F02 uses the error type `AgenticError`, but that type is *defined* in F30 (error handling), which is built
