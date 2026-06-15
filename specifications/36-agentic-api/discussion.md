@@ -609,7 +609,11 @@ open items. Applying to F00/F01 now and rolling through the rest as I touch each
    on a shared result queue, wakes when results arrive, computes cosine, steers via PriorityQueue.
    No async confusion — valtron handles the async bridge internally.
 
-8. **#17 — Memory model parsing strategy (important): DISCUSS.** The memory model generates
-   observations/reflections via text. Need a strategy to parse into structured `Vec<ObservationEntry>` /
-   `Vec<ReflectionEntry>`. Small models are the target for generation. Need to decide: JSON schema output
-   (structured), text parsing with regex/LLM follow-up, or a hybrid. See hole #17 discussion below.
+8. **#17 — Memory model parsing strategy (important): RESOLVED (user, 2026-06-15) → config-driven,
+   both implemented.** `MemoryParseStrategy` enum in `MemoryConfig`:
+   - **`StructuredText`** (default): single-shot, model outputs line-based structured text
+     (`FACT: <desc> | source: <id> | confidence: <f>`), parsed with regex/line-split. Fast, tolerant
+     of small model quirks. Malformed lines skipped with warning.
+   - **`TwoStepJson`**: first call generates raw text summary; second call (can be even smaller model)
+     extracts structured entries via JSON schema. More reliable but 2× cost/latency.
+   Both implemented; selected at runtime per `MemoryConfig.parse_strategy`.

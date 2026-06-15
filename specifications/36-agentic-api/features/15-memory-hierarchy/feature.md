@@ -61,6 +61,18 @@ pub struct MemoryConfig {
     pub observation_trigger_tokens: u64,   // default 30_000 (Decision 03)
     pub reflection_trigger_tokens: u64,    // default 40_000 (observation-store size, NOT rolling)
     pub memory_model: Option<ModelId>,     // smaller/cheaper; falls back to primary
+    pub parse_strategy: MemoryParseStrategy, // how to parse model output into structured entries (hole #17)
+}
+
+/// How to convert memory model text output into structured ObservationEntry/ReflectionEntry.
+/// Config-driven — both implemented, selected at runtime (hole #17).
+pub enum MemoryParseStrategy {
+    /// Single-shot: model outputs structured text lines, parsed with regex/line-split.
+    /// Fast, tolerant of small model quirks. Format: "FACT: <desc> | source: <id> | confidence: <f>"
+    StructuredText,
+    /// Two-step: first call generates raw text summary, second (smaller) call extracts
+    /// structured entries via JSON schema. More reliable but 2× cost/latency.
+    TwoStepJson,
 }
 
 impl MemoryHierarchy {
@@ -111,14 +123,21 @@ impl MemoryHierarchy {
 1. **Observation**: gather the source rows (Message API `recent(N)` since the last observation), build
    a memory-model prompt per Decision 03's "Generation Goals" (precise verbs, preserve unusual
    phrasing, distinguish assertion vs question, keep timestamps + source `Scru128` refs), call
-   `router.memory_model().generate(...)`, parse into `Vec<ObservationEntry>`, build a
-   `SessionRecord::Observation { observations, token_count, timestamp }`, **append via F08** (mints +
-   returns the `Scru128`), write it to MemoryStore (F07), then `ledger.reset_rolling()` — in that
-   order (banner #7).
+   `router.memory_model().generate(...)`, **parse into `Vec<ObservationEntry>`** via the configured
+   `MemoryParseStrategy`:
+   - **`StructuredText`** (single-shot, default): model outputs line-based structured text
+     (`FACT: <desc> | source: <id> | confidence: <f>`), parsed with regex/line-split. Fast, tolerant
+     of small model quirks. Malformed lines are skipped with a warning.
+   - **`TwoStepJson`**: first call generates raw text summary; second call (can be even smaller model)
+     extracts structured entries via JSON schema (`ModelParams::output_format = JsonSchema`). More
+     reliable but 2× cost/latency. Parse failures on either strategy → `AgenticError` (retry next trigger).
+   Then build a `SessionRecord::Observation { observations, token_count, timestamp }`, **append via F08**
+   (mints + returns the `Scru128`), write it to MemoryStore (F07), then `ledger.reset_rolling()` — in
+   that order (banner #7).
 2. **Reflection**: gather the current observation snapshots, build a reflection prompt (Decision 03
    "reorganize completely, condense older more aggressively, retain recent detail, keep
-   `observation_refs`"), generate, parse into `Vec<ReflectionEntry>`, build
-   `SessionRecord::Reflection { reflections, observation_refs, .. }`, append via F08, write to
+   `observation_refs`"), generate, parse into `Vec<ReflectionEntry>` via the same `MemoryParseStrategy`,
+   build `SessionRecord::Reflection { reflections, observation_refs, .. }`, append via F08, write to
    MemoryStore, and **mark the active observation memory as replaced** (the appended observation rows
    remain in the log; only the active window resets — banner #5).
 3. **Working memory**: smaller-model scan OR explicit user request detects a new fact →
