@@ -355,5 +355,138 @@ dirs and fix all cross-references in one pass.
 1. You react to **§A (cross-cutting)** and **§B (new crates)** — those unlock the most.
 2. I fold all **§E (resolved)** answers into the features + update the affected decision docs (16, 18, 13,
    06, 07, 02, 03, 20, 21, 22, 15).
-3. You confirm the **§F re-numbering**; I execute the renames + cross-ref fixes.
+3. ~~You confirm the **§F re-numbering**~~ — **DONE** (executed 2026-06-15; see `ROADMAP.md`).
 4. We work the **§C/§D research items** (web research + `foundation_docs` chapters) as their phase comes up.
+
+---
+
+# Round 2 — second comment pass (2026-06-15, post-renumber, new numbering)
+
+## H. New cross-cutting themes (from round-2 comments)
+
+### H1. The inner loop is a **tight, directly-controlled** construct; loop detection lives **inside** it — [DISCUSS, you lean strongly]
+You raised this in three places — F14 OD-14-4, F17 OD-17-1, **F19 OD-19-4**: *"loop interaction is
+something I've wondered about — should it be in the inner loop so it's tight and controlled instead of a
+valtron task? It's where the agent returns values to us and where we control the inner loop, better
+control to stop and redirect"*, and *"move loop detection into the inner loop… a tight checking process in
+the loop."*
+
+**The question:** the inner loop (generate → tool calls → feed back) can be modeled two ways:
+- **(a) a tight in-line control construct** — the loop *is* explicit code in F19 that pumps generation,
+  runs the cheap loop-detection check, and decides stop/redirect directly. Maximum control; trivial to
+  interrupt/redirect; no cross-task synchronization. Loop detection is just a sync function call in the
+  step.
+- **(b) decomposed into valtron sub-tasks** (loop-detection as an output processor / sibling task, F14/
+  F17). More uniform with the rest of the executor, but adds cross-task sync and makes "stop right now and
+  redirect" harder.
+
+**My recommendation (matches your lean):** **(a)** — the *inner* loop is a tight, in-line controlled
+section inside F19 where we own stop/redirect; **loop detection is a cheap synchronous check in the inner
+step**, not an output processor and not a separate valtron task. The *outer* concerns (memory generation,
+persistence) can still be spawned/scheduled valtron work. This resolves F17 OD-17-1 (→ inner-loop check),
+F14 OD-14-4 (→ loop-detector slot lives in the loop, not the output pipeline), and F19 OD-19-4. **Confirm
+and I'll rewrite F17/F19/F14 around it.**
+
+### H2. Access control = **foundation_auth + Cedar policies**, not a hand-rolled minimal trait — [RESOLVED direction]
+F18 OD-18-1/2/3: *"why do we need anything foundation_auth doesn't already provide? It's ok to create a
+custom trait that internally builds on foundation_auth,"* *"we have Cedar policies in there that make
+authorization easy — I see no reason not to,"* *"use Cedar policies for refined control via user
+attribution, local or hosted."*
+
+**Decision:** F18's access trait is a thin **custom surface that internally builds on `foundation_auth` +
+Cedar**. Authorization (tool gating, session/model access) is expressed as **Cedar policies**;
+`UserId`/attribution come from `foundation_auth` (confirmed: `foundation_ai` already uses
+`foundation_auth::AuthCredential` pervasively — `types/mod.rs:1458`, every provider). No bespoke RBAC, no
+"don't depend on foundation_auth" stance — we depend on it deliberately. `AllowAllAccess` becomes a
+trivial allow-all Cedar policy (or a bypass) for tests. **[DISCUSS] only the surface shape** (what the
+custom trait's methods are) and whether Cedar runs embedded vs hosted.
+
+### H3. `run_turn` **streams**, doesn't collect into a `Vec` — [RESOLVED direction]
+F20 OD-20-3: *"why are we collecting into Vec? Should we not stream it via a valtron stream and the user
+gets each — saves memory, they can collect if they want."*
+
+**Decision:** the streaming `run_turn_stream` is the **primary** API (yields each `SessionRecord` as it's
+produced — low memory, caller can stop early). `run_turn` (collect-to-`Vec`) becomes a **thin convenience
+wrapper** the caller opts into when they want the whole turn materialized. Default guidance: stream.
+
+### H4. Storage traits **own their (de)serialization**; backends persist efficiently — [RESOLVED, confirms your read]
+F26 OD-26-4, F27 OD-27-6, F29 OD-29-5: *"whatever stores them handles serialization… `to_bytes`/
+`from_bytes` makes it easy to test/validate, else the trait returns it after pulling it out efficiently…
+we can use arrow here for zero-copy."*
+
+**You read it right.** The index/store **trait** exposes `to_bytes`/`from_bytes` (cheap to unit-test +
+validate); the **backend** (disk / R2 / KV / fjall) decides how to persist efficiently. Large columnar
+payloads (BM25 inverted index, vector shards) can use **arrow** for near-zero-copy. So both
+"in-memory + JSON" *and* a persisted backend exist behind one trait (your "implement both" — F27 OD-27-6).
+
+### H5. HTTP-in-wasm — reinforces `foundation_http` (B1) — [RESOLVED direction]
+F30 OD-30-2/30-4: *"if it's HTTP we should be able to call it in wasm too, right?"*, *"investigate what we
+can use in wasm… fit existing HTTP client methods, or a new wasm HTTP stack wasm owns — keep a consistent
+trait/API with native."* → **Yes.** This is exactly **B1 `foundation_http`**: one trait, native (reqwest/
+netio) + wasm (fetch) backends. TurboPuffer and other REST vector backends (F30) then work on wasm too —
+the "external = native only" caveat goes away once `foundation_http` lands. **Credentials (OD-30-5):
+already owned** — reuse `foundation_auth::AuthCredential` (confirmed in code); add nothing.
+
+### H6. Why `dyn ModelProvider` is impossible (the object-safety blocker) — [RESOLVED explanation]
+F12 OD-12-1 and F21 OD-21-2: *"explain the blocker — is `ModelProvider` not object-safe?"*
+**Confirmed in code:** `trait Model { type Formatter; … }` and `trait ModelProvider { type Config; type
+Model; … }` both have **associated types**, and `generate`/`stream` return **`impl StreamIterator`**
+(return-position-impl-Trait). A trait is only object-safe (`dyn`-able) if it has no unbound associated
+types and no RPIT methods — `ModelProvider` violates both, so **`Arc<dyn ModelProvider>` cannot exist**.
+That's the entire reason for the **`RoutableProvider`** adapter (F12): an object-safe trait with
+**concrete** method signatures (`Box<dyn StreamIterator<D=Messages,P=ModelState>>` instead of `impl`) that
+wraps a concrete `ModelProvider` so the router can hold `Arc<dyn RoutableProvider>`. (This also answers F21
+— the mock implements `RoutableProvider`, not the assoc-typed `ModelProvider`.)
+
+## I. Structural: "if resolved, why is it still under Open Decisions?" — [RESOLVED, applying]
+F00, F01: the `## Open Decisions` section was listing already-**Resolved** items. Fix (spec-wide): each
+feature gets a separate **`## Resolved Decisions`** section; **`## Open Decisions`** holds only genuinely
+open items. Applying to F00/F01 now and rolling through the rest as I touch each feature.
+
+## J. Per-feature round-2 DISCUSS items (explanation + rec)
+- **F11 OD-11-5 (tool/process cancellation) [DISCUSS-design]:** if a tool exposes a cancel signal (e.g. a
+  child `cmd` process) we send it; otherwise we wait — but a sync tool can block a thread forever, so we
+  must **track the PID / handle of any spawned process/thread** and send a **native kill signal** on
+  cancel/timeout to clean up. I'll design: `ToolImpl` may return a cancellation handle (PID/abort token);
+  the executor tracks it; cancel/timeout sends the platform kill. Wasm has no processes → cooperative
+  cancel only. Needs a proper design pass — flagged.
+- **F12 OD-12-2/3/4/5 [DISCUSS]:** boxed stream (erase `impl StreamIterator` → `Box<dyn>`), support
+  detection (`get_one` resolves vs `NotFound`), embedding routing (embed model resolves like chat),
+  same-model fallback (single-winner now, `Vec` reserved for F03). All flow from H6; I'll lay out the
+  `RoutableProvider` API with code in the feature.
+- **F14 OD-14-1/2/3 [DISCUSS]:** input pipeline = the default `assemble`; three-state `ProcessorOutcome`;
+  output processors spawn (never block). I'll show option tables.
+- **F16 OD-16-1 [light]:** inject observation only if newer than latest reflection — agreed, touch-base only.
+- **F17 OD-17-3 (SimHash hasher) [DISCUSS]:** SimHash makes a 64-bit fingerprint of text so "near-duplicate"
+  turns hash close (Hamming distance) — used to detect *semantic* repetition cheaply. Why it matters:
+  exact-match misses paraphrased loops. Option: reuse one non-crypto 64-bit hasher across F17/F31 vs a
+  dedicated one. I'll explain + recommend reuse.
+- **F17 OD-17-4/5, F19 OD-19-3, F20 OD-20-1/5, F27 OD-27-7, F31 OD-31-4 [light DISCUSS]:** surface
+  with examples/code in the feature; mostly touch-base confirmations. Will detail inline.
+- **F26 OD-26-5 — "fuse" clarification:** `fuse()` here is **Reciprocal Rank Fusion** (combining BM25 +
+  vector rankings into one list), **not** the FUSE filesystem. I'll rename the function/wording to
+  `rank_fuse`/`reciprocal_rank_fusion` to remove the ambiguity.
+
+## K. Round-2 RESOLVED answers (will fold into features)
+- **F02 (error-handling):** OD-02-1 — *is flattening to `String` respecting errstack / is it Clone?* →
+  **[verify+explain]** `foundation_errstacks::ErrorTrace<C>` is **not `Clone`** (it owns a frame chain);
+  that's *why* we flatten the non-`Clone` `GenerationError` to a `String`-backed `GenerationFailure`. The
+  errstack **`StructuredErrorTrace`** (serializable projection) is what we keep — consistent with errstack
+  rules. I'll add this depth to F02. OD-02-2 (add depth to overflow/rate-limit detection — show what it
+  looks like), OD-02-4 (model/tool own retry, not the loop — confirmed), OD-02-5 (Unexpected catch-all — ok).
+- **F14:** OD-14-5 pipelines fixed at session build.
+- **F16:** OD-16-2 drop oldest recall first (keep recent+working+reflection).
+- **F17:** OD-17-2 — hash an **ordered list** of tool-call args (not a `HashMap`) so hashing is
+  deterministic — we own the surface, make it ordered.
+- **F19:** OD-19-1 align Ready=`SessionRecord` with F04; OD-19-2 `AgentEvent` is dead (delete from scope).
+- **F20:** OD-20-2 `AgentSession` validates required wiring **at construction**; OD-20-4 `recent(N)` default
+  10 but **configurable**.
+- **F21:** OD-21-3 full verbose `Messages` builders **plus** helper constructors with overridable default
+  `UsageReport` (for budget tests); OD-21-4 mocks live in `foundation_ai` under a `testing` feature;
+  OD-21-5 use **our `foundation_testbed` wasm runners**, not `wasm-bindgen-test`.
+- **F26:** OD-26-1 implement **nlprule** now (don't defer); OD-26-2 implement reranker hook **and** a
+  concrete path; OD-26-3 RRF k=60 default + configurable.
+- **F27:** OD-27-6 both in-memory+JSON **and** persisted, behind a trait.
+- **F29:** OD-29-5 reuse the existing libSQL/SQLite connection layer.
+- **F31:** OD-31-5 **sentence-level chunking now** (rust crate; whole-text fallback where unavailable),
+  matching F26 nlprule.

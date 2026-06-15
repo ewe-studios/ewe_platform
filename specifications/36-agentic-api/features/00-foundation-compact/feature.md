@@ -211,34 +211,27 @@ chronological, machine-id embedding); vendoring strategy (own-vs-depend, trimmin
    `--target wasm32-wasip2`; (emscripten via F00d). Verify `new_scru128`/`rng`/`entropy::fill` each.
 8. Update crate `//!` docs.
 
-## Open Decisions
-
-**TODO**: If resolved why is it still opened ?
-
-Resolved:
+## Resolved Decisions
 - **OD-00-1 — wasm sleep:** **Resolved → not owned here; executor yields to the JS loop
   (`local.rs:2682`); backoff = `TaskStatus::Delayed`/`Wait` (00c).** (The `SleepIterator` framing was wrong.)
 - **OD-00-2 — external getrandom wasm cfg:** **Moot — getrandom is vendored**; we own the wasm cfg.
-- **OD-00-3 — dependency direction:** `foundation_compact` is a **leaf** (depends only on
-  `foundation_wasm` for the wasm host). Must NOT depend on `foundation_core`/`foundation_ai`; confirm
-  `foundation_wasm` doesn't cycle back (low-level runtime crate — verify).
 - **OD-00-4 — aliases:** **Resolved (user) → NO type aliases.** `SessionId`/scru128 use the concrete
   `foundation_compact::Id`. Hard-rename, no `foundation_webwasm`/`foundation_rng` alias.
+- **OD-00-5 — rand vendoring scope:** **Resolved (user, 2026-06-15) → vendor the WHOLE capability**
+  ("own everything once and for all"), not a minimal subset. All `rand`/`rand_chacha`/`fastrand` usage
+  (here and in `foundation_ai`) routes through `foundation_compact`, which selects the right backend per
+  target. (discussion §A5)
+- **OD-00-6 — wasm entropy host:** **Resolved (user) → support BOTH, feature-gated** — the
+  `foundation_wasm` host AND a direct `js-sys` Crypto binding, behind feature flags, so either works
+  correctly. (discussion §A1)
+- **OD-00-7 — licence/attribution:** **Resolved (user) → vendor with licence headers + `VENDORED.md`**
+  (source + version + local modifications). getrandom + rand are MIT/Apache-2.0.
 - **OD-00-8 — merge 00a:** **Resolved (user) → 00a DELETED**, folded here.
 
-Open:
-- **OD-00-5 — rand vendoring scope** (minimal subset vs whole crate). Rec: minimal subset; enumerate it
-  (scru128 entropy; F24/F25 k-means/HNSW seeding; loop-detector temperature jitter).
-      - The whole capability - lets own everything once and for all.
-
-- **OD-00-6 — `foundation_wasm` as the wasm entropy host** vs a thin direct `js-sys` Crypto binding.
-  Rec: `foundation_wasm` (one host abstraction, already powering the executor's JS yielding) — confirm
-  it exposes (or can expose) crypto.
-      - We build for each gated by a feature flag, allow things to work correctly when either is used.
-
-- **OD-00-7 — licence/attribution:** getrandom + rand are MIT/Apache-2.0; vendor with licence headers +
-  a `VENDORED.md` (source + version + local modifications).
-      - Sure we respect licenses, vendor them
+## Open Decisions
+- **OD-00-3 — dependency direction (verify):** `foundation_compact` is a **leaf** (depends only on
+  `foundation_wasm` for the wasm host). Must NOT depend on `foundation_core`/`foundation_ai`; **confirm
+  `foundation_wasm` doesn't cycle back** (low-level runtime crate — verification task).
 
 ## Target Files
 

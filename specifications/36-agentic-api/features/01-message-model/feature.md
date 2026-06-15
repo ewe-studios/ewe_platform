@@ -489,9 +489,9 @@ derive on `StructuredErrorTrace`/`StructuredFrame` (F01 OD-1-FA) so `SessionReco
 ### Step 7 — Exports & docs
 Re-export new public types from the crate root with `///` docs (WHY/WHAT/HOW per house standard).
 
-## Open Decisions
+## Resolved Decisions
 
-**TODO**: If resolved why is it still opened ?
+_(All F01 decisions are resolved; no open items remain.)_
 
 Resolved during review (recommendation taken; override if desired):
 - **OD-1 — `ChatMessage.role`:** keep `String` (template helper, maps to provider wire roles, not
