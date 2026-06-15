@@ -86,8 +86,12 @@ pure-Rust CDP/BiDi driver, Deno, CF Workers; built with `walrus` + `foundation_b
 
 - **emscripten** (`wasm32-unknown-emscripten`): build via the vendored EMSDK (`tools/emsdk`), run in
   node/browser (WebGPU). Add an emscripten runner.
-- **WASI** (`wasm32-wasip1` / `wasm32-wasip2`): run under a **WASI runtime** (**TODO**: wasmtime - i think its time to write a proper foundation_wasmtime to own this)
-  OD-00d-3). Add a `wasi` harness runner that loads the `.wasm` + WASI imports and asserts output.
+- **WASI** (`wasm32-wasip1` / `wasm32-wasip2`): run under **wasmtime** (no wasmer — OD-00d-3 resolved).
+  The WASI runner is owned by **`foundation_wasmtime`** which is **DEFERRED to Phase 4 / last** (user,
+  2026-06-15): nothing in core machinery depends on it, so this **WASI-runner portion of 00d splits out
+  and lands *with* `foundation_wasmtime`**. 00d ships the native / `unknown-unknown` / emscripten runners
+  first; the `wasi` harness runner (loads `.wasm` + WASI imports, asserts output) is built when
+  `foundation_wasmtime` is.
 - A **target enum** in the harness (`unknown-unknown | emscripten | wasip1 | wasip2`) + per-target
   runner, so a test declares which targets it must pass on.
 
@@ -155,9 +159,11 @@ how to write **target-OS-aware cfg** (not blanket `target_arch`); building/runni
   confirm (esp. whether `foundation_db` fjall/native is gated native-only or native+emscripten).
       Its about where it works, if it wworks with native + emscripten then we make it work and gate them properly.
 
-- **OD-00d-3 — WASI runtime for the harness:** `wasmtime` vs `wasmer`. Rec: `wasmtime` (reference impl,
-  best preview2/component support).
-        - We go wasmtime always - ignore everything else, as said a foundation_wasmtime should own this layers and allow us provide a nice API to set the imports and get an executable that exposes the exports for the wasm executed via wasmtime, a lot of value is here even for future work. We build out what we need now.
+- **OD-00d-3 — WASI runtime for the harness: RESOLVED (user, 2026-06-15) → `wasmtime` always** (no
+  wasmer). Owned by a dedicated **`foundation_wasmtime`** crate (nice API: set host imports, get an
+  executable exposing the exports). **DEFERRED to Phase 4 / last** (discussion §B2): nothing in core
+  machinery depends on it, so the WASI runner here lands together with `foundation_wasmtime`. The other
+  00d runners (native/unknown-unknown/emscripten) are not blocked.
 
 - **OD-00d-4 — emscripten in CI:** EMSDK is vendored (`tools/emsdk`); confirm the CI build wires it and
   whether emscripten is gated behind a testbed feature.

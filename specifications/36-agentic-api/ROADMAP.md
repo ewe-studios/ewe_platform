@@ -53,7 +53,8 @@ re-numbering (see `discussion.md` §F for the rationale).
 
 ## Phase 4 — Platform investments (new crates; see `discussion.md` §B — not yet authored)
 - `foundation_http` — fetch-based client (native + wasm), unblocks remote providers on wasm.
-- `foundation_wasmtime` — wasmtime host wrapper (WASI harness, future host work).
+- `foundation_wasmtime` — wasmtime host wrapper. **LAST** (user-deferred); 00d's WASI(wasmtime) test
+  runner lands together with it. Nothing in core machinery depends on it.
 - `foundation_buildtools` — build-time concerns (EMSDK wiring, target detection, `build.rs` helpers).
 - `foundation_docs` — zero-to-hero fundamentals (vectors/ANN, BM25, code-graphs, embeddings, wasm…).
 

@@ -149,15 +149,22 @@ wasm" caveat (F00c OD-00c-1/3).
 streaming maps to fetch's `ReadableStream`. **[DISCUSS]:** crate name (`foundation_http` vs fold into
 `foundation_netio`), and whether the first cut is request/response only with SSE as a fast-follow.
 
-### B2. `foundation_wasmtime` — wasmtime host wrapper — [RESOLVED direction, scope to DISCUSS]
+### B2. `foundation_wasmtime` — wasmtime host wrapper — ✅ RESOLVED: DEFERRED to last (Phase 4)
 F00d: *"wasmtime always — ignore everything else; a `foundation_wasmtime` should own this layer and give a
 nice API to set the imports and get an executable that exposes the exports… a lot of value here even for
 future work."*
 
-**Decision:** new `foundation_wasmtime` crate wrapping `wasmtime`: build/instantiate a `.wasm`, wire host
-imports, expose typed exports; used by the WASI harness in F00d (replaces the wasmtime-vs-wasmer OD-00d-3).
-**[DISCUSS]:** minimum API for *now* (load + run + assert exports for the testbed) vs the fuller
-imports/exports host you hinted at for future work. I'd build the minimal testbed-driving API first.
+**Decision (user, 2026-06-15):** **defer `foundation_wasmtime` to the LAST feature (Phase 4)** — *unless*
+something depends on it, in which case implement it together with its dependents.
+**Dependency check:** the **only** dependent in this spec is **00d's WASI test runner**
+(`foundation_testbed` running `wasm32-wasip1/p2` under wasmtime). Nothing in core machinery (Phase 1, all
+native/in-memory tests) needs it, and that one dependent is itself deferrable. **So:**
+- `foundation_wasmtime` stays **Phase 4, last** (still `wasmtime` always — no wasmer; resolves OD-00d-3).
+- **00d ships its native / `unknown-unknown` / emscripten runners first; the WASI(wasmtime) runner splits
+  out and lands *with* `foundation_wasmtime`.** When we build it, build it + the 00d WASI runner together
+  ("implement them all").
+- Scope when we get there: minimal testbed-driving API (load + run + assert exports) first; the fuller
+  imports/exports host is future work.
 
 ### B3. Build tooling — `foundation_buildtools` vs fold into `foundation_testbed` — [DISCUSS]
 F00b: *"invest in getting the build platform right… it's ok to move a lot of `build.rs` logic into
