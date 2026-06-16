@@ -74,7 +74,7 @@ foundation_nativeapis = { path = "./backends/foundation_nativeapis", version = "
 foundation_toolings = { path = "./backends/foundation_toolings", version = "0.0.1" }
 
 foundation_codegentools = { path = "./backends/foundation_codegentools", version = "0.1.0" }
-foundation_compact = { path = "./backends/foundation_compact", version = "0.1.0" }
+foundation_compact = { path = "./backends/foundation_compact", version = "0.2.0" }
 foundation_ui_traits = { path = "./backends/foundation_ui_traits", version = "0.0.1" }
 foundation_theme = { path = "./backends/foundation_theme", version = "0.0.1" }
 foundation_signals = { path = "./backends/foundation_signals", version = "0.0.1" }
