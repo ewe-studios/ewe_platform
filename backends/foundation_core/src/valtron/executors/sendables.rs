@@ -2,6 +2,7 @@
 #![allow(clippy::type_complexity)]
 
 use crate::valtron::multi;
+pub use crate::valtron::multi::{block_on, get_pool};
 
 use crate::valtron::FutureTask;
 use crate::valtron::ReadyValues;
