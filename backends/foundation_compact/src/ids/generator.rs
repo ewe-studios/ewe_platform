@@ -120,7 +120,7 @@ impl<R: RandSource, T: TimeSource> Generator<R, T> {
     }
 
     /// Returns an infinite iterator that produces a new ID for each call of `next()`.
-    pub fn iter(&mut self) -> impl Iterator<Item = Id> {
+    pub fn iter(&mut self) -> impl Iterator<Item = Id> + use<'_, R, T> {
         iter::from_fn(|| Some(self.generate()))
     }
 }

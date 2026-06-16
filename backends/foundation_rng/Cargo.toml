@@ -1,7 +1,11 @@
 [package]
 name = "foundation_rng"
 version = "0.1.0"
-edition = "2024"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
 description = "RNG (getrandom) + scru128 IDs for foundation_ai, with WASM support"
 
 [features]
@@ -24,7 +28,7 @@ fstr = { version = "0.2.20", default-features = false }
 getrandom = { version = "0.3", optional = true, features = ["wasm_js"] }
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
-foundation_wasm = { path = "../foundation_wasm", optional = true }
+foundation_wasm = { workspace = true, optional = true }
 rand_core = { version = "0.10", optional = true, package = "rand_core" }
 rand_core09 = { version = "0.9", optional = true, package = "rand_core" }
 rand = "0.10"

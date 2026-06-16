@@ -3635,9 +3635,9 @@ dependencies = [
  "chacha20poly1305",
  "chrono",
  "derive_more",
+ "foundation_compact",
  "foundation_core",
  "foundation_netio",
- "foundation_rng",
  "futures-core",
  "futures-lite",
  "getrandom 0.2.16",
@@ -3940,26 +3940,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "foundation_rng"
-version = "0.1.0"
-dependencies = [
- "cfg-if",
- "forkguard",
- "foundation_wasm",
- "fstr",
- "getrandom 0.3.4",
- "js-sys",
- "rand 0.10.1",
- "rand_core 0.10.1",
- "rand_core 0.9.3",
- "regex",
- "reseeding_rng",
- "serde",
- "serde_test",
- "wasm-bindgen",
-]
-
-[[package]]
 name = "foundation_runtimes"
 version = "0.0.3"
 dependencies = [
@@ -4112,7 +4092,7 @@ version = "0.0.1"
 
 [[package]]
 name = "foundation_wasm"
-version = "0.0.2"
+version = "0.0.3"
 dependencies = [
  "clap",
  "foundation_codegen",
@@ -8121,16 +8101,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "reseeding_rng"
-version = "0.10.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35d8fa137e1f0bbc1139893fcf4fff5f099d76658e6da2b10fadd04f0cadc2d4"
-dependencies = [
- "rand 0.10.1",
- "rand_core 0.10.1",
-]
-
-[[package]]
 name = "resolv-conf"
 version = "0.7.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8668,15 +8638,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e24345aa0fe688594e73770a5f6d1b216508b4f93484c0026d521acd30134392"
 dependencies = [
  "serde_core",
-]
-
-[[package]]
-name = "serde_test"
-version = "1.0.177"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f901ee573cab6b3060453d2d5f0bae4e6d628c23c0a962ff9b5f1d7c8d4f1ed"
-dependencies = [
- "serde",
 ]
 
 [[package]]

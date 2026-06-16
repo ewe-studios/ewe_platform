@@ -15,7 +15,7 @@ categories = ["development-tools::testing"]
 foundation_nostd = { workspace = true, features = ["std"] }
 foundation_core = { workspace = true }
 foundation_netio = { workspace = true }
-foundation_deployment = { path = "../foundation_deployment" }
+foundation_deployment = { workspace = true }
 tracing = { workspace = true }
 derive_more = { workspace = true }
 

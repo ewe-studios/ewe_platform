@@ -176,7 +176,7 @@ impl<R: RandSource, T: TimeSource> Generator<R, T> {
     /// }
     /// # }
     /// ```
-    pub fn iter(&mut self) -> impl Iterator<Item = Id> {
+    pub fn iter(&mut self) -> impl Iterator<Item = Id> + use<'_, R, T> {
         iter::from_fn(|| Some(self.generate()))
     }
 }

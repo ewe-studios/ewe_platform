@@ -36,7 +36,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         key: &str,
         content: V,
     ) -> StorageResult<Document> {
-        let doc_id = foundation_rng::new_scru128_string();
+        let doc_id = foundation_compact::ids::new_scru128_string();
         let content_json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let metadata = serde_json::json!({});

@@ -23,10 +23,10 @@ features = ["ssl"]
 workspace = true
 
 [dependencies.foundation_db]
-path = "../foundation_db"
+workspace = true
 
 [dependencies.foundation_macros]
-path = "../foundation_macros"
+workspace = true
 
 [dependencies.serde]
 workspace = true
