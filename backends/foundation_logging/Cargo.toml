@@ -1,7 +1,11 @@
 [package]
 name = "foundation_logging"
 version = "0.0.1"
-edition = "2021"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
 description = "Structured logging built on tracing — configurable subscribers with env-filter and JSON formatting for the ewe_platform ecosystem"
 
 [features]
