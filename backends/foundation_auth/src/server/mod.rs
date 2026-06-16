@@ -3,6 +3,7 @@ pub mod handlers;
 pub mod idp_server;
 pub mod models;
 pub mod services;
+pub mod storage;
 
 pub use config::{IdpConfig, PasswordPolicy};
 pub use idp_server::IdpServer;
@@ -15,4 +16,6 @@ pub use services::{
 };
 pub use handlers::{
     OidcDiscoveryDocument, DeviceAuthResponse, IdpError, IdpHandlerCore, ServeAdapter,
+    HandlerResponse,
 };
+pub use storage::{HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email};

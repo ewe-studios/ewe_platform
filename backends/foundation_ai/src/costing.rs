@@ -385,7 +385,7 @@ mod tests {
             },
             Messages::Assistant {
                 model: ModelId::Name("test".to_string(), None),
-                timestamp: std::time::SystemTime::now(),
+                timestamp: foundation_compact::SystemTime::now(),
                 usage: UsageReport {
                     input: 0.0,
                     output: 0.0,
@@ -444,7 +444,7 @@ mod tests {
         let messages = vec![
             Messages::Assistant {
                 model: ModelId::Name("test".to_string(), None),
-                timestamp: std::time::SystemTime::now(),
+                timestamp: foundation_compact::SystemTime::now(),
                 usage: UsageReport {
                     input: 100.0,
                     output: 50.0,

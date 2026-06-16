@@ -14,6 +14,7 @@ foundation_core = { workspace = true }
 foundation_netio = { workspace = true }
 foundation_db = { workspace = true, default-features = false }
 foundation_http = { workspace = true, optional = true }
+foundation_errstacks = { workspace = true }
 
 # Error handling (derive_more::From + manual Display, NO thiserror)
 derive_more = { version = "2.0", features = ["from", "error", "display"] }
@@ -75,7 +76,7 @@ workspace = true
 # Turso/SQLite backend (native only)
 default = ["turso"]
 turso = ["foundation_db/turso"]
-# IdP server module (pulls in foundation_http)
+# IdP server module (pulls in foundation_http + foundation_db for storage)
 server = ["dep:foundation_http"]
 # Integration tests for IdP server (real TCP, thread pool)
 server-test = ["server", "foundation_core/multi", "foundation_http/multi"]

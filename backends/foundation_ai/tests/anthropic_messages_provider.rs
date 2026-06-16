@@ -14,9 +14,14 @@ use foundation_ai::types::{
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
 use foundation_core::valtron::Stream;
-use foundation_netio::simple_http::client::StaticSocketAddr;
+use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
+use serial_test::serial;
 use std::net::SocketAddr;
+use std::sync::LazyLock;
+
+static POOL: LazyLock<valtron::PoolGuard> =
+    LazyLock::new(|| valtron::initialize_pool(42, Some(4)));
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -90,9 +95,10 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
 }
 
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 fn test_provider_generate() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
 
     let chat_response = br#"{
         "id": "msg_abc123",
@@ -132,9 +138,10 @@ fn test_provider_generate() {
 
 /// Verify SSE streaming yields incremental text via named events.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 fn test_provider_streaming_text() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
 
     let sse_body = b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_123\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-5-sonnet\",\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":10,\"output_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}\n\n\
 event: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}\n\n\
@@ -183,9 +190,10 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
 
 /// Verify SSE streaming accumulates tool call deltas into a final ToolCall message.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 fn test_provider_streaming_tool_calls() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
 
     let sse_body = b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_123\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-5-sonnet\",\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":50,\"output_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}\n\n\
 event: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"tool_use\",\"id\":\"tool_abc\",\"name\":\"get_weather\",\"input\":{}}}\n\n\
@@ -240,9 +248,10 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
 
 /// Verify extended thinking response parsing.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 fn test_provider_generate_with_thinking() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
 
     let chat_response = br#"{
         "id": "msg_abc123",
@@ -290,9 +299,10 @@ fn test_provider_generate_with_thinking() {
 
 /// Verify multimodal request with image content block.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 fn test_provider_generate_multimodal() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
 
     let chat_response = br#"{
         "id": "msg_abc123",
@@ -372,10 +382,11 @@ fn setup_llama_server_provider() -> impl Model {
 
 /// Test: generate a short response against the real llama-server.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 #[ignore]
 fn test_llama_server_anthropic_generate() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -419,10 +430,11 @@ fn test_llama_server_anthropic_generate() {
 
 /// Test: streaming text generation against the real llama-server.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 #[ignore]
 fn test_llama_server_anthropic_streaming() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -458,10 +470,11 @@ fn test_llama_server_anthropic_streaming() {
 
 /// Test: multi-turn conversation with conversation history.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 #[ignore]
 fn test_llama_server_anthropic_multi_turn() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -537,10 +550,11 @@ fn test_llama_server_anthropic_multi_turn() {
 
 /// Test: max_tokens constraint truncates output.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 #[ignore]
 fn test_llama_server_anthropic_max_tokens() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -576,10 +590,11 @@ fn test_llama_server_anthropic_max_tokens() {
 
 /// Test: provider can resolve and connect to the running llama-server.
 #[test]
+#[serial]
 #[tracing_test::traced_test]
 #[ignore]
 fn test_llama_server_anthropic_resolve_model() {
-    let _guard = valtron::initialize_pool(42, Some(4));
+    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {

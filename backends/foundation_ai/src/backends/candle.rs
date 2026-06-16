@@ -8,7 +8,7 @@ use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::rc::Rc;
-use std::time::SystemTime;
+use foundation_compact::SystemTime;
 
 use candle_core::{DType, Device, Tensor};
 use candle_nn::VarBuilder;

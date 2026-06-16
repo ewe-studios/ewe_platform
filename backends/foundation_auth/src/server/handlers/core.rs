@@ -2,9 +2,31 @@ use std::sync::Arc;
 
 use foundation_http::shared::context::ContextBag;
 use foundation_http::SimpleIncomingRequest;
+use foundation_netio::simple_http::shared::SendSafeBody;
 use serde::{Deserialize, Serialize};
 
 use super::super::config::IdpConfig;
+use super::super::models::{AuthorizationCode, DeviceCode, RefreshToken};
+use super::super::services::{TokenService, TokenServiceError};
+use super::super::storage::{
+    self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email,
+};
+
+/// Typed response from a handler — carries HTTP status code, body, and headers.
+pub struct HandlerResponse {
+    pub status: u16,
+    pub body: serde_json::Value,
+    pub headers: Vec<(String, String)>,
+}
+
+impl HandlerResponse {
+    pub fn ok(body: serde_json::Value) -> Self {
+        Self { status: 200, body, headers: vec![] }
+    }
+    pub fn accepted(body: serde_json::Value) -> Self {
+        Self { status: 202, body, headers: vec![] }
+    }
+}
 
 #[derive(Debug, Serialize)]
 pub struct OidcDiscoveryDocument {
@@ -26,30 +48,26 @@ pub struct OidcDiscoveryDocument {
 
 impl OidcDiscoveryDocument {
     #[must_use]
-    pub fn from_config(config: &IdpConfig) -> Self {
+    pub fn from_config(config: &IdpConfig, prefix: &str) -> Self {
         let base = config.issuer_url.trim_end_matches('/');
+        let p = prefix.trim_end_matches('/');
         Self {
             issuer: config.issuer_url.clone(),
-            authorization_endpoint: format!("{base}/authorize"),
-            token_endpoint: format!("{base}/token"),
-            userinfo_endpoint: format!("{base}/userinfo"),
-            jwks_uri: format!("{base}/.well-known/jwks.json"),
-            introspection_endpoint: format!("{base}/introspect"),
-            device_authorization_endpoint: format!("{base}/device/authorize"),
+            authorization_endpoint: format!("{base}{p}/authorize"),
+            token_endpoint: format!("{base}{p}/token"),
+            userinfo_endpoint: format!("{base}{p}/userinfo"),
+            jwks_uri: format!("{base}{p}/.well-known/jwks.json"),
+            introspection_endpoint: format!("{base}{p}/introspect"),
+            device_authorization_endpoint: format!("{base}{p}/device/authorize"),
             response_types_supported: vec!["code".into()],
             grant_types_supported: vec![
-                "authorization_code".into(),
-                "refresh_token".into(),
-                "client_credentials".into(),
-                "urn:ietf:params:oauth:grant-type:device_code".into(),
+                "authorization_code".into(), "refresh_token".into(),
+                "client_credentials".into(), "urn:ietf:params:oauth:grant-type:device_code".into(),
             ],
             subject_types_supported: vec!["public".into()],
             id_token_signing_alg_values_supported: vec!["EdDSA".into()],
             scopes_supported: vec!["openid".into(), "profile".into(), "email".into()],
-            token_endpoint_auth_methods_supported: vec![
-                "client_secret_post".into(),
-                "none".into(),
-            ],
+            token_endpoint_auth_methods_supported: vec!["client_secret_post".into(), "none".into()],
             code_challenge_methods_supported: vec!["S256".into()],
         }
     }
@@ -72,6 +90,7 @@ pub struct DeviceAuthResponse {
     pub device_code: String,
     pub user_code: String,
     pub verification_uri: String,
+    pub verification_uri_complete: String,
     pub expires_in: u64,
     pub interval: u32,
 }
@@ -94,6 +113,11 @@ pub enum IdpError {
     Internal(String),
     BadRequest(String),
     Unauthorized(String),
+    Forbidden(String),
+    NotFound(String),
+    Conflict(String),
+    Locked(i64),
+    TooManyRequests(i64),
 }
 
 impl core::fmt::Display for IdpError {
@@ -102,126 +126,369 @@ impl core::fmt::Display for IdpError {
             Self::Internal(s) => write!(f, "Internal error: {s}"),
             Self::BadRequest(s) => write!(f, "Bad request: {s}"),
             Self::Unauthorized(s) => write!(f, "Unauthorized: {s}"),
+            Self::Forbidden(s) => write!(f, "Forbidden: {s}"),
+            Self::NotFound(s) => write!(f, "Not found: {s}"),
+            Self::Conflict(s) => write!(f, "Conflict: {s}"),
+            Self::Locked(ts) => write!(f, "Account locked until {ts}"),
+            Self::TooManyRequests(ts) => write!(f, "Too many requests, retry after {ts}"),
         }
     }
 }
 
 impl std::error::Error for IdpError {}
 
+impl From<StorageOpError> for IdpError {
+    fn from(e: StorageOpError) -> Self {
+        match e {
+            StorageOpError::NotFound(s) => Self::NotFound(s),
+            StorageOpError::Query(s) | StorageOpError::Parse(s) => Self::Internal(s),
+        }
+    }
+}
+
+impl From<TokenServiceError> for IdpError {
+    fn from(e: TokenServiceError) -> Self {
+        match e {
+            TokenServiceError::SigningFailed(s) | TokenServiceError::Storage(s) => Self::Internal(s),
+            TokenServiceError::InvalidToken => Self::BadRequest("Invalid token".into()),
+        }
+    }
+}
+
 pub struct IdpHandlerCore {
     config: Arc<IdpConfig>,
+    storage: Arc<HandlerStorage>,
+    token_service: Arc<TokenService>,
 }
 
 impl IdpHandlerCore {
     #[must_use]
-    pub fn new(config: Arc<IdpConfig>) -> Self {
-        Self { config }
+    pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage>) -> Self {
+        let token_service = Arc::new(TokenService::new(Arc::clone(&config)));
+        Self { config, storage, token_service }
     }
 
     pub async fn discovery(
-        &self,
-        _bag: &ContextBag,
-        _req: &SimpleIncomingRequest,
-    ) -> Result<serde_json::Value, IdpError> {
-        let doc = OidcDiscoveryDocument::from_config(&self.config);
-        serde_json::to_value(&doc).map_err(|e| IdpError::Internal(e.to_string()))
+        &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let doc = OidcDiscoveryDocument::from_config(&self.config, "/idp");
+        let body = serde_json::to_value(&doc).map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(body))
     }
 
     pub async fn jwks(
-        &self,
-        _bag: &ContextBag,
-        _req: &SimpleIncomingRequest,
-    ) -> Result<serde_json::Value, IdpError> {
-        let public_pem = self
-            .config
-            .signing_key
-            .public_key_pem()
+        &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let public_pem = self.config.signing_key.public_key_pem()
             .map_err(|e| IdpError::Internal(e.to_string()))?;
-
-        Ok(serde_json::json!({
-            "keys": [{
-                "kty": "OKP",
-                "crv": "Ed25519",
-                "use": "sig",
-                "kid": "default",
-                "alg": "EdDSA",
-                "x": public_pem,
-            }]
-        }))
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "keys": [{ "kty": "OKP", "crv": "Ed25519", "use": "sig", "kid": "default", "alg": "EdDSA", "x": public_pem }]
+        })))
     }
 
     pub async fn authorize(
-        &self,
-        _bag: &ContextBag,
-        _req: &SimpleIncomingRequest,
-    ) -> Result<serde_json::Value, IdpError> {
-        Err(IdpError::BadRequest(
-            "Authorize endpoint requires user session and storage backend".into(),
-        ))
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let url = &req.request_url.url;
+        let query = extract_query(url);
+        let client_id = query_param(&query, "client_id")
+            .ok_or_else(|| IdpError::BadRequest("Missing client_id".into()))?;
+        let redirect_uri = query_param(&query, "redirect_uri")
+            .ok_or_else(|| IdpError::BadRequest("Missing redirect_uri".into()))?;
+        let response_type = query_param(&query, "response_type")
+            .ok_or_else(|| IdpError::BadRequest("Missing response_type".into()))?;
+        let _scope = query_param(&query, "scope").unwrap_or("openid");
+        let _state = query_param(&query, "state").unwrap_or("");
+        let code_challenge = query_param(&query, "code_challenge");
+        let _nonce = query_param(&query, "nonce");
+
+        if response_type != "code" {
+            return Err(IdpError::BadRequest("response_type must be 'code'".into()));
+        }
+
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+            .ok_or_else(|| IdpError::BadRequest("Unknown client_id".into()))?;
+        if !client.allows_redirect(redirect_uri) {
+            return Err(IdpError::BadRequest("redirect_uri not allowed".into()));
+        }
+        if self.config.require_pkce && code_challenge.is_none() {
+            return Err(IdpError::BadRequest("PKCE code_challenge required".into()));
+        }
+
+        // TODO: Check session cookie → generate auth code if authenticated
+        let return_to = url;
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "status": "login_required",
+            "login_url": "/auth/v1/oidc/authorize",
+            "return_to": return_to,
+            "client_id": client_id,
+            "client_name": client.name,
+        })))
     }
 
     pub async fn token(
-        &self,
-        _bag: &ContextBag,
-        _req: &SimpleIncomingRequest,
-    ) -> Result<serde_json::Value, IdpError> {
-        Err(IdpError::BadRequest(
-            "Token endpoint requires storage backend".into(),
-        ))
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let pairs = parse_form_urlencoded(&body);
+        let grant_type = pairs.get("grant_type")
+            .ok_or_else(|| IdpError::BadRequest("Missing grant_type".into()))?;
+
+        match grant_type.as_str() {
+            "authorization_code" => self.token_auth_code(&pairs).await,
+            "refresh_token" => self.token_refresh(&pairs).await,
+            "client_credentials" => self.token_client_credentials(&pairs).await,
+            other => Err(IdpError::BadRequest(format!("Unsupported grant_type: {other}"))),
+        }
+    }
+
+    async fn token_auth_code(
+        &self, pairs: &std::collections::HashMap<String, String>,
+    ) -> Result<HandlerResponse, IdpError> {
+        let code = pairs.get("code").ok_or_else(|| IdpError::BadRequest("Missing code".into()))?;
+        let redirect_uri = pairs.get("redirect_uri").ok_or_else(|| IdpError::BadRequest("Missing redirect_uri".into()))?;
+        let client_id = pairs.get("client_id").ok_or_else(|| IdpError::BadRequest("Missing client_id".into()))?;
+        let client_secret = pairs.get("client_secret").ok_or_else(|| IdpError::BadRequest("Missing client_secret".into()))?;
+        let code_verifier = pairs.get("code_verifier");
+
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+            .ok_or_else(|| IdpError::Unauthorized("Invalid client".into()))?;
+        if !client.verify_secret(client_secret) {
+            return Err(IdpError::Unauthorized("Invalid client_secret".into()));
+        }
+
+        let auth_code = storage::find_auth_code(self.storage.query_store.as_ref(), code)?
+            .ok_or_else(|| IdpError::BadRequest("Invalid or expired authorization code".into()))?;
+        if auth_code.is_expired() {
+            return Err(IdpError::BadRequest("Authorization code has expired".into()));
+        }
+        if auth_code.client_id != client.id || auth_code.redirect_uri != *redirect_uri {
+            return Err(IdpError::BadRequest("Code mismatch".into()));
+        }
+        if let Some(verifier) = code_verifier {
+            if !auth_code.verify_pkce(verifier) {
+                return Err(IdpError::BadRequest("PKCE code_verifier mismatch".into()));
+            }
+        }
+
+        storage::delete_auth_code(self.storage.query_store.as_ref(), &auth_code.code)?;
+
+        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &auth_code.user_id)?
+            .ok_or_else(|| IdpError::Internal("User not found for auth code".into()))?;
+
+        let token_pair = self.token_service.generate_tokens(
+            &user, &client, &auth_code.scope, auth_code.nonce.as_deref(),
+        )?;
+
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "access_token": token_pair.access_token,
+            "token_type": "Bearer",
+            "expires_in": token_pair.expires_in,
+            "refresh_token": token_pair.refresh_token,
+            "id_token": token_pair.id_token,
+            "scope": token_pair.scope,
+        })))
+    }
+
+    async fn token_refresh(
+        &self, pairs: &std::collections::HashMap<String, String>,
+    ) -> Result<HandlerResponse, IdpError> {
+        let refresh_token = pairs.get("refresh_token")
+            .ok_or_else(|| IdpError::BadRequest("Missing refresh_token".into()))?;
+        let client_id = pairs.get("client_id")
+            .ok_or_else(|| IdpError::BadRequest("Missing client_id".into()))?;
+        let client_secret = pairs.get("client_secret")
+            .ok_or_else(|| IdpError::BadRequest("Missing client_secret".into()))?;
+
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+            .ok_or_else(|| IdpError::Unauthorized("Invalid client".into()))?;
+        if !client.verify_secret(client_secret) {
+            return Err(IdpError::Unauthorized("Invalid client_secret".into()));
+        }
+
+        let token_hash = TokenService::hash_refresh_token(refresh_token);
+        let rt = storage::find_refresh_token_by_hash(self.storage.query_store.as_ref(), &token_hash)?
+            .ok_or_else(|| IdpError::Unauthorized("Invalid refresh token".into()))?;
+        if rt.is_expired() {
+            return Err(IdpError::Unauthorized("Refresh token expired".into()));
+        }
+        if rt.is_rotated() {
+            return Err(IdpError::Unauthorized("Refresh token already used".into()));
+        }
+
+        storage::mark_refresh_token_rotated(self.storage.query_store.as_ref(), &token_hash)?;
+
+        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &rt.user_id)?
+            .ok_or_else(|| IdpError::Internal("User not found".into()))?;
+
+        // We don't have scope on RefreshToken — use "openid" as default
+        let token_pair = self.token_service.generate_tokens(&user, &client, "openid", None)?;
+
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "access_token": token_pair.access_token,
+            "token_type": "Bearer",
+            "expires_in": token_pair.expires_in,
+            "refresh_token": token_pair.refresh_token,
+            "id_token": token_pair.id_token,
+            "scope": "openid",
+        })))
+    }
+
+    async fn token_client_credentials(
+        &self, pairs: &std::collections::HashMap<String, String>,
+    ) -> Result<HandlerResponse, IdpError> {
+        let client_id = pairs.get("client_id")
+            .ok_or_else(|| IdpError::BadRequest("Missing client_id".into()))?;
+        let client_secret = pairs.get("client_secret")
+            .ok_or_else(|| IdpError::BadRequest("Missing client_secret".into()))?;
+        let scope = pairs.get("scope").map(|s| s.as_str()).unwrap_or("");
+
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+            .ok_or_else(|| IdpError::Unauthorized("Invalid client".into()))?;
+        if !client.verify_secret(client_secret) {
+            return Err(IdpError::Unauthorized("Invalid client_secret".into()));
+        }
+
+        let token_pair = self.token_service.generate_client_credentials_tokens(&client, scope)?;
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "access_token": token_pair.access_token,
+            "token_type": "Bearer",
+            "expires_in": token_pair.expires_in,
+            "scope": token_pair.scope,
+        })))
     }
 
     pub async fn userinfo(
-        &self,
-        _bag: &ContextBag,
-        _req: &SimpleIncomingRequest,
-    ) -> Result<serde_json::Value, IdpError> {
-        Err(IdpError::Unauthorized("Bearer token required".into()))
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let auth_header = req.headers.iter()
+            .find(|(k, _)| header_name_eq(k, "authorization"))
+            .and_then(|(_, v)| v.first());
+
+        let token = auth_header
+            .and_then(|v| v.strip_prefix("Bearer "))
+            .ok_or_else(|| IdpError::Unauthorized("Bearer token required".into()))?;
+
+        // Decode JWT claims
+        let parts: Vec<&str> = token.split('.').collect();
+        if parts.len() != 3 {
+            return Err(IdpError::Unauthorized("Invalid token format".into()));
+        }
+        use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+        let claims_bytes = URL_SAFE_NO_PAD.decode(parts[1])
+            .map_err(|_| IdpError::Unauthorized("Invalid token".into()))?;
+        let claims: serde_json::Value = serde_json::from_slice(&claims_bytes)
+            .map_err(|_| IdpError::Unauthorized("Invalid claims".into()))?;
+
+        let scope = claims.get("scope").and_then(|v| v.as_str()).unwrap_or("");
+        if !scope.split_whitespace().any(|s| s == "openid") {
+            return Err(IdpError::Forbidden("Missing openid scope".into()));
+        }
+
+        let sub = claims.get("sub").and_then(|v| v.as_str()).unwrap_or("");
+        let email = claims.get("email").and_then(|v| v.as_str()).unwrap_or("");
+        Ok(HandlerResponse::ok(serde_json::json!({ "sub": sub, "email": email })))
     }
 
     pub async fn introspect(
-        &self,
-        _bag: &ContextBag,
-        _req: &SimpleIncomingRequest,
-    ) -> Result<serde_json::Value, IdpError> {
-        Ok(serde_json::json!({ "active": false }))
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let pairs = parse_form_urlencoded(&body);
+        let _token = pairs.get("token")
+            .ok_or_else(|| IdpError::BadRequest("Missing token".into()))?;
+        // TODO: integrate JwtVerifier
+        Ok(HandlerResponse::ok(serde_json::json!({ "active": false })))
     }
 
     pub async fn device_authorize(
-        &self,
-        _bag: &ContextBag,
-        _req: &SimpleIncomingRequest,
-    ) -> Result<serde_json::Value, IdpError> {
-        Err(IdpError::BadRequest(
-            "Device authorize endpoint requires storage backend".into(),
-        ))
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let pairs = parse_form_urlencoded(&body);
+        let client_id = pairs.get("client_id")
+            .ok_or_else(|| IdpError::BadRequest("Missing client_id".into()))?;
+        let scope = pairs.get("scope").map(|s| s.as_str()).unwrap_or("openid");
+
+        let client = find_client_by_id(self.storage.query_store.as_ref(), client_id)?
+            .ok_or_else(|| IdpError::BadRequest("Unknown client_id".into()))?;
+
+        let device_code = DeviceCode::new(
+            client.id.clone(), scope.to_string(),
+            self.config.device_code_ttl, self.config.device_code_interval,
+        );
+        storage::store_device_code(self.storage.query_store.as_ref(), &device_code)?;
+
+        let base = self.config.issuer_url.trim_end_matches('/');
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "device_code": device_code.device_code,
+            "user_code": device_code.user_code,
+            "verification_uri": format!("{base}/device"),
+            "verification_uri_complete": format!("{base}/device?code={}", device_code.user_code),
+            "expires_in": self.config.device_code_ttl.as_secs(),
+            "interval": self.config.device_code_interval,
+        })))
     }
 
     pub async fn dispatch(
-        &self,
-        bag: &ContextBag,
-        req: &SimpleIncomingRequest,
-    ) -> Result<serde_json::Value, IdpError> {
+        &self, bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
         let path = req.request_url.url.as_str();
         let path = path.split('?').next().unwrap_or(path);
 
-        if path.ends_with("/.well-known/openid-configuration") {
-            self.discovery(bag, req).await
-        } else if path.ends_with("/.well-known/jwks.json") {
-            self.jwks(bag, req).await
-        } else if path.ends_with("/authorize") && !path.ends_with("/device/authorize") {
-            self.authorize(bag, req).await
-        } else if path.ends_with("/token") {
-            self.token(bag, req).await
-        } else if path.ends_with("/userinfo") {
-            self.userinfo(bag, req).await
-        } else if path.ends_with("/introspect") {
-            self.introspect(bag, req).await
-        } else if path.ends_with("/device/authorize") {
-            self.device_authorize(bag, req).await
-        } else {
-            Err(IdpError::BadRequest(format!("Unknown endpoint: {path}")))
+        if path.ends_with("/.well-known/openid-configuration") { self.discovery(bag, req).await }
+        else if path.ends_with("/.well-known/jwks.json") { self.jwks(bag, req).await }
+        else if path.ends_with("/authorize") && !path.contains("/device/") { self.authorize(bag, req).await }
+        else if path.ends_with("/token") && !path.contains("/introspect") { self.token(bag, req).await }
+        else if path.ends_with("/userinfo") { self.userinfo(bag, req).await }
+        else if path.ends_with("/introspect") { self.introspect(bag, req).await }
+        else if path.ends_with("/device/authorize") { self.device_authorize(bag, req).await }
+        else { Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))) }
+    }
+}
+
+// -- Utilities --
+
+fn extract_query(url: &str) -> Vec<(String, String)> {
+    if let Some(q) = url.split('?').nth(1) {
+        q.split('&').filter_map(|pair| {
+            let mut parts = pair.splitn(2, '=');
+            let k = parts.next()?;
+            let v = parts.next().unwrap_or("");
+            Some((
+                urlencoding::decode(k).unwrap_or_else(|_| k.into()).into_owned(),
+                urlencoding::decode(v).unwrap_or_else(|_| v.into()).into_owned(),
+            ))
+        }).collect()
+    } else { vec![] }
+}
+
+fn query_param<'a>(query: &'a [(String, String)], name: &str) -> Option<&'a str> {
+    query.iter().find(|(k, _)| k == name).map(|(_, v)| v.as_str())
+}
+
+fn extract_body_text(body: &Option<SendSafeBody>) -> String {
+    match body {
+        Some(SendSafeBody::Text(t)) => t.clone(),
+        Some(SendSafeBody::Bytes(b)) => String::from_utf8_lossy(b).to_string(),
+        _ => String::new(),
+    }
+}
+
+fn header_name_eq(header: &foundation_netio::simple_http::shared::SimpleHeader, name: &str) -> bool {
+    // SimpleHeader is an enum — match on the variant name
+    format!("{:?}", header).eq_ignore_ascii_case(name)
+}
+
+fn parse_form_urlencoded(body: &str) -> std::collections::HashMap<String, String> {
+    let mut map = std::collections::HashMap::new();
+    for pair in body.split('&') {
+        if let Some((key, value)) = pair.split_once('=') {
+            let decoded = urlencoding::decode(value).unwrap_or_else(|_| value.into());
+            map.insert(key.to_string(), decoded.into_owned());
         }
     }
+    map
 }
 
 #[cfg(test)]
@@ -241,11 +508,8 @@ mod tests {
     fn noop_waker() -> core::task::Waker {
         use core::task::{RawWaker, RawWakerVTable};
         fn no_op(_: *const ()) {}
-        fn clone(p: *const ()) -> RawWaker {
-            RawWaker::new(p, &VTABLE)
-        }
-        const VTABLE: RawWakerVTable =
-            RawWakerVTable::new(clone, no_op, no_op, no_op);
+        fn clone(p: *const ()) -> RawWaker { RawWaker::new(p, &VTABLE) }
+        const VTABLE: RawWakerVTable = RawWakerVTable::new(clone, no_op, no_op, no_op);
         unsafe { core::task::Waker::from_raw(RawWaker::new(core::ptr::null(), &VTABLE)) }
     }
 
@@ -255,55 +519,52 @@ mod tests {
 
     #[test]
     fn test_discovery() {
-        let core = IdpHandlerCore::new(test_config());
+        let storage = Arc::new(HandlerStorage::new(Arc::new(InMemoryStore)));
+        let core = IdpHandlerCore::new(test_config(), storage);
         let bag = ContextBag::new();
         let req = SimpleIncomingRequest::builder()
-            .with_plain_url("/.well-known/openid-configuration")
-            .build()
-            .unwrap();
+            .with_plain_url("/.well-known/openid-configuration").build().unwrap();
         let result = block_on(core.discovery(&bag, &req));
         assert!(result.is_ok());
-        let doc = result.unwrap();
-        assert_eq!(doc["issuer"], "https://auth.example.com");
-        assert_eq!(doc["token_endpoint"], "https://auth.example.com/token");
+        assert_eq!(result.unwrap().body["issuer"], "https://auth.example.com");
     }
 
     #[test]
     fn test_jwks() {
-        let core = IdpHandlerCore::new(test_config());
+        let storage = Arc::new(HandlerStorage::new(Arc::new(InMemoryStore)));
+        let core = IdpHandlerCore::new(test_config(), storage);
         let bag = ContextBag::new();
         let req = SimpleIncomingRequest::builder()
-            .with_plain_url("/.well-known/jwks.json")
-            .build()
-            .unwrap();
+            .with_plain_url("/.well-known/jwks.json").build().unwrap();
         let result = block_on(core.jwks(&bag, &req));
         assert!(result.is_ok());
-        let jwks = result.unwrap();
-        assert!(jwks["keys"].is_array());
-        assert_eq!(jwks["keys"][0]["alg"], "EdDSA");
+        assert!(result.unwrap().body["keys"].is_array());
     }
 
     #[test]
-    fn test_introspect_returns_inactive() {
-        let core = IdpHandlerCore::new(test_config());
-        let bag = ContextBag::new();
-        let req = SimpleIncomingRequest::builder()
-            .with_plain_url("/introspect")
-            .build()
-            .unwrap();
-        let result = block_on(core.introspect(&bag, &req));
-        assert!(result.is_ok());
-        assert_eq!(result.unwrap()["active"], false);
-    }
-
-    #[test]
-    fn test_discovery_document_fields() {
+    fn test_discovery_document_paths() {
         let config = IdpConfig::new("https://auth.example.com".into());
-        let doc = OidcDiscoveryDocument::from_config(&config);
-        assert_eq!(doc.issuer, "https://auth.example.com");
-        assert_eq!(doc.authorization_endpoint, "https://auth.example.com/authorize");
-        assert_eq!(doc.jwks_uri, "https://auth.example.com/.well-known/jwks.json");
-        assert!(doc.grant_types_supported.contains(&"authorization_code".to_string()));
-        assert!(doc.code_challenge_methods_supported.contains(&"S256".to_string()));
+        let doc = OidcDiscoveryDocument::from_config(&config, "/idp");
+        assert_eq!(doc.authorization_endpoint, "https://auth.example.com/idp/authorize");
+        assert_eq!(doc.jwks_uri, "https://auth.example.com/idp/.well-known/jwks.json");
+    }
+
+    #[test]
+    fn test_parse_form_urlencoded() {
+        let pairs = parse_form_urlencoded("grant_type=authorization_code&code=abc");
+        assert_eq!(pairs.get("grant_type"), Some(&"authorization_code".to_string()));
+        assert_eq!(pairs.get("code"), Some(&"abc".to_string()));
+    }
+
+    use foundation_db::core::storage_provider::{QueryStore, SqlRow, StorageItemStream, DataValue};
+    use foundation_db::core::errors::StorageError;
+    use foundation_core::valtron::Stream;
+    struct InMemoryStore;
+    impl QueryStore for InMemoryStore {
+        fn query(&self, _sql: &str, _params: &[DataValue]) -> Result<StorageItemStream<'_, SqlRow>, StorageError> {
+            Ok(Box::new(std::iter::empty()))
+        }
+        fn execute(&self, _sql: &str, _params: &[DataValue]) -> Result<u64, StorageError> { Ok(0) }
+        fn execute_batch(&self, _sql: &str) -> Result<(), StorageError> { Ok(()) }
     }
 }

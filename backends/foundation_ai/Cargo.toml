@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "AI foundation create for the eweplatform"
+description = "AI foundation crate for the eweplatform"
 keywords = ["foundations_ai", "ewe-platform-ai"]
 
 [dependencies]
@@ -21,8 +21,7 @@ foundation_netio = { workspace = true }
 foundation_deployment = { workspace = true, features = ["huggingface"] }
 foundation_errstacks = { workspace = true }
 foundation_jsonschema = { workspace = true }
-
-infrastructure_llama_cpp = { workspace = true }
+foundation_compact = { workspace = true }
 
 # -- Other dependencies
 regex = { version = "1.10" }
@@ -31,57 +30,62 @@ lazy-regex = { version = "3.1" }
 derive_more = { version = "2.1", features = ["from", "debug", "display", "error"] }
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-fastrand = { version = "2.3"}
-rand_chacha = { version = "0.10"}
-rand = { version = "0.10"}
-chrono = { version = "0.4.44"}
+
+# llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
+[target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
+infrastructure_llama_cpp = { workspace = true, optional = true }
 
 # Candle ML framework (optional, behind feature flags)
-# Note: candle-core is NOT listed here — it's pulled in transitively by
-# candle-nn and candle-transformers. The Apple target-specific dep below
-# adds candle-core with metal feature on macOS.
-candle-nn = { version = "0.10", optional = true }
-candle-transformers = { version = "0.10", optional = true }
-tokenizers = { version = "0.22", optional = true }
+[dependencies.candle-nn]
+version = "0.10"
+optional = true
 
-# Candle with Metal — Apple only. Non-optional + target-specific so
-# --all-features on Linux never pulls in objc2 (target deps are skipped
-# on non-matching targets, unlike optional deps where features activate globally).
+[dependencies.candle-transformers]
+version = "0.10"
+optional = true
+
+[dependencies.tokenizers]
+version = "0.22"
+optional = true
+
+[dependencies.fastrand]
+version = "2.3"
+optional = true
+
+# Candle with Metal — Apple only.
 [target.'cfg(target_vendor = "apple")'.dependencies]
 candle-core = { version = "0.10", features = ["metal"] }
 
 [dev-dependencies]
-# Foundation testing with HuggingFace model downloading
 foundation_testing = { workspace = true, features = ["huggingface"] }
 serial_test = { workspace = true }
-tracing-test = { version = "0.2.5",  features = ["no-env-filter"] }
+tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 
 [features]
-# vulkan + Apple Metal
-metal = ["infrastructure_llama_cpp/metal"]
-vulkan = ["infrastructure_llama_cpp/vulkan"]
+default = ["llamacpp", "agentic"]
+llamacpp = ["dep:infrastructure_llama_cpp"]
+agentic = []
+
+# vulkan + Apple Metal (route through llamacpp)
+metal = ["llamacpp", "infrastructure_llama_cpp/metal"]
+vulkan = ["llamacpp", "infrastructure_llama_cpp/vulkan"]
 
 # cuda flags
-cuda = ["infrastructure_llama_cpp/cuda"]
-cuda_static = ["infrastructure_llama_cpp/cuda", "infrastructure_llama_cpp/cuda-no-vmm"]
+cuda = ["llamacpp", "infrastructure_llama_cpp/cuda"]
+cuda_static = ["llamacpp", "infrastructure_llama_cpp/cuda", "infrastructure_llama_cpp/cuda-no-vmm"]
 
 # Android
-android = ["infrastructure_llama_cpp/android-shared-stdcxx"]
+android = ["llamacpp", "infrastructure_llama_cpp/android-shared-stdcxx"]
 
 # OpenMP
-openmp = ["infrastructure_llama_cpp/openmp"]
+openmp = ["llamacpp", "infrastructure_llama_cpp/openmp"]
 
 # MultiModel Model
-mtmd = ["infrastructure_llama_cpp/mtmd"]
+mtmd = ["llamacpp", "infrastructure_llama_cpp/mtmd"]
 
 # Candle inference backend
-# candle-core is a transitive dep of candle-nn/candle-transformers; the
-# metal variant is added as a non-optional target-specific dep above.
-candle = ["candle-nn", "candle-transformers", "tokenizers"]
-# candle-core is pulled in transitively by candle-nn; we enable cuda feature on it.
+candle = ["candle-nn", "candle-transformers", "tokenizers", "fastrand"]
 candle-cuda = ["candle", "candle-core/cuda"]
-# candle-metal: auto-enabled on Apple targets via target-specific dep above.
-# Code uses #[cfg(all(target_vendor = "apple", feature = "candle"))] guards.
 
 # Multi-threaded executor
 multi = ["foundation_deployment/multi", "foundation_core/multi"]

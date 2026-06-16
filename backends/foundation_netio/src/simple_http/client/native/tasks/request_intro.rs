@@ -18,7 +18,6 @@
 use derive_more::From;
 
 use crate::netcap::RawStream;
-use foundation_core::valtron::{NoSpawner, TaskIterator, TaskStatus};
 use crate::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
 use crate::simple_http::client::shared::ResponseIntro;
 use crate::simple_http::client::HttpClientConnection;
@@ -27,6 +26,7 @@ use crate::simple_http::shared::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody, Status,
 };
+use foundation_core::valtron::{NoSpawner, TaskIterator, TaskStatus};
 
 /// Cloneable subset of `RequestIntro` for observer patterns.
 ///
@@ -190,29 +190,26 @@ impl TaskIterator for GetRequestIntroTask {
                                 }
                             };
 
-                            match next_item {
-                                IncomingResponseParts::StreamedBody(stream) => {
-                                    tracing::info!(
-                                        "[PROCESSING CHECK] Saw next body under Status::Processing state: {:?}",
-                                        &stream,
-                                    );
+                            if let IncomingResponseParts::StreamedBody(stream) = next_item {
+                                tracing::info!(
+                                    "[PROCESSING CHECK] Saw next body under Status::Processing state: {:?}",
+                                    &stream,
+                                );
 
-                                    if let Err(err) = drain_stream_iterator_from_send_safe(stream) {
-                                        tracing::error!(
-                                            "[PROCESSING CHECK] Failed to drain body from 102 status due to: {:?}",
-                                            err
-                                        );
-                                        return Some(TaskStatus::Ready(RequestIntro::Failed(
-                                            HttpReaderError::ReadFailed.into(),
-                                        )));
-                                    }
-                                }
-                                _ => {
-                                    tracing::trace!(
-                                        "[PROCESSING CHECK] Skipping body state from request under Status::Processing"
+                                if let Err(err) = drain_stream_iterator_from_send_safe(stream) {
+                                    tracing::error!(
+                                        "[PROCESSING CHECK] Failed to drain body from 102 status due to: {:?}",
+                                        err
                                     );
-                                    continue;
+                                    return Some(TaskStatus::Ready(RequestIntro::Failed(
+                                        HttpReaderError::ReadFailed.into(),
+                                    )));
                                 }
+                            } else {
+                                tracing::trace!(
+                                    "[PROCESSING CHECK] Skipping body state from request under Status::Processing"
+                                );
+                                continue;
                             }
                         }
 

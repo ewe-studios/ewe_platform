@@ -25,7 +25,7 @@ use std::cell::RefCell;
 use std::fmt::Write;
 use std::num::NonZeroU32;
 use std::rc::Rc;
-use std::time::SystemTime;
+use foundation_compact::SystemTime;
 
 use foundation_core::valtron::{Stream, StreamIterator};
 
@@ -332,7 +332,7 @@ impl Model for LlamaModels {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>> {
-        let backend = LlamaBackend::init_or_get().map_err(GenerationError::LlamaCpp)?;
+        let backend = LlamaBackend::init_or_get().map_err(Into::<GenerationError>::into)?;
 
         // Get model, spec, and context params
         let (model, spec, ctx_params) = {
@@ -347,7 +347,7 @@ impl Model for LlamaModels {
         // Create context
         let mut ctx = model
             .new_context(&backend, ctx_params)
-            .map_err(GenerationError::LlamaContextLoad)?;
+            .map_err(Into::<GenerationError>::into)?;
 
         // Build sampler chain from params
         let params = specs.unwrap_or_default();
@@ -827,13 +827,13 @@ fn apply_chat_template(
     } else {
         model
             .chat_template(None)
-            .map_err(GenerationError::ChatTemplate)?
+            .map_err(Into::<GenerationError>::into)?
     };
 
     // Apply chat template
     let prompt = model
         .apply_chat_template(&template, &chat_messages, true)
-        .map_err(GenerationError::ApplyChatTemplate)?;
+        .map_err(Into::<GenerationError>::into)?;
 
     Ok(prompt)
 }
@@ -853,7 +853,7 @@ fn generate_embeddings(
     // Tokenize the prompt
     let tokens = model
         .str_to_token(prompt, AddBos::Always)
-        .map_err(GenerationError::Tokenization)?;
+        .map_err(Into::<GenerationError>::into)?;
 
     // Create batch and add sequence
     let mut batch = LlamaBatch::new(tokens.len(), 1);
@@ -862,12 +862,12 @@ fn generate_embeddings(
         .map_err(|e| GenerationError::Generic(format!("Failed to add tokens to batch: {e}")))?;
 
     // Encode to get embeddings
-    ctx.encode(&mut batch).map_err(GenerationError::Encode)?;
+    ctx.encode(&mut batch).map_err(Into::<GenerationError>::into)?;
 
     // Get embeddings for the first sequence
     let embeddings = ctx
         .embeddings_seq_ith(0)
-        .map_err(GenerationError::Embeddings)?;
+        .map_err(Into::<GenerationError>::into)?;
 
     // Return embeddings as Assistant message
     let dimensions = embeddings.len();
@@ -933,7 +933,7 @@ fn generate_text(
     // Tokenize the prompt
     let tokens = model
         .str_to_token(prompt, AddBos::Always)
-        .map_err(GenerationError::Tokenization)?;
+        .map_err(Into::<GenerationError>::into)?;
 
     // Create batch and add sequence for prompt
     let mut batch = LlamaBatch::new(tokens.len(), 1);
@@ -942,7 +942,7 @@ fn generate_text(
         .map_err(|e| GenerationError::Generic(format!("Failed to add tokens to batch: {e}")))?;
 
     // Decode the prompt
-    ctx.decode(&mut batch).map_err(GenerationError::Decode)?;
+    ctx.decode(&mut batch).map_err(Into::<GenerationError>::into)?;
 
     // Generate tokens up to max_tokens or until stop token
     let max_tokens = params.max_tokens;
@@ -963,7 +963,7 @@ fn generate_text(
         // Detokenize and accumulate
         let token_str = model
             .token_to_str(next_token, Special::Tokenize)
-            .map_err(GenerationError::TokenToString)?;
+            .map_err(Into::<GenerationError>::into)?;
         output_text.push_str(&token_str);
 
         // Check for stop tokens
@@ -981,7 +981,7 @@ fn generate_text(
             .add(next_token, current_pos, &[0], true)
             .map_err(|e| GenerationError::Generic(format!("Failed to add token to batch: {e}")))?;
 
-        ctx.decode(&mut batch).map_err(GenerationError::Decode)?;
+        ctx.decode(&mut batch).map_err(Into::<GenerationError>::into)?;
     }
 
     // Calculate token counts
@@ -1107,7 +1107,7 @@ impl ModelProvider for LlamaBackends {
 
         let model_params = LlamaModelParams::default();
         let model = LlamaModel::load_from_file(&backend, model_path, &model_params)
-            .map_err(|e| ModelProviderErrors::ModelErrors(ModelErrors::LlamaModelLoad(e)))?;
+            .map_err(|e| ModelProviderErrors::ModelErrors(e.into()))?;
 
         let context_params = LlamaModelContextParams::default();
 

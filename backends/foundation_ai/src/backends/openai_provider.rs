@@ -9,7 +9,8 @@ use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::thread;
-use std::time::{Duration, SystemTime};
+use std::time::Duration;
+use foundation_compact::SystemTime;
 
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};

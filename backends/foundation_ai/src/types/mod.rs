@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::time::SystemTime;
+use foundation_compact::SystemTime;
 
 use derive_more::{Display, Error, From};
 use foundation_auth::AuthCredential;

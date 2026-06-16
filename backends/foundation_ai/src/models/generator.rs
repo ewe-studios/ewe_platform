@@ -1,5 +1,5 @@
 use std::collections::BTreeMap;
-use std::time::{Duration, Instant};
+use foundation_compact::{Duration, Instant};
 
 use derive_more::{Display, From};
 use foundation_core::valtron::{self, Stream, TaskIterator, TaskIteratorExt};
