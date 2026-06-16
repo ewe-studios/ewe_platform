@@ -1,12 +1,12 @@
-//! Web-specific extensions to [`foundation_webwasm`].
+//! Web-specific extensions to [`foundation_compact`].
 
 use std::time::SystemTime as StdSystemTime;
 
 use crate::SystemTime;
 
-/// Web-specific extension to [`foundation_webwasm::SystemTime`].
+/// Web-specific extension to [`foundation_compact::SystemTime`].
 pub trait SystemTimeExt {
-    /// Convert [`foundation_webwasm::SystemTime`] to [`std::time::SystemTime`].
+    /// Convert [`foundation_compact::SystemTime`] to [`std::time::SystemTime`].
     ///
     /// # Note
     ///
@@ -17,7 +17,7 @@ pub trait SystemTimeExt {
     /// internally, which would panic on wasm32-unknown-unknown.
     fn to_std(self) -> std::time::SystemTime;
 
-    /// Convert [`std::time::SystemTime`] to [`foundation_webwasm::SystemTime`].
+    /// Convert [`std::time::SystemTime`] to [`foundation_compact::SystemTime`].
     ///
     /// # Note
     ///

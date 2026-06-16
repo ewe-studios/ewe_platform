@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Network I/O abstractions — async HTTP/WebSocket/SOCKS5 clients, TLS backend (rustls/native-tls), compression, and cross-platform netcap with wasm support"
 keywords.workspace = true
 
 

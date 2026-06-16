@@ -1,0 +1,51 @@
+[package]
+name = "foundation_compact"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Cross-platform substrate: time polyfill + vendored entropy + RNG + scru128 IDs"
+keywords = ["wasm", "time", "entropy", "rng", "scru128"]
+
+[dependencies]
+cfg-if = "1"
+fstr = { version = "0.2.20", default-features = false }
+rand_core = { version = "0.10", default-features = false }
+rand_chacha = { version = "0.10", default-features = false }
+serde = { version = "1", optional = true, default-features = false, features = ["derive"] }
+forkguard = { version = "0.1", optional = true }
+
+# Platforms using libc-based entropy backends (getentropy, getrandom(2), /dev/urandom)
+[target.'cfg(any(target_os = "macos", target_os = "emscripten", target_os = "openbsd", target_os = "vita", target_os = "android", target_os = "linux", target_os = "freebsd", target_os = "dragonfly", target_os = "hurd", target_os = "illumos", target_os = "haiku", target_os = "redox", target_os = "nto", target_os = "aix", target_os = "netbsd", target_os = "cygwin", target_os = "horizon", target_os = "solaris"))'.dependencies]
+libc = { version = "0.2", default-features = false }
+
+# wasm32-unknown-unknown only: JS bindings for time polyfill + Web Crypto entropy
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dependencies]
+wasm-bindgen = { version = "0.2.70" }
+js-sys = { version = "0.3.20" }
+
+[features]
+default = ["std"]
+std = ["fstr/std"]
+serde = ["dep:serde"]
+global_gen = ["std", "dep:forkguard"]
+native = ["std", "global_gen"]
+msrv = []
+
+[target.'cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))'.dev-dependencies]
+wasm-bindgen-test = "0.3"
+
+[lints.rust]
+missing_docs = "allow"
+missing_debug_implementations = "allow"
+unexpected_cfgs = { level = "warn", check-cfg = [
+    'cfg(getrandom_backend, values("custom", "linux_getrandom", "linux_raw", "rdrand", "rndr", "efi_rng", "windows_legacy", "unsupported", "extern_impl"))',
+    'cfg(getrandom_msan)',
+    'cfg(getrandom_test_linux_fallback)',
+    'cfg(getrandom_test_linux_without_fallback)',
+] }
+
+[lints.clippy]
+pedantic = "warn"

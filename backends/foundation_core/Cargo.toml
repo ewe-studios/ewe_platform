@@ -56,7 +56,7 @@ rand = "0.9"
 wasm-bindgen-test = "0.3"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
-foundation_webwasm = { workspace = true }
+foundation_compact = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 serial_test = { workspace = true }

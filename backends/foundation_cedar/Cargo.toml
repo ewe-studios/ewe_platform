@@ -6,6 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
+description = "Cedar policy engine integration — fine-grained authorization with optional database-backed policy storage"
 keywords.workspace = true
 
 [dependencies]

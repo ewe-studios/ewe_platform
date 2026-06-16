@@ -3560,6 +3560,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_compact"
+version = "0.1.0"
+dependencies = [
+ "cfg-if",
+ "forkguard",
+ "fstr",
+ "js-sys",
+ "libc",
+ "rand_chacha 0.10.0",
+ "rand_core 0.10.1",
+ "serde",
+ "wasm-bindgen",
+ "wasm-bindgen-test",
+]
+
+[[package]]
 name = "foundation_conditional"
 version = "0.1.0"
 
@@ -3581,11 +3597,11 @@ dependencies = [
  "concurrent-queue",
  "derive_more",
  "fastrand",
+ "foundation_compact",
  "foundation_macros",
  "foundation_nostd",
  "foundation_testing",
  "foundation_wasm",
- "foundation_webwasm",
  "futures-core",
  "getrandom 0.2.16",
  "getrandom 0.3.4",
@@ -4125,18 +4141,6 @@ dependencies = [
  "serde_json",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "foundation_webwasm"
-version = "0.1.0"
-dependencies = [
- "getrandom 0.2.16",
- "js-sys",
- "rand 0.8.5",
- "serde",
- "wasm-bindgen",
- "wasm-bindgen-test",
 ]
 
 [[package]]

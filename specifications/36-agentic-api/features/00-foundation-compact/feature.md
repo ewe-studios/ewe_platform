@@ -90,38 +90,58 @@ Final check: `grep -rn "foundation_webwasm"` returns empty.
 
 ### Part B — Vendor `getrandom` in-house → `entropy`
 
-Copy the `getrandom` source into `foundation_compact/src/entropy/`, **keep the backends we ship**, and
-own it. Public surface:
+Copy the **full** `getrandom` source into `foundation_compact/src/entropy/`. Faithful vendor — all
+backends, all dispatch logic, all utility files. We own it but don't lobotomize it. Public surface:
 
 ```rust
-// foundation_compact::entropy
-pub fn fill(buf: &mut [u8]) -> Result<(), EntropyError>;  // fallible (matches getrandom)
-pub fn u32() -> u32;  pub fn u64() -> u64;                // convenience (panic on CSPRNG failure)
+// foundation_compact::entropy (matching upstream getrandom API)
+pub fn fill(buf: &mut [u8]) -> Result<(), Error>;
+pub fn fill_uninit(buf: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error>;
+pub fn u32() -> Result<u32, Error>;
+pub fn u64() -> Result<u64, Error>;
 ```
 
-- **Native backends** (vendored): Linux `getrandom(2)`/`getentropy`, macOS/iOS `getentropy`, Windows
-  `ProcessPrng`/`BCryptGenRandom`.
-- **wasm backends we own** (the source already has them): `wasm_js` (Web Crypto `getRandomValues` —
-  reached via **`foundation_wasm`** host runtime, not a raw wasm-bindgen dep), **`wasi_p1`** + **`wasi_p2_3`**
-  (WASI `random_get` / `wasi:random`), and `getentropy` (**emscripten**). So entropy works on
-  `unknown-unknown` + emscripten + wasip1 + wasip2 (the F00d matrix) with no `getrandom_backend` cfg —
-  we control the per-target selection.
-- **No external `getrandom` dependency remains.** Historical OD-00-2 (`getrandom_backend` cfg) is moot.
+- **All upstream backends preserved**: `linux_raw` (asm), `getentropy` (macOS/emscripten/OpenBSD),
+  `getrandom` (libc), `linux_android_with_fallback`, `use_file` (/dev/urandom), `windows`
+  (ProcessPrng), `windows_legacy` (RtlGenRandom), `wasm_js` (Web Crypto), `wasi_p1`, `wasi_p2_3`,
+  `apple_other`, `rdrand`, `rndr`, `esp_idf`, `fuchsia`, `unsupported`, etc. — the full upstream
+  backend set. Removing unused backends saves nothing and loses future portability.
+- **Keep `getrandom_backend` cfg override mechanism** — allows plugging in custom backends via
+  `--cfg getrandom_backend="custom"` without modifying dispatch. Future-proof.
+- **Keep `libc` crate dep** for platforms that need it (macOS getentropy, Linux getrandom(2) fallback,
+  errno access). Platform-conditional dep, not pulled on platforms that don't need it.
+- **Keep all utility files**: `get_errno.rs`, `sanitizer.rs` (MSAN), `lazy_bool.rs`, `lazy_ptr.rs`,
+  `sys_fill_exact.rs`. The full upstream infrastructure.
+- Only path adaptation: `crate::` → `crate::entropy::` (since backends.rs is now a submodule).
+- **No external `getrandom` dependency remains.** OD-00-2 is moot — we own the cfg.
 
 ### Part C — Vendor `rand` in-house → `rng`
 
-Copy the `rand` source into `foundation_compact/src/rng/`, **trim to the minimal subset the workspace
-uses** (`RngCore`/`SeedableRng`, `StdRng`/ChaCha, a thread-rng-equivalent, the distributions actually
-used — see OD-00-5), **seeded from our vendored `entropy`** (not external getrandom). This closes the
-loop: nothing in the workspace pulls external `rand`/`getrandom`, so the wasm `compile_error!` chain
-is gone.
+Vendor `rand_core`, `rand_chacha`, and `rand`'s higher-level API into `foundation_compact/src/rng/`.
+**Faithful copy — full SIMD ChaCha (via `ppv-lite86` external dep), full trait set, full distributions.**
+Per OD-00-5: "vendor the WHOLE capability", not a minimal subset.
+
+The ONE adaptation: `ThreadRng`'s reseeding calls our vendored `crate::entropy::fill()` instead of
+external `getrandom`. This is what breaks the `compile_error!` chain.
 
 ```rust
-// foundation_compact::rng
-pub trait RngCore { fn next_u32(&mut self) -> u32; fn next_u64(&mut self) -> u64; fn fill_bytes(&mut self, b: &mut [u8]); }
-pub struct StdRng(/* ChaCha */);          // seeded from entropy::fill
-pub fn rng() -> impl RngCore;             // thread-local CSPRNG
+// foundation_compact::rng — full upstream rand API surface
+pub use core::{Rng, TryRng, SeedableRng, CryptoRng, TryCryptoRng};  // vendored rand_core traits
+pub use chacha::{ChaCha8Rng, ChaCha12Rng, ChaCha20Rng};              // vendored rand_chacha (SIMD)
+pub use rngs::{StdRng, ThreadRng, SmallRng};                          // vendored rand rngs
+pub fn rng() -> ThreadRng;                                            // thread-local, seeded from entropy
 ```
+
+- **`ppv-lite86` stays as external dep** — it's a SIMD utility crate, not part of the rand/getrandom
+  chain, has no wasm issues. Vendoring ~4000 lines of arch-specific SIMD intrinsics buys nothing.
+- **`rand_core` vendored faithfully** — `Rng`, `TryRng`, `SeedableRng`, `CryptoRng`, `BlockRng`,
+  `Generator` trait. All preserved.
+- **`rand_chacha` vendored faithfully** — `guts.rs` with full SIMD dispatch via ppv-lite86,
+  `chacha.rs` with the `chacha_impl!` macro. ChaCha8/12/20 all present.
+- **`rand` higher-level API vendored** — `StdRng` (= ChaCha12Rng), `SmallRng` (Xoshiro),
+  `ThreadRng` (reseeding), `RngExt` trait, distributions.
+- Path adaptations: `rand_core::` → `crate::rng::core::`, `rand_chacha::` → `crate::rng::chacha::`,
+  `getrandom::` → `crate::entropy::`
 
 ### Part D — Fold `foundation_rng` (scru128) in → `ids`
 
@@ -146,25 +166,34 @@ pub fn new_scru128_string() -> String;
 ```toml
 [features]
 default = ["std"]
-std = []                                                  # native OS entropy + std time
-js-wasmbindgen = ["foundation_wasm/js-wasmbindgen"]       # wasm: web-crypto via foundation_wasm
-js-foundation-wasm = ["foundation_wasm/js-foundation-wasm"]   # node/deno host runtime
+std = ["fstr/std"]                                        # std time, std entropy backends
+serde = ["dep:serde"]                                     # serde for Id, time types
+global_gen = ["std", "dep:forkguard", "dep:reseeding_rng"] # fork-safe global scru128 generator
+native = ["std", "global_gen"]                            # native convenience (all std + fork safety)
 # WASI + emscripten select their entropy backend by target_os (no extra feature needed)
+# ppv-lite86 is always present (ChaCha SIMD — no feature gate needed)
 ```
-
-Native `foundation_core` keeps its zero-extra-runtime-dep posture (vendored code, no external crates).
 
 ### Module layout (restructured for the expanded scope — user TODO)
 
 ```
 foundation_compact/src/
-├── lib.rs        # cfg-split re-exports: time::*, entropy::*, rng::*, ids::*
-├── time/         # Instant + SystemTime (existing; native/emscripten/wasi=std, unknown-unknown=Date.now/Performance.now)
-│                 #   + a CONSISTENT custom serde: SystemTime ⇄ {secs_since_epoch,nanos_since_epoch} via
-│                 #   duration_since(UNIX_EPOCH) on EVERY target (cross-platform replay round-trips — resolves OD-00b-6)
-├── entropy/      # VENDORED getrandom: fill()/u32()/u64() + backends/{native, wasm_js, wasi_p1, wasi_p2_3, emscripten}
-├── rng/          # VENDORED rand (minimal subset): RngCore, StdRng (ChaCha), rng(), distributions
-└── ids/          # FOLDED foundation_rng: scru128 Id + Generator (over our time + entropy)
+├── lib.rs            # cfg-split re-exports: time::*, entropy::*, rng::*, ids::*
+├── time/             # Instant + SystemTime (existing; native/emscripten/wasi=std, unknown-unknown=polyfill)
+│                     #   + CONSISTENT custom serde: SystemTime ⇄ {secs,nanos} via UNIX_EPOCH (OD-00b-6)
+├── entropy/          # VENDORED getrandom (FULL source: all backends, all dispatch, all utils)
+│   ├── mod.rs        # fill(), u32(), u64(), fill_uninit()
+│   ├── error.rs      # Error type (faithful copy)
+│   ├── util.rs       # slice helpers, inner_u32/u64
+│   ├── utils/        # get_errno, sanitizer, lazy_bool, lazy_ptr, sys_fill_exact
+│   └── backends/     # ALL upstream backends (linux_raw, getentropy, windows, wasm_js, wasi, ...)
+├── rng/              # VENDORED rand ecosystem (FULL capability per OD-00-5)
+│   ├── core/         # vendored rand_core (Rng, TryRng, SeedableRng, CryptoRng, BlockRng, Generator)
+│   ├── chacha/       # vendored rand_chacha (ChaCha8/12/20 with SIMD via ppv-lite86 external dep)
+│   ├── rngs/         # vendored rand rngs (StdRng, ThreadRng, SmallRng, Xoshiro)
+│   ├── rng.rs        # RngExt trait (random, random_range, fill, sample)
+│   └── distr/        # vendored rand distributions
+└── ids/              # FOLDED foundation_rng: scru128 Id + Generator + global_gen (over our time+rng)
 ```
 
 ## Architecture
@@ -174,7 +203,7 @@ graph TD
     FC[foundation_compact]
     FC --> T["time: Instant + SystemTime (polyfill ONLY on unknown-unknown)"]
     FC --> EN["entropy: vendored getrandom (native / wasm_js / wasi_p1 / wasi_p2_3 / emscripten)"]
-    FC --> RN["rng: vendored rand subset (RngCore, StdRng, rng)"]
+    FC --> RN["rng: vendored rand (full: rand_core + rand_chacha/SIMD + StdRng/ThreadRng/SmallRng)"]
     FC --> ID["ids: scru128 (folded foundation_rng) over our time+entropy"]
     RN --> EN
     ID --> EN
@@ -200,14 +229,18 @@ chronological, machine-id embedding); vendoring strategy (own-vs-depend, trimmin
 ## HOW: Implementation Steps
 
 1. **Rename** (Part A); workspace `cargo build` + `clippy -D warnings` green.
-2. **Vendor getrandom** into `src/entropy/` (native + wasm_js + wasi_p1 + wasi_p2_3 + emscripten
-   backends); wasm_js via `foundation_wasm`; keep licence/attribution. Expose `fill`/`u32`/`u64`.
-3. **Vendor rand** into `src/rng/` (minimal subset — OD-00-5); seed from `entropy`; keep attribution.
-4. **Fold foundation_rng** into `src/ids/` over our `time`+`entropy`; `new_scru128` works on all targets.
+2. **Vendor getrandom** into `src/entropy/` — **full source**: all backends, all dispatch (keep
+   `getrandom_backend` cfg override), all utils, `libc` dep for platforms that need it. Keep
+   licence/attribution. Expose `fill`/`u32`/`u64`/`fill_uninit`.
+3. **Vendor rand** into `src/rng/` — **full capability** per OD-00-5: `rand_core` (traits + BlockRng),
+   `rand_chacha` (ChaCha with SIMD via `ppv-lite86` external dep), `rand` rngs (StdRng, ThreadRng,
+   SmallRng), distributions. Seed ThreadRng from `entropy`; keep attribution.
+4. **Fold foundation_rng** into `src/ids/` over our `time`+`rng`; keep `global_gen.rs` (fork-safe
+   generator); `new_scru128` works on all targets.
 5. **Remove the `foundation_rng` crate**; repoint every dependent + spec feature (grep both).
-6. Feature flags; native zero-extra-dep.
-7. Build matrix: native; `--features js-wasmbindgen --target wasm32-unknown-unknown`;
-   `--features js-foundation-wasm --target wasm32-unknown-unknown`; `--target wasm32-wasip1`;
+6. Feature flags; `ppv-lite86` as external dep; `libc` platform-conditional; `forkguard`/`reseeding_rng`
+   behind `global_gen` feature.
+7. Build matrix: native; `--target wasm32-unknown-unknown`; `--target wasm32-wasip1`;
    `--target wasm32-wasip2`; (emscripten via F00d). Verify `new_scru128`/`rng`/`entropy::fill` each.
 8. Update crate `//!` docs.
 
@@ -265,10 +298,14 @@ cargo test -p foundation_compact
 
 ## Done When
 
-- `foundation_compact` owns time + **vendored** entropy + **vendored** rng + **folded** scru128 ids;
-  builds native + unknown-unknown + wasip1 + wasip2 (emscripten via F00d).
+- `foundation_compact` owns time + **vendored** entropy (full getrandom) + **vendored** rng (full
+  rand_core + rand_chacha + rand) + **folded** scru128 ids; builds native + unknown-unknown + wasip1 +
+  wasip2 (emscripten via F00d).
 - **No external `rand`/`getrandom` anywhere in the workspace**; the wasm `compile_error!` chain is gone.
+  `ppv-lite86` remains as external dep (SIMD utility, not part of the chain).
 - `foundation_rng` crate removed; all dependents (+ spec features) repointed; **no type aliases**.
-- `new_scru128()` uniform across targets; native keeps zero external runtime deps.
+- `new_scru128()` uniform across targets; `global_gen` feature preserves fork-safe generator.
+- Vendored code is **faithful** — all upstream backends, dispatch logic, `getrandom_backend` cfg
+  override, SIMD ChaCha, `libc` where upstream uses it. No lobotomization.
 - No `sleep` primitive; backoff is `TaskStatus::Delayed`/`Wait`. Vendored code carries upstream
   licences (`VENDORED.md`). OD-00-5..7 resolved.

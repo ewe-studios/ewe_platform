@@ -17,7 +17,7 @@
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
 use std::sync::Arc;
 use std::time::Duration;
-use foundation_webwasm::Instant;
+use foundation_compact::Instant;
 
 use foundation_core::valtron::{
     single::{initialize_pool, run_until_complete, spawn},
