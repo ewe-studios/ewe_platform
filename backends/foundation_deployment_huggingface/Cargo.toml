@@ -1,0 +1,15 @@
+[package]
+name = "foundation_deployment_huggingface"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+foundation_deployment = { workspace = true }
+
+[lints]
+workspace = true
