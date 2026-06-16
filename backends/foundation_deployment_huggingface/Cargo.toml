@@ -27,11 +27,11 @@ chrono = {workspace = true }
 tracing = { workspace = true }
 foundation_core = { workspace = true }
 foundation_macros = { workspace = true }
-foundation_netio = { workspace = true, default-features = false }
+foundation_netio = { workspace = true }
 
 [features]
 default = ["multi"]
-multi = ["foundation_core/multi", "foundation_netio/multi", , "foundation_netio/ssl"]
+multi = ["foundation_core/multi", "foundation_netio/multi", "foundation_netio/ssl"]
 
 
 [lints]
