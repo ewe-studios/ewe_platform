@@ -11,7 +11,6 @@ use foundation_core::valtron::{
     TaskStatus,
 };
 use rand::RngCore;
-use serial_test::serial;
 use tracing_test::traced_test;
 
 use foundation_core::synca::WaitGroup;
@@ -161,22 +160,24 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);
 }
 
-#[test]
-#[serial]
+// No #[serial]: the pool lifecycle gate serializes pool users. The kill handler
+// runs and joins INSIDE block_on using a cloned pool handle, so it kills the
+// pool (letting block_on's waitgroup().wait() return) without ever calling
+// get_pool() after the guard clears the global registry.
 #[traced_test]
 fn can_finish_even_when_task_panics() {
     let seed = rand::rng().next_u64();
 
-    let handler_kill = thread::spawn(move || {
-        tracing::debug!("Waiting for kill signal");
-        thread::sleep(Duration::from_secs(1));
-        tracing::debug!("Got kill signal");
-        get_pool().kill();
-        tracing::debug!("Closing thread");
-    });
+    block_on(seed, None, |pool| {
+        let pool_clone = pool.clone();
+        let handler_kill = thread::spawn(move || {
+            tracing::debug!("Waiting for kill signal");
+            thread::sleep(Duration::from_secs(1));
+            tracing::debug!("Got kill signal");
+            pool_clone.kill();
+            tracing::debug!("Closing thread");
+        });
 
-    let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
-    let _guard = block_on(seed, None, |pool| {
         pool.spawn()
             .with_task(PanicCounter)
             .with_resolver(Box::new(FnReady::new(|item, _| {
@@ -184,20 +185,17 @@ fn can_finish_even_when_task_panics() {
             })))
             .schedule()
             .expect("should deliver task");
-        task_sent_sender.send(()).expect("deliver message");
 
-        task_sent_receiver
-            .recv_timeout(Duration::from_secs(2))
-            .expect("should have spawned task");
+        tracing::info!("Wait for kill thread to finish");
+        handler_kill.join().expect("should finish");
     });
-
-    tracing::info!("Wait for thread to die");
-    handler_kill.join().expect("should finish");
-    tracing::info!("Wait for thread to die");
 }
 
-#[test]
-#[serial]
+// No #[serial]: the pool lifecycle gate (initialize_pool) serializes all pool
+// users process-wide. The kill handler runs and joins INSIDE block_on, using a
+// cloned pool handle — it must call kill() before block_on's internal
+// waitgroup().wait() can return, and must not touch get_pool() after the guard
+// drops (which clears the global registry).
 #[traced_test]
 fn can_queue_and_complete_task() {
     let seed = rand::rng().next_u64();
@@ -205,22 +203,20 @@ fn can_queue_and_complete_task() {
     let shared_list = Arc::new(Mutex::new(vec![]));
     let (counter, receiver) = Counter::new(5, shared_list.clone());
 
-    let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
-
-    let handler_kill = thread::spawn(move || {
-        tracing::debug!("Waiting for kill signal");
-        receiver
-            .recv_timeout(Duration::from_secs(2))
-            .expect("receive signal");
-        tracing::debug!("Got kill signal");
-        get_pool().kill();
-        tracing::debug!("Closing thread");
-    });
-
-    // handler_kill must run and join BEFORE the guard drops, otherwise
-    // it calls get_pool() on cleared registries and poisons the mutex
-    // for the next test.
     block_on(seed, None, |pool| {
+        // Kill handler: waits for the counter task to signal completion, then
+        // kills the pool so block_on's waitgroup().wait() can unblock.
+        let pool_clone = pool.clone();
+        let handler_kill = thread::spawn(move || {
+            tracing::debug!("Waiting for kill signal");
+            receiver
+                .recv_timeout(Duration::from_secs(2))
+                .expect("receive signal");
+            tracing::debug!("Got kill signal");
+            pool_clone.kill();
+            tracing::debug!("Closing thread");
+        });
+
         tracing::debug!("Spawning new task into pool");
         pool.spawn()
             .with_task(counter)
@@ -230,15 +226,11 @@ fn can_queue_and_complete_task() {
             .schedule()
             .expect("should deliver task");
         tracing::debug!("Task spawned");
-        task_sent_sender.send(()).expect("deliver message");
 
-        task_sent_receiver
-            .recv_timeout(Duration::from_secs(2))
-            .expect("should have spawned task");
+        handler_kill.join().expect("should finish");
     });
 
     assert_eq!(shared_list.lock().unwrap().clone(), vec![0, 1, 2, 3, 4]);
-    handler_kill.join().expect("should finish");
 }
 
 // ============================================================================
