@@ -21,3 +21,5 @@ mod units;
 mod wasm_js_yield_integration;
 mod wasm_yielder_tests;
 mod valtron_macro_tests;
+#[cfg(feature="multi")]
+mod multi_workers;

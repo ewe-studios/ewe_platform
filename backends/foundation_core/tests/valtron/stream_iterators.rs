@@ -29,7 +29,7 @@ struct SimpleStream<D, P> {
 
 impl<D, P> SimpleStream<D, P> {
     fn from_vec(vec: Vec<D>) -> Self {
-        let items: Vec<_> = vec.into_iter().map(Stream::Next).collect();
+        let items: Vec<_> = Iterator::collect(vec.into_iter().map(Stream::Next));
         let items = items.into_iter();
         Self { items }
     }
