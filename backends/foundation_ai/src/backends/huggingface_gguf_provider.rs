@@ -5,14 +5,14 @@
 
 use std::path::PathBuf;
 
-use foundation_deployment::providers::huggingface::{
+use foundation_deployment_huggingface::{
     HFClient, HFRepository, RepoDownloadFileParams,
 };
 
 use crate::backends::llamacpp::{LlamaBackendConfig, LlamaBackends, LlamaModels};
 use crate::errors::{ModelProviderErrors, ModelProviderResult};
 use crate::types::{ModelId, ModelProvider, ModelSpec};
-use foundation_deployment::providers::huggingface::repository;
+use foundation_deployment_huggingface::repository;
 
 /// `HuggingFace` Hub model provider.
 ///
@@ -546,7 +546,7 @@ fn find_gguf_file_in_repo(
     quantization: &str,
 ) -> ModelProviderResult<String> {
     use foundation_core::valtron::Stream;
-    use foundation_deployment::providers::huggingface::RepoListTreeParams;
+    use foundation_deployment_huggingface::RepoListTreeParams;
 
     let params = RepoListTreeParams {
         revision: Some(revision.to_string()),
@@ -556,7 +556,7 @@ fn find_gguf_file_in_repo(
 
     // List files in the repository
     let tree =
-        foundation_deployment::providers::huggingface::repository::repo_list_tree(repo, &params)
+        foundation_deployment_huggingface::repository::repo_list_tree(repo, &params)
             .map_err(|e| {
                 ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                     format!("Failed to list repository files: {e}"),
@@ -575,7 +575,7 @@ fn find_gguf_file_in_repo(
     let pattern = HuggingFaceGGUFProvider::quantization_to_filename_pattern(quantization);
 
     for entry in &entries {
-        if let foundation_deployment::providers::huggingface::RepoTreeEntry::File { path, .. } =
+        if let foundation_deployment_huggingface::RepoTreeEntry::File { path, .. } =
             entry
         {
             if std::path::Path::new(path).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("gguf")) && pattern_matches(&pattern, path) {
@@ -591,7 +591,7 @@ fn find_gguf_file_in_repo(
 
     // If no exact match, try to find any GGUF file
     for entry in &entries {
-        if let foundation_deployment::providers::huggingface::RepoTreeEntry::File { path, .. } =
+        if let foundation_deployment_huggingface::RepoTreeEntry::File { path, .. } =
             entry
         {
             if std::path::Path::new(path).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("gguf")) {

@@ -10,5 +10,33 @@ keywords.workspace = true
 
 [dependencies]
 
+[features]
+fly = ["fly_io"]
+fly_io = []
+fly_io_all = [
+    "fly_io_api",
+    "fly_io_apps",
+    "fly_io_check_cordon_current_253",
+    "fly_io_current",
+    "fly_io_kms",
+    "fly_io_machines",
+    "fly_io_oidc",
+    "fly_io_placements",
+    "fly_io_regions",
+    "fly_io_secretkeys_metadata_secrets_44",
+    "fly_io_volumes",
+]
+fly_io_api = []
+fly_io_apps = []
+fly_io_check_cordon_current_253 = []
+fly_io_current = []
+fly_io_kms = []
+fly_io_machines = []
+fly_io_oidc = []
+fly_io_placements = []
+fly_io_regions = []
+fly_io_secretkeys_metadata_secrets_44 = []
+fly_io_volumes = []
+
 [lints]
 workspace = true

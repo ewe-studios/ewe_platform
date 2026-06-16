@@ -10,10 +10,10 @@ use crate::backends::candle::{
 };
 use crate::errors::{ModelErrors, ModelProviderErrors, ModelProviderResult};
 use crate::types::{ModelId, ModelProvider, ModelSpec};
-use foundation_deployment::providers::huggingface::{
+use foundation_deployment_huggingface::{
     HFClient, RepoDownloadFileParams, RepoListTreeParams, RepoTreeEntry,
 };
-use foundation_deployment::providers::huggingface::repository;
+use foundation_deployment_huggingface::repository;
 use foundation_core::valtron::Stream;
 
 /// HuggingFace provider for safetensors models via the Candle inference backend.

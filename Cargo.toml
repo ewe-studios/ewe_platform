@@ -51,6 +51,7 @@ foundation_core = { path = "./backends/foundation_core", version = "0.0.3" }
 foundation_auth = { path = "./backends/foundation_auth", version = "0.0.1", default-features = false }
 foundation_db = { path = "./backends/foundation_db", version = "0.0.1", default-features = false }
 foundation_deployment = { path = "./backends/foundation_deployment", version = "0.0.1" }
+foundation_deployment_huggingface = { path = "./backends/foundation_deployment_huggingface", version = "0.1.0" }
 foundation_errstacks = { path = "./backends/foundation_errstacks", version = "0.0.1" }
 foundation_openapi = { path = "./backends/foundation_openapi", version = "0.0.1" }
 foundation_macros = { path = "./backends/foundation_macros", version = "0.0.4" }

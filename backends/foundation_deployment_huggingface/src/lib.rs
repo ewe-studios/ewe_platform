@@ -14,7 +14,7 @@
 //! # Usage
 //!
 //! ```rust,no_run
-//! use foundation_deployment::providers::huggingface::{HFClient, client, repository, types};
+//! use foundation_deployment_huggingface::{HFClient, client, repository, types};
 //!
 //! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! // Initialize client

@@ -5,17 +5,17 @@
 
 #![allow(clippy::too_many_lines)]
 
-use crate::providers::huggingface::client::{is_success_status, status_code, HFClient};
-use crate::providers::huggingface::constants;
-use crate::providers::huggingface::error::{HuggingFaceError, Result};
-use crate::providers::huggingface::types::{
+use crate::client::{is_success_status, status_code, HFClient};
+use crate::constants;
+use crate::error::{HuggingFaceError, Result};
+use crate::types::{
     AddSource, CommitInfo, CommitOperation, RepoCreateCommitParams, RepoDeleteFileParams,
     RepoDownloadFileParams, RepoInfo, RepoInfoParams, RepoListTreeParams, RepoTreeEntry, RepoType,
     RepoUploadFileParams,
 };
 use foundation_core::synca::RunOnDrop;
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::simple_http::client::native::RequestIntro;
+use foundation_netio::simple_http::client::native::{HttpClientConnection, RequestIntro};
 use foundation_netio::simple_http::client::shared::{
     body_reader::{self, collect_bytes_into, collect_strings_from_send_safe},
     ResponseIntro,
@@ -24,7 +24,6 @@ use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHe
 use std::collections::BTreeMap;
 
 use foundation_macros::JsonHash;
-use foundation_netio::simple_http::client::HttpClientConnection;
 use serde::Serialize;
 use std::path::PathBuf;
 use std::sync::Arc;

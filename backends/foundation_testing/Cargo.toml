@@ -15,7 +15,7 @@ categories = ["development-tools::testing"]
 foundation_nostd = { workspace = true, features = ["std"] }
 foundation_core = { workspace = true }
 foundation_netio = { workspace = true }
-foundation_deployment = { workspace = true }
+foundation_deployment_huggingface = { workspace = true, optional = true }
 tracing = { workspace = true }
 derive_more = { workspace = true }
 
@@ -43,7 +43,7 @@ default = ["std"]
 std = ["foundation_nostd/std"]
 
 # HuggingFace model downloading for AI backend testing
-huggingface = ["foundation_deployment/huggingface"]
+huggingface = ["foundation_deployment_huggingface"]
 
 # Multi-threaded executor
-multi = ["foundation_deployment/multi", "foundation_core/multi"]
+multi = ["foundation_deployment_huggingface/multi", "foundation_core/multi", "foundation_netio/multi"]

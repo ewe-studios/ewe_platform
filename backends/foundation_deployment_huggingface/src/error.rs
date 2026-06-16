@@ -26,8 +26,8 @@ pub enum HuggingFaceError {
 
     /// Invalid repository type.
     InvalidRepoType {
-        expected: crate::providers::huggingface::types::RepoType,
-        actual: crate::providers::huggingface::types::RepoType,
+        expected: crate::types::RepoType,
+        actual: crate::types::RepoType,
     },
 
     /// Invalid parameter.

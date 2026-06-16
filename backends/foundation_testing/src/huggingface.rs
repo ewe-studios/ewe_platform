@@ -5,10 +5,10 @@
 //!
 //! WHAT: `TestHarness` struct manages downloading and caching models from HuggingFace.
 //!
-//! HOW: Uses the new `foundation_deployment::providers::huggingface` client with
+//! HOW: Uses the new `foundation_deployment_huggingface` client with
 //! simple_http (no tokio/async required).
 
-use foundation_deployment::providers::huggingface::{
+use foundation_deployment_huggingface::{
     repository, HFClientBuilder, RepoDownloadFileParams,
 };
 use std::fs;

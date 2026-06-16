@@ -3410,7 +3410,7 @@ dependencies = [
  "foundation_auth",
  "foundation_compact",
  "foundation_core",
- "foundation_deployment",
+ "foundation_deployment_huggingface",
  "foundation_errstacks",
  "foundation_jsonschema",
  "foundation_macros",
@@ -3675,6 +3675,69 @@ dependencies = [
  "urlencoding",
  "walkdir",
 ]
+
+[[package]]
+name = "foundation_deployment_aws"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_cloudflare"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_flyio"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_gcp"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_huggingface"
+version = "0.1.0"
+dependencies = [
+ "base85rs",
+ "chrono",
+ "derive_more",
+ "dirs 5.0.1",
+ "foundation_core",
+ "foundation_macros",
+ "foundation_netio",
+ "http 1.4.0",
+ "regex",
+ "serde",
+ "serde_json",
+ "serde_yaml",
+ "sha2",
+ "toml 0.8.23",
+ "tracing",
+ "urlencoding",
+ "walkdir",
+]
+
+[[package]]
+name = "foundation_deployment_mongoatlas"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_neon"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_planetscale"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_prisma"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_stripe"
+version = "0.1.0"
+
+[[package]]
+name = "foundation_deployment_supabase"
+version = "0.1.0"
 
 [[package]]
 name = "foundation_errstacks"
@@ -4027,7 +4090,7 @@ dependencies = [
  "criterion",
  "derive_more",
  "foundation_core",
- "foundation_deployment",
+ "foundation_deployment_huggingface",
  "foundation_netio",
  "foundation_nostd",
  "rustls 0.23.40",

@@ -10,5 +10,30 @@ keywords.workspace = true
 
 [dependencies]
 
+[features]
+neon = []
+neon_all = [
+    "neon_api",
+    "neon_auth",
+    "neon_compute",
+    "neon_invitations",
+    "neon_keys",
+    "neon_me",
+    "neon_members",
+    "neon_organizations",
+    "neon_projects",
+    "neon_regions",
+]
+neon_api = []
+neon_auth = []
+neon_compute = []
+neon_invitations = []
+neon_keys = []
+neon_me = []
+neon_members = []
+neon_organizations = []
+neon_projects = []
+neon_regions = []
+
 [lints]
 workspace = true

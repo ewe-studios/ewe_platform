@@ -18,7 +18,7 @@ foundation_auth = { workspace = true, features = ["turso"] }
 foundation_macros = { workspace = true }
 foundation_core = { workspace = true }
 foundation_netio = { workspace = true }
-foundation_deployment = { workspace = true, features = ["huggingface"] }
+foundation_deployment_huggingface = { workspace = true }
 foundation_errstacks = { workspace = true }
 foundation_jsonschema = { workspace = true }
 foundation_compact = { workspace = true }
@@ -88,7 +88,7 @@ candle = ["candle-nn", "candle-transformers", "tokenizers", "fastrand"]
 candle-cuda = ["candle", "candle-core/cuda"]
 
 # Multi-threaded executor
-multi = ["foundation_deployment/multi", "foundation_core/multi"]
+multi = ["foundation_deployment_huggingface/multi", "foundation_core/multi"]
 
 [lints]
 workspace = true

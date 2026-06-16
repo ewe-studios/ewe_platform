@@ -18,15 +18,15 @@
 //!
 //! For repository-specific operations, see the [`repository`](super::repository) module.
 
-use crate::providers::huggingface::constants::{
+use crate::constants::{
     HF_API_DATASETS, HF_API_MODELS, HF_API_REPOS_CREATE, HF_API_REPOS_DELETE, HF_API_REPOS_MOVE,
     HF_API_SPACES, HF_API_WHOAMI, HF_DEFAULT_ENDPOINT, HF_HOME_ENV,
     HF_HUB_DISABLE_IMPLICIT_TOKEN_ENV, HF_TOKEN_ENV, HF_TOKEN_FILENAME, HF_TOKEN_PATH_ENV,
     HF_USER_AGENT,
 };
-use crate::providers::huggingface::error::{HuggingFaceError, Result};
-use crate::providers::huggingface::repository::HFRepository;
-use crate::providers::huggingface::types::{
+use crate::error::{HuggingFaceError, Result};
+use crate::repository::HFRepository;
+use crate::types::{
     CreateRepoParams, DatasetInfo, DeleteRepoParams, ListDatasetsParams, ListModelsParams,
     ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, RepoUrl, SpaceInfo, User,
 };
@@ -34,7 +34,8 @@ use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, 
 use foundation_netio::simple_http::client::shared::{
     body_reader, DnsResolver,
 };
-use foundation_netio::simple_http::client::{ClientRequestBuilder, RequestIntro, SimpleHttpClient};
+use foundation_netio::simple_http::client::native::{ClientRequestBuilder, RequestIntro};
+use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{SimpleHeader, SimpleHeaders, Status};
 use std::path::PathBuf;
 use std::sync::Arc;

@@ -1,0 +1,1 @@
+//! Mongoatlas provider module.
