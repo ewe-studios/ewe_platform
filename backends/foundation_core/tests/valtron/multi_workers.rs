@@ -1,14 +1,21 @@
+use std::panic;
+use std::time::Duration;
 use std::{
     sync::{Arc, Mutex},
     thread,
 };
-use std::time::Duration;
 
 use foundation_core::synca::mpp;
-use foundation_core::valtron::{block_on, get_pool, FnReady, NoSpawner, NotificationItem, Stream, TaskIterator, TaskStatus, valtron_test};
+use foundation_core::valtron::{
+    block_on, get_pool, valtron_test, FnReady, NoSpawner, NotificationItem, Stream, TaskIterator,
+    TaskStatus,
+};
 use rand::RngCore;
 use serial_test::serial;
 use tracing_test::traced_test;
+
+use foundation_core::synca::WaitGroup;
+use foundation_core::valtron::multi::{PoolGuard, ThreadRegistry};
 
 struct DCounter(usize, Arc<Mutex<Vec<usize>>>);
 
@@ -25,9 +32,7 @@ impl TaskIterator for DCounter {
 
     type Spawner = NoSpawner;
 
-    fn next_status(
-        &mut self,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         let mut items = self.1.lock().unwrap();
         let item_size = items.len();
 
@@ -58,9 +63,7 @@ impl TaskIterator for Counter {
 
     type Spawner = NoSpawner;
 
-    fn next_status(
-        &mut self,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         tracing::debug!("Counter Task is running");
 
         let result = {
@@ -96,22 +99,17 @@ impl TaskIterator for PanicCounter {
 
     type Spawner = NoSpawner;
 
-    fn next_status(
-        &mut self,
-    ) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         tracing::debug!("PanicCounter Task is running");
         panic!("Bad stuff");
     }
 }
 
-
-#[test]
-#[serial]
+// No #[test]/#[serial]: `#[valtron_test]` emits its own `#[test]`, and the
+// pool lifecycle lock (initialize_pool) serializes pool users process-wide.
 #[traced_test]
 #[valtron_test(threads = 2)]
 fn can_queue_and_complete_task_with_iterator() {
-    let seed = rand::rng().next_u64();
-
     let shared_list = Arc::new(Mutex::new(Vec::new()));
     let counter = DCounter::new(5, shared_list.clone());
 
@@ -136,13 +134,9 @@ fn can_queue_and_complete_task_with_iterator() {
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);
 }
 
-#[test]
-#[serial]
 #[traced_test]
 #[valtron_test(threads = 2)]
 fn can_queue_use_stream_iterator_from_task_iterator() {
-    let seed = rand::rng().next_u64();
-
     let shared_list = Arc::new(Mutex::new(Vec::new()));
     let counter = DCounter::new(5, shared_list.clone());
 
@@ -151,7 +145,7 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
         .with_task(counter)
         .stream_iter_with_config(
             Duration::from_nanos(20), // wait_cycle (used as park_duration)
-            10,                                  // max_turns
+            10,                       // max_turns
         )
         .expect("should deliver task");
 
@@ -167,7 +161,6 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
     assert_eq!(complete, vec![1, 2, 3, 4, 5]);
 }
 
-
 #[test]
 #[serial]
 #[traced_test]
@@ -176,7 +169,7 @@ fn can_finish_even_when_task_panics() {
 
     let handler_kill = thread::spawn(move || {
         tracing::debug!("Waiting for kill signal");
-        thread::sleep(Duration::from_secs(5));
+        thread::sleep(Duration::from_secs(1));
         tracing::debug!("Got kill signal");
         get_pool().kill();
         tracing::debug!("Closing thread");
@@ -192,11 +185,11 @@ fn can_finish_even_when_task_panics() {
             .schedule()
             .expect("should deliver task");
         task_sent_sender.send(()).expect("deliver message");
-    });
 
-    task_sent_receiver
-        .recv_timeout(Duration::from_secs(2))
-        .expect("should have spawned task");
+        task_sent_receiver
+            .recv_timeout(Duration::from_secs(2))
+            .expect("should have spawned task");
+    });
 
     tracing::info!("Wait for thread to die");
     handler_kill.join().expect("should finish");
@@ -212,6 +205,8 @@ fn can_queue_and_complete_task() {
     let shared_list = Arc::new(Mutex::new(vec![]));
     let (counter, receiver) = Counter::new(5, shared_list.clone());
 
+    let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
+
     let handler_kill = thread::spawn(move || {
         tracing::debug!("Waiting for kill signal");
         receiver
@@ -222,8 +217,10 @@ fn can_queue_and_complete_task() {
         tracing::debug!("Closing thread");
     });
 
-    let (task_sent_sender, task_sent_receiver) = mpp::bounded(1);
-    let _guard = block_on(seed, None, |pool| {
+    // handler_kill must run and join BEFORE the guard drops, otherwise
+    // it calls get_pool() on cleared registries and poisons the mutex
+    // for the next test.
+    block_on(seed, None, |pool| {
         tracing::debug!("Spawning new task into pool");
         pool.spawn()
             .with_task(counter)
@@ -234,13 +231,162 @@ fn can_queue_and_complete_task() {
             .expect("should deliver task");
         tracing::debug!("Task spawned");
         task_sent_sender.send(()).expect("deliver message");
+
+        task_sent_receiver
+            .recv_timeout(Duration::from_secs(2))
+            .expect("should have spawned task");
     });
 
-    task_sent_receiver
-        .recv_timeout(Duration::from_secs(2))
-        .expect("should have spawned task");
-
-    handler_kill.join().expect("should finish");
-
     assert_eq!(shared_list.lock().unwrap().clone(), vec![0, 1, 2, 3, 4]);
+    handler_kill.join().expect("should finish");
+}
+
+// ============================================================================
+// Tests for WaitGroup and PoolGuard
+// ============================================================================
+
+/// Test 1: WaitGroup add/done/wait basic functionality
+#[test]
+fn test_waitgroup_add_done_unblocks_wait() {
+    let wg = WaitGroup::new();
+
+    wg.add(3);
+
+    let wg_clone = wg.clone();
+    let handle = thread::spawn(move || {
+        wg_clone.wait();
+    });
+
+    // Give the thread time to start waiting
+    thread::sleep(Duration::from_millis(50));
+
+    // Decrement 3 times
+    wg.done();
+    wg.done();
+    wg.done();
+
+    // Wait should complete
+    handle.join().expect("thread should complete");
+}
+
+/// Test 2: WaitGroup with zero count returns immediately
+#[test]
+fn test_waitgroup_zero_count_returns_immediately() {
+    let wg = WaitGroup::new();
+    // Don't add anything, count is 0
+    wg.wait(); // Should return immediately
+}
+
+/// Test 3: WaitGroupGuard calls done() on drop
+#[test]
+fn test_waitgroup_guard_calls_done_on_drop() {
+    let wg = WaitGroup::new();
+    wg.add(1);
+
+    {
+        let _guard = wg.guard();
+        // Guard is alive, count is still 1
+    }
+    // Guard dropped, count should be 0
+
+    wg.wait(); // Should return immediately since count is 0
+}
+
+/// Test 4: WaitGroupGuard calls done() even during panic
+#[test]
+#[cfg_attr(
+    cranelift_backend,
+    ignore = "cranelift does not support panic unwinding"
+)]
+fn test_waitgroup_guard_calls_done_during_panic() {
+    let wg = WaitGroup::new();
+    wg.add(1);
+
+    let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+        let _guard = wg.guard();
+        panic!("intentional panic");
+    }));
+
+    assert!(result.is_err(), "panic should have occurred");
+    // Guard was dropped, so done() was called
+    wg.wait(); // Should return immediately
+}
+
+/// Test 5: Multiple WaitGroupGuards
+#[test]
+fn test_waitgroup_multiple_guards() {
+    let wg = WaitGroup::new();
+    wg.add(3);
+
+    let guard1 = wg.guard();
+    let guard2 = wg.guard();
+    let guard3 = wg.guard();
+
+    // All guards alive, count is still 3
+
+    drop(guard1); // count -> 2
+    drop(guard2); // count -> 1
+    drop(guard3); // count -> 0
+
+    wg.wait(); // Should return immediately
+}
+
+/// Test 6: PoolGuard shutdown is idempotent
+#[test]
+fn test_poolguard_shutdown_idempotent() {
+    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
+    let guard = PoolGuard::new(registry.clone());
+
+    // First shutdown
+    guard.shutdown();
+
+    // Second shutdown - should not panic
+    guard.shutdown();
+
+    // Third shutdown - still no panic
+    guard.shutdown();
+}
+
+/// Test 7: PoolGuard drop triggers shutdown
+#[test]
+fn test_poolguard_drop_triggers_shutdown() {
+    let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
+    let guard = PoolGuard::new(registry.clone());
+
+    // Spawn a worker thread
+    registry.spawn_worker().expect("should spawn worker");
+
+    // Drop the guard - it will kill all threads
+    drop(guard);
+
+    // If we get here, shutdown completed
+}
+
+/// Test 8: WaitGroup across multiple threads
+#[test]
+fn test_waitgroup_multiple_threads() {
+    let wg = WaitGroup::new();
+    let num_threads = 5;
+
+    wg.add(num_threads);
+
+    let mut handles = vec![];
+
+    for i in 0..num_threads {
+        let wg_clone = wg.clone();
+        let handle = thread::spawn(move || {
+            // Simulate some work
+            thread::sleep(Duration::from_millis(10 * (i as u64 + 1)));
+            wg_clone.done();
+        });
+        handles.push(handle);
+    }
+
+    // Wait for all threads to complete
+    wg.wait();
+
+    // All threads should have called done()
+    for handle in handles {
+        handle.join().expect("all threads should complete");
+    }
 }

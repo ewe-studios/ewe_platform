@@ -159,6 +159,14 @@ impl<T> EntryList<T> {
         }
     }
 
+    /// Remove all entries and reset to empty state.
+    #[inline]
+    pub fn clear(&mut self) {
+        self.items.clear();
+        self.free_entries.clear();
+        self.packed_entries.clear();
+    }
+
     /// pack collects the value pointed to by the relevant
     /// `Entry` pointer if its still valid but does not invalidate
     /// the pointer.

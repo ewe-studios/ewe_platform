@@ -11,7 +11,7 @@
 //! - `execute_map_all_pending_and_done`: executes with state visibility
 
 use foundation_core::valtron::{
-    execute_map_all_pending_and_done, initialize_pool, CollectAll, MapAllDone,
+    execute_map_all_pending_and_done, valtron_test, CollectAll, MapAllDone,
     MapAllPendingAndDone, Stream, TaskStatus, DEFAULT_WAIT_CYCLE,
 };
 
@@ -251,13 +251,10 @@ impl Iterator for CounterTask {
 
 /// Test 1: `execute_collect_all` aggregates outputs from multiple tasks
 #[cfg(not(target_arch = "wasm32"))]
-#[test]
 #[traced_test]
+#[valtron_test(seed = 42)]
 fn test_execute_collect_all_aggregates_outputs() {
-    use foundation_core::valtron::{execute_collect_all, initialize_pool, DEFAULT_WAIT_CYCLE};
-
-    // Initialize the valtron pool for this test
-    let _guard = initialize_pool(42, None);
+    use foundation_core::valtron::{execute_collect_all, DEFAULT_WAIT_CYCLE};
 
     // Create three tasks that each produce a single value after 1 pending state
     let tasks = vec![
@@ -290,12 +287,9 @@ fn test_execute_collect_all_aggregates_outputs() {
 }
 
 /// Test 2: `execute_map_all` applies mapper when all tasks complete
-#[test]
+#[valtron_test(seed = 42)]
 fn test_execute_map_all_applies_mapper() {
-    use foundation_core::valtron::{execute_map_all, initialize_pool, DEFAULT_WAIT_CYCLE};
-
-    // Initialize the valtron pool for this test
-    let _guard = initialize_pool(42, None);
+    use foundation_core::valtron::{execute_map_all, DEFAULT_WAIT_CYCLE};
 
     // Create three tasks that produce values immediately (no pending states)
     let tasks = vec![
@@ -327,11 +321,8 @@ fn test_execute_map_all_applies_mapper() {
 }
 
 /// Test 3: `execute_map_all_pending_and_done` receives state info
-#[test]
+#[valtron_test(seed = 42)]
 fn test_execute_map_all_pending_and_done() {
-    // Initialize the valtron pool for this test
-    let _guard = initialize_pool(42, None);
-
     // Create two tasks that each go through 1 pending state before ready
     let tasks = vec![CounterTask::new(1, 3), CounterTask::new(2, 4)];
 

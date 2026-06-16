@@ -49,6 +49,35 @@
 //! `#[valtron_test]` is the same wrapper plus `#[test]` (like `#[tokio::test]`),
 //! so the case is a plain `cargo test` target with the engine running around it.
 //!
+//! # CONTRACT: `#[valtron_test]` REPLACES `#[test]` — do not stack them
+//!
+//! Like `#[tokio::test]`, `#[valtron_test]` emits its OWN `#[test]`. Writing
+//!
+//! ```ignore
+//! #[test]                       // ← WRONG: do not add this
+//! #[serial]                     // ← WRONG: lifecycle lock already serializes
+//! #[valtron_test(threads = 2)]
+//! fn my_test() { … }
+//! ```
+//!
+//! registers the test TWICE. Both copies share the process-global pool registry
+//! (`REGISTRY`/`BG_REGISTRY` in the multi executor are singletons), so they race:
+//! one acquires the pool lifecycle lock, the other blocks forever — a hang that
+//! looks like "test running for over 60 seconds".
+//!
+//! Why you cannot rely on the macro to clean this up: attribute proc-macros
+//! expand OUTERMOST-first. A `#[serial]` (or any proc-macro attr) sitting ABOVE
+//! `#[valtron_test]` runs first and hoists the built-in `#[test]` into a wrapper
+//! layer BEFORE `#[valtron_test]` ever sees it — so the defensive `#[test]`
+//! filter below (which strips a directly-adjacent `#[test]`) can't catch it.
+//!
+//! Rules:
+//! - Use `#[valtron_test]` ALONE (plus non-test attrs like `#[traced_test]`).
+//! - Do NOT add `#[test]`.
+//! - Do NOT add `#[serial]` — `initialize_pool` holds a process-wide lifecycle
+//!   lock for the pool's entire lifetime, so all pool users are already
+//!   serialized whether or not they use `#[valtron_test]`.
+//!
 //! Both macros take the SAME `seed`/`threads` rules: `threads = N` → `Some(N)`,
 //! absent → `None` (engine default); `seed = N` → that seed, absent → a random
 //! one (see "The default seed" below).
@@ -157,7 +186,20 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     }
 
     let fc = foundation_core_path();
-    let attrs = &func.attrs;
+    // Defensive: strip a DIRECTLY-adjacent caller-supplied `#[test]` — we emit
+    // our own, and two `#[test]` attributes register the test twice (it then
+    // runs concurrently and races on the global pool registry → hang).
+    //
+    // NOTE: this only catches `#[test]` when it sits immediately on the fn with
+    // no other proc-macro attr between it and `#[valtron_test]`. Outer attrs
+    // (e.g. `#[serial]`) expand first and hoist `#[test]` into a wrapper before
+    // we run, so we never see it. The real guarantee is the usage contract in
+    // the module docs: `#[valtron_test]` REPLACES `#[test]`; never stack them.
+    let attrs: Vec<&syn::Attribute> = func
+        .attrs
+        .iter()
+        .filter(|a| !a.path().is_ident("test"))
+        .collect();
     let vis = &func.vis;
     let sig = &func.sig;
     let block = &func.block;

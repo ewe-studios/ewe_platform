@@ -2,13 +2,12 @@
 
 #![cfg(feature = "multi")]
 
-use foundation_core::valtron::{ThreadedIterFuture, ThreadedValue};
+use foundation_core::valtron::{valtron_test, ThreadedIterFuture, ThreadedValue};
 use tracing_test::traced_test;
 
-#[test]
 #[traced_test]
+#[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_basic() {
-    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
     let threaded = ThreadedIterFuture::new(|| async {
         Ok::<_, ()>(vec![Ok::<i32, ()>(1), Ok(2), Ok(3)].into_iter())
@@ -25,10 +24,9 @@ fn test_threaded_future_basic() {
     assert_eq!(results, vec![1, 2, 3]);
 }
 
-#[test]
 #[traced_test]
+#[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_future_error() {
-    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
     let threaded = ThreadedIterFuture::new(|| async {
         Err::<std::vec::IntoIter<Result<i32, &'static str>>, &'static str>("future failed")
@@ -45,10 +43,9 @@ fn test_threaded_future_future_error() {
     dbg!(&results);
 }
 
-#[test]
 #[traced_test]
+#[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_empty_iterator() {
-    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
     let threaded = ThreadedIterFuture::new(|| async { Ok::<_, ()>(vec![].into_iter()) });
 
@@ -63,10 +60,9 @@ fn test_threaded_future_empty_iterator() {
     assert!(results.is_empty());
 }
 
-#[test]
 #[traced_test]
+#[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_custom_queue_size() {
-    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
     // Use a queue size of 100 to hold all items, avoiding backpressure issues
     // in the test environment where thread scheduling may differ from production
@@ -93,10 +89,9 @@ fn test_threaded_future_custom_queue_size() {
 ///
 /// WHAT: Produces 100 items with a queue size of only 4, forcing many
 /// backpressure cycles
-#[test]
 #[traced_test]
+#[valtron_test(seed = 42, threads = 4)]
 fn test_threaded_future_backpressure() {
-    let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
 
     // Small queue forces backpressure: 100 items with queue size 4
     // means ~96 backpressure cycles

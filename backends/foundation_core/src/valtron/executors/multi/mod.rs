@@ -68,9 +68,74 @@ static REGISTRY: Mutex<Option<Arc<ThreadRegistry>>> = Mutex::new(None);
 /// Uses Mutex<Option> to allow resetting between tests.
 static BG_REGISTRY: Mutex<Option<Arc<BackgroundJobRegistry>>> = Mutex::new(None);
 
+/// Process-wide FIFO-fair serialization gate for pool lifecycle. Because the
+/// global `REGISTRY`/`BG_REGISTRY` are singletons, only ONE pool may be alive
+/// at a time. `initialize_pool` acquires this gate and the returned `PoolGuard`
+/// holds it until drop — so concurrent pool users (across test files, with or
+/// without `#[serial]`) run one-at-a-time. This makes a generation counter
+/// unnecessary: a stale guard can never coexist with a newer pool.
+///
+/// We use a ticket gate rather than a plain `Mutex<()>` because `std::sync::Mutex`
+/// is UNFAIR: under heavy parallel contention (cargo runs the test binary on many
+/// threads, all sharing this one global pool) a waiter can be starved indefinitely
+/// — surfacing as "test running for over 60 seconds" even though each test is fast.
+/// The ticket gate hands out FIFO tickets and parks waiters on a condvar, so every
+/// caller is served in arrival order with no busy-waiting.
+static POOL_LIFECYCLE_GATE: FairGate = FairGate::new();
+
+/// A FIFO-fair, blocking serialization gate built from a ticket counter and a
+/// condvar. `acquire()` returns a guard that releases the gate on drop.
+struct FairGate {
+    /// Next ticket to hand out.
+    next_ticket: AtomicUsize,
+    /// Ticket currently being served (allowed to proceed).
+    now_serving: AtomicUsize,
+    /// Mutex + condvar used to park/wake waiters without busy-spinning.
+    inner: Mutex<()>,
+    cond: sync::Condvar,
+}
+
+impl FairGate {
+    const fn new() -> Self {
+        Self {
+            next_ticket: AtomicUsize::new(0),
+            now_serving: AtomicUsize::new(0),
+            inner: Mutex::new(()),
+            cond: sync::Condvar::new(),
+        }
+    }
+
+    /// Acquire the gate, blocking in FIFO order until this caller's ticket is up.
+    fn acquire(&'static self) -> FairGateGuard {
+        let my_ticket = self.next_ticket.fetch_add(1, Ordering::SeqCst);
+        let mut guard = self.inner.lock().unwrap_or_else(|p| p.into_inner());
+        while self.now_serving.load(Ordering::SeqCst) != my_ticket {
+            guard = self.cond.wait(guard).unwrap_or_else(|p| p.into_inner());
+        }
+        FairGateGuard { gate: self }
+    }
+}
+
+/// Releases the `FairGate` on drop, advancing to the next ticket and waking
+/// all parked waiters (each re-checks its ticket; exactly one proceeds).
+struct FairGateGuard {
+    gate: &'static FairGate,
+}
+
+impl Drop for FairGateGuard {
+    fn drop(&mut self) {
+        let _guard = self.gate.inner.lock().unwrap_or_else(|p| p.into_inner());
+        self.gate.now_serving.fetch_add(1, Ordering::SeqCst);
+        self.gate.cond.notify_all();
+    }
+}
+
 pub(crate) fn clear_global_registries() {
-    *REGISTRY.lock().unwrap() = None;
-    *BG_REGISTRY.lock().unwrap() = None;
+    let mut reg = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    *reg = None;
+    drop(reg);
+    let mut bg = BG_REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    *bg = None;
 }
 
 /// Handle for spawning tasks into the shared queue.
@@ -149,10 +214,11 @@ impl LocalPoolHandle {
 /// Panics if the thread pool has not been initialized (ensure to call `block_on` or
 /// `initialize_pool` first), or if the internal registry mutex is poisoned.
 pub fn get_pool() -> LocalPoolHandle {
-    let registry =
-        REGISTRY.lock().unwrap().clone().expect(
-            "Thread pool not initialized, ensure to call block_on or initialize_pool first",
-        );
+    let registry = REGISTRY
+        .lock()
+        .unwrap_or_else(|p| p.into_inner())
+        .clone()
+        .expect("Thread pool not initialized, ensure to call block_on or initialize_pool first");
     LocalPoolHandle::new(&registry)
 }
 
@@ -182,6 +248,17 @@ where
 ///
 /// The caller is responsible for signal handling via the `PoolGuard`.
 pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> PoolGuard {
+    // Acquire the process-wide lifecycle gate FIRST — blocks (in FIFO order)
+    // until any previous pool's PoolGuard has dropped. This serializes all pool
+    // users (across test files, regardless of #[serial]) since the global
+    // registries are singletons, and the FIFO fairness prevents starvation when
+    // cargo runs many test threads contending for the one global pool.
+    let lifecycle = POOL_LIFECYCLE_GATE.acquire();
+
+    // Clear any stale state now that we hold the lock exclusively. With the
+    // lifecycle lock held, the previous pool is guaranteed fully torn down.
+    clear_global_registries();
+
     let thread_num = match user_thread_num {
         None => get_allocatable_thread_count(),
         // The multi pool splits threads into background + task workers and needs
@@ -216,10 +293,14 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
         DEFAULT_BG_YIELD_DURATION,
     );
 
-    *REGISTRY.lock().unwrap() = Some(registry.clone());
-    *BG_REGISTRY.lock().unwrap() = Some(bg_registry.clone());
+    let mut reg_guard = REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    *reg_guard = Some(registry.clone());
+    let mut bg_guard = BG_REGISTRY.lock().unwrap_or_else(|p| p.into_inner());
+    *bg_guard = Some(bg_registry.clone());
+    drop(reg_guard);
+    drop(bg_guard);
 
-    PoolGuard::with_bg_registry(registry, bg_registry)
+    PoolGuard::with_bg_registry(registry, bg_registry, lifecycle)
 }
 
 /// Submit a blocking closure for execution on the background job pool.
@@ -238,7 +319,7 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
 pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
     let bg_registry = BG_REGISTRY
         .lock()
-        .unwrap()
+        .unwrap_or_else(|p| p.into_inner())
         .clone()
         .expect("Background job pool not initialized, ensure to call initialize_pool first");
     bg_registry.submit(job)
@@ -304,12 +385,17 @@ where
 /// 3. `BackgroundJobRegistry::shutdown()` — wait for background workers
 /// 4. `WaitGroup::wait()` — block until all task threads report death
 /// 5. Join all `JoinHandle`s
+/// 6. Clear global registries ONLY if generation still matches
 ///
 /// This replaces the old pattern of spawning a thread to call `get_pool().kill()`.
 pub struct PoolGuard {
     registry: Arc<ThreadRegistry>,
     bg_registry: Option<Arc<crate::valtron::BackgroundJobRegistry>>,
     shut_down: AtomicBool,
+    /// Process-wide lifecycle gate guard — held for the lifetime of this guard
+    /// so no other pool can be initialized concurrently. Released on drop, after
+    /// `shutdown()` has torn down the pool and cleared the global registries.
+    _lifecycle: Option<FairGateGuard>,
 }
 
 impl PoolGuard {
@@ -320,19 +406,23 @@ impl PoolGuard {
             registry,
             bg_registry: None,
             shut_down: AtomicBool::new(false),
+            _lifecycle: None,
         }
     }
 
-    /// Create a new `PoolGuard` with both registries.
+    /// Create a new `PoolGuard` with both registries and the process-wide
+    /// lifecycle lock guard.
     #[must_use]
     pub fn with_bg_registry(
         registry: Arc<ThreadRegistry>,
         bg_registry: Arc<crate::valtron::BackgroundJobRegistry>,
+        lifecycle: FairGateGuard,
     ) -> Self {
         Self {
             registry,
             bg_registry: Some(bg_registry),
             shut_down: AtomicBool::new(false),
+            _lifecycle: Some(lifecycle),
         }
     }
 
@@ -344,10 +434,13 @@ impl PoolGuard {
             registry: Arc::new(ThreadRegistry::with_seed_and_threads(0, 2)),
             bg_registry: None,
             shut_down: AtomicBool::new(true),
+            _lifecycle: None,
         }
     }
 
     /// Explicit shutdown. Idempotent — safe to call multiple times.
+    /// Clears the global registries; the lifecycle lock (held until this guard
+    /// drops) guarantees no other pool can be running concurrently.
     pub fn shutdown(&self) {
         tracing::warn!("PoolGuard::shutdown() called - pool shutting down");
         if self
@@ -356,25 +449,13 @@ impl PoolGuard {
             .is_ok()
         {
             tracing::warn!("PoolGuard::shutdown() - signaling kill to all threads");
-            // Signal kill to all threads (shared signal stops both registries)
-            self.registry.kill_signal().turn_on();
-            // Interrupt all yielding threads (wakes CondVar waits)
-            self.registry.interrupt_all_yielders();
-            // Wake all blocked/parked task threads
-            self.registry.latch().signal_all();
             // Shut down background workers first (they share the kill signal)
             if let Some(ref bg) = self.bg_registry {
                 tracing::warn!("PoolGuard::shutdown() - shutting down background workers");
                 bg.shutdown();
             }
-            tracing::warn!("PoolGuard::shutdown() - waiting for task threads");
-            // Wait for all task threads to report done
-            self.registry.waitgroup().wait();
-            tracing::warn!("PoolGuard::shutdown() - joining all task threads");
-            // Join all task thread handles
-            self.registry.join_all_threads();
-            tracing::warn!("PoolGuard::shutdown() - complete");
-            // ensure to remove old global registry
+
+            self.registry.shutdown();
             tracing::warn!("Clearing global pool registery");
             clear_global_registries();
             tracing::warn!("Cleared global pool registery");
@@ -710,13 +791,13 @@ impl SharedThreadRegistry {
 
     #[must_use]
     pub fn executor_count(&self) -> usize {
-        let registry = self.0.read().unwrap();
+        let registry = self.0.read().unwrap_or_else(|p| p.into_inner());
         registry.threads.active_slots()
     }
 
     #[must_use]
     pub fn get_thread(&self, thread: ThreadId) -> ThreadRef {
-        let registry = self.0.read().unwrap();
+        let registry = self.0.read().unwrap_or_else(|p| p.into_inner());
 
         match registry.threads.get(thread.get_ref()) {
             Some(thread_ref) => thread_ref.clone(),
@@ -731,7 +812,7 @@ impl SharedThreadRegistry {
         latch: Arc<LockSignal>,
         sender: mpp::Sender<ThreadActivity>,
     ) -> ThreadId {
-        let mut registry = self.0.write().unwrap();
+        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
 
         // insert thread and get thread key.
         let entry = registry.threads.insert(thread);
@@ -748,6 +829,20 @@ impl SharedThreadRegistry {
             }
             None => unreachable!("Thread must be registered at the entry key"),
         }
+    }
+
+    /// Remove a thread entry from the registry when the thread stops.
+    /// This prevents stale entries from accumulating after shutdown/restart cycles.
+    pub fn unregister_thread(&self, thread_id: ThreadId) {
+        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
+        registry.threads.vacate(thread_id.get_ref());
+    }
+
+    /// Clear all thread entries from the registry. Called during shutdown
+    /// to ensure a clean state for the next test.
+    pub fn clear(&self) {
+        let mut registry = self.0.write().unwrap_or_else(|p| p.into_inner());
+        registry.threads.clear();
     }
 }
 
@@ -1196,165 +1291,6 @@ where
 }
 
 // ============================================================================
-// Tests for WaitGroup and PoolGuard
-// ============================================================================
-
-#[cfg(test)]
-mod waitgroup_tests {
-    use std::{panic, sync::Arc, thread, time::Duration};
-
-    use crate::synca::WaitGroup;
-
-    use super::{PoolGuard, ThreadRegistry};
-
-    /// Test 1: WaitGroup add/done/wait basic functionality
-    #[test]
-    fn test_waitgroup_add_done_unblocks_wait() {
-        let wg = WaitGroup::new();
-
-        wg.add(3);
-
-        let wg_clone = wg.clone();
-        let handle = thread::spawn(move || {
-            wg_clone.wait();
-        });
-
-        // Give the thread time to start waiting
-        thread::sleep(Duration::from_millis(50));
-
-        // Decrement 3 times
-        wg.done();
-        wg.done();
-        wg.done();
-
-        // Wait should complete
-        handle.join().expect("thread should complete");
-    }
-
-    /// Test 2: WaitGroup with zero count returns immediately
-    #[test]
-    fn test_waitgroup_zero_count_returns_immediately() {
-        let wg = WaitGroup::new();
-        // Don't add anything, count is 0
-        wg.wait(); // Should return immediately
-    }
-
-    /// Test 3: WaitGroupGuard calls done() on drop
-    #[test]
-    fn test_waitgroup_guard_calls_done_on_drop() {
-        let wg = WaitGroup::new();
-        wg.add(1);
-
-        {
-            let _guard = wg.guard();
-            // Guard is alive, count is still 1
-        }
-        // Guard dropped, count should be 0
-
-        wg.wait(); // Should return immediately since count is 0
-    }
-
-    /// Test 4: WaitGroupGuard calls done() even during panic
-    #[test]
-    #[cfg_attr(
-        cranelift_backend,
-        ignore = "cranelift does not support panic unwinding"
-    )]
-    fn test_waitgroup_guard_calls_done_during_panic() {
-        let wg = WaitGroup::new();
-        wg.add(1);
-
-        let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
-            let _guard = wg.guard();
-            panic!("intentional panic");
-        }));
-
-        assert!(result.is_err(), "panic should have occurred");
-        // Guard was dropped, so done() was called
-        wg.wait(); // Should return immediately
-    }
-
-    /// Test 5: Multiple WaitGroupGuards
-    #[test]
-    fn test_waitgroup_multiple_guards() {
-        let wg = WaitGroup::new();
-        wg.add(3);
-
-        let guard1 = wg.guard();
-        let guard2 = wg.guard();
-        let guard3 = wg.guard();
-
-        // All guards alive, count is still 3
-
-        drop(guard1); // count -> 2
-        drop(guard2); // count -> 1
-        drop(guard3); // count -> 0
-
-        wg.wait(); // Should return immediately
-    }
-
-    /// Test 6: PoolGuard shutdown is idempotent
-    #[test]
-    fn test_poolguard_shutdown_idempotent() {
-        let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
-        let guard = PoolGuard::new(registry.clone());
-
-        // First shutdown
-        guard.shutdown();
-
-        // Second shutdown - should not panic
-        guard.shutdown();
-
-        // Third shutdown - still no panic
-        guard.shutdown();
-    }
-
-    /// Test 7: PoolGuard drop triggers shutdown
-    #[test]
-    fn test_poolguard_drop_triggers_shutdown() {
-        let registry = Arc::new(ThreadRegistry::with_seed_and_threads(123, 2));
-        let guard = PoolGuard::new(registry.clone());
-
-        // Spawn a worker thread
-        registry.spawn_worker().expect("should spawn worker");
-
-        // Drop the guard - it will kill all threads
-        drop(guard);
-
-        // If we get here, shutdown completed
-    }
-
-    /// Test 8: WaitGroup across multiple threads
-    #[test]
-    fn test_waitgroup_multiple_threads() {
-        let wg = WaitGroup::new();
-        let num_threads = 5;
-
-        wg.add(num_threads);
-
-        let mut handles = vec![];
-
-        for i in 0..num_threads {
-            let wg_clone = wg.clone();
-            let handle = thread::spawn(move || {
-                // Simulate some work
-                thread::sleep(Duration::from_millis(10 * (i as u64 + 1)));
-                wg_clone.done();
-            });
-            handles.push(handle);
-        }
-
-        // Wait for all threads to complete
-        wg.wait();
-
-        // All threads should have called done()
-        for handle in handles {
-            handle.join().expect("all threads should complete");
-        }
-    }
-}
-
-// ============================================================================
 // ThreadRegistry - Central coordination replacing ThreadPool
 // ============================================================================
 
@@ -1572,6 +1508,8 @@ impl ThreadRegistry {
         self.latch.signal_all();
         self.waitgroup.wait();
         self.join_all_threads();
+        // Clear all remaining thread entries from the registry
+        self.registry.clear();
         self.kill_latch.signal_all();
     }
 
@@ -1634,11 +1572,15 @@ impl ThreadRegistry {
             ThreadActivity::Stopped(id) => {
                 tracing::debug!("Thread stopped: {:?}", id);
                 self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
+                // Remove from thread registry entry list to prevent stale entries
+                self.registry.unregister_thread(id.clone());
                 self.remove_thread_id(id);
             }
             ThreadActivity::Panicked(id, err) => {
                 tracing::debug!("Thread panicked: {:?}, err: {:?}", id, err);
                 self.live_threads.fetch_sub(1, atomic::Ordering::AcqRel);
+                // Remove from thread registry entry list to prevent stale entries
+                self.registry.unregister_thread(id.clone());
                 self.remove_thread_id(id);
 
                 // Respawn if under max threads and not killed

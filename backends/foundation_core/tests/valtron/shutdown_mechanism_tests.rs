@@ -11,10 +11,10 @@ use std::thread;
 use std::time::{Duration, Instant};
 
 use foundation_core::valtron::{
-    multi::{initialize_pool, spawn},
+    multi::spawn,
+    valtron_test,
     FnReady, NoSpawner, TaskIterator, TaskStatus,
 };
-use serial_test::serial;
 use tracing_test::traced_test;
 
 /// Task that returns Ready a limited number of times then completes
@@ -40,12 +40,9 @@ impl TaskIterator for FiniteTask {
 /// WHY: Validates basic task execution with sleeper-aware yielding
 /// WHAT: Tasks should complete normally when sleeper-aware yielding is active
 /// HOW: Spawn tasks and verify they complete within expected time
-#[test]
 #[traced_test]
-#[serial]
+#[valtron_test(seed = 42, threads = 3)]
 fn basic_execution_with_sleeper_aware_yielding() {
-    let _guard = initialize_pool(42, Some(3));
-
     let counter = Arc::new(AtomicUsize::new(0));
     let counter_clone = Arc::clone(&counter);
 
@@ -76,12 +73,9 @@ fn basic_execution_with_sleeper_aware_yielding() {
 /// WHY: Validates multiple tasks complete with sleeper-aware yielding
 /// WHAT: Multiple concurrent tasks should all complete
 /// HOW: Spawn multiple tasks and verify all complete
-#[test]
 #[traced_test]
-#[serial]
+#[valtron_test(seed = 42, threads = 3)]
 fn multiple_tasks_complete_with_sleeper_aware_yielding() {
-    let _guard = initialize_pool(42, Some(3));
-
     let results = Arc::new(Mutex::new(Vec::new()));
     let results_clone = Arc::clone(&results);
 

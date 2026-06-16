@@ -5,19 +5,20 @@
 //! WHAT: `WaitGroup` blocks until count reaches 0. `WaitGroupGuard` is a
 //! RAII guard that calls `done()` on drop, ensuring cleanup even on panic.
 //!
-//! HOW: Uses `LockSignal` (CondVar-based) for blocking. Each worker gets
-//! a guard that decrements on drop.
+//! HOW: A `Mutex<usize>` holds the count and a `Condvar` parks waiters. The
+//! count is read and the thread parks ATOMICALLY under the same lock, so a
+//! `done()` that drives the count to 0 between a waiter's check and its park
+//! cannot be lost (no lost-wakeup). An earlier implementation used an atomic
+//! count plus a separate `LockSignal`, which had exactly that race: the
+//! signal could fire in the gap between the count check and the park, and
+//! `lock_and_wait()`'s internal `try_lock()` then clobbered the signalled
+//! state — leaving the waiter parked forever. Surfaced as intermittent
+//! "test running for over 60 seconds" hangs under contention.
 
-use std::sync::{
-    atomic::{AtomicUsize, Ordering},
-    Arc,
-};
-
-use crate::synca::LockSignal;
+use std::sync::{Arc, Condvar, Mutex};
 
 /// Tracks N outstanding work items. `wait()` blocks until count reaches 0.
 ///
-/// Uses the existing `LockSignal` (CondVar-based) for the blocking mechanism.
 /// Each worker thread gets a `WaitGroupGuard` that calls `done()` on drop,
 /// ensuring cleanup even if the thread panics.
 ///
@@ -42,8 +43,9 @@ use crate::synca::LockSignal;
 /// ```
 #[derive(Clone)]
 pub struct WaitGroup {
-    count: Arc<AtomicUsize>,
-    signal: Arc<LockSignal>,
+    /// (count, condvar). The count lives INSIDE the mutex so that reading it
+    /// and parking on the condvar happen atomically under the same lock.
+    inner: Arc<(Mutex<usize>, Condvar)>,
 }
 
 impl WaitGroup {
@@ -51,32 +53,36 @@ impl WaitGroup {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            count: Arc::new(AtomicUsize::new(0)),
-            signal: Arc::new(LockSignal::new()),
+            inner: Arc::new((Mutex::new(0), Condvar::new())),
         }
     }
 
     /// Increment the counter by n.
     pub fn add(&self, n: usize) {
-        self.count.fetch_add(n, Ordering::SeqCst);
+        let (lock, _) = &*self.inner;
+        let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
+        *count += n;
     }
 
-    /// Decrement the counter. If it reaches 0, signal all waiters.
+    /// Decrement the counter. If it reaches 0, wake all waiters.
     pub fn done(&self) {
-        let prev = self.count.fetch_sub(1, Ordering::SeqCst);
-        if prev == 1 {
-            // count just reached 0
-            self.signal.signal_all();
+        let (lock, cond) = &*self.inner;
+        let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
+        debug_assert!(*count > 0, "WaitGroup::done() called more times than add()");
+        *count -= 1;
+        if *count == 0 {
+            // Notify under the lock — a waiter checking the predicate cannot be
+            // between its check and its park, because both happen under this lock.
+            cond.notify_all();
         }
     }
 
     /// Block until count reaches 0.
     pub fn wait(&self) {
-        loop {
-            if self.count.load(Ordering::SeqCst) == 0 {
-                return;
-            }
-            self.signal.lock_and_wait();
+        let (lock, cond) = &*self.inner;
+        let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
+        while *count != 0 {
+            count = cond.wait(count).unwrap_or_else(|p| p.into_inner());
         }
     }
 
