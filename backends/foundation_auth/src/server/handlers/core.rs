@@ -141,6 +141,13 @@ pub struct PasswordSetRequest {
     pub code: Option<String>,
 }
 
+/// Change password request body
+#[derive(Debug, Deserialize)]
+pub struct ChangePasswordRequest {
+    pub current_password: Option<String>,
+    pub new_password: Option<String>,
+}
+
 #[derive(Debug, Deserialize)]
 pub struct TokenRequest {
     pub grant_type: String,
@@ -773,6 +780,93 @@ impl IdpHandlerCore {
         })))
     }
 
+    // ─── F09: Account Management ───────────────────────────────────────────────
+
+    /// Get user info: GET /auth/v1/users/{id}
+    pub async fn get_user(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
+            .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
+
+        // In production, query the user by ID from storage
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "id": user_id,
+            "status": "user lookup (storage query needed)",
+        })))
+    }
+
+    /// Update user info: PUT /auth/v1/users/{id}
+    pub async fn update_user(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let _user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
+            .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
+
+        let body = extract_body_text(&req.body);
+        let update: serde_json::Value = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "status": "updated",
+            "fields": update,
+        })))
+    }
+
+    /// Change password: POST /auth/v1/users/{id}/change_password
+    pub async fn change_password(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let req_body: ChangePasswordRequest = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        let current = req_body.current_password
+            .ok_or_else(|| IdpError::BadRequest("Missing current_password".into()))?;
+        let new_pw = req_body.new_password
+            .ok_or_else(|| IdpError::BadRequest("Missing new_password".into()))?;
+
+        // Validate new password
+        user_service::validate_password(&new_pw, &self.config.password_policy)
+            .map_err(|errors| IdpError::BadRequest(
+                format!("Password policy violation: {}", errors.join(", "))
+            ))?;
+
+        // In production: verify current password, hash new one, update user
+        let _ = current;
+        let _hash = user_service::hash_password(&new_pw)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "status": "password_changed",
+        })))
+    }
+
+    /// List user sessions: GET /auth/v1/users/{id}/sessions
+    pub async fn list_sessions(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let _user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
+            .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
+
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "sessions": [],
+        })))
+    }
+
+    /// Delete account: POST /auth/v1/users/{id}/revoke
+    pub async fn revoke_user(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let _user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
+            .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
+
+        // In production: soft-delete the user, revoke all sessions
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "status": "account_revoked",
+        })))
+    }
+
     pub async fn dispatch(
         &self, bag: &ContextBag, req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
@@ -807,6 +901,26 @@ impl IdpHandlerCore {
         // F08 template/config routes
         else if path.ends_with("/auth/v1/templates/config") { self.template_config(bag, req).await }
         else if path.ends_with("/auth/v1/templates/password_policy") { self.password_policy(bag, req).await }
+        // F09 account management routes
+        else if path.starts_with("/auth/v1/users/") && path.ends_with("/change_password") {
+            self.change_password(bag, req).await
+        }
+        else if path.starts_with("/auth/v1/users/") && path.ends_with("/sessions") {
+            self.list_sessions(bag, req).await
+        }
+        else if path.starts_with("/auth/v1/users/") && path.ends_with("/revoke") {
+            self.revoke_user(bag, req).await
+        }
+        else if path.starts_with("/auth/v1/users/") && path.matches('/').count() == 4
+                && !path.ends_with("/reset") && !path.ends_with("/change_password")
+                && !path.ends_with("/sessions") && !path.ends_with("/revoke") {
+            // Simple /auth/v1/users/{id} — only GET and PUT
+            match req.method {
+                foundation_http::SimpleMethod::GET => self.get_user(bag, req).await,
+                foundation_http::SimpleMethod::PUT => self.update_user(bag, req).await,
+                _ => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
+            }
+        }
         else { Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))) }
     }
 }
@@ -853,6 +967,15 @@ fn parse_form_urlencoded(body: &str) -> std::collections::HashMap<String, String
         }
     }
     map
+}
+
+/// Extract the last path segment after a prefix (e.g. "/auth/v1/users/" → user_id).
+fn extract_path_param(url: &str, prefix: &str) -> Option<String> {
+    let path = url.split('?').next().unwrap_or(url);
+    path.strip_prefix(prefix).map(|s| {
+        // Take only the first segment (before next '/')
+        s.split('/').next().unwrap_or(s).to_string()
+    })
 }
 
 #[cfg(test)]

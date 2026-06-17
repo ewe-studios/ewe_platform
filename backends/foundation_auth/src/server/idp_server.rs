@@ -44,6 +44,12 @@ impl IdpServer {
         // F08 — template/config API endpoints
         app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/templates/config");
         app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/templates/password_policy");
+        // F09 — account management endpoints
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/users/{id}");
+        app.route::<ServeAdapter>(SimpleMethod::PUT, "/auth/v1/users/{id}");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/{id}/change_password");
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/users/{id}/sessions");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/{id}/revoke");
     }
 
     #[must_use]
