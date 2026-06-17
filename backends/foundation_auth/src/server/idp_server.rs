@@ -32,6 +32,12 @@ impl IdpServer {
         app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/oidc/authorize");
         app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/mfa");
         app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/oidc/logout");
+        // F03 — registration endpoints
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/register");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/dev/register");
+        // F04 — password reset endpoints
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/request_reset");
+        app.route::<ServeAdapter>(SimpleMethod::PUT, "/auth/v1/users/{id}/reset");
     }
 
     #[must_use]

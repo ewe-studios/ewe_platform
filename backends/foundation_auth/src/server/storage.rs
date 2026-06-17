@@ -289,6 +289,31 @@ pub fn update_user_lockout(
         .map_err(|e| StorageOpError::Query(e.to_string()))
 }
 
+/// Create a new user in the database.
+pub fn create_user(
+    store: &dyn QueryStore,
+    user: &User,
+) -> Result<(), StorageOpError> {
+    let sql = "INSERT INTO users (id, email, username, password_hash, email_verified, email_verified_at, created_at, updated_at, metadata, failed_login_attempts, locked_until, deleted_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, NULL)";
+    let now = chrono::Utc::now().timestamp_millis();
+    let email_verified_at = if user.email_verified { Some(now) } else { None };
+    let metadata = serde_json::to_string(&user.metadata).unwrap_or_else(|_| "null".into());
+    store
+        .execute(sql, &[
+            DataValue::Text(user.id.clone()),
+            DataValue::Text(user.email.clone()),
+            DataValue::Text(user.username.clone().unwrap_or_default()),
+            DataValue::Text(user.password_hash.clone().unwrap_or_default()),
+            DataValue::Integer(if user.email_verified { 1 } else { 0 }),
+            DataValue::Integer(email_verified_at.unwrap_or(0)),
+            DataValue::Integer(now),
+            DataValue::Integer(now),
+            DataValue::Text(metadata),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
 fn parse_user_row(row: &SqlRow) -> Result<User, StorageOpError> {
     let password_hash: String = row.get_by_name("password_hash").map_err(parse_err)?;
     let metadata: String = row.get_by_name("metadata").map_err(parse_err)?;
