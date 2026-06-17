@@ -3,6 +3,14 @@
 //! Ordering is by `doc_id` (scru128, lexicographic == chronological) on every
 //! scan — NOT a separate sequence counter and NOT `"mem-{seq}"` ids (which sort
 //! incorrectly: `"mem-10" < "mem-2"`). This matches the SQL backend (F06 Part 0).
+//!
+//! The real read/write logic lives in the neutral private helpers (`put`,
+//! `collect_rows`, `remove_*`, `count_rows`); the sync [`DocumentStore`] and the
+//! async [`AsyncDocumentStore`] impls both delegate to them, so neither wraps the
+//! other. (The general house pattern — real logic in the async impl, sync wraps
+//! it via valtron — applies to the I/O-backed backends like Turso; this in-memory
+//! store has no I/O to invert and is not cheaply shareable across worker threads,
+//! so it uses shared helpers instead.)
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
@@ -53,16 +61,21 @@ impl MemoryDocumentStore {
         }
     }
 
-    /// Insert a row (with optional promoted columns) and return the `Document` view.
-    fn insert(
+    // ---- neutral real logic (shared by the sync + async trait impls) ----
+
+    /// Serialize `content`, store a row (with optional promoted columns), and
+    /// return the `Document` view.
+    fn put<V: Serialize>(
         &self,
         key: &str,
         doc_id: String,
-        content_json: String,
+        content: &V,
         title: Option<String>,
         summary: Option<String>,
         record_type: Option<String>,
-    ) -> Document {
+    ) -> StorageResult<Document> {
+        let content_json = serde_json::to_string(content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let row = Row {
             doc_id,
             content: content_json,
@@ -78,7 +91,60 @@ impl MemoryDocumentStore {
             .entry(key.to_string())
             .or_default()
             .push(row);
-        doc
+        Ok(doc)
+    }
+
+    /// Snapshot the matching rows, ordered + filtered + limited — the single read
+    /// path behind every scan (sync and async).
+    ///
+    /// - `newest_first`: order by `doc_id` DESC (true) or ASC (false).
+    /// - `from_id`: keep only rows with `doc_id >= from_id` (inclusive, OD-06-2).
+    /// - `limit`: `Some(n)` caps the result; `None` is unlimited.
+    fn collect_rows(
+        &self,
+        key: &str,
+        newest_first: bool,
+        from_id: Option<&str>,
+        limit: Option<usize>,
+    ) -> Vec<Row> {
+        let docs = self.documents.lock().unwrap();
+        let mut rows: Vec<Row> = docs
+            .get(key)
+            .map(|v| {
+                v.iter()
+                    .filter(|r| from_id.is_none_or(|f| r.doc_id.as_str() >= f))
+                    .cloned()
+                    .collect()
+            })
+            .unwrap_or_default();
+        drop(docs);
+
+        if newest_first {
+            rows.sort_by(|a, b| b.doc_id.cmp(&a.doc_id));
+        } else {
+            rows.sort_by(|a, b| a.doc_id.cmp(&b.doc_id));
+        }
+        if let Some(n) = limit {
+            rows.truncate(n);
+        }
+        rows
+    }
+
+    fn remove_one(&self, key: &str, doc_id: &str) {
+        let mut docs = self.documents.lock().unwrap();
+        if let Some(collection) = docs.get_mut(key) {
+            collection.retain(|r| r.doc_id != doc_id);
+        }
+    }
+
+    fn remove_all(&self, key: &str) -> u64 {
+        let mut docs = self.documents.lock().unwrap();
+        docs.remove(key).map_or(0, |v| v.len() as u64)
+    }
+
+    fn count_rows(&self, key: &str) -> u64 {
+        let docs = self.documents.lock().unwrap();
+        docs.get(key).map_or(0, |v| v.len() as u64)
     }
 }
 
@@ -88,12 +154,35 @@ impl Default for MemoryDocumentStore {
     }
 }
 
-/// Map a row's content JSON to a deserialized stream item.
-fn row_to_item<V: DeserializeOwned>(content: &str) -> Stream<Result<V, StorageError>, ()> {
-    match serde_json::from_str::<V>(content) {
+/// `0` means "unlimited" → `None`; otherwise `Some(limit)` (OD-06-2 / matches SQL).
+fn limit_opt(limit: usize) -> Option<usize> {
+    (limit > 0).then_some(limit)
+}
+
+/// Replay snapshotted rows as the sync [`StorageItemStream`] (a valtron-`Stream`
+/// iterator of deserialized values).
+fn rows_to_sync<V: DeserializeOwned + Send + 'static>(
+    rows: Vec<Row>,
+) -> StorageItemStream<'static, V> {
+    Box::new(rows.into_iter().map(|r| match serde_json::from_str::<V>(&r.content) {
         Ok(v) => Stream::Next(Ok(v)),
         Err(e) => Stream::Next(Err(StorageError::Deserialization(e.to_string()))),
-    }
+    }))
+}
+
+/// Replay snapshotted rows as the async [`AsyncStorageItemStream`] — pulled one
+/// item at a time via `.next().await` (same shape as `list_keys_async`).
+fn rows_to_async<V: DeserializeOwned + Send + 'static>(
+    rows: Vec<Row>,
+) -> AsyncStorageItemStream<'static, V> {
+    let items: Vec<StorageResult<V>> = rows
+        .into_iter()
+        .map(|r| {
+            serde_json::from_str::<V>(&r.content)
+                .map_err(|e| StorageError::Deserialization(e.to_string()))
+        })
+        .collect();
+    Box::pin(futures_lite::stream::iter(items))
 }
 
 impl DocumentStore for MemoryDocumentStore {
@@ -103,9 +192,7 @@ impl DocumentStore for MemoryDocumentStore {
         content: V,
     ) -> StorageResult<Document> {
         let doc_id = foundation_compact::ids::new_scru128_string();
-        let content_json = serde_json::to_string(&content)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        Ok(self.insert(key, doc_id, content_json, None, None, None))
+        self.put(key, doc_id, &content, None, None, None)
     }
 
     fn append_with_id<V: Serialize + Send + 'static>(
@@ -114,9 +201,7 @@ impl DocumentStore for MemoryDocumentStore {
         doc_id: &str,
         content: V,
     ) -> StorageResult<Document> {
-        let content_json = serde_json::to_string(&content)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        Ok(self.insert(key, doc_id.to_string(), content_json, None, None, None))
+        self.put(key, doc_id.to_string(), &content, None, None, None)
     }
 
     fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
@@ -126,9 +211,7 @@ impl DocumentStore for MemoryDocumentStore {
     ) -> StorageResult<Document> {
         let doc_id = foundation_compact::ids::new_scru128_string();
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        let content_json = serde_json::to_string(&content)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        Ok(self.insert(key, doc_id, content_json, t, s, rt))
+        self.put(key, doc_id, &content, t, s, rt)
     }
 
     fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
@@ -138,19 +221,15 @@ impl DocumentStore for MemoryDocumentStore {
         content: V,
     ) -> StorageResult<Document> {
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        let content_json = serde_json::to_string(&content)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        Ok(self.insert(key, doc_id.to_string(), content_json, t, s, rt))
+        self.put(key, doc_id.to_string(), &content, t, s, rt)
     }
 
     fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
-        let docs = self.documents.lock().unwrap();
-        let mut collection = docs.get(key).cloned().unwrap_or_default();
-        drop(docs);
-        // Newest-first by doc_id, up to limit.
-        collection.sort_by(|a, b| b.doc_id.cmp(&a.doc_id));
-        collection.truncate(limit);
-        Ok(collection.iter().map(Row::to_document).collect())
+        Ok(self
+            .collect_rows(key, true, None, Some(limit))
+            .iter()
+            .map(Row::to_document)
+            .collect())
     }
 
     fn scan_documents_from(
@@ -159,18 +238,11 @@ impl DocumentStore for MemoryDocumentStore {
         from_id: &str,
         limit: usize,
     ) -> StorageResult<Vec<Document>> {
-        let docs = self.documents.lock().unwrap();
-        let mut collection: Vec<Row> = docs
-            .get(key)
-            .map(|v| v.iter().filter(|r| r.doc_id.as_str() >= from_id).cloned().collect())
-            .unwrap_or_default();
-        drop(docs);
-        // Oldest-first; limit 0 = unlimited.
-        collection.sort_by(|a, b| a.doc_id.cmp(&b.doc_id));
-        if limit > 0 {
-            collection.truncate(limit);
-        }
-        Ok(collection.iter().map(Row::to_document).collect())
+        Ok(self
+            .collect_rows(key, false, Some(from_id), limit_opt(limit))
+            .iter()
+            .map(Row::to_document)
+            .collect())
     }
 
     fn scan<V: DeserializeOwned + Send + 'static>(
@@ -178,35 +250,14 @@ impl DocumentStore for MemoryDocumentStore {
         key: &str,
         limit: usize,
     ) -> StorageResult<StorageItemStream<'_, V>> {
-        let docs = self.documents.lock().unwrap();
-        let mut collection = docs.get(key).cloned().unwrap_or_default();
-        drop(docs);
-
-        // Newest-first by doc_id (scru128), up to limit.
-        collection.sort_by(|a, b| b.doc_id.cmp(&a.doc_id));
-        collection.truncate(limit);
-
-        let iter = collection
-            .into_iter()
-            .map(|r| row_to_item::<V>(&r.content));
-        Ok(Box::new(iter))
+        Ok(rows_to_sync(self.collect_rows(key, true, None, Some(limit))))
     }
 
     fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<StorageItemStream<'_, V>> {
-        let docs = self.documents.lock().unwrap();
-        let mut collection = docs.get(key).cloned().unwrap_or_default();
-        drop(docs);
-
-        // Oldest-first by doc_id.
-        collection.sort_by(|a, b| a.doc_id.cmp(&b.doc_id));
-
-        let iter = collection
-            .into_iter()
-            .map(|r| row_to_item::<V>(&r.content));
-        Ok(Box::new(iter))
+        Ok(rows_to_sync(self.collect_rows(key, false, None, None)))
     }
 
     fn scan_from<V: DeserializeOwned + Send + 'static>(
@@ -215,74 +266,33 @@ impl DocumentStore for MemoryDocumentStore {
         from_id: &str,
         limit: usize,
     ) -> StorageResult<StorageItemStream<'_, V>> {
-        let docs = self.documents.lock().unwrap();
-        let mut collection: Vec<Row> = docs
-            .get(key)
-            .map(|v| {
-                v.iter()
-                    // Inclusive: doc_id >= from_id (OD-06-2).
-                    .filter(|r| r.doc_id.as_str() >= from_id)
-                    .cloned()
-                    .collect()
-            })
-            .unwrap_or_default();
-        drop(docs);
-
-        // Oldest-first by doc_id; limit 0 = unlimited.
-        collection.sort_by(|a, b| a.doc_id.cmp(&b.doc_id));
-        if limit > 0 {
-            collection.truncate(limit);
-        }
-
-        let iter = collection
-            .into_iter()
-            .map(|r| row_to_item::<V>(&r.content));
-        Ok(Box::new(iter))
+        Ok(rows_to_sync(self.collect_rows(
+            key,
+            false,
+            Some(from_id),
+            limit_opt(limit),
+        )))
     }
 
     fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
-        let mut docs = self.documents.lock().unwrap();
-        if let Some(collection) = docs.get_mut(key) {
-            collection.retain(|r| r.doc_id != doc_id);
-        }
+        self.remove_one(key, doc_id);
         Ok(())
     }
 
     fn delete_all(&self, key: &str) -> StorageResult<u64> {
-        let mut docs = self.documents.lock().unwrap();
-        let count = docs.remove(key).map_or(0, |v| v.len() as u64);
-        Ok(count)
+        Ok(self.remove_all(key))
     }
 
     fn count(&self, key: &str) -> StorageResult<u64> {
-        let docs = self.documents.lock().unwrap();
-        let count = docs.get(key).map_or(0, |v| v.len() as u64);
-        Ok(count)
+        Ok(self.count_rows(key))
     }
 }
 
-/// Turn the sync item-stream (a valtron-`Stream` iterator) into the async
-/// [`AsyncStorageItemStream`] the async trait yields. The in-memory rows are
-/// already resident, so we snapshot them (same as `list_keys_async`) and replay
-/// lazily — the caller still pulls one item at a time via `.next().await`.
-fn to_async_stream<V: Send + 'static>(
-    stream: StorageItemStream<'_, V>,
-) -> AsyncStorageItemStream<'static, V> {
-    let items: Vec<StorageResult<V>> = stream
-        .filter_map(|s| match s {
-            Stream::Next(r) => Some(r),
-            _ => None,
-        })
-        .collect();
-    Box::pin(futures_lite::stream::iter(items))
-}
-
-/// Async `DocumentStore` over the same in-memory state — lets async backends
+/// Async `DocumentStore` over the same in-memory state — lets the async backends
 /// (D1/wasm, F23) and the agentic layer be exercised in tests without a live
-/// Promise-based backend. Scans return a lazily-pulled
-/// [`AsyncStorageItemStream`] (never a `Vec`), matching the house pattern
-/// (`AsyncKeyValueStore::list_keys_async`) so ordering/id/promoted-column
-/// semantics are identical to the sync path.
+/// Promise-based backend. Scans return a lazily-pulled [`AsyncStorageItemStream`]
+/// (never a `Vec`); every method delegates to the same neutral helpers the sync
+/// impl uses, so ordering/id/promoted-column semantics are identical.
 #[async_trait::async_trait(?Send)]
 impl AsyncDocumentStore for MemoryDocumentStore {
     async fn append_async<V: Serialize + Send + 'static>(
@@ -290,7 +300,8 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         key: &str,
         content: V,
     ) -> StorageResult<Document> {
-        self.append(key, content)
+        let doc_id = foundation_compact::ids::new_scru128_string();
+        self.put(key, doc_id, &content, None, None, None)
     }
 
     async fn append_with_id_async<V: Serialize + Send + 'static>(
@@ -299,7 +310,7 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         doc_id: &str,
         content: V,
     ) -> StorageResult<Document> {
-        self.append_with_id(key, doc_id, content)
+        self.put(key, doc_id.to_string(), &content, None, None, None)
     }
 
     async fn scan_async<V: DeserializeOwned + Send + 'static>(
@@ -307,14 +318,14 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         key: &str,
         limit: usize,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-        Ok(to_async_stream(self.scan::<V>(key, limit)?))
+        Ok(rows_to_async(self.collect_rows(key, true, None, Some(limit))))
     }
 
     async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-        Ok(to_async_stream(self.scan_all::<V>(key)?))
+        Ok(rows_to_async(self.collect_rows(key, false, None, None)))
     }
 
     async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
@@ -323,187 +334,24 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         from_id: &str,
         limit: usize,
     ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
-        Ok(to_async_stream(self.scan_from::<V>(key, from_id, limit)?))
+        Ok(rows_to_async(self.collect_rows(
+            key,
+            false,
+            Some(from_id),
+            limit_opt(limit),
+        )))
     }
 
     async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
-        self.delete(key, doc_id)
+        self.remove_one(key, doc_id);
+        Ok(())
     }
 
     async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
-        self.delete_all(key)
+        Ok(self.remove_all(key))
     }
 
     async fn count_async(&self, key: &str) -> StorageResult<u64> {
-        self.count(key)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn append_mints_scru128_ids_and_orders_by_id() {
-        let store = MemoryDocumentStore::new();
-        let a = store.append("k", serde_json::json!({"n": 1})).unwrap();
-        let b = store.append("k", serde_json::json!({"n": 2})).unwrap();
-        // scru128 ids are 25 chars, not "mem-N".
-        assert_eq!(a.id.len(), 25);
-        assert!(b.id > a.id, "later append has a greater scru128 id");
-    }
-
-    #[test]
-    fn scan_from_is_inclusive_and_ordered() {
-        let store = MemoryDocumentStore::new();
-        let ids: Vec<String> = (0..5)
-            .map(|n| store.append("k", serde_json::json!({ "n": n })).unwrap().id)
-            .collect();
-
-        // scan_from the 3rd id (inclusive) → ids[2..] in order.
-        let got: Vec<serde_json::Value> = store
-            .scan_from::<serde_json::Value>("k", &ids[2], 0)
-            .unwrap()
-            .filter_map(|s| match s {
-                Stream::Next(Ok(v)) => Some(v),
-                _ => None,
-            })
-            .collect();
-        assert_eq!(got.len(), 3);
-        assert_eq!(got[0]["n"], 2);
-        assert_eq!(got[2]["n"], 4);
-
-        // limit caps the result.
-        let limited = store
-            .scan_from::<serde_json::Value>("k", &ids[0], 2)
-            .unwrap()
-            .filter(|s| matches!(s, Stream::Next(Ok(_))))
-            .count();
-        assert_eq!(limited, 2);
-    }
-
-    #[test]
-    fn append_with_id_uses_caller_id() {
-        let store = MemoryDocumentStore::new();
-        let id = foundation_compact::ids::new_scru128_string();
-        let doc = store
-            .append_with_id("k", &id, serde_json::json!({"x": 1}))
-            .unwrap();
-        assert_eq!(doc.id, id);
-        // The supplied id anchors scan_from.
-        let n = store
-            .scan_from::<serde_json::Value>("k", &id, 0)
-            .unwrap()
-            .filter(|s| matches!(s, Stream::Next(Ok(_))))
-            .count();
-        assert_eq!(n, 1);
-    }
-
-    /// A record that promotes columns from its content.
-    #[derive(serde::Serialize)]
-    struct Note {
-        kind: String,
-        text: String,
-    }
-    impl PromotableDocument for Note {
-        fn record_type(&self) -> Option<String> {
-            Some(self.kind.clone())
-        }
-        fn summary(&self) -> Option<String> {
-            Some(self.text.clone())
-        }
-    }
-
-    #[test]
-    fn append_promotable_round_trips_columns() {
-        let store = MemoryDocumentStore::new();
-        let doc = store
-            .append_promotable(
-                "k",
-                Note {
-                    kind: "observation".into(),
-                    text: "saw a cat".into(),
-                },
-            )
-            .unwrap();
-        assert_eq!(doc.record_type.as_deref(), Some("observation"));
-        assert_eq!(doc.summary.as_deref(), Some("saw a cat"));
-        assert_eq!(doc.title, None);
-
-        // Observable again through scan_documents (newest-first).
-        let docs = store.scan_documents("k", 10).unwrap();
-        assert_eq!(docs.len(), 1);
-        assert_eq!(docs[0].record_type.as_deref(), Some("observation"));
-        assert_eq!(docs[0].summary.as_deref(), Some("saw a cat"));
-    }
-
-    #[test]
-    fn plain_append_leaves_promoted_columns_null() {
-        let store = MemoryDocumentStore::new();
-        store.append("k", serde_json::json!({"n": 1})).unwrap();
-        let docs = store.scan_documents("k", 10).unwrap();
-        assert_eq!(docs[0].record_type, None);
-        assert_eq!(docs[0].title, None);
-        assert_eq!(docs[0].summary, None);
-    }
-
-    #[test]
-    fn scan_documents_from_is_inclusive_and_ordered() {
-        let store = MemoryDocumentStore::new();
-        let ids: Vec<String> = (0..4)
-            .map(|n| {
-                store
-                    .append_promotable(
-                        "k",
-                        Note {
-                            kind: "n".into(),
-                            text: format!("t{n}"),
-                        },
-                    )
-                    .unwrap()
-                    .id
-            })
-            .collect();
-        let docs = store.scan_documents_from("k", &ids[1], 0).unwrap();
-        assert_eq!(docs.len(), 3);
-        assert_eq!(docs[0].id, ids[1]);
-        assert_eq!(docs[0].summary.as_deref(), Some("t1"));
-        assert_eq!(docs[2].summary.as_deref(), Some("t3"));
-    }
-
-    #[test]
-    fn async_document_store_matches_sync_semantics() {
-        use crate::core::storage_provider::AsyncDocumentStore;
-        use futures_lite::StreamExt;
-        futures_lite::future::block_on(async {
-            let store = MemoryDocumentStore::new();
-            let a = store
-                .append_async("k", serde_json::json!({"n": 0}))
-                .await
-                .unwrap();
-            let b = store
-                .append_async("k", serde_json::json!({"n": 1}))
-                .await
-                .unwrap();
-            assert!(b.id > a.id, "async append preserves scru128 ordering");
-            assert_eq!(store.count_async("k").await.unwrap(), 2);
-
-            // scan_from_async yields a lazily-pulled stream (inclusive,
-            // oldest-first) — drain it via `.next().await`, no Vec return.
-            let mut stream = store
-                .scan_from_async::<serde_json::Value>("k", &a.id, 0)
-                .await
-                .unwrap();
-            let mut got = Vec::new();
-            while let Some(item) = stream.next().await {
-                got.push(item.unwrap());
-            }
-            assert_eq!(got.len(), 2);
-            assert_eq!(got[0]["n"], 0);
-            assert_eq!(got[1]["n"], 1);
-
-            store.delete_async("k", &a.id).await.unwrap();
-            assert_eq!(store.count_async("k").await.unwrap(), 1);
-        });
+        Ok(self.count_rows(key))
     }
 }

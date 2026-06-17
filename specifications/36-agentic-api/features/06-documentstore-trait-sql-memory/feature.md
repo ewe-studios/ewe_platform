@@ -214,12 +214,29 @@ graph LR
   satisfied across F06–F23, not in one feature.
         I always like to say it: keep async traits and Sync traits separate, let async traits method have *_async suffixes in name to avoid conflict, this lets users clearly use which works for their environment and context.
       - **Resolved → in F06 we also ship a real `AsyncDocumentStore` impl for `MemoryDocumentStore`**
-        (forwards to the sync in-memory logic, identical ordering/id/promoted-column semantics; tested
-        via `block_on`). WHY: the async trait must not be a phantom contract — the agentic layer and the
-        future async backends (F23) need something to compile and test against *now*. So `AsyncDocumentStore`
-        is no longer impl-less. **Scheduled remaining impls:** F23 supplies the Cloudflare D1/KV/R2
-        `AsyncDocumentStore`; F22 supplies the sync `FjallDocumentStore` (VFS). Each is expected to pass the
-        same scan/scan_from/promoted-column conformance the in-memory + SQL backends already pass.
+        so the async trait is not a phantom contract — the agentic layer and the future async backends
+        (F23) need something to compile and test against *now*. **Scheduled remaining impls:** F23 supplies
+        the Cloudflare D1/KV/R2 `AsyncDocumentStore`; F22 supplies the sync `FjallDocumentStore` (VFS).
+        Each is expected to pass the same scan/scan_from/promoted-column conformance the in-memory + SQL
+        backends already pass.
+
+- **OD-06-8 (decisive) — async/sync interop paradigm (user, 2026-06-17).** For every paired
+  sync+async store trait the rules are:
+    1. **Async is canonical** — the real logic lives in the `*_async` methods; the **sync** trait
+       **wraps the async** via valtron (`run_future_iter` for streams, value-wrap for scalars), exactly as
+       `QueryStore::query` already wraps `query_async`. (Rare exception: a pure in-memory store with no I/O
+       and no cheap cross-thread share — e.g. `MemoryDocumentStore` — may instead route **both** sync and
+       async through shared neutral helpers; it must NOT have async call the sync method.)
+    2. **Streaming reads return a lazily-pulled stream, never a `Vec`.** Async multi-item reads return
+       **`AsyncStorageItemStream<'_, V>`** (the async analog of the sync `StorageItemStream`) so consumers
+       pull one item at a time with `while let Some(x) = s.next().await { … }` — unbounded scans can't OOM.
+       `scan_async`/`scan_all_async`/`scan_from_async` were corrected from the wrong `-> Vec<V>` to this.
+       (Bounded `Document`-returning helpers `scan_documents*` keep their `Vec<Document>` — they are the
+       explicitly-bounded "last N" promoted-column API, OD-06-6.)
+    3. **Naming:** sync `XStream` / async `AsyncXStream` (e.g. `StorageItemStream` ↔
+       `AsyncStorageItemStream`); async methods keep the `*_async` suffix (OD-06-7).
+  This paradigm is the contract for F07/F08 (MemoryStore/Message-API), F22/F23 (backends), and
+  F28–F30 (VectorStore) — see those features' notes.
 
 ## Target Files
 

@@ -80,6 +80,12 @@ impl MessageApi {
 }
 ```
 
+> **Async/sync paradigm (F06 OD-06-8).** Bounded reads (`recent(n)`, `scan_from(id, n)`, `semantic_search(k)`)
+> return `Vec` because they are explicitly capped; the **unbounded** read (`all`) streams
+> (`impl Iterator` sync / `AsyncStorageItemStream` async) so it can't OOM. When the `*_async` variants are
+> added, the **async** forms hold the real logic and the **sync** forms wrap them via valtron (house rule),
+> and any unbounded async read returns `AsyncStorageItemStream`, never a `Vec`.
+
 ### Write buffering + flush task (Decision 02)
 
 - `append` enqueues into `write_buffer` (returns immediately — no disk latency in the loop).
