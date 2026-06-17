@@ -668,3 +668,14 @@ impl foundation_db::TosStore for HandlerStorage {
             .map_err(map_storage_err)
     }
 }
+
+impl foundation_db::AuthStore for HandlerStorage {
+    fn find_user_by_email(&self, email: &str) -> Result<Option<(String, bool)>, String> {
+        find_user_by_email(self.query_store.as_ref(), email)
+            .map(|opt| opt.map(|u| {
+                let has_pw = u.has_password();
+                (u.id, has_pw)
+            }))
+            .map_err(map_storage_err)
+    }
+}

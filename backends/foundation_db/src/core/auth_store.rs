@@ -84,9 +84,11 @@ pub trait TosStore {
 
 /// Combined trait that provides all auth-related storage operations.
 ///
-/// This is the primary trait the auth server handlers use. A single
-/// implementation typically backs both passkeys and ToS acceptances.
-pub trait AuthStore: PasskeyStore + TosStore {}
-
-// Blanket impl: anything implementing both sub-traits gets AuthStore
-impl<T: PasskeyStore + TosStore> AuthStore for T {}
+/// This is the primary trait the auth server handlers use. Implementations
+/// should also implement PasskeyStore and TosStore — this trait adds the
+/// user lookup needed by the passkey login flow.
+pub trait AuthStore: PasskeyStore + TosStore {
+    /// Find a user by email (used by passkey login flow).
+    /// Returns (user_id, has_password).
+    fn find_user_by_email(&self, email: &str) -> Result<Option<(String, bool)>, String>;
+}

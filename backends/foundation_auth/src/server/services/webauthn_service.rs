@@ -5,11 +5,13 @@
 
 use std::sync::Arc;
 
+use foundation_db::{AuthStore, PasskeyStore, StoredPasskey};
+
 use serde::{Deserialize, Serialize};
 
 use super::super::config::IdpConfig;
 use super::super::models::Passkey;
-use super::super::storage::{HandlerStorage, StorageOpError};
+use super::super::storage::StorageOpError;
 
 #[cfg(feature = "server-native")]
 use webauthn_rs::prelude::*;
@@ -78,23 +80,23 @@ struct AuthState {
 // ─── Service ──────────────────────────────────────────────────────────────────
 
 #[cfg(feature = "server-native")]
-pub struct WebAuthnService {
+pub struct WebAuthnService<S: AuthStore> {
     config: Arc<IdpConfig>,
-    storage: Arc<HandlerStorage>,
+    store: Arc<S>,
     webauthn: webauthn_rs::Webauthn,
     reg_sessions: std::sync::Mutex<std::collections::HashMap<String, RegState>>,
     auth_sessions: std::sync::Mutex<std::collections::HashMap<String, AuthState>>,
 }
 
 #[cfg(not(feature = "server-native"))]
-pub struct WebAuthnService {
+pub struct WebAuthnService<S: AuthStore> {
     config: Arc<IdpConfig>,
-    storage: Arc<HandlerStorage>,
+    store: Arc<S>,
 }
 
-impl WebAuthnService {
+impl<S: AuthStore> WebAuthnService<S> {
     #[must_use]
-    pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage>) -> Self {
+    pub fn new(config: Arc<IdpConfig>, store: Arc<S>) -> Self {
         #[cfg(feature = "server-native")]
         {
             let origin = url::Url::parse(&config.issuer_url)
@@ -105,7 +107,7 @@ impl WebAuthnService {
                 .expect("Invalid WebAuthn config");
             Self {
                 config,
-                storage,
+                store,
                 webauthn,
                 reg_sessions: std::sync::Mutex::new(std::collections::HashMap::new()),
                 auth_sessions: std::sync::Mutex::new(std::collections::HashMap::new()),
@@ -113,7 +115,7 @@ impl WebAuthnService {
         }
         #[cfg(not(feature = "server-native"))]
         {
-            Self { config, storage }
+            Self { config, store }
         }
     }
 
@@ -189,10 +191,18 @@ impl WebAuthnService {
             };
 
             // Persist to database
-            super::super::storage::store_passkey(
-                self.storage.query_store.as_ref(),
-                &our_passkey,
-            )?;
+            let stored = StoredPasskey {
+                id: our_passkey.id.clone(),
+                user_id: our_passkey.user_id.clone(),
+                name: our_passkey.name.clone(),
+                credential_id: our_passkey.credential_id.clone(),
+                credential_public_key: our_passkey.credential_public_key.clone(),
+                counter: our_passkey.counter,
+                created_at: our_passkey.created_at,
+                last_used_at: our_passkey.last_used_at,
+            };
+            self.store.as_ref().store_passkey(&stored)
+                .map_err(|e| StorageOpError::Query(e))?;
 
             Ok(our_passkey)
         }
@@ -209,13 +219,11 @@ impl WebAuthnService {
     ) -> Result<WebAuthnAuthOptions, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
-            let passkeys = super::super::storage::find_passkeys_by_user(
-                self.storage.query_store.as_ref(),
-                user_id,
-            )?;
+            let stored_passkeys = self.store.as_ref().find_passkeys_by_user(user_id)
+                .map_err(|e| StorageOpError::Query(e))?;
 
             // Deserialize stored CBOR back to webauthn-rs Passkey
-            let webauthn_passkeys: Vec<webauthn_rs::prelude::Passkey> = passkeys.iter()
+            let webauthn_passkeys: Vec<webauthn_rs::prelude::Passkey> = stored_passkeys.iter()
                 .filter_map(|pk| {
                     serde_cbor::from_slice::<webauthn_rs::prelude::Passkey>(&pk.credential_public_key).ok()
                 })
@@ -266,11 +274,9 @@ impl WebAuthnService {
 
             // Look up the passkey by credential_id from the response
             let cred_id = response.raw_id.clone();
-            let passkey = super::super::storage::find_passkey_by_credential_id(
-                self.storage.query_store.as_ref(),
-                &cred_id,
-            )?
-            .ok_or_else(|| StorageOpError::NotFound("Passkey not found".into()))?;
+            let passkey = self.store.as_ref().find_passkey_by_credential_id(&cred_id)
+                .map_err(|e| StorageOpError::Query(e))?
+                .ok_or_else(|| StorageOpError::NotFound("Passkey not found".into()))?;
 
             // Deserialize the stored CBOR back to webauthn-rs Passkey
             let wa_passkey: webauthn_rs::prelude::Passkey =
@@ -283,11 +289,8 @@ impl WebAuthnService {
 
             // Update counter if needed
             if auth_result.needs_update() {
-                super::super::storage::update_passkey_counter(
-                    self.storage.query_store.as_ref(),
-                    &passkey.id,
-                    auth_result.counter(),
-                )?;
+                self.store.as_ref().update_passkey_counter(&passkey.id, auth_result.counter())
+                    .map_err(|e| StorageOpError::Query(e))?;
             }
 
             Ok(state.user_id)
@@ -305,10 +308,10 @@ impl WebAuthnService {
     ) -> Result<WebAuthnAuthOptions, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
-            use super::super::storage::find_user_by_email;
-            let user = find_user_by_email(self.storage.query_store.as_ref(), email)?
+            let (user_id, _has_password) = self.store.as_ref().find_user_by_email(email)
+                .map_err(|e| StorageOpError::Query(e))?
                 .ok_or_else(|| StorageOpError::NotFound(format!("No user with email: {email}")))?;
-            self.auth_start(&user.id)
+            self.auth_start(&user_id)
         }
         #[cfg(not(feature = "server-native"))]
         {
@@ -330,14 +333,27 @@ impl WebAuthnService {
     }
 
     pub fn delete_passkey(&self, passkey_id: &str) -> Result<(), StorageOpError> {
-        super::super::storage::delete_passkey(self.storage.query_store.as_ref(), passkey_id)
+        self.store.as_ref().delete_passkey(passkey_id)
+            .map_err(|e| StorageOpError::Query(e))
     }
 
     pub fn rename_passkey(&self, passkey_id: &str, name: &str) -> Result<(), StorageOpError> {
-        super::super::storage::update_passkey_name(self.storage.query_store.as_ref(), passkey_id, name)
+        self.store.as_ref().update_passkey_name(passkey_id, name)
+            .map_err(|e| StorageOpError::Query(e))
     }
 
     pub fn list_passkeys(&self, user_id: &str) -> Result<Vec<Passkey>, StorageOpError> {
-        super::super::storage::find_passkeys_by_user(self.storage.query_store.as_ref(), user_id)
+        let stored = self.store.as_ref().find_passkeys_by_user(user_id)
+            .map_err(|e| StorageOpError::Query(e))?;
+        Ok(stored.into_iter().map(|sk| Passkey {
+            id: sk.id,
+            user_id: sk.user_id,
+            name: sk.name,
+            credential_id: sk.credential_id,
+            credential_public_key: sk.credential_public_key,
+            counter: sk.counter,
+            created_at: sk.created_at,
+            last_used_at: sk.last_used_at,
+        }).collect())
     }
 }

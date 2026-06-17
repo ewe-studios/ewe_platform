@@ -218,7 +218,7 @@ pub struct IdpHandlerCore {
     storage: Arc<HandlerStorage>,
     token_service: Arc<TokenService>,
     pow_service: Arc<PowService>,
-    webauthn_service: Arc<WebAuthnService>,
+    webauthn_service: Arc<WebAuthnService<HandlerStorage>>,
     tos_service: Arc<TosService>,
 }
 
