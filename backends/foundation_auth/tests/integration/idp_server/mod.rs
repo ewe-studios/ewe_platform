@@ -122,7 +122,6 @@ fn test_config() -> IdpConfig {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn discovery_returns_valid_oidc_document() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -196,7 +195,6 @@ fn discovery_returns_valid_oidc_document() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn jwks_returns_ed25519_public_key() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -234,7 +232,6 @@ fn jwks_returns_ed25519_public_key() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn discovery_then_jwks_flow() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -275,7 +272,6 @@ fn discovery_then_jwks_flow() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn introspect_returns_inactive_for_unknown_token() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -309,7 +305,6 @@ fn introspect_returns_inactive_for_unknown_token() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn authorize_without_session_returns_bad_request() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -338,7 +333,6 @@ fn authorize_without_session_returns_bad_request() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn token_endpoint_returns_error_without_storage() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -372,7 +366,6 @@ fn token_endpoint_returns_error_without_storage() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn userinfo_without_bearer_returns_unauthorized() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -404,7 +397,6 @@ fn userinfo_without_bearer_returns_unauthorized() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn device_authorize_returns_error_without_storage() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -438,7 +430,6 @@ fn device_authorize_returns_error_without_storage() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn custom_prefix_routes_work() {
     let (addr, shutdown, handle) = start_idp_with_prefix(test_config(), "/auth/v1");
     let client = make_client(addr);
@@ -489,7 +480,6 @@ fn custom_prefix_routes_work() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn default_prefix_not_accessible_under_custom() {
     let (addr, shutdown, handle) = start_idp_with_prefix(test_config(), "/auth/v1");
     let client = make_client(addr);
@@ -514,7 +504,6 @@ fn default_prefix_not_accessible_under_custom() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn full_client_lifecycle_discovery_to_token_attempt() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -611,7 +600,6 @@ fn full_client_lifecycle_discovery_to_token_attempt() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn error_responses_follow_oidc_format() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -664,7 +652,6 @@ fn error_responses_follow_oidc_format() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn issuer_url_trailing_slash_normalized() {
     let config = IdpConfig::new("https://auth.example.com/".into());
     let (addr, shutdown, handle) = start_idp(config);
@@ -699,7 +686,6 @@ fn issuer_url_trailing_slash_normalized() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn jwks_returns_stable_key_across_requests() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
@@ -733,7 +719,6 @@ fn jwks_returns_stable_key_across_requests() {
 // ============================================================================
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn device_code_endpoint_is_post_only_at_correct_path() {
     let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);

@@ -124,7 +124,6 @@ fn status_code(status: &Status) -> usize {
 // ─── User Story 1: OIDC Discovery ───────────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_discovery_returns_valid_oidc_document() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -154,7 +153,6 @@ fn e2e_discovery_returns_valid_oidc_document() {
 // ─── User Story 2: JWKS ─────────────────────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_jwks_returns_ed25519_key() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -178,7 +176,6 @@ fn e2e_jwks_returns_ed25519_key() {
 // ─── User Story 3: User Registration ────────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_user_registration_creates_account() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -207,7 +204,6 @@ fn e2e_user_registration_creates_account() {
 // ─── User Story 4: PoW Challenge + Solve ────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_pow_challenge_and_solve() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -245,7 +241,6 @@ fn e2e_pow_challenge_and_solve() {
 // ─── User Story 5: Password Reset Flow ──────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_password_reset_request() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -268,7 +263,6 @@ fn e2e_password_reset_request() {
 // ─── User Story 6: ToS Fetch and Accept ─────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_tos_latest_returns_config() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -288,7 +282,6 @@ fn e2e_tos_latest_returns_config() {
 // ─── User Story 7: Template Config ──────────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_template_config_returns_policy() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -306,7 +299,6 @@ fn e2e_template_config_returns_policy() {
 }
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_password_policy_returns_requirements() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -329,7 +321,6 @@ fn e2e_password_policy_returns_requirements() {
 // ─── User Story 8: Token Introspection ──────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_introspect_unknown_token_returns_inactive() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -351,7 +342,6 @@ fn e2e_introspect_unknown_token_returns_inactive() {
 // ─── User Story 9: UserInfo Without Token ───────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_userinfo_without_bearer_returns_401() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -371,7 +361,6 @@ fn e2e_userinfo_without_bearer_returns_401() {
 // ─── User Story 10: Authorize Without Session ───────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_authorize_without_session_returns_400() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -390,7 +379,6 @@ fn e2e_authorize_without_session_returns_400() {
 // ─── User Story 11: Device Code Flow ────────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_device_authorize_requires_storage() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -412,7 +400,6 @@ fn e2e_device_authorize_requires_storage() {
 // ─── User Story 12: Token Without Storage ───────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_token_without_storage_returns_400() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -431,7 +418,6 @@ fn e2e_token_without_storage_returns_400() {
 // ─── User Story 13: OIDC Error Format ───────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_errors_follow_oidc_format() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -465,7 +451,6 @@ fn e2e_errors_follow_oidc_format() {
 // ─── User Story 14: Issuer URL Normalization ────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_issuer_trailing_slash_normalized() {
     let dir = tempfile::tempdir().unwrap();
     let db_path = dir.path().join("test_auth.db");
@@ -513,7 +498,6 @@ fn e2e_issuer_trailing_slash_normalized() {
 // ─── User Story 15: JWKS Key Stability ──────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_jwks_returns_same_key_across_requests() {
     let server = TestIdpServer::start();
     let client = SimpleHttpClient::with_resolver(StaticSocketAddr::new(server.addr));
@@ -538,7 +522,6 @@ fn e2e_jwks_returns_same_key_across_requests() {
 // ─── User Story 16: Custom Route Prefix ─────────────────────────────────────
 
 #[valtron_test(threads = 8)]
-#[foundation_core::valtron::timeout(60000)]
 fn e2e_custom_prefix_routes_work() {
     let server = TestIdpServer::start();
     let config = IdpConfig::new("https://auth.example.com".into());
