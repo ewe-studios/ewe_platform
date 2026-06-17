@@ -1,0 +1,27 @@
+[package]
+name = "foundation_auth_ui"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "WASM UI components for authentication — login, register, MFA, account management"
+keywords.workspace = true
+
+[dependencies]
+foundation_core = { workspace = true }
+foundation_wasm_ui = { workspace = true }
+foundation_signals = { workspace = true }
+foundation_ui_traits = { workspace = true }
+foundation_ui_components = { workspace = true }
+
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+
+[features]
+default = []
+styled = []  # pulls rauthy CSS theme
+
+[lints]
+workspace = true

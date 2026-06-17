@@ -1,7 +1,6 @@
 //! Terms of Service service — versioning, display, and acceptance tracking.
 
 use std::sync::Arc;
-use std::collections::HashMap;
 use std::sync::Mutex;
 
 use chrono::Utc;
@@ -15,8 +14,6 @@ pub struct TosService {
     storage: Arc<HandlerStorage>,
     /// In-memory ToS versions (in production, loaded from DB).
     versions: Mutex<Vec<TosVersion>>,
-    /// In-memory acceptances (in production, stored in DB).
-    acceptances: Mutex<HashMap<(String, String), TosAcceptance>>,
 }
 
 impl TosService {
@@ -25,7 +22,6 @@ impl TosService {
         Self {
             storage,
             versions: Mutex::new(Vec::new()),
-            acceptances: Mutex::new(HashMap::new()),
         }
     }
 
@@ -48,8 +44,14 @@ impl TosService {
             Some(v) => v,
             None => return false,
         };
-        let acceptances = self.acceptances.lock().unwrap();
-        !acceptances.contains_key(&(user_id.to_string(), latest.version.clone()))
+        match super::super::storage::find_tos_acceptance(
+            self.storage.query_store.as_ref(),
+            user_id,
+            &latest.version,
+        ) {
+            Ok(Some(_)) => false,
+            Ok(None) | Err(_) => true,
+        }
     }
 
     /// Record a user's acceptance of the current ToS.
@@ -67,9 +69,10 @@ impl TosService {
             ip_address: ip_address.map(|s| s.to_string()),
         };
 
-        let mut acceptances = self.acceptances.lock().unwrap();
-        acceptances.insert((user_id.to_string(), latest.version.clone()), acceptance);
-        Ok(())
+        super::super::storage::store_tos_acceptance(
+            self.storage.query_store.as_ref(),
+            &acceptance,
+        )
     }
 
     /// Generate a ToS acceptance code for the login flow.

@@ -15,6 +15,8 @@ use super::super::storage::{HandlerStorage, StorageOpError};
 use webauthn_rs::prelude::*;
 #[cfg(feature = "server-native")]
 use base64::engine::Engine;
+#[cfg(feature = "server-native")]
+use webauthn_rs::prelude::{PublicKeyCredential, RegisterPublicKeyCredential};
 
 // ─── Public request/response types (always compiled) ─────────────────────────
 
@@ -170,18 +172,29 @@ impl WebAuthnService {
                 .finish_passkey_registration(&response, &state.reg)
                 .map_err(|e| StorageOpError::Query(format!("Verify registration: {e}")))?;
 
+            // Serialize the webauthn-rs Passkey to CBOR for storage
             let cred_id_bytes = passkey.cred_id().as_slice().to_vec();
+            let passkey_cbor = serde_cbor::to_vec(&passkey)
+                .map_err(|e| StorageOpError::Query(format!("Serialize passkey: {e}")))?;
 
-            Ok(Passkey {
+            let our_passkey = Passkey {
                 id: uuid::Uuid::new_v4().to_string(),
                 user_id: state.user_id,
                 name: req.name.clone().unwrap_or_else(|| "Passkey".into()),
-                credential_id: cred_id_bytes.clone(),
-                credential_public_key: cred_id_bytes,
+                credential_id: cred_id_bytes,
+                credential_public_key: passkey_cbor,
                 counter: 0,
                 created_at: chrono::Utc::now().timestamp_millis(),
                 last_used_at: None,
-            })
+            };
+
+            // Persist to database
+            super::super::storage::store_passkey(
+                self.storage.query_store.as_ref(),
+                &our_passkey,
+            )?;
+
+            Ok(our_passkey)
         }
         #[cfg(not(feature = "server-native"))]
         {
@@ -196,11 +209,20 @@ impl WebAuthnService {
     ) -> Result<WebAuthnAuthOptions, StorageOpError> {
         #[cfg(feature = "server-native")]
         {
-            let _user_id = user_id;
-            // In production: look up user's webauthn_rs::Passkey records and pass them.
-            // For now, start with empty credential list (browser will prompt for any).
+            let passkeys = super::super::storage::find_passkeys_by_user(
+                self.storage.query_store.as_ref(),
+                user_id,
+            )?;
+
+            // Deserialize stored CBOR back to webauthn-rs Passkey
+            let webauthn_passkeys: Vec<webauthn_rs::prelude::Passkey> = passkeys.iter()
+                .filter_map(|pk| {
+                    serde_cbor::from_slice::<webauthn_rs::prelude::Passkey>(&pk.credential_public_key).ok()
+                })
+                .collect();
+
             let (challenge, auth) = self.webauthn
-                .start_passkey_authentication(&[])
+                .start_passkey_authentication(&webauthn_passkeys)
                 .map_err(|e| StorageOpError::Query(format!("WebAuthn auth start: {e}")))?;
 
             let session = uuid::Uuid::new_v4().to_string();
@@ -242,11 +264,32 @@ impl WebAuthnService {
             let response: PublicKeyCredential = serde_json::from_value(response_json.clone())
                 .map_err(|e| StorageOpError::Query(format!("Parse response: {e}")))?;
 
+            // Look up the passkey by credential_id from the response
+            let cred_id = response.raw_id.clone();
+            let passkey = super::super::storage::find_passkey_by_credential_id(
+                self.storage.query_store.as_ref(),
+                &cred_id,
+            )?
+            .ok_or_else(|| StorageOpError::NotFound("Passkey not found".into()))?;
+
+            // Deserialize the stored CBOR back to webauthn-rs Passkey
+            let wa_passkey: webauthn_rs::prelude::Passkey =
+                serde_cbor::from_slice(&passkey.credential_public_key)
+                    .map_err(|e| StorageOpError::Parse(format!("Deserialize passkey: {e}")))?;
+
             let auth_result = self.webauthn
                 .finish_passkey_authentication(&response, &state.auth)
                 .map_err(|e| StorageOpError::Query(format!("Verify authentication: {e}")))?;
 
-            let _ = auth_result;
+            // Update counter if needed
+            if auth_result.needs_update() {
+                super::super::storage::update_passkey_counter(
+                    self.storage.query_store.as_ref(),
+                    &passkey.id,
+                    auth_result.counter(),
+                )?;
+            }
+
             Ok(state.user_id)
         }
         #[cfg(not(feature = "server-native"))]
@@ -286,15 +329,15 @@ impl WebAuthnService {
         self.auth_finish(&auth_req)
     }
 
-    pub fn delete_passkey(&self, _passkey_id: &str) -> Result<(), StorageOpError> {
-        Ok(())
+    pub fn delete_passkey(&self, passkey_id: &str) -> Result<(), StorageOpError> {
+        super::super::storage::delete_passkey(self.storage.query_store.as_ref(), passkey_id)
     }
 
-    pub fn rename_passkey(&self, _passkey_id: &str, _name: &str) -> Result<(), StorageOpError> {
-        Ok(())
+    pub fn rename_passkey(&self, passkey_id: &str, name: &str) -> Result<(), StorageOpError> {
+        super::super::storage::update_passkey_name(self.storage.query_store.as_ref(), passkey_id, name)
     }
 
-    pub fn list_passkeys(&self, _user_id: &str) -> Result<Vec<Passkey>, StorageOpError> {
-        Ok(vec![])
+    pub fn list_passkeys(&self, user_id: &str) -> Result<Vec<Passkey>, StorageOpError> {
+        super::super::storage::find_passkeys_by_user(self.storage.query_store.as_ref(), user_id)
     }
 }

@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
 
-use super::models::{AuthorizationCode, DeviceCode, OAuthClient, RefreshToken, User};
+use super::models::{AuthorizationCode, DeviceCode, OAuthClient, Passkey, RefreshToken, TosAcceptance, User};
 
 #[derive(Debug)]
 pub enum StorageOpError {
@@ -358,6 +358,197 @@ fn collect_one_row<'a>(
 
 fn parse_err(e: foundation_db::core::errors::StorageError) -> StorageOpError {
     StorageOpError::Parse(e.to_string())
+}
+
+// ─── Passkeys ────────────────────────────────────────────────────────────────
+
+pub fn store_passkey(
+    store: &dyn QueryStore,
+    passkey: &Passkey,
+) -> Result<(), StorageOpError> {
+    let sql = "INSERT INTO passkeys (id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)";
+    store
+        .execute(sql, &[
+            DataValue::Text(passkey.id.clone()),
+            DataValue::Text(passkey.user_id.clone()),
+            DataValue::Text(passkey.name.clone()),
+            DataValue::Blob(passkey.credential_id.clone()),
+            DataValue::Blob(passkey.credential_public_key.clone()),
+            DataValue::Integer(passkey.counter as i64),
+            DataValue::Integer(passkey.created_at),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+pub fn find_passkeys_by_user(
+    store: &dyn QueryStore,
+    user_id: &str,
+) -> Result<Vec<Passkey>, StorageOpError> {
+    let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE user_id = ?";
+    let mut stream = store
+        .query(sql, &[DataValue::Text(user_id.to_string())])
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    let mut results = Vec::new();
+    for item in stream {
+        match item {
+            foundation_core::valtron::Stream::Next(Ok(row)) => {
+                results.push(parse_passkey_row(&row)?);
+            }
+            foundation_core::valtron::Stream::Next(Err(e)) => {
+                return Err(StorageOpError::Query(e.to_string()));
+            }
+            _ => {}
+        }
+    }
+    Ok(results)
+}
+
+pub fn find_passkey_by_id(
+    store: &dyn QueryStore,
+    passkey_id: &str,
+) -> Result<Option<Passkey>, StorageOpError> {
+    let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE id = ?";
+    let mut stream = store
+        .query(sql, &[DataValue::Text(passkey_id.to_string())])
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match collect_one_row(&mut stream)? {
+        Some(row) => Ok(Some(parse_passkey_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+pub fn find_passkey_by_credential_id(
+    store: &dyn QueryStore,
+    credential_id: &[u8],
+) -> Result<Option<Passkey>, StorageOpError> {
+    let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE credential_id = ?";
+    let mut stream = store
+        .query(sql, &[DataValue::Blob(credential_id.to_vec())])
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match collect_one_row(&mut stream)? {
+        Some(row) => Ok(Some(parse_passkey_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+pub fn update_passkey_counter(
+    store: &dyn QueryStore,
+    passkey_id: &str,
+    counter: u32,
+) -> Result<(), StorageOpError> {
+    let sql = "UPDATE passkeys SET counter = ?, last_used_at = ? WHERE id = ?";
+    let now = chrono::Utc::now().timestamp_millis();
+    store
+        .execute(sql, &[
+            DataValue::Integer(counter as i64),
+            DataValue::Integer(now),
+            DataValue::Text(passkey_id.to_string()),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+pub fn update_passkey_name(
+    store: &dyn QueryStore,
+    passkey_id: &str,
+    name: &str,
+) -> Result<(), StorageOpError> {
+    let sql = "UPDATE passkeys SET name = ? WHERE id = ?";
+    store
+        .execute(sql, &[
+            DataValue::Text(name.to_string()),
+            DataValue::Text(passkey_id.to_string()),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+pub fn delete_passkey(
+    store: &dyn QueryStore,
+    passkey_id: &str,
+) -> Result<(), StorageOpError> {
+    let sql = "DELETE FROM passkeys WHERE id = ?";
+    store
+        .execute(sql, &[DataValue::Text(passkey_id.to_string())])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+fn parse_passkey_row(row: &SqlRow) -> Result<Passkey, StorageOpError> {
+    let credential_id: Vec<u8> = row.get_by_name("credential_id").map_err(parse_err)?;
+    let credential_public_key: Vec<u8> = row.get_by_name("credential_public_key").map_err(parse_err)?;
+    let last_used_at_val: i64 = row.get_by_name("last_used_at").map_err(parse_err)?;
+    Ok(Passkey {
+        id: row.get_by_name("id").map_err(parse_err)?,
+        user_id: row.get_by_name("user_id").map_err(parse_err)?,
+        name: row.get_by_name("name").map_err(parse_err)?,
+        credential_id,
+        credential_public_key,
+        counter: row.get_by_name::<i64>("counter").map_err(parse_err)? as u32,
+        created_at: row.get_by_name("created_at").map_err(parse_err)?,
+        last_used_at: if last_used_at_val == 0 { None } else { Some(last_used_at_val) },
+    })
+}
+
+// ─── ToS Acceptances ────────────────────────────────────────────────────────
+
+pub fn store_tos_acceptance(
+    store: &dyn QueryStore,
+    acceptance: &TosAcceptance,
+) -> Result<(), StorageOpError> {
+    let sql = "INSERT INTO tos_acceptances (user_id, tos_version, accepted_at, ip_address) VALUES (?, ?, ?, ?)";
+    store
+        .execute(sql, &[
+            DataValue::Text(acceptance.user_id.clone()),
+            DataValue::Text(acceptance.tos_version.clone()),
+            DataValue::Integer(acceptance.accepted_at),
+            DataValue::Text(acceptance.ip_address.clone().unwrap_or_default()),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+pub fn find_tos_acceptance(
+    store: &dyn QueryStore,
+    user_id: &str,
+    tos_version: &str,
+) -> Result<Option<TosAcceptance>, StorageOpError> {
+    let sql = "SELECT user_id, tos_version, accepted_at, ip_address FROM tos_acceptances WHERE user_id = ? AND tos_version = ?";
+    let mut stream = store
+        .query(sql, &[
+            DataValue::Text(user_id.to_string()),
+            DataValue::Text(tos_version.to_string()),
+        ])
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match collect_one_row(&mut stream)? {
+        Some(row) => Ok(Some(parse_tos_acceptance_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+pub fn find_latest_tos_acceptance(
+    store: &dyn QueryStore,
+    user_id: &str,
+) -> Result<Option<TosAcceptance>, StorageOpError> {
+    let sql = "SELECT user_id, tos_version, accepted_at, ip_address FROM tos_acceptances WHERE user_id = ? ORDER BY accepted_at DESC LIMIT 1";
+    let mut stream = store
+        .query(sql, &[DataValue::Text(user_id.to_string())])
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match collect_one_row(&mut stream)? {
+        Some(row) => Ok(Some(parse_tos_acceptance_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+fn parse_tos_acceptance_row(row: &SqlRow) -> Result<TosAcceptance, StorageOpError> {
+    let ip_address: String = row.get_by_name("ip_address").map_err(parse_err)?;
+    Ok(TosAcceptance {
+        user_id: row.get_by_name("user_id").map_err(parse_err)?,
+        tos_version: row.get_by_name("tos_version").map_err(parse_err)?,
+        accepted_at: row.get_by_name("accepted_at").map_err(parse_err)?,
+        ip_address: if ip_address.is_empty() { None } else { Some(ip_address) },
+    })
 }
 
 #[derive(Clone)]

@@ -3559,6 +3559,7 @@ dependencies = [
  "ntest",
  "rand 0.8.5",
  "serde",
+ "serde_cbor",
  "serde_json",
  "serial_test",
  "sha2",
@@ -3572,6 +3573,19 @@ dependencies = [
  "web-sys",
  "webauthn-rs",
  "zeroize",
+]
+
+[[package]]
+name = "foundation_auth_ui"
+version = "0.0.1"
+dependencies = [
+ "foundation_core",
+ "foundation_signals",
+ "foundation_ui_components",
+ "foundation_ui_traits",
+ "foundation_wasm_ui",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]
@@ -8724,6 +8738,16 @@ checksum = "a5d440709e79d88e51ac01c4b72fc6cb7314017bb7da9eeff678aa94c10e3ea8"
 dependencies = [
  "serde",
  "serde_core",
+]
+
+[[package]]
+name = "serde_cbor"
+version = "0.11.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2bef2ebfde456fb76bbcf9f59315333decc4fda0b2b44b420243c11e0f5ec1f5"
+dependencies = [
+ "half 1.8.3",
+ "serde",
 ]
 
 [[package]]
