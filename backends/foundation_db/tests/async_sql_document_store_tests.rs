@@ -1,5 +1,5 @@
 //! Async SQL `AsyncDocumentStore` conformance (F22b), against the real Turso
-//! (SQLite) backend — proves `AsyncSqlDocumentStore<TursoStorage>` matches the
+//! (`SQLite`) backend — proves `AsyncSqlDocumentStore<TursoStorage>` matches the
 //! in-memory + sync-SQL semantics (scru128 ordering, inclusive `scan_from`,
 //! promoted columns) and that scans are pulled lazily via `.next().await`.
 
@@ -20,7 +20,7 @@ fn init_valtron() {
     }
 }
 
-/// Migrated async store over a fresh temp SQLite db (migrations 020/021 applied
+/// Migrated async store over a fresh temp `SQLite` db (migrations 020/021 applied
 /// via the real `init_schema`).
 fn make_store() -> (TempDir, AsyncSqlDocumentStore<TursoStorage>) {
     init_valtron();

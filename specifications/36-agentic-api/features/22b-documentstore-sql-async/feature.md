@@ -1,7 +1,7 @@
 ---
 feature: "DocumentStore: SQL async backend (Turso/Libsql/D1)"
 description: "AsyncSqlDocumentStore<Q: AsyncQueryStore> — the canonical async AsyncDocumentStore over any SQL backend (Turso, Libsql, native D1, wasm D1), mirroring F06's sync SqlDocumentStore SQL (scru128 doc_id ordering, scan_from, promoted columns 020/021) but returning AsyncStorageItemStream (no Vec/OOM). Plus native sync+async conformance for Turso & Libsql. Reused by F23 for the CF D1 path."
-status: "pending"
+status: "in-progress"
 priority: "high"
 depends_on: ["06-documentstore-trait-sql-memory"]
 estimated_effort: "medium"
@@ -9,13 +9,22 @@ created: 2026-06-17
 last_updated: 2026-06-17
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 5
+  uncompleted: 3
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 62%
 ---
 
 # Feature 22b: DocumentStore — SQL async backend (Turso/Libsql/D1)
+
+> **Implementation status (2026-06-17).** **Landed:** `AsyncSqlDocumentStore<Q: AsyncQueryStore>`
+> (`core/backends/async_sql_document_store.rs`) implementing `AsyncDocumentStore` with scans returning
+> `AsyncStorageItemStream` (never `Vec`); the async promotable/`scan_documents` trait parity (OD-22b-1)
+> on the trait + `MemoryDocumentStore` + the SQL impl; the shared `sql` builder module so sync + async
+> never drift (OD-22b-3); and **Turso async conformance tests** (`tests/async_sql_document_store_tests.rs`,
+> 5 tests). Since every backend (Libsql, native D1, wasm D1) implements `AsyncQueryStore`, the generic
+> works for them too. **Remaining:** the **Libsql** conformance run (feature-gated, OD-22b-4), the
+> `wasm32-unknown-unknown` build check, and the `fundamentals/` docs.
 
 > **Why this exists (gap found 2026-06-17).** After F06, `DocumentStore` (sync) is generic over
 > `QueryStore` (`SqlDocumentStore<Q>`), so Turso/Libsql/native-D1 already have the **sync** document

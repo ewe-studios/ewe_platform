@@ -61,7 +61,14 @@ impl<Q: AsyncQueryStore> AsyncSqlDocumentStore<Q> {
     ) -> StorageResult<Document> {
         let content_json = serde_json::to_string(content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        let params = sql::insert_params(key, &doc_id, &content_json, &title, &summary, &record_type);
+        let params = sql::insert_params(
+            key,
+            &doc_id,
+            &content_json,
+            title.as_deref(),
+            summary.as_deref(),
+            record_type.as_deref(),
+        );
         self.query_store
             .execute_async(&sql::insert_sql(&self.table), &params)
             .await?;
