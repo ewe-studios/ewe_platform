@@ -191,6 +191,24 @@ impl std::fmt::Display for AgenticError {
 
 impl std::error::Error for AgenticError {}
 
+impl AgenticError {
+    /// Build a `SessionRecord::FailedAction` carrying this error and the
+    /// structured projection of an `ErrorTrace` built from it.
+    ///
+    /// This is the boundary helper the agent loop (F19) and the model-stream
+    /// lift (F03) use to put an error onto the agent stream as a record. The
+    /// live `ErrorTrace` is logged via `tracing` at the failure site; only the
+    /// owned `StructuredErrorTrace` projection is carried in the record (the live
+    /// trace is not `Deserialize`).
+    #[must_use]
+    pub fn into_failed_action(self) -> crate::types::SessionRecord {
+        // A single-frame trace from this error. Callers that already hold a
+        // richer ErrorTrace can build FailedAction directly instead.
+        let trace = foundation_errstacks::ErrorTrace::new(self.clone()).to_structured();
+        crate::types::SessionRecord::FailedAction { error: self, trace }
+    }
+}
+
 /// Detect a rate-limit failure by string match on the formatted error.
 ///
 /// Providers already format 429s ("Rate limit exceeded: …") and retry internally;

@@ -5,8 +5,10 @@
 //! contract (F03), token accounting (F04), and the agentic loop (F19+).
 
 pub mod errors;
+pub mod progress;
 
 pub use errors::{
     AgentAction, AgenticError, AuthError, CircuitBreaker, ErrorPolicy, GenKind, GenerationFailure,
     LoopDetection, UserId,
 };
+pub use progress::{lift_model_item, AgentProgress, AgentStream, MemoryKind};

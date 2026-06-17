@@ -1,7 +1,7 @@
 ---
 feature: "Agent Stream & Progress Contract"
 description: "The agentic loop's streaming contract — pure SessionRecord on Stream::Next (errors as SessionRecord::FailedAction records, not a Result), thin AgentProgress status on Stream::Pending, mirroring the model layer's Stream<Messages, ModelState>"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model"]
 estimated_effort: "medium"
