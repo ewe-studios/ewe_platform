@@ -3,22 +3,50 @@
 use std::sync::Arc;
 use std::time::Duration;
 
+use foundation_auth::server::storage::HandlerStorage;
+use foundation_auth::server::{IdpConfig, IdpServer};
 use foundation_core::synca::OnSignal;
-use foundation_core::valtron::initialize_pool;
+use std::sync::Mutex;
+use foundation_core::valtron::valtron_test;
+use foundation_db::{MemoryStorage, StorageBackend, StorageProvider};
+use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
+use foundation_http::shared::app::HttpApp;
+use foundation_http::shared::serve::Serve;
 use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
 use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
-use serial_test::serial;
 
-use foundation_auth::server::{IdpConfig, IdpServer};
-use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
-use foundation_http::shared::app::HttpApp;
-use foundation_http::shared::serve::Serve;
+
+/// Shared Valtron pool guard — initialized once and reused across all tests.
+static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
+
+fn init_valtron() {
+    let mut guard = POOL_GUARD.lock().unwrap();
+    if guard.is_none() {
+        *guard = Some(foundation_core::valtron::initialize_pool(42, Some(5)));
+    }
+}
+
+fn make_storage() -> Arc<HandlerStorage<MemoryStorage>> {
+    let dir = tempfile::tempdir().expect("tempdir");
+    let db_path = dir.path().join("test_auth.db");
+    let provider = StorageProvider::new(StorageBackend::Turso {
+        url: db_path.to_str().unwrap().to_string(),
+    })
+    .expect("init turso");
+    let query_store: Arc<dyn foundation_db::QueryStore> = Arc::new(provider);
+    let cache = MemoryStorage::new();
+    Arc::new(HandlerStorage::new(query_store, cache))
+}
 
 fn start_idp(
     config: IdpConfig,
-) -> (std::net::SocketAddr, Arc<OnSignal>) {
+) -> (
+    std::net::SocketAddr,
+    Arc<OnSignal>,
+    std::thread::JoinHandle<()>,
+) {
     let shutdown = Arc::new(OnSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
@@ -27,22 +55,26 @@ fn start_idp(
         .with_keep_alive(KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)));
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
-    let idp = IdpServer::new(config);
+    let idp = IdpServer::new(config, make_storage());
     let app = idp.http_app();
     let server = HttpServer::with_config(app, &bind_addr, server_config);
 
     let shutdown_thread = shutdown.clone();
-    std::thread::spawn(move || {
+    let handle = std::thread::spawn(move || {
         server.serve_with_listener(&listener, &shutdown_thread);
     });
 
-    (addr, shutdown)
+    (addr, shutdown, handle)
 }
 
 fn start_idp_with_prefix(
     config: IdpConfig,
     prefix: &str,
-) -> (std::net::SocketAddr, Arc<OnSignal>) {
+) -> (
+    std::net::SocketAddr,
+    Arc<OnSignal>,
+    std::thread::JoinHandle<()>,
+) {
     let shutdown = Arc::new(OnSignal::new());
     let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind failed");
     let addr = listener.local_addr().expect("local_addr failed");
@@ -53,15 +85,16 @@ fn start_idp_with_prefix(
     let bind_addr = format!("127.0.0.1:{}", addr.port());
     let mut app: HttpApp<Arc<dyn Serve>> = HttpApp::new_serve();
     app.ctx.store(config);
-    IdpServer::register_routes(&mut app, prefix);
+    app.ctx.store(make_storage());
+    IdpServer::<MemoryStorage>::register_routes(&mut app, prefix);
     let server = HttpServer::with_config(app, &bind_addr, server_config);
 
     let shutdown_thread = shutdown.clone();
-    std::thread::spawn(move || {
+    let handle = std::thread::spawn(move || {
         server.serve_with_listener(&listener, &shutdown_thread);
     });
 
-    (addr, shutdown)
+    (addr, shutdown, handle)
 }
 
 fn make_client(addr: std::net::SocketAddr) -> SimpleHttpClient<StaticSocketAddr> {
@@ -102,10 +135,9 @@ fn test_config() -> IdpConfig {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn discovery_returns_valid_oidc_document() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let response = client
@@ -124,12 +156,27 @@ fn discovery_returns_valid_oidc_document() {
     let doc = parse_json(&body);
 
     assert_eq!(doc["issuer"], "https://auth.example.com");
-    assert_eq!(doc["authorization_endpoint"], "https://auth.example.com/authorize");
+    assert_eq!(
+        doc["authorization_endpoint"],
+        "https://auth.example.com/authorize"
+    );
     assert_eq!(doc["token_endpoint"], "https://auth.example.com/token");
-    assert_eq!(doc["userinfo_endpoint"], "https://auth.example.com/userinfo");
-    assert_eq!(doc["jwks_uri"], "https://auth.example.com/.well-known/jwks.json");
-    assert_eq!(doc["introspection_endpoint"], "https://auth.example.com/introspect");
-    assert_eq!(doc["device_authorization_endpoint"], "https://auth.example.com/device/authorize");
+    assert_eq!(
+        doc["userinfo_endpoint"],
+        "https://auth.example.com/userinfo"
+    );
+    assert_eq!(
+        doc["jwks_uri"],
+        "https://auth.example.com/.well-known/jwks.json"
+    );
+    assert_eq!(
+        doc["introspection_endpoint"],
+        "https://auth.example.com/introspect"
+    );
+    assert_eq!(
+        doc["device_authorization_endpoint"],
+        "https://auth.example.com/device/authorize"
+    );
 
     let response_types = doc["response_types_supported"].as_array().unwrap();
     assert!(response_types.iter().any(|v| v == "code"));
@@ -138,18 +185,23 @@ fn discovery_returns_valid_oidc_document() {
     assert!(grant_types.iter().any(|v| v == "authorization_code"));
     assert!(grant_types.iter().any(|v| v == "refresh_token"));
     assert!(grant_types.iter().any(|v| v == "client_credentials"));
-    assert!(grant_types.iter().any(|v| v == "urn:ietf:params:oauth:grant-type:device_code"));
+    assert!(grant_types
+        .iter()
+        .any(|v| v == "urn:ietf:params:oauth:grant-type:device_code"));
 
     let scopes = doc["scopes_supported"].as_array().unwrap();
     assert!(scopes.iter().any(|v| v == "openid"));
 
-    let algs = doc["id_token_signing_alg_values_supported"].as_array().unwrap();
+    let algs = doc["id_token_signing_alg_values_supported"]
+        .as_array()
+        .unwrap();
     assert!(algs.iter().any(|v| v == "EdDSA"));
 
     let pkce = doc["code_challenge_methods_supported"].as_array().unwrap();
     assert!(pkce.iter().any(|v| v == "S256"));
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -158,10 +210,8 @@ fn discovery_returns_valid_oidc_document() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn jwks_returns_ed25519_public_key() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let response = client
@@ -189,6 +239,7 @@ fn jwks_returns_ed25519_public_key() {
     assert!(key["x"].is_string(), "public key material must be present");
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -197,10 +248,9 @@ fn jwks_returns_ed25519_public_key() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn discovery_then_jwks_flow() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let disc_resp = client
@@ -231,6 +281,7 @@ fn discovery_then_jwks_flow() {
     assert!(!jwks["keys"].as_array().unwrap().is_empty());
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -239,17 +290,19 @@ fn discovery_then_jwks_flow() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn introspect_returns_inactive_for_unknown_token() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let response = client
         .post("http://testserver/idp/introspect")
         .unwrap()
         .body_text("token=some_random_invalid_token")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .build_client()
         .unwrap()
         .send()
@@ -263,6 +316,7 @@ fn introspect_returns_inactive_for_unknown_token() {
     assert_eq!(body["active"], false);
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -271,10 +325,9 @@ fn introspect_returns_inactive_for_unknown_token() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn authorize_without_session_returns_bad_request() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let response = client
@@ -293,6 +346,7 @@ fn authorize_without_session_returns_bad_request() {
     assert!(body["error_description"].is_string());
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -301,17 +355,19 @@ fn authorize_without_session_returns_bad_request() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn token_endpoint_returns_error_without_storage() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let response = client
         .post("http://testserver/idp/token")
         .unwrap()
         .body_text("grant_type=authorization_code&code=test_code&client_id=test_client")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .build_client()
         .unwrap()
         .send()
@@ -322,9 +378,13 @@ fn token_endpoint_returns_error_without_storage() {
 
     let body = parse_json(&read_body(body));
     assert_eq!(body["error"], "bad_request");
-    assert!(body["error_description"].as_str().unwrap().contains("storage"));
+    assert!(body["error_description"]
+        .as_str()
+        .unwrap()
+        .contains("storage"));
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -333,10 +393,9 @@ fn token_endpoint_returns_error_without_storage() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn userinfo_without_bearer_returns_unauthorized() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let response = client
@@ -352,9 +411,13 @@ fn userinfo_without_bearer_returns_unauthorized() {
 
     let body = parse_json(&read_body(body));
     assert_eq!(body["error"], "invalid_token");
-    assert!(body["error_description"].as_str().unwrap().contains("Bearer"));
+    assert!(body["error_description"]
+        .as_str()
+        .unwrap()
+        .contains("Bearer"));
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -363,17 +426,19 @@ fn userinfo_without_bearer_returns_unauthorized() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn device_authorize_returns_error_without_storage() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let response = client
         .post("http://testserver/idp/device/authorize")
         .unwrap()
         .body_text("client_id=test_client")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .build_client()
         .unwrap()
         .send()
@@ -384,9 +449,13 @@ fn device_authorize_returns_error_without_storage() {
 
     let body = parse_json(&read_body(body));
     assert_eq!(body["error"], "bad_request");
-    assert!(body["error_description"].as_str().unwrap().contains("storage"));
+    assert!(body["error_description"]
+        .as_str()
+        .unwrap()
+        .contains("storage"));
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -395,10 +464,9 @@ fn device_authorize_returns_error_without_storage() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn custom_prefix_routes_work() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp_with_prefix(test_config(), "/auth/v1");
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp_with_prefix(test_config(), "/auth/v1");
     let client = make_client(addr);
 
     let response = client
@@ -427,7 +495,10 @@ fn custom_prefix_routes_work() {
         .post("http://testserver/auth/v1/token")
         .unwrap()
         .body_text("grant_type=authorization_code")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .build_client()
         .unwrap()
         .send()
@@ -436,6 +507,7 @@ fn custom_prefix_routes_work() {
     assert_eq!(status_code(&status), 400);
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -444,10 +516,9 @@ fn custom_prefix_routes_work() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn default_prefix_not_accessible_under_custom() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp_with_prefix(test_config(), "/auth/v1");
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp_with_prefix(test_config(), "/auth/v1");
     let client = make_client(addr);
 
     let response = client
@@ -462,6 +533,7 @@ fn default_prefix_not_accessible_under_custom() {
     assert_ne!(status_code(&status), 200);
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -470,10 +542,9 @@ fn default_prefix_not_accessible_under_custom() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn full_client_lifecycle_discovery_to_token_attempt() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     // Step 1: Client discovers the IdP
@@ -535,7 +606,10 @@ fn full_client_lifecycle_discovery_to_token_attempt() {
         .post("http://testserver/idp/introspect")
         .unwrap()
         .body_text("token=fake_access_token&client_id=myapp&client_secret=secret")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .build_client()
         .unwrap()
         .send()
@@ -546,11 +620,18 @@ fn full_client_lifecycle_discovery_to_token_attempt() {
     assert_eq!(intro["active"], false);
 
     // Verify discovery document has correct endpoints
-    assert!(doc["authorization_endpoint"].as_str().unwrap().contains("/authorize"));
+    assert!(doc["authorization_endpoint"]
+        .as_str()
+        .unwrap()
+        .contains("/authorize"));
     assert!(doc["token_endpoint"].as_str().unwrap().contains("/token"));
-    assert!(doc["introspection_endpoint"].as_str().unwrap().contains("/introspect"));
+    assert!(doc["introspection_endpoint"]
+        .as_str()
+        .unwrap()
+        .contains("/introspect"));
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -559,10 +640,9 @@ fn full_client_lifecycle_discovery_to_token_attempt() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn error_responses_follow_oidc_format() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     // 400 errors have "error" + "error_description"
@@ -570,7 +650,10 @@ fn error_responses_follow_oidc_format() {
         .post("http://testserver/idp/token")
         .unwrap()
         .body_text("grant_type=authorization_code")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .build_client()
         .unwrap()
         .send()
@@ -579,7 +662,10 @@ fn error_responses_follow_oidc_format() {
     assert_eq!(status_code(&status), 400);
     let err = parse_json(&read_body(body));
     assert!(err["error"].is_string(), "400 must have 'error' field");
-    assert!(err["error_description"].is_string(), "400 must have 'error_description'");
+    assert!(
+        err["error_description"].is_string(),
+        "400 must have 'error_description'"
+    );
 
     // 401 errors have "error" + "error_description"
     let resp_401 = client
@@ -593,9 +679,13 @@ fn error_responses_follow_oidc_format() {
     assert_eq!(status_code(&status), 401);
     let err = parse_json(&read_body(body));
     assert_eq!(err["error"], "invalid_token");
-    assert!(err["error_description"].is_string(), "401 must have 'error_description'");
+    assert!(
+        err["error_description"].is_string(),
+        "401 must have 'error_description'"
+    );
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -604,11 +694,10 @@ fn error_responses_follow_oidc_format() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn issuer_url_trailing_slash_normalized() {
-    let _guard = initialize_pool(42, Some(5));
+    init_valtron();
     let config = IdpConfig::new("https://auth.example.com/".into());
-    let (addr, shutdown) = start_idp(config);
+    let (addr, shutdown, handle) = start_idp(config);
     let client = make_client(addr);
 
     let response = client
@@ -625,10 +714,14 @@ fn issuer_url_trailing_slash_normalized() {
 
     // Endpoints should NOT have double slashes
     let token_ep = doc["token_endpoint"].as_str().unwrap();
-    assert!(!token_ep.contains("//token"), "no double slashes: {token_ep}");
+    assert!(
+        !token_ep.contains("//token"),
+        "no double slashes: {token_ep}"
+    );
     assert!(token_ep.ends_with("/token"));
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -637,10 +730,9 @@ fn issuer_url_trailing_slash_normalized() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn jwks_returns_stable_key_across_requests() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     let fetch_jwks = || {
@@ -664,6 +756,7 @@ fn jwks_returns_stable_key_across_requests() {
     );
 
     shutdown.turn_on();
+    let _ = handle.join();
 }
 
 // ============================================================================
@@ -672,10 +765,9 @@ fn jwks_returns_stable_key_across_requests() {
 
 #[test]
 #[ntest::timeout(60000)]
-#[serial(idp_test)]
 fn device_code_endpoint_is_post_only_at_correct_path() {
-    let _guard = initialize_pool(42, Some(5));
-    let (addr, shutdown) = start_idp(test_config());
+    init_valtron();
+    let (addr, shutdown, handle) = start_idp(test_config());
     let client = make_client(addr);
 
     // POST works (returns error because no storage, but 400 not 404)
@@ -683,13 +775,21 @@ fn device_code_endpoint_is_post_only_at_correct_path() {
         .post("http://testserver/idp/device/authorize")
         .unwrap()
         .body_text("client_id=test")
-        .header(SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .header(
+            SimpleHeader::CONTENT_TYPE,
+            "application/x-www-form-urlencoded",
+        )
         .build_client()
         .unwrap()
         .send()
         .unwrap();
     let (status, _, _, _, _) = post_resp.into_parts();
-    assert_eq!(status_code(&status), 400, "POST to device/authorize should reach handler");
+    assert_eq!(
+        status_code(&status),
+        400,
+        "POST to device/authorize should reach handler"
+    );
 
     shutdown.turn_on();
+    let _ = handle.join();
 }

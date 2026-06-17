@@ -111,3 +111,9 @@ wasm-bindgen-session = [
 ]
 # Native server with WebAuthn (openssl dep, wasm-incompatible)
 server-native = ["server", "dep:webauthn-rs", "dep:url", "dep:serde_cbor"]
+
+# Test module tree (units/ + integration/ via lib.rs)
+[[test]]
+name = "foundation_auth_tests"
+path = "tests/lib.rs"
+required-features = ["server-test"]
