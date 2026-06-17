@@ -4,28 +4,10 @@
 //! promoted-column INSERT/SELECT and scru128 `doc_id` ordering are validated
 //! end-to-end, not just against the in-memory backend.
 
-use foundation_db::traits::{DocumentStore, PromotableDocument, QueryStore};
+use foundation_db::traits::{DocumentStore, PromotableDocument};
 use foundation_db::{SqlDocumentStore, TursoStorage};
 use std::sync::Mutex;
 use tempfile::TempDir;
-
-/// `documents` schema = migration 020 + 021 (promoted columns). Created directly
-/// so the test doesn't depend on the migration runner's stream-tracking path.
-const DOCUMENTS_SCHEMA: &str = "\
-CREATE TABLE IF NOT EXISTS documents (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    collection_key TEXT NOT NULL,
-    doc_id TEXT NOT NULL,
-    content TEXT NOT NULL,
-    metadata TEXT NOT NULL DEFAULT '{}',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    title TEXT,
-    summary TEXT,
-    record_type TEXT
-);
-CREATE UNIQUE INDEX IF NOT EXISTS idx_documents_collection_doc_id ON documents(collection_key, doc_id);
-CREATE INDEX IF NOT EXISTS idx_documents_collection_type ON documents(collection_key, record_type);
-";
 
 /// Shared Valtron pool guard — initialized once, reused across tests.
 static POOL_GUARD: Mutex<Option<foundation_core::valtron::PoolGuard>> = Mutex::new(None);
@@ -38,12 +20,16 @@ fn init_valtron() {
 }
 
 /// Build a migrated `SqlDocumentStore` over a fresh temp `SQLite` db.
+///
+/// Uses the real `init_schema` → `MigrationRunner` path (not a hand-written
+/// schema), so this also proves migrations 020/021 actually apply the
+/// `documents` table and its promoted columns end-to-end.
 fn make_store() -> (TempDir, SqlDocumentStore<TursoStorage>) {
     init_valtron();
     let dir = TempDir::new().unwrap();
     let url = dir.path().join("docs.db");
     let storage = TursoStorage::new(url.to_str().unwrap()).unwrap();
-    storage.execute_batch(DOCUMENTS_SCHEMA).unwrap();
+    storage.init_schema().unwrap();
     (dir, SqlDocumentStore::new(storage))
 }
 
@@ -144,4 +130,27 @@ fn scan_documents_is_newest_first() {
     let docs = store.scan_documents("k", 10).unwrap();
     let got: Vec<&String> = docs.iter().map(|d| &d.id).collect();
     assert_eq!(got, vec![&ids[2], &ids[1], &ids[0]]);
+}
+
+/// The sync `MigrationRunner` actually applies the full set and is idempotent —
+/// the bug it replaces silently applied **zero** migrations (so `documents`
+/// never existed). Guards F06's "migrations registered + applied" done-when.
+#[test]
+fn migration_runner_applies_all_then_is_idempotent() {
+    use foundation_db::{MigrationRunner, MIGRATIONS};
+    init_valtron();
+    let dir = TempDir::new().unwrap();
+    let url = dir.path().join("migrate.db");
+    let storage = TursoStorage::new(url.to_str().unwrap()).unwrap();
+
+    // First run applies every migration; second run applies none.
+    let applied = MigrationRunner::new(MIGRATIONS).run(&storage).unwrap();
+    assert_eq!(applied, MIGRATIONS.len(), "first run applies all migrations");
+    let reapplied = MigrationRunner::new(MIGRATIONS).run(&storage).unwrap();
+    assert_eq!(reapplied, 0, "re-run is a no-op (tracked in _migrations)");
+
+    // The documents table + promoted columns from 020/021 are usable.
+    let docs = SqlDocumentStore::new(storage);
+    docs.append("k", serde_json::json!({"n": 1})).unwrap();
+    assert_eq!(docs.scan_documents("k", 10).unwrap().len(), 1);
 }

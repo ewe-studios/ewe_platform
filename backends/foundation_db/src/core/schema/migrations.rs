@@ -5,6 +5,7 @@
 
 use crate::core::errors::StorageResult;
 use crate::core::storage_provider::{AsyncQueryStore, DataValue, QueryStore};
+use foundation_core::valtron::Stream;
 
 /// A single database migration.
 pub struct Migration {
@@ -185,26 +186,46 @@ impl<'a> MigrationRunner<'a> {
     ///
     /// Returns an error if any migration SQL statement fails.
     pub fn run(&self, store: &dyn QueryStore) -> StorageResult<usize> {
+        // Ensure the migrations tracking table exists before we query it
+        // (mirrors `run_async`). Without this the first SELECT below targets a
+        // missing table.
+        store.execute_batch(
+            "CREATE TABLE IF NOT EXISTS _migrations (id TEXT PRIMARY KEY, name TEXT NOT NULL, applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000))"
+        )?;
+
         let mut count = 0;
 
         for migration in self.migrations {
-            // Check if migration already applied
-            let mut rows = store.query(
+            // Check if migration already applied. `query` returns a *lazy*
+            // stream that interleaves `Stream::Pending` readiness markers with
+            // the actual rows, so `next().is_some()` is NOT a row test (a single
+            // Pending marker would falsely report "exists"). Drain the stream and
+            // look for a real `Stream::Next(Ok(_))`, propagating any error.
+            let rows = store.query(
                 "SELECT 1 FROM _migrations WHERE id = ?",
                 &[DataValue::Text(migration.id.to_string())],
             )?;
-
-            // Check if any rows returned (migration exists)
-            let exists = rows.next().is_some();
+            let mut exists = false;
+            for item in rows {
+                match item {
+                    Stream::Next(Ok(_)) => exists = true,
+                    Stream::Next(Err(e)) => return Err(e),
+                    _ => {}
+                }
+            }
 
             if !exists {
                 // Apply migration - consume the iterator
                 store.execute_batch(migration.sql)?;
 
-                // Record migration
+                // Record migration (id + name, matching the table schema and
+                // `run_async`; the old `(name)`-only insert left `id` NULL).
                 store.execute(
-                    "INSERT OR IGNORE INTO _migrations (name) VALUES (?)",
-                    &[DataValue::Text(migration.id.to_string())],
+                    "INSERT OR IGNORE INTO _migrations (id, name) VALUES (?, ?)",
+                    &[
+                        DataValue::Text(migration.id.to_string()),
+                        DataValue::Text(migration.name.to_string()),
+                    ],
                 )?;
 
                 count += 1;

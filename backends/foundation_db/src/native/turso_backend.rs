@@ -92,25 +92,12 @@ impl TursoStorage {
     ///
     /// Returns a `StorageError` if schema creation fails.
     pub fn init_schema(&self) -> StorageResult<()> {
-        let schema_sql = r"
-            CREATE TABLE IF NOT EXISTS kv_store (
-                key TEXT PRIMARY KEY,
-                value TEXT NOT NULL,
-                created_at INTEGER DEFAULT (strftime('%s', 'now') * 1000),
-                updated_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
-            );
-
-            CREATE INDEX IF NOT EXISTS idx_kv_store_key ON kv_store(key);
-
-            CREATE TABLE IF NOT EXISTS _migrations (
-                id TEXT PRIMARY KEY,
-                name TEXT NOT NULL,
-                applied_at INTEGER DEFAULT (strftime('%s', 'now') * 1000)
-            );
-        ";
-
-        let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(schema_sql).await })?;
+        // Apply the full canonical migration set (kv_store via 001 … documents +
+        // promoted columns via 020/021). Previously this hardcoded only
+        // `kv_store`/`_migrations`, so every other table — including `documents`
+        // — was never created on the native sync path. The runner is idempotent
+        // (each migration is `IF NOT EXISTS` and tracked in `_migrations`).
+        crate::core::schema::MigrationRunner::new(crate::core::schema::MIGRATIONS).run(self)?;
         Ok(())
     }
 
