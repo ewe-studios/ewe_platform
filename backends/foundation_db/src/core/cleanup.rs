@@ -6,7 +6,7 @@
 //! - Expired rate limits (outside the sliding window)
 //! - Expired verification tokens, OAuth states, magic links, and email OTPs
 
-use crate::core::errors::{StorageError, StorageResult};
+use crate::core::errors::StorageResult;
 use crate::core::storage_provider::QueryStore;
 
 /// Cleanup operations for storage maintenance.
@@ -108,7 +108,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM magic_links WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        self.execute(&sql, &params)
+        self.execute(sql, &params)
     }
 
     /// Delete expired email OTPs.
@@ -124,7 +124,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM email_otps WHERE expires_at < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(now)];
 
-        self.execute(&sql, &params)
+        self.execute(sql, &params)
     }
 
     /// Clean up old rate limit entries.
@@ -149,7 +149,7 @@ pub trait StorageCleanup: QueryStore {
         let sql = "DELETE FROM rate_limits WHERE window_start < ?";
         let params = vec![crate::core::storage_provider::DataValue::Integer(cutoff)];
 
-        self.execute(&sql, &params)
+        self.execute(sql, &params)
     }
 
     /// Run all cleanup operations in one call.

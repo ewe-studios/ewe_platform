@@ -172,6 +172,18 @@ impl FromDataValue for Vec<u8> {
     }
 }
 
+/// SQL `NULL` maps to `None`; any other value is converted via `T` and wrapped
+/// in `Some`. Use this (not `String`) to distinguish a NULL column from an empty
+/// string — `String::from_data_value` deliberately coerces NULL to `""`.
+impl<T: FromDataValue> FromDataValue for Option<T> {
+    fn from_data_value(value: &DataValue) -> StorageResult<Self> {
+        match value {
+            DataValue::Null => Ok(None),
+            other => T::from_data_value(other).map(Some),
+        }
+    }
+}
+
 impl FromDataValue for bool {
     fn from_data_value(value: &DataValue) -> StorageResult<Self> {
         match value {
@@ -200,7 +212,7 @@ pub struct AsyncQueryStream {
 }
 
 impl AsyncQueryStream {
-    /// Wrap any `futures_core::Stream<Item = StorageResult<SqlRow>>` as an AsyncQueryStream.
+    /// Wrap any `futures_core::Stream<Item = StorageResult<SqlRow>>` as an `AsyncQueryStream`.
     pub fn new<S>(stream: S) -> Self
     where
         S: futures_core::Stream<Item = StorageResult<SqlRow>> + Send + 'static,
@@ -232,7 +244,7 @@ pub struct AsyncListStream {
 }
 
 impl AsyncListStream {
-    /// Wrap any `futures_core::Stream<Item = StorageResult<String>>` as an AsyncListStream.
+    /// Wrap any `futures_core::Stream<Item = StorageResult<String>>` as an `AsyncListStream`.
     pub fn new<S>(stream: S) -> Self
     where
         S: futures_core::Stream<Item = StorageResult<String>> + Send + 'static,
@@ -267,6 +279,7 @@ pub struct AsyncQueryStreamIterator {
 }
 
 impl AsyncQueryStreamIterator {
+    #[must_use]
     pub fn new(stream: AsyncQueryStream) -> Self {
         Self { stream }
     }
@@ -288,6 +301,7 @@ pub struct AsyncListStreamIterator {
 }
 
 impl AsyncListStreamIterator {
+    #[must_use]
     pub fn new(stream: AsyncListStream) -> Self {
         Self { stream }
     }
@@ -463,7 +477,7 @@ pub struct Document {
     pub id: String,
     /// The document content as a JSON string (full fidelity, source of truth).
     pub content: String,
-    /// Optional metadata (created_at, updated_at, etc.).
+    /// Optional metadata (`created_at`, `updated_at`, etc.).
     pub metadata: serde_json::Value,
     /// Promoted searchable column — a short title/label (nullable).
     pub title: Option<String>,
@@ -563,7 +577,7 @@ pub trait DocumentStore: Send + Sync {
     fn count(&self, key: &str) -> StorageResult<u64>;
 }
 
-/// A type whose values can populate the DocumentStore's promoted columns.
+/// A type whose values can populate the `DocumentStore`'s promoted columns.
 ///
 /// WHY: rather than make callers pass `title`/`summary`/`record_type` to every
 /// `append`, a record type implements this once and the store extracts them

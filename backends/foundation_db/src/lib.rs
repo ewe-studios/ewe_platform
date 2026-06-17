@@ -4,7 +4,7 @@
 //!
 //! - **`core/`** — shared between native and wasm (traits, errors, memory backends,
 //!   D1/R2 HTTP backends, schema, crypto, cleanup)
-//! - **`native/`** — non-wasm only (turso, libsql, json_file, rows_stream)
+//! - **`native/`** — non-wasm only (turso, libsql, `json_file`, `rows_stream`)
 //! - **`wasm/`** — wasm32 only (CF D1/R2/KV wasm-bindgen bindings)
 //!
 //! # Storage Providers

@@ -1,7 +1,7 @@
-//! SQL-backed DocumentStore implementation.
+//! SQL-backed `DocumentStore` implementation.
 //!
-//! Documents are stored in a table with columns: collection_key, doc_id, content, metadata, created_at.
-//! This works with SQLite, Turso, D1, and any SQL backend via QueryStore.
+//! Documents are stored in a table with columns: `collection_key`, `doc_id`, content, metadata, `created_at`.
+//! This works with `SQLite`, Turso, D1, and any SQL backend via `QueryStore`.
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
@@ -17,7 +17,7 @@ pub struct SqlDocumentStore<Q> {
 }
 
 impl<Q> SqlDocumentStore<Q> {
-    /// Create a new SqlDocumentStore backed by the given QueryStore.
+    /// Create a new `SqlDocumentStore` backed by the given `QueryStore`.
     pub fn new(query_store: Q) -> Self {
         Self {
             query_store,
@@ -26,9 +26,24 @@ impl<Q> SqlDocumentStore<Q> {
     }
 
     /// Set the table name (default: "documents").
+    #[must_use]
     pub fn with_table(mut self, table: &str) -> Self {
         self.table = table.to_string();
         self
+    }
+}
+
+/// Clamp a `usize` limit to an `i64` SQL parameter (saturating).
+fn limit_to_i64(limit: usize) -> i64 {
+    i64::try_from(limit).unwrap_or(i64::MAX)
+}
+
+/// `0` means "unlimited" → SQL `-1`; otherwise the saturated limit.
+fn limit_or_unlimited(limit: usize) -> i64 {
+    if limit == 0 {
+        -1
+    } else {
+        limit_to_i64(limit)
     }
 }
 
@@ -38,7 +53,7 @@ impl<Q: crate::core::storage_provider::QueryStore> SqlDocumentStore<Q> {
         &self,
         key: &str,
         doc_id: String,
-        content: V,
+        content: &V,
     ) -> StorageResult<Document> {
         self.insert_promoted(key, doc_id, content, None, None, None)
     }
@@ -50,13 +65,13 @@ impl<Q: crate::core::storage_provider::QueryStore> SqlDocumentStore<Q> {
         &self,
         key: &str,
         doc_id: String,
-        content: V,
+        content: &V,
         title: Option<String>,
         summary: Option<String>,
         record_type: Option<String>,
     ) -> StorageResult<Document> {
         use crate::core::storage_provider::DataValue;
-        let content_json = serde_json::to_string(&content)
+        let content_json = serde_json::to_string(content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let metadata = serde_json::json!({});
         let metadata_json = serde_json::to_string(&metadata)
@@ -106,9 +121,11 @@ fn row_to_document(row: &SqlRow) -> StorageResult<Document> {
         id: row.get::<String>(0)?,
         content: row.get::<String>(1)?,
         metadata,
-        title: row.get::<String>(3).ok(),
-        summary: row.get::<String>(4).ok(),
-        record_type: row.get::<String>(5).ok(),
+        // Option<String> distinguishes a NULL column from an empty string,
+        // which `String::from_data_value` would coerce NULL to.
+        title: row.get::<Option<String>>(3)?,
+        summary: row.get::<Option<String>>(4)?,
+        record_type: row.get::<Option<String>>(5)?,
     })
 }
 
@@ -148,7 +165,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         content: V,
     ) -> StorageResult<Document> {
         let doc_id = foundation_compact::ids::new_scru128_string();
-        self.insert(key, doc_id, content)
+        self.insert(key, doc_id, &content)
     }
 
     fn append_with_id<V: Serialize + Send + 'static>(
@@ -157,7 +174,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         doc_id: &str,
         content: V,
     ) -> StorageResult<Document> {
-        self.insert(key, doc_id.to_string(), content)
+        self.insert(key, doc_id.to_string(), &content)
     }
 
     fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
@@ -167,7 +184,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
     ) -> StorageResult<Document> {
         let doc_id = foundation_compact::ids::new_scru128_string();
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        self.insert_promoted(key, doc_id, content, t, s, rt)
+        self.insert_promoted(key, doc_id, &content, t, s, rt)
     }
 
     fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
@@ -177,7 +194,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         content: V,
     ) -> StorageResult<Document> {
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        self.insert_promoted(key, doc_id.to_string(), content, t, s, rt)
+        self.insert_promoted(key, doc_id.to_string(), &content, t, s, rt)
     }
 
     fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
@@ -188,7 +205,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         );
         let params = [
             crate::core::storage_provider::DataValue::Text(key.to_string()),
-            crate::core::storage_provider::DataValue::Integer(limit as i64),
+            crate::core::storage_provider::DataValue::Integer(limit_to_i64(limit)),
         ];
         let rows = self.query_store.query(&sql, &params)?;
         rows.filter_map(collect_documents).collect()
@@ -206,7 +223,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
              FROM {table} WHERE collection_key = ? AND doc_id >= ? \
              ORDER BY doc_id ASC LIMIT ?"
         );
-        let sql_limit = if limit == 0 { -1 } else { limit as i64 };
+        let sql_limit = limit_or_unlimited(limit);
         let params = [
             crate::core::storage_provider::DataValue::Text(key.to_string()),
             crate::core::storage_provider::DataValue::Text(from_id.to_string()),
@@ -229,7 +246,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         );
         let params = [
             crate::core::storage_provider::DataValue::Text(key.to_string()),
-            crate::core::storage_provider::DataValue::Integer(limit as i64),
+            crate::core::storage_provider::DataValue::Integer(limit_to_i64(limit)),
         ];
 
         let rows = self.query_store.query(&sql, &params)?;
@@ -263,7 +280,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
             "SELECT content FROM {table} WHERE collection_key = ? AND doc_id >= ? \
              ORDER BY doc_id ASC LIMIT ?"
         );
-        let sql_limit = if limit == 0 { -1 } else { limit as i64 };
+        let sql_limit = limit_or_unlimited(limit);
         let params = [
             crate::core::storage_provider::DataValue::Text(key.to_string()),
             crate::core::storage_provider::DataValue::Text(from_id.to_string()),
@@ -277,8 +294,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
     fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let table = &self.table;
         let sql = format!(
-            "DELETE FROM {} WHERE collection_key = ? AND doc_id = ?",
-            table
+            "DELETE FROM {table} WHERE collection_key = ? AND doc_id = ?"
         );
         let params = [
             crate::core::storage_provider::DataValue::Text(key.to_string()),
@@ -290,21 +306,21 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
 
     fn delete_all(&self, key: &str) -> StorageResult<u64> {
         let table = &self.table;
-        let sql = format!("DELETE FROM {} WHERE collection_key = ?", table);
+        let sql = format!("DELETE FROM {table} WHERE collection_key = ?");
         let params = [crate::core::storage_provider::DataValue::Text(key.to_string())];
         self.query_store.execute(&sql, &params)
     }
 
     fn count(&self, key: &str) -> StorageResult<u64> {
         let table = &self.table;
-        let sql = format!("SELECT COUNT(*) as cnt FROM {} WHERE collection_key = ?", table);
+        let sql = format!("SELECT COUNT(*) as cnt FROM {table} WHERE collection_key = ?");
         let params = [crate::core::storage_provider::DataValue::Text(key.to_string())];
         let rows = self.query_store.query(&sql, &params)?;
         let mut total = 0u64;
         for s in rows {
             if let Stream::Next(Ok(row)) = s {
                 if let Ok(n) = row.get_by_name::<i64>("cnt") {
-                    total = n as u64;
+                    total = u64::try_from(n).unwrap_or(0);
                 }
             }
         }

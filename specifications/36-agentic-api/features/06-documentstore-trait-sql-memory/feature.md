@@ -1,18 +1,18 @@
 ---
 feature: "DocumentStore: scan_from (temporal) + promoted columns"
 description: "EXTEND the existing foundation_db DocumentStore (trait + SQL + Memory already exist) with a scru128-temporal scan_from() and promoted searchable columns (id/title/summary/type) beside the content blob"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["01-message-model"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-17
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 9
+  completed: 9
+  uncompleted: 0
   total: 9
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 06: DocumentStore — scan_from + promoted columns
@@ -173,6 +173,18 @@ graph LR
 
 - **OD-06-1 — promoted-field population:** `append_with(...)` vs `PromotableDocument` trait. Rec: trait.
         - Lets discuss, explain to me further
+      - **Resolved → `PromotableDocument` trait (implemented).** A record type implements
+        `PromotableDocument { record_type()/title()/summary() -> Option<String> }` (all default `None`)
+        once, and the store's `append_promotable`/`append_promotable_with_id` extract the promoted
+        columns on write — rather than threading three extra args through every `append`. Plain
+        `append` leaves the columns NULL (backward-compatible). The trait lives in `foundation_db`
+        (`storage_provider.rs`). The `impl PromotableDocument for SessionRecord` does **not** ship here:
+        `foundation_ai` does not (yet) depend on `foundation_db`, so that impl lands with the
+        persistence-wiring feature (F07/F08) that takes the dependency. Its projection will reuse the
+        existing `serialization::SessionRecordRow::from_record` logic so the DocumentStore promoted
+        columns match the Arrow row promotion exactly (record_type from the serde tag; title/summary
+        per variant). The promoted columns themselves are populated/observed here via tests using a
+        local `PromotableDocument` record.
 
 - **OD-06-2 — `scan_from` inclusivity:** `>= from_id` (inclusive) so resume can re-anchor on a known
   id, with the caller skipping the first if already seen. Rec: inclusive.

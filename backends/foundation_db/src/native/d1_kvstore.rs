@@ -1,6 +1,6 @@
 //! Cloudflare D1 storage backend (unified).
 //!
-//! WHY: D1 is Cloudflare's edge SQLite - useful for KV, query execution,
+//! WHY: D1 is Cloudflare's edge `SQLite` - useful for KV, query execution,
 //! blob storage, rate limiting, and deployment state.
 //!
 //! WHAT: `D1Store` implements multiple storage traits via `SimpleHttpClient`
@@ -8,7 +8,7 @@
 //!
 //! HOW: Different constructors for different usage modes:
 //!   - `D1Store::new()` / `D1Store::new_kv()` — KV/query/rate-limit/blob store (table: `{prefix}_kv`)
-//!   - `D1Store::new_state()` — StateStore (table: `{project}_{stage}_resources`)
+//!   - `D1Store::new_state()` — `StateStore` (table: `{project}_{stage}_resources`)
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{Stream, ThreadedValue};
@@ -116,7 +116,7 @@ fn state_to_params(state: &ResourceState) -> Result<Vec<serde_json::Value>, Stor
 enum D1Mode {
     /// KV/query/rate-limit/blob store. Table name = `{prefix}_kv`.
     KeyValue { kv_table: String },
-    /// StateStore. Table name = `{project}_{stage}_resources`.
+    /// `StateStore`. Table name = `{project}_{stage}_resources`.
     State { state_table: String },
 }
 
@@ -173,13 +173,13 @@ impl D1Store {
 
     // ========== State-mode constructors ==========
 
-    /// StateStore at production Cloudflare API.
+    /// `StateStore` at production Cloudflare API.
     #[must_use]
     pub fn new_state(api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str) -> Self {
         Self::new_state_with_base_url(api_token, account_id, database_id, project, stage, CF_API_BASE)
     }
 
-    /// StateStore with custom base URL (for tests).
+    /// `StateStore` with custom base URL (for tests).
     #[must_use]
     pub fn new_state_with_base_url(
         api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str, base_url: &str,
@@ -199,7 +199,7 @@ impl D1Store {
         }
     }
 
-    /// StateStore from environment.
+    /// `StateStore` from environment.
     pub fn from_env_state(project: &str, stage: &str) -> Result<Self, StorageError> {
         let db_id = std::env::var("DEPLOYMENT_D1_DATABASE_ID").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_D1_DATABASE_ID must be set".to_string())

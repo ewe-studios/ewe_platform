@@ -565,7 +565,7 @@ impl TursoStorage {
             .map_err(|e| StorageError::Backend(e.to_string()))
     }
 
-    /// Async execute_batch.
+    /// Async `execute_batch`.
     async fn execute_batch_async_internal(&self, sql: &str) -> StorageResult<()> {
         let sql = sql.to_string();
         let conn = Arc::clone(&self.conn);

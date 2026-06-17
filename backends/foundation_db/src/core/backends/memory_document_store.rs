@@ -1,4 +1,4 @@
-//! In-memory DocumentStore implementation — for testing and development.
+//! In-memory `DocumentStore` implementation — for testing and development.
 //!
 //! Ordering is by `doc_id` (scru128, lexicographic == chronological) on every
 //! scan — NOT a separate sequence counter and NOT `"mem-{seq}"` ids (which sort
@@ -39,12 +39,13 @@ impl Row {
 
 /// In-memory document store.
 pub struct MemoryDocumentStore {
-    /// Map: collection_key → rows (kept sorted-on-read by `doc_id`).
+    /// Map: `collection_key` → rows (kept sorted-on-read by `doc_id`).
     documents: Mutex<HashMap<String, Vec<Row>>>,
 }
 
 impl MemoryDocumentStore {
     /// Create a new empty in-memory document store.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             documents: Mutex::new(HashMap::new()),
@@ -248,13 +249,13 @@ impl DocumentStore for MemoryDocumentStore {
 
     fn delete_all(&self, key: &str) -> StorageResult<u64> {
         let mut docs = self.documents.lock().unwrap();
-        let count = docs.remove(key).map(|v| v.len() as u64).unwrap_or(0);
+        let count = docs.remove(key).map_or(0, |v| v.len() as u64);
         Ok(count)
     }
 
     fn count(&self, key: &str) -> StorageResult<u64> {
         let docs = self.documents.lock().unwrap();
-        let count = docs.get(key).map(|v| v.len() as u64).unwrap_or(0);
+        let count = docs.get(key).map_or(0, |v| v.len() as u64);
         Ok(count)
     }
 }

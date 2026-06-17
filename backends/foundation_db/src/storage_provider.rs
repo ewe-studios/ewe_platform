@@ -1,4 +1,4 @@
-//! StorageProvider — unified runtime backend selector (both native + wasm).
+//! `StorageProvider` — unified runtime backend selector (both native + wasm).
 //!
 //! This is the central export of `foundation_db`. It wraps all available
 //! backends behind feature gates and provides a single `StorageResult` /

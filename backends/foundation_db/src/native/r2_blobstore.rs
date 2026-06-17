@@ -6,10 +6,10 @@
 //! WHAT: `R2Store` implements `BlobStore` and `StateStore` traits for Cloudflare R2.
 //!
 //! HOW: Different constructors for different usage modes:
-//!   - `R2Store::new_blob()` — BlobStore (raw binary, key: `{prefix}/key`)
-//!   - `R2Store::new_state()` — StateStore (JSON objects, key: `{project}/{stage}/{id}.json`)
+//!   - `R2Store::new_blob()` — `BlobStore` (raw binary, key: `{prefix}/key`)
+//!   - `R2Store::new_state()` — `StateStore` (JSON objects, key: `{project}/{stage}/{id}.json`)
 
-use foundation_core::valtron::{Stream, ThreadedValue};
+use foundation_core::valtron::ThreadedValue;
 use foundation_netio::simple_http::client::shared::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
 use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
@@ -18,7 +18,7 @@ use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};
 use crate::core::state::types::ResourceState;
 use crate::core::storage_provider::{
-    AsyncBlobStore, BlobStore, StorageItemStream,
+    AsyncBlobStore, BlobStore,
 };
 
 /// Default Cloudflare API base. Tests override via `R2Store::with_base_url`.
@@ -28,9 +28,9 @@ pub const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 
 #[derive(Clone)]
 enum R2Mode {
-    /// BlobStore. Keys prefixed with `{prefix}/` (slashes replaced by colons).
+    /// `BlobStore`. Keys prefixed with `{prefix}/` (slashes replaced by colons).
     Blob { bucket: String, prefix: String },
-    /// StateStore. Keys prefixed with `{project}/{stage}/`, stored as `{id}.json`.
+    /// `StateStore`. Keys prefixed with `{project}/{stage}/`, stored as `{id}.json`.
     State { bucket: String, project: String, stage: String },
 }
 
@@ -48,13 +48,13 @@ pub struct R2Store {
 impl R2Store {
     // ========== Blob-mode constructors ==========
 
-    /// BlobStore at production Cloudflare API.
+    /// `BlobStore` at production Cloudflare API.
     #[must_use]
     pub fn new_blob(api_token: &str, account_id: &str, bucket_name: &str, prefix: &str) -> Self {
         Self::new_blob_with_base_url(api_token, account_id, bucket_name, prefix, CF_API_BASE)
     }
 
-    /// BlobStore with custom base URL (for tests).
+    /// `BlobStore` with custom base URL (for tests).
     #[must_use]
     pub fn new_blob_with_base_url(
         api_token: &str, account_id: &str, bucket_name: &str, prefix: &str, base_url: &str,
@@ -68,7 +68,7 @@ impl R2Store {
         }
     }
 
-    /// BlobStore from environment.
+    /// `BlobStore` from environment.
     pub fn from_env() -> Result<Self, StorageError> {
         let bucket = std::env::var("DEPLOYMENT_R2_BUCKET").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_R2_BUCKET must be set".to_string())
@@ -85,13 +85,13 @@ impl R2Store {
 
     // ========== State-mode constructors ==========
 
-    /// StateStore at production Cloudflare API.
+    /// `StateStore` at production Cloudflare API.
     #[must_use]
     pub fn new_state(api_token: &str, account_id: &str, bucket_name: &str, project: &str, stage: &str) -> Self {
         Self::new_state_with_base_url(api_token, account_id, bucket_name, project, stage, CF_API_BASE)
     }
 
-    /// StateStore with custom base URL (for tests).
+    /// `StateStore` with custom base URL (for tests).
     #[must_use]
     pub fn new_state_with_base_url(
         api_token: &str, account_id: &str, bucket_name: &str, project: &str, stage: &str, base_url: &str,
@@ -105,7 +105,7 @@ impl R2Store {
         }
     }
 
-    /// StateStore from environment.
+    /// `StateStore` from environment.
     pub fn from_env_state(project: &str, stage: &str) -> Result<Self, StorageError> {
         let bucket = std::env::var("DEPLOYMENT_R2_BUCKET").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_R2_BUCKET must be set".to_string())
@@ -129,7 +129,7 @@ impl R2Store {
     fn blob_object_key(&self, key: &str) -> String {
         let safe_key = key.replace('/', ":");
         match &self.mode {
-            R2Mode::Blob { prefix, .. } => format!("{}/{}", prefix, safe_key),
+            R2Mode::Blob { prefix, .. } => format!("{prefix}/{safe_key}"),
             R2Mode::State { .. } => unreachable!("blob_object_key called on State mode"),
         }
     }
@@ -147,7 +147,7 @@ impl R2Store {
         let (bucket, account_id, base_url) = match &self.mode {
             R2Mode::Blob { bucket, .. } | R2Mode::State { bucket, .. } => (bucket, &self.account_id, &self.base_url),
         };
-        format!("{}/accounts/{}/r2/buckets/{}/objects/{key}", base_url, account_id, bucket)
+        format!("{base_url}/accounts/{account_id}/r2/buckets/{bucket}/objects/{key}")
     }
 
     fn body_bytes(body: &SendSafeBody) -> Option<Vec<u8>> {
