@@ -6,6 +6,7 @@
 
 pub mod errors;
 pub mod progress;
+pub mod serialization;
 pub mod token_ledger;
 
 pub use errors::{
@@ -13,4 +14,7 @@ pub use errors::{
     LoopDetection, UserId,
 };
 pub use progress::{lift_model_item, AgentProgress, AgentStream, MemoryKind};
+pub use serialization::{
+    from_record_batch, to_record_batch, SerError, SessionRecordRow,
+};
 pub use token_ledger::{TokenLedger, TokenSnapshot};

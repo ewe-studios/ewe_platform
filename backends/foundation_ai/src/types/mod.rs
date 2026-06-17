@@ -381,6 +381,26 @@ pub enum ModelId {
     Architecture(String, Option<Quantization>),
 }
 
+impl ModelId {
+    /// The model's name/alias/group/architecture string (the first field of
+    /// whichever variant this is).
+    #[must_use]
+    pub fn name(&self) -> &str {
+        match self {
+            ModelId::Name(s, _)
+            | ModelId::Alias(s, _)
+            | ModelId::Group(s, _)
+            | ModelId::Architecture(s, _) => s,
+        }
+    }
+}
+
+impl std::fmt::Display for ModelId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.name())
+    }
+}
+
 /// [`CallSpec`] defines the calling configuration for the model
 /// which can be customized as needed for different use-case.
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]

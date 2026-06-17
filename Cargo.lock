@@ -3407,6 +3407,7 @@ dependencies = [
  "candle-transformers",
  "derive_more",
  "fastrand",
+ "foundation_arrow",
  "foundation_auth",
  "foundation_compact",
  "foundation_core",

@@ -22,6 +22,7 @@ foundation_deployment_huggingface = { workspace = true }
 foundation_errstacks = { workspace = true, features = ["to_structured"] }
 foundation_jsonschema = { workspace = true }
 foundation_compact = { workspace = true, features = ["serde"] }
+foundation_arrow = { workspace = true }
 
 # -- Other dependencies
 regex = { version = "1.10" }

@@ -1,7 +1,7 @@
 ---
 feature: "Serialization — JSON (storage) + Arrow columnar (batch/analytics)"
 description: "Dual serialization for all session records: JSON/NDJSON for storage + debugging, and Arrow record batches for analytics/transport — with sensible fields promoted to real Arrow columns (not all stuffed in one content blob). Drops the FlatBuffers fallback (Arrow rides FlatBuffers + works in wasm)"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["01-message-model"]
 estimated_effort: "medium"
