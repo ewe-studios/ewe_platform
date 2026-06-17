@@ -22,8 +22,8 @@ use crate::{
     synca::{Timeable, Timing},
     valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask, TaskIterator},
 };
-use rand::SeedableRng;
-use rand_chacha::ChaCha8Rng;
+use foundation_compact::rng::SeedableRng;
+use foundation_compact::rng::ChaCha8Rng;
 
 use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 
@@ -2522,7 +2522,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 
     /// Allows supplying a custom Rng generator for creating the initial
     /// `ChaCha8Rng` seed.
-    pub fn from_rng<R: rand::Rng>(
+    pub fn from_rng<R: foundation_compact::rng::Rng>(
         state_owner: String,
         tasks: SharedTaskQueue,
         rng: &mut R,
@@ -2995,7 +2995,7 @@ mod test_local_thread_executor {
     };
 
     use super::*;
-    use rand::prelude::*;
+    use foundation_compact::rng::Rng;
     use sync::Arc;
     use tracing_test::traced_test;
 
@@ -3114,7 +3114,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn test_task_line_action_directly() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
         let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -3170,7 +3170,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn test_task_line_send_action() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
         let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -3220,7 +3220,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn test_task_line_send_action_for_parent_lifted() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
         let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -3270,7 +3270,7 @@ mod test_local_thread_executor {
     #[test]
     #[traced_test]
     fn test_task_line_send_action_for_sequenced() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
         let global: SharedTaskQueue = Arc::new(ConcurrentQueue::bounded(10));
@@ -3329,7 +3329,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let kill_signal = Arc::new(OnSignal::new());
 
         let executor = LocalThreadExecutor::from_seed(
@@ -3382,7 +3382,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -3435,7 +3435,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -3485,7 +3485,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<TaskStatus<usize, time::Duration, NoSpawner>>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -3556,7 +3556,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -3712,7 +3712,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -4006,7 +4006,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -4106,7 +4106,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<(), (), DaemonSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -4204,7 +4204,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -4276,7 +4276,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -4349,7 +4349,7 @@ mod test_local_thread_executor {
         let counts: Arc<Mutex<Vec<(&'static str, TaskStatus<usize, time::Duration, NoSpawner>)>>> =
             Arc::new(Mutex::new(Vec::new()));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let executor = LocalThreadExecutor::from_seed(
             seed,
@@ -4496,7 +4496,7 @@ mod test_local_thread_executor {
         let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
         let signal = BoolSignal::new(false);
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let executor = LocalThreadExecutor::from_seed(
             seed,
             "1".into(),
@@ -4543,7 +4543,7 @@ mod test_local_thread_executor {
         let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
         let signal = BoolSignal::new(false);
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let executor = LocalThreadExecutor::from_seed(
             seed,
             "1".into(),
@@ -4590,7 +4590,7 @@ mod test_local_thread_executor {
         // Signal starts true - task will immediately get Depends(true)
         let signal = BoolSignal::new(true);
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let executor = LocalThreadExecutor::from_seed(
             seed,
             "1".into(),
@@ -4631,7 +4631,7 @@ mod test_local_thread_executor {
         let global: SharedTaskQueue = sync::Arc::new(ConcurrentQueue::bounded(10));
         let signal = sync::Arc::new(CounterSignal::new(2));
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let executor = LocalThreadExecutor::from_seed(
             seed,
             "1".into(),
@@ -4704,7 +4704,7 @@ mod test_local_thread_executor {
         let signal = BoolSignal::new(false);
         let atomic = signal.clone_inner();
 
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
         let executor = LocalThreadExecutor::from_seed(
             seed,
             "1".into(),

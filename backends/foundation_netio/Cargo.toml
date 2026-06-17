@@ -31,8 +31,9 @@ serde_yml = { version = "0.0.12" }
 toml = { version = "0.9" }
 fastrand = "2.3.0"
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
-rand = "0.9"
-rand_chacha = "0.9"
+# RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
+# → wasm-clean). std is followed from this crate's `std` feature.
+foundation_compact = { workspace = true, default-features = false }
 
 async-trait = { version = "0.1.88" }
 memchr = "2.7.4"
@@ -109,7 +110,7 @@ deflate = ["flate2"]
 wire-native = ["std"]
 
 # Valtron utilities features
-std = ["futures-core/std", "foundation_nostd/std"]
+std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std"]
 alloc = ["futures-core/alloc"]
 multi = ["std", "foundation_core/multi"]  # Multi-threaded executor requires foundation_core multi
 

@@ -14,7 +14,7 @@ use std::{
 };
 
 use crate::compati::Mutex;
-use rand_chacha::ChaCha8Rng;
+use foundation_compact::rng::ChaCha8Rng;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use crate::{

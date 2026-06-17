@@ -329,7 +329,7 @@ pub fn run_background_job(job: impl FnOnce() + 'static) -> crate::valtron::Gener
 mod single_threaded_tests {
     use std::{cell::RefCell, rc::Rc};
 
-    use rand::RngCore;
+    use foundation_compact::rng::Rng;
     use tracing_test::traced_test;
 
     use crate::valtron::{
@@ -370,7 +370,7 @@ mod single_threaded_tests {
     #[test]
     #[traced_test]
     fn can_queue_task_only() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
@@ -391,7 +391,7 @@ mod single_threaded_tests {
     #[test]
     #[traced_test]
     fn can_queue_and_complete_task_with_run_until() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
@@ -420,7 +420,7 @@ mod single_threaded_tests {
     #[test]
     #[traced_test]
     fn can_queue_and_complete_task() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
@@ -443,7 +443,7 @@ mod single_threaded_tests {
     #[test]
     #[traced_test]
     fn can_queue_and_complete_task_with_iterator() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());
@@ -473,7 +473,7 @@ mod single_threaded_tests {
     #[test]
     #[traced_test]
     fn can_queue_and_complete_stream_with_iterator() {
-        let seed = rand::rng().next_u64();
+        let seed = foundation_compact::rng::rng().next_u64();
 
         let shared_list = Rc::new(RefCell::new(Vec::new()));
         let counter = Counter::new(5, shared_list.clone());

@@ -68,4 +68,4 @@ pub use multi::PoolGuard;
 pub use single::SingleExecutorSingleton;
 
 // re-exported external libraries
-pub use rand::SeedableRng;
+pub use foundation_compact::rng::SeedableRng;

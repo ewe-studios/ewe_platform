@@ -41,14 +41,17 @@ pub fn compute_accept_key(client_key: &str) -> String {
 ///
 /// WHAT: Generates a random 16-byte Sec-WebSocket-Key, Base64 encoded.
 ///
-/// HOW: Uses the `rand` crate to generate 16 random bytes, then Base64 encodes them.
+/// HOW: Uses `foundation_compact`'s vendored entropy/RNG to generate 16 random
+/// bytes (no upstream `rand`/`getrandom`, so it stays wasm-clean), then Base64
+/// encodes them.
 ///
 /// # Panics
 /// Never panics.
 #[must_use]
 pub fn generate_websocket_key() -> String {
+    use foundation_compact::rng::Rng;
     let mut bytes = [0u8; 16];
-    rand::fill(&mut bytes);
+    foundation_compact::rng::rng().fill_bytes(&mut bytes);
     base64::engine::general_purpose::STANDARD.encode(bytes)
 }
 

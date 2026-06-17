@@ -30,12 +30,11 @@ toml_datetime = { version = "0.7" }
 serde_json = { version = "1" }
 toml = { version = "0.9" }
 fastrand = "2.3.0"
-# Seeded RNGs only in the library (ChaCha8Rng via SeedableRng) — `os_rng`/
-# `thread_rng` stay OFF so wasm32 builds don't drag getrandom's wasm-bindgen
-# backend into the OWNED path (decision 031 / feature 14). Tests re-enable the
-# full feature set via dev-dependencies.
-rand = { version = "0.9", default-features = false, features = ["std", "std_rng", "small_rng", "alloc"] }
-rand_chacha = "0.9"
+# RNG (ChaCha8Rng / SeedableRng / RngCore / thread `rng()`) comes from
+# foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
+# builds never drag getrandom's wasm-bindgen backend into the OWNED path
+# (decision 031 / feature 14). std is followed from this crate's `std` feature.
+foundation_compact = { workspace = true, default-features = false }
 tracing = { version = "0.1.41" }
 bytes = "1.5"
 
@@ -44,19 +43,10 @@ wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
 web-sys = { version = "0.3", optional = true, features = ["Window", "DedicatedWorkerGlobalScope", "console"] }
 
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-# wasm-bindgen-backed entropy — ONLY for the js-wasmbindgen interop opt-in
-# (feature 14). The owned js-foundation-wasm path uses seeded RNGs.
-getrandom = { version = "0.3", features = ["wasm_js"], optional = true }
-getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"], optional = true }
-
 [dev-dependencies]
-# Full rand (thread_rng/os_rng) for native tests' `rand::rng()` seeding.
-rand = "0.9"
 wasm-bindgen-test = "0.3"
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
-foundation_compact = { workspace = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 serial_test = { workspace = true }
@@ -78,11 +68,11 @@ log_info = []
 
 # Valtron utilities features
 alloc = ["futures-core/alloc"]
-std = ["futures-core/std", "foundation_nostd/std"]
+std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std"]
 multi = ["std", "alloc"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "foundation_nostd/js-event-loop", "dep:getrandom", "dep:getrandom_02"]
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "foundation_nostd/js-event-loop"]
 js-foundation-wasm = ["foundation_wasm/web"]
 
 # default flags

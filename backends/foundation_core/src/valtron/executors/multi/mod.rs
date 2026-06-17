@@ -20,8 +20,8 @@ use std::{
 use crate::valtron::{Stream, DEFAULT_YIELD_WAIT_TIME};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
-use rand::{RngCore, SeedableRng};
-use rand_chacha::ChaCha8Rng;
+use foundation_compact::rng::{Rng, SeedableRng};
+use foundation_compact::rng::ChaCha8Rng;
 use std::str::FromStr;
 
 use crate::{
