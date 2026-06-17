@@ -54,7 +54,7 @@ use crate::valtron::{
     ConsumingIter, DoNext, StreamConsumingIter,
 };
 
-use crate::compati::{Mutex, RwLock};
+use crate::compati::{Condvar, CondVarMutex, Mutex, RwLock};
 use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex as CvMutex};
 
 use crate::valtron::{split_thread_count, BackgroundJobRegistry, GenericResult};
@@ -92,8 +92,11 @@ pub struct FairGate {
     /// Ticket currently being served (allowed to proceed).
     now_serving: AtomicUsize,
     /// Mutex + condvar used to park/wake waiters without busy-spinning.
-    inner: Mutex<()>,
-    cond: sync::Condvar,
+    /// `CondVarMutex` (not the plain `compati::Mutex`) because a condvar needs a
+    /// guard-compatible mutex on every target — `compati::Mutex` is a Noop/Spin
+    /// lock on wasm whose guard `Condvar::wait` can't accept.
+    inner: CondVarMutex<()>,
+    cond: Condvar,
 }
 
 impl FairGate {
@@ -101,8 +104,8 @@ impl FairGate {
         Self {
             next_ticket: AtomicUsize::new(0),
             now_serving: AtomicUsize::new(0),
-            inner: Mutex::new(()),
-            cond: sync::Condvar::new(),
+            inner: CondVarMutex::new(()),
+            cond: Condvar::new(),
         }
     }
 
