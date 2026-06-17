@@ -626,6 +626,22 @@ pub trait AsyncDocumentStore {
     /// Append a document with a caller-supplied scru128 `doc_id` (OD-06-5).
     async fn append_with_id_async<V: Serialize + Send + 'static>(&self, key: &str, doc_id: &str, content: V) -> StorageResult<Document>;
 
+    /// Append a document, populating the promoted columns from [`PromotableDocument`]
+    /// (async mirror of `append_promotable`; OD-22b-1).
+    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(&self, key: &str, content: V) -> StorageResult<Document>;
+
+    /// Like [`append_promotable_async`](Self::append_promotable_async) with a caller-supplied `doc_id`.
+    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(&self, key: &str, doc_id: &str, content: V) -> StorageResult<Document>;
+
+    /// Scan the last N documents as full [`Document`]s (promoted columns observable),
+    /// newest-first. Bounded by `limit`, so this returns a `Vec` (async mirror of
+    /// `scan_documents`; OD-22b-1).
+    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>>;
+
+    /// Scan documents with id **>= `from_id`** as full [`Document`]s, oldest-first,
+    /// up to `limit` (0 = unlimited).
+    async fn scan_documents_from_async(&self, key: &str, from_id: &str, limit: usize) -> StorageResult<Vec<Document>>;
+
     /// Scan the last N documents from a collection, newest-first (by `doc_id`).
     /// Returns a lazily-pulled [`AsyncStorageItemStream`] — pull each item with
     /// `.next().await`; nothing is materialized into a `Vec` (no OOM).

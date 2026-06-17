@@ -313,6 +313,47 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         self.put(key, doc_id.to_string(), &content, None, None, None)
     }
 
+    async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        let doc_id = foundation_compact::ids::new_scru128_string();
+        let (t, s, rt) = (content.title(), content.summary(), content.record_type());
+        self.put(key, doc_id, &content, t, s, rt)
+    }
+
+    async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        let (t, s, rt) = (content.title(), content.summary(), content.record_type());
+        self.put(key, doc_id.to_string(), &content, t, s, rt)
+    }
+
+    async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+        Ok(self
+            .collect_rows(key, true, None, Some(limit))
+            .iter()
+            .map(Row::to_document)
+            .collect())
+    }
+
+    async fn scan_documents_from_async(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<Vec<Document>> {
+        Ok(self
+            .collect_rows(key, false, Some(from_id), limit_opt(limit))
+            .iter()
+            .map(Row::to_document)
+            .collect())
+    }
+
     async fn scan_async<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
