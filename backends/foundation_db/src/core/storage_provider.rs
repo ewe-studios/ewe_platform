@@ -32,6 +32,24 @@ pub type StorageItemStream<'a, T> =
 pub type StorageItemStream<'a, T> =
     Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + Send + 'a>;
 
+/// Async analog of [`StorageItemStream`]: a lazily-pulled async stream of
+/// deserialized items, each a `StorageResult<T>`.
+///
+/// Consumers pull one item at a time with `.next().await`
+/// (`while let Some(item) = stream.next().await { ... }`), so even an unbounded
+/// scan never materializes a `Vec` — back-pressure is natural and large
+/// collections can't OOM. This is the **async-canonical** read shape: the async
+/// `*_async` methods are the real implementation, and the sync `DocumentStore`
+/// bridges this stream to a sync iterator via valtron (`run_future_iter`),
+/// exactly as `QueryStore::query` wraps `query_async`.
+#[cfg(target_arch = "wasm32")]
+pub type AsyncStorageItemStream<'a, T> =
+    Pin<Box<dyn futures_core::Stream<Item = StorageResult<T>> + 'a>>;
+
+#[cfg(not(target_arch = "wasm32"))]
+pub type AsyncStorageItemStream<'a, T> =
+    Pin<Box<dyn futures_core::Stream<Item = StorageResult<T>> + Send + 'a>>;
+
 /// A single SQL parameter value (crate-owned, backend-agnostic).
 #[derive(Debug, Clone)]
 pub enum DataValue {
@@ -609,15 +627,19 @@ pub trait AsyncDocumentStore {
     async fn append_with_id_async<V: Serialize + Send + 'static>(&self, key: &str, doc_id: &str, content: V) -> StorageResult<Document>;
 
     /// Scan the last N documents from a collection, newest-first (by `doc_id`).
-    async fn scan_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, limit: usize) -> StorageResult<Vec<V>>;
+    /// Returns a lazily-pulled [`AsyncStorageItemStream`] — pull each item with
+    /// `.next().await`; nothing is materialized into a `Vec` (no OOM).
+    async fn scan_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, limit: usize) -> StorageResult<AsyncStorageItemStream<'_, V>>;
 
-    /// Scan all documents from a collection, oldest-first (by `doc_id`).
-    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Vec<V>>;
+    /// Scan all documents from a collection, oldest-first (by `doc_id`), as a
+    /// lazily-pulled [`AsyncStorageItemStream`].
+    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<AsyncStorageItemStream<'_, V>>;
 
     /// Scan documents whose id is >= `from_id` (inclusive), oldest-first, up to
-    /// `limit` (0 = unlimited). The async trait returns `Vec` (not a stream).
-    /// Backend impls land with VFS (F22) and CF KV/D1 (F23) — OD-06-7.
-    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, from_id: &str, limit: usize) -> StorageResult<Vec<V>>;
+    /// `limit` (0 = unlimited), as a lazily-pulled [`AsyncStorageItemStream`]
+    /// (`while let Some(item) = stream.next().await { … }`). CF KV/D1 impls land
+    /// in F23 — OD-06-7.
+    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, from_id: &str, limit: usize) -> StorageResult<AsyncStorageItemStream<'_, V>>;
 
     /// Delete a specific document.
     async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()>;

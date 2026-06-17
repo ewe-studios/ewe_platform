@@ -37,6 +37,7 @@ pub use core::cleanup::*;
 pub use core::backends::*;
 pub use core::crypto::*;
 pub use core::schema::*;
+pub use core::auth_store::*;
 
 // Central StorageProvider + StorageBackend (always available)
 pub use storage_provider::{StorageBackend, StorageProvider};

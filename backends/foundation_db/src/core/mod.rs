@@ -3,6 +3,7 @@
 pub mod errors;
 pub mod storage_provider;
 pub mod cleanup;
+pub mod auth_store;
 
 pub mod backends;
 pub mod crypto;
@@ -15,3 +16,4 @@ pub use cleanup::*;
 pub use backends::*;
 pub use crypto::*;
 pub use schema::*;
+pub use auth_store::*;

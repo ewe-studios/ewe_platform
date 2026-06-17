@@ -6,7 +6,8 @@
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncDocumentStore, Document, DocumentStore, PromotableDocument, StorageItemStream,
+    AsyncDocumentStore, AsyncStorageItemStream, Document, DocumentStore, PromotableDocument,
+    StorageItemStream,
 };
 use foundation_core::valtron::Stream;
 use serde::{de::DeserializeOwned, Serialize};
@@ -260,23 +261,28 @@ impl DocumentStore for MemoryDocumentStore {
     }
 }
 
-/// Drain a sync item-stream into `Vec<V>`, surfacing the first item error.
-fn drain<V>(stream: StorageItemStream<'_, V>) -> StorageResult<Vec<V>> {
-    let mut out = Vec::new();
-    for item in stream {
-        match item {
-            Stream::Next(Ok(v)) => out.push(v),
-            Stream::Next(Err(e)) => return Err(e),
-            _ => {}
-        }
-    }
-    Ok(out)
+/// Turn the sync item-stream (a valtron-`Stream` iterator) into the async
+/// [`AsyncStorageItemStream`] the async trait yields. The in-memory rows are
+/// already resident, so we snapshot them (same as `list_keys_async`) and replay
+/// lazily — the caller still pulls one item at a time via `.next().await`.
+fn to_async_stream<V: Send + 'static>(
+    stream: StorageItemStream<'_, V>,
+) -> AsyncStorageItemStream<'static, V> {
+    let items: Vec<StorageResult<V>> = stream
+        .filter_map(|s| match s {
+            Stream::Next(r) => Some(r),
+            _ => None,
+        })
+        .collect();
+    Box::pin(futures_lite::stream::iter(items))
 }
 
 /// Async `DocumentStore` over the same in-memory state — lets async backends
 /// (D1/wasm, F23) and the agentic layer be exercised in tests without a live
-/// Promise-based backend. Each method forwards to the sync logic (the store is
-/// already in-memory), so ordering/id/promoted-column semantics are identical.
+/// Promise-based backend. Scans return a lazily-pulled
+/// [`AsyncStorageItemStream`] (never a `Vec`), matching the house pattern
+/// (`AsyncKeyValueStore::list_keys_async`) so ordering/id/promoted-column
+/// semantics are identical to the sync path.
 #[async_trait::async_trait(?Send)]
 impl AsyncDocumentStore for MemoryDocumentStore {
     async fn append_async<V: Serialize + Send + 'static>(
@@ -300,15 +306,15 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         &self,
         key: &str,
         limit: usize,
-    ) -> StorageResult<Vec<V>> {
-        drain(self.scan::<V>(key, limit)?)
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
+        Ok(to_async_stream(self.scan::<V>(key, limit)?))
     }
 
     async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
-    ) -> StorageResult<Vec<V>> {
-        drain(self.scan_all::<V>(key)?)
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
+        Ok(to_async_stream(self.scan_all::<V>(key)?))
     }
 
     async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
@@ -316,8 +322,8 @@ impl AsyncDocumentStore for MemoryDocumentStore {
         key: &str,
         from_id: &str,
         limit: usize,
-    ) -> StorageResult<Vec<V>> {
-        drain(self.scan_from::<V>(key, from_id, limit)?)
+    ) -> StorageResult<AsyncStorageItemStream<'_, V>> {
+        Ok(to_async_stream(self.scan_from::<V>(key, from_id, limit)?))
     }
 
     async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
@@ -468,6 +474,7 @@ mod tests {
     #[test]
     fn async_document_store_matches_sync_semantics() {
         use crate::core::storage_provider::AsyncDocumentStore;
+        use futures_lite::StreamExt;
         futures_lite::future::block_on(async {
             let store = MemoryDocumentStore::new();
             let a = store
@@ -481,9 +488,16 @@ mod tests {
             assert!(b.id > a.id, "async append preserves scru128 ordering");
             assert_eq!(store.count_async("k").await.unwrap(), 2);
 
-            // scan_from_async is inclusive and oldest-first, like the sync path.
-            let got: Vec<serde_json::Value> =
-                store.scan_from_async("k", &a.id, 0).await.unwrap();
+            // scan_from_async yields a lazily-pulled stream (inclusive,
+            // oldest-first) — drain it via `.next().await`, no Vec return.
+            let mut stream = store
+                .scan_from_async::<serde_json::Value>("k", &a.id, 0)
+                .await
+                .unwrap();
+            let mut got = Vec::new();
+            while let Some(item) = stream.next().await {
+                got.push(item.unwrap());
+            }
             assert_eq!(got.len(), 2);
             assert_eq!(got[0]["n"], 0);
             assert_eq!(got[1]["n"], 1);

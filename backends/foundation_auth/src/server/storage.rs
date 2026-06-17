@@ -560,4 +560,111 @@ impl HandlerStorage {
     pub fn new(query_store: Arc<dyn QueryStore>) -> Self {
         Self { query_store }
     }
+
+    // Conversion helpers for the trait impls below.
+    fn passkey_to_stored(pk: &Passkey) -> foundation_db::StoredPasskey {
+        foundation_db::StoredPasskey {
+            id: pk.id.clone(),
+            user_id: pk.user_id.clone(),
+            name: pk.name.clone(),
+            credential_id: pk.credential_id.clone(),
+            credential_public_key: pk.credential_public_key.clone(),
+            counter: pk.counter,
+            created_at: pk.created_at,
+            last_used_at: pk.last_used_at,
+        }
+    }
+
+    fn stored_to_passkey(sk: &foundation_db::StoredPasskey) -> Passkey {
+        Passkey {
+            id: sk.id.clone(),
+            user_id: sk.user_id.clone(),
+            name: sk.name.clone(),
+            credential_id: sk.credential_id.clone(),
+            credential_public_key: sk.credential_public_key.clone(),
+            counter: sk.counter,
+            created_at: sk.created_at,
+            last_used_at: sk.last_used_at,
+        }
+    }
+
+    fn tos_to_stored(ta: &TosAcceptance) -> foundation_db::StoredTosAcceptance {
+        foundation_db::StoredTosAcceptance {
+            user_id: ta.user_id.clone(),
+            tos_version: ta.tos_version.clone(),
+            accepted_at: ta.accepted_at,
+            ip_address: ta.ip_address.clone(),
+        }
+    }
+
+    fn stored_to_tos(st: &foundation_db::StoredTosAcceptance) -> TosAcceptance {
+        TosAcceptance {
+            user_id: st.user_id.clone(),
+            tos_version: st.tos_version.clone(),
+            accepted_at: st.accepted_at,
+            ip_address: st.ip_address.clone(),
+        }
+    }
+}
+
+// ─── AuthStore trait impl ────────────────────────────────────────────────────
+
+fn map_storage_err(e: StorageOpError) -> String {
+    e.to_string()
+}
+
+impl foundation_db::PasskeyStore for HandlerStorage {
+    fn store_passkey(&self, passkey: &foundation_db::StoredPasskey) -> Result<(), String> {
+        let our_pk = Self::stored_to_passkey(passkey);
+        store_passkey(self.query_store.as_ref(), &our_pk).map_err(map_storage_err)
+    }
+
+    fn find_passkeys_by_user(&self, user_id: &str) -> Result<Vec<foundation_db::StoredPasskey>, String> {
+        find_passkeys_by_user(self.query_store.as_ref(), user_id)
+            .map(|pks| pks.iter().map(Self::passkey_to_stored).collect())
+            .map_err(map_storage_err)
+    }
+
+    fn find_passkey_by_id(&self, passkey_id: &str) -> Result<Option<foundation_db::StoredPasskey>, String> {
+        find_passkey_by_id(self.query_store.as_ref(), passkey_id)
+            .map(|opt| opt.as_ref().map(Self::passkey_to_stored))
+            .map_err(map_storage_err)
+    }
+
+    fn find_passkey_by_credential_id(&self, credential_id: &[u8]) -> Result<Option<foundation_db::StoredPasskey>, String> {
+        find_passkey_by_credential_id(self.query_store.as_ref(), credential_id)
+            .map(|opt| opt.as_ref().map(Self::passkey_to_stored))
+            .map_err(map_storage_err)
+    }
+
+    fn update_passkey_counter(&self, passkey_id: &str, counter: u32) -> Result<(), String> {
+        update_passkey_counter(self.query_store.as_ref(), passkey_id, counter).map_err(map_storage_err)
+    }
+
+    fn update_passkey_name(&self, passkey_id: &str, name: &str) -> Result<(), String> {
+        update_passkey_name(self.query_store.as_ref(), passkey_id, name).map_err(map_storage_err)
+    }
+
+    fn delete_passkey(&self, passkey_id: &str) -> Result<(), String> {
+        delete_passkey(self.query_store.as_ref(), passkey_id).map_err(map_storage_err)
+    }
+}
+
+impl foundation_db::TosStore for HandlerStorage {
+    fn store_tos_acceptance(&self, acceptance: &foundation_db::StoredTosAcceptance) -> Result<(), String> {
+        let our_ta = Self::stored_to_tos(acceptance);
+        store_tos_acceptance(self.query_store.as_ref(), &our_ta).map_err(map_storage_err)
+    }
+
+    fn find_tos_acceptance(&self, user_id: &str, tos_version: &str) -> Result<Option<foundation_db::StoredTosAcceptance>, String> {
+        find_tos_acceptance(self.query_store.as_ref(), user_id, tos_version)
+            .map(|opt| opt.as_ref().map(Self::tos_to_stored))
+            .map_err(map_storage_err)
+    }
+
+    fn find_latest_tos_acceptance(&self, user_id: &str) -> Result<Option<foundation_db::StoredTosAcceptance>, String> {
+        find_latest_tos_acceptance(self.query_store.as_ref(), user_id)
+            .map(|opt| opt.as_ref().map(Self::tos_to_stored))
+            .map_err(map_storage_err)
+    }
 }
