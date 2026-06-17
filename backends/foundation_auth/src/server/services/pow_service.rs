@@ -4,11 +4,11 @@
 //! Client hashes `(challenge + nonce)` until hash has enough leading zeros.
 //! Server validates by hashing once.
 
-use std::collections::HashMap;
-use std::sync::Mutex;
+use std::sync::Arc;
 
 use chrono::Utc;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
+use foundation_db::{KeyValueStore, StorageError};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -26,15 +26,26 @@ pub struct PowSolution {
     pub solution: String,
 }
 
+/// Persisted challenge state. Stored in the shared cache (not a process-local
+/// map) so the issuing endpoint (`GET /pow`) and the verifying endpoint
+/// (`POST /pow`) — which are served by separate handler instances, possibly on
+/// separate nodes — see the same challenge. Expiry is embedded in the value and
+/// checked lazily on read, mirroring `OAuthState`/`Session`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct ChallengeEntry {
     difficulty: u32,
-    created_at: i64,
-    validity_secs: u64,
+    /// Unix timestamp after which the challenge is no longer valid.
+    expires_at: i64,
     solved: bool,
 }
 
+/// Cache key for a PoW challenge.
+fn challenge_key(challenge: &str) -> String {
+    format!("pow:challenge:{challenge}")
+}
+
 pub struct PowService {
-    challenges: Mutex<HashMap<String, ChallengeEntry>>,
+    cache: Arc<dyn KeyValueStore>,
     difficulty: u32,
     validity_secs: u64,
     solve_validity_secs: u64,
@@ -43,20 +54,25 @@ pub struct PowService {
 impl PowService {
     #[must_use]
     pub fn new(
+        cache: Arc<dyn KeyValueStore>,
         difficulty: u32,
         challenge_validity_secs: u64,
         solve_validity_secs: u64,
     ) -> Self {
         Self {
-            challenges: Mutex::new(HashMap::new()),
+            cache,
             difficulty,
             validity_secs: challenge_validity_secs,
             solve_validity_secs,
         }
     }
 
-    /// Generate a new PoW challenge.
-    pub fn generate_challenge(&self) -> PowChallenge {
+    /// Generate a new PoW challenge and persist it in the shared cache.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`StorageError`] if the cache write fails.
+    pub fn generate_challenge(&self) -> Result<PowChallenge, StorageError> {
         let mut rng = rand::thread_rng();
         let mut bytes = [0u8; 16];
         rng.fill_bytes(&mut bytes);
@@ -64,51 +80,57 @@ impl PowService {
 
         let entry = ChallengeEntry {
             difficulty: self.difficulty,
-            created_at: Utc::now().timestamp(),
-            validity_secs: self.validity_secs,
+            expires_at: Utc::now().timestamp() + self.validity_secs as i64,
             solved: false,
         };
+        self.cache.set(&challenge_key(&challenge), entry)?;
 
-        let mut map = self.challenges.lock().unwrap();
-        // Clean up expired entries
-        let now = Utc::now().timestamp();
-        map.retain(|_, e| now - e.created_at < e.validity_secs as i64);
-        map.insert(challenge.clone(), entry);
-
-        PowChallenge {
+        Ok(PowChallenge {
             difficulty: self.difficulty,
             challenge,
             expires_in: self.validity_secs,
-        }
+        })
     }
 
     /// Verify a PoW solution. Returns true if valid.
+    ///
+    /// Single-use: a solved challenge is marked solved so it can't be replayed.
+    /// Cache errors are logged and treated as a verification failure.
     pub fn verify_solution(&self, solution: &PowSolution) -> bool {
-        let mut map = self.challenges.lock().unwrap();
-        let entry = match map.get_mut(&solution.challenge) {
-            Some(e) => e,
-            None => return false,
+        let key = challenge_key(&solution.challenge);
+        let mut entry: ChallengeEntry = match self.cache.get(&key) {
+            Ok(Some(e)) => e,
+            Ok(None) => return false,
+            Err(e) => {
+                tracing::error!(error = %e, "PoW: failed to read challenge from cache");
+                return false;
+            }
         };
 
-        // Check expiry
-        let now = Utc::now().timestamp();
-        if now - entry.created_at >= entry.validity_secs as i64 {
-            map.remove(&solution.challenge);
+        // Lazy expiry check.
+        if Utc::now().timestamp() >= entry.expires_at {
+            if let Err(e) = self.cache.delete(&key) {
+                tracing::error!(error = %e, "PoW: failed to evict expired challenge");
+            }
             return false;
         }
 
-        // Already solved
+        // Already solved — reject replay.
         if entry.solved {
             return false;
         }
 
-        // Hash (challenge + solution) and check leading zeros
+        // Hash (challenge + solution) and check leading zeros.
         let input = format!("{}{}", solution.challenge, solution.solution);
         let hash = Sha256::digest(input.as_bytes());
         let valid = count_leading_zero_bytes(&hash) >= entry.difficulty / 8;
 
         if valid {
             entry.solved = true;
+            if let Err(e) = self.cache.set(&key, entry) {
+                tracing::error!(error = %e, "PoW: failed to mark challenge solved");
+                return false;
+            }
         }
         valid
     }

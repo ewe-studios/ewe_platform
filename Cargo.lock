@@ -3552,6 +3552,8 @@ dependencies = [
  "foundation_errstacks",
  "foundation_http",
  "foundation_netio",
+ "futures-core",
+ "futures-lite",
  "getrandom 0.2.16",
  "hmac",
  "js-sys",

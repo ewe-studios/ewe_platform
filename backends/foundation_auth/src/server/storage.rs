@@ -2,7 +2,10 @@
 
 use std::sync::Arc;
 
-use foundation_db::core::storage_provider::{DataValue, QueryStore, SqlRow};
+use foundation_db::core::storage_provider::{
+    AsyncQueryStore, AsyncQueryStream, DataValue, QueryStore, SqlRow,
+};
+use foundation_db::{AsyncStorageItemStream, KeyValueStore, MemoryStorage, StorageError, StorageResult};
 
 use super::models::{AuthorizationCode, DeviceCode, OAuthClient, Passkey, RefreshToken, TosAcceptance, User};
 
@@ -554,60 +557,83 @@ fn parse_tos_acceptance_row(row: &SqlRow) -> Result<TosAcceptance, StorageOpErro
 #[derive(Clone)]
 pub struct HandlerStorage {
     pub query_store: Arc<dyn QueryStore>,
+    /// Shared cache for short-lived two-step handshake state (PoW challenges,
+    /// WebAuthn ceremony state). This MUST be shared across all route handlers:
+    /// `ServeFactory::create` runs once per route, so each endpoint gets its
+    /// own `IdpHandlerCore`/services — a per-instance map would never let
+    /// `/pow` GET match `/pow` POST, or `webauthn/register/start` match
+    /// `register/finish`. The bag hands every route the same `Arc<HandlerStorage>`,
+    /// so this `Arc<dyn KeyValueStore>` is the shared rendezvous point.
+    pub cache: Arc<dyn KeyValueStore>,
 }
 
 impl HandlerStorage {
+    /// Build with an in-memory cache. Fine for a single-process deployment and
+    /// tests; for horizontally-scaled deployments use [`Self::with_cache`] with
+    /// a shared cache (Turso/D1/Redis-backed `KeyValueStore`).
     pub fn new(query_store: Arc<dyn QueryStore>) -> Self {
-        Self { query_store }
+        Self { query_store, cache: Arc::new(MemoryStorage::new()) }
     }
 
-    // Conversion helpers for the trait impls below.
-    fn passkey_to_stored(pk: &Passkey) -> foundation_db::StoredPasskey {
-        foundation_db::StoredPasskey {
-            id: pk.id.clone(),
-            user_id: pk.user_id.clone(),
-            name: pk.name.clone(),
-            credential_id: pk.credential_id.clone(),
-            credential_public_key: pk.credential_public_key.clone(),
-            counter: pk.counter,
-            created_at: pk.created_at,
-            last_used_at: pk.last_used_at,
-        }
+    /// Build with an explicit shared cache backend.
+    pub fn with_cache(query_store: Arc<dyn QueryStore>, cache: Arc<dyn KeyValueStore>) -> Self {
+        Self { query_store, cache }
     }
 
-    fn stored_to_passkey(sk: &foundation_db::StoredPasskey) -> Passkey {
-        Passkey {
-            id: sk.id.clone(),
-            user_id: sk.user_id.clone(),
-            name: sk.name.clone(),
-            credential_id: sk.credential_id.clone(),
-            credential_public_key: sk.credential_public_key.clone(),
-            counter: sk.counter,
-            created_at: sk.created_at,
-            last_used_at: sk.last_used_at,
-        }
-    }
-
-    fn tos_to_stored(ta: &TosAcceptance) -> foundation_db::StoredTosAcceptance {
-        foundation_db::StoredTosAcceptance {
-            user_id: ta.user_id.clone(),
-            tos_version: ta.tos_version.clone(),
-            accepted_at: ta.accepted_at,
-            ip_address: ta.ip_address.clone(),
-        }
-    }
-
-    fn stored_to_tos(st: &foundation_db::StoredTosAcceptance) -> TosAcceptance {
-        TosAcceptance {
-            user_id: st.user_id.clone(),
-            tos_version: st.tos_version.clone(),
-            accepted_at: st.accepted_at,
-            ip_address: st.ip_address.clone(),
-        }
+    /// The shared transient-state cache.
+    #[must_use]
+    pub fn cache(&self) -> Arc<dyn KeyValueStore> {
+        Arc::clone(&self.cache)
     }
 }
 
-// ─── AuthStore trait impl ────────────────────────────────────────────────────
+// ─── Conversion helpers (shared by sync + async trait impls) ─────────────────
+
+fn passkey_to_stored(pk: &Passkey) -> foundation_db::StoredPasskey {
+    foundation_db::StoredPasskey {
+        id: pk.id.clone(),
+        user_id: pk.user_id.clone(),
+        name: pk.name.clone(),
+        credential_id: pk.credential_id.clone(),
+        credential_public_key: pk.credential_public_key.clone(),
+        counter: pk.counter,
+        created_at: pk.created_at,
+        last_used_at: pk.last_used_at,
+    }
+}
+
+fn stored_to_passkey(sk: &foundation_db::StoredPasskey) -> Passkey {
+    Passkey {
+        id: sk.id.clone(),
+        user_id: sk.user_id.clone(),
+        name: sk.name.clone(),
+        credential_id: sk.credential_id.clone(),
+        credential_public_key: sk.credential_public_key.clone(),
+        counter: sk.counter,
+        created_at: sk.created_at,
+        last_used_at: sk.last_used_at,
+    }
+}
+
+fn tos_to_stored(ta: &TosAcceptance) -> foundation_db::StoredTosAcceptance {
+    foundation_db::StoredTosAcceptance {
+        user_id: ta.user_id.clone(),
+        tos_version: ta.tos_version.clone(),
+        accepted_at: ta.accepted_at,
+        ip_address: ta.ip_address.clone(),
+    }
+}
+
+fn stored_to_tos(st: &foundation_db::StoredTosAcceptance) -> TosAcceptance {
+    TosAcceptance {
+        user_id: st.user_id.clone(),
+        tos_version: st.tos_version.clone(),
+        accepted_at: st.accepted_at,
+        ip_address: st.ip_address.clone(),
+    }
+}
+
+// ─── Sync AuthStore trait impl (over `QueryStore`) ───────────────────────────
 
 fn map_storage_err(e: StorageOpError) -> String {
     e.to_string()
@@ -615,25 +641,25 @@ fn map_storage_err(e: StorageOpError) -> String {
 
 impl foundation_db::PasskeyStore for HandlerStorage {
     fn store_passkey(&self, passkey: &foundation_db::StoredPasskey) -> Result<(), String> {
-        let our_pk = Self::stored_to_passkey(passkey);
+        let our_pk = stored_to_passkey(passkey);
         store_passkey(self.query_store.as_ref(), &our_pk).map_err(map_storage_err)
     }
 
     fn find_passkeys_by_user(&self, user_id: &str) -> Result<Vec<foundation_db::StoredPasskey>, String> {
         find_passkeys_by_user(self.query_store.as_ref(), user_id)
-            .map(|pks| pks.iter().map(Self::passkey_to_stored).collect())
+            .map(|pks| pks.iter().map(passkey_to_stored).collect())
             .map_err(map_storage_err)
     }
 
     fn find_passkey_by_id(&self, passkey_id: &str) -> Result<Option<foundation_db::StoredPasskey>, String> {
         find_passkey_by_id(self.query_store.as_ref(), passkey_id)
-            .map(|opt| opt.as_ref().map(Self::passkey_to_stored))
+            .map(|opt| opt.as_ref().map(passkey_to_stored))
             .map_err(map_storage_err)
     }
 
     fn find_passkey_by_credential_id(&self, credential_id: &[u8]) -> Result<Option<foundation_db::StoredPasskey>, String> {
         find_passkey_by_credential_id(self.query_store.as_ref(), credential_id)
-            .map(|opt| opt.as_ref().map(Self::passkey_to_stored))
+            .map(|opt| opt.as_ref().map(passkey_to_stored))
             .map_err(map_storage_err)
     }
 
@@ -652,19 +678,19 @@ impl foundation_db::PasskeyStore for HandlerStorage {
 
 impl foundation_db::TosStore for HandlerStorage {
     fn store_tos_acceptance(&self, acceptance: &foundation_db::StoredTosAcceptance) -> Result<(), String> {
-        let our_ta = Self::stored_to_tos(acceptance);
+        let our_ta = stored_to_tos(acceptance);
         store_tos_acceptance(self.query_store.as_ref(), &our_ta).map_err(map_storage_err)
     }
 
     fn find_tos_acceptance(&self, user_id: &str, tos_version: &str) -> Result<Option<foundation_db::StoredTosAcceptance>, String> {
         find_tos_acceptance(self.query_store.as_ref(), user_id, tos_version)
-            .map(|opt| opt.as_ref().map(Self::tos_to_stored))
+            .map(|opt| opt.as_ref().map(tos_to_stored))
             .map_err(map_storage_err)
     }
 
     fn find_latest_tos_acceptance(&self, user_id: &str) -> Result<Option<foundation_db::StoredTosAcceptance>, String> {
         find_latest_tos_acceptance(self.query_store.as_ref(), user_id)
-            .map(|opt| opt.as_ref().map(Self::tos_to_stored))
+            .map(|opt| opt.as_ref().map(tos_to_stored))
             .map_err(map_storage_err)
     }
 }
@@ -677,5 +703,306 @@ impl foundation_db::AuthStore for HandlerStorage {
                 (u.id, has_pw)
             }))
             .map_err(map_storage_err)
+    }
+}
+
+// ─── Async storage functions (real logic over `AsyncQueryStore`) ─────────────
+//
+// These are the canonical implementations: they talk directly to an
+// `AsyncQueryStore` (Turso/Libsql native, D1 on wasm) and never buffer a whole
+// result set — multi-row reads hand back a lazily-pulled `AsyncStorageItemStream`
+// so an unbounded scan can't OOM. The sync path is a separate first-class
+// implementation (`HandlerStorage`) over `QueryStore`, which itself bridges to
+// async internally inside foundation_db.
+
+fn op_to_storage_err(e: StorageOpError) -> StorageError {
+    match e {
+        StorageOpError::Parse(s) => StorageError::SqlConversion(s),
+        other => StorageError::Backend(other.to_string()),
+    }
+}
+
+/// Pull the first row from an async query stream — the async analog of
+/// `collect_one_row`. Stops after one row instead of draining the stream.
+async fn async_first_row(mut stream: AsyncQueryStream) -> Result<Option<SqlRow>, StorageOpError> {
+    use futures_lite::StreamExt;
+    match stream.next().await {
+        Some(Ok(row)) => Ok(Some(row)),
+        Some(Err(e)) => Err(StorageOpError::Query(e.to_string())),
+        None => Ok(None),
+    }
+}
+
+pub async fn store_passkey_async(
+    store: &dyn AsyncQueryStore,
+    passkey: &Passkey,
+) -> Result<(), StorageOpError> {
+    let sql = "INSERT INTO passkeys (id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at) VALUES (?, ?, ?, ?, ?, ?, ?, NULL)";
+    store
+        .execute_async(sql, &[
+            DataValue::Text(passkey.id.clone()),
+            DataValue::Text(passkey.user_id.clone()),
+            DataValue::Text(passkey.name.clone()),
+            DataValue::Blob(passkey.credential_id.clone()),
+            DataValue::Blob(passkey.credential_public_key.clone()),
+            DataValue::Integer(passkey.counter as i64),
+            DataValue::Integer(passkey.created_at),
+        ])
+        .await
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+/// Stream all passkeys for a user, one at a time — no `Vec` materialization.
+pub async fn find_passkeys_by_user_stream_async(
+    store: &dyn AsyncQueryStore,
+    user_id: &str,
+) -> Result<AsyncStorageItemStream<'static, foundation_db::StoredPasskey>, StorageOpError> {
+    use futures_lite::StreamExt;
+    let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE user_id = ?";
+    let stream = store
+        .query_async(sql, &[DataValue::Text(user_id.to_string())])
+        .await
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    let mapped = stream.map(|row_res| {
+        row_res.and_then(|row| {
+            parse_passkey_row(&row)
+                .map(|pk| passkey_to_stored(&pk))
+                .map_err(op_to_storage_err)
+        })
+    });
+    Ok(Box::pin(mapped))
+}
+
+pub async fn find_passkey_by_id_async(
+    store: &dyn AsyncQueryStore,
+    passkey_id: &str,
+) -> Result<Option<Passkey>, StorageOpError> {
+    let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE id = ?";
+    let stream = store
+        .query_async(sql, &[DataValue::Text(passkey_id.to_string())])
+        .await
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match async_first_row(stream).await? {
+        Some(row) => Ok(Some(parse_passkey_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+pub async fn find_passkey_by_credential_id_async(
+    store: &dyn AsyncQueryStore,
+    credential_id: &[u8],
+) -> Result<Option<Passkey>, StorageOpError> {
+    let sql = "SELECT id, user_id, name, credential_id, credential_public_key, counter, created_at, last_used_at FROM passkeys WHERE credential_id = ?";
+    let stream = store
+        .query_async(sql, &[DataValue::Blob(credential_id.to_vec())])
+        .await
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match async_first_row(stream).await? {
+        Some(row) => Ok(Some(parse_passkey_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+pub async fn update_passkey_counter_async(
+    store: &dyn AsyncQueryStore,
+    passkey_id: &str,
+    counter: u32,
+) -> Result<(), StorageOpError> {
+    let sql = "UPDATE passkeys SET counter = ?, last_used_at = ? WHERE id = ?";
+    let now = chrono::Utc::now().timestamp_millis();
+    store
+        .execute_async(sql, &[
+            DataValue::Integer(counter as i64),
+            DataValue::Integer(now),
+            DataValue::Text(passkey_id.to_string()),
+        ])
+        .await
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+pub async fn update_passkey_name_async(
+    store: &dyn AsyncQueryStore,
+    passkey_id: &str,
+    name: &str,
+) -> Result<(), StorageOpError> {
+    let sql = "UPDATE passkeys SET name = ? WHERE id = ?";
+    store
+        .execute_async(sql, &[
+            DataValue::Text(name.to_string()),
+            DataValue::Text(passkey_id.to_string()),
+        ])
+        .await
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+pub async fn delete_passkey_async(
+    store: &dyn AsyncQueryStore,
+    passkey_id: &str,
+) -> Result<(), StorageOpError> {
+    let sql = "DELETE FROM passkeys WHERE id = ?";
+    store
+        .execute_async(sql, &[DataValue::Text(passkey_id.to_string())])
+        .await
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+pub async fn store_tos_acceptance_async(
+    store: &dyn AsyncQueryStore,
+    acceptance: &TosAcceptance,
+) -> Result<(), StorageOpError> {
+    let sql = "INSERT INTO tos_acceptances (user_id, tos_version, accepted_at, ip_address) VALUES (?, ?, ?, ?)";
+    store
+        .execute_async(sql, &[
+            DataValue::Text(acceptance.user_id.clone()),
+            DataValue::Text(acceptance.tos_version.clone()),
+            DataValue::Integer(acceptance.accepted_at),
+            DataValue::Text(acceptance.ip_address.clone().unwrap_or_default()),
+        ])
+        .await
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+pub async fn find_tos_acceptance_async(
+    store: &dyn AsyncQueryStore,
+    user_id: &str,
+    tos_version: &str,
+) -> Result<Option<TosAcceptance>, StorageOpError> {
+    let sql = "SELECT user_id, tos_version, accepted_at, ip_address FROM tos_acceptances WHERE user_id = ? AND tos_version = ?";
+    let stream = store
+        .query_async(sql, &[
+            DataValue::Text(user_id.to_string()),
+            DataValue::Text(tos_version.to_string()),
+        ])
+        .await
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match async_first_row(stream).await? {
+        Some(row) => Ok(Some(parse_tos_acceptance_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+pub async fn find_latest_tos_acceptance_async(
+    store: &dyn AsyncQueryStore,
+    user_id: &str,
+) -> Result<Option<TosAcceptance>, StorageOpError> {
+    let sql = "SELECT user_id, tos_version, accepted_at, ip_address FROM tos_acceptances WHERE user_id = ? ORDER BY accepted_at DESC LIMIT 1";
+    let stream = store
+        .query_async(sql, &[DataValue::Text(user_id.to_string())])
+        .await
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match async_first_row(stream).await? {
+        Some(row) => Ok(Some(parse_tos_acceptance_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+pub async fn find_user_by_email_async(
+    store: &dyn AsyncQueryStore,
+    email: &str,
+) -> Result<Option<User>, StorageOpError> {
+    let sql = "SELECT id, email, username, password_hash, email_verified, email_verified_at, created_at, updated_at, metadata, failed_login_attempts, locked_until, deleted_at FROM users WHERE email = ?";
+    let stream = store
+        .query_async(sql, &[DataValue::Text(email.to_string())])
+        .await
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    match async_first_row(stream).await? {
+        Some(row) => Ok(Some(parse_user_row(&row)?)),
+        None => Ok(None),
+    }
+}
+
+// ─── Async AuthStore impl (over `AsyncQueryStore`) ───────────────────────────
+
+/// Async counterpart to [`HandlerStorage`], backed by an `AsyncQueryStore`
+/// (D1 on wasm, Turso/Libsql native). Use this where the surrounding code is
+/// already async; use `HandlerStorage` where a sync `QueryStore` is in hand.
+#[derive(Clone)]
+pub struct AsyncHandlerStorage {
+    pub query_store: Arc<dyn AsyncQueryStore>,
+}
+
+impl AsyncHandlerStorage {
+    pub fn new(query_store: Arc<dyn AsyncQueryStore>) -> Self {
+        Self { query_store }
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl foundation_db::AsyncPasskeyStore for AsyncHandlerStorage {
+    async fn store_passkey_async(&self, passkey: &foundation_db::StoredPasskey) -> Result<(), String> {
+        let our_pk = stored_to_passkey(passkey);
+        store_passkey_async(self.query_store.as_ref(), &our_pk).await.map_err(map_storage_err)
+    }
+
+    async fn find_passkeys_by_user_async<'a>(&'a self, user_id: &'a str) -> StorageResult<AsyncStorageItemStream<'a, foundation_db::StoredPasskey>> {
+        find_passkeys_by_user_stream_async(self.query_store.as_ref(), user_id)
+            .await
+            .map_err(op_to_storage_err)
+    }
+
+    async fn find_passkey_by_id_async<'a>(&'a self, passkey_id: &'a str) -> StorageResult<Option<foundation_db::StoredPasskey>> {
+        find_passkey_by_id_async(self.query_store.as_ref(), passkey_id)
+            .await
+            .map(|opt| opt.as_ref().map(passkey_to_stored))
+            .map_err(op_to_storage_err)
+    }
+
+    async fn find_passkey_by_credential_id_async<'a>(&'a self, credential_id: &'a [u8]) -> StorageResult<Option<foundation_db::StoredPasskey>> {
+        find_passkey_by_credential_id_async(self.query_store.as_ref(), credential_id)
+            .await
+            .map(|opt| opt.as_ref().map(passkey_to_stored))
+            .map_err(op_to_storage_err)
+    }
+
+    async fn update_passkey_counter_async(&self, passkey_id: &str, counter: u32) -> Result<(), String> {
+        update_passkey_counter_async(self.query_store.as_ref(), passkey_id, counter).await.map_err(map_storage_err)
+    }
+
+    async fn update_passkey_name_async(&self, passkey_id: &str, name: &str) -> Result<(), String> {
+        update_passkey_name_async(self.query_store.as_ref(), passkey_id, name).await.map_err(map_storage_err)
+    }
+
+    async fn delete_passkey_async(&self, passkey_id: &str) -> Result<(), String> {
+        delete_passkey_async(self.query_store.as_ref(), passkey_id).await.map_err(map_storage_err)
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl foundation_db::AsyncTosStore for AsyncHandlerStorage {
+    async fn store_tos_acceptance_async(&self, acceptance: &foundation_db::StoredTosAcceptance) -> Result<(), String> {
+        let our_ta = stored_to_tos(acceptance);
+        store_tos_acceptance_async(self.query_store.as_ref(), &our_ta).await.map_err(map_storage_err)
+    }
+
+    async fn find_tos_acceptance_async<'a>(&'a self, user_id: &'a str, tos_version: &'a str) -> StorageResult<Option<foundation_db::StoredTosAcceptance>> {
+        find_tos_acceptance_async(self.query_store.as_ref(), user_id, tos_version)
+            .await
+            .map(|opt| opt.as_ref().map(tos_to_stored))
+            .map_err(op_to_storage_err)
+    }
+
+    async fn find_latest_tos_acceptance_async<'a>(&'a self, user_id: &'a str) -> StorageResult<Option<foundation_db::StoredTosAcceptance>> {
+        find_latest_tos_acceptance_async(self.query_store.as_ref(), user_id)
+            .await
+            .map(|opt| opt.as_ref().map(tos_to_stored))
+            .map_err(op_to_storage_err)
+    }
+}
+
+#[async_trait::async_trait(?Send)]
+impl foundation_db::AsyncAuthStore for AsyncHandlerStorage {
+    async fn find_user_by_email_async(&self, email: &str) -> StorageResult<Option<(String, bool)>> {
+        find_user_by_email_async(self.query_store.as_ref(), email)
+            .await
+            .map(|opt| opt.map(|u| {
+                let has_pw = u.has_password();
+                (u.id, has_pw)
+            }))
+            .map_err(op_to_storage_err)
     }
 }

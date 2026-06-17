@@ -49,8 +49,17 @@ uuid = { version = "1.0", features = ["v4"] }
 bytes = "1.5"
 async-trait = "0.1"
 
-# WebAuthn/FIDO2 — native only (openssl dep, does not compile to wasm32)
-webauthn-rs = { version = "0.5", optional = true }
+# Async stream plumbing for the async storage layer (gated behind `server`)
+futures-core = { version = "0.3", optional = true }
+futures-lite = { version = "2", optional = true }
+
+# WebAuthn/FIDO2 — native only (openssl dep, does not compile to wasm32).
+# `danger-allow-state-serialisation` lets us persist the in-progress
+# PasskeyRegistration/PasskeyAuthentication ceremony state into the shared
+# server-side KV cache (the crate's supported use of this flag) instead of a
+# process-local map, so register/start and register/finish can be served by
+# different handler instances / nodes.
+webauthn-rs = { version = "0.5", optional = true, features = ["danger-allow-state-serialisation"] }
 url = { version = "2", optional = true }
 
 # Wasm-bindgen OAuth support (gated behind wasm-bindgen-oauth feature)
@@ -82,7 +91,7 @@ workspace = true
 default = ["turso"]
 turso = ["foundation_db/turso"]
 # IdP server module (pulls in foundation_http + foundation_db for storage)
-server = ["dep:foundation_http"]
+server = ["dep:foundation_http", "dep:futures-core", "dep:futures-lite"]
 # Integration tests for IdP server (real TCP, thread pool)
 server-test = ["server", "foundation_core/multi", "foundation_http/multi"]
 # Wasm compatibility — browser crypto and JS time APIs
