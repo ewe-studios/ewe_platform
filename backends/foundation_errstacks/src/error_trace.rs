@@ -480,7 +480,7 @@ where
 /// **HOW:** Built from an `ErrorTrace` by walking its frames and
 /// extracting type names, messages, and locations.
 #[cfg(feature = "to_structured")]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct StructuredErrorTrace {
     /// The current context message (what the error "is" now).
@@ -494,7 +494,7 @@ pub struct StructuredErrorTrace {
 
 /// A single frame in a [`StructuredErrorTrace`].
 #[cfg(feature = "to_structured")]
-#[derive(Clone, Debug)]
+#[derive(Clone, Debug, PartialEq)]
 #[cfg_attr(feature = "serde", derive(serde::Serialize, serde::Deserialize))]
 pub struct StructuredFrame {
     /// The kind of frame: "context", "printable", or "opaque".

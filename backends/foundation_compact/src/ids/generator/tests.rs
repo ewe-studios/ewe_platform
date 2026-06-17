@@ -150,3 +150,107 @@ fn handle_clock_rollback() {
         }
     }
 }
+
+// ============================================================================
+// Machine-id support (entropy high-bits) — comprehensive coverage.
+// ============================================================================
+
+/// A `TimeSource` that returns a fixed millisecond, so every generated id in a
+/// test shares the same timestamp — isolating the counter + entropy behaviour.
+struct FixedTimeSource(u64);
+impl TimeSource for FixedTimeSource {
+    fn unix_ts_ms(&mut self) -> u64 {
+        self.0
+    }
+}
+
+fn fixed_gen(ts: u64, machine_id: u32, bits: u8) -> Generator<impl RandSource, FixedTimeSource> {
+    Generator::with_rand_and_time_sources(new_rand_source(), FixedTimeSource(ts))
+        .with_machine_id(machine_id, bits)
+}
+
+#[test]
+fn machine_id_zero_bits_is_upstream_behaviour() {
+    // With 0 reserved bits the entropy field is fully random (machine id absent).
+    let mut g = fixed_gen(0x0123_4567_89ab, 0xABCD, 0);
+    let id = g.generate();
+    assert_eq!(g.machine_id_of(&id), 0);
+    // Different ids still differ in entropy (random), proving nothing was forced.
+    let id2 = g.generate();
+    assert_ne!(id, id2);
+}
+
+#[test]
+fn machine_id_is_encoded_in_high_entropy_bits() {
+    let machine = 0x0A5u32; // fits in 12 bits
+    let mut g = fixed_gen(0x0123_4567_89ab, machine, 12);
+    for _ in 0..256 {
+        let id = g.generate();
+        // High 12 bits of the 32-bit entropy field carry the machine id exactly.
+        assert_eq!(g.machine_id_of(&id), machine);
+        assert_eq!(id.entropy() >> 20, machine);
+    }
+}
+
+#[test]
+fn machine_id_is_masked_to_reserved_width() {
+    // 12 bits reserved but a wider machine id supplied → only the low 12 bits survive.
+    let mut g = fixed_gen(0x0123_4567_89ab, 0xFFFF_FABC, 12);
+    let id = g.generate();
+    assert_eq!(g.machine_id_of(&id), 0xABC & 0x0FFF);
+}
+
+#[test]
+fn machine_id_preserves_strict_monotonic_order_within_one_millisecond() {
+    // All ids share a timestamp (FixedTimeSource); the counter must still make
+    // them strictly increasing despite the machine id occupying entropy bits.
+    let mut g = fixed_gen(0x0123_4567_89ab, 0x07F, 12);
+    let mut prev = g.generate();
+    for _ in 0..5_000 {
+        let curr = g.generate();
+        assert!(prev < curr, "ids must be strictly increasing within a ms");
+        assert_eq!(curr.timestamp(), 0x0123_4567_89ab);
+        assert_eq!(g.machine_id_of(&curr), 0x07F);
+        prev = curr;
+    }
+}
+
+#[test]
+fn different_machine_ids_partition_the_id_space() {
+    let ts = 0x0123_4567_89ab;
+    let mut a = fixed_gen(ts, 1, 12);
+    let mut b = fixed_gen(ts, 2, 12);
+    let ida = a.generate();
+    let idb = b.generate();
+    assert_eq!(a.machine_id_of(&ida), 1);
+    assert_eq!(b.machine_id_of(&idb), 2);
+    assert_ne!(ida, idb);
+}
+
+#[test]
+fn full_32_bit_machine_id_consumes_entire_entropy_field() {
+    let machine = 0xDEAD_BEEFu32;
+    let mut g = fixed_gen(0x0123_4567_89ab, machine, 32);
+    let id = g.generate();
+    assert_eq!(g.machine_id_of(&id), machine);
+    assert_eq!(id.entropy(), machine);
+}
+
+#[test]
+#[should_panic(expected = "`bits` must be in 0..=32")]
+fn machine_id_bits_above_32_panics() {
+    let _ = Generator::with_rand_and_time_sources(new_rand_source(), FixedTimeSource(1))
+        .with_machine_id(0, 33);
+}
+
+#[test]
+fn set_machine_id_is_equivalent_to_builder() {
+    let mut a = Generator::with_rand_and_time_sources(new_rand_source(), FixedTimeSource(7))
+        .with_machine_id(0x123, 12);
+    let mut b = Generator::with_rand_and_time_sources(new_rand_source(), FixedTimeSource(7));
+    b.set_machine_id(0x123, 12);
+    let ida = a.generate();
+    let idb = b.generate();
+    assert_eq!(a.machine_id_of(&ida), b.machine_id_of(&idb));
+    assert_eq!(a.machine_id_of(&ida), 0x123);
+}

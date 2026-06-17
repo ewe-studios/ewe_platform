@@ -19,9 +19,9 @@ foundation_macros = { workspace = true }
 foundation_core = { workspace = true }
 foundation_netio = { workspace = true }
 foundation_deployment_huggingface = { workspace = true }
-foundation_errstacks = { workspace = true }
+foundation_errstacks = { workspace = true, features = ["to_structured"] }
 foundation_jsonschema = { workspace = true }
-foundation_compact = { workspace = true }
+foundation_compact = { workspace = true, features = ["serde"] }
 
 # -- Other dependencies
 regex = { version = "1.10" }

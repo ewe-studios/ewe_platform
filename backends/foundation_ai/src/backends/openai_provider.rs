@@ -760,6 +760,8 @@ impl ToolFormatter for OpenAIFormatter {
                             name,
                             arguments,
                             signature: None,
+                            depends_on: Vec::new(),
+                            execution_hint: crate::types::ExecutionHint::default(),
                         });
                     }
                 }
@@ -1164,6 +1166,8 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
                 name: tc.name.clone(),
                 arguments,
                 signature: None,
+                depends_on: Vec::new(),
+                execution_hint: crate::types::ExecutionHint::default(),
             }
         };
 
@@ -1624,6 +1628,8 @@ pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
         shed.edit.clone(),
         shed.write.clone(),
         shed.search.clone(),
+        shed.search_files.clone(),
+        shed.shell.clone(),
     ];
     if let Some(mem) = &shed.memory {
         tools.push(mem.add.clone());
@@ -1634,12 +1640,6 @@ pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
         tools.push(delegate.start.clone());
         tools.push(delegate.check.clone());
         tools.push(delegate.get.clone());
-    }
-    if let Some(bash) = &shed.bash {
-        tools.push(bash.clone());
-    }
-    if let Some(others) = &shed.others {
-        tools.extend(others.iter().cloned());
     }
     tools
 }
@@ -2008,6 +2008,8 @@ fn parse_chat_response(
                 name: tc.function.name.clone(),
                 arguments,
                 signature: None,
+                depends_on: Vec::new(),
+                execution_hint: crate::types::ExecutionHint::default(),
             }
         } else {
             ModelOutput::Text(TextContent {

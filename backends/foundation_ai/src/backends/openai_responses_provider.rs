@@ -1145,6 +1145,8 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
                     name: name.clone(),
                     arguments: args,
                     signature: None,
+                    depends_on: Vec::new(),
+                    execution_hint: crate::types::ExecutionHint::default(),
                 };
             }
             ResponseOutputItem::Reasoning { content, .. } => {
@@ -1295,6 +1297,8 @@ pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
         shed.edit.clone(),
         shed.write.clone(),
         shed.search.clone(),
+        shed.search_files.clone(),
+        shed.shell.clone(),
     ];
     if let Some(mem) = &shed.memory {
         tools.push(mem.add.clone());
@@ -1305,12 +1309,6 @@ pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
         tools.push(delegate.start.clone());
         tools.push(delegate.check.clone());
         tools.push(delegate.get.clone());
-    }
-    if let Some(bash) = &shed.bash {
-        tools.push(bash.clone());
-    }
-    if let Some(others) = &shed.others {
-        tools.extend(others.iter().cloned());
     }
     tools
 }

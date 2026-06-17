@@ -1,5 +1,12 @@
 //! Core definition for what models entail
 
+pub mod agentic;
+
+pub use agentic::{
+    AgenticError, MemoryFact, ObservationEntry, ObservationKind, ReflectionEntry, SessionId,
+    SessionRecord, TimeRange, TokenSnapshot,
+};
+
 use std::collections::HashMap;
 use std::path::PathBuf;
 use foundation_compact::SystemTime;
@@ -872,6 +879,15 @@ pub enum ModelOutput {
         name: String,
         arguments: Option<HashMap<String, ArgType>>,
         signature: Option<String>,
+        /// Ids of tool calls this one depends on (Decision 04). The ToolCall DAG
+        /// executor (F11) uses these to order staged execution. `#[serde(default)]`
+        /// keeps legacy tool calls (without the field) deserializing to empty.
+        #[serde(default)]
+        depends_on: Vec<String>,
+        /// How the LLM intends this call to be scheduled relative to others.
+        /// `#[serde(default)]` → legacy calls deserialize as `Unspecified`.
+        #[serde(default)]
+        execution_hint: ExecutionHint,
     },
     /// Embedding output for RAG pipelines and semantic search.
     /// Contains the embedding dimensions and the float values.
@@ -881,6 +897,25 @@ pub enum ModelOutput {
     },
 }
 
+/// Scheduling hint the LLM attaches to a `ModelOutput::ToolCall` (Decision 04).
+///
+/// WHY: The tool-call DAG executor (F11) needs the model to express whether a
+/// call may run alongside independent calls or must wait for its `depends_on`.
+///
+/// HOW: Serializes lowercase (`"unspecified"`/`"parallel"`/`"sequential"`);
+/// `Unspecified` is the default so the manager decides when the model is silent.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum ExecutionHint {
+    /// `ToolCallManager` decides scheduling (F11).
+    #[default]
+    Unspecified,
+    /// Run with other independent calls.
+    Parallel,
+    /// Run after `depends_on` completes.
+    Sequential,
+}
+
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolParam {
     pub value: ArgType,
@@ -888,11 +923,93 @@ pub struct ToolParam {
     pub description: String,
 }
 
+/// Source/provenance of a message. Distinguishes human, agent, system, and
+/// tool origins.
+///
+/// WHY: The agentic loop routes human input, system instructions, and inter-agent
+/// steering all through `Messages::User`, but must tell them apart to apply the
+/// right policy (e.g. loop-redirects are `System`, peer guidance is `Agent`). A
+/// bare `String` role made that distinction stringly-typed and unsearchable.
+///
+/// WHAT: A closed set of the four known roles plus a `Custom` escape hatch for
+/// forward/unknown values.
+///
+/// HOW: Serializes to the same lowercase strings providers already expect
+/// (`"user"`, `"agent"`, `"system"`, `"tool"`); `Custom` round-trips untagged as
+/// its inner string, so already-persisted sessions stay byte-compatible.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum MessageRole {
+    /// Direct human user input.
+    User,
+    /// Another LLM agent providing guidance/steering (inter-agent).
+    Agent,
+    /// System prompt / instructions / loop-redirect.
+    System,
+    /// Tool result context.
+    Tool,
+    /// Extensibility for unknown/custom roles. Serializes as its inner string.
+    #[serde(untagged)]
+    Custom(String),
+}
+
+impl MessageRole {
+    /// Canonical wire string for this role (`"user"`, `"agent"`, `"system"`,
+    /// `"tool"`, or the custom value).
+    #[must_use]
+    pub fn as_wire(&self) -> &str {
+        match self {
+            MessageRole::User => "user",
+            MessageRole::Agent => "agent",
+            MessageRole::System => "system",
+            MessageRole::Tool => "tool",
+            MessageRole::Custom(value) => value.as_str(),
+        }
+    }
+}
+
+impl From<&str> for MessageRole {
+    fn from(value: &str) -> Self {
+        match value {
+            "user" => MessageRole::User,
+            "agent" => MessageRole::Agent,
+            "system" => MessageRole::System,
+            "tool" => MessageRole::Tool,
+            other => MessageRole::Custom(other.to_string()),
+        }
+    }
+}
+
+impl From<String> for MessageRole {
+    fn from(value: String) -> Self {
+        // Reuse the &str mapping for the known roles; only allocate for Custom.
+        match value.as_str() {
+            "user" => MessageRole::User,
+            "agent" => MessageRole::Agent,
+            "system" => MessageRole::System,
+            "tool" => MessageRole::Tool,
+            _ => MessageRole::Custom(value),
+        }
+    }
+}
+
+impl std::fmt::Display for MessageRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str(self.as_wire())
+    }
+}
+
+impl Default for MessageRole {
+    fn default() -> Self {
+        MessageRole::User
+    }
+}
+
 #[allow(clippy::large_enum_variant)]
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Messages {
     User {
-        role: String,
+        role: MessageRole,
         content: UserModelContent,
         signature: Option<String>,
     },
@@ -1065,15 +1182,20 @@ pub struct DelegationTool {
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolShed {
+    /// The `shed` meta-tool — always present; replaces dynamic tool discovery (F10).
     pub shed: Tool,
     pub memory: Option<MemoryTool>,
     pub delegate: Option<DelegationTool>,
     pub read: Tool,
     pub edit: Tool,
     pub write: Tool,
+    /// Knowledge search (semantic / memory / graph) — F16 / F32.
     pub search: Tool,
-    pub bash: Option<Tool>,
-    pub others: Option<Vec<Tool>>,
+    /// Filesystem search via fff-search — F32. First-class, distinct from `search`.
+    pub search_files: Tool,
+    /// Cross-platform shell: bash on linux/macOS, PowerShell on Windows
+    /// (the `ToolImpl` selects at runtime). Was `bash: Option<Tool>`.
+    pub shell: Tool,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -1310,6 +1432,8 @@ impl ToolFormatter for TextBasedFormatter {
                                 name,
                                 arguments: Some(arguments),
                                 signature: None,
+                                depends_on: Vec::new(),
+                                execution_hint: ExecutionHint::default(),
                             });
                         }
                     } else {
@@ -1687,5 +1811,79 @@ impl LlamaConfig {
     pub fn with_mlock(mut self, enabled: bool) -> Self {
         self.use_mlock = enabled;
         self
+    }
+}
+
+#[cfg(test)]
+mod message_role_tests {
+    use super::*;
+
+    #[test]
+    fn known_roles_serialize_to_legacy_strings() {
+        for (role, wire) in [
+            (MessageRole::User, "user"),
+            (MessageRole::Agent, "agent"),
+            (MessageRole::System, "system"),
+            (MessageRole::Tool, "tool"),
+        ] {
+            let json = serde_json::to_string(&role).unwrap();
+            assert_eq!(json, format!("\"{wire}\""));
+            assert_eq!(role.as_wire(), wire);
+            // Round-trips back to the same variant.
+            let back: MessageRole = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, role);
+        }
+    }
+
+    #[test]
+    fn custom_role_is_transparent() {
+        let role = MessageRole::Custom("x-foo".to_string());
+        let json = serde_json::to_string(&role).unwrap();
+        assert_eq!(json, "\"x-foo\"");
+        let back: MessageRole = serde_json::from_str("\"x-foo\"").unwrap();
+        assert_eq!(back, MessageRole::Custom("x-foo".to_string()));
+    }
+
+    #[test]
+    fn from_str_maps_known_and_unknown() {
+        assert_eq!(MessageRole::from("system"), MessageRole::System);
+        assert_eq!(
+            MessageRole::from("weird"),
+            MessageRole::Custom("weird".to_string())
+        );
+        assert_eq!(MessageRole::default(), MessageRole::User);
+    }
+
+    #[test]
+    fn execution_hint_serde_lowercase_round_trip() {
+        for (hint, wire) in [
+            (ExecutionHint::Unspecified, "unspecified"),
+            (ExecutionHint::Parallel, "parallel"),
+            (ExecutionHint::Sequential, "sequential"),
+        ] {
+            let json = serde_json::to_string(&hint).unwrap();
+            assert_eq!(json, format!("\"{wire}\""));
+            let back: ExecutionHint = serde_json::from_str(&json).unwrap();
+            assert_eq!(back, hint);
+        }
+        assert_eq!(ExecutionHint::default(), ExecutionHint::Unspecified);
+    }
+
+    #[test]
+    fn legacy_tool_call_json_deserializes_with_defaults() {
+        // A ToolCall serialized before depends_on/execution_hint existed.
+        let legacy = r#"{"ToolCall":{"id":"t1","name":"read","arguments":null,"signature":null}}"#;
+        let parsed: ModelOutput = serde_json::from_str(legacy).unwrap();
+        match parsed {
+            ModelOutput::ToolCall {
+                depends_on,
+                execution_hint,
+                ..
+            } => {
+                assert!(depends_on.is_empty());
+                assert_eq!(execution_hint, ExecutionHint::Unspecified);
+            }
+            other => panic!("expected ToolCall, got {other:?}"),
+        }
     }
 }

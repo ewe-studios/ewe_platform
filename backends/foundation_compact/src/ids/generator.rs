@@ -62,6 +62,22 @@ pub struct Generator<R, T = StdSystemTime> {
 
     /// The amount of `timestamp` rollback that is considered significant (in milliseconds).
     rollback_allowance: u64,
+
+    /// Optional machine/node id folded into the HIGH bits of the 32-bit `entropy`
+    /// field. `machine_id_bits == 0` (the default) means "no machine id" — the
+    /// entropy field is fully random, exactly as upstream scru128.
+    ///
+    /// WHY: scru128 is 128 bits, fully allocated (timestamp 48 + counter_hi 24 +
+    /// counter_lo 24 + entropy 32). To make ids machine-attributable WITHOUT
+    /// growing past 128 bits or disturbing monotonic ordering, we carve the
+    /// machine id out of the `entropy` field's high bits — entropy is the least
+    /// significant field, so ordering (timestamp → counter_hi → counter_lo →
+    /// entropy) is still established by the timestamp+counter before entropy is
+    /// ever compared, and per-id uniqueness is preserved by the remaining random
+    /// low bits.
+    machine_id: u32,
+    /// How many high bits of `entropy` are reserved for `machine_id` (0..=32).
+    machine_id_bits: u8,
 }
 
 impl<R, T> Generator<R, T> {
@@ -75,6 +91,8 @@ impl<R, T> Generator<R, T> {
             rand_source,
             time_source,
             rollback_allowance: 10_000,
+            machine_id: 0,
+            machine_id_bits: 0,
         }
     }
 
@@ -87,6 +105,53 @@ impl<R, T> Generator<R, T> {
             panic!("`rollback_allowance` out of reasonable range");
         }
         self.rollback_allowance = rollback_allowance;
+    }
+
+    /// Reserve the top `bits` of the 32-bit `entropy` field for a machine/node id.
+    ///
+    /// Every generated id then carries `machine_id` (masked to `bits`) in the
+    /// high `bits` of its entropy field, with the remaining `32 - bits` filled
+    /// randomly per id. This keeps ids monotonic (the machine id sits in the
+    /// least-significant field, below timestamp+counter) AND machine-attributable.
+    ///
+    /// `bits == 0` disables the feature (fully random entropy, upstream behaviour).
+    ///
+    /// # Panics
+    ///
+    /// Panics if `bits > 32`.
+    pub fn set_machine_id(&mut self, machine_id: u32, bits: u8) {
+        assert!(bits <= 32, "`bits` must be in 0..=32 (entropy is 32-bit)");
+        self.machine_id_bits = bits;
+        // Mask the machine id to the reserved width so callers can't overflow it.
+        self.machine_id = if bits == 0 {
+            0
+        } else if bits == 32 {
+            machine_id
+        } else {
+            machine_id & ((1u32 << bits) - 1)
+        };
+    }
+
+    /// Builder form of [`set_machine_id`](Self::set_machine_id).
+    #[must_use]
+    pub fn with_machine_id(mut self, machine_id: u32, bits: u8) -> Self {
+        self.set_machine_id(machine_id, bits);
+        self
+    }
+
+    /// Compose the 32-bit entropy field: `machine_id` in the high `machine_id_bits`,
+    /// `random` in the remaining low bits. With `machine_id_bits == 0` this is just
+    /// `random` (upstream behaviour).
+    fn entropy_with_machine_id(&self, random: u32) -> u32 {
+        match self.machine_id_bits {
+            0 => random,
+            32 => self.machine_id,
+            bits => {
+                let low_bits = 32 - bits;
+                let low_mask = (1u32 << low_bits) - 1;
+                (self.machine_id << low_bits) | (random & low_mask)
+            }
+        }
     }
 
     /// Resets the internal state of the generator.
@@ -175,15 +240,24 @@ impl<R: RandSource, T> Generator<R, T> {
             self.counter_hi = self.rand_source.next_u32() & MAX_COUNTER_HI;
         }
 
+        let random = self.rand_source.next_u32();
+        let entropy = self.entropy_with_machine_id(random);
         Some(
-            Id::try_from_fields(
-                self.timestamp,
-                self.counter_hi,
-                self.counter_lo,
-                self.rand_source.next_u32(),
-            )
-            .unwrap(),
+            Id::try_from_fields(self.timestamp, self.counter_hi, self.counter_lo, entropy)
+                .unwrap(),
         )
+    }
+
+    /// Extract the machine id from an id generated with `machine_id_bits` reserved.
+    /// Returns the high `machine_id_bits` of the entropy field. Returns 0 if no
+    /// machine id is configured.
+    #[must_use]
+    pub fn machine_id_of(&self, id: &Id) -> u32 {
+        match self.machine_id_bits {
+            0 => 0,
+            32 => id.entropy(),
+            bits => id.entropy() >> (32 - bits),
+        }
     }
 }
 

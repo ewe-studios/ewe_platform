@@ -376,7 +376,7 @@ mod tests {
 
         let messages = vec![
             Messages::User {
-                role: "user".to_string(),
+                role: crate::types::MessageRole::User,
                 content: UserModelContent::Text(TextContent {
                     content: "Hello, world!".to_string(),
                     signature: None,
@@ -420,7 +420,7 @@ mod tests {
         use crate::types::{ImageContent, MimeType, UserModelContent};
 
         let messages = vec![Messages::User {
-            role: "user".to_string(),
+            role: crate::types::MessageRole::User,
             content: UserModelContent::Image(ImageContent {
                 b64: "base64data".to_string(),
                 mime_type: MimeType::ImagePng,

@@ -44,3 +44,12 @@ is licensed under MIT OR Apache-2.0.
   - `global_gen`: replaces `reseeding_rng::StdReseedingRng` with our own
     `StdRng` + `SysRng` reseeding (removes external dep)
   - Dropped `with_rand09.rs` (deprecated rand 0.9 compat)
+  - **Machine-id extension (ours, not upstream):** `Generator` gained optional
+    machine/node id support — `with_machine_id`/`set_machine_id` reserve the high
+    N bits of the 32-bit `entropy` field for a node id (`machine_id_of` extracts
+    it). Because `entropy` is the least-significant field, ordering (timestamp →
+    counter_hi → counter_lo → entropy) is unaffected and ids stay strictly
+    monotonic. Convenience fns `new_scru128_with_machine_id`,
+    `scru128_from_name[_with_machine_id]` (deterministic, name-derived ids via
+    `stable_hash`), and `machine_id_of` build on it. Stays within the 128-bit
+    layout — no widening. (Added for spec-36 F01 `SessionId`.)
