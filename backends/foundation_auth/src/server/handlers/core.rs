@@ -215,7 +215,9 @@ impl IdpHandlerCore {
             return Err(IdpError::BadRequest("PKCE code_challenge required".into()));
         }
 
-        // TODO: Check session cookie → generate auth code if authenticated
+        // Session cookie check: F02 login handler creates the session cookie.
+        // When a valid session exists, generate an auth code and redirect.
+        // For now, always return login_required (F02 adds SessionService integration).
         let return_to = url;
         Ok(HandlerResponse::ok(serde_json::json!({
             "status": "login_required",
@@ -369,16 +371,8 @@ impl IdpHandlerCore {
             .and_then(|v| v.strip_prefix("Bearer "))
             .ok_or_else(|| IdpError::Unauthorized("Bearer token required".into()))?;
 
-        // Decode JWT claims
-        let parts: Vec<&str> = token.split('.').collect();
-        if parts.len() != 3 {
-            return Err(IdpError::Unauthorized("Invalid token format".into()));
-        }
-        use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-        let claims_bytes = URL_SAFE_NO_PAD.decode(parts[1])
-            .map_err(|_| IdpError::Unauthorized("Invalid token".into()))?;
-        let claims: serde_json::Value = serde_json::from_slice(&claims_bytes)
-            .map_err(|_| IdpError::Unauthorized("Invalid claims".into()))?;
+        let claims = self.token_service.verify_access_token(token)
+            .map_err(|_| IdpError::Unauthorized("Invalid or expired token".into()))?;
 
         let scope = claims.get("scope").and_then(|v| v.as_str()).unwrap_or("");
         if !scope.split_whitespace().any(|s| s == "openid") {
@@ -395,10 +389,27 @@ impl IdpHandlerCore {
     ) -> Result<HandlerResponse, IdpError> {
         let body = extract_body_text(&req.body);
         let pairs = parse_form_urlencoded(&body);
-        let _token = pairs.get("token")
+        let token = pairs.get("token")
             .ok_or_else(|| IdpError::BadRequest("Missing token".into()))?;
-        // TODO: integrate JwtVerifier
-        Ok(HandlerResponse::ok(serde_json::json!({ "active": false })))
+
+        match self.token_service.verify_access_token(token) {
+            Ok(claims) => {
+                let exp = claims.get("exp").and_then(|v| v.as_u64()).unwrap_or(0);
+                let iat = claims.get("iat").and_then(|v| v.as_u64()).unwrap_or(0);
+                let sub = claims.get("sub").and_then(|v| v.as_str()).unwrap_or("");
+                let client_id = claims.get("client_id").and_then(|v| v.as_str()).unwrap_or("");
+                let scope = claims.get("scope").and_then(|v| v.as_str()).unwrap_or("");
+                Ok(HandlerResponse::ok(serde_json::json!({
+                    "active": true,
+                    "sub": sub,
+                    "client_id": client_id,
+                    "scope": scope,
+                    "exp": exp,
+                    "iat": iat,
+                })))
+            }
+            Err(_) => Ok(HandlerResponse::ok(serde_json::json!({ "active": false }))),
+        }
     }
 
     pub async fn device_authorize(

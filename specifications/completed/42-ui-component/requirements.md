@@ -1,3 +1,15 @@
+---
+description: "foundation_ui_components — Headless, composable UI components over the spec-39 stack. 38 components (F1-F8) with 8 machinery modules (M1-M8), scoped-script JS delivery, data-attribute styling contract, vendored base-ui CSS."
+status: "complete"
+priority: "high"
+created: 2026-06-13
+updated: 2026-06-17
+author: "Main Agent"
+metadata:
+  version: "1.0"
+  estimated_effort: "large"
+---
+
 # Specification 42 — UI Components (foundation_wasm_ui way)
 
 Headless, composable UI components over the spec-39 stack — designed for our
