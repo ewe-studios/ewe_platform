@@ -268,6 +268,27 @@ pub fn find_user_by_email(
     Ok(Some(parse_user_row(&row)?))
 }
 
+/// Update a user's failed login attempts and lockout state.
+pub fn update_user_lockout(
+    store: &dyn QueryStore,
+    user_id: &str,
+    failed_attempts: u32,
+    locked_until: Option<i64>,
+) -> Result<(), StorageOpError> {
+    let sql = "UPDATE users SET failed_login_attempts = ?, locked_until = ?, updated_at = ? WHERE id = ?";
+    let now = chrono::Utc::now().timestamp_millis();
+    let locked = locked_until.unwrap_or(0);
+    store
+        .execute(sql, &[
+            DataValue::Integer(failed_attempts as i64),
+            DataValue::Integer(locked),
+            DataValue::Integer(now),
+            DataValue::Text(user_id.to_string()),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
 fn parse_user_row(row: &SqlRow) -> Result<User, StorageOpError> {
     let password_hash: String = row.get_by_name("password_hash").map_err(parse_err)?;
     let metadata: String = row.get_by_name("metadata").map_err(parse_err)?;

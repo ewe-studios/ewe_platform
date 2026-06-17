@@ -28,6 +28,10 @@ impl IdpServer {
         app.route::<ServeAdapter>(SimpleMethod::GET, &format!("{p}/userinfo"));
         app.route::<ServeAdapter>(SimpleMethod::POST, &format!("{p}/introspect"));
         app.route::<ServeAdapter>(SimpleMethod::POST, &format!("{p}/device/authorize"));
+        // F02 — auth endpoints (unified login, MFA, logout)
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/oidc/authorize");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/mfa");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/oidc/logout");
     }
 
     #[must_use]

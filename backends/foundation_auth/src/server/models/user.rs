@@ -44,6 +44,11 @@ impl User {
     pub fn is_deleted(&self) -> bool {
         self.deleted_at.is_some()
     }
+
+    #[must_use]
+    pub fn has_password(&self) -> bool {
+        self.password_hash.is_some()
+    }
 }
 
 #[cfg(test)]

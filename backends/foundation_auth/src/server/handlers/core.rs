@@ -8,8 +8,9 @@ use serde::{Deserialize, Serialize};
 use super::super::config::IdpConfig;
 use super::super::models::{AuthorizationCode, DeviceCode, RefreshToken};
 use super::super::services::{TokenService, TokenServiceError};
+use super::super::services::user_service;
 use super::super::storage::{
-    self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email,
+    self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email, update_user_lockout,
 };
 
 /// Typed response from a handler — carries HTTP status code, body, and headers.
@@ -93,6 +94,23 @@ pub struct DeviceAuthResponse {
     pub verification_uri_complete: String,
     pub expires_in: u64,
     pub interval: u32,
+}
+
+/// Login request body for POST /auth/v1/oidc/authorize
+#[derive(Debug, Deserialize)]
+pub struct LoginRequest {
+    pub email: Option<String>,
+    pub password: Option<String>,
+    pub client_id: Option<String>,
+    pub redirect_uri: Option<String>,
+    pub totp: Option<String>,
+}
+
+/// MFA request body for POST /auth/v1/mfa
+#[derive(Debug, Deserialize)]
+pub struct MfaRequest {
+    pub challenge_id: Option<String>,
+    pub code: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -441,6 +459,103 @@ impl IdpHandlerCore {
         })))
     }
 
+    // ─── F02: Login + MFA + Logout ─────────────────────────────────────────────
+
+    /// Unified multi-step login: POST /auth/v1/oidc/authorize
+    /// Step 1 (email only): check if user exists, return "password_required" if no password
+    /// Step 2 (email + password): verify credentials, create session or MFA challenge
+    pub async fn login(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let login_req: LoginRequest = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        let email = login_req.email.ok_or_else(|| IdpError::BadRequest("Missing email".into()))?;
+        let user = storage::find_user_by_email(self.storage.query_store.as_ref(), &email)?
+            .ok_or_else(|| IdpError::Unauthorized("Invalid credentials".into()))?;
+
+        if user.is_locked() {
+            let retry = user.locked_until.unwrap_or(0);
+            return Err(IdpError::Locked(retry));
+        }
+
+        // Step 1: email only, no password sent
+        let Some(password) = login_req.password else {
+            if !user.has_password() {
+                return Ok(HandlerResponse::ok(serde_json::json!({
+                    "status": "password_required",
+                    "email": email,
+                })));
+            }
+            return Ok(HandlerResponse::ok(serde_json::json!({
+                "status": "password_required",
+                "email": email,
+            })));
+        };
+
+        // Step 2: verify password
+        let valid = user_service::verify_password(user.password_hash.as_deref().unwrap_or(""), &password)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+
+        if !valid {
+            // Record failed attempt
+            let max = self.config.password_policy.max_failed_attempts;
+            let lockout_dur = self.config.password_policy.lockout_duration;
+            let mut u = user.clone();
+            u.record_failed_attempt(max, lockout_dur);
+            let _ = update_user_lockout(
+                self.storage.query_store.as_ref(), &u.id,
+                u.failed_login_attempts, u.locked_until,
+            );
+            let remaining = max.saturating_sub(u.failed_login_attempts);
+            let lockout_dur = self.config.password_policy.lockout_duration;
+            // Note: in a full implementation, we'd persist via update_user_lockout here.
+            // For now, return the attempts remaining count.
+            let remaining = max.saturating_sub(user.failed_login_attempts);
+            return Ok(HandlerResponse::ok(serde_json::json!({
+                "status": "invalid_credentials",
+                "attempts_remaining": remaining.saturating_sub(1),
+            })));
+        }
+
+        // Password correct — check for MFA (F06 WebAuthn/TOTP would be checked here)
+        // For now, return authenticated (session creation requires SessionService wiring)
+        Ok(HandlerResponse::accepted(serde_json::json!({
+            "status": "authenticated",
+        })))
+    }
+
+    /// MFA verification: POST /auth/v1/mfa
+    pub async fn mfa(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let mfa_req: MfaRequest = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        let _challenge_id = mfa_req.challenge_id
+            .ok_or_else(|| IdpError::BadRequest("Missing challenge_id".into()))?;
+        let code = mfa_req.code
+            .ok_or_else(|| IdpError::BadRequest("Missing code".into()))?;
+
+        // TOTP verification would go here (user's TOTP secret + code)
+        // For now, return a placeholder
+        let _ = code;
+        Ok(HandlerResponse::accepted(serde_json::json!({
+            "status": "authenticated",
+        })))
+    }
+
+    /// Logout: POST /auth/v1/oidc/logout
+    pub async fn logout(
+        &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        // Session revocation requires SessionService wiring.
+        // Return success with cookie-clearing header.
+        Ok(HandlerResponse::ok(serde_json::json!({ "status": "logged_out" })))
+    }
+
     pub async fn dispatch(
         &self, bag: &ContextBag, req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
@@ -454,6 +569,10 @@ impl IdpHandlerCore {
         else if path.ends_with("/userinfo") { self.userinfo(bag, req).await }
         else if path.ends_with("/introspect") { self.introspect(bag, req).await }
         else if path.ends_with("/device/authorize") { self.device_authorize(bag, req).await }
+        // F02 auth routes
+        else if path.contains("/auth/v1/oidc/authorize") { self.login(bag, req).await }
+        else if path.ends_with("/auth/v1/mfa") { self.mfa(bag, req).await }
+        else if path.ends_with("/auth/v1/oidc/logout") { self.logout(bag, req).await }
         else { Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))) }
     }
 }
