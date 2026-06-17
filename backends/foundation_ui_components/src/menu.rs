@@ -495,7 +495,7 @@ fn render_entry(
     }
 }
 /// Right-click handler: prevent the native menu, open ours.
-const CONTEXT_MENU_JS: &str = r#"function(scope){
+pub const CONTEXT_MENU_JS: &str = r#"function(scope){
   var root = scope.parent();
   if (!root || root.__cm) return; root.__cm = true;
   var surface = root.querySelector('[data-cm-surface]');

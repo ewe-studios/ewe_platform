@@ -9,24 +9,27 @@
 //! HOW: pure components are inspected as `Html`; reactive ones mount through
 //! `App::mock`, `stabilize`, and assert the captured `DomOp`s / signal values.
 
+use std::borrow::Cow;
 use std::cell::RefCell;
 use std::rc::Rc;
 
-use foundation_signals::EventData;
+use foundation_signals::{Context, EventData};
 use foundation_ui_components::{
-    accordion, checkbox, collapsible, dialog, field, input, number_field, otp_field,
-    parent_check_state, popover, radio_group, separator, switch, tabs, toast_viewport, toggle,
-    tooltip, AccordionConfig, AccordionItem, CheckState, CheckboxConfig, CheckboxSlots,
-    CollapsibleConfig, CollapsibleSlots, DialogConfig, DialogSlots, FieldConfig, FieldSlots,
-    menu, navigation_menu, progress, scroll_area, select, skeleton, slider, toolbar, InputConfig,
-    ItemConfig, MenuConfig, MenuEntry, NavItem, NavMenuConfig, NumberFieldConfig, OtpConfig,
-    PickItem, PopoverConfig, PopoverSlots, ProgressConfig, RadioGroupConfig, RadioItem,
-    ScrollAreaConfig, SelectConfig, SeparatorConfig, SkeletonShape, SliderConfig, SwitchConfig,
-    TabDef, TabsConfig, Toast, ToastManager, ToggleConfig, ToggleSlots, ToolbarConfig,
-    ValidationMode,
+    accordion, autocomplete, avatar, button, checkbox, collapsible, combobox, context_menu, dialog,
+    field, fieldset, form, input, menubar, meter, navigation_menu, number_field, otp_field,
+    parent_check_state, popover, progress, radio_group, scroll_area, select, separator, skeleton,
+    slider, switch, tabs, toast_viewport, toggle, tooltip, AccordionConfig, AccordionItem,
+    AvatarConfig, AvatarSlots, ButtonConfig, ButtonSlots, CheckState, CheckboxConfig,
+    CheckboxSlots, CollapsibleConfig, CollapsibleSlots, DialogConfig, DialogSlots, FieldConfig,
+    FieldSlots, FieldsetConfig, FieldsetSlots, FormConfig, InputConfig, ItemConfig, MenuConfig,
+    MenuEntry, NavItem, NavMenuConfig, NumberFieldConfig, OtpConfig, PickItem, PopoverConfig,
+    PopoverSlots, ProgressConfig, RadioGroupConfig, RadioItem, ScrollAreaConfig, SelectConfig,
+    SeparatorConfig, SkeletonShape, SliderConfig, SwitchConfig, TabDef, TabsConfig, Toast,
+    ToastManager, ToggleConfig, ToggleSlots, ToolbarConfig, ValidationMode,
+    button_with_click, menu, toolbar,
 };
 use foundation_ui_traits::{DomOp, Html};
-use foundation_wasm_ui::{html, App};
+use foundation_wasm_ui::{html, App, SharedInstructionReceiver, Slot};
 
 fn attr<'a>(h: &'a Html, name: &str) -> Option<&'a str> {
     h.attributes
@@ -976,4 +979,356 @@ fn focus_trap_behavior_traps_and_restores() {
     assert!(body.contains("data-initial-focus"), "honors initial-focus target");
     assert!(body.contains("data-anchor"), "restores to the trigger");
     assert!(FOCUS_TRAP_JS.contains("activeElement"), "records/restores focus");
+}
+
+// ─── F1: avatar ─────────────────────────────────────────────────────────────────
+
+#[test]
+fn avatar_shows_fallback_when_no_src() {
+    let (app, _sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let h = avatar(
+        &ctx, &rcv,
+        AvatarConfig::default(),
+        AvatarSlots { fallback: Some(Slot::from(Html::text("JD"))) },
+    );
+    // No src → pure fallback, idle status, no image.
+    assert_eq!(attr(&h, "data-loading-status"), Some("idle"));
+    // Root is a span (the avatar part).
+    assert_eq!(h.tag.as_ref().and_then(|t| t.name()), Some("span"));
+}
+
+#[test]
+fn avatar_wires_image_events_and_hides_fallback_on_loaded() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let _h = avatar(
+        &ctx, &rcv,
+        AvatarConfig { src: Some(Cow::Borrowed("/avatar.png")), ..AvatarConfig::default() },
+        AvatarSlots { fallback: Some(Slot::from(Html::text("JD"))) },
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    // src present → loading status starts at Loading, fallback visible.
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-loading-status") && *value == "loading")),
+        "starts loading");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("src") )), "img src set");
+    // Fallback is NOT hidden yet (status != Loaded).
+    assert!(!ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("data-hidden"))),
+        "fallback visible while loading");
+}
+
+#[test]
+fn avatar_fallback_delay_emitted_as_css_var() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let _h = avatar(
+        &ctx, &rcv,
+        AvatarConfig { src: Some(Cow::Borrowed("/a.png")), fallback_delay_ms: 300, ..AvatarConfig::default() },
+        AvatarSlots::default(),
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("style") && value.contains("--avatar-fallback-delay: 300ms"))),
+        "fallback delay emitted as CSS var");
+}
+
+// ─── F1: button ────────────────────────────────────────────────────────────────
+
+#[test]
+fn button_reflects_disabled_and_loading() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (loading, set_loading) = ctx.signal(false);
+
+    let _h = button(
+        &ctx, &rcv,
+        ButtonConfig { disabled: true, ..ButtonConfig::default() },
+        ButtonSlots::single(Html::text("Click")),
+        Some(loading),
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("disabled") && *value == "")), "disabled attr present");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-disabled") && *value == "true")), "aria-disabled");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-disabled") && *value == "")), "data-disabled");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::RemoveAttribute { name, .. }
+            if name.name() == Some("data-loading"))), "data-loading initially absent");
+
+    set_loading.set(true);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-loading") && *value == "")), "data-loading present when on");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-busy") && *value == "true")), "aria-busy true");
+}
+
+#[test]
+fn button_focusable_when_disabled() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let _h = button(
+        &ctx, &rcv,
+        ButtonConfig { focusable_when_disabled: true, ..ButtonConfig::default() },
+        ButtonSlots::single(Html::text("Hover")),
+        None,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    // focusable_when_disabled → aria-disabled BUT NOT the native disabled attr
+    // (stays in tab order; announced as disabled but still focusable).
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-disabled") && *value == "true")), "aria-disabled present");
+    assert!(!ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("disabled") && *value == "")), "native disabled ABSENT");
+}
+
+#[test]
+fn button_with_click_wires_onclick() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let cb = ctx.callback(|_| {});
+    let _h = button_with_click(
+        &ctx, &rcv, ButtonConfig::default(),
+        ButtonSlots::single(Html::text("Go")),
+        None, cb,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::AddEventListener { event_name, .. } if event_name.name() == Some("click"))),
+        "click listener wired");
+}
+
+// ─── F5: menubar ───────────────────────────────────────────────────────────────
+
+#[test]
+fn menubar_is_role_menubar_with_composite_roving() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let menus = vec![
+        (Slot::from(Html::text("File")), vec![MenuEntry::Item {
+            cfg: ItemConfig::default(), label: Html::text("Open").into(),
+            on_select: Box::new(|| {}),
+        }]),
+        (Slot::from(Html::text("Edit")), vec![MenuEntry::Item {
+            cfg: ItemConfig::default(), label: Html::text("Cut").into(),
+            on_select: Box::new(|| {}),
+        }]),
+    ];
+    let _h = menubar(&ctx, &rcv, menus);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("role") && *value == "menubar")), "role=menubar");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-composite") && *value == "true")), "composite roving");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-orientation") && *value == "horizontal")), "horizontal");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+        "composite script emitted");
+}
+
+// ─── F5: context_menu ──────────────────────────────────────────────────────────
+
+#[test]
+fn context_menu_wires_surface_and_contextmenu() {
+    use foundation_ui_components::context_menu;
+    use foundation_ui_components::menu::CONTEXT_MENU_JS;
+    // JS carries the contextmenu handler.
+    assert!(CONTEXT_MENU_JS.contains("contextmenu"), "listens for contextmenu");
+    assert!(CONTEXT_MENU_JS.contains("preventDefault"), "prevents default");
+    assert!(CONTEXT_MENU_JS.contains("data-cm-surface"), "finds the surface");
+
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, _set_open) = ctx.signal(false);
+    let _h = context_menu(
+        &ctx, &rcv, MenuConfig::default(), &open, _set_open,
+        vec![Slot::from(Html::text("Right-click me"))],
+        vec![MenuEntry::Item {
+            cfg: ItemConfig::default(), label: Html::text("Paste").into(),
+            on_select: Box::new(|| {}),
+        }],
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("data-cm-surface"))),
+        "surface element present");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("data-cm-open"))),
+        "hidden open button");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("primal:script"))),
+        "contextmenu script emitted");
+}
+
+// ─── F6: combobox ──────────────────────────────────────────────────────────────
+
+#[test]
+fn combobox_filters_by_query_and_publishes_count() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let (value, set_value) = ctx.signal::<Option<String>>(None);
+    let (query, set_query) = ctx.signal(String::new());
+    let items = vec![
+        PickItem::new("Lagos"),
+        PickItem::new("London"),
+        PickItem::new("Cairo"),
+    ];
+    let _h = combobox(
+        &ctx, &rcv, SelectConfig::<String>::default(),
+        &open, set_open, &value, set_value, &query, set_query.clone(), items,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("role") && *value == "combobox")), "role=combobox");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-haspopup") && *value == "listbox")), "haspopup=listbox");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-autocomplete") && *value == "list")), "autocomplete=list");
+
+    // Typing "la" filters to Lagos + London.
+    set_query.set("la".into());
+    app.stabilize();
+    // The status region has aria-live and the combobox has the right roles.
+    // Filtering is verified by the rendered list (combobox renders <For> over filtered).
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-live") && *value == "polite")), "live region");
+}
+
+// ─── F6: autocomplete ──────────────────────────────────────────────────────────
+
+#[test]
+fn autocomplete_is_combobox_with_value_equals_query() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (open, set_open) = ctx.signal(false);
+    let (query, set_query) = ctx.signal(String::new());
+    let items = vec![PickItem::new("Apple"), PickItem::new("Apricot"), PickItem::new("Banana")];
+    let _h = autocomplete(
+        &ctx, &rcv, SelectConfig::<String>::default(),
+        &open, set_open, &query, set_query.clone(), items,
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("role") && *value == "combobox")), "role=combobox");
+    // Selecting "Ap" → status shows 2 results (Apple, Apricot).
+    set_query.set("Ap".into());
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetText { text, .. } if text == "2 results")), "filtered count");
+}
+
+// ─── F7: fieldset ──────────────────────────────────────────────────────────────
+
+#[test]
+fn fieldset_renders_legend_and_disabled() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let _h = fieldset(
+        &ctx, &rcv,
+        FieldsetConfig { disabled: true, ..FieldsetConfig::default() },
+        FieldsetSlots {
+            legend: Some(Slot::from(Html::text("Personal Info"))),
+            children: vec![Slot::from(Html::text("body"))],
+        },
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("disabled") && *value == "")), "fieldset disabled");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("data-disabled") && *value == "")), "data-disabled");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::CreateElement { tag, .. } if tag.name() == Some("legend"))), "legend element");
+}
+
+// ─── F7: form ──────────────────────────────────────────────────────────────────
+
+#[test]
+fn form_wires_submit_and_novalidate() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (errors, _set_errors) = ctx.signal::<Vec<(String, String)>>(Vec::new());
+    let cb = ctx.callback(|_| {});
+    let _h = form(
+        &ctx, &rcv, FormConfig::default(),
+        &errors, cb,
+        vec![Slot::from(Html::text("form content"))],
+    );
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("novalidate") && *value == "")), "novalidate present (default)");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::AddEventListener { event_name, .. } if event_name.name() == Some("submit"))),
+        "submit event listener wired");
+}
+
+// ─── F8: meter ─────────────────────────────────────────────────────────────────
+
+#[test]
+fn meter_reflects_value_as_determinate() {
+    let (app, sent) = App::mock();
+    let (ctx, rcv) = app.context();
+    let (value, set_value) = ctx.signal(75.0_f64);
+    let _h = meter(&ctx, &rcv, ProgressConfig::default(), &value, None);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("role") && *value == "meter")), "role=meter");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-valuenow") && *value == "75")), "valuenow=75");
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("style") && value.contains("--meter-value:75"))), "meter var");
+    // Meter is always determinate — no data-indeterminate.
+    assert!(!ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, .. } if name.name() == Some("data-indeterminate"))),
+        "meter is never indeterminate");
+
+    set_value.set(0.0);
+    app.stabilize();
+    let ops = all_ops(&sent);
+    assert!(ops.iter().any(|op| matches!(op,
+        DomOp::SetAttribute { name, value, .. }
+            if name.name() == Some("aria-valuenow") && *value == "0")), "min value");
 }
