@@ -14,7 +14,7 @@ fn init_pool() -> PoolGuard {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn error_not_found_propagated() {
@@ -26,7 +26,7 @@ fn error_not_found_propagated() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn error_already_exists_propagated() {
@@ -43,7 +43,7 @@ fn error_already_exists_propagated() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn error_not_a_file_propagated() {
@@ -59,7 +59,7 @@ fn error_not_a_file_propagated() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn error_not_a_directory_propagated() {
@@ -76,7 +76,7 @@ fn error_not_a_directory_propagated() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn error_directory_not_empty_propagated() {
@@ -91,7 +91,7 @@ fn error_directory_not_empty_propagated() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn error_cannot_remove_root() {
@@ -106,7 +106,7 @@ fn error_cannot_remove_root() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn error_path_traversal_rejected() {
@@ -123,7 +123,7 @@ fn error_path_traversal_rejected() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn error_stack_trace_preserved() {
@@ -135,7 +135,7 @@ fn error_stack_trace_preserved() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn pool_guard_dropped_cleanly() {

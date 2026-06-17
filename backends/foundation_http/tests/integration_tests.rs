@@ -237,7 +237,7 @@ fn status_code(status: &Status) -> u16 {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_static_route_get() {
     let _guard = initialize_pool(42, Some(5));
@@ -275,7 +275,7 @@ fn test_static_route_get() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_static_route_post() {
     let _guard = initialize_pool(42, Some(5));
@@ -310,7 +310,7 @@ fn test_static_route_post() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_param_route() {
     let _guard = initialize_pool(42, Some(5));
@@ -345,7 +345,7 @@ fn test_param_route() {
 
 #[test]
 #[serial(http_test)]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[traced_test]
 fn test_nested_param_route() {
     let _guard = initialize_pool(42, Some(5));
@@ -380,7 +380,7 @@ fn test_nested_param_route() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_wildcard_route() {
     let _guard = initialize_pool(42, Some(5));
@@ -417,7 +417,7 @@ fn test_wildcard_route() {
 /// route_any matches all HTTP methods on the same path.
 
 #[test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[traced_test]
 #[serial(http_test)]
 fn test_route_any_matches_all_methods() {
@@ -477,7 +477,7 @@ fn test_route_any_matches_all_methods() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_root_route() {
     let _guard = initialize_pool(42, Some(5));
@@ -507,7 +507,7 @@ fn test_root_route() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_not_found() {
     let _guard = initialize_pool(42, Some(5));
@@ -534,7 +534,7 @@ fn test_not_found() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_method_mismatch_returns_not_found() {
     let _guard = initialize_pool(42, Some(5));
@@ -564,7 +564,7 @@ fn test_method_mismatch_returns_not_found() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_post_with_text_body() {
     let _guard = initialize_pool(42, Some(5));
@@ -592,7 +592,7 @@ fn test_post_with_text_body() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_post_with_json_body() {
     let _guard = initialize_pool(42, Some(5));
@@ -629,7 +629,7 @@ fn test_post_with_json_body() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_query_string_preserved() {
     let _guard = initialize_pool(42, Some(5));
@@ -665,7 +665,7 @@ fn test_query_string_preserved() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_middleware_runs_before_handler() {
     let _guard = initialize_pool(42, Some(5));
@@ -712,7 +712,7 @@ fn test_middleware_runs_before_handler() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_middleware_blocks_request() {
     let _guard = initialize_pool(42, Some(5));
@@ -742,7 +742,7 @@ fn test_middleware_blocks_request() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_multiple_middleware_chain() {
     let _guard = initialize_pool(42, Some(5));
@@ -780,7 +780,7 @@ fn test_multiple_middleware_chain() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_multiple_routes_same_app() {
     let _guard = initialize_pool(42, Some(5));
@@ -871,7 +871,7 @@ impl Serve for SlowHandler {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_valtron_multiplex_concurrent_connections() {
     // Pool of 3 = 2 valtron workers + 1 background thread.
@@ -956,7 +956,7 @@ fn test_valtron_multiplex_concurrent_connections() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_multiple_sequential_requests() {
     let _guard = initialize_pool(42, Some(5));
@@ -1014,7 +1014,7 @@ fn test_custom_request_header() {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_head_request() {
     let _guard = initialize_pool(42, Some(5));
@@ -1042,7 +1042,7 @@ fn test_head_request() {
 
 #[test]
 #[serial(http_test)]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[traced_test]
 fn test_delete_request() {
     let _guard = initialize_pool(42, Some(5));
@@ -1071,7 +1071,7 @@ fn test_delete_request() {
 // Unit-style tests that don't need a running server (kept from original).
 
 #[test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 fn test_http_app_builder() {
     let app = HttpApp::new();
     app.context().store("test_config".to_string());
@@ -1082,7 +1082,7 @@ fn test_http_app_builder() {
 }
 
 #[test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 fn test_server_config_defaults() {
     let config = ServerConfig::defaults();
     assert_eq!(config.would_block_sleep(), Duration::from_millis(15)); // base sleep from calculator
@@ -1115,7 +1115,7 @@ fn test_server_config_builder() {
 }
 
 #[test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 fn test_context_store_multiple_types() {
     let app = HttpApp::new();
     app.context().store(42u32);
@@ -1165,7 +1165,7 @@ impl Serve for WsEchoHandler {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_websocket_upgrade() {
     let _guard = initialize_pool(42, Some(5));
@@ -1278,7 +1278,7 @@ impl Serve for SseCounterHandler {
 
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_sse_streaming() {
     let _guard = initialize_pool(42, Some(5));
@@ -1338,7 +1338,7 @@ fn test_sse_streaming() {
 /// SSE event format verification test.
 
 #[test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 fn test_sse_event_formatting() {
     // Test SseEvent builder
     let event = SseEvent::new()
@@ -1406,7 +1406,7 @@ impl Serve for ExpectContinueEchoHandler {
 /// with 100 Continue then reads the body and echoes it back.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_expect_100_continue_body_echo() {
     let _guard = initialize_pool(42, Some(5));
@@ -1445,7 +1445,7 @@ fn test_expect_100_continue_body_echo() {
 /// works with structured content.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_expect_100_continue_json_body() {
     let _guard = initialize_pool(42, Some(5));
@@ -1484,7 +1484,7 @@ fn test_expect_100_continue_json_body() {
 /// sending 100 Continue and respond normally.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_expect_100_continue_get_no_body() {
     let _guard = initialize_pool(42, Some(5));
@@ -1515,7 +1515,7 @@ fn test_expect_100_continue_get_no_body() {
 /// should detect zero body and skip WaitingForBody, going straight to Processing.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_expect_100_continue_zero_content_length() {
     let _guard = initialize_pool(42, Some(5));
@@ -1615,7 +1615,7 @@ impl Serve for AfterInterimHandler {
 /// The final response should still come from the handler.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_interim_response_continues_to_handler() {
     let _guard = initialize_pool(42, Some(5));
@@ -1667,7 +1667,7 @@ fn test_interim_response_continues_to_handler() {
 /// handler runs — verifying InterimResponse doesn't break the chain.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_interim_response_with_subsequent_middleware() {
     let _guard = initialize_pool(42, Some(5));
@@ -1716,7 +1716,7 @@ fn test_interim_response_with_subsequent_middleware() {
 /// short-circuits — handler should NOT run.
 #[test]
 #[traced_test]
-#[ntest::timeout(60000)]
+#[foundation_macros::timeout(60000)]
 #[serial(http_test)]
 fn test_interim_response_then_blocker() {
     let _guard = initialize_pool(42, Some(5));

@@ -50,7 +50,7 @@ impl Drop for TempFile {
 // ── Seekable File Concurrency ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn seekable_shared_cursor() {
@@ -84,7 +84,7 @@ fn seekable_shared_cursor() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn seekable_concurrent_reads() {
@@ -121,7 +121,7 @@ fn seekable_concurrent_reads() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn seekable_write_position_tracking() {
@@ -148,7 +148,7 @@ fn seekable_write_position_tracking() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn seekable_no_panic_under_concurrency() {

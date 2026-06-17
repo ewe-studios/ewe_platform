@@ -41,7 +41,7 @@ where
 // ── AsyncVfsFileSystem via Valtron ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn async_memoryfs_via_valtron() {
@@ -70,7 +70,7 @@ fn async_memoryfs_via_valtron() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn async_memoryfs_write_via_valtron() {
@@ -98,7 +98,7 @@ fn async_memoryfs_write_via_valtron() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn async_memoryfs_open_via_valtron() {
@@ -124,7 +124,7 @@ fn async_memoryfs_open_via_valtron() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn async_memoryfs_directory_via_valtron() {
@@ -152,7 +152,7 @@ fn async_memoryfs_directory_via_valtron() {
 // ── AsyncDeltaStore via Valtron ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn async_memorydelta_whiteout_via_valtron() {
@@ -183,7 +183,7 @@ fn async_memorydelta_whiteout_via_valtron() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn async_memorydelta_reset_via_valtron() {
@@ -214,7 +214,7 @@ fn async_memorydelta_reset_via_valtron() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn async_memorydelta_flush_via_valtron() {

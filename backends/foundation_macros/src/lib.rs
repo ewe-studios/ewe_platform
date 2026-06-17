@@ -548,6 +548,61 @@ pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()
 }
 
+/// `#[timeout(ms)]` — kills the test if it exceeds the given millisecond limit.
+/// Spawns the test body in a thread and waits with `recv_timeout`. On timeout,
+/// panics with a message showing actual vs allowed duration.
+///
+/// ```ignore
+/// #[timeout(60000)]
+/// fn test_slow_operation() {
+///     // panics if this takes more than 60 seconds
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn timeout(attr: TokenStream, item: TokenStream) -> TokenStream {
+    use quote::quote;
+
+    let input = syn::parse_macro_input!(item as syn::ItemFn);
+    let time_ms: syn::LitInt = syn::parse(attr).unwrap_or_else(|_| {
+        panic!("timeout: integer in ms expected. Example: #[timeout(60000)]")
+    });
+    let vis = &input.vis;
+    let sig = &input.sig;
+    let output = &sig.output;
+    let body = &input.block;
+    let attrs = &input.attrs;
+
+    let result = quote! {
+        #(#attrs)*
+        #vis #sig {
+            fn __timeout_callback() #output
+            #body
+            let __timeout_start = std::time::Instant::now();
+            type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
+            let (sender, receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
+            std::thread::spawn(move || {
+                let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    __timeout_callback()
+                }));
+                let _ = sender.send(panic_result);
+            });
+            match receiver.recv_timeout(std::time::Duration::from_millis(#time_ms)) {
+                std::result::Result::Ok(std::result::Result::Ok(t)) => return t,
+                std::result::Result::Ok(std::result::Result::Err(payload)) => {
+                    std::panic::resume_unwind(payload);
+                },
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                    panic!("timeout: the test took {} ms. Max {} ms", __timeout_start.elapsed().as_millis(), #time_ms);
+                },
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    panic!("timeout: test thread disconnected unexpectedly");
+                },
+            }
+        }
+    };
+    result.into()
+}
+
 /// `#[wasm_ui_server]` — wrap a fn into a `#[test]` that boots a `TestServer` +
 /// browser, navigates a page, runs the body, and tears everything down on
 /// success/error/panic (spec-43). Re-exported by `foundation_browser`.

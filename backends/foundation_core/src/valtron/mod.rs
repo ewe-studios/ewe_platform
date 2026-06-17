@@ -19,7 +19,7 @@ pub mod multi_iterator;
 // path: `use foundation_core::valtron::{valtron_test, initialize_pool, spawn};`.
 // Their expansions call `foundation_core::valtron::initialize_pool` and hold the
 // returned PoolGuard until the wrapped fn exits (tokio-main style).
-pub use foundation_macros::{valtron, valtron_test};
+pub use foundation_macros::{timeout, valtron, valtron_test};
 
 pub use branches::*;
 pub use drain::*;

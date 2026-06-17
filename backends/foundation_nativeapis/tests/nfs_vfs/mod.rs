@@ -60,7 +60,7 @@ fn test_nfs_id_to_fh_to_id() {
 // ── Async Tests through valtron ──
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn test_nfs_getattr_root() {
@@ -76,7 +76,7 @@ fn test_nfs_getattr_root() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn test_nfs_fsinfo() {
@@ -93,7 +93,7 @@ fn test_nfs_fsinfo() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn test_nfs_create_and_write() {
@@ -122,7 +122,7 @@ fn test_nfs_create_and_write() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn test_nfs_path_to_id() {
@@ -144,7 +144,7 @@ fn test_nfs_path_to_id() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn test_nfs_readdir_root() {
@@ -168,7 +168,7 @@ fn test_nfs_readdir_root() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn test_nfs_symlink() {
@@ -185,7 +185,7 @@ fn test_nfs_symlink() {
 }
 
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn test_nfs_remove_file() {

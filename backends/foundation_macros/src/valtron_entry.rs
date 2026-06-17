@@ -110,10 +110,11 @@ use crate::crate_paths::foundation_core_path;
 struct Args {
     seed: Option<syn::Expr>,
     threads: Option<syn::Expr>,
+    timeout: Option<syn::Expr>,
 }
 
 /// Argument grammar: a comma-separated list of `name = expr` pairs, where name ∈
-/// {`seed`, `threads`}. A newtype because `Punctuated` doesn't implement `Parse`.
+/// {`seed`, `threads`, `timeout`}. A newtype because `Punctuated` doesn't implement `Parse`.
 struct ArgList(syn::punctuated::Punctuated<syn::MetaNameValue, syn::Token![,]>);
 
 impl syn::parse::Parse for ArgList {
@@ -130,7 +131,7 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
     let ArgList(pairs) = syn::parse2::<ArgList>(attr).map_err(|err| {
         syn::Error::new(
             err.span(),
-            "expected `seed = <u64 expr>` and/or `threads = <usize expr>`",
+            "expected `seed = <u64 expr>`, `threads = <usize expr>`, and/or `timeout = <ms expr>`",
         )
     })?;
     for pair in pairs {
@@ -142,10 +143,11 @@ fn parse_args(attr: TokenStream) -> Result<Args, syn::Error> {
         match name.as_str() {
             "seed" => args.seed = Some(pair.value),
             "threads" => args.threads = Some(pair.value),
+            "timeout" => args.timeout = Some(pair.value),
             other => {
                 return Err(syn::Error::new_spanned(
                     &pair.path,
-                    format!("unknown argument `{other}` (expected `seed` or `threads`)"),
+                    format!("unknown argument `{other}` (expected `seed`, `threads`, or `timeout`)"),
                 ))
             }
         }
@@ -234,10 +236,44 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         quote! {}
     };
 
-    quote! {
-        #test_attr
-        #(#attrs)*
-        #vis #sig {
+    // Timeout: only when explicitly set — spawn the inner fn in a thread and
+    // wait with recv_timeout. Without timeout, direct call (no thread overhead).
+    let body_with_timeout = if let Some(timeout_ms) = &args.timeout {
+        quote! {
+            // The original body as an inner fn: `return`/`?` keep their exact
+            // meaning (they exit THIS fn), unlike a closure wrapper.
+            #[allow(clippy::items_after_statements)]
+            fn #inner() #output #block
+
+            let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
+            let __timeout_start = std::time::Instant::now();
+            type __PanicPayload = std::boxed::Box<dyn std::any::Any + std::marker::Send + 'static>;
+            let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
+            std::thread::spawn(move || {
+                let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                    #inner()
+                }));
+                let _ = __sender.send(panic_result);
+            });
+            match __receiver.recv_timeout(std::time::Duration::from_millis(#timeout_ms)) {
+                std::result::Result::Ok(std::result::Result::Ok(t)) => {
+                    ::core::mem::drop(__valtron_guard);
+                    t
+                },
+                std::result::Result::Ok(std::result::Result::Err(payload)) => {
+                    ::core::mem::drop(__valtron_guard);
+                    std::panic::resume_unwind(payload);
+                },
+                Err(std::sync::mpsc::RecvTimeoutError::Timeout) => {
+                    panic!("timeout: the test took {} ms. Max {} ms", __timeout_start.elapsed().as_millis(), #timeout_ms);
+                },
+                Err(std::sync::mpsc::RecvTimeoutError::Disconnected) => {
+                    panic!("timeout: test thread disconnected unexpectedly");
+                },
+            }
+        }
+    } else {
+        quote! {
             // The original body as an inner fn: `return`/`?` keep their exact
             // meaning (they exit THIS fn), unlike a closure wrapper.
             #[allow(clippy::items_after_statements)]
@@ -254,6 +290,14 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             // shutdown ordering is visible rather than implied by scope.
             ::core::mem::drop(__valtron_guard);
             __valtron_out
+        }
+    };
+
+    quote! {
+        #test_attr
+        #(#attrs)*
+        #vis #sig {
+            #body_with_timeout
         }
     }
 }

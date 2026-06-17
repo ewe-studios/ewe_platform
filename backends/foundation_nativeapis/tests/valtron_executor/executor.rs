@@ -64,7 +64,7 @@ fn init_pool() -> PoolGuard {
 /// Test: FileWatcherTask executes through valtron and produces Stream::Next events.
 /// Uses collect_one to grab the first event then stop — no infinite blocking.
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_valtron_execution() {
@@ -102,7 +102,7 @@ fn file_watcher_task_valtron_execution() {
 
 /// Test: FdMonitorTask executes through valtron and invokes callback
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn fd_monitor_task_valtron_execution() {
@@ -164,7 +164,7 @@ fn fd_monitor_task_valtron_execution() {
 
 /// Test: FileWatcherTask with multiple subscribers — all receive events
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_multi_subscriber_valtron() {
@@ -203,7 +203,7 @@ fn file_watcher_task_multi_subscriber_valtron() {
 
 /// Test: EventBroadcaster delivers to multiple subscribers
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn event_broadcast_to_multiple_subscribers() {
@@ -223,7 +223,7 @@ fn event_broadcast_to_multiple_subscribers() {
 
 /// Test: EventBroadcaster cleans up dead subscribers on broadcast
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn event_broadcast_cleans_up_dead_subscribers() {
@@ -242,7 +242,7 @@ fn event_broadcast_cleans_up_dead_subscribers() {
 
 /// Test: FileWatcherTask with PollWatcher delivers events to subscriber
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_delivers_events() {
@@ -280,7 +280,7 @@ fn file_watcher_task_delivers_events() {
 /// Test: FileWatcherTask with no watches — should not panic.
 /// Uses StopSignal to terminate the task after verifying no events.
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_handles_poll_error() {
@@ -306,7 +306,7 @@ fn file_watcher_task_handles_poll_error() {
 /// Test: FileWatcherTask with no subscribers works fine.
 /// Events are still produced — the subscriber list just stays empty.
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_no_subscribers() {
@@ -341,7 +341,7 @@ fn file_watcher_task_no_subscribers() {
 
 /// Test: FileWatcherTask unwatch works — no events after unwatching.
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_unwatch() {
@@ -387,7 +387,7 @@ fn file_watcher_task_unwatch() {
 /// Test: FileWatcherTask using InotifyWatcher (Linux only) — event-driven.
 #[cfg(target_os = "linux")]
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_inotify_execution() {
@@ -426,7 +426,7 @@ fn file_watcher_task_inotify_execution() {
 /// Test: InotifyWatcher with multiple subscribers — all receive events
 #[cfg(target_os = "linux")]
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_inotify_multi_subscriber() {
@@ -467,7 +467,7 @@ fn file_watcher_task_inotify_multi_subscriber() {
 /// Test: InotifyWatcher unwatch — no events after unwatching (Linux)
 #[cfg(target_os = "linux")]
 #[test]
-#[ntest::timeout(60_000)]
+#[foundation_macros::timeout(60_000)]
 #[serial_test::serial]
 #[tracing_test::traced_test]
 fn file_watcher_task_inotify_unwatch() {
