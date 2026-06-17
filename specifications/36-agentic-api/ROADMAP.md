@@ -40,6 +40,9 @@ re-numbering (see `discussion.md` §F for the rationale).
 
 ## Phase 2 — Real storage backends
 - `22-documentstore-vfs-fjall-index` — `FjallDocumentStore` (NDJSON + fjall index family).
+- `22b-documentstore-sql-async` — `AsyncSqlDocumentStore<Q: AsyncQueryStore>`: canonical async
+  `AsyncDocumentStore` for every SQL backend (Turso/Libsql/native+wasm D1) + native sync/async
+  conformance. Reused by F23 for D1.
 - `23-documentstore-cloudflare` — D1 (ordered) + R2 (large blobs); KV dropped (it's the Memory cache).
 
 ## Phase 3 — Retrieval / RAG enhancements (research-gated; paired with `foundation_docs`)
@@ -92,6 +95,7 @@ re-numbering (see `discussion.md` §F for the rationale).
 | 31 | 20 | agent-session-api |
 | 32 | 21 | testing-strategy |
 | 05 | 22 | documentstore-vfs-fjall-index |
+| 05b | 22b | documentstore-sql-async |
 | 06 | 23 | documentstore-cloudflare |
 | 08 | 24 | foundation-vectors-core |
 | 09 | 25 | foundation-vectors-ivf-hnsw |

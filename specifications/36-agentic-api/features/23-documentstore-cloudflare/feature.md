@@ -3,7 +3,7 @@ feature: "DocumentStore: Cloudflare D1 + KV (AsyncDocumentStore)"
 description: "Async-first AsyncDocumentStore for Cloudflare: D1 (SQLite, the primary ordered backend) + R2 for large document blobs (e.g. big Message-API records that don't fit SQLite), with KV as an optional best-effort key-value path. scan_from_async; the sync DocumentStore is a valtron wrapper over async. Completes the DocumentStore backend set for serverless/wasm"
 status: "pending"
 priority: "medium"
-depends_on: ["06-documentstore-trait-sql-memory"]
+depends_on: ["06-documentstore-trait-sql-memory", "22b-documentstore-sql-async"]
 estimated_effort: "large"
 created: 2026-06-14
 last_updated: 2026-06-14
@@ -53,10 +53,11 @@ tasks:
 
 > Implements Decision 13's Cloudflare backends **async-first** via the **`AsyncDocumentStore`** trait
 > (D1/KV/R2 are Promise-based, async-only on wasm); the sync `DocumentStore` is a valtron wrapper over
-> the async impl. As of F06 the **only** `AsyncDocumentStore` impl is the in-memory one
-> (`MemoryDocumentStore`, for tests/agentic) — **no production/persistent impl exists yet**; this
-> feature supplies the Cloudflare ones and must pass the same scan/scan_from/promoted-column conformance
-> the in-memory + SQL backends already pass. **D1 is the primary ordered
+> the async impl. **The D1 path is NOT hand-rolled here — D1 is SQLite, so it reuses
+> `AsyncSqlDocumentStore<D1WasmStorage>` from F22b** (same generic that serves native Turso/Libsql);
+> this feature adds only the CF-specific glue: **R2 for large document blobs** that don't fit SQLite,
+> bindings, and deployment. As of F06 the only `AsyncDocumentStore` impl is the in-memory one; F22b adds
+> the SQL one; both pass the shared scan/scan_from/promoted-column conformance. **D1 is the primary ordered
 > backend; R2 stores large document blobs; KV is optional best-effort.** Reuses the existing CF D1
 > bindings (`wasm/workers_rs/d1.rs`, `wasm/wasm_storage/d1_wasm.rs`) and adds an R2 binding/path where
 > missing. Completes the DocumentStore backend set begun in F06 (SQL+Memory) and F22 (VFS/Fjall).

@@ -215,10 +215,11 @@ graph LR
         I always like to say it: keep async traits and Sync traits separate, let async traits method have *_async suffixes in name to avoid conflict, this lets users clearly use which works for their environment and context.
       - **Resolved → in F06 we also ship a real `AsyncDocumentStore` impl for `MemoryDocumentStore`**
         so the async trait is not a phantom contract — the agentic layer and the future async backends
-        (F23) need something to compile and test against *now*. **Scheduled remaining impls:** F23 supplies
-        the Cloudflare D1/KV/R2 `AsyncDocumentStore`; F22 supplies the sync `FjallDocumentStore` (VFS).
-        Each is expected to pass the same scan/scan_from/promoted-column conformance the in-memory + SQL
-        backends already pass.
+        need something to compile and test against *now*. **Scheduled remaining impls:** **F22b** supplies
+        the generic async `AsyncSqlDocumentStore<Q: AsyncQueryStore>` (Turso/Libsql/D1, native + wasm);
+        **F23** reuses it for CF D1 and adds R2 for large blobs; **F22** supplies the sync
+        `FjallDocumentStore` (VFS). Each is expected to pass the same scan/scan_from/promoted-column
+        conformance the in-memory + SQL backends already pass.
 
 - **OD-06-8 (decisive) — async/sync interop paradigm (user, 2026-06-17).** For every paired
   sync+async store trait the rules are:
