@@ -655,6 +655,7 @@ impl Iterator for LlamaCppStream {
         let zero_pricing = ModelUsageCosting::default();
         let stream_cost = calculate_cost(&zero_pricing, &stream_usage, CostStatus::Actual);
         Some(Stream::Next(Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: ModelId::Name("llamacpp".to_string(), None),
             timestamp: SystemTime::now(),
             usage: UsageReport { cost: stream_cost, ..stream_usage },
@@ -889,6 +890,7 @@ fn generate_embeddings(
     let emb_cost = calculate_cost(&zero_pricing, &emb_usage, CostStatus::Actual);
     let emb_usage = UsageReport { cost: emb_cost, ..emb_usage };
     Ok(vec![Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("llamacpp".to_string(), None),
         timestamp: SystemTime::now(),
         usage: emb_usage,
@@ -1006,6 +1008,7 @@ fn generate_text(
     let txt_usage = UsageReport { cost: txt_cost, ..txt_usage };
     // Return generated text as Assistant message
     Ok(vec![Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("llamacpp".to_string(), None),
         timestamp: SystemTime::now(),
         usage: txt_usage,

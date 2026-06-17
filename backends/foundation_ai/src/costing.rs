@@ -376,6 +376,7 @@ mod tests {
 
         let messages = vec![
             Messages::User {
+                id: foundation_compact::ids::new_scru128(),
                 role: crate::types::MessageRole::User,
                 content: UserModelContent::Text(TextContent {
                     content: "Hello, world!".to_string(),
@@ -384,6 +385,7 @@ mod tests {
                 signature: None,
             },
             Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: ModelId::Name("test".to_string(), None),
                 timestamp: foundation_compact::SystemTime::now(),
                 usage: UsageReport {
@@ -420,6 +422,7 @@ mod tests {
         use crate::types::{ImageContent, MimeType, UserModelContent};
 
         let messages = vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
             role: crate::types::MessageRole::User,
             content: UserModelContent::Image(ImageContent {
                 b64: "base64data".to_string(),
@@ -443,6 +446,7 @@ mod tests {
 
         let messages = vec![
             Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: ModelId::Name("test".to_string(), None),
                 timestamp: foundation_compact::SystemTime::now(),
                 usage: UsageReport {

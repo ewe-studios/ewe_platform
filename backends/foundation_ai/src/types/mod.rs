@@ -1009,11 +1009,19 @@ impl Default for MessageRole {
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub enum Messages {
     User {
+        /// Time-ordered, addressable message id (scru128). Defaults to a fresh
+        /// `foundation_compact::new_scru128()` at construction, so every message
+        /// is addressable and chronologically sortable by default (F01).
+        #[serde(default = "fresh_message_id")]
+        id: foundation_compact::ids::Id,
         role: MessageRole,
         content: UserModelContent,
         signature: Option<String>,
     },
     Assistant {
+        /// Time-ordered, addressable message id (scru128). See `User::id`.
+        #[serde(default = "fresh_message_id")]
+        id: foundation_compact::ids::Id,
         model: ModelId,
         timestamp: SystemTime,
         usage: UsageReport,
@@ -1026,7 +1034,12 @@ pub enum Messages {
         metadata: Option<Vec<GenerationMetadata>>,
     },
     ToolResult {
-        id: String,
+        /// Time-ordered, addressable message id (scru128). See `User::id`.
+        #[serde(default = "fresh_message_id")]
+        id: foundation_compact::ids::Id,
+        /// The id of the `ModelOutput::ToolCall` this result answers (provider
+        /// correlation id — was `id: String`).
+        tool_call_id: String,
         name: String,
         timestamp: SystemTime,
         details: Option<String>,
@@ -1034,6 +1047,24 @@ pub enum Messages {
         error_detail: Option<String>,
         signature: Option<String>,
     },
+}
+
+/// Default for the additive `Messages.id` field: mint a fresh scru128 id when
+/// deserializing legacy fixtures that predate per-message ids.
+fn fresh_message_id() -> foundation_compact::ids::Id {
+    foundation_compact::ids::new_scru128()
+}
+
+impl Messages {
+    /// The message's time-ordered scru128 id (uniform across all variants).
+    #[must_use]
+    pub fn id(&self) -> &foundation_compact::ids::Id {
+        match self {
+            Messages::User { id, .. }
+            | Messages::Assistant { id, .. }
+            | Messages::ToolResult { id, .. } => id,
+        }
+    }
 }
 
 /// Regex patterns to detect context overflow errors from different providers.
@@ -1884,6 +1915,47 @@ mod message_role_tests {
                 assert_eq!(execution_hint, ExecutionHint::Unspecified);
             }
             other => panic!("expected ToolCall, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn message_id_accessor_is_uniform_across_variants() {
+        let user = Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: MessageRole::User,
+            content: UserModelContent::Text(TextContent {
+                content: "hi".into(),
+                signature: None,
+            }),
+            signature: None,
+        };
+        // The accessor returns the same id the variant carries.
+        assert_eq!(user.id(), user.id());
+        // Two freshly-built messages have distinct, time-ordered ids.
+        let later = Messages::User {
+            id: foundation_compact::ids::new_scru128(),
+            role: MessageRole::User,
+            content: UserModelContent::Text(TextContent {
+                content: "bye".into(),
+                signature: None,
+            }),
+            signature: None,
+        };
+        assert_ne!(user.id(), later.id());
+        assert!(later.id() > user.id(), "ids are monotonic");
+    }
+
+    #[test]
+    fn legacy_user_message_without_id_deserializes_with_a_minted_id() {
+        // A User message persisted before per-message ids existed.
+        let legacy =
+            r#"{"User":{"role":"user","content":{"Text":{"content":"hi","signature":null}},"signature":null}}"#;
+        let parsed: Messages = serde_json::from_str(legacy).unwrap();
+        // serde(default) minted a fresh id; the message is still usable.
+        assert!(parsed.id().timestamp() > 0);
+        match parsed {
+            Messages::User { role, .. } => assert_eq!(role, MessageRole::User),
+            other => panic!("expected User, got {other:?}"),
         }
     }
 }

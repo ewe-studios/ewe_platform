@@ -684,6 +684,7 @@ impl Model for CandleModels {
         inner.last_usage = Some(usage.clone());
 
         Ok(vec![Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: inner.spec.id.clone(),
             timestamp: SystemTime::now(),
             usage,
@@ -863,6 +864,7 @@ impl Iterator for CandleStream {
         state.tokens_generated += 1;
 
         Some(Stream::Next(Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: spec.id.clone(),
             timestamp: SystemTime::now(),
             usage: UsageReport {

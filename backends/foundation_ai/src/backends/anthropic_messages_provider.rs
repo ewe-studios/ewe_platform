@@ -1066,6 +1066,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     AnthropicDelta::TextDelta { text } => {
                         self.accumulated_text.push_str(&text);
                         Stream::Next(Messages::Assistant {
+                            id: foundation_compact::ids::new_scru128(),
                             model: self.model_id.clone(),
                             timestamp: SystemTime::now(),
                             usage: empty_usage_report(),
@@ -1083,6 +1084,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     AnthropicDelta::ThinkingDelta { thinking } => {
                         self.accumulated_thinking.push_str(&thinking);
                         Stream::Next(Messages::Assistant {
+                            id: foundation_compact::ids::new_scru128(),
                             model: self.model_id.clone(),
                             timestamp: SystemTime::now(),
                             usage: empty_usage_report(),
@@ -1148,6 +1150,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
         // Emit thinking as a separate message if accumulated.
         if !self.accumulated_thinking.is_empty() {
             messages.push(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: usage_report.clone(),
@@ -1166,6 +1169,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
         // Emit text as a separate message if accumulated.
         if !self.accumulated_text.is_empty() {
             messages.push(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: usage_report.clone(),
@@ -1197,6 +1201,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     });
 
             messages.push(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: usage_report.clone(),
@@ -1219,6 +1224,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
         // If nothing accumulated, return a single empty text message.
         if messages.is_empty() {
             messages.push(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: usage_report.clone(),
@@ -1352,7 +1358,7 @@ pub fn build_anthropic_request(
                 }),
                 ModelOutput::Image(_) | ModelOutput::Embedding { .. } => None,
             },
-            Messages::ToolResult { id, content, .. } => {
+            Messages::ToolResult { tool_call_id, content, .. } => {
                 let text = match content {
                     crate::types::UserModelContent::Text(tc) => tc.content.clone(),
                     crate::types::UserModelContent::Image(_) => String::from("[Image]"),
@@ -1360,7 +1366,7 @@ pub fn build_anthropic_request(
                 Some(AnthropicMessage {
                     role: AnthropicRole::User,
                     content: vec![AnthropicContentBlock::ToolResult {
-                        tool_use_id: id.clone(),
+                        tool_use_id: tool_call_id.clone(),
                         content: text,
                         is_error: None,
                     }],
@@ -1487,6 +1493,7 @@ pub fn parse_response(
     for block in &response.content {
         let msg = match block {
             AnthropicContentBlock::Text { text } => Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: report.clone(),
@@ -1515,6 +1522,7 @@ pub fn parse_response(
                         });
 
                 Messages::Assistant {
+                    id: foundation_compact::ids::new_scru128(),
                     model: model_id.clone(),
                     timestamp: SystemTime::now(),
                     usage: report.clone(),
@@ -1537,6 +1545,7 @@ pub fn parse_response(
                 thinking,
                 signature,
             } => Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: report.clone(),
@@ -1551,6 +1560,7 @@ pub fn parse_response(
                 metadata: None,
             },
             AnthropicContentBlock::RedactedThinking { .. } => Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: report.clone(),
@@ -1574,6 +1584,7 @@ pub fn parse_response(
     // If response had no parseable content blocks, return empty text.
     if messages.is_empty() {
         messages.push(Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: model_id.clone(),
             timestamp: SystemTime::now(),
             usage: report.clone(),

@@ -1,7 +1,7 @@
 ---
 feature: "Message Model & Types"
 description: "Type substrate for the agentic API — MessageRole enum, SessionId, ToolCall dependency fields, ToolShed.others removal, and agentic session-record types"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["00b-foundation-ai-llama-optional"]
 estimated_effort: "large"

@@ -922,6 +922,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
         let Ok(event) = serde_json::from_str::<ResponseEvent>(data) else {
             tracing::warn!(data = %data, "Failed to parse SSE chunk JSON in Responses API");
             return Stream::Next(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -941,6 +942,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
             ResponseEvent::ResponseOutputTextDelta { delta, .. } => {
                 self.accumulated_text.push_str(&delta);
                 Stream::Next(Messages::Assistant {
+                    id: foundation_compact::ids::new_scru128(),
                     model: self.model_id.clone(),
                     timestamp: SystemTime::now(),
                     usage: empty_usage_report(),
@@ -968,6 +970,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
     fn build_final_message(&self) -> Messages {
         let Some(response) = &self.response else {
             return Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -1014,6 +1017,7 @@ impl<R: DnsResolver + 'static> ResponsesStream<R> {
         let metadata = build_response_metadata(&response.output);
 
         Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
             timestamp: SystemTime::now(),
             usage,
@@ -1082,14 +1086,14 @@ fn build_response_input(interaction: &ModelInteraction) -> ResponseInput {
                 _ => None,
             },
             Messages::ToolResult {
-                id, name, content, ..
+                tool_call_id, name, content, ..
             } => {
                 let text = match content {
                     crate::types::UserModelContent::Text(tc) => tc.content.clone(),
                     crate::types::UserModelContent::Image(_) => String::from("[Image]"),
                 };
                 Some(ResponseInputItem::FunctionCallOutput {
-                    call_id: id.clone(),
+                    call_id: tool_call_id.clone(),
                     output: format!("[{name}] {text}"),
                 })
             }
@@ -1211,6 +1215,7 @@ fn parse_response(response: &Response, model_id: &ModelId) -> Messages {
     let metadata = build_response_metadata(&response.output);
 
     Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
         model: model_id.clone(),
         timestamp: SystemTime::now(),
         usage,
@@ -1482,6 +1487,7 @@ mod tests {
             system_prompt: Some("Be helpful".into()),
             soul: None,
             messages: vec![Messages::User {
+                id: foundation_compact::ids::new_scru128(),
                 role: "user".into(),
                 content: crate::types::UserModelContent::Text(TextContent {
                     content: "Hello".into(),

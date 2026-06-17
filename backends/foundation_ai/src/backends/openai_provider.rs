@@ -651,6 +651,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
         };
         self.cumulative_cost.borrow_mut().add(&emb_usage.cost);
         Ok(vec![Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
             timestamp: SystemTime::now(),
             usage: emb_usage,
@@ -1021,6 +1022,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
         let Ok(chunk) = serde_json::from_str::<ChatCompletionChunk>(data) else {
             tracing::warn!(data = %data, "Failed to parse SSE chunk JSON");
             return Stream::Next(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -1062,6 +1064,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
 
         if text_yielded {
             Stream::Next(Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: self.model_id.clone(),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -1172,6 +1175,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
         };
 
         let msg = Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
             timestamp: SystemTime::now(),
             usage: usage_report.clone(),
@@ -1820,7 +1824,7 @@ fn build_chat_request(
                 ModelOutput::Embedding { .. } => {}
             },
             Messages::ToolResult {
-                id, name, content, ..
+                tool_call_id, name, content, ..
             } => {
                 let text = match content {
                     crate::types::UserModelContent::Text(tc) => tc.content.clone(),
@@ -1830,7 +1834,7 @@ fn build_chat_request(
                     role: String::from("tool"),
                     content: Some(OpenAIMessageContent::Text(format!("[{name}] {text}"))),
                     tool_calls: None,
-                    tool_call_id: Some(id.clone()),
+                    tool_call_id: Some(tool_call_id.clone()),
                     refusal: None,
                 });
             }
@@ -2026,6 +2030,7 @@ fn parse_chat_response(
 
     Ok((
         Messages::Assistant {
+            id: foundation_compact::ids::new_scru128(),
             model: model_id.clone(),
             timestamp: SystemTime::now(),
             usage: usage_report.clone(),
@@ -2602,6 +2607,7 @@ mod tests {
             system_prompt: Some("You are helpful".into()),
             soul: Some("Be concise and technical".into()),
             messages: vec![crate::types::Messages::User {
+                id: foundation_compact::ids::new_scru128(),
                 role: "user".into(),
                 content: crate::types::UserModelContent::Text(TextContent {
                     content: "Hello".into(),

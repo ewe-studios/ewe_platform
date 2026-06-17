@@ -126,7 +126,11 @@ fn machine_id() -> u32 {
             .ok();
         match host {
             Some(h) if !h.is_empty() => {
-                foundation_compact::ids::stable_hash(h.as_bytes()) as u32
+                // Intentional: fold the 64-bit hash down to a 32-bit machine id
+                // (the generator masks it further to DEFAULT_MACHINE_ID_BITS).
+                #[allow(clippy::cast_possible_truncation)]
+                let mid = foundation_compact::ids::stable_hash(h.as_bytes()) as u32;
+                mid
             }
             // No stable host signal (wasm, or unset env): random per-process id.
             _ => foundation_compact::entropy::u32().unwrap_or(0),
@@ -178,6 +182,9 @@ pub struct TokenSnapshot {
 /// Internally tagged with `message_type` (Decision 03's tag key). `Conversation`
 /// is a **struct variant** (not a newtype) because serde internal tagging cannot
 /// wrap a newtype variant — a verified design constraint.
+// `Conversation` wraps the large `Messages` enum; boxing it would complicate the
+// serde internal-tagging contract for no real benefit (matches `Messages`'s own allow).
+#[allow(clippy::large_enum_variant)]
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 #[serde(tag = "message_type", rename_all = "snake_case")]
 pub enum SessionRecord {
