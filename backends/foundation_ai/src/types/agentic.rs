@@ -142,19 +142,10 @@ fn machine_id() -> u32 {
 // Forward-reference stubs (filled by F02 / F04)
 // ============================================================================
 
-/// Forward-reference stub for the F02 error taxonomy.
-///
-/// `SessionRecord::FailedAction` references `AgenticError`, but F02 (error
-/// handling) depends on F01, so the real taxonomy lands later. This minimal
-/// shell keeps F01 self-contained and is replaced when F02 lands. It satisfies
-/// the pinned bounds `Clone + PartialEq + Debug + Serialize + Deserialize`.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct AgenticError {
-    /// Matchable error kind/category.
-    pub kind: String,
-    /// Human-readable message.
-    pub message: String,
-}
+// `AgenticError` (the matchable error taxonomy carried by
+// `SessionRecord::FailedAction`) is owned by F02 in `crate::agentic::errors` and
+// re-exported here for the record types below.
+pub use crate::agentic::errors::AgenticError;
 
 /// Forward-reference stub for the F04 token snapshot.
 ///

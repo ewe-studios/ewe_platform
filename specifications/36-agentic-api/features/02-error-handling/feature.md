@@ -1,7 +1,7 @@
 ---
 feature: "Error Handling — AgenticError (Clone+PartialEq+Debug+Serialize+Deserialize), FailedAction-record propagation, circuit breaker"
 description: "The unified AgenticError taxonomy (the context C in foundation_errstacks ErrorTrace<C>; MUST be Clone + PartialEq + Debug + Serialize + Deserialize so SessionRecord::FailedAction keeps its derives), error propagation as SessionRecord::FailedAction records on Stream::Next (not a Result), retry/resilience owned by model+tool tasks, circuit-breaker model fallback, and resolution of the missing GenerationError::ContextOverflow/RateLimit via Messages::is_context_overflow + detection"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model", "03-agent-stream-contract", "12-model-provider-router"]
 estimated_effort: "medium"

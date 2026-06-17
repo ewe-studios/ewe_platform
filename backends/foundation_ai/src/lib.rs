@@ -1,6 +1,7 @@
 extern crate lazy_regex;
 // extern crate lazy_static;
 
+pub mod agentic;
 pub mod backends;
 pub mod costing;
 pub mod errors;
