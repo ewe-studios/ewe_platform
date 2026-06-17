@@ -44,9 +44,9 @@ pub use storage_provider::{StorageBackend, StorageProvider};
 
 // Re-export trait types at top level for convenience
 pub use core::storage_provider::{
-    AsyncListStream, AsyncQueryStore, AsyncQueryStream, AsyncStorageItemStream, BlobStore,
-    DataValue, FromDataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow,
-    StorageItemStream,
+    AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
+    AsyncStorageItemStream, BlobStore, DataValue, FromDataValue, KeyValueStore, QueryStore,
+    RateLimiterStore, SqlRow, StorageItemStream,
 };
 
 // Native-only re-exports

@@ -8,17 +8,18 @@ use serde::{Deserialize, Serialize};
 
 use super::super::models::{TosAcceptance, TosVersion};
 use super::super::storage::{HandlerStorage, StorageOpError};
+use foundation_db::KeyValueStore;
 
 /// ToS service — manages ToS versions and user acceptances.
-pub struct TosService {
-    storage: Arc<HandlerStorage>,
+pub struct TosService<KV: KeyValueStore> {
+    storage: Arc<HandlerStorage<KV>>,
     /// In-memory ToS versions (in production, loaded from DB).
     versions: Mutex<Vec<TosVersion>>,
 }
 
-impl TosService {
+impl<KV: KeyValueStore> TosService<KV> {
     #[must_use]
-    pub fn new(storage: Arc<HandlerStorage>) -> Self {
+    pub fn new(storage: Arc<HandlerStorage<KV>>) -> Self {
         Self {
             storage,
             versions: Mutex::new(Vec::new()),

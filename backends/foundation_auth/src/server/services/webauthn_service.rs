@@ -5,7 +5,7 @@
 
 use std::sync::Arc;
 
-use foundation_db::{AuthStore, PasskeyStore, StoredPasskey};
+use foundation_db::{AuthStore, KeyValueStore, PasskeyStore, StoredPasskey};
 
 use serde::{Deserialize, Serialize};
 
@@ -63,40 +63,58 @@ pub struct PasskeyLoginFinishRequest {
     pub response: Option<serde_json::Value>,
 }
 
-// ─── Session storage (native only) ───────────────────────────────────────────
+// ─── Ceremony state stored in the shared KV cache ────────────────────────────
 
 #[cfg(feature = "server-native")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct RegState {
     user_id: String,
     reg: PasskeyRegistration,
 }
 
 #[cfg(feature = "server-native")]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 struct AuthState {
     user_id: String,
     auth: PasskeyAuthentication,
 }
 
-// ─── Service ──────────────────────────────────────────────────────────────────
+#[cfg(feature = "server-native")]
+fn reg_key(session: &str) -> String {
+    format!("wa:reg:{session}")
+}
 
 #[cfg(feature = "server-native")]
-pub struct WebAuthnService<S: AuthStore> {
+fn auth_key(session: &str) -> String {
+    format!("wa:auth:{session}")
+}
+
+// ─── Service ──────────────────────────────────────────────────────────────────
+
+/// WebAuthn/FIDO2 service for passkey registration and authentication.
+///
+/// Ceremony state (registration/auth challenges) is stored in the shared
+/// `KeyValueStore` cache, so the issuing endpoint and the verifying endpoint
+/// — even if served by different handler instances or nodes — see the same
+/// state. The cache key is scoped by session and consumed (deleted) on finish.
+#[cfg(feature = "server-native")]
+pub struct WebAuthnService<S: AuthStore, KV: KeyValueStore> {
     config: Arc<IdpConfig>,
     store: Arc<S>,
+    cache: KV,
     webauthn: webauthn_rs::Webauthn,
-    reg_sessions: std::sync::Mutex<std::collections::HashMap<String, RegState>>,
-    auth_sessions: std::sync::Mutex<std::collections::HashMap<String, AuthState>>,
 }
 
 #[cfg(not(feature = "server-native"))]
-pub struct WebAuthnService<S: AuthStore> {
+pub struct WebAuthnService<S: AuthStore, KV: KeyValueStore> {
     config: Arc<IdpConfig>,
     store: Arc<S>,
+    _cache: std::marker::PhantomData<KV>,
 }
 
-impl<S: AuthStore> WebAuthnService<S> {
+impl<S: AuthStore, KV: KeyValueStore> WebAuthnService<S, KV> {
     #[must_use]
-    pub fn new(config: Arc<IdpConfig>, store: Arc<S>) -> Self {
+    pub fn new(config: Arc<IdpConfig>, store: Arc<S>, cache: KV) -> Self {
         #[cfg(feature = "server-native")]
         {
             let origin = url::Url::parse(&config.issuer_url)
@@ -105,17 +123,12 @@ impl<S: AuthStore> WebAuthnService<S> {
                 .expect("Invalid WebAuthn builder config")
                 .build()
                 .expect("Invalid WebAuthn config");
-            Self {
-                config,
-                store,
-                webauthn,
-                reg_sessions: std::sync::Mutex::new(std::collections::HashMap::new()),
-                auth_sessions: std::sync::Mutex::new(std::collections::HashMap::new()),
-            }
+            Self { config, store, cache, webauthn }
         }
         #[cfg(not(feature = "server-native"))]
         {
-            Self { config, store }
+            drop(cache);
+            Self { config, store, _cache: std::marker::PhantomData }
         }
     }
 
@@ -132,11 +145,10 @@ impl<S: AuthStore> WebAuthnService<S> {
                 .map_err(|e| StorageOpError::Query(format!("WebAuthn register start: {e}")))?;
 
             let session = uuid::Uuid::new_v4().to_string();
-            let mut sessions = self.reg_sessions.lock().unwrap();
-            sessions.insert(session.clone(), RegState {
+            self.cache.set(&reg_key(&session), RegState {
                 user_id: user_id.to_string(),
                 reg,
-            });
+            }).map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
 
             let public_key = serde_json::to_value(&challenge)
                 .unwrap_or_else(|_| serde_json::json!({}));
@@ -159,11 +171,14 @@ impl<S: AuthStore> WebAuthnService<S> {
             let session_id = req.session.as_deref()
                 .ok_or_else(|| StorageOpError::Query("Missing session".into()))?;
 
-            let state = {
-                let mut sessions = self.reg_sessions.lock().unwrap();
-                sessions.remove(session_id)
-                    .ok_or_else(|| StorageOpError::Query("Invalid or expired session".into()))?
-            };
+            let state: RegState = self.cache
+                .get(&reg_key(session_id))
+                .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
+                .ok_or_else(|| StorageOpError::Query("Invalid or expired session".into()))?;
+
+            // Consume the state (one-time use to prevent replay)
+            self.cache.delete(&reg_key(session_id))
+                .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
 
             let response_json = req.response.as_ref()
                 .ok_or_else(|| StorageOpError::Query("Missing response".into()))?;
@@ -174,7 +189,6 @@ impl<S: AuthStore> WebAuthnService<S> {
                 .finish_passkey_registration(&response, &state.reg)
                 .map_err(|e| StorageOpError::Query(format!("Verify registration: {e}")))?;
 
-            // Serialize the webauthn-rs Passkey to CBOR for storage
             let cred_id_bytes = passkey.cred_id().as_slice().to_vec();
             let passkey_cbor = serde_cbor::to_vec(&passkey)
                 .map_err(|e| StorageOpError::Query(format!("Serialize passkey: {e}")))?;
@@ -190,7 +204,6 @@ impl<S: AuthStore> WebAuthnService<S> {
                 last_used_at: None,
             };
 
-            // Persist to database
             let stored = StoredPasskey {
                 id: our_passkey.id.clone(),
                 user_id: our_passkey.user_id.clone(),
@@ -222,7 +235,6 @@ impl<S: AuthStore> WebAuthnService<S> {
             let stored_passkeys = self.store.as_ref().find_passkeys_by_user(user_id)
                 .map_err(|e| StorageOpError::Query(e))?;
 
-            // Deserialize stored CBOR back to webauthn-rs Passkey
             let webauthn_passkeys: Vec<webauthn_rs::prelude::Passkey> = stored_passkeys.iter()
                 .filter_map(|pk| {
                     serde_cbor::from_slice::<webauthn_rs::prelude::Passkey>(&pk.credential_public_key).ok()
@@ -234,11 +246,10 @@ impl<S: AuthStore> WebAuthnService<S> {
                 .map_err(|e| StorageOpError::Query(format!("WebAuthn auth start: {e}")))?;
 
             let session = uuid::Uuid::new_v4().to_string();
-            let mut sessions = self.auth_sessions.lock().unwrap();
-            sessions.insert(session.clone(), AuthState {
+            self.cache.set(&auth_key(&session), AuthState {
                 user_id: user_id.to_string(),
                 auth,
-            });
+            }).map_err(|e| StorageOpError::Query(format!("cache set: {e}")))?;
 
             let public_key = serde_json::to_value(&challenge)
                 .unwrap_or_else(|_| serde_json::json!({}));
@@ -261,24 +272,25 @@ impl<S: AuthStore> WebAuthnService<S> {
             let session_id = req.session.as_deref()
                 .ok_or_else(|| StorageOpError::Query("Missing session".into()))?;
 
-            let state = {
-                let mut sessions = self.auth_sessions.lock().unwrap();
-                sessions.remove(session_id)
-                    .ok_or_else(|| StorageOpError::Query("Invalid or expired session".into()))?
-            };
+            let state: AuthState = self.cache
+                .get(&auth_key(session_id))
+                .map_err(|e| StorageOpError::Query(format!("cache get: {e}")))?
+                .ok_or_else(|| StorageOpError::Query("Invalid or expired session".into()))?;
+
+            // Consume the state (one-time use to prevent replay)
+            self.cache.delete(&auth_key(session_id))
+                .map_err(|e| StorageOpError::Query(format!("cache delete: {e}")))?;
 
             let response_json = req.response.as_ref()
                 .ok_or_else(|| StorageOpError::Query("Missing response".into()))?;
             let response: PublicKeyCredential = serde_json::from_value(response_json.clone())
                 .map_err(|e| StorageOpError::Query(format!("Parse response: {e}")))?;
 
-            // Look up the passkey by credential_id from the response
             let cred_id = response.raw_id.clone();
             let passkey = self.store.as_ref().find_passkey_by_credential_id(&cred_id)
                 .map_err(|e| StorageOpError::Query(e))?
                 .ok_or_else(|| StorageOpError::NotFound("Passkey not found".into()))?;
 
-            // Deserialize the stored CBOR back to webauthn-rs Passkey
             let wa_passkey: webauthn_rs::prelude::Passkey =
                 serde_cbor::from_slice(&passkey.credential_public_key)
                     .map_err(|e| StorageOpError::Parse(format!("Deserialize passkey: {e}")))?;
@@ -287,7 +299,6 @@ impl<S: AuthStore> WebAuthnService<S> {
                 .finish_passkey_authentication(&response, &state.auth)
                 .map_err(|e| StorageOpError::Query(format!("Verify authentication: {e}")))?;
 
-            // Update counter if needed
             if auth_result.needs_update() {
                 self.store.as_ref().update_passkey_counter(&passkey.id, auth_result.counter())
                     .map_err(|e| StorageOpError::Query(e))?;

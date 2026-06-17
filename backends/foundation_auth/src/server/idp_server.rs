@@ -7,15 +7,16 @@ use foundation_http::SimpleMethod;
 use super::config::IdpConfig;
 use super::handlers::ServeAdapter;
 use super::storage::HandlerStorage;
+use foundation_db::{KeyValueStore, MemoryStorage};
 
-pub struct IdpServer {
+pub struct IdpServer<KV: KeyValueStore + 'static = MemoryStorage> {
     config: IdpConfig,
-    storage: Arc<HandlerStorage>,
+    storage: Arc<HandlerStorage<KV>>,
 }
 
-impl IdpServer {
+impl<KV: KeyValueStore + 'static> IdpServer<KV> {
     #[must_use]
-    pub fn new(config: IdpConfig, storage: Arc<HandlerStorage>) -> Self {
+    pub fn new(config: IdpConfig, storage: Arc<HandlerStorage<KV>>) -> Self {
         Self { config, storage }
     }
 
@@ -96,6 +97,7 @@ mod tests {
     use foundation_db::core::storage_provider::{QueryStore, SqlRow, StorageItemStream, DataValue};
     use foundation_db::core::errors::StorageError;
     use foundation_core::valtron::Stream;
+    use foundation_db::MemoryStorage;
 
     struct TestStore;
     impl QueryStore for TestStore {
@@ -109,7 +111,7 @@ mod tests {
     #[test]
     fn test_build_http_app() {
         let config = IdpConfig::new("https://auth.example.com".into());
-        let storage = Arc::new(HandlerStorage::new(Arc::new(TestStore)));
+        let storage = Arc::new(HandlerStorage::new(Arc::new(TestStore), MemoryStorage::new()));
         let server = IdpServer::new(config, storage);
         let app = server.http_app();
         assert!(app.ctx.contains::<IdpConfig>());
@@ -119,7 +121,7 @@ mod tests {
     #[test]
     fn test_default_prefix_routes() {
         let config = IdpConfig::new("https://auth.example.com".into());
-        let storage = Arc::new(HandlerStorage::new(Arc::new(TestStore)));
+        let storage = Arc::new(HandlerStorage::new(Arc::new(TestStore), MemoryStorage::new()));
         let server = IdpServer::new(config, storage);
         let app = server.http_app();
 
@@ -136,12 +138,12 @@ mod tests {
     #[test]
     fn test_custom_prefix() {
         let config = IdpConfig::new("https://auth.example.com".into());
-        let storage = Arc::new(HandlerStorage::new(Arc::new(TestStore)));
+        let storage = Arc::new(HandlerStorage::new(Arc::new(TestStore), MemoryStorage::new()));
         let mut app = HttpApp::new_serve();
         app.ctx.store(config);
         app.ctx.store(storage);
         // Now routes can be registered because both config and storage are in ctx
-        IdpServer::register_routes(&mut app, "/auth/v1");
+        IdpServer::<MemoryStorage>::register_routes(&mut app, "/auth/v1");
 
         assert!(app.router.dispatch(&SimpleMethod::GET, "/auth/v1/.well-known/openid-configuration").is_some());
         assert!(app.router.dispatch(&SimpleMethod::POST, "/auth/v1/token").is_some());
@@ -150,7 +152,7 @@ mod tests {
     #[test]
     fn test_no_route_without_prefix() {
         let config = IdpConfig::new("https://auth.example.com".into());
-        let storage = Arc::new(HandlerStorage::new(Arc::new(TestStore)));
+        let storage = Arc::new(HandlerStorage::new(Arc::new(TestStore), MemoryStorage::new()));
         let server = IdpServer::new(config, storage);
         let app = server.http_app();
 

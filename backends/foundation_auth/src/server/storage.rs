@@ -5,7 +5,7 @@ use std::sync::Arc;
 use foundation_db::core::storage_provider::{
     AsyncQueryStore, AsyncQueryStream, DataValue, QueryStore, SqlRow,
 };
-use foundation_db::{AsyncStorageItemStream, KeyValueStore, MemoryStorage, StorageError, StorageResult};
+use foundation_db::{AsyncStorageItemStream, KeyValueStore, StorageError, StorageResult};
 
 use super::models::{AuthorizationCode, DeviceCode, OAuthClient, Passkey, RefreshToken, TosAcceptance, User};
 
@@ -554,36 +554,18 @@ fn parse_tos_acceptance_row(row: &SqlRow) -> Result<TosAcceptance, StorageOpErro
     })
 }
 
-#[derive(Clone)]
-pub struct HandlerStorage {
+pub struct HandlerStorage<KV: KeyValueStore> {
     pub query_store: Arc<dyn QueryStore>,
     /// Shared cache for short-lived two-step handshake state (PoW challenges,
-    /// WebAuthn ceremony state). This MUST be shared across all route handlers:
-    /// `ServeFactory::create` runs once per route, so each endpoint gets its
-    /// own `IdpHandlerCore`/services — a per-instance map would never let
-    /// `/pow` GET match `/pow` POST, or `webauthn/register/start` match
-    /// `register/finish`. The bag hands every route the same `Arc<HandlerStorage>`,
-    /// so this `Arc<dyn KeyValueStore>` is the shared rendezvous point.
-    pub cache: Arc<dyn KeyValueStore>,
+    /// WebAuthn ceremony state). Generic over the KV backend so the same
+    /// handler works with in-memory cache (single-process) or a persistent
+    /// store (Turso/D1) for multi-instance crash-safe operation.
+    pub cache: KV,
 }
 
-impl HandlerStorage {
-    /// Build with an in-memory cache. Fine for a single-process deployment and
-    /// tests; for horizontally-scaled deployments use [`Self::with_cache`] with
-    /// a shared cache (Turso/D1/Redis-backed `KeyValueStore`).
-    pub fn new(query_store: Arc<dyn QueryStore>) -> Self {
-        Self { query_store, cache: Arc::new(MemoryStorage::new()) }
-    }
-
-    /// Build with an explicit shared cache backend.
-    pub fn with_cache(query_store: Arc<dyn QueryStore>, cache: Arc<dyn KeyValueStore>) -> Self {
+impl<KV: KeyValueStore> HandlerStorage<KV> {
+    pub fn new(query_store: Arc<dyn QueryStore>, cache: KV) -> Self {
         Self { query_store, cache }
-    }
-
-    /// The shared transient-state cache.
-    #[must_use]
-    pub fn cache(&self) -> Arc<dyn KeyValueStore> {
-        Arc::clone(&self.cache)
     }
 }
 
@@ -639,7 +621,7 @@ fn map_storage_err(e: StorageOpError) -> String {
     e.to_string()
 }
 
-impl foundation_db::PasskeyStore for HandlerStorage {
+impl<KV: KeyValueStore> foundation_db::PasskeyStore for HandlerStorage<KV> {
     fn store_passkey(&self, passkey: &foundation_db::StoredPasskey) -> Result<(), String> {
         let our_pk = stored_to_passkey(passkey);
         store_passkey(self.query_store.as_ref(), &our_pk).map_err(map_storage_err)
@@ -676,7 +658,7 @@ impl foundation_db::PasskeyStore for HandlerStorage {
     }
 }
 
-impl foundation_db::TosStore for HandlerStorage {
+impl<KV: KeyValueStore> foundation_db::TosStore for HandlerStorage<KV> {
     fn store_tos_acceptance(&self, acceptance: &foundation_db::StoredTosAcceptance) -> Result<(), String> {
         let our_ta = stored_to_tos(acceptance);
         store_tos_acceptance(self.query_store.as_ref(), &our_ta).map_err(map_storage_err)
@@ -695,7 +677,7 @@ impl foundation_db::TosStore for HandlerStorage {
     }
 }
 
-impl foundation_db::AuthStore for HandlerStorage {
+impl<KV: KeyValueStore> foundation_db::AuthStore for HandlerStorage<KV> {
     fn find_user_by_email(&self, email: &str) -> Result<Option<(String, bool)>, String> {
         find_user_by_email(self.query_store.as_ref(), email)
             .map(|opt| opt.map(|u| {

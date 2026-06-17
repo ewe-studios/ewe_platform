@@ -18,6 +18,7 @@ use super::super::services::{
 use super::super::storage::{
     self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email, update_user_lockout,
 };
+use foundation_db::{KeyValueStore, MemoryStorage};
 
 /// Typed response from a handler — carries HTTP status code, body, and headers.
 pub struct HandlerResponse {
@@ -213,21 +214,22 @@ impl From<TokenServiceError> for IdpError {
     }
 }
 
-pub struct IdpHandlerCore {
+pub struct IdpHandlerCore<KV: KeyValueStore = foundation_db::MemoryStorage> {
     config: Arc<IdpConfig>,
-    storage: Arc<HandlerStorage>,
+    storage: Arc<HandlerStorage<KV>>,
     token_service: Arc<TokenService>,
-    pow_service: Arc<PowService>,
-    webauthn_service: Arc<WebAuthnService<HandlerStorage>>,
-    tos_service: Arc<TosService>,
+    pow_service: Arc<PowService<KV>>,
+    webauthn_service: Arc<WebAuthnService<HandlerStorage<KV>, KV>>,
+    tos_service: Arc<TosService<KV>>,
 }
 
-impl IdpHandlerCore {
+impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     #[must_use]
-    pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage>) -> Self {
+    pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage<KV>>) -> Self {
+        let cache = storage.cache.clone();
         let token_service = Arc::new(TokenService::new(Arc::clone(&config)));
-        let pow_service = Arc::new(PowService::new(22, 300, 600));
-        let webauthn_service = Arc::new(WebAuthnService::new(Arc::clone(&config), Arc::clone(&storage)));
+        let pow_service = Arc::new(PowService::new(cache.clone(), 22, 300, 600));
+        let webauthn_service = Arc::new(WebAuthnService::new(Arc::clone(&config), Arc::clone(&storage), cache));
         let tos_service = Arc::new(TosService::new(Arc::clone(&storage)));
         Self { config, storage, token_service, pow_service, webauthn_service, tos_service }
     }
@@ -733,7 +735,8 @@ impl IdpHandlerCore {
     pub async fn pow_challenge(
         &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let challenge = self.pow_service.generate_challenge();
+        let challenge = self.pow_service.generate_challenge()
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
         let body = serde_json::to_value(&challenge)
             .map_err(|e| IdpError::Internal(e.to_string()))?;
         Ok(HandlerResponse::ok(body))
@@ -1202,7 +1205,7 @@ mod tests {
 
     #[test]
     fn test_discovery() {
-        let storage = Arc::new(HandlerStorage::new(Arc::new(InMemoryStore)));
+        let storage = Arc::new(HandlerStorage::new(Arc::new(InMemoryStore), MemoryStorage::new()));
         let core = IdpHandlerCore::new(test_config(), storage);
         let bag = ContextBag::new();
         let req = SimpleIncomingRequest::builder()
@@ -1214,7 +1217,7 @@ mod tests {
 
     #[test]
     fn test_jwks() {
-        let storage = Arc::new(HandlerStorage::new(Arc::new(InMemoryStore)));
+        let storage = Arc::new(HandlerStorage::new(Arc::new(InMemoryStore), MemoryStorage::new()));
         let core = IdpHandlerCore::new(test_config(), storage);
         let bag = ContextBag::new();
         let req = SimpleIncomingRequest::builder()

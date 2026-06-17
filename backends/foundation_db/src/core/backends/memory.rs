@@ -17,6 +17,7 @@ use crate::core::storage_provider::{
 use foundation_core::valtron::Stream;
 
 /// In-memory storage with zeroizing support for sensitive data.
+#[derive(Clone)]
 pub struct MemoryStorage {
     data: Arc<Mutex<HashMap<String, Zeroizing<Vec<u8>>>>>,
 }

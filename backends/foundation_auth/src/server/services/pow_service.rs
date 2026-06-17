@@ -8,7 +8,7 @@ use std::sync::Arc;
 
 use chrono::Utc;
 use base64::{engine::general_purpose::URL_SAFE_NO_PAD, Engine};
-use foundation_db::{KeyValueStore, StorageError};
+use foundation_db::{AsyncKeyValueStore, KeyValueStore, StorageError};
 use rand::RngCore;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
@@ -44,17 +44,17 @@ fn challenge_key(challenge: &str) -> String {
     format!("pow:challenge:{challenge}")
 }
 
-pub struct PowService {
-    cache: Arc<dyn KeyValueStore>,
+pub struct PowService<KV: KeyValueStore> {
+    cache: KV,
     difficulty: u32,
     validity_secs: u64,
     solve_validity_secs: u64,
 }
 
-impl PowService {
+impl<KV: KeyValueStore> PowService<KV> {
     #[must_use]
     pub fn new(
-        cache: Arc<dyn KeyValueStore>,
+        cache: KV,
         difficulty: u32,
         challenge_validity_secs: u64,
         solve_validity_secs: u64,
@@ -102,16 +102,14 @@ impl PowService {
             Ok(Some(e)) => e,
             Ok(None) => return false,
             Err(e) => {
-                tracing::error!(error = %e, "PoW: failed to read challenge from cache");
+                eprintln!("PoW: failed to read challenge from cache: {e}");
                 return false;
             }
         };
 
         // Lazy expiry check.
         if Utc::now().timestamp() >= entry.expires_at {
-            if let Err(e) = self.cache.delete(&key) {
-                tracing::error!(error = %e, "PoW: failed to evict expired challenge");
-            }
+            let _ = self.cache.delete(&key); // best-effort eviction
             return false;
         }
 
@@ -128,7 +126,94 @@ impl PowService {
         if valid {
             entry.solved = true;
             if let Err(e) = self.cache.set(&key, entry) {
-                tracing::error!(error = %e, "PoW: failed to mark challenge solved");
+                eprintln!("cache error: {e}");
+                return false;
+            }
+        }
+        valid
+    }
+}
+
+// ─── Async PoW service (over `AsyncKeyValueStore`) ──────────────────────────
+
+/// Async counterpart to [`PowService`], backed by an `AsyncKeyValueStore`.
+/// Used on wasm32/CF Workers where KV APIs (D1) are Promise-based.
+pub struct AsyncPowService<AKV: AsyncKeyValueStore> {
+    cache: AKV,
+    difficulty: u32,
+    validity_secs: u64,
+    solve_validity_secs: u64,
+}
+
+impl<AKV: AsyncKeyValueStore> AsyncPowService<AKV> {
+    #[must_use]
+    pub fn new(
+        cache: AKV,
+        difficulty: u32,
+        challenge_validity_secs: u64,
+        solve_validity_secs: u64,
+    ) -> Self {
+        Self {
+            cache,
+            difficulty,
+            validity_secs: challenge_validity_secs,
+            solve_validity_secs,
+        }
+    }
+
+    /// Generate a new PoW challenge and persist it in the shared cache.
+    pub async fn generate_challenge(&self) -> Result<PowChallenge, StorageError> {
+        let mut rng = rand::thread_rng();
+        let mut bytes = [0u8; 16];
+        rng.fill_bytes(&mut bytes);
+        let challenge = URL_SAFE_NO_PAD.encode(bytes);
+
+        let entry = ChallengeEntry {
+            difficulty: self.difficulty,
+            expires_at: Utc::now().timestamp() + self.validity_secs as i64,
+            solved: false,
+        };
+        self.cache.set_async(&challenge_key(&challenge), entry).await?;
+
+        Ok(PowChallenge {
+            difficulty: self.difficulty,
+            challenge,
+            expires_in: self.validity_secs,
+        })
+    }
+
+    /// Verify a PoW solution. Returns true if valid.
+    pub async fn verify_solution(&self, solution: &PowSolution) -> bool {
+        let key = challenge_key(&solution.challenge);
+        let mut entry: ChallengeEntry = match self.cache.get_async(&key).await {
+            Ok(Some(e)) => e,
+            Ok(None) => return false,
+            Err(e) => {
+                eprintln!("PoW: failed to read challenge from cache: {e}");
+                return false;
+            }
+        };
+
+        // Lazy expiry check.
+        if Utc::now().timestamp() >= entry.expires_at {
+            let _ = self.cache.delete_async(&key).await; // best-effort eviction
+            return false;
+        }
+
+        // Already solved — reject replay.
+        if entry.solved {
+            return false;
+        }
+
+        // Hash (challenge + solution) and check leading zeros.
+        let input = format!("{}{}", solution.challenge, solution.solution);
+        let hash = Sha256::digest(input.as_bytes());
+        let valid = count_leading_zero_bytes(&hash) >= entry.difficulty / 8;
+
+        if valid {
+            entry.solved = true;
+            if let Err(e) = self.cache.set_async(&key, entry).await {
+                eprintln!("cache error: {e}");
                 return false;
             }
         }
@@ -152,11 +237,12 @@ fn count_leading_zero_bytes(hash: &[u8]) -> u32 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use foundation_db::MemoryStorage;
 
     #[test]
     fn test_generate_and_verify_easy_pow() {
-        let service = PowService::new(8, 300, 600); // difficulty 8 bits = 1 zero byte
-        let challenge = service.generate_challenge();
+        let service = PowService::new(MemoryStorage::new(), 8, 300, 600); // difficulty 8 bits = 1 zero byte
+        let challenge = service.generate_challenge().expect("generate challenge");
         assert_eq!(challenge.difficulty, 8);
         assert_eq!(challenge.expires_in, 300);
 
@@ -181,8 +267,8 @@ mod tests {
 
     #[test]
     fn test_reuse_solution_fails() {
-        let service = PowService::new(8, 300, 600);
-        let challenge = service.generate_challenge();
+        let service = PowService::new(MemoryStorage::new(), 8, 300, 600);
+        let challenge = service.generate_challenge().expect("generate challenge");
 
         let input = format!("{}0", challenge.challenge);
         let hash = Sha256::digest(input.as_bytes());
