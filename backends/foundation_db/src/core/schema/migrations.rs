@@ -110,6 +110,16 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Create device codes table",
         sql: include_str!("sql/019_create_device_codes.sql"),
     },
+    Migration {
+        id: "020_create_documents",
+        name: "Create documents table for DocumentStore",
+        sql: include_str!("sql/020_create_documents.sql"),
+    },
+    Migration {
+        id: "021_promote_document_columns",
+        name: "Add promoted searchable columns to documents",
+        sql: include_str!("sql/021_promote_document_columns.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.
@@ -212,7 +222,7 @@ mod tests {
     #[test]
     fn test_migrations_defined() {
         assert!(!MIGRATIONS.is_empty());
-        assert_eq!(MIGRATIONS.len(), 19);
+        assert_eq!(MIGRATIONS.len(), 21);
     }
 
     #[test]

@@ -4,7 +4,9 @@
 //! This works with SQLite, Turso, D1, and any SQL backend via QueryStore.
 
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::{Document, DocumentStore, StorageItemStream};
+use crate::core::storage_provider::{
+    Document, DocumentStore, PromotableDocument, SqlRow, StorageItemStream,
+};
 use foundation_core::valtron::Stream;
 use serde::{de::DeserializeOwned, Serialize};
 
@@ -30,13 +32,30 @@ impl<Q> SqlDocumentStore<Q> {
     }
 }
 
-impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocumentStore<Q> {
-    fn append<V: Serialize + Send + 'static>(
+impl<Q: crate::core::storage_provider::QueryStore> SqlDocumentStore<Q> {
+    /// Shared INSERT path for `append`/`append_with_id`.
+    fn insert<V: Serialize + Send + 'static>(
         &self,
         key: &str,
+        doc_id: String,
         content: V,
     ) -> StorageResult<Document> {
-        let doc_id = foundation_compact::ids::new_scru128_string();
+        self.insert_promoted(key, doc_id, content, None, None, None)
+    }
+
+    /// INSERT path that also writes the promoted searchable columns
+    /// (`title`/`summary`/`record_type`). The JSON `content` blob stays the
+    /// source of truth; promoted columns are nullable mirrors (F06 Part 2).
+    fn insert_promoted<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: String,
+        content: V,
+        title: Option<String>,
+        summary: Option<String>,
+        record_type: Option<String>,
+    ) -> StorageResult<Document> {
+        use crate::core::storage_provider::DataValue;
         let content_json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let metadata = serde_json::json!({});
@@ -45,24 +64,156 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         let table = &self.table;
 
         let sql = format!(
-            "INSERT INTO {} (collection_key, doc_id, content, metadata) VALUES (?, ?, ?, ?)",
-            table
+            "INSERT INTO {table} \
+             (collection_key, doc_id, content, metadata, title, summary, record_type) \
+             VALUES (?, ?, ?, ?, ?, ?, ?)"
         );
-
+        let opt = |v: &Option<String>| match v {
+            Some(s) => DataValue::Text(s.clone()),
+            None => DataValue::Null,
+        };
         let params = [
-            crate::core::storage_provider::DataValue::Text(key.to_string()),
-            crate::core::storage_provider::DataValue::Text(doc_id.clone()),
-            crate::core::storage_provider::DataValue::Text(content_json.clone()),
-            crate::core::storage_provider::DataValue::Text(metadata_json),
+            DataValue::Text(key.to_string()),
+            DataValue::Text(doc_id.clone()),
+            DataValue::Text(content_json.clone()),
+            DataValue::Text(metadata_json),
+            opt(&title),
+            opt(&summary),
+            opt(&record_type),
         ];
-
         self.query_store.execute(&sql, &params)?;
 
         Ok(Document {
             id: doc_id,
             content: content_json,
             metadata,
+            title,
+            summary,
+            record_type,
         })
+    }
+}
+
+/// Build a `Document` from a row selecting
+/// `doc_id, content, metadata, title, summary, record_type` (in that order).
+fn row_to_document(row: &SqlRow) -> StorageResult<Document> {
+    let metadata = row
+        .get::<String>(2)
+        .ok()
+        .and_then(|m| serde_json::from_str(&m).ok())
+        .unwrap_or_else(|| serde_json::json!({}));
+    Ok(Document {
+        id: row.get::<String>(0)?,
+        content: row.get::<String>(1)?,
+        metadata,
+        title: row.get::<String>(3).ok(),
+        summary: row.get::<String>(4).ok(),
+        record_type: row.get::<String>(5).ok(),
+    })
+}
+
+/// Collect a `SELECT doc_id, content, metadata, title, summary, record_type` stream
+/// into `Vec<Document>`.
+fn collect_documents(
+    rows: Stream<Result<SqlRow, StorageError>, ()>,
+) -> Option<StorageResult<Document>> {
+    match rows {
+        Stream::Next(Ok(row)) => Some(row_to_document(&row)),
+        Stream::Next(Err(e)) => Some(Err(e)),
+        _ => None,
+    }
+}
+
+/// Deserialize the `content` column (index 0) of a query row into `V`.
+fn content_to_item<V: DeserializeOwned>(
+    s: Stream<Result<SqlRow, StorageError>, ()>,
+) -> Option<Stream<Result<V, StorageError>, ()>> {
+    match s {
+        Stream::Next(Ok(row)) => match row.get::<String>(0) {
+            Ok(content) => match serde_json::from_str::<V>(&content) {
+                Ok(v) => Some(Stream::Next(Ok(v))),
+                Err(e) => Some(Stream::Next(Err(StorageError::Deserialization(e.to_string())))),
+            },
+            Err(e) => Some(Stream::Next(Err(e))),
+        },
+        Stream::Next(Err(e)) => Some(Stream::Next(Err(e))),
+        _ => None,
+    }
+}
+
+impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocumentStore<Q> {
+    fn append<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        let doc_id = foundation_compact::ids::new_scru128_string();
+        self.insert(key, doc_id, content)
+    }
+
+    fn append_with_id<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        self.insert(key, doc_id.to_string(), content)
+    }
+
+    fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        let doc_id = foundation_compact::ids::new_scru128_string();
+        let (t, s, rt) = (content.title(), content.summary(), content.record_type());
+        self.insert_promoted(key, doc_id, content, t, s, rt)
+    }
+
+    fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        let (t, s, rt) = (content.title(), content.summary(), content.record_type());
+        self.insert_promoted(key, doc_id.to_string(), content, t, s, rt)
+    }
+
+    fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+        let table = &self.table;
+        let sql = format!(
+            "SELECT doc_id, content, metadata, title, summary, record_type \
+             FROM {table} WHERE collection_key = ? ORDER BY doc_id DESC LIMIT ?"
+        );
+        let params = [
+            crate::core::storage_provider::DataValue::Text(key.to_string()),
+            crate::core::storage_provider::DataValue::Integer(limit as i64),
+        ];
+        let rows = self.query_store.query(&sql, &params)?;
+        rows.filter_map(collect_documents).collect()
+    }
+
+    fn scan_documents_from(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<Vec<Document>> {
+        let table = &self.table;
+        let sql = format!(
+            "SELECT doc_id, content, metadata, title, summary, record_type \
+             FROM {table} WHERE collection_key = ? AND doc_id >= ? \
+             ORDER BY doc_id ASC LIMIT ?"
+        );
+        let sql_limit = if limit == 0 { -1 } else { limit as i64 };
+        let params = [
+            crate::core::storage_provider::DataValue::Text(key.to_string()),
+            crate::core::storage_provider::DataValue::Text(from_id.to_string()),
+            crate::core::storage_provider::DataValue::Integer(sql_limit),
+        ];
+        let rows = self.query_store.query(&sql, &params)?;
+        rows.filter_map(collect_documents).collect()
     }
 
     fn scan<V: DeserializeOwned + Send + 'static>(
@@ -71,9 +222,10 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         limit: usize,
     ) -> StorageResult<StorageItemStream<'_, V>> {
         let table = &self.table;
+        // Order by doc_id (scru128) — strictly time-ordered, unlike the coarse
+        // 1-second `created_at` (F06 Part 0 / OD-06-4).
         let sql = format!(
-            "SELECT content FROM {} WHERE collection_key = ? ORDER BY created_at DESC LIMIT ?",
-            table
+            "SELECT content FROM {table} WHERE collection_key = ? ORDER BY doc_id DESC LIMIT ?"
         );
         let params = [
             crate::core::storage_provider::DataValue::Text(key.to_string()),
@@ -81,20 +233,7 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
         ];
 
         let rows = self.query_store.query(&sql, &params)?;
-        let iter = rows.filter_map(|s| match s {
-            Stream::Next(Ok(row)) => match row.get::<String>(0) {
-                Ok(content) => match serde_json::from_str::<V>(&content) {
-                    Ok(v) => Some(Stream::Next(Ok(v))),
-                    Err(e) => Some(Stream::Next(Err(StorageError::Deserialization(
-                        e.to_string(),
-                    )))),
-                },
-                Err(e) => Some(Stream::Next(Err(e))),
-            },
-            Stream::Next(Err(e)) => Some(Stream::Next(Err(e))),
-            _ => None,
-        });
-        Ok(Box::new(iter))
+        Ok(Box::new(rows.filter_map(content_to_item::<V>)))
     }
 
     fn scan_all<V: DeserializeOwned + Send + 'static>(
@@ -103,26 +242,36 @@ impl<Q: crate::core::storage_provider::QueryStore> DocumentStore for SqlDocument
     ) -> StorageResult<StorageItemStream<'_, V>> {
         let table = &self.table;
         let sql = format!(
-            "SELECT content FROM {} WHERE collection_key = ? ORDER BY created_at ASC",
-            table
+            "SELECT content FROM {table} WHERE collection_key = ? ORDER BY doc_id ASC"
         );
         let params = [crate::core::storage_provider::DataValue::Text(key.to_string())];
 
         let rows = self.query_store.query(&sql, &params)?;
-        let iter = rows.filter_map(|s| match s {
-            Stream::Next(Ok(row)) => match row.get::<String>(0) {
-                Ok(content) => match serde_json::from_str::<V>(&content) {
-                    Ok(v) => Some(Stream::Next(Ok(v))),
-                    Err(e) => Some(Stream::Next(Err(StorageError::Deserialization(
-                        e.to_string(),
-                    )))),
-                },
-                Err(e) => Some(Stream::Next(Err(e))),
-            },
-            Stream::Next(Err(e)) => Some(Stream::Next(Err(e))),
-            _ => None,
-        });
-        Ok(Box::new(iter))
+        Ok(Box::new(rows.filter_map(content_to_item::<V>)))
+    }
+
+    fn scan_from<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<StorageItemStream<'_, V>> {
+        let table = &self.table;
+        // doc_id >= from_id (inclusive — OD-06-2), oldest-first; served by the
+        // (collection_key, doc_id) unique index. limit 0 = unlimited (-1 in SQL).
+        let sql = format!(
+            "SELECT content FROM {table} WHERE collection_key = ? AND doc_id >= ? \
+             ORDER BY doc_id ASC LIMIT ?"
+        );
+        let sql_limit = if limit == 0 { -1 } else { limit as i64 };
+        let params = [
+            crate::core::storage_provider::DataValue::Text(key.to_string()),
+            crate::core::storage_provider::DataValue::Text(from_id.to_string()),
+            crate::core::storage_provider::DataValue::Integer(sql_limit),
+        ];
+
+        let rows = self.query_store.query(&sql, &params)?;
+        Ok(Box::new(rows.filter_map(content_to_item::<V>)))
     }
 
     fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {

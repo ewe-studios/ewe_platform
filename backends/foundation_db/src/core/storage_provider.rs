@@ -453,14 +453,25 @@ pub trait AsyncRateLimiterStore {
 // ===========================================================================
 
 /// A single document in a document store.
+///
+/// `#[non_exhaustive]` so future promoted columns can be added without breaking
+/// construction sites (use `Document { .. }` with the named fields).
 #[derive(Debug, Clone)]
+#[non_exhaustive]
 pub struct Document {
-    /// Unique document ID within the collection.
+    /// Unique document ID within the collection (scru128 — time-ordered).
     pub id: String,
-    /// The document content as a JSON string.
+    /// The document content as a JSON string (full fidelity, source of truth).
     pub content: String,
     /// Optional metadata (created_at, updated_at, etc.).
     pub metadata: serde_json::Value,
+    /// Promoted searchable column — a short title/label (nullable).
+    pub title: Option<String>,
+    /// Promoted searchable column — a summary/first-line (nullable).
+    pub summary: Option<String>,
+    /// Promoted searchable column — the record discriminant
+    /// ("conversation"/"observation"/...); nullable.
+    pub record_type: Option<String>,
 }
 
 /// Document append operations — available on all backends.
@@ -469,29 +480,78 @@ pub struct Document {
 /// Each document gets a unique ID (scru128 or similar).
 /// Collections are identified by a key (e.g., `session:{id}:messages`).
 pub trait DocumentStore: Send + Sync {
-    /// Append a document to a collection. Returns the stored document with assigned ID.
-    ///
-    /// The backend assigns a unique ID to the document.
+    /// Append a document to a collection. Returns the stored document with an
+    /// assigned scru128 ID. Ordering across all scans is by `doc_id` (scru128 is
+    /// lexicographically == chronologically ordered).
     fn append<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: V,
     ) -> StorageResult<Document>;
 
-    /// Scan the last N documents from a collection.
-    /// Returns a stream of documents, newest-first.
+    /// Append a document with a **caller-supplied** `doc_id` (e.g. an agentic
+    /// message scru128), so `scan_from` can later anchor on a known id (OD-06-5).
+    /// The id must be a scru128 string for ordering to remain coherent.
+    fn append_with_id<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document>;
+
+    /// Scan the last N documents from a collection, **newest-first** (ordered by
+    /// `doc_id` DESC).
     fn scan<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
         limit: usize,
     ) -> StorageResult<StorageItemStream<'_, V>>;
 
-    /// Scan all documents from a collection, oldest-first.
-    /// Returns a stream of all documents.
+    /// Scan all documents from a collection, **oldest-first** (ordered by `doc_id` ASC).
     fn scan_all<V: DeserializeOwned + Send + 'static>(
         &self,
         key: &str,
     ) -> StorageResult<StorageItemStream<'_, V>>;
+
+    /// Scan documents whose id is **>= `from_id`** (inclusive — OD-06-2),
+    /// oldest-first, up to `limit` (0 = unlimited). Exploits scru128
+    /// lexicographic == chronological ordering for fast resume / incremental sync.
+    fn scan_from<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<StorageItemStream<'_, V>>;
+
+    /// Append a document, populating the promoted columns from a
+    /// [`PromotableDocument`] (OD-06-1). Plain `append` leaves them NULL.
+    fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document>;
+
+    /// Like [`append_promotable`](Self::append_promotable) but with a
+    /// caller-supplied `doc_id`.
+    fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document>;
+
+    /// Scan the last N documents as full [`Document`]s (promoted columns
+    /// observable), newest-first by `doc_id` (OD-06-6).
+    fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>>;
+
+    /// Scan documents with id **>= `from_id`** as full [`Document`]s, oldest-first,
+    /// up to `limit` (0 = unlimited).
+    fn scan_documents_from(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<Vec<Document>>;
 
     /// Delete a specific document from a collection by its ID.
     fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()>;
@@ -503,6 +563,27 @@ pub trait DocumentStore: Send + Sync {
     fn count(&self, key: &str) -> StorageResult<u64>;
 }
 
+/// A type whose values can populate the DocumentStore's promoted columns.
+///
+/// WHY: rather than make callers pass `title`/`summary`/`record_type` to every
+/// `append`, a record type implements this once and the store extracts them
+/// (OD-06-1). F01's `SessionRecord` implements it (`record_type` from the
+/// variant, `summary` from observation/reflection text).
+pub trait PromotableDocument {
+    /// The record discriminant ("conversation"/"observation"/...), if any.
+    fn record_type(&self) -> Option<String> {
+        None
+    }
+    /// A short title/label, if any.
+    fn title(&self) -> Option<String> {
+        None
+    }
+    /// A summary/first-line, if any.
+    fn summary(&self) -> Option<String> {
+        None
+    }
+}
+
 /// Async document store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
 #[async_trait::async_trait(?Send)]
@@ -510,11 +591,19 @@ pub trait AsyncDocumentStore {
     /// Append a document to a collection.
     async fn append_async<V: Serialize + Send + 'static>(&self, key: &str, content: V) -> StorageResult<Document>;
 
-    /// Scan the last N documents from a collection.
+    /// Append a document with a caller-supplied scru128 `doc_id` (OD-06-5).
+    async fn append_with_id_async<V: Serialize + Send + 'static>(&self, key: &str, doc_id: &str, content: V) -> StorageResult<Document>;
+
+    /// Scan the last N documents from a collection, newest-first (by `doc_id`).
     async fn scan_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, limit: usize) -> StorageResult<Vec<V>>;
 
-    /// Scan all documents from a collection, oldest-first.
+    /// Scan all documents from a collection, oldest-first (by `doc_id`).
     async fn scan_all_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Vec<V>>;
+
+    /// Scan documents whose id is >= `from_id` (inclusive), oldest-first, up to
+    /// `limit` (0 = unlimited). The async trait returns `Vec` (not a stream).
+    /// Backend impls land with VFS (F22) and CF KV/D1 (F23) — OD-06-7.
+    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(&self, key: &str, from_id: &str, limit: usize) -> StorageResult<Vec<V>>;
 
     /// Delete a specific document.
     async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()>;

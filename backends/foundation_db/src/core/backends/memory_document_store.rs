@@ -1,19 +1,46 @@
 //! In-memory DocumentStore implementation — for testing and development.
+//!
+//! Ordering is by `doc_id` (scru128, lexicographic == chronological) on every
+//! scan — NOT a separate sequence counter and NOT `"mem-{seq}"` ids (which sort
+//! incorrectly: `"mem-10" < "mem-2"`). This matches the SQL backend (F06 Part 0).
 
 use crate::core::errors::{StorageError, StorageResult};
-use crate::core::storage_provider::{Document, DocumentStore, StorageItemStream};
+use crate::core::storage_provider::{
+    Document, DocumentStore, PromotableDocument, StorageItemStream,
+};
 use foundation_core::valtron::Stream;
 use serde::{de::DeserializeOwned, Serialize};
 use std::collections::HashMap;
-use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
+
+/// One stored document row.
+#[derive(Clone)]
+struct Row {
+    doc_id: String,
+    content: String,
+    metadata: serde_json::Value,
+    title: Option<String>,
+    summary: Option<String>,
+    record_type: Option<String>,
+}
+
+impl Row {
+    fn to_document(&self) -> Document {
+        Document {
+            id: self.doc_id.clone(),
+            content: self.content.clone(),
+            metadata: self.metadata.clone(),
+            title: self.title.clone(),
+            summary: self.summary.clone(),
+            record_type: self.record_type.clone(),
+        }
+    }
+}
 
 /// In-memory document store.
 pub struct MemoryDocumentStore {
-    /// Map: collection_key → Vec<(doc_id, content_json, metadata, sequence)>
-    documents: Mutex<HashMap<String, Vec<(String, String, serde_json::Value, u64)>>>,
-    /// Monotonic counter for ordering.
-    sequence: AtomicU64,
+    /// Map: collection_key → rows (kept sorted-on-read by `doc_id`).
+    documents: Mutex<HashMap<String, Vec<Row>>>,
 }
 
 impl MemoryDocumentStore {
@@ -21,8 +48,35 @@ impl MemoryDocumentStore {
     pub fn new() -> Self {
         Self {
             documents: Mutex::new(HashMap::new()),
-            sequence: AtomicU64::new(0),
         }
+    }
+
+    /// Insert a row (with optional promoted columns) and return the `Document` view.
+    fn insert(
+        &self,
+        key: &str,
+        doc_id: String,
+        content_json: String,
+        title: Option<String>,
+        summary: Option<String>,
+        record_type: Option<String>,
+    ) -> Document {
+        let row = Row {
+            doc_id,
+            content: content_json,
+            metadata: serde_json::json!({}),
+            title,
+            summary,
+            record_type,
+        };
+        let doc = row.to_document();
+        self.documents
+            .lock()
+            .unwrap()
+            .entry(key.to_string())
+            .or_default()
+            .push(row);
+        doc
     }
 }
 
@@ -32,30 +86,89 @@ impl Default for MemoryDocumentStore {
     }
 }
 
+/// Map a row's content JSON to a deserialized stream item.
+fn row_to_item<V: DeserializeOwned>(content: &str) -> Stream<Result<V, StorageError>, ()> {
+    match serde_json::from_str::<V>(content) {
+        Ok(v) => Stream::Next(Ok(v)),
+        Err(e) => Stream::Next(Err(StorageError::Deserialization(e.to_string()))),
+    }
+}
+
 impl DocumentStore for MemoryDocumentStore {
     fn append<V: Serialize + Send + 'static>(
         &self,
         key: &str,
         content: V,
     ) -> StorageResult<Document> {
-        let seq = self.sequence.fetch_add(1, Ordering::SeqCst);
-        let doc_id = format!("mem-{seq}");
+        let doc_id = foundation_compact::ids::new_scru128_string();
         let content_json = serde_json::to_string(&content)
             .map_err(|e| StorageError::Serialization(e.to_string()))?;
-        let metadata = serde_json::json!({"sequence": seq});
+        Ok(self.insert(key, doc_id, content_json, None, None, None))
+    }
 
-        let doc = Document {
-            id: doc_id.clone(),
-            content: content_json.clone(),
-            metadata: metadata.clone(),
-        };
+    fn append_with_id<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        let content_json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        Ok(self.insert(key, doc_id.to_string(), content_json, None, None, None))
+    }
 
-        let mut docs = self.documents.lock().unwrap();
-        docs.entry(key.to_string())
-            .or_default()
-            .push((doc_id, content_json, metadata, seq));
+    fn append_promotable<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        let doc_id = foundation_compact::ids::new_scru128_string();
+        let (t, s, rt) = (content.title(), content.summary(), content.record_type());
+        let content_json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        Ok(self.insert(key, doc_id, content_json, t, s, rt))
+    }
 
-        Ok(doc)
+    fn append_promotable_with_id<V: Serialize + PromotableDocument + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        let (t, s, rt) = (content.title(), content.summary(), content.record_type());
+        let content_json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        Ok(self.insert(key, doc_id.to_string(), content_json, t, s, rt))
+    }
+
+    fn scan_documents(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {
+        let docs = self.documents.lock().unwrap();
+        let mut collection = docs.get(key).cloned().unwrap_or_default();
+        drop(docs);
+        // Newest-first by doc_id, up to limit.
+        collection.sort_by(|a, b| b.doc_id.cmp(&a.doc_id));
+        collection.truncate(limit);
+        Ok(collection.iter().map(Row::to_document).collect())
+    }
+
+    fn scan_documents_from(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<Vec<Document>> {
+        let docs = self.documents.lock().unwrap();
+        let mut collection: Vec<Row> = docs
+            .get(key)
+            .map(|v| v.iter().filter(|r| r.doc_id.as_str() >= from_id).cloned().collect())
+            .unwrap_or_default();
+        drop(docs);
+        // Oldest-first; limit 0 = unlimited.
+        collection.sort_by(|a, b| a.doc_id.cmp(&b.doc_id));
+        if limit > 0 {
+            collection.truncate(limit);
+        }
+        Ok(collection.iter().map(Row::to_document).collect())
     }
 
     fn scan<V: DeserializeOwned + Send + 'static>(
@@ -64,20 +177,16 @@ impl DocumentStore for MemoryDocumentStore {
         limit: usize,
     ) -> StorageResult<StorageItemStream<'_, V>> {
         let docs = self.documents.lock().unwrap();
-        let collection = docs.get(key).cloned().unwrap_or_default();
+        let mut collection = docs.get(key).cloned().unwrap_or_default();
         drop(docs);
 
-        // Newest first, up to limit
-        let mut sorted: Vec<_> = collection.into_iter().collect();
-        sorted.sort_by(|a, b| b.3.cmp(&a.3));
-        sorted.truncate(limit);
+        // Newest-first by doc_id (scru128), up to limit.
+        collection.sort_by(|a, b| b.doc_id.cmp(&a.doc_id));
+        collection.truncate(limit);
 
-        let iter = sorted.into_iter().map(|(_, content, _, _)| {
-            match serde_json::from_str::<V>(&content) {
-                Ok(v) => Stream::Next(Ok(v)),
-                Err(e) => Stream::Next(Err(StorageError::Deserialization(e.to_string()))),
-            }
-        });
+        let iter = collection
+            .into_iter()
+            .map(|r| row_to_item::<V>(&r.content));
         Ok(Box::new(iter))
     }
 
@@ -86,26 +195,53 @@ impl DocumentStore for MemoryDocumentStore {
         key: &str,
     ) -> StorageResult<StorageItemStream<'_, V>> {
         let docs = self.documents.lock().unwrap();
-        let collection = docs.get(key).cloned().unwrap_or_default();
+        let mut collection = docs.get(key).cloned().unwrap_or_default();
         drop(docs);
 
-        // Oldest first
-        let mut sorted: Vec<_> = collection.into_iter().collect();
-        sorted.sort_by(|a, b| a.3.cmp(&b.3));
+        // Oldest-first by doc_id.
+        collection.sort_by(|a, b| a.doc_id.cmp(&b.doc_id));
 
-        let iter = sorted.into_iter().map(|(_, content, _, _)| {
-            match serde_json::from_str::<V>(&content) {
-                Ok(v) => Stream::Next(Ok(v)),
-                Err(e) => Stream::Next(Err(StorageError::Deserialization(e.to_string()))),
-            }
-        });
+        let iter = collection
+            .into_iter()
+            .map(|r| row_to_item::<V>(&r.content));
+        Ok(Box::new(iter))
+    }
+
+    fn scan_from<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<StorageItemStream<'_, V>> {
+        let docs = self.documents.lock().unwrap();
+        let mut collection: Vec<Row> = docs
+            .get(key)
+            .map(|v| {
+                v.iter()
+                    // Inclusive: doc_id >= from_id (OD-06-2).
+                    .filter(|r| r.doc_id.as_str() >= from_id)
+                    .cloned()
+                    .collect()
+            })
+            .unwrap_or_default();
+        drop(docs);
+
+        // Oldest-first by doc_id; limit 0 = unlimited.
+        collection.sort_by(|a, b| a.doc_id.cmp(&b.doc_id));
+        if limit > 0 {
+            collection.truncate(limit);
+        }
+
+        let iter = collection
+            .into_iter()
+            .map(|r| row_to_item::<V>(&r.content));
         Ok(Box::new(iter))
     }
 
     fn delete(&self, key: &str, doc_id: &str) -> StorageResult<()> {
         let mut docs = self.documents.lock().unwrap();
         if let Some(collection) = docs.get_mut(key) {
-            collection.retain(|(id, _, _, _)| id != doc_id);
+            collection.retain(|r| r.doc_id != doc_id);
         }
         Ok(())
     }
@@ -120,5 +256,138 @@ impl DocumentStore for MemoryDocumentStore {
         let docs = self.documents.lock().unwrap();
         let count = docs.get(key).map(|v| v.len() as u64).unwrap_or(0);
         Ok(count)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn append_mints_scru128_ids_and_orders_by_id() {
+        let store = MemoryDocumentStore::new();
+        let a = store.append("k", serde_json::json!({"n": 1})).unwrap();
+        let b = store.append("k", serde_json::json!({"n": 2})).unwrap();
+        // scru128 ids are 25 chars, not "mem-N".
+        assert_eq!(a.id.len(), 25);
+        assert!(b.id > a.id, "later append has a greater scru128 id");
+    }
+
+    #[test]
+    fn scan_from_is_inclusive_and_ordered() {
+        let store = MemoryDocumentStore::new();
+        let ids: Vec<String> = (0..5)
+            .map(|n| store.append("k", serde_json::json!({ "n": n })).unwrap().id)
+            .collect();
+
+        // scan_from the 3rd id (inclusive) → ids[2..] in order.
+        let got: Vec<serde_json::Value> = store
+            .scan_from::<serde_json::Value>("k", &ids[2], 0)
+            .unwrap()
+            .filter_map(|s| match s {
+                Stream::Next(Ok(v)) => Some(v),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(got.len(), 3);
+        assert_eq!(got[0]["n"], 2);
+        assert_eq!(got[2]["n"], 4);
+
+        // limit caps the result.
+        let limited = store
+            .scan_from::<serde_json::Value>("k", &ids[0], 2)
+            .unwrap()
+            .filter(|s| matches!(s, Stream::Next(Ok(_))))
+            .count();
+        assert_eq!(limited, 2);
+    }
+
+    #[test]
+    fn append_with_id_uses_caller_id() {
+        let store = MemoryDocumentStore::new();
+        let id = foundation_compact::ids::new_scru128_string();
+        let doc = store
+            .append_with_id("k", &id, serde_json::json!({"x": 1}))
+            .unwrap();
+        assert_eq!(doc.id, id);
+        // The supplied id anchors scan_from.
+        let n = store
+            .scan_from::<serde_json::Value>("k", &id, 0)
+            .unwrap()
+            .filter(|s| matches!(s, Stream::Next(Ok(_))))
+            .count();
+        assert_eq!(n, 1);
+    }
+
+    /// A record that promotes columns from its content.
+    #[derive(serde::Serialize)]
+    struct Note {
+        kind: String,
+        text: String,
+    }
+    impl PromotableDocument for Note {
+        fn record_type(&self) -> Option<String> {
+            Some(self.kind.clone())
+        }
+        fn summary(&self) -> Option<String> {
+            Some(self.text.clone())
+        }
+    }
+
+    #[test]
+    fn append_promotable_round_trips_columns() {
+        let store = MemoryDocumentStore::new();
+        let doc = store
+            .append_promotable(
+                "k",
+                Note {
+                    kind: "observation".into(),
+                    text: "saw a cat".into(),
+                },
+            )
+            .unwrap();
+        assert_eq!(doc.record_type.as_deref(), Some("observation"));
+        assert_eq!(doc.summary.as_deref(), Some("saw a cat"));
+        assert_eq!(doc.title, None);
+
+        // Observable again through scan_documents (newest-first).
+        let docs = store.scan_documents("k", 10).unwrap();
+        assert_eq!(docs.len(), 1);
+        assert_eq!(docs[0].record_type.as_deref(), Some("observation"));
+        assert_eq!(docs[0].summary.as_deref(), Some("saw a cat"));
+    }
+
+    #[test]
+    fn plain_append_leaves_promoted_columns_null() {
+        let store = MemoryDocumentStore::new();
+        store.append("k", serde_json::json!({"n": 1})).unwrap();
+        let docs = store.scan_documents("k", 10).unwrap();
+        assert_eq!(docs[0].record_type, None);
+        assert_eq!(docs[0].title, None);
+        assert_eq!(docs[0].summary, None);
+    }
+
+    #[test]
+    fn scan_documents_from_is_inclusive_and_ordered() {
+        let store = MemoryDocumentStore::new();
+        let ids: Vec<String> = (0..4)
+            .map(|n| {
+                store
+                    .append_promotable(
+                        "k",
+                        Note {
+                            kind: "n".into(),
+                            text: format!("t{n}"),
+                        },
+                    )
+                    .unwrap()
+                    .id
+            })
+            .collect();
+        let docs = store.scan_documents_from("k", &ids[1], 0).unwrap();
+        assert_eq!(docs.len(), 3);
+        assert_eq!(docs[0].id, ids[1]);
+        assert_eq!(docs[0].summary.as_deref(), Some("t1"));
+        assert_eq!(docs[2].summary.as_deref(), Some("t3"));
     }
 }
