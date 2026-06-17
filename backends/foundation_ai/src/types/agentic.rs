@@ -147,20 +147,10 @@ fn machine_id() -> u32 {
 // re-exported here for the record types below.
 pub use crate::agentic::errors::AgenticError;
 
-/// Forward-reference stub for the F04 token snapshot.
-///
-/// `SessionRecord::Summary` carries the cumulative session usage. F04 (token
-/// accounting) owns the real `TokenSnapshot` (total/rolling/budget/cost); this
-/// shell keeps F01 self-contained until F04 lands.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-pub struct TokenSnapshot {
-    /// Cumulative input tokens this session.
-    pub total_input: u64,
-    /// Cumulative output tokens this session.
-    pub total_output: u64,
-    /// Cumulative cost (currency units). `f64` — `SessionRecord` is `PartialEq` only.
-    pub cost: f64,
-}
+// `TokenSnapshot` (the cumulative session usage carried by
+// `SessionRecord::Summary`) is owned by F04 in `crate::agentic::token_ledger` and
+// re-exported here for the record types below.
+pub use crate::agentic::token_ledger::TokenSnapshot;
 
 // ============================================================================
 // SessionRecord — one entry in a session's ordered log (Decision 03, OD-3)
@@ -353,8 +343,12 @@ mod tests {
         let rec = SessionRecord::Summary {
             message_count: 7,
             usage: TokenSnapshot {
-                total_input: 100,
-                total_output: 40,
+                total: 140,
+                input: 100,
+                output: 40,
+                rolling: 140,
+                budget: Some(10_000),
+                remaining: Some(9_860),
                 cost: 0.0021,
             },
         };

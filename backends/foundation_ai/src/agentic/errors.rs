@@ -96,6 +96,11 @@ pub enum AgenticError {
     Auth(AuthError),
     /// A budget limit was exceeded.
     Budget { limit: u64 },
+    /// The session token budget is exhausted — generation halts until the budget
+    /// is raised (recoverable). Carries the ledger snapshot at the halt point (F04).
+    BudgetExhausted {
+        snapshot: crate::agentic::token_ledger::TokenSnapshot,
+    },
     /// Catch-all for anything unmapped (`ErrorTrace<T>` flattenings, etc.).
     Unexpected(String),
 }
@@ -184,6 +189,11 @@ impl std::fmt::Display for AgenticError {
             }
             AgenticError::Auth(a) => write!(f, "auth: {}", a.reason),
             AgenticError::Budget { limit } => write!(f, "budget exceeded (limit {limit})"),
+            AgenticError::BudgetExhausted { snapshot } => write!(
+                f,
+                "token budget exhausted ({} / {:?} tokens)",
+                snapshot.total, snapshot.budget
+            ),
             AgenticError::Unexpected(m) => write!(f, "unexpected: {m}"),
         }
     }

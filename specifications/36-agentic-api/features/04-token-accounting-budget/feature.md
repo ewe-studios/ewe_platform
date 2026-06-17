@@ -1,7 +1,7 @@
 ---
 feature: "Token Accounting & Budget"
 description: "Session-level token ledger built on the existing UsageReport, with a configurable max-token budget that halts generation (correct error, resettable) and exposes the counters memory triggers and budget surfacing consume"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model", "02-error-handling"]
 estimated_effort: "medium"
