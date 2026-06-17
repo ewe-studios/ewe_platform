@@ -38,6 +38,12 @@ impl IdpServer {
         // F04 — password reset endpoints
         app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/request_reset");
         app.route::<ServeAdapter>(SimpleMethod::PUT, "/auth/v1/users/{id}/reset");
+        // F05 — Proof of Work endpoints
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/pow");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/pow");
+        // F08 — template/config API endpoints
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/templates/config");
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/templates/password_policy");
     }
 
     #[must_use]

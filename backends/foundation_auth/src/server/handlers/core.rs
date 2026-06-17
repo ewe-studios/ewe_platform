@@ -9,6 +9,7 @@ use super::super::config::IdpConfig;
 use super::super::models::{AuthorizationCode, DeviceCode, RefreshToken};
 use super::super::services::{TokenService, TokenServiceError};
 use super::super::services::user_service;
+use super::super::services::{PowService, PowSolution};
 use super::super::storage::{
     self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email, update_user_lockout,
 };
@@ -204,13 +205,15 @@ pub struct IdpHandlerCore {
     config: Arc<IdpConfig>,
     storage: Arc<HandlerStorage>,
     token_service: Arc<TokenService>,
+    pow_service: Arc<PowService>,
 }
 
 impl IdpHandlerCore {
     #[must_use]
     pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage>) -> Self {
         let token_service = Arc::new(TokenService::new(Arc::clone(&config)));
-        Self { config, storage, token_service }
+        let pow_service = Arc::new(PowService::new(22, 300, 600)); // difficulty 22 bits, 5min challenge, 10min solve
+        Self { config, storage, token_service, pow_service }
     }
 
     pub async fn discovery(
@@ -708,6 +711,68 @@ impl IdpHandlerCore {
         })))
     }
 
+    // ─── F05: Proof of Work ────────────────────────────────────────────────────
+
+    /// Get PoW challenge: GET /auth/v1/pow
+    pub async fn pow_challenge(
+        &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let challenge = self.pow_service.generate_challenge();
+        let body = serde_json::to_value(&challenge)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(body))
+    }
+
+    /// Solve PoW challenge: POST /auth/v1/pow
+    pub async fn pow_solve(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let solution: PowSolution = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        if self.pow_service.verify_solution(&solution) {
+            Ok(HandlerResponse::ok(serde_json::json!({
+                "valid": true,
+            })))
+        } else {
+            Ok(HandlerResponse::ok(serde_json::json!({
+                "error": "invalid_pow",
+            })))
+        }
+    }
+
+    // ─── F08: Template/Config API ──────────────────────────────────────────────
+
+    /// Get template config: GET /auth/v1/templates/config
+    pub async fn template_config(
+        &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "password_policy": {
+                "min_length": self.config.password_policy.min_length,
+                "require_uppercase": self.config.password_policy.require_uppercase,
+                "require_lowercase": self.config.password_policy.require_lowercase,
+                "require_number": self.config.password_policy.require_number,
+                "require_special": self.config.password_policy.require_special,
+            },
+            "issuer": self.config.issuer_url,
+        })))
+    }
+
+    /// Get password policy: GET /auth/v1/templates/password_policy
+    pub async fn password_policy(
+        &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "min_length": self.config.password_policy.min_length,
+            "require_uppercase": self.config.password_policy.require_uppercase,
+            "require_lowercase": self.config.password_policy.require_lowercase,
+            "require_number": self.config.password_policy.require_number,
+            "require_special": self.config.password_policy.require_special,
+        })))
+    }
+
     pub async fn dispatch(
         &self, bag: &ContextBag, req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
@@ -731,6 +796,17 @@ impl IdpHandlerCore {
         // F04 password reset routes
         else if path.ends_with("/auth/v1/users/request_reset") { self.request_password_reset(bag, req).await }
         else if path.contains("/auth/v1/users/") && path.ends_with("/reset") { self.set_password(bag, req).await }
+        // F05 PoW routes
+        else if path.ends_with("/auth/v1/pow") {
+            match req.method {
+                foundation_http::SimpleMethod::GET => self.pow_challenge(bag, req).await,
+                foundation_http::SimpleMethod::POST => self.pow_solve(bag, req).await,
+                _ => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
+            }
+        }
+        // F08 template/config routes
+        else if path.ends_with("/auth/v1/templates/config") { self.template_config(bag, req).await }
+        else if path.ends_with("/auth/v1/templates/password_policy") { self.password_policy(bag, req).await }
         else { Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))) }
     }
 }
