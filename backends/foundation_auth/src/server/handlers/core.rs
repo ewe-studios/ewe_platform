@@ -10,6 +10,11 @@ use super::super::models::{AuthorizationCode, DeviceCode, RefreshToken};
 use super::super::services::{TokenService, TokenServiceError};
 use super::super::services::user_service;
 use super::super::services::{PowService, PowSolution};
+use super::super::services::{WebAuthnService, TosService};
+use super::super::services::{
+    WebAuthnRegisterFinishRequest, WebAuthnAuthFinishRequest,
+    PasskeyLoginStartRequest, PasskeyLoginFinishRequest,
+};
 use super::super::storage::{
     self, HandlerStorage, StorageOpError, find_client_by_id, find_user_by_email, update_user_lockout,
 };
@@ -213,14 +218,18 @@ pub struct IdpHandlerCore {
     storage: Arc<HandlerStorage>,
     token_service: Arc<TokenService>,
     pow_service: Arc<PowService>,
+    webauthn_service: Arc<WebAuthnService>,
+    tos_service: Arc<TosService>,
 }
 
 impl IdpHandlerCore {
     #[must_use]
     pub fn new(config: Arc<IdpConfig>, storage: Arc<HandlerStorage>) -> Self {
         let token_service = Arc::new(TokenService::new(Arc::clone(&config)));
-        let pow_service = Arc::new(PowService::new(22, 300, 600)); // difficulty 22 bits, 5min challenge, 10min solve
-        Self { config, storage, token_service, pow_service }
+        let pow_service = Arc::new(PowService::new(22, 300, 600));
+        let webauthn_service = Arc::new(WebAuthnService::new(Arc::clone(&config), Arc::clone(&storage)));
+        let tos_service = Arc::new(TosService::new(Arc::clone(&storage)));
+        Self { config, storage, token_service, pow_service, webauthn_service, tos_service }
     }
 
     pub async fn discovery(
@@ -867,6 +876,176 @@ impl IdpHandlerCore {
         })))
     }
 
+    // ─── F06: WebAuthn/FIDO2 ───────────────────────────────────────────────────
+
+    /// WebAuthn register start: POST /auth/v1/webauthn/register/start
+    pub async fn webauthn_register_start(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let start_req: serde_json::Value = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+        let user_id = start_req.get("user_id").and_then(|v| v.as_str())
+            .ok_or_else(|| IdpError::BadRequest("Missing user_id".into()))?;
+        let email = start_req.get("email").and_then(|v| v.as_str())
+            .ok_or_else(|| IdpError::BadRequest("Missing email".into()))?;
+
+        let options = self.webauthn_service.register_start(user_id, email)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        let body = serde_json::to_value(&options)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(body))
+    }
+
+    /// WebAuthn register finish: POST /auth/v1/webauthn/register/finish
+    pub async fn webauthn_register_finish(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let finish_req: WebAuthnRegisterFinishRequest = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        let passkey = self.webauthn_service.register_finish(&finish_req)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "id": passkey.id,
+            "name": passkey.name,
+        })))
+    }
+
+    /// WebAuthn auth start: POST /auth/v1/webauthn/login/start
+    pub async fn webauthn_auth_start(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let start_req: serde_json::Value = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+        let user_id = start_req.get("user_id").and_then(|v| v.as_str())
+            .ok_or_else(|| IdpError::BadRequest("Missing user_id".into()))?;
+
+        let options = self.webauthn_service.auth_start(user_id)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        let body = serde_json::to_value(&options)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(body))
+    }
+
+    /// WebAuthn auth finish: POST /auth/v1/webauthn/login/finish
+    pub async fn webauthn_auth_finish(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let finish_req: WebAuthnAuthFinishRequest = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        let user_id = self.webauthn_service.auth_finish(&finish_req)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::accepted(serde_json::json!({
+            "status": "authenticated",
+            "user_id": user_id,
+        })))
+    }
+
+    /// Passkey-only login start: POST /auth/v1/passkey/login/start
+    pub async fn passkey_login_start(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let start_req: PasskeyLoginStartRequest = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+        let email = start_req.email
+            .ok_or_else(|| IdpError::BadRequest("Missing email".into()))?;
+
+        let options = self.webauthn_service.passkey_login_start(&email)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        let body = serde_json::to_value(&options)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(body))
+    }
+
+    /// Passkey-only login finish: POST /auth/v1/passkey/login/finish
+    pub async fn passkey_login_finish(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let finish_req: PasskeyLoginFinishRequest = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        let user_id = self.webauthn_service.passkey_login_finish(&finish_req)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::accepted(serde_json::json!({
+            "status": "authenticated",
+            "user_id": user_id,
+        })))
+    }
+
+    /// Delete passkey: DELETE /auth/v1/webauthn/{id}
+    pub async fn delete_passkey(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let passkey_id = extract_path_param(&req.request_url.url, "/auth/v1/webauthn/")
+            .ok_or_else(|| IdpError::BadRequest("Missing passkey ID".into()))?;
+
+        self.webauthn_service.delete_passkey(&passkey_id)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(serde_json::json!({ "status": "deleted" })))
+    }
+
+    /// Rename passkey: PUT /auth/v1/webauthn/{id}
+    pub async fn rename_passkey(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let passkey_id = extract_path_param(&req.request_url.url, "/auth/v1/webauthn/")
+            .ok_or_else(|| IdpError::BadRequest("Missing passkey ID".into()))?;
+
+        let body = extract_body_text(&req.body);
+        let rename_req: serde_json::Value = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+        let name = rename_req.get("name").and_then(|v| v.as_str())
+            .ok_or_else(|| IdpError::BadRequest("Missing name".into()))?;
+
+        self.webauthn_service.rename_passkey(&passkey_id, name)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(serde_json::json!({ "status": "renamed" })))
+    }
+
+    // ─── F07: Terms of Service ─────────────────────────────────────────────────
+
+    /// Get latest ToS: GET /auth/v1/tos/latest
+    pub async fn tos_latest(
+        &self, _bag: &ContextBag, _req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        match self.tos_service.get_latest() {
+            Some(tos) => Ok(HandlerResponse::ok(serde_json::json!({
+                "version": tos.version,
+                "content": tos.content,
+                "effective_from": tos.effective_from,
+            }))),
+            None => Ok(HandlerResponse::ok(serde_json::json!({
+                "version": null,
+                "message": "No ToS configured.",
+            }))),
+        }
+    }
+
+    /// Accept ToS: POST /auth/v1/tos/accept
+    pub async fn tos_accept(
+        &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
+    ) -> Result<HandlerResponse, IdpError> {
+        let body = extract_body_text(&req.body);
+        let accept_req: serde_json::Value = serde_json::from_str(&body)
+            .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
+
+        let user_id = accept_req.get("user_id").and_then(|v| v.as_str())
+            .ok_or_else(|| IdpError::BadRequest("Missing user_id".into()))?;
+
+        self.tos_service.accept(user_id, None)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        Ok(HandlerResponse::ok(serde_json::json!({
+            "status": "accepted",
+        })))
+    }
+
     pub async fn dispatch(
         &self, bag: &ContextBag, req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
@@ -914,13 +1093,30 @@ impl IdpHandlerCore {
         else if path.starts_with("/auth/v1/users/") && path.matches('/').count() == 4
                 && !path.ends_with("/reset") && !path.ends_with("/change_password")
                 && !path.ends_with("/sessions") && !path.ends_with("/revoke") {
-            // Simple /auth/v1/users/{id} — only GET and PUT
             match req.method {
                 foundation_http::SimpleMethod::GET => self.get_user(bag, req).await,
                 foundation_http::SimpleMethod::PUT => self.update_user(bag, req).await,
                 _ => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
             }
         }
+        // F06 WebAuthn routes
+        else if path.ends_with("/auth/v1/webauthn/register/start") { self.webauthn_register_start(bag, req).await }
+        else if path.ends_with("/auth/v1/webauthn/register/finish") { self.webauthn_register_finish(bag, req).await }
+        else if path.ends_with("/auth/v1/webauthn/login/start") { self.webauthn_auth_start(bag, req).await }
+        else if path.ends_with("/auth/v1/webauthn/login/finish") { self.webauthn_auth_finish(bag, req).await }
+        else if path.starts_with("/auth/v1/webauthn/") && path.matches('/').count() == 4 {
+            match req.method {
+                foundation_http::SimpleMethod::DELETE => self.delete_passkey(bag, req).await,
+                foundation_http::SimpleMethod::PUT => self.rename_passkey(bag, req).await,
+                _ => Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))),
+            }
+        }
+        // F06 passkey-only login routes
+        else if path.ends_with("/auth/v1/passkey/login/start") { self.passkey_login_start(bag, req).await }
+        else if path.ends_with("/auth/v1/passkey/login/finish") { self.passkey_login_finish(bag, req).await }
+        // F07 ToS routes
+        else if path.ends_with("/auth/v1/tos/latest") { self.tos_latest(bag, req).await }
+        else if path.ends_with("/auth/v1/tos/accept") { self.tos_accept(bag, req).await }
         else { Err(IdpError::NotFound(format!("Unknown endpoint: {path}"))) }
     }
 }

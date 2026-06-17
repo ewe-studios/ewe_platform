@@ -50,6 +50,19 @@ impl IdpServer {
         app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/{id}/change_password");
         app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/users/{id}/sessions");
         app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/users/{id}/revoke");
+        // F06 — WebAuthn/FIDO2 endpoints
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/webauthn/register/start");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/webauthn/register/finish");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/webauthn/login/start");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/webauthn/login/finish");
+        app.route::<ServeAdapter>(SimpleMethod::DELETE, "/auth/v1/webauthn/{id}");
+        app.route::<ServeAdapter>(SimpleMethod::PUT, "/auth/v1/webauthn/{id}");
+        // F06 — passkey-only login endpoints
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/passkey/login/start");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/passkey/login/finish");
+        // F07 — Terms of Service endpoints
+        app.route::<ServeAdapter>(SimpleMethod::GET, "/auth/v1/tos/latest");
+        app.route::<ServeAdapter>(SimpleMethod::POST, "/auth/v1/tos/accept");
     }
 
     #[must_use]
