@@ -1,7 +1,7 @@
 ---
 feature: "Account Management"
 description: "User info CRUD, session listing, passkey management, account deletion"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["02-login-mfa-handlers"]
 estimated_effort: "medium"

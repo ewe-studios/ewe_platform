@@ -292,6 +292,76 @@ pub fn update_user_lockout(
         .map_err(|e| StorageOpError::Query(e.to_string()))
 }
 
+/// Find a user by their ID.
+pub fn find_user_by_id(
+    store: &dyn QueryStore,
+    user_id: &str,
+) -> Result<Option<User>, StorageOpError> {
+    let sql = "SELECT id, email, username, password_hash, email_verified, email_verified_at, created_at, updated_at, metadata, failed_login_attempts, locked_until, deleted_at FROM users WHERE id = ?";
+    let mut stream = store
+        .query(sql, &[DataValue::Text(user_id.to_string())])
+        .map_err(|e| StorageOpError::Query(e.to_string()))?;
+    let row = match collect_one_row(&mut stream)? {
+        Some(r) => r,
+        None => return Ok(None),
+    };
+    Ok(Some(parse_user_row(&row)?))
+}
+
+/// Update user profile fields (username only for now — email changes require re-verification).
+pub fn update_user_profile(
+    store: &dyn QueryStore,
+    user_id: &str,
+    username: Option<&str>,
+) -> Result<(), StorageOpError> {
+    let username = username.unwrap_or("");
+    let now = chrono::Utc::now().timestamp_millis();
+    let sql = "UPDATE users SET username = ?, updated_at = ? WHERE id = ?";
+    store
+        .execute(sql, &[
+            DataValue::Text(username.to_string()),
+            DataValue::Integer(now),
+            DataValue::Text(user_id.to_string()),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+/// Update a user's password hash after verifying the current one.
+pub fn update_user_password(
+    store: &dyn QueryStore,
+    user_id: &str,
+    new_hash: &str,
+) -> Result<(), StorageOpError> {
+    let now = chrono::Utc::now().timestamp_millis();
+    let sql = "UPDATE users SET password_hash = ?, updated_at = ? WHERE id = ?";
+    store
+        .execute(sql, &[
+            DataValue::Text(new_hash.to_string()),
+            DataValue::Integer(now),
+            DataValue::Text(user_id.to_string()),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
+/// Soft-delete a user by setting deleted_at.
+pub fn soft_delete_user(
+    store: &dyn QueryStore,
+    user_id: &str,
+) -> Result<(), StorageOpError> {
+    let now = chrono::Utc::now().timestamp_millis();
+    let sql = "UPDATE users SET deleted_at = ?, updated_at = ? WHERE id = ?";
+    store
+        .execute(sql, &[
+            DataValue::Integer(now),
+            DataValue::Integer(now),
+            DataValue::Text(user_id.to_string()),
+        ])
+        .map(|_| ())
+        .map_err(|e| StorageOpError::Query(e.to_string()))
+}
+
 /// Create a new user in the database.
 pub fn create_user(
     store: &dyn QueryStore,

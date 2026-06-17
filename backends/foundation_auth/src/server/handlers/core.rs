@@ -801,10 +801,17 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
-        // In production, query the user by ID from storage
+        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id)
+            .map_err(|e| IdpError::Internal(e.to_string()))?
+            .ok_or_else(|| IdpError::NotFound("User not found".into()))?;
+
         Ok(HandlerResponse::ok(serde_json::json!({
-            "id": user_id,
-            "status": "user lookup (storage query needed)",
+            "id": user.id,
+            "email": user.email,
+            "username": user.username,
+            "email_verified": user.email_verified,
+            "created_at": user.created_at,
+            "updated_at": user.updated_at,
         })))
     }
 
@@ -812,16 +819,20 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     pub async fn update_user(
         &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let _user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
+        let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
         let body = extract_body_text(&req.body);
         let update: serde_json::Value = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
 
+        let username = update.get("username").and_then(|v| v.as_str());
+        storage::update_user_profile(self.storage.query_store.as_ref(), &user_id, username)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+
         Ok(HandlerResponse::ok(serde_json::json!({
             "status": "updated",
-            "fields": update,
+            "username": username,
         })))
     }
 
@@ -829,6 +840,9 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     pub async fn change_password(
         &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
+        let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
+            .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
+
         let body = extract_body_text(&req.body);
         let req_body: ChangePasswordRequest = serde_json::from_str(&body)
             .map_err(|e| IdpError::BadRequest(format!("Invalid JSON: {e}")))?;
@@ -838,15 +852,32 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let new_pw = req_body.new_password
             .ok_or_else(|| IdpError::BadRequest("Missing new_password".into()))?;
 
+        // Fetch user to verify current password
+        let user = storage::find_user_by_id(self.storage.query_store.as_ref(), &user_id)
+            .map_err(|e| IdpError::Internal(e.to_string()))?
+            .ok_or_else(|| IdpError::NotFound("User not found".into()))?;
+
+        let current_hash = user.password_hash
+            .ok_or_else(|| IdpError::BadRequest("User has no password set".into()))?;
+
+        // Verify current password
+        let valid = user_service::verify_password(&current_hash, &current)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+        if !valid {
+            return Err(IdpError::BadRequest("Current password is incorrect".into()));
+        }
+
         // Validate new password
         user_service::validate_password(&new_pw, &self.config.password_policy)
             .map_err(|errors| IdpError::BadRequest(
                 format!("Password policy violation: {}", errors.join(", "))
             ))?;
 
-        // In production: verify current password, hash new one, update user
-        let _ = current;
-        let _hash = user_service::hash_password(&new_pw)
+        // Hash and store new password
+        let new_hash = user_service::hash_password(&new_pw)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+
+        storage::update_user_password(self.storage.query_store.as_ref(), &user_id, &new_hash)
             .map_err(|e| IdpError::Internal(e.to_string()))?;
 
         Ok(HandlerResponse::ok(serde_json::json!({
@@ -861,8 +892,10 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
         let _user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
+        // Sessions are managed by SessionService (CredentialStorage) — not SQL
         Ok(HandlerResponse::ok(serde_json::json!({
             "sessions": [],
+            "note": "session listing requires SessionStore integration",
         })))
     }
 
@@ -870,10 +903,12 @@ impl<KV: KeyValueStore + Clone> IdpHandlerCore<KV> {
     pub async fn revoke_user(
         &self, _bag: &ContextBag, req: &SimpleIncomingRequest,
     ) -> Result<HandlerResponse, IdpError> {
-        let _user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
+        let user_id = extract_path_param(&req.request_url.url, "/auth/v1/users/")
             .ok_or_else(|| IdpError::BadRequest("Missing user ID".into()))?;
 
-        // In production: soft-delete the user, revoke all sessions
+        storage::soft_delete_user(self.storage.query_store.as_ref(), &user_id)
+            .map_err(|e| IdpError::Internal(e.to_string()))?;
+
         Ok(HandlerResponse::ok(serde_json::json!({
             "status": "account_revoked",
         })))
