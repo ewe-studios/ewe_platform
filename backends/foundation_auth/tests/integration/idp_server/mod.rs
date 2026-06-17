@@ -49,7 +49,9 @@ fn start_idp(
 
     let shutdown_thread = shutdown.clone();
     let handle = std::thread::spawn(move || {
+        eprintln!("SERVER THREAD: starting HttpServer on {}", bind_addr);
         server.serve_with_listener(&listener, &shutdown_thread);
+        eprintln!("SERVER THREAD: HttpServer returned");
     });
 
     (addr, shutdown, handle)
@@ -121,6 +123,7 @@ fn test_config() -> IdpConfig {
 // Scenario 1: OIDC Discovery — the entry point for any OIDC client
 // ============================================================================
 
+#[tracing_test::traced_test]
 #[valtron_test(threads = 8)]
 fn discovery_returns_valid_oidc_document() {
     let (addr, shutdown, handle) = start_idp(test_config());
@@ -271,10 +274,15 @@ fn discovery_then_jwks_flow() {
 // Scenario 4: Token introspection — returns inactive for unknown tokens
 // ============================================================================
 
+#[tracing_test::traced_test]
 #[valtron_test(threads = 8)]
 fn introspect_returns_inactive_for_unknown_token() {
+    tracing::info!("TEST: starting idp server...");
+    println!("TEST: starting idp server...");
     let (addr, shutdown, handle) = start_idp(test_config());
+    println!("TEST: server started on {}", addr);
     let client = make_client(addr);
+    println!("TEST: sending POST to introspect...");
 
     let response = client
         .post("http://testserver/idp/introspect")
@@ -288,6 +296,7 @@ fn introspect_returns_inactive_for_unknown_token() {
         .unwrap()
         .send()
         .unwrap();
+    println!("TEST: got response");
 
     assert!(response.is_success());
     let (status, _, body, _, _) = response.into_parts();

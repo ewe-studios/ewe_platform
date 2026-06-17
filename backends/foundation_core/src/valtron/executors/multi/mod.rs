@@ -20,8 +20,9 @@ use std::{
 use crate::valtron::{Stream, DEFAULT_YIELD_WAIT_TIME};
 use concurrent_queue::{ConcurrentQueue, PushError};
 use derive_more::derive::From;
-use foundation_compact::rng::{Rng, SeedableRng};
 use foundation_compact::rng::ChaCha8Rng;
+use foundation_compact::rng::Rng;
+use foundation_compact::rng::SeedableRng;
 use std::str::FromStr;
 
 use crate::{
@@ -85,7 +86,7 @@ static POOL_LIFECYCLE_GATE: FairGate = FairGate::new();
 
 /// A FIFO-fair, blocking serialization gate built from a ticket counter and a
 /// condvar. `acquire()` returns a guard that releases the gate on drop.
-struct FairGate {
+pub struct FairGate {
     /// Next ticket to hand out.
     next_ticket: AtomicUsize,
     /// Ticket currently being served (allowed to proceed).
@@ -118,7 +119,7 @@ impl FairGate {
 
 /// Releases the `FairGate` on drop, advancing to the next ticket and waking
 /// all parked waiters (each re-checks its ticket; exactly one proceeds).
-struct FairGateGuard {
+pub struct FairGateGuard {
     gate: &'static FairGate,
 }
 

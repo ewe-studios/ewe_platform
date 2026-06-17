@@ -3567,6 +3567,8 @@ dependencies = [
  "sha2",
  "tempfile",
  "time",
+ "tracing",
+ "tracing-test",
  "url",
  "urlencoding",
  "uuid",

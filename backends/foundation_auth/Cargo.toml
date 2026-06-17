@@ -82,6 +82,8 @@ web-sys = { version = "0.3", features = [
 tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
+tracing-test = "0.2"
+tracing = "0.1"
 
 [lints]
 workspace = true
@@ -93,7 +95,7 @@ turso = ["foundation_db/turso"]
 # IdP server module (pulls in foundation_http + foundation_db for storage)
 server = ["dep:foundation_http", "dep:futures-core", "dep:futures-lite"]
 # Integration tests for IdP server (real TCP, thread pool)
-server-test = ["server", "foundation_core/multi", "foundation_http/multi"]
+server-test = ["server", "foundation_core/multi", "foundation_netio/multi", "foundation_http/multi"]
 # Wasm compatibility — browser crypto and JS time APIs
 wasm = ["uuid/js", "chrono/wasmbind", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen OAuth client using browser fetch API
