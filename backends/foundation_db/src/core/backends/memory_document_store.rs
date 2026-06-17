@@ -6,7 +6,7 @@
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    Document, DocumentStore, PromotableDocument, StorageItemStream,
+    AsyncDocumentStore, Document, DocumentStore, PromotableDocument, StorageItemStream,
 };
 use foundation_core::valtron::Stream;
 use serde::{de::DeserializeOwned, Serialize};
@@ -260,6 +260,79 @@ impl DocumentStore for MemoryDocumentStore {
     }
 }
 
+/// Drain a sync item-stream into `Vec<V>`, surfacing the first item error.
+fn drain<V>(stream: StorageItemStream<'_, V>) -> StorageResult<Vec<V>> {
+    let mut out = Vec::new();
+    for item in stream {
+        match item {
+            Stream::Next(Ok(v)) => out.push(v),
+            Stream::Next(Err(e)) => return Err(e),
+            _ => {}
+        }
+    }
+    Ok(out)
+}
+
+/// Async `DocumentStore` over the same in-memory state — lets async backends
+/// (D1/wasm, F23) and the agentic layer be exercised in tests without a live
+/// Promise-based backend. Each method forwards to the sync logic (the store is
+/// already in-memory), so ordering/id/promoted-column semantics are identical.
+#[async_trait::async_trait(?Send)]
+impl AsyncDocumentStore for MemoryDocumentStore {
+    async fn append_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        self.append(key, content)
+    }
+
+    async fn append_with_id_async<V: Serialize + Send + 'static>(
+        &self,
+        key: &str,
+        doc_id: &str,
+        content: V,
+    ) -> StorageResult<Document> {
+        self.append_with_id(key, doc_id, content)
+    }
+
+    async fn scan_async<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        limit: usize,
+    ) -> StorageResult<Vec<V>> {
+        drain(self.scan::<V>(key, limit)?)
+    }
+
+    async fn scan_all_async<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+    ) -> StorageResult<Vec<V>> {
+        drain(self.scan_all::<V>(key)?)
+    }
+
+    async fn scan_from_async<V: DeserializeOwned + Send + 'static>(
+        &self,
+        key: &str,
+        from_id: &str,
+        limit: usize,
+    ) -> StorageResult<Vec<V>> {
+        drain(self.scan_from::<V>(key, from_id, limit)?)
+    }
+
+    async fn delete_async(&self, key: &str, doc_id: &str) -> StorageResult<()> {
+        self.delete(key, doc_id)
+    }
+
+    async fn delete_all_async(&self, key: &str) -> StorageResult<u64> {
+        self.delete_all(key)
+    }
+
+    async fn count_async(&self, key: &str) -> StorageResult<u64> {
+        self.count(key)
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -390,5 +463,33 @@ mod tests {
         assert_eq!(docs[0].id, ids[1]);
         assert_eq!(docs[0].summary.as_deref(), Some("t1"));
         assert_eq!(docs[2].summary.as_deref(), Some("t3"));
+    }
+
+    #[test]
+    fn async_document_store_matches_sync_semantics() {
+        use crate::core::storage_provider::AsyncDocumentStore;
+        futures_lite::future::block_on(async {
+            let store = MemoryDocumentStore::new();
+            let a = store
+                .append_async("k", serde_json::json!({"n": 0}))
+                .await
+                .unwrap();
+            let b = store
+                .append_async("k", serde_json::json!({"n": 1}))
+                .await
+                .unwrap();
+            assert!(b.id > a.id, "async append preserves scru128 ordering");
+            assert_eq!(store.count_async("k").await.unwrap(), 2);
+
+            // scan_from_async is inclusive and oldest-first, like the sync path.
+            let got: Vec<serde_json::Value> =
+                store.scan_from_async("k", &a.id, 0).await.unwrap();
+            assert_eq!(got.len(), 2);
+            assert_eq!(got[0]["n"], 0);
+            assert_eq!(got[1]["n"], 1);
+
+            store.delete_async("k", &a.id).await.unwrap();
+            assert_eq!(store.count_async("k").await.unwrap(), 1);
+        });
     }
 }

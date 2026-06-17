@@ -53,7 +53,10 @@ tasks:
 
 > Implements Decision 13's Cloudflare backends **async-first** via the **`AsyncDocumentStore`** trait
 > (D1/KV/R2 are Promise-based, async-only on wasm); the sync `DocumentStore` is a valtron wrapper over
-> the async impl. No `AsyncDocumentStore` impl exists yet (verified). **D1 is the primary ordered
+> the async impl. As of F06 the **only** `AsyncDocumentStore` impl is the in-memory one
+> (`MemoryDocumentStore`, for tests/agentic) — **no production/persistent impl exists yet**; this
+> feature supplies the Cloudflare ones and must pass the same scan/scan_from/promoted-column conformance
+> the in-memory + SQL backends already pass. **D1 is the primary ordered
 > backend; R2 stores large document blobs; KV is optional best-effort.** Reuses the existing CF D1
 > bindings (`wasm/workers_rs/d1.rs`, `wasm/wasm_storage/d1_wasm.rs`) and adds an R2 binding/path where
 > missing. Completes the DocumentStore backend set begun in F06 (SQL+Memory) and F22 (VFS/Fjall).

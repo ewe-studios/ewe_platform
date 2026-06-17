@@ -209,10 +209,17 @@ graph LR
   so promoted columns are observable (plain `scan` still returns `V`).
       Good with me
 
-- **OD-06-7 — async/CF scope:** `scan_from_async` signature lands in F06; its **backend impls** land
-  with VFS (F22) and CF KV/D1 (F23). Decision 13's "all backends" is satisfied across F06–F23, not
-  in one feature (the existing code already only ships SQL+Memory).
+- **OD-06-7 — async/CF scope:** `scan_from_async` signature lands in F06; its **production backend
+  impls** land with CF KV/D1 (F23) — VFS (F22) is a *sync* backend. Decision 13's "all backends" is
+  satisfied across F06–F23, not in one feature.
         I always like to say it: keep async traits and Sync traits separate, let async traits method have *_async suffixes in name to avoid conflict, this lets users clearly use which works for their environment and context.
+      - **Resolved → in F06 we also ship a real `AsyncDocumentStore` impl for `MemoryDocumentStore`**
+        (forwards to the sync in-memory logic, identical ordering/id/promoted-column semantics; tested
+        via `block_on`). WHY: the async trait must not be a phantom contract — the agentic layer and the
+        future async backends (F23) need something to compile and test against *now*. So `AsyncDocumentStore`
+        is no longer impl-less. **Scheduled remaining impls:** F23 supplies the Cloudflare D1/KV/R2
+        `AsyncDocumentStore`; F22 supplies the sync `FjallDocumentStore` (VFS). Each is expected to pass the
+        same scan/scan_from/promoted-column conformance the in-memory + SQL backends already pass.
 
 ## Target Files
 
