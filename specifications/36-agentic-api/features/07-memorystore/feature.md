@@ -1,21 +1,35 @@
 ---
 feature: "MemoryStore — fast latest-memory retrieval per session"
 description: "A MemoryStore cache (over KeyValueStore + optional fjall) that stores the latest memory SessionRecord per tier per SessionId (one key/session, O(1) hydrate) — no Snapshot structs; a MemoryCoordinator facade (held by AgentSession) owns MemoryStore + DocumentStore and does dual-write + cache->audit fallback"
-status: "pending"
+status: "in-progress"
 priority: "high"
 depends_on: ["01-message-model", "06-documentstore-trait-sql-memory"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-18
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 9
+  completed: 6
+  uncompleted: 3
   total: 9
-  completion_percentage: 0%
+  completion_percentage: 67%
 ---
 
 # Feature 07: MemoryStore
+
+> **Implementation status (2026-06-18).** **Landed in `foundation_ai::agentic`:** `MemoryStore` trait +
+> `MemoryTier` + `SessionMemory` (`memory_store.rs`); `KvMemoryStore<K: KeyValueStore>` (single key
+> `memory:{session}` → `SessionMemory`, so `hydrate` is one get); the `MemoryCoordinator`
+> (`memory_coordinator.rs`) owning MemoryStore + `DocumentStore` with **audit-first dual-write** and the
+> **cache-miss fallback** (scan the audit log, rebuild the latest of each missing tier, re-populate); and
+> `impl PromotableDocument for SessionRecord` (the F06 deferral — now that `foundation_ai` depends on
+> `foundation_db`, the `record_type`/`summary` promoted columns are populated). Tests: 4 unit
+> (`agentic::memory_store`) + 4 coordinator integration (`tests/memory_coordinator_tests.rs`, incl.
+> dual-write, latest-wins, fallback-rebuild, session isolation) — all green.
+>
+> **Remaining:** the optional native `FjallMemoryStore` in `foundation_nativeapis` (OD-07-2 — perf opt-in;
+> the KV path is the universal one) and the `fundamentals/` doc. The async surface is the established
+> `#[async_trait]` (`Send`) form — the unified-`Send`/`SendWrapper` adapter is F00e's scope (OD-07-5).
 
 > **Standing directive (user, 2026-06-15):** don't let an existing API bound the design — understand the
 > limitation, redesign, and **create new purpose-fit traits where the existing ones are too bounded**.
