@@ -1822,23 +1822,25 @@ fn build_chat_request(
         }
     }
 
-    let tools = interaction
-        .tools_shed
-        .as_ref()
-        .map(|shed| {
-            flatten_tools(shed)
-                .iter()
-                .map(|tool| OpenAITool {
-                    tool_type: String::from("function"),
-                    function: OpenAIFunction {
-                        name: tool.name.clone(),
-                        description: Some(tool.description.clone()),
-                        parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
-                    },
-                })
-                .collect::<Vec<_>>()
-        })
-        .filter(|t: &Vec<OpenAITool>| !t.is_empty());
+    let tools = {
+        let all = flatten_tools(&interaction.tools_shed);
+        if all.is_empty() {
+            None
+        } else {
+            Some(
+                all.iter()
+                    .map(|tool| OpenAITool {
+                        tool_type: String::from("function"),
+                        function: OpenAIFunction {
+                            name: tool.name.clone(),
+                            description: Some(tool.description.clone()),
+                            parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
+                        },
+                    })
+                    .collect::<Vec<_>>(),
+            )
+        }
+    };
 
     let response_format = params.output_format.as_ref().map(|fmt| match fmt {
         crate::types::OutputFormat::Text => OpenAIResponseFormat::Text,
@@ -2596,7 +2598,7 @@ mod tests {
                 }),
                 signature: None,
             }],
-            tools_shed: None,
+            tools_shed: ToolShed::default(),
             chat_template: None,
             tool_choice: Some(ToolChoice::Auto),
         };

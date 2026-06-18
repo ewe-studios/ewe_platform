@@ -456,7 +456,8 @@ impl LlamaCppStream {
             }
             prompt.push_str(soul);
         }
-        if let Some(shed) = &interaction.tools_shed {
+        let shed = &interaction.tools_shed;
+        {
             let all_tools = flatten_tools(shed);
             if !all_tools.is_empty() {
                 if !prompt.is_empty() {
@@ -716,7 +717,8 @@ fn apply_chat_template(
     }
 
     // Append tool definitions and calling instructions from tools_shed
-    if let Some(shed) = &interaction.tools_shed {
+    let shed = &interaction.tools_shed;
+        {
         let all_tools = flatten_tools(shed);
         if !all_tools.is_empty() {
             if !system_content.is_empty() {

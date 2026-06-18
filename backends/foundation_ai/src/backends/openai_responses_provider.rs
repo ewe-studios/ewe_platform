@@ -658,24 +658,26 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
         };
 
         // Tools: flatten ToolShed into ResponseTool array
-        let tools = interaction
-            .tools_shed
-            .as_ref()
-            .map(|shed| {
-                flatten_tools(shed)
-                    .iter()
-                    .map(|tool| ResponseTool {
-                        tool_type: String::from("function"),
-                        function: ResponseFunction {
-                            name: tool.name.clone(),
-                            description: Some(tool.description.clone()),
-                            parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
-                            strict: None,
-                        },
-                    })
-                    .collect::<Vec<_>>()
-            })
-            .filter(|t: &Vec<ResponseTool>| !t.is_empty());
+        let tools = {
+            let all = flatten_tools(&interaction.tools_shed);
+            if all.is_empty() {
+                None
+            } else {
+                Some(
+                    all.iter()
+                        .map(|tool| ResponseTool {
+                            tool_type: String::from("function"),
+                            function: ResponseFunction {
+                                name: tool.name.clone(),
+                                description: Some(tool.description.clone()),
+                                parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
+                                strict: None,
+                            },
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            }
+        };
 
         // Tool choice
         let tool_choice = interaction.tool_choice.as_ref().map(convert_tool_choice);
@@ -1476,7 +1478,7 @@ mod tests {
                 }),
                 signature: None,
             }],
-            tools_shed: None,
+            tools_shed: ToolShed::default(),
             chat_template: None,
             tool_choice: None,
         };

@@ -1357,13 +1357,13 @@ pub fn build_anthropic_request(
         .collect();
 
     // Tools: flatten ToolShed through AnthropicFormatter
-    let tools = interaction.tools_shed.as_ref().and_then(|shed| {
-        let all_tools = flatten_tools(shed);
+    let tools = {
+        let all_tools = flatten_tools(&interaction.tools_shed);
         AnthropicFormatter
             .format_tools(&all_tools)
             .ok()
             .and_then(|v| serde_json::from_value(v).ok())
-    });
+    };
 
     let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
         crate::types::ToolChoice::Auto | crate::types::ToolChoice::None => {

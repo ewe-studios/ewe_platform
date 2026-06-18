@@ -927,7 +927,8 @@ fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> Strin
     }
 
     // Tool definitions from tools_shed
-    if let Some(shed) = &interaction.tools_shed {
+    let shed = &interaction.tools_shed;
+    {
         let all_tools = flatten_tools(shed);
         if !all_tools.is_empty() {
             let formatter = TextBasedFormatter;

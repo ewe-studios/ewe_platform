@@ -367,86 +367,75 @@ mod tests {
         }
     }
 
-    #[futures_lite::future::block_on]
-    async fn register_and_execute() {
-        let mgr = ToolCallManager::new(crate::types::SessionId::new());
-        mgr.register(Arc::new(EchoTool));
+    #[test]
+    fn register_and_execute() {
+        futures_lite::future::block_on(async {
+            let mgr = ToolCallManager::new(crate::types::SessionId::new());
+            mgr.register(Arc::new(EchoTool));
 
-        assert_eq!(mgr.names(), vec!["echo"]);
-        assert!(mgr.get("echo").is_some());
-        assert!(mgr.get("nonexistent").is_none());
+            assert_eq!(mgr.names(), vec!["echo"]);
+            assert!(mgr.get("echo").is_some());
+            assert!(mgr.get("nonexistent").is_none());
 
-        let request = ToolCallRequest {
-            id: "call-1".into(),
-            name: "echo".into(),
-            arguments: HashMap::from([("message".into(), ArgType::String("hello".into()))]),
-            depends_on: vec![],
-            execution_hint: ExecutionHint::default(),
-        };
-        let result = mgr.execute_one(&request).await.unwrap();
-        let UserModelContent::Text(tc) = result.content;
-        assert_eq!(tc.content, "echo: hello");
+            let request = ToolCallRequest {
+                id: "call-1".into(),
+                name: "echo".into(),
+                arguments: HashMap::from([("message".into(), ArgType::Text("hello".into()))]),
+                depends_on: vec![],
+                execution_hint: ExecutionHint::default(),
+            };
+            let result = mgr.execute_one(&request).await.unwrap();
+            if let UserModelContent::Text(tc) = result.content {
+                assert_eq!(tc.content, "echo: hello");
+            }
 
-        // Deregister.
-        mgr.deregister("echo");
-        assert!(mgr.get("echo").is_none());
-        assert_eq!(mgr.names().len(), 0);
+            // Deregister.
+            mgr.deregister("echo");
+            assert!(mgr.get("echo").is_none());
+            assert_eq!(mgr.names().len(), 0);
+        })
     }
 
     #[test]
-    fn tool_impl_register_and_execute() {
-        register_and_execute();
-    }
-
-    #[futures_lite::future::block_on]
-    async fn unknown_tool_returns_error() {
-        let mgr = ToolCallManager::new(crate::types::SessionId::new());
-        let request = ToolCallRequest {
-            id: "call-1".into(),
-            name: "nonexistent".into(),
-            arguments: HashMap::new(),
-            depends_on: vec![],
-            execution_hint: ExecutionHint::default(),
-        };
-        let err = mgr.execute_one(&request).await.unwrap_err();
-        assert_eq!(err, ToolError::UnknownTool("nonexistent".into()));
+    fn unknown_tool_returns_error() {
+        futures_lite::future::block_on(async {
+            let mgr = ToolCallManager::new(crate::types::SessionId::new());
+            let request = ToolCallRequest {
+                id: "call-1".into(),
+                name: "nonexistent".into(),
+                arguments: HashMap::new(),
+                depends_on: vec![],
+                execution_hint: ExecutionHint::default(),
+            };
+            let err = mgr.execute_one(&request).await.unwrap_err();
+            assert_eq!(err, ToolError::UnknownTool("nonexistent".into()));
+        })
     }
 
     #[test]
-    fn unknown_tool_error() {
-        unknown_tool_returns_error();
-    }
+    fn build_toolshed_populates_by_category() {
+        futures_lite::future::block_on(async {
+            let mgr = ToolCallManager::new(crate::types::SessionId::new());
+            mgr.register(Arc::new(EchoTool)); // category = "shell"
 
-    #[futures_lite::future::block_on]
-    async fn build_toolshed_populates_by_category() {
-        let mgr = ToolCallManager::new(crate::types::SessionId::new());
-        mgr.register(Arc::new(EchoTool)); // category = "shell"
-
-        let shed = mgr.build_toolshed();
-        assert_eq!(shed.shell.as_ref().unwrap().name, "echo");
-        assert_eq!(
-            shed.shell.as_ref().unwrap().description,
-            "Echoes the message argument"
-        );
-        assert!(shed.read.is_none());
+            let shed = mgr.build_toolshed();
+            assert_eq!(shed.shell.as_ref().unwrap().name, "echo");
+            assert_eq!(
+                shed.shell.as_ref().unwrap().description,
+                "Echoes the message argument"
+            );
+            assert!(shed.read.is_none());
+        })
     }
 
     #[test]
-    fn toolshed_from_registry() {
-        build_toolshed_populates_by_category();
-    }
-
-    #[futures_lite::future::block_on]
-    async fn build_toolshed_empty_has_only_shed() {
-        let mgr = ToolCallManager::new(crate::types::SessionId::new());
-        let shed = mgr.build_toolshed();
-        assert_eq!(shed.shed.name, "shed");
-        assert!(shed.shell.is_none());
-        assert!(shed.read.is_none());
-    }
-
-    #[test]
-    fn toolshed_empty_has_shed() {
-        build_toolshed_empty_returns_none();
+    fn build_toolshed_empty_has_only_shed() {
+        futures_lite::future::block_on(async {
+            let mgr = ToolCallManager::new(crate::types::SessionId::new());
+            let shed = mgr.build_toolshed();
+            assert_eq!(shed.shed.name, "shed");
+            assert!(shed.shell.is_none());
+            assert!(shed.read.is_none());
+        })
     }
 }
