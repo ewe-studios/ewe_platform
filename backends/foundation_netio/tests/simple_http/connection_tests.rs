@@ -6,7 +6,8 @@
 //! are suitable as fast unit tests under `tests/.../units/simple_http/`.
 
 use super::*;
-use foundation_netio::simple_http::client::shared::{MockDnsResolver, SystemDnsResolver}, simple_http::client::HttpClientConnection;
+use foundation_netio::simple_http::client::shared::{MockDnsResolver, SystemDnsResolver};
+use foundation_netio::simple_http::client::HttpClientConnection;
 use foundation_netio::simple_http::shared::HttpClientError;
 
 use foundation_core::url::{Uri, Scheme};

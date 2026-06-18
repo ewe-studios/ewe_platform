@@ -1,3 +1,6 @@
+// Uri comes from foundation_core::url (used across the fn-local tests below).
+use foundation_core::url::Uri;
+
 /// WHY: Middleware requires type-safe storage for passing data between middleware layers
 /// WHAT: Test Extensions can store and retrieve values by type
 #[test]
@@ -33,7 +36,7 @@ fn test_extensions_get_mut() {
 #[test]
 fn test_middleware_trait_basic() {
     use foundation_netio::simple_http::shared::Extensions;
-    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, Uri};
+    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
@@ -86,10 +89,8 @@ fn test_middleware_trait_basic() {
 #[test]
 fn test_logging_middleware_passthrough() {
     use foundation_netio::simple_http::shared::Extensions;
-    use foundation_core::url::Uri;
     use foundation_netio::simple_http::client::shared::{
-        LoggingMiddleware, Middleware, PreparedRequest, ,
-    };
+        LoggingMiddleware, Middleware, PreparedRequest, };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
 
@@ -115,8 +116,7 @@ fn test_logging_middleware_passthrough() {
 #[test]
 fn test_timing_middleware_records_duration() {
     use foundation_netio::simple_http::shared::Extensions;
-    use foundation_core::url::Uri;
-    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, TimingMiddleware, };
+    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, TimingMiddleware};
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
     use std::time::Duration;
@@ -152,8 +152,7 @@ fn test_timing_middleware_records_duration() {
 #[test]
 fn test_header_middleware_adds_headers() {
     use foundation_netio::simple_http::shared::Extensions;
-    use foundation_core::url::Uri;
-    use foundation_netio::simple_http::client::shared::{HeaderMiddleware, Middleware, PreparedRequest, };
+    use foundation_netio::simple_http::client::shared::{HeaderMiddleware, Middleware, PreparedRequest};
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
@@ -182,8 +181,7 @@ fn test_header_middleware_adds_headers() {
 #[test]
 fn test_header_middleware_respects_existing_headers() {
     use foundation_netio::simple_http::shared::Extensions;
-    use foundation_core::url::Uri;
-    use foundation_netio::simple_http::client::shared::{HeaderMiddleware, Middleware, PreparedRequest, };
+    use foundation_netio::simple_http::client::shared::{HeaderMiddleware, Middleware, PreparedRequest};
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 

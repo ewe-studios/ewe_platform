@@ -1,5 +1,5 @@
 use foundation_core::valtron::{NoAction, TaskIterator};
-use foundation_netio::simple_http::client::native::tls_task::{TlsHandshakeState, TlsHandshakeTask};
+use foundation_netio::simple_http::client::{TlsHandshakeState, TlsHandshakeTask};
 
 #[test]
 fn test_tls_handshake_state_variants() {

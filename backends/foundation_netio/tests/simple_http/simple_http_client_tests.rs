@@ -1,8 +1,8 @@
 use std::time::Duration;
 
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_netio::simple_http::client::shared::{
-    ClientConfig, ClientRequestBuilder, MockDnsResolver, SimpleHttpClient, StaticSocketAddr,
-    SystemDnsResolver,
+    ClientConfig, MockDnsResolver, StaticSocketAddr, SystemDnsResolver,
 };
 
 use super::*;
