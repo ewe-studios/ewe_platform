@@ -31,8 +31,8 @@ fn test_client_requests_subprotocol() {
         &url,
         Some("chat".to_string()),
         Vec::new(),
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(result.is_ok(), "Should connect to server with subprotocols");
@@ -74,8 +74,8 @@ fn test_client_with_subprotocol_builder() {
         &url,
         Some("chat".to_string()),
         Vec::new(),
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(result.is_ok());
@@ -99,8 +99,8 @@ fn test_server_selects_first_matching_protocol() {
         &url,
         Some("chat".to_string()),
         Vec::new(),
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(
@@ -127,8 +127,8 @@ fn test_client_requests_multiple_subprotocols() {
         &url,
         Some("superchat,chat".to_string()),
         Vec::new(),
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(
@@ -170,8 +170,8 @@ fn test_connection_without_subprotocol() {
     let result = WebSocketClient::connect(
         SystemDnsResolver,
         &url,
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(
@@ -195,8 +195,8 @@ fn test_server_without_subprotocol_support() {
     let result = WebSocketClient::connect(
         SystemDnsResolver,
         &url,
-        Duration::from_secs(5),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(5),
+        std::time::Duration::from_secs(1),
     );
 
     assert!(
@@ -228,7 +228,7 @@ fn test_subprotocol_header_extraction() {
     let request = builder.build().unwrap();
 
     // Extract subprotocols
-    let protocols = foundation_netio::websocket::shared::handshake::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols = foundation_netio::websocket::native::server::WebSocketUpgrade::extract_subprotocols(&request);
 
     assert_eq!(protocols, Some("chat, superchat, other".to_string()));
 }
@@ -250,7 +250,7 @@ fn test_missing_subprotocol_returns_none() {
 
     let request = builder.build().unwrap();
 
-    let protocols = foundation_netio::websocket::shared::handshake::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols = foundation_netio::websocket::native::server::WebSocketUpgrade::extract_subprotocols(&request);
 
     assert!(
         protocols.is_none(),
@@ -276,7 +276,7 @@ fn test_empty_subprotocol_string() {
 
     let request = builder.build().unwrap();
 
-    let protocols = foundation_netio::websocket::shared::handshake::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols = foundation_netio::websocket::native::server::WebSocketUpgrade::extract_subprotocols(&request);
 
     assert_eq!(
         protocols,
@@ -291,7 +291,7 @@ fn test_empty_subprotocol_string() {
 #[serial(valtron_pool)]
 fn test_server_includes_selected_protocol() {
     use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
-    use foundation_netio::websocket::shared::handshake::WebSocketUpgrade;
+    use foundation_netio::websocket::native::server::WebSocketUpgrade;
 
     // Build request with subprotocol
     let builder = SimpleIncomingRequest::builder()

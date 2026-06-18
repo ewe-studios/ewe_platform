@@ -374,7 +374,7 @@ fn test_reconnecting_task_max_reconnect_duration() {
     let mut task = ReconnectingEventSourceTask::connect(resolver, &url)
         .unwrap()
         .with_max_retries(2)
-        .with_max_reconnect_duration(Duration::from_secs(1));
+        .with_max_reconnect_duration(std::time::Duration::from_secs(1));
 
     let mut backoff_delays = 0;
     let mut steps = 0;

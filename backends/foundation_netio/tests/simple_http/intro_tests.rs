@@ -10,6 +10,7 @@
 //! exercised deterministically.
 
 use foundation_netio::simple_http::client::*;
+use foundation_netio::simple_http::client::shared::*;
 use foundation_netio::simple_http::shared::*;
 
 #[test]

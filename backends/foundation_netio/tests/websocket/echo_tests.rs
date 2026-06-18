@@ -27,8 +27,8 @@ fn test_text_message_echo() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(4),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(4),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -64,8 +64,8 @@ fn test_binary_message_echo() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -102,8 +102,8 @@ fn test_multiple_messages_sequence() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_millis(10),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_millis(10),
     )
     .expect("should connect");
 
@@ -152,8 +152,8 @@ fn test_ping_pong_exchange() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -190,8 +190,8 @@ fn test_client_initiated_close() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -226,8 +226,8 @@ fn test_large_message_echo() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -265,8 +265,8 @@ fn test_very_large_message_echo() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -304,8 +304,8 @@ fn test_utf8_text_messages() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(3),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(3),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 
@@ -349,8 +349,8 @@ fn test_message_iterator() {
     let (mut client, delivery) = WebSocketClient::connect(
         SystemDnsResolver,
         url,
-        Duration::from_secs(2),
-        Duration::from_secs(1),
+        std::time::Duration::from_secs(2),
+        std::time::Duration::from_secs(1),
     )
     .expect("should connect");
 

@@ -2536,7 +2536,7 @@ mod http_response_compliance {
         #[test]
         #[traced_test]
         fn underscore_in_header_key() {
-            let message = "HTTP/1.1 200 OK\r\nServer: DCLK-AdSvr\r\nContent-Type: text/xml\r\nContent-Length: 0\r\nDCLK_imp: v7;x;114750856;0-0;0;17820020;0/0;21603567/21621457/1;;~okv=;dcmt=text/xml;;~cs=o\r\n\r\n";
+            let message = "HTTP/1.1 200 OK\r\nServer: DCLK-AdSvr\r\nContent-Type: text/xml\r\nContent-Length: 0\r\nDCLK_imp: v7;x;114750856;0-0;0;17820020;0/0;21603567/21621457/1;~okv=;dcmt=text/xml;~cs=o\r\n\r\n";
             // Test implementation can be added here
 
             let listener = panic_if_failed!(TcpListener::bind("127.0.0.1:0"));
@@ -3980,7 +3980,8 @@ Hello world!";
     mod text_event_stream {
         use tracing_test::traced_test;
 
-        use foundation_core::{panic_if_failed, wire::simple_http::LineFeed};
+        use foundation_core::panic_if_failed;
+        use foundation_netio::simple_http::shared::LineFeed;
 
         use super::*;
 
@@ -9999,9 +10000,9 @@ mod hardening_tests {
             let mut client = panic_if_failed!(TcpStream::connect(addr));
             // Send partial request line very slowly (1 byte per 300ms)
             let _ = client.write_all(b"G");
-            thread::sleep(Duration::from_millis(300));
+            thread::sleep(std::time::Duration::from_millis(300));
             let _ = client.write_all(b"E");
-            thread::sleep(Duration::from_millis(300));
+            thread::sleep(std::time::Duration::from_millis(300));
             let _ = client.write_all(b"T");
             // Connection should have timed out before completing the request line
         });
@@ -10009,7 +10010,7 @@ mod hardening_tests {
         let (client_stream, _) = panic_if_failed!(listener.accept());
         // Set read timeout on TCP stream before wrapping - this is the correct approach
         client_stream
-            .set_read_timeout(Some(Duration::from_millis(500)))
+            .set_read_timeout(Some(std::time::Duration::from_millis(500)))
             .expect("should set read timeout");
         let reader = RawStream::from_tcp(client_stream).expect("should create stream");
         let request_reader = http_streams::send::request_reader(reader);

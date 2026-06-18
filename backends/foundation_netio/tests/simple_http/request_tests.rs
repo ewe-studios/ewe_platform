@@ -5,9 +5,8 @@
 //! request-building surface in a fast, deterministic manner suitable for unit
 //! test execution under `tests/backends/foundation_core/units/simple_http/`.
 
-use foundation_netio::simple_http::client::shared::{
-    ClientRequestBuilder, StaticSocketAddr, SystemDnsResolver,
-};
+use foundation_netio::simple_http::client::ClientRequestBuilder;
+use foundation_netio::simple_http::client::shared::{StaticSocketAddr, SystemDnsResolver};
 use foundation_netio::simple_http::shared::{Proto, SendSafeBody, SimpleHeader, SimpleMethod};
 use serde::Serialize;
 use std::net::SocketAddr as StdSocketAddr;
@@ -239,7 +238,7 @@ fn test_prepared_request_with_query() {
 #[test]
 fn test_prepared_request_is_send() {
     fn assert_send<T: Send>() {}
-    assert_send::<foundation_netio::simple_http::shared::PreparedRequest>();
+    assert_send::<foundation_netio::simple_http::client::shared::PreparedRequest>();
 }
 
 /// WHY: Basic auth must encode credentials correctly per RFC 7617

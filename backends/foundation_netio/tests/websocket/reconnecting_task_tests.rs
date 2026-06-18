@@ -118,7 +118,7 @@ fn test_with_max_reconnect_duration() {
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
-        .with_max_reconnect_duration(Duration::from_secs(60));
+        .with_max_reconnect_duration(std::time::Duration::from_secs(60));
 
     let _ = task;
 }
@@ -170,7 +170,7 @@ fn test_with_read_timeout() {
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
-        .with_read_timeout(Duration::from_secs(10));
+        .with_read_timeout(std::time::Duration::from_secs(10));
 
     let _ = task;
 }
@@ -247,10 +247,10 @@ fn test_builder_chain() {
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_max_retries(10)
-        .with_max_reconnect_duration(Duration::from_secs(120))
+        .with_max_reconnect_duration(std::time::Duration::from_secs(120))
         .with_subprotocol("chat")
         .with_header(SimpleHeader::Custom("X-Test".to_string()), "test-value")
-        .with_read_timeout(Duration::from_secs(15));
+        .with_read_timeout(std::time::Duration::from_secs(15));
 
     // If it compiles, the builder pattern works
     let _ = task;

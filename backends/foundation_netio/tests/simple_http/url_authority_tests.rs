@@ -9,6 +9,7 @@
 //! performing heavy I/O.
 
 use foundation_netio::simple_http::client::*;
+use foundation_netio::simple_http::client::shared::*;
 use foundation_core::url::*;
 use foundation_netio::simple_http::shared::*;
 

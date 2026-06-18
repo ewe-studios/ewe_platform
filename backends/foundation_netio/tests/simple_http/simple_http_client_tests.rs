@@ -51,12 +51,12 @@ fn test_simple_http_client_config() {
 /// WHAT: Tests that builder method sets connect timeout
 #[test]
 fn test_simple_http_client_connect_timeout() {
-    let client = SimpleHttpClient::from_system().connect_timeout(Duration::from_secs(5));
+    let client = SimpleHttpClient::from_system().connect_timeout(std::time::Duration::from_secs(5));
     let config = client.client_config();
 
     assert_eq!(
         config.timeout_calculator.config().connect_timeout,
-        Duration::from_secs(5)
+        std::time::Duration::from_secs(5)
     );
 }
 
@@ -64,12 +64,12 @@ fn test_simple_http_client_connect_timeout() {
 /// WHAT: Tests that builder method sets read timeout
 #[test]
 fn test_simple_http_client_read_timeout() {
-    let client = SimpleHttpClient::from_system().read_timeout(Duration::from_secs(15));
+    let client = SimpleHttpClient::from_system().read_timeout(std::time::Duration::from_secs(15));
 
     let config = client.client_config();
     assert_eq!(
         config.timeout_calculator.config().min_read_timeout,
-        Duration::from_secs(15)
+        std::time::Duration::from_secs(15)
     );
 }
 
@@ -77,12 +77,12 @@ fn test_simple_http_client_read_timeout() {
 /// WHAT: Tests that builder method sets write timeout
 #[test]
 fn test_simple_http_client_write_timeout() {
-    let client = SimpleHttpClient::from_system().write_timeout(Duration::from_secs(20));
+    let client = SimpleHttpClient::from_system().write_timeout(std::time::Duration::from_secs(20));
 
     let config = client.client_config();
     assert_eq!(
         config.timeout_calculator.config().write_timeout_per_kb,
-        Duration::from_secs(20)
+        std::time::Duration::from_secs(20)
     );
 }
 
@@ -111,14 +111,14 @@ fn test_simple_http_client_with_connection_pool() {
 #[test]
 fn test_simple_http_client_builder_chaining() {
     let client = SimpleHttpClient::from_system()
-        .connect_timeout(Duration::from_secs(10))
+        .connect_timeout(std::time::Duration::from_secs(10))
         .max_redirects(3)
         .with_connection_pool();
 
     let config = client.client_config();
     assert_eq!(
         config.timeout_calculator.config().connect_timeout,
-        Duration::from_secs(10)
+        std::time::Duration::from_secs(10)
     );
     assert_eq!(config.max_redirects, 3);
     assert!(client.client_pool().is_some());

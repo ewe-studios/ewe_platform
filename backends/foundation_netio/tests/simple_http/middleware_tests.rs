@@ -32,7 +32,8 @@ fn test_extensions_get_mut() {
 /// WHAT: Test that a basic middleware can modify request headers
 #[test]
 fn test_middleware_trait_basic() {
-    use foundation_netio::simple_http::shared::{Extensions, Middleware, PreparedRequest, Uri};
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, Uri};
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
@@ -84,8 +85,10 @@ fn test_middleware_trait_basic() {
 /// WHAT: Test that `LoggingMiddleware` doesn't change request
 #[test]
 fn test_logging_middleware_passthrough() {
-    use foundation_netio::simple_http::shared::{
-        Extensions, LoggingMiddleware, Middleware, PreparedRequest, Uri,
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::shared::{
+        LoggingMiddleware, Middleware, PreparedRequest, ,
     };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
@@ -111,9 +114,9 @@ fn test_logging_middleware_passthrough() {
 /// WHAT: Test that `TimingMiddleware` records timing in extensions
 #[test]
 fn test_timing_middleware_records_duration() {
-    use foundation_netio::simple_http::shared::{
-        Extensions, Middleware, PreparedRequest, TimingMiddleware, Uri,
-    };
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, TimingMiddleware, };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
     use std::time::Duration;
@@ -130,7 +133,7 @@ fn test_timing_middleware_records_duration() {
     middleware.handle_request(&mut request).unwrap();
 
     // Simulate some work
-    std::thread::sleep(Duration::from_millis(10));
+    std::thread::sleep(std::time::Duration::from_millis(10));
 
     // Create a mock response
     let mut response = foundation_netio::simple_http::shared::SimpleResponse::new(
@@ -148,9 +151,9 @@ fn test_timing_middleware_records_duration() {
 /// WHAT: Test that `HeaderMiddleware` adds headers only if not present
 #[test]
 fn test_header_middleware_adds_headers() {
-    use foundation_netio::simple_http::shared::{
-        Extensions, HeaderMiddleware, Middleware, PreparedRequest, Uri,
-    };
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::shared::{HeaderMiddleware, Middleware, PreparedRequest, };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
@@ -178,9 +181,9 @@ fn test_header_middleware_adds_headers() {
 /// WHAT: Test that `HeaderMiddleware` respects existing headers
 #[test]
 fn test_header_middleware_respects_existing_headers() {
-    use foundation_netio::simple_http::shared::{
-        Extensions, HeaderMiddleware, Middleware, PreparedRequest, Uri,
-    };
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::shared::{HeaderMiddleware, Middleware, PreparedRequest, };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
@@ -212,9 +215,9 @@ fn test_header_middleware_respects_existing_headers() {
 /// WHAT: Test middleware execution order
 #[test]
 fn test_middleware_chain_execution_order() {
-    use foundation_netio::simple_http::shared::{
-        Extensions, Middleware, MiddlewareChain, PreparedRequest, Uri,
-    };
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::shared::{Middleware, MiddlewareChain, PreparedRequest, };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod, Status};
     use std::collections::BTreeMap;
     use std::sync::{Arc, Mutex};
@@ -299,12 +302,12 @@ fn test_backoff_strategy_constant() {
     use std::time::Duration;
 
     let strategy = BackoffStrategy::Constant {
-        delay: Duration::from_millis(100),
+        delay: std::time::Duration::from_millis(100),
     };
 
-    assert_eq!(strategy.next_delay(1), Duration::from_millis(100));
-    assert_eq!(strategy.next_delay(2), Duration::from_millis(100));
-    assert_eq!(strategy.next_delay(5), Duration::from_millis(100));
+    assert_eq!(strategy.next_delay(1), std::time::Duration::from_millis(100));
+    assert_eq!(strategy.next_delay(2), std::time::Duration::from_millis(100));
+    assert_eq!(strategy.next_delay(5), std::time::Duration::from_millis(100));
 }
 
 /// WHY: `RetryMiddleware` needs linear backoff (gradually increasing delays)
@@ -315,13 +318,13 @@ fn test_backoff_strategy_linear() {
     use std::time::Duration;
 
     let strategy = BackoffStrategy::Linear {
-        base: Duration::from_millis(100),
-        increment: Duration::from_millis(50),
+        base: std::time::Duration::from_millis(100),
+        increment: std::time::Duration::from_millis(50),
     };
 
-    assert_eq!(strategy.next_delay(1), Duration::from_millis(150)); // 100 + 50*1
-    assert_eq!(strategy.next_delay(2), Duration::from_millis(200)); // 100 + 50*2
-    assert_eq!(strategy.next_delay(3), Duration::from_millis(250)); // 100 + 50*3
+    assert_eq!(strategy.next_delay(1), std::time::Duration::from_millis(150)); // 100 + 50*1
+    assert_eq!(strategy.next_delay(2), std::time::Duration::from_millis(200)); // 100 + 50*2
+    assert_eq!(strategy.next_delay(3), std::time::Duration::from_millis(250)); // 100 + 50*3
 }
 
 /// WHY: `RetryMiddleware` needs exponential backoff (rapidly increasing delays to avoid overwhelming server)
@@ -332,13 +335,13 @@ fn test_backoff_strategy_exponential() {
     use std::time::Duration;
 
     let strategy = BackoffStrategy::Exponential {
-        base: Duration::from_millis(100),
+        base: std::time::Duration::from_millis(100),
         multiplier: 2.0,
     };
 
-    assert_eq!(strategy.next_delay(1), Duration::from_millis(200)); // 100 * 2^1
-    assert_eq!(strategy.next_delay(2), Duration::from_millis(400)); // 100 * 2^2
-    assert_eq!(strategy.next_delay(3), Duration::from_millis(800)); // 100 * 2^3
+    assert_eq!(strategy.next_delay(1), std::time::Duration::from_millis(200)); // 100 * 2^1
+    assert_eq!(strategy.next_delay(2), std::time::Duration::from_millis(400)); // 100 * 2^2
+    assert_eq!(strategy.next_delay(3), std::time::Duration::from_millis(800)); // 100 * 2^3
 }
 
 /// WHY: `RetryMiddleware` needs to track retry attempts to enforce `max_retries` limit
@@ -369,7 +372,7 @@ fn test_retry_middleware_with_backoff() {
     use std::time::Duration;
 
     let retry = RetryMiddleware::new(3, vec![429]).with_backoff(BackoffStrategy::Constant {
-        delay: Duration::from_secs(1),
+        delay: std::time::Duration::from_secs(1),
     });
     // Test passes if builder pattern works (no panic)
 }
@@ -378,9 +381,9 @@ fn test_retry_middleware_with_backoff() {
 /// WHAT: Test `RetryMiddleware::handle_request` stores `RetryState` in extensions
 #[test]
 fn test_retry_middleware_stores_state_in_extensions() {
-    use foundation_netio::simple_http::shared::{
-        Extensions, Middleware, PreparedRequest, RetryMiddleware, RetryState, Uri,
-    };
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, RetryMiddleware, RetryState, };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
     use std::collections::BTreeMap;
 
@@ -405,9 +408,9 @@ fn test_retry_middleware_stores_state_in_extensions() {
 /// WHAT: Test `RetryMiddleware::handle_response` returns Ok for status 200
 #[test]
 fn test_retry_middleware_passes_through_success() {
-    use foundation_netio::simple_http::shared::{
-        Extensions, Middleware, PreparedRequest, RetryMiddleware, Uri,
-    };
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, RetryMiddleware, };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
 
@@ -446,9 +449,9 @@ fn test_retry_middleware_name() {
 /// WHAT: Test `RetryMiddleware::handle_response` returns `RetryNeeded` error for status 429
 #[test]
 fn test_retry_middleware_returns_retry_error_for_matching_status() {
-    use foundation_netio::simple_http::shared::{
-        Extensions, Middleware, PreparedRequest, RetryMiddleware, Uri,
-    };
+    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest, RetryMiddleware, };
     use foundation_netio::simple_http::shared::{HttpClientError, SendSafeBody, SimpleMethod, Status};
     use std::collections::BTreeMap;
 

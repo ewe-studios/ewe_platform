@@ -22,7 +22,7 @@ fn test_cookie_new_basic() {
 #[test]
 fn test_cookie_builder_methods() {
     let expires = SystemTime::now();
-    let max_age = Duration::from_secs(3600);
+    let max_age = std::time::Duration::from_secs(3600);
 
     let cookie = Cookie::new("session", "abc123")
         .domain("example.com")
@@ -67,7 +67,7 @@ fn test_cookie_parse_with_attributes() {
     assert_eq!(cookie.path, Some("/api".to_string()));
     assert!(cookie.secure);
     assert!(cookie.http_only);
-    assert_eq!(cookie.max_age, Some(Duration::from_secs(3600)));
+    assert_eq!(cookie.max_age, Some(std::time::Duration::from_secs(3600)));
     assert_eq!(cookie.same_site, SameSite::Strict);
 }
 

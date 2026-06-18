@@ -3,7 +3,7 @@
 //! Tests reconnection logic, backoff, Last-Event-ID tracking, and max retries.
 //! Uses `MockDnsResolver` — no real network connections.
 
-use foundation_core::valtron::TaskIterator;
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_netio::event_source::native::ReconnectingEventSourceTask;
 use foundation_netio::simple_http::client::shared::MockDnsResolver;
 use foundation_netio::simple_http::shared::DnsError;
@@ -159,6 +159,8 @@ fn test_reconnecting_task_initial_connection_failure_reconnects() {
             foundation_core::valtron::TaskStatus::Ignore => "Ignore".to_string(),
             foundation_core::valtron::TaskStatus::Spawn(_) => "Spawn".to_string(),
             foundation_core::valtron::TaskStatus::Wait => "Wait".to_string(),
+            TaskStatus::Spread(_) => "Spread".to_string(),
+            TaskStatus::Depends(_) => "Depends".to_string(),
         };
         states.push(label);
         // Safety valve

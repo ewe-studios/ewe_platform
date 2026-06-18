@@ -38,7 +38,7 @@ fn test_batch_writer_custom_limits() {
     let mut writer = BatchFrameWriter::new(
         &mut buffer,
         1024, // 1 KiB
-        Duration::from_millis(100),
+        std::time::Duration::from_millis(100),
     );
 
     let frame = text_frame(b"test message", true);
@@ -55,7 +55,7 @@ fn test_batch_writer_auto_flush_on_size() {
     let mut writer = BatchFrameWriter::new(
         &mut buffer,
         50,                      // Small limit for testing
-        Duration::from_secs(10), // Long timeout
+        std::time::Duration::from_secs(10), // Long timeout
     );
 
     // Queue frames until auto-flush triggers

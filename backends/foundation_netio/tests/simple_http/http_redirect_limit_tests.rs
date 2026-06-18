@@ -5,6 +5,7 @@
 use foundation_core::valtron;
 use foundation_core::valtron::PoolGuard;
 use foundation_netio::simple_http::client::*;
+use foundation_netio::simple_http::client::shared::*;
 use foundation_netio::simple_http::shared::HttpClientError;
 use serial_test::serial;
 use std::io::{Read, Write};
@@ -46,7 +47,7 @@ fn redirect_limit_triggers_too_many_redirects() {
     let port = spawn_redirect_server();
 
     // Allow server a moment to start
-    std::thread::sleep(Duration::from_millis(100));
+    std::thread::sleep(std::time::Duration::from_millis(100));
 
     // Configure the HTTP client (system DNS resolver and zero redirects allowed)
     let client = SimpleHttpClient::from_system().max_redirects(0);

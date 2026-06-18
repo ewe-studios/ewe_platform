@@ -86,7 +86,7 @@ fn test_tls_full_handshake_and_data_transfer() {
     });
 
     // Give server time to start
-    thread::sleep(Duration::from_millis(100));
+    thread::sleep(std::time::Duration::from_millis(100));
 
     // Create client connector that trusts our test certificate
     let cert_der = rustls::pki_types::CertificateDer::from_pem_slice(&cert)
@@ -185,7 +185,7 @@ fn test_multiple_tls_connections() {
     });
 
     // Give server time to start
-    thread::sleep(Duration::from_millis(100));
+    thread::sleep(std::time::Duration::from_millis(100));
 
     // Create client connector
     let cert_der = rustls::pki_types::CertificateDer::from_pem_slice(&cert)

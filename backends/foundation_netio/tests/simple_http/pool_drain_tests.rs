@@ -121,7 +121,7 @@ fn test_pool_sequential_head_requests() {
     })
     // WHY: The HTTP reader treats WouldBlock from non-blocking sockets as fatal.
     // Blocking read with timeout prevents premature connection handler exit.
-    .blocking_read(Some(Duration::from_secs(5)));
+    .blocking_read(Some(std::time::Duration::from_secs(5)));
 
     let addr = server_addr(&server);
     let base_url = format!("http://{}", addr);
@@ -188,7 +188,7 @@ fn test_pool_put_head_delete_head_sequence() {
             body: b"ok".to_vec(),
         }
     })
-    .blocking_read(Some(Duration::from_secs(5)));
+    .blocking_read(Some(std::time::Duration::from_secs(5)));
 
     let addr = server_addr(&server);
     let base_url = format!("http://{}", addr);

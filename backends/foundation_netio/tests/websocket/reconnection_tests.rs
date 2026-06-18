@@ -57,9 +57,9 @@ fn test_reconnecting_task_builder() {
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
         .with_max_retries(3)
-        .with_max_reconnect_duration(Duration::from_secs(30))
+        .with_max_reconnect_duration(std::time::Duration::from_secs(30))
         .with_subprotocol("chat")
-        .with_read_timeout(Duration::from_secs(10));
+        .with_read_timeout(std::time::Duration::from_secs(10));
 
     // If it compiles, builder works
     let _ = task;
@@ -143,8 +143,8 @@ fn test_reconnecting_task_with_custom_backoff() {
 
     let resolver = SystemDnsResolver;
     let backoff = ExponentialBackoffDecider::from_duration(
-        Duration::from_millis(100),
-        Some(Duration::from_secs(1)),
+        std::time::Duration::from_millis(100),
+        Some(std::time::Duration::from_secs(1)),
     );
 
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -168,8 +168,8 @@ fn test_connection_failure_triggers_reconnect() {
         .with_max_retries(3)
         .with_backoff(
             foundation_core::retries::ExponentialBackoffDecider::from_duration(
-                Duration::from_millis(10),
-                Some(Duration::from_millis(50)),
+                std::time::Duration::from_millis(10),
+                Some(std::time::Duration::from_millis(50)),
             ),
         );
 
@@ -193,7 +193,7 @@ fn test_connection_failure_triggers_reconnect() {
                 // Backoff delay - expected during reconnection
                 saw_delay = true;
                 // Simulate executor delay (capped for test speed)
-                let delay = std::cmp::min(duration, Duration::from_millis(50));
+                let delay = std::cmp::min(duration, std::time::Duration::from_millis(50));
                 std::thread::sleep(delay);
             }
             Some(TaskStatus::Ready(Err(_))) => {
@@ -248,12 +248,12 @@ fn test_max_reconnect_duration_exhausts() {
     let resolver = SystemDnsResolver;
     let mut task = ReconnectingWebSocketTask::connect(resolver, "ws://127.0.0.1:1")
         .unwrap()
-        .with_max_reconnect_duration(Duration::from_millis(500)) // Short duration
+        .with_max_reconnect_duration(std::time::Duration::from_millis(500)) // Short duration
         .with_max_retries(100) // High retry count - duration should limit
         .with_backoff(
             foundation_core::retries::ExponentialBackoffDecider::from_duration(
-                Duration::from_millis(10),
-                Some(Duration::from_millis(50)),
+                std::time::Duration::from_millis(10),
+                Some(std::time::Duration::from_millis(50)),
             ),
         );
 
@@ -272,7 +272,7 @@ fn test_max_reconnect_duration_exhausts() {
             }
             Some(TaskStatus::Delayed(duration)) => {
                 // Simulate executor delay (but cap it for test speed)
-                let delay = std::cmp::min(duration, Duration::from_millis(50));
+                let delay = std::cmp::min(duration, std::time::Duration::from_millis(50));
                 std::thread::sleep(delay);
             }
             _ => {}
@@ -286,7 +286,7 @@ fn test_max_reconnect_duration_exhausts() {
         iterations, elapsed
     );
     assert!(
-        elapsed >= Duration::from_millis(100),
+        elapsed >= std::time::Duration::from_millis(100),
         "Should have run for some time before exhausting, elapsed={:?}",
         elapsed
     );

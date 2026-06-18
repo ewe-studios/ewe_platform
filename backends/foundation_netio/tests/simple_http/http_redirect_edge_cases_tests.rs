@@ -1,4 +1,5 @@
-use foundation_netio::simple_http::shared::{client::SystemDnsResolver, HttpClientError};
+use foundation_netio::simple_http::client::shared::SystemDnsResolver;
+use foundation_netio::simple_http::shared::HttpClientError;
 
 /// WHY: Validate redirect edge cases - chain, header stripping, POST→GET, invalid Location, redirect limit
 /// WHAT: Asserts client handles redirects correctly and surfaces errors (no panic)

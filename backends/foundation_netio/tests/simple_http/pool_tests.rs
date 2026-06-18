@@ -15,7 +15,7 @@ use std::time::Duration;
 /// - Public maintenance helpers (`cleanup_stale`, `clear`) are callable and do not panic.
 #[test]
 fn test_connection_pool_basic_sanity() {
-    let pool = ConnectionPool::new(4, Duration::from_secs(60));
+    let pool = ConnectionPool::new(4, std::time::Duration::from_secs(60));
 
     // Empty pool -> no connection available
     assert!(pool.checkout("example.com", 80).is_none());
@@ -31,7 +31,7 @@ fn test_connection_pool_basic_sanity() {
 /// periodically and `clear` may be called on shutdown or test setup/teardown.
 #[test]
 fn test_cleanup_and_clear_idempotent() {
-    let pool = ConnectionPool::new(2, Duration::from_secs(0));
+    let pool = ConnectionPool::new(2, std::time::Duration::from_secs(0));
 
     // Call multiple times to ensure no panics and stable behavior
     pool.cleanup_stale();
@@ -46,15 +46,15 @@ fn test_cleanup_and_clear_idempotent() {
 /// WHY: Verify `ConnectionPool::new` creates pool
 #[test]
 fn test_connection_pool_new() {
-    let pool = ConnectionPool::new(10, Duration::from_secs(60));
+    let pool = ConnectionPool::new(10, std::time::Duration::from_secs(60));
     assert_eq!(pool.max_per_host, 10);
-    assert_eq!(pool.max_idle_time, Duration::from_secs(60));
+    assert_eq!(pool.max_idle_time, std::time::Duration::from_secs(60));
 }
 
 /// WHY: Verify checkout returns None for empty pool
 #[test]
 fn test_connection_pool_checkout_empty() {
-    let pool = ConnectionPool::new(10, Duration::from_secs(60));
+    let pool = ConnectionPool::new(10, std::time::Duration::from_secs(60));
     let result = pool.checkout("example.com", 80);
     assert!(result.is_none());
 }
@@ -67,7 +67,7 @@ fn test_connection_pool_checkout_empty() {
 /// existing stub tests to validate surface.
 #[test]
 fn test_cleanup_and_clear_no_panic() {
-    let pool = ConnectionPool::new(2, Duration::from_secs(0));
+    let pool = ConnectionPool::new(2, std::time::Duration::from_secs(0));
     pool.cleanup_stale();
     pool.clear();
 }
