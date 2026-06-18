@@ -121,6 +121,11 @@ js-foundation-wasm = []
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
 default = ["standard", "std", "ssl", "compression", "wire-native"]
 
+[[test]]
+name = "foundation_netio_tests"
+path = "tests/mod.rs"
+required-features = ["multi"]
+
 [package.metadata.docs.rs]
 # enable one of these as default implementation
 features = ["ssl-rustls"]

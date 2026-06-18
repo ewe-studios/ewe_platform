@@ -3,7 +3,7 @@
 //! WebSocket `ReconnectingWebSocketTask` state machine tests.
 
 use foundation_core::valtron::{TaskIterator, TaskStatus};
-use foundation_netio::simple_http::client::SystemDnsResolver;
+use foundation_netio::simple_http::client::shared::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use tracing_test::traced_test;
 

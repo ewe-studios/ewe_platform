@@ -4,8 +4,8 @@
 //! Uses `MockDnsResolver` — no real network connections.
 
 use foundation_core::valtron::TaskIterator;
-use foundation_netio::event_source::ReconnectingEventSourceTask;
-use foundation_netio::simple_http::client::MockDnsResolver;
+use foundation_netio::event_source::native::ReconnectingEventSourceTask;
+use foundation_netio::simple_http::client::shared::MockDnsResolver;
 use foundation_netio::simple_http::shared::DnsError;
 
 /// WHY: `ReconnectingEventSourceTask::connect` should validate URLs.

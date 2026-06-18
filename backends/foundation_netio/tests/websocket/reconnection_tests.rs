@@ -7,7 +7,7 @@
 use std::time::Duration;
 
 use foundation_core::valtron::{PoolGuard, TaskIterator, TaskStatus};
-use foundation_netio::simple_http::client::SystemDnsResolver;
+use foundation_netio::simple_http::client::shared::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use serial_test::serial;
 use tracing_test::traced_test;

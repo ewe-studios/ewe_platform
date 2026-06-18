@@ -9,7 +9,7 @@
 //! performing heavy I/O.
 
 use foundation_netio::simple_http::client::*;
-use foundation_netio::simple_http::url::*;
+use foundation_core::url::*;
 use foundation_netio::simple_http::shared::*;
 
 #[test]
@@ -17,7 +17,7 @@ fn test_authority_type_is_send_sync() {
     // Compile-time assertion that the Authority type is Send + Sync.
     // This ensures it can be used across threads in the client code paths.
     fn assert_send_sync<T: Send + Sync>() {}
-    assert_send_sync::<foundation_netio::simple_http::url::Authority>();
+    assert_send_sync::<foundation_core::url::Authority>();
 }
 
 #[test]

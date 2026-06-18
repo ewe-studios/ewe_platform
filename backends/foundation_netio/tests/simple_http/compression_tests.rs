@@ -5,7 +5,7 @@
 //! functionality in a fast, deterministic manner suitable for unit test execution
 //! under `tests/backends/foundation_core/units/simple_http/`.
 
-use foundation_netio::simple_http::client::{
+use foundation_netio::simple_http::client::shared::{
     CompressionConfig, ContentEncoding, DecompressingReader,
 };
 use foundation_netio::simple_http::shared::HttpClientError;

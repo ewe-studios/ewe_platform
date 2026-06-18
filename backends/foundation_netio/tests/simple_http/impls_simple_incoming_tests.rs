@@ -6,7 +6,7 @@
 // fast, deterministic unit tests that exercise the public builder conversion
 // surface exposed by `PreparedRequest::into_simple_incoming_request()`.
 
-use foundation_netio::simple_http::client::{
+use foundation_netio::simple_http::client::shared::{
     ClientRequestBuilder, StaticSocketAddr, SystemDnsResolver,
 };
 use foundation_netio::simple_http::shared::{

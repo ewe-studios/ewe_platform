@@ -154,7 +154,7 @@ fn test_service_action_match_url_only() {
 // fn test_http_client_action_tls_upgrade() {
 //     // Compile-time type check: verify HttpClientAction can hold TlsUpgradeAction
 //     fn _assert_tls_upgrade_variant_exists() {
-//         use foundation_netio::simple_http::client::DnsResolver;
+//         use foundation_netio::simple_http::client::shared::DnsResolver;
 
 //         // This verifies the enum variant compiles correctly
 //         fn _assert_can_create<R: DnsResolver + Send + 'static>(_action: HttpClientAction<R>) {

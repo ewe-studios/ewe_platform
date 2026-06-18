@@ -7,7 +7,7 @@
 
 use foundation_core::valtron::PoolGuard;
 use foundation_netio::event_source::{Event, SseStream, SseStreamEvent};
-use foundation_netio::simple_http::client::StaticSocketAddr;
+use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
 use std::net::SocketAddr;

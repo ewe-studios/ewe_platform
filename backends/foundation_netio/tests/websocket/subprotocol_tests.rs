@@ -3,7 +3,7 @@
 //! Tests Sec-WebSocket-Protocol header handling during handshake.
 
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::simple_http::client::SystemDnsResolver;
+use foundation_netio::simple_http::client::shared::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use serial_test::serial;
@@ -228,7 +228,7 @@ fn test_subprotocol_header_extraction() {
     let request = builder.build().unwrap();
 
     // Extract subprotocols
-    let protocols = foundation_netio::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols = foundation_netio::websocket::shared::handshake::WebSocketUpgrade::extract_subprotocols(&request);
 
     assert_eq!(protocols, Some("chat, superchat, other".to_string()));
 }
@@ -250,7 +250,7 @@ fn test_missing_subprotocol_returns_none() {
 
     let request = builder.build().unwrap();
 
-    let protocols = foundation_netio::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols = foundation_netio::websocket::shared::handshake::WebSocketUpgrade::extract_subprotocols(&request);
 
     assert!(
         protocols.is_none(),
@@ -276,7 +276,7 @@ fn test_empty_subprotocol_string() {
 
     let request = builder.build().unwrap();
 
-    let protocols = foundation_netio::websocket::WebSocketUpgrade::extract_subprotocols(&request);
+    let protocols = foundation_netio::websocket::shared::handshake::WebSocketUpgrade::extract_subprotocols(&request);
 
     assert_eq!(
         protocols,
@@ -291,7 +291,7 @@ fn test_empty_subprotocol_string() {
 #[serial(valtron_pool)]
 fn test_server_includes_selected_protocol() {
     use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
-    use foundation_netio::websocket::WebSocketUpgrade;
+    use foundation_netio::websocket::shared::handshake::WebSocketUpgrade;
 
     // Build request with subprotocol
     let builder = SimpleIncomingRequest::builder()

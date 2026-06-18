@@ -10,7 +10,7 @@
 
 use foundation_core::valtron;
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SystemDnsResolver};
+use foundation_netio::simple_http::client::shared::{ClientRequestBuilder, SystemDnsResolver};
 use foundation_netio::simple_http::shared::body_readers::collect_strings_from_send_safe;
 use foundation_netio::simple_http::shared::SendSafeBody;
 use foundation_testing::http::{HttpResponse, TestHttpServer};

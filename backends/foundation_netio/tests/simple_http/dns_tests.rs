@@ -8,7 +8,7 @@
 //! resolvers). Time-based behavior for cache expiration uses short TTLs to keep
 //! test runtime minimal.
 
-use foundation_netio::simple_http::client::{
+use foundation_netio::simple_http::client::shared::{
     CachingDnsResolver, DnsResolver, MockDnsResolver, StaticSocketAddr, SystemDnsResolver,
 };
 use foundation_netio::simple_http::shared::{DnsError, HttpClientError};

@@ -2,7 +2,7 @@
 /// WHAT: TimeoutConfig default values should match production configuration
 #[test]
 fn test_timeout_config_default_values() {
-    use foundation_netio::simple_http::timeout::TimeoutConfig;
+    use foundation_netio::simple_http::shared::timeout::TimeoutConfig;
     use std::time::Duration;
 
     let config = TimeoutConfig::default();

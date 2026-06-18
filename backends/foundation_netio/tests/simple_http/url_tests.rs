@@ -1,4 +1,4 @@
-use foundation_netio::simple_http::url::Uri;
+use foundation_core::url::Uri;
 
 #[test]
 fn test_uri_parse_simple_http() {

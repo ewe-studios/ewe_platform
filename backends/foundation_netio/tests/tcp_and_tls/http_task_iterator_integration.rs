@@ -8,7 +8,7 @@
 //!
 //! HOW: Creates realistic HTTP request scenarios using public client APIs.
 
-use foundation_netio::simple_http::client::{
+use foundation_netio::simple_http::client::shared::{
     ClientRequestBuilder, DnsResolver, MockDnsResolver, SimpleHttpClient, SystemDnsResolver,
 };
 use std::net::SocketAddr;

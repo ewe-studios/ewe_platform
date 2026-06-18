@@ -9,7 +9,7 @@
 use foundation_core::valtron::TaskIterator;
 use foundation_core::valtron::TaskStatus;
 use foundation_netio::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
-use foundation_netio::simple_http::client::{MockDnsResolver, StaticSocketAddr};
+use foundation_netio::simple_http::client::shared::{MockDnsResolver, StaticSocketAddr};
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;

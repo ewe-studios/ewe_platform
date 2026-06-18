@@ -5,8 +5,8 @@
 /// WHAT: Tests for `ProxyConfig`, `ProxyAuth`, `ProxyProtocol` parsing and functionality
 ///
 /// HOW: External unit tests following `ewe_platform` testing conventions
-use foundation_netio::simple_http::client::{ProxyAuth, ProxyConfig, ProxyProtocol};
-use foundation_netio::simple_http::url::Scheme;
+use foundation_netio::simple_http::client::shared::{ProxyAuth, ProxyConfig, ProxyProtocol};
+use foundation_core::url::Scheme;
 use serial_test::serial;
 
 // ============================================================================

@@ -5,8 +5,8 @@
 //! - `SseTestServer` (streaming) — verifies reconnection behavior with controlled close
 
 use foundation_core::valtron::{TaskIterator, TaskStatus};
-use foundation_netio::event_source::ReconnectingEventSourceTask;
-use foundation_netio::simple_http::client::StaticSocketAddr;
+use foundation_netio::event_source::native::ReconnectingEventSourceTask;
+use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,

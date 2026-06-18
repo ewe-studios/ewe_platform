@@ -2,7 +2,7 @@
 /// WHAT: Test Extensions can store and retrieve values by type
 #[test]
 fn test_extensions_insert_and_get() {
-    use foundation_netio::simple_http::client::Extensions;
+    use foundation_netio::simple_http::shared::Extensions;
 
     let mut extensions = Extensions::new();
     extensions.insert(42u32);
@@ -16,7 +16,7 @@ fn test_extensions_insert_and_get() {
 /// WHAT: Test `Extensions::get_mut` allows mutating stored values
 #[test]
 fn test_extensions_get_mut() {
-    use foundation_netio::simple_http::client::Extensions;
+    use foundation_netio::simple_http::shared::Extensions;
 
     let mut extensions = Extensions::new();
     extensions.insert(42u32);
@@ -32,7 +32,7 @@ fn test_extensions_get_mut() {
 /// WHAT: Test that a basic middleware can modify request headers
 #[test]
 fn test_middleware_trait_basic() {
-    use foundation_netio::simple_http::client::{Extensions, Middleware, PreparedRequest, Uri};
+    use foundation_netio::simple_http::shared::{Extensions, Middleware, PreparedRequest, Uri};
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
     use std::collections::BTreeMap;
 
@@ -84,7 +84,7 @@ fn test_middleware_trait_basic() {
 /// WHAT: Test that `LoggingMiddleware` doesn't change request
 #[test]
 fn test_logging_middleware_passthrough() {
-    use foundation_netio::simple_http::client::{
+    use foundation_netio::simple_http::shared::{
         Extensions, LoggingMiddleware, Middleware, PreparedRequest, Uri,
     };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
@@ -111,7 +111,7 @@ fn test_logging_middleware_passthrough() {
 /// WHAT: Test that `TimingMiddleware` records timing in extensions
 #[test]
 fn test_timing_middleware_records_duration() {
-    use foundation_netio::simple_http::client::{
+    use foundation_netio::simple_http::shared::{
         Extensions, Middleware, PreparedRequest, TimingMiddleware, Uri,
     };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod, Status};
@@ -148,7 +148,7 @@ fn test_timing_middleware_records_duration() {
 /// WHAT: Test that `HeaderMiddleware` adds headers only if not present
 #[test]
 fn test_header_middleware_adds_headers() {
-    use foundation_netio::simple_http::client::{
+    use foundation_netio::simple_http::shared::{
         Extensions, HeaderMiddleware, Middleware, PreparedRequest, Uri,
     };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
@@ -178,7 +178,7 @@ fn test_header_middleware_adds_headers() {
 /// WHAT: Test that `HeaderMiddleware` respects existing headers
 #[test]
 fn test_header_middleware_respects_existing_headers() {
-    use foundation_netio::simple_http::client::{
+    use foundation_netio::simple_http::shared::{
         Extensions, HeaderMiddleware, Middleware, PreparedRequest, Uri,
     };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
@@ -212,7 +212,7 @@ fn test_header_middleware_respects_existing_headers() {
 /// WHAT: Test middleware execution order
 #[test]
 fn test_middleware_chain_execution_order() {
-    use foundation_netio::simple_http::client::{
+    use foundation_netio::simple_http::shared::{
         Extensions, Middleware, MiddlewareChain, PreparedRequest, Uri,
     };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod, Status};
@@ -295,7 +295,7 @@ fn test_middleware_chain_execution_order() {
 /// WHAT: Test `BackoffStrategy::Constant` returns same delay for all attempts
 #[test]
 fn test_backoff_strategy_constant() {
-    use foundation_netio::simple_http::client::BackoffStrategy;
+    use foundation_netio::simple_http::client::shared::BackoffStrategy;
     use std::time::Duration;
 
     let strategy = BackoffStrategy::Constant {
@@ -311,7 +311,7 @@ fn test_backoff_strategy_constant() {
 /// WHAT: Test `BackoffStrategy::Linear` calculates base + (increment * attempt)
 #[test]
 fn test_backoff_strategy_linear() {
-    use foundation_netio::simple_http::client::BackoffStrategy;
+    use foundation_netio::simple_http::client::shared::BackoffStrategy;
     use std::time::Duration;
 
     let strategy = BackoffStrategy::Linear {
@@ -328,7 +328,7 @@ fn test_backoff_strategy_linear() {
 /// WHAT: Test `BackoffStrategy::Exponential` calculates base * multiplier^attempt
 #[test]
 fn test_backoff_strategy_exponential() {
-    use foundation_netio::simple_http::client::BackoffStrategy;
+    use foundation_netio::simple_http::client::shared::BackoffStrategy;
     use std::time::Duration;
 
     let strategy = BackoffStrategy::Exponential {
@@ -345,7 +345,7 @@ fn test_backoff_strategy_exponential() {
 /// WHAT: Test `RetryState` initializes with attempt=0 and stores `max_retries`
 #[test]
 fn test_retry_state_creation() {
-    use foundation_netio::simple_http::client::RetryState;
+    use foundation_netio::simple_http::client::shared::RetryState;
 
     let state = RetryState::new(3);
     assert_eq!(state.attempt, 0);
@@ -355,7 +355,7 @@ fn test_retry_state_creation() {
 /// WHAT: Test `RetryMiddleware::new()` creates middleware with exponential backoff default
 #[test]
 fn test_retry_middleware_creation() {
-    use foundation_netio::simple_http::client::RetryMiddleware;
+    use foundation_netio::simple_http::client::shared::RetryMiddleware;
 
     let retry = RetryMiddleware::new(3, vec![429, 502, 503, 504]);
     // Test passes if creation succeeds (no panic)
@@ -365,7 +365,7 @@ fn test_retry_middleware_creation() {
 /// WHAT: Test `RetryMiddleware::with_backoff()` allows custom backoff configuration
 #[test]
 fn test_retry_middleware_with_backoff() {
-    use foundation_netio::simple_http::client::{BackoffStrategy, RetryMiddleware};
+    use foundation_netio::simple_http::client::shared::{BackoffStrategy, RetryMiddleware};
     use std::time::Duration;
 
     let retry = RetryMiddleware::new(3, vec![429]).with_backoff(BackoffStrategy::Constant {
@@ -378,7 +378,7 @@ fn test_retry_middleware_with_backoff() {
 /// WHAT: Test `RetryMiddleware::handle_request` stores `RetryState` in extensions
 #[test]
 fn test_retry_middleware_stores_state_in_extensions() {
-    use foundation_netio::simple_http::client::{
+    use foundation_netio::simple_http::shared::{
         Extensions, Middleware, PreparedRequest, RetryMiddleware, RetryState, Uri,
     };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
@@ -405,7 +405,7 @@ fn test_retry_middleware_stores_state_in_extensions() {
 /// WHAT: Test `RetryMiddleware::handle_response` returns Ok for status 200
 #[test]
 fn test_retry_middleware_passes_through_success() {
-    use foundation_netio::simple_http::client::{
+    use foundation_netio::simple_http::shared::{
         Extensions, Middleware, PreparedRequest, RetryMiddleware, Uri,
     };
     use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod, Status};
@@ -436,7 +436,7 @@ fn test_retry_middleware_passes_through_success() {
 /// WHAT: Test `RetryMiddleware::name()` returns "`RetryMiddleware`"
 #[test]
 fn test_retry_middleware_name() {
-    use foundation_netio::simple_http::client::{Middleware, RetryMiddleware};
+    use foundation_netio::simple_http::client::shared::{Middleware, RetryMiddleware};
 
     let middleware = RetryMiddleware::new(3, vec![429]);
     assert_eq!(middleware.name(), "RetryMiddleware");
@@ -446,7 +446,7 @@ fn test_retry_middleware_name() {
 /// WHAT: Test `RetryMiddleware::handle_response` returns `RetryNeeded` error for status 429
 #[test]
 fn test_retry_middleware_returns_retry_error_for_matching_status() {
-    use foundation_netio::simple_http::client::{
+    use foundation_netio::simple_http::shared::{
         Extensions, Middleware, PreparedRequest, RetryMiddleware, Uri,
     };
     use foundation_netio::simple_http::shared::{HttpClientError, SendSafeBody, SimpleMethod, Status};
