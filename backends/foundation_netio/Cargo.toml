@@ -121,7 +121,7 @@ js-event-loop = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys"]
 js-foundation-wasm = []
 
 # default flags (removed ssl to avoid conflicts - users must explicitly choose TLS backend)
-default = ["standard", "std", "ssl", "compression", "wire-native"]
+default = ["standard", "std", "ssl", "compression", "wire-native", "multi"]
 
 [[test]]
 name = "foundation_netio_tests"
