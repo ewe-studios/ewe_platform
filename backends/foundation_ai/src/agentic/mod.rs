@@ -5,6 +5,8 @@
 //! contract (F03), token accounting (F04), and the agentic loop (F19+).
 
 pub mod errors;
+pub mod memory_coordinator;
+pub mod memory_store;
 pub mod progress;
 pub mod serialization;
 pub mod token_ledger;
@@ -13,6 +15,8 @@ pub use errors::{
     AgentAction, AgenticError, AuthError, CircuitBreaker, ErrorPolicy, GenKind, GenerationFailure,
     LoopDetection, UserId,
 };
+pub use memory_coordinator::MemoryCoordinator;
+pub use memory_store::{KvMemoryStore, MemoryStore, MemoryTier, SessionMemory};
 pub use progress::{lift_model_item, AgentProgress, AgentStream, MemoryKind};
 pub use serialization::{
     from_record_batch, to_record_batch, SerError, SessionRecordRow,

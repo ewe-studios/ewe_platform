@@ -23,8 +23,13 @@ foundation_errstacks = { workspace = true, features = ["to_structured"] }
 foundation_jsonschema = { workspace = true }
 foundation_compact = { workspace = true, features = ["serde"] }
 foundation_arrow = { workspace = true }
+# DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
+# stores (F07). default-features=false → just the core traits + in-memory backends
+# (no turso/d1/r2 pulled into foundation_ai).
+foundation_db = { workspace = true, default-features = false }
 
 # -- Other dependencies
+async-trait = "0.1"
 regex = { version = "1.10" }
 tracing = { workspace = true }
 lazy-regex = { version = "3.1" }
@@ -61,6 +66,7 @@ candle-core = { version = "0.10", features = ["metal"] }
 foundation_testing = { workspace = true, features = ["huggingface"] }
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
+futures-lite = "2"
 
 [features]
 default = ["llamacpp", "agentic"]

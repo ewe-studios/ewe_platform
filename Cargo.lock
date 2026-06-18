@@ -3494,6 +3494,7 @@ dependencies = [
 name = "foundation_ai"
 version = "0.0.1"
 dependencies = [
+ "async-trait",
  "candle-core",
  "candle-nn",
  "candle-transformers",
@@ -3503,6 +3504,7 @@ dependencies = [
  "foundation_auth",
  "foundation_compact",
  "foundation_core",
+ "foundation_db",
  "foundation_deployment_huggingface",
  "foundation_errstacks",
  "foundation_jsonschema",
@@ -3510,6 +3512,7 @@ dependencies = [
  "foundation_netio",
  "foundation_nostd",
  "foundation_testing",
+ "futures-lite",
  "infrastructure_llama_cpp",
  "lazy-regex",
  "regex",
