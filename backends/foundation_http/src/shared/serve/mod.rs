@@ -239,6 +239,9 @@ pub mod respond {
     /// Write a 100 Continue interim response.
     #[tracing::instrument(skip(conn))]
     pub fn continue_100(conn: &mut impl std::io::Write) -> Result<(), ErrorTrace<ServeError>> {
+        // A `100 Continue` interim response is header-less. The `Http11` renderer
+        // allows that for informational (1xx) statuses (other statuses still
+        // require at least one header) — see `Http11ResState::Headers`.
         tracing::trace!("Building 100 Continue response");
         let response = SimpleOutgoingResponse::builder()
             .with_status(status_from_code(100))
@@ -251,7 +254,13 @@ pub mod respond {
             .http_render_to_writer(conn)
             .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
 
-        tracing::trace!("100 Continue response rendered successfully");
+        // Flush so the interim response reaches the client immediately — the client
+        // blocks reading it before it will send the request body, so any buffering
+        // here would stall the whole exchange.
+        conn.flush()
+            .map_err(|e| ServeError::InternalError { status: 500, reason: e.to_string() })?;
+
+        tracing::trace!("100 Continue response sent successfully");
         Ok(())
     }
 }

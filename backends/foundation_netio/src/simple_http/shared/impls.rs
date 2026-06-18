@@ -2472,8 +2472,16 @@ impl Iterator for Http11ResponseIterator {
                 Some(Ok(http_intro_string.into_bytes()))
             }
             Http11ResState::Headers(response) => {
-                // HTTP 1.1 requires atleast 1 header in the response being generated
+                // HTTP 1.1 normally requires at least 1 header — EXCEPT for
+                // informational (1xx) interim responses (e.g. `100 Continue`),
+                // which are legitimately header-less: `HTTP/1.1 100 Continue\r\n\r\n`.
+                // For those, emit just the terminating CRLF and proceed.
                 if response.headers.is_empty() {
+                    let is_informational = response.status.clone().into_usize() < 200;
+                    if is_informational {
+                        self.0 = Some(Http11ResState::Body(response));
+                        return Some(Ok(b"\r\n".to_vec()));
+                    }
                     // tell the iterator we want it to end
                     self.0 = Some(Http11ResState::End);
 
