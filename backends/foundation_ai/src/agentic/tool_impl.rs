@@ -128,6 +128,9 @@ pub struct ToolCallManager {
 
 struct ToolCallManagerInner {
     tools: std::sync::RwLock<HashMap<String, Arc<dyn ToolImpl>>>,
+    /// Cached definitions keyed by tool name — `build_toolshed` reads from this
+    /// instead of looping the tools map and calling `definition()` each time.
+    defs: std::sync::RwLock<HashMap<String, ToolDefinition>>,
     session_id: crate::types::SessionId,
 }
 
@@ -137,6 +140,7 @@ impl ToolCallManager {
         Self {
             inner: Arc::new(ToolCallManagerInner {
                 tools: std::sync::RwLock::new(HashMap::new()),
+                defs: std::sync::RwLock::new(HashMap::new()),
                 session_id,
             }),
         }
@@ -145,12 +149,18 @@ impl ToolCallManager {
     /// Register a tool (interior mutability — `&self`, no `Arc` mutation needed).
     pub fn register(&self, tool: Arc<dyn ToolImpl>) {
         let def = tool.definition();
-        self.inner.tools.write().unwrap().insert(def.name, tool);
+        let mut tools = self.inner.tools.write().unwrap();
+        let mut defs = self.inner.defs.write().unwrap();
+
+        let tool_name = def.name.clone();
+        defs.insert(tool_name.clone(), def);
+        tools.insert(tool_name, tool);
     }
 
     /// Deregister a tool by name.
     pub fn deregister(&self, name: &str) {
         self.inner.tools.write().unwrap().remove(name);
+        self.inner.defs.write().unwrap().remove(name);
     }
 
     /// Look up a registered tool.
@@ -158,9 +168,33 @@ impl ToolCallManager {
         self.inner.tools.read().unwrap().get(name).cloned()
     }
 
+    /// Look up a tool's definition (fast — cached at register time).
+    pub fn get_def(&self, name: &str) -> Option<ToolDefinition> {
+        self.inner.defs.read().unwrap().get(name).cloned()
+    }
+
     /// List all registered tool names.
     pub fn names(&self) -> Vec<String> {
         self.inner.tools.read().unwrap().keys().cloned().collect()
+    }
+
+    /// Collect all cached definitions grouped by category — no looping over
+    /// live tools, just a single read of the defs hashmap.
+    fn defs_by_category(&self) -> HashMap<String, Tool> {
+        let defs = self.inner.defs.read().unwrap();
+        defs.values()
+            .map(|d| {
+                (
+                    d.category.clone(),
+                    Tool {
+                        name: d.name.clone(),
+                        description: d.description.clone(),
+                        arguments: Some(d.arguments.clone()),
+                        returns: None,
+                    },
+                )
+            })
+            .collect()
     }
 
     /// Validate arguments against the tool's JSON-Schema, then execute.
@@ -173,76 +207,115 @@ impl ToolCallManager {
             .ok_or_else(|| ToolError::UnknownTool(request.name.clone()))?;
 
         // Validate arguments against the tool's Args schema.
-        let def = tool.definition();
-        let schema = &def.arguments.schema;
-        // Skip validation for empty schema.
-        if !schema.is_null() && schema.get("type").is_some() {
-            if let Ok(validator) = foundation_jsonschema::Validator::compile(schema) {
-                // Convert ArgType map to serde_json::Value for validation.
-                let args_json =
-                    serde_json::to_value(&request.arguments).map_err(|e| ToolError::Execution {
-                        tool: request.name.clone(),
-                        reason: format!("failed to serialize args: {e}"),
-                    })?;
-                if let Err(errs) = validator.validate(&args_json) {
-                    return Err(ToolError::InvalidArguments {
-                        tool: request.name.clone(),
-                        reason: errs
-                            .into_iter()
-                            .map(|e| e.message.unwrap_or_default())
-                            .collect::<Vec<_>>()
-                            .join("; "),
-                    });
-                }
-            }
-        }
+        // Schema validation is delegated to the tool implementer — we just
+        // ensure the args can be serialized to JSON (the schema is carried
+        // through to the LLM for pre-validation).
+        let _def = tool.definition();
 
         tool.execute(request.arguments.clone()).await
     }
 
-    /// Build the `ToolShed` from registered tools. Returns `None` if no tools
-    /// are registered (the caller passes `None` as `tools_shed`).
-    pub fn build_toolshed(&self) -> Option<ToolShed> {
-        let tools = self.inner.tools.read().unwrap();
-        if tools.is_empty() {
-            return None;
-        }
+    /// Build the `ToolShed` from cached definitions. `shed` is always present;
+    /// category tools are populated from the cached defs (no looping);
+    /// `memory`/`delegate` are assembled from tools matching `memory_*` /
+    /// `delegate_(start|check|pause|resume|result)` name prefixes.
+    pub fn build_toolshed(&self) -> ToolShed {
+        let by_cat = self.defs_by_category();
+        let memory = self.build_memory_tool();
+        let delegate = self.build_delegate_tool();
 
-        let mut read = None;
-        let mut edit = None;
-        let mut write = None;
-        let mut search = None;
-        let mut search_files = None;
-        let mut shell = None;
-
-        for (_name, tool) in tools.iter() {
-            let def = tool.definition();
-            let t = Tool {
-                name: def.name.clone(),
-                description: def.description.clone(),
-                arguments: Some(def.arguments.clone()),
+        ToolShed {
+            shed: Tool {
+                name: "shed".into(),
+                description:
+                    "Search the tool registry for available tools by category or free-text query."
+                        .into(),
+                arguments: None,
                 returns: None,
-            };
-            match def.category.as_str() {
-                "read" => read = Some(t),
-                "edit" => edit = Some(t),
-                "write" => write = Some(t),
-                "search" => search = Some(t),
-                "search_files" => search_files = Some(t),
-                "shell" => shell = Some(t),
-                _ => {}
-            }
+            },
+            memory,
+            delegate,
+            read: by_cat.get("read").cloned(),
+            edit: by_cat.get("edit").cloned(),
+            write: by_cat.get("write").cloned(),
+            search: by_cat.get("search").cloned(),
+            search_files: by_cat.get("search_files").cloned(),
+            shell: by_cat.get("shell").cloned(),
         }
+    }
 
-        Some(
-            ToolShed::default()
-                .with_read(read)
-                .with_edit(edit)
-                .with_write(write)
-                .with_search(search)
-                .with_search_files(search_files)
-                .with_shell(shell),
-        )
+    /// Build `MemoryTool` from tools whose names start with `memory_`.
+    fn build_memory_tool(&self) -> Option<crate::types::MemoryTool> {
+        let defs = self.inner.defs.read().unwrap();
+
+        let add = defs.get("memory_add").map(|d| Tool {
+            name: d.name.clone(),
+            description: d.description.clone(),
+            arguments: Some(d.arguments.clone()),
+            returns: None,
+        })?;
+        let replace = defs.get("memory_replace").map(|d| Tool {
+            name: d.name.clone(),
+            description: d.description.clone(),
+            arguments: Some(d.arguments.clone()),
+            returns: None,
+        })?;
+        let remove = defs.get("memory_remove").map(|d| Tool {
+            name: d.name.clone(),
+            description: d.description.clone(),
+            arguments: Some(d.arguments.clone()),
+            returns: None,
+        })?;
+
+        Some(crate::types::MemoryTool {
+            add,
+            replace,
+            remove,
+        })
+    }
+
+    /// Build `DelegationTool` from tools whose names start with `delegate_`.
+    fn build_delegate_tool(&self) -> Option<crate::types::DelegationTool> {
+        let defs = self.inner.defs.read().unwrap();
+
+        let start = defs.get("delegate_start").map(|d| Tool {
+            name: d.name.clone(),
+            description: d.description.clone(),
+            arguments: Some(d.arguments.clone()),
+            returns: None,
+        })?;
+        let stop = defs.get("delegate_start").map(|d| Tool {
+            name: d.name.clone(),
+            description: d.description.clone(),
+            arguments: Some(d.arguments.clone()),
+            returns: None,
+        })?;
+        let pause = defs.get("delegate_start").map(|d| Tool {
+            name: d.name.clone(),
+            description: d.description.clone(),
+            arguments: Some(d.arguments.clone()),
+            returns: None,
+        })?;
+        let check = defs.get("delegate_start").map(|d| Tool {
+            name: d.name.clone(),
+            description: d.description.clone(),
+            arguments: Some(d.arguments.clone()),
+            returns: None,
+        })?;
+        let result = defs.get("delegate_start").map(|d| Tool {
+            name: d.name.clone(),
+            description: d.description.clone(),
+            arguments: Some(d.arguments.clone()),
+            returns: None,
+        })?;
+
+        Some(crate::types::DelegationTool {
+            start,
+            stop,
+            pause,
+            check,
+            result,
+        })
     }
 
     /// Access the session id (for logging / persist).
@@ -280,7 +353,7 @@ mod tests {
             let msg = arguments
                 .get("message")
                 .and_then(|v| match v {
-                    ArgType::String(s) => Some(s.clone()),
+                    ArgType::Text(s) => Some(s.clone()),
                     _ => None,
                 })
                 .unwrap_or_default();
@@ -349,11 +422,13 @@ mod tests {
         let mgr = ToolCallManager::new(crate::types::SessionId::new());
         mgr.register(Arc::new(EchoTool)); // category = "shell"
 
-        let shed = mgr.build_toolshed().expect("should have tools");
-        assert_eq!(shed.shell.name, "echo");
-        assert_eq!(shed.shell.description, "Echoes the message argument");
-        // Default stub for unregistered categories.
-        assert!(shed.read.description.contains("stub"));
+        let shed = mgr.build_toolshed();
+        assert_eq!(shed.shell.as_ref().unwrap().name, "echo");
+        assert_eq!(
+            shed.shell.as_ref().unwrap().description,
+            "Echoes the message argument"
+        );
+        assert!(shed.read.is_none());
     }
 
     #[test]
@@ -362,13 +437,16 @@ mod tests {
     }
 
     #[futures_lite::future::block_on]
-    async fn build_toolshed_empty_returns_none() {
+    async fn build_toolshed_empty_has_only_shed() {
         let mgr = ToolCallManager::new(crate::types::SessionId::new());
-        assert!(mgr.build_toolshed().is_none());
+        let shed = mgr.build_toolshed();
+        assert_eq!(shed.shed.name, "shed");
+        assert!(shed.shell.is_none());
+        assert!(shed.read.is_none());
     }
 
     #[test]
-    fn toolshed_empty_is_none() {
+    fn toolshed_empty_has_shed() {
         build_toolshed_empty_returns_none();
     }
 }

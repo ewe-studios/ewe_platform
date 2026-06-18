@@ -1232,10 +1232,11 @@ pub struct DelegationTool {
     pub result: Tool,
 }
 
-#[derive(From, Serialize, Default, Deserialize, Debug, Clone, PartialEq)]
+#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolShed {
-    /// The `shed` meta-tool — always present; replaces dynamic tool discovery (F10).
-    pub shed: Option<Tool>,
+    /// The `shed` meta-tool — always present; tells the agent to query the
+    /// `ToolCallManager` for any tools registered into its internal store.
+    pub shed: Tool,
     pub memory: Option<MemoryTool>,
     pub delegate: Option<DelegationTool>,
     pub read: Option<Tool>,
@@ -1248,6 +1249,27 @@ pub struct ToolShed {
     /// Cross-platform shell: bash on linux/macOS, PowerShell on Windows
     /// (the `ToolImpl` selects at runtime). Was `bash: Option<Tool>`.
     pub shell: Option<Tool>,
+}
+
+impl Default for ToolShed {
+    fn default() -> Self {
+        Self {
+            shed: Tool {
+                name: "shed".into(),
+                description: "Query the tool registry for available tools by category or search.".into(),
+                arguments: None,
+                returns: None,
+            },
+            memory: None,
+            delegate: None,
+            read: None,
+            edit: None,
+            write: None,
+            search: None,
+            search_files: None,
+            shell: None,
+        }
+    }
 }
 
 impl ToolShed {
@@ -1280,6 +1302,52 @@ impl ToolShed {
     pub fn with_shell(mut self, t: Option<Tool>) -> Self {
         self.shell = t;
         self
+    }
+
+    #[must_use]
+    pub fn with_memory(mut self, t: Option<MemoryTool>) -> Self {
+        self.memory = t;
+        self
+    }
+
+    #[must_use]
+    pub fn with_delegate(mut self, t: Option<DelegationTool>) -> Self {
+        self.delegate = t;
+        self
+    }
+
+    /// Flatten the shed into the full list of tools the LLM sees: the always-present
+    /// `shed` meta-tool, every populated category tool, and the memory/delegate
+    /// sub-tools when present.
+    #[must_use]
+    pub fn all_tools(&self) -> Vec<Tool> {
+        let mut tools = vec![self.shed.clone()];
+        tools.extend(
+            [
+                &self.read,
+                &self.edit,
+                &self.write,
+                &self.search,
+                &self.search_files,
+                &self.shell,
+            ]
+            .into_iter()
+            .flatten()
+            .cloned(),
+        );
+        if let Some(mem) = &self.memory {
+            tools.push(mem.add.clone());
+            tools.push(mem.replace.clone());
+            tools.push(mem.remove.clone());
+        }
+        if let Some(del) = &self.delegate {
+            tools.push(del.start.clone());
+            tools.push(del.stop.clone());
+            tools.push(del.pause.clone());
+            tools.push(del.check.clone());
+            tools.push(del.result.clone());
+        }
+        tools
     }
 }
 

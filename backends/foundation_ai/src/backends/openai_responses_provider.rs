@@ -1296,26 +1296,7 @@ fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
 /// Flatten a `ToolShed` into a Vec<Tool> for formatting.
 #[must_use]
 pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
-    let mut tools = vec![
-        shed.shed.clone(),
-        shed.read.clone(),
-        shed.edit.clone(),
-        shed.write.clone(),
-        shed.search.clone(),
-        shed.search_files.clone(),
-        shed.shell.clone(),
-    ];
-    if let Some(mem) = &shed.memory {
-        tools.push(mem.add.clone());
-        tools.push(mem.replace.clone());
-        tools.push(mem.remove.clone());
-    }
-    if let Some(delegate) = &shed.delegate {
-        tools.push(delegate.start.clone());
-        tools.push(delegate.check.clone());
-        tools.push(delegate.get.clone());
-    }
-    tools
+    shed.all_tools()
 }
 
 fn convert_tool_choice(choice: &crate::types::ToolChoice) -> ResponseToolChoice {
