@@ -1681,7 +1681,15 @@ impl ThreadRegistry {
         let wg_guard = self.waitgroup.guard();
         self.waitgroup.add(1);
 
+        // Capture the spawning thread's tracing dispatcher so events emitted on
+        // this worker reach the SAME subscriber — including a test's thread-local
+        // `#[traced_test]` subscriber, which otherwise only covers the test thread
+        // (worker-thread `tracing::*` would silently go to the global no-op one).
+        let dispatch = tracing::dispatcher::get_default(|d| d.clone());
+
         match b.spawn(move || {
+            // Install the inherited dispatcher for this worker thread's lifetime.
+            let _dispatch_guard = tracing::dispatcher::set_default(&dispatch);
             let span = tracing::trace_span!("ThreadRegistry::spawn_worker.local_executor.thread");
             let _enter = span.enter();
 
