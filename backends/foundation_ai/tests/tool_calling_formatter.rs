@@ -3,12 +3,13 @@
 //! Tests AnthropicFormatter, OpenAIFormatter, and TextBasedFormatter
 //! with sample provider responses.
 
-use foundation_ai::types::{
-    ArgType, Args, Messages, ModelOutput, TextBasedFormatter,
-    TextContent, ToolCallingError, UserModelContent,
-};
 use foundation_ai::backends::anthropic_messages_provider::AnthropicFormatter;
 use foundation_ai::backends::openai_provider::OpenAIFormatter;
+use foundation_ai::types::{
+    ArgType, Args, Messages, ModelOutput, TextBasedFormatter, TextContent, ToolCallingError,
+    UserModelContent,
+};
+use foundation_compact::ids::Id;
 
 use foundation_ai::types::{Tool, ToolFormatter};
 use foundation_jsonschema::{scheme, ValidationOptions};
@@ -23,7 +24,6 @@ fn make_tool(name: &str, description: &str) -> Tool {
         .required("query", scheme::string().min_len(1))
         .build();
     Tool {
-        id: format!("tool_{name}"),
         name: name.to_string(),
         description: description.to_string(),
         arguments: Some(Args::new(opts)),
@@ -88,7 +88,10 @@ fn anthropic_extract_tool_calls_tool_use() {
         _ => panic!("expected ToolCall"),
     }
 
-    assert_eq!(result.remaining_text, Some("Let me search for you.".to_string()));
+    assert_eq!(
+        result.remaining_text,
+        Some("Let me search for you.".to_string())
+    );
 }
 
 #[test]
@@ -119,14 +122,18 @@ fn anthropic_extract_no_tool_calls() {
     let result = formatter.extract_tool_calls(response).unwrap();
     assert!(!result.has_tool_calls);
     assert!(result.calls.is_empty());
-    assert_eq!(result.remaining_text, Some("Hello! How can I help?".to_string()));
+    assert_eq!(
+        result.remaining_text,
+        Some("Hello! How can I help?".to_string())
+    );
 }
 
 #[test]
 fn anthropic_format_tool_response() {
     let formatter = AnthropicFormatter;
     let result = Messages::ToolResult {
-        id: "tool_abc123".to_string(),
+        id: foundation_compact::Id::from_str("tool_abc123"),
+        tool_call_id: "tool_abc123".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
         details: None,
@@ -152,7 +159,8 @@ fn anthropic_format_tool_response() {
 fn anthropic_format_tool_response_error() {
     let formatter = AnthropicFormatter;
     let result = Messages::ToolResult {
-        id: "tool_err".to_string(),
+        id: Id::from_str("search").expect("should get id"),
+        tool_call_id: "search".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
         details: None,
@@ -172,6 +180,7 @@ fn anthropic_format_tool_response_error() {
 fn anthropic_format_tool_response_wrong_variant() {
     let formatter = AnthropicFormatter;
     let wrong = Messages::User {
+        id: Id::from_str("user").expect("should get id"),
         role: "user".to_string(),
         content: UserModelContent::Text(TextContent {
             content: "hello".to_string(),
@@ -182,14 +191,20 @@ fn anthropic_format_tool_response_wrong_variant() {
 
     let err = formatter.format_tool_response(&wrong).unwrap_err();
     // ErrorTrace<ToolCallingError::Response>
-    assert!(err.current_context().to_string().contains("expected Messages::ToolResult"));
+    assert!(err
+        .current_context()
+        .to_string()
+        .contains("expected Messages::ToolResult"));
 }
 
 #[test]
 fn anthropic_extract_invalid_json() {
     let formatter = AnthropicFormatter;
     let err = formatter.extract_tool_calls("not json at all").unwrap_err();
-    assert!(err.current_context().to_string().contains("failed to extract tool calls"));
+    assert!(err
+        .current_context()
+        .to_string()
+        .contains("failed to extract tool calls"));
 }
 
 // ============================================================================
@@ -277,7 +292,8 @@ fn openai_extract_no_tool_calls() {
 fn openai_format_tool_response() {
     let formatter = OpenAIFormatter;
     let result = Messages::ToolResult {
-        id: "call_xyz".to_string(),
+        id: Id::from_str("call_xyz").expect("should get id"),
+        tool_call_id: "call_xyz".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
         details: None,
@@ -299,6 +315,7 @@ fn openai_format_tool_response() {
 fn openai_format_tool_response_wrong_variant() {
     let formatter = OpenAIFormatter;
     let wrong = Messages::User {
+        id: Id::from_str("user").expect("should get id"),
         role: "user".to_string(),
         content: UserModelContent::Text(TextContent {
             content: "hello".to_string(),
@@ -308,7 +325,10 @@ fn openai_format_tool_response_wrong_variant() {
     };
 
     let err = formatter.format_tool_response(&wrong).unwrap_err();
-    assert!(err.current_context().to_string().contains("expected Messages::ToolResult"));
+    assert!(err
+        .current_context()
+        .to_string()
+        .contains("expected Messages::ToolResult"));
 }
 
 // ============================================================================
@@ -353,20 +373,31 @@ Done."#;
 
     let call = &result.calls[0];
     match call {
-        ModelOutput::ToolCall { id: _, name, arguments: args, .. } => {
+        ModelOutput::ToolCall {
+            id: _,
+            name,
+            arguments: args,
+            ..
+        } => {
             assert_eq!(name, "search");
             let args = args.as_ref().unwrap();
             // The "arguments" field in the JSON is a nested object
-            let inner_args = args.get("arguments").and_then(|v| match v {
-                ArgType::JSONMap(m) => Some(m),
-                _ => None,
-            }).unwrap();
+            let inner_args = args
+                .get("arguments")
+                .and_then(|v| match v {
+                    ArgType::JSONMap(m) => Some(m),
+                    _ => None,
+                })
+                .unwrap();
             assert_eq!(inner_args["query"], ArgType::Text("rust".to_string()));
         }
         _ => panic!("expected ToolCall"),
     }
 
-    assert_eq!(result.remaining_text, Some("I'll search for you.\nDone.".to_string()));
+    assert_eq!(
+        result.remaining_text,
+        Some("I'll search for you.\nDone.".to_string())
+    );
 }
 
 #[test]
@@ -382,9 +413,10 @@ Let me also check Tokyo.
     assert!(result.has_tool_calls);
     assert_eq!(result.calls.len(), 3);
 
-    assert_eq!(result.remaining_text, Some(
-        "I'll check the weather.\nLet me also check Tokyo.".to_string()
-    ));
+    assert_eq!(
+        result.remaining_text,
+        Some("I'll check the weather.\nLet me also check Tokyo.".to_string())
+    );
 }
 
 #[test]
@@ -426,7 +458,8 @@ fn text_based_extract_whitespace_inside_tags() {
 fn text_based_format_tool_response() {
     let formatter = TextBasedFormatter;
     let result = Messages::ToolResult {
-        id: "tool_1".to_string(),
+        id: Id::from_str("user").expect("should get id"),
+        tool_call_id: "tool_1".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
         details: None,
@@ -442,14 +475,18 @@ fn text_based_format_tool_response() {
     assert_eq!(formatted["role"], "tool");
     assert_eq!(formatted["name"], "search");
     assert!(formatted["content"].as_str().unwrap().contains("search"));
-    assert!(formatted["content"].as_str().unwrap().contains("Found 3 results"));
+    assert!(formatted["content"]
+        .as_str()
+        .unwrap()
+        .contains("Found 3 results"));
 }
 
 #[test]
 fn text_based_format_tool_response_error_note() {
     let formatter = TextBasedFormatter;
     let result = Messages::ToolResult {
-        id: "tool_1".to_string(),
+        id: Id::from_str("tool_1").expect("should get id"),
+        tool_call_id: "tool_1".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
         details: None,
@@ -470,6 +507,7 @@ fn text_based_format_tool_response_error_note() {
 fn text_based_format_tool_response_wrong_variant() {
     let formatter = TextBasedFormatter;
     let wrong = Messages::User {
+        id: Id::from_str("user").expect("should get id"),
         role: "user".to_string(),
         content: UserModelContent::Text(TextContent {
             content: "hello".to_string(),
@@ -479,7 +517,10 @@ fn text_based_format_tool_response_wrong_variant() {
     };
 
     let err = formatter.format_tool_response(&wrong).unwrap_err();
-    assert!(err.current_context().to_string().contains("expected Messages::ToolResult"));
+    assert!(err
+        .current_context()
+        .to_string()
+        .contains("expected Messages::ToolResult"));
 }
 
 // ============================================================================
@@ -491,20 +532,26 @@ fn tool_calling_error_display() {
     let extract_err = ToolCallingError::Extract {
         reason: "invalid JSON".to_string(),
     };
-    assert!(extract_err.to_string().contains("failed to extract tool calls"));
+    assert!(extract_err
+        .to_string()
+        .contains("failed to extract tool calls"));
     assert!(extract_err.to_string().contains("invalid JSON"));
 
     let format_err = ToolCallingError::Format {
         tool_name: "search".to_string(),
         reason: "missing name".to_string(),
     };
-    assert!(format_err.to_string().contains("failed to format tool 'search'"));
+    assert!(format_err
+        .to_string()
+        .contains("failed to format tool 'search'"));
 
     let response_err = ToolCallingError::Response {
         tool_name: "weather".to_string(),
         reason: "bad input".to_string(),
     };
-    assert!(response_err.to_string().contains("failed to format result for 'weather'"));
+    assert!(response_err
+        .to_string()
+        .contains("failed to format result for 'weather'"));
 }
 
 #[test]

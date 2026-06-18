@@ -8,8 +8,9 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::types::{
-    Args, CostStatus, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    ModelProviders, ModelUsageCosting, StopReason, TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
+    Args, CostStatus, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction,
+    ModelOutput, ModelParams, ModelProvider, ModelProviders, ModelUsageCosting, StopReason,
+    TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
@@ -19,9 +20,6 @@ use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
 use std::net::SocketAddr;
 use std::sync::LazyLock;
-
-static POOL: LazyLock<valtron::PoolGuard> =
-    LazyLock::new(|| valtron::initialize_pool(42, Some(4)));
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -94,8 +92,7 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
         .unwrap()
 }
 
-#[test]
-#[serial]
+#[valtron_test]
 #[tracing_test::traced_test]
 fn test_provider_generate() {
     let _guard = &*POOL;
@@ -137,9 +134,8 @@ fn test_provider_generate() {
 }
 
 /// Verify SSE streaming yields incremental text via named events.
-#[test]
-#[serial]
 #[tracing_test::traced_test]
+#[valtron_test]
 fn test_provider_streaming_text() {
     let _guard = &*POOL;
 
@@ -189,9 +185,8 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
 }
 
 /// Verify SSE streaming accumulates tool call deltas into a final ToolCall message.
-#[test]
-#[serial]
 #[tracing_test::traced_test]
+#[valtron_test]
 fn test_provider_streaming_tool_calls() {
     let _guard = &*POOL;
 
@@ -247,9 +242,8 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
 }
 
 /// Verify extended thinking response parsing.
-#[test]
-#[serial]
 #[tracing_test::traced_test]
+#[valtron_test]
 fn test_provider_generate_with_thinking() {
     let _guard = &*POOL;
 
@@ -270,12 +264,18 @@ fn test_provider_generate_with_thinking() {
     let server = TestHttpServer::with_response(move |_req| json_response(chat_response));
     let model = setup_provider_and_model(&server);
 
-    let result = model.generate(make_interaction("What is 6 times 7?"), None).unwrap();
+    let result = model
+        .generate(make_interaction("What is 6 times 7?"), None)
+        .unwrap();
     assert_eq!(result.len(), 2);
 
     // First message: thinking block
     if let Messages::Assistant { content, .. } = &result[0] {
-        if let ModelOutput::ThinkingContent { thinking, signature } = content {
+        if let ModelOutput::ThinkingContent {
+            thinking,
+            signature,
+        } = content
+        {
             assert_eq!(thinking, "Let me think about this...");
             assert_eq!(signature.as_deref(), Some("sig_abc"));
         } else {
@@ -298,9 +298,8 @@ fn test_provider_generate_with_thinking() {
 }
 
 /// Verify multimodal request with image content block.
-#[test]
-#[serial]
 #[tracing_test::traced_test]
+#[valtron_test]
 fn test_provider_generate_multimodal() {
     let _guard = &*POOL;
 
@@ -371,9 +370,13 @@ fn setup_llama_server_provider() -> impl Model {
     let config = AnthropicConfig::new()
         .with_base_url(base_url)
         .with_messages_endpoint("/v1/messages")
-        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key.to_string())));
+        .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
+            api_key.to_string(),
+        )));
 
-    let provider = AnthropicMessagesProvider::new().create(Some(config)).unwrap();
+    let provider = AnthropicMessagesProvider::new()
+        .create(Some(config))
+        .unwrap();
 
     provider
         .get_model(ModelId::Name("claude-3-5-sonnet".into(), None))
@@ -381,9 +384,8 @@ fn setup_llama_server_provider() -> impl Model {
 }
 
 /// Test: generate a short response against the real llama-server.
-#[test]
-#[serial]
 #[tracing_test::traced_test]
+#[valtron_test]
 #[ignore]
 fn test_llama_server_anthropic_generate() {
     let _guard = &*POOL;
@@ -429,8 +431,8 @@ fn test_llama_server_anthropic_generate() {
 }
 
 /// Test: streaming text generation against the real llama-server.
-#[test]
-#[serial]
+#[tracing_test::traced_test]
+#[valtron_test]
 #[tracing_test::traced_test]
 #[ignore]
 fn test_llama_server_anthropic_streaming() {
@@ -469,9 +471,8 @@ fn test_llama_server_anthropic_streaming() {
 }
 
 /// Test: multi-turn conversation with conversation history.
-#[test]
-#[serial]
 #[tracing_test::traced_test]
+#[valtron_test]
 #[ignore]
 fn test_llama_server_anthropic_multi_turn() {
     let _guard = &*POOL;
@@ -549,9 +550,8 @@ fn test_llama_server_anthropic_multi_turn() {
 }
 
 /// Test: max_tokens constraint truncates output.
-#[test]
-#[serial]
 #[tracing_test::traced_test]
+#[valtron_test]
 #[ignore]
 fn test_llama_server_anthropic_max_tokens() {
     let _guard = &*POOL;
@@ -589,9 +589,8 @@ fn test_llama_server_anthropic_max_tokens() {
 }
 
 /// Test: provider can resolve and connect to the running llama-server.
-#[test]
-#[serial]
 #[tracing_test::traced_test]
+#[valtron_test]
 #[ignore]
 fn test_llama_server_anthropic_resolve_model() {
     let _guard = &*POOL;
@@ -626,12 +625,11 @@ fn test_llama_server_anthropic_resolve_model() {
 // ============================================================================
 
 use foundation_ai::backends::anthropic_messages_provider::{
-    AnthropicContentBlock, AnthropicDelta, AnthropicImageSource,
-    AnthropicMessage, AnthropicRole, AnthropicSystemBlock, AnthropicSystemContent,
-    AnthropicTool, AnthropicToolChoice, AnthropicUsage,
-    MessagesRequest, MessagesResponse, StreamEvent,
     build_anthropic_request, empty_usage_report, exponential_backoff, format_http_error,
     is_retryable_status, map_stop_reason, parse_anthropic_error, parse_response,
+    AnthropicContentBlock, AnthropicDelta, AnthropicImageSource, AnthropicMessage, AnthropicRole,
+    AnthropicSystemBlock, AnthropicSystemContent, AnthropicTool, AnthropicToolChoice,
+    AnthropicUsage, MessagesRequest, MessagesResponse, StreamEvent,
 };
 use std::time::SystemTime;
 
@@ -953,7 +951,8 @@ fn test_parse_response_text() {
     };
 
     let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-    let (msgs, _report) = parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) =
+        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
     assert_eq!(msgs.len(), 1);
     match &msgs[0] {
@@ -998,7 +997,8 @@ fn test_parse_response_tool_use() {
     };
 
     let model_id = ModelId::Name("claude-3-5-sonnet".into(), None);
-    let (msgs, _report) = parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) =
+        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
     assert_eq!(msgs.len(), 1);
     match &msgs[0] {
@@ -1046,14 +1046,19 @@ fn test_parse_response_thinking() {
     };
 
     let model_id = ModelId::Name("claude-3-7-sonnet".into(), None);
-    let (msgs, _report) = parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
+    let (msgs, _report) =
+        parse_response(&response, &model_id, &ModelUsageCosting::default()).unwrap();
 
     assert_eq!(msgs.len(), 2);
 
     // First message: thinking block
     match &msgs[0] {
         Messages::Assistant { content, .. } => {
-            if let ModelOutput::ThinkingContent { thinking, signature } = content {
+            if let ModelOutput::ThinkingContent {
+                thinking,
+                signature,
+            } = content
+            {
                 assert_eq!(thinking, "Let me think...");
                 assert_eq!(signature.as_deref(), Some("sig_abc"));
             } else {
@@ -1110,7 +1115,6 @@ fn test_build_anthropic_request_basic() {
 #[test]
 fn test_build_anthropic_request_with_tools() {
     let test_tool = Tool {
-        id: "tool_1".into(),
         name: "get_weather".into(),
         description: "Get weather info".into(),
         arguments: Some(Args::from_value(serde_json::json!({
@@ -1125,7 +1129,7 @@ fn test_build_anthropic_request_with_tools() {
     let interaction = ModelInteraction {
         system_prompt: None,
         soul: None,
-        tools_shed: Some(ToolShed {
+        tools_shed: ToolShed {
             shed: test_tool.clone(),
             memory: None,
             delegate: None,
@@ -1133,9 +1137,9 @@ fn test_build_anthropic_request_with_tools() {
             edit: test_tool.clone(),
             write: test_tool.clone(),
             search: test_tool.clone(),
-            bash: None,
-            others: None,
-        }),
+            search_files: test_tool.clone(),
+            shell: None,
+        },
         messages: vec![],
         chat_template: None,
         tool_choice: None,

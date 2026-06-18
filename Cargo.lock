@@ -3498,6 +3498,7 @@ dependencies = [
  "candle-core",
  "candle-nn",
  "candle-transformers",
+ "concurrent-queue",
  "derive_more",
  "fastrand",
  "foundation_arrow",

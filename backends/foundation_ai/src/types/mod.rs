@@ -7,15 +7,15 @@ pub use agentic::{
     SessionRecord, TimeRange, TokenSnapshot,
 };
 
+use foundation_compact::SystemTime;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use foundation_compact::SystemTime;
 
 use derive_more::{Display, Error, From};
 use foundation_auth::AuthCredential;
 use foundation_core::extensions::strings_ext::IntoString;
-use foundation_core::valtron::StreamIterator;
 use foundation_core::url::Uri;
+use foundation_core::valtron::StreamIterator;
 use foundation_errstacks::ErrorTrace;
 use lazy_regex::regex;
 use regex::Regex;
@@ -1178,7 +1178,6 @@ impl Messages {
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct Tool {
-    pub id: String,
     pub name: String,
     pub description: String,
     pub arguments: Option<Args>,
@@ -1227,33 +1226,68 @@ pub struct MemoryTool {
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct DelegationTool {
     pub start: Tool,
+    pub stop: Tool,
+    pub pause: Tool,
     pub check: Tool,
-    pub get: Tool,
+    pub result: Tool,
 }
 
-#[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
+#[derive(From, Serialize, Default, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolShed {
     /// The `shed` meta-tool — always present; replaces dynamic tool discovery (F10).
-    pub shed: Tool,
+    pub shed: Option<Tool>,
     pub memory: Option<MemoryTool>,
     pub delegate: Option<DelegationTool>,
-    pub read: Tool,
-    pub edit: Tool,
-    pub write: Tool,
+    pub read: Option<Tool>,
+    pub edit: Option<Tool>,
+    pub write: Option<Tool>,
     /// Knowledge search (semantic / memory / graph) — F16 / F32.
-    pub search: Tool,
+    pub search: Option<Tool>,
     /// Filesystem search via fff-search — F32. First-class, distinct from `search`.
-    pub search_files: Tool,
+    pub search_files: Option<Tool>,
     /// Cross-platform shell: bash on linux/macOS, PowerShell on Windows
     /// (the `ToolImpl` selects at runtime). Was `bash: Option<Tool>`.
-    pub shell: Tool,
+    pub shell: Option<Tool>,
+}
+
+impl ToolShed {
+    #[must_use]
+    pub fn with_read(mut self, t: Option<Tool>) -> Self {
+        self.read = t;
+        self
+    }
+    #[must_use]
+    pub fn with_edit(mut self, t: Option<Tool>) -> Self {
+        self.edit = t;
+        self
+    }
+    #[must_use]
+    pub fn with_write(mut self, t: Option<Tool>) -> Self {
+        self.write = t;
+        self
+    }
+    #[must_use]
+    pub fn with_search(mut self, t: Option<Tool>) -> Self {
+        self.search = t;
+        self
+    }
+    #[must_use]
+    pub fn with_search_files(mut self, t: Option<Tool>) -> Self {
+        self.search_files = t;
+        self
+    }
+    #[must_use]
+    pub fn with_shell(mut self, t: Option<Tool>) -> Self {
+        self.shell = t;
+        self
+    }
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ModelInteraction {
     pub system_prompt: Option<String>,
     pub soul: Option<String>,
-    pub tools_shed: Option<ToolShed>,
+    pub tools_shed: ToolShed,
     pub messages: Vec<Messages>,
     pub chat_template: Option<String>,
     /// Strategy for tool selection. When `None`, the provider's default
@@ -1416,14 +1450,15 @@ impl ToolFormatter for TextBasedFormatter {
                 .iter()
                 .map(|tool| {
                     // Use the Args schema if present, otherwise default to empty object
-                    let params = tool
-                        .arguments
-                        .as_ref().map_or_else(|| {
+                    let params = tool.arguments.as_ref().map_or_else(
+                        || {
                             serde_json::json!({
                                 "type": "object",
                                 "properties": {},
                             })
-                        }, |a| a.schema.clone());
+                        },
+                        |a| a.schema.clone(),
+                    );
                     serde_json::json!({
                         "name": &tool.name,
                         "description": tool.description,
@@ -1968,8 +2003,7 @@ mod message_role_tests {
     #[test]
     fn legacy_user_message_without_id_deserializes_with_a_minted_id() {
         // A User message persisted before per-message ids existed.
-        let legacy =
-            r#"{"User":{"role":"user","content":{"Text":{"content":"hi","signature":null}},"signature":null}}"#;
+        let legacy = r#"{"User":{"role":"user","content":{"Text":{"content":"hi","signature":null}},"signature":null}}"#;
         let parsed: Messages = serde_json::from_str(legacy).unwrap();
         // serde(default) minted a fresh id; the message is still usable.
         assert!(parsed.id().timestamp() > 0);
