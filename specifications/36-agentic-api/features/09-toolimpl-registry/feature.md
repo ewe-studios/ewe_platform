@@ -1,18 +1,18 @@
 ---
 feature: "ToolImpl & Registry — the tool contract + ToolCallManager registry"
 description: "The ToolImpl trait (definition() + execute()), the ToolCallManager registry that owns Arc<dyn ToolImpl> by name, and the conversion path from a registered tool's ToolDefinition into the foundation_ai Tool/ToolShed schema the LLM sees via ToolFormatter"
-status: "pending"
+status: "completed"
 priority: "high"
-depends_on: ["01-message-model", "08-message-api", "24-foundation-vectors-core"]
+depends_on: ["01-message-model", "08-message-api"]
 estimated_effort: "large"
 created: 2026-06-14
 last_updated: 2026-06-14
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 09: ToolImpl & Registry
