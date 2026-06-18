@@ -7,6 +7,7 @@
 pub mod errors;
 pub mod memory_coordinator;
 pub mod memory_store;
+pub mod message_api;
 pub mod progress;
 pub mod serialization;
 pub mod token_ledger;
@@ -17,8 +18,7 @@ pub use errors::{
 };
 pub use memory_coordinator::MemoryCoordinator;
 pub use memory_store::{KvMemoryStore, MemoryStore, MemoryTier, SessionMemory};
+pub use message_api::{MessageApi, MessageEvent, Receiver as MessageReceiver};
 pub use progress::{lift_model_item, AgentProgress, AgentStream, MemoryKind};
-pub use serialization::{
-    from_record_batch, to_record_batch, SerError, SessionRecordRow,
-};
+pub use serialization::{from_record_batch, to_record_batch, SerError, SessionRecordRow};
 pub use token_ledger::{TokenLedger, TokenSnapshot};

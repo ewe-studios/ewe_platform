@@ -27,6 +27,7 @@ foundation_arrow = { workspace = true }
 # stores (F07). default-features=false → just the core traits + in-memory backends
 # (no turso/d1/r2 pulled into foundation_ai).
 foundation_db = { workspace = true, default-features = false }
+concurrent-queue = "2.5.0"
 
 # -- Other dependencies
 async-trait = "0.1"
@@ -67,6 +68,10 @@ foundation_testing = { workspace = true, features = ["huggingface"] }
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 futures-lite = "2"
+
+[[test]]
+name = "message_api_tests"
+path = "tests/message_api_tests.rs"
 
 [features]
 default = ["llamacpp", "agentic"]
