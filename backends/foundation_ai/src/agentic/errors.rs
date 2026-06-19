@@ -37,7 +37,7 @@ use crate::types::{Messages, ModelId};
 /// derives cleanly.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LoopDetection {
-    /// What kind of repetition was detected (e.g. "tool_call", "assistant_text").
+    /// What kind of repetition was detected (e.g. "`tool_call`", "`assistant_text`").
     pub kind: String,
     /// How many times the repeated unit was seen.
     pub occurrences: u32,
@@ -49,7 +49,7 @@ pub struct LoopDetection {
 /// `Clone + PartialEq + Debug + Serialize + Deserialize`.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct AuthError {
-    /// Matchable reason (e.g. "unauthorized", "expired", "forbidden_tool").
+    /// Matchable reason (e.g. "unauthorized", "expired", "`forbidden_tool`").
     pub reason: String,
 }
 
@@ -150,8 +150,7 @@ impl AgenticError {
         context_window: u64,
     ) -> Self {
         let kind = if last
-            .map(|m| m.is_context_overflow(context_window))
-            .unwrap_or(false)
+            .is_some_and(|m| m.is_context_overflow(context_window))
         {
             GenKind::ContextOverflow
         } else if detect_rate_limit(error) {

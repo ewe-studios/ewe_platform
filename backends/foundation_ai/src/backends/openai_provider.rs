@@ -962,7 +962,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
         let item = self.inner.next()?;
 
         match item {
-            Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
+            Stream::Next(parse_result) => Some(self.process_parse_result(parse_result)),
             Stream::Pending(p) => Some(Stream::Pending(match p {
                 ReconnectingProgress::Connecting | ReconnectingProgress::Reading => {
                     ModelState::GeneratingTokens(None)

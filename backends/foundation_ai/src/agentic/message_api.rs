@@ -10,7 +10,7 @@
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::Stream;
-use foundation_db::traits::{DocumentStore, PromotableDocument};
+use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
 use serde::{Deserialize, Serialize};
 use std::sync::Arc;
@@ -202,7 +202,7 @@ pub struct MessageApi<D> {
 }
 
 impl<D> MessageApi<D> {
-    /// Create a new MessageApi over the given `DocumentStore`.
+    /// Create a new `MessageApi` over the given `DocumentStore`.
     pub fn new(session_id: SessionId, doc_store: D) -> Self {
         Self::with_config(session_id, doc_store, 50, 256)
     }
@@ -227,6 +227,7 @@ impl<D> MessageApi<D> {
     }
 
     /// Subscribe to message events (appends, flushes, errors).
+    #[must_use]
     pub fn subscribe(&self) -> Receiver<MessageEvent> {
         self.inner.subscribers.subscribe()
     }
@@ -237,6 +238,7 @@ impl<D: DocumentStore> MessageApi<D> {
     ///
     /// The record is buffered (no disk I/O); a background flush task drains
     /// the buffer periodically or when it reaches `flush_threshold`.
+    #[must_use]
     pub fn append(&self, record: SessionRecord) -> String {
         let id = match &record {
             SessionRecord::Conversation { message } => message.id().to_string(),
@@ -294,7 +296,7 @@ impl<D: DocumentStore> MessageApi<D> {
             })
             .map(|v| {
                 serde_json::from_str::<SessionRecord>(
-                    &v.get("content").and_then(|c| c.as_str()).unwrap_or(""),
+                    v.get("content").and_then(|c| c.as_str()).unwrap_or(""),
                 )
             })
             .collect::<Result<Vec<_>, _>>()

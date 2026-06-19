@@ -4,7 +4,7 @@
 //! append-only `DocumentStore` is the **source of truth** (every memory record is
 //! also appended for replay, Decision 03). Something has to keep them consistent:
 //! the `MemoryCoordinator` (held by `AgentSession`, F20) owns both and is the only
-//! thing that bridges them — MemoryStore never wraps DocumentStore (OD-07-3).
+//! thing that bridges them — `MemoryStore` never wraps `DocumentStore` (OD-07-3).
 //!
 //! WHAT:
 //! - **Dual-write (audit first):** append the memory record to the `DocumentStore`
@@ -111,7 +111,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
         Ok(())
     }
 
-    /// Hydrate all tiers for a session: the cache fast-path, with a DocumentStore
+    /// Hydrate all tiers for a session: the cache fast-path, with a `DocumentStore`
     /// fallback + re-populate for any missing tier.
     pub async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let mut memory = self.memory.hydrate_async(session).await?;

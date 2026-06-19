@@ -1,7 +1,7 @@
 //! Dual serialization for session records (Feature 05).
 //!
 //! WHY: `SessionRecord`s need two serializations — **JSON/NDJSON** (human-readable,
-//! append-friendly storage for the DocumentStore, `jq`/`fff`-friendly) and
+//! append-friendly storage for the `DocumentStore`, `jq`/`fff`-friendly) and
 //! **Arrow** columnar (analytics: token sums, filter-by-type, ordered scans; and
 //! efficient bulk transport). A single JSON `content` column wastes Arrow's
 //! columnar power, so we **promote** the searchable fields to real columns and
@@ -14,8 +14,8 @@
 //! HOW: JSON is `SessionRecord`'s own serde. Arrow goes through the flat row:
 //! `SessionRecord → SessionRecordRow → RecordBatch` and back. The `content`
 //! column holds the JSON of the full record (no fidelity loss); promoted columns
-//! carry the bits worth filtering/aggregating on. FlatBuffers is intentionally
-//! NOT used (Arrow rides FlatBuffers internally and builds on wasm — TODO #4).
+//! carry the bits worth filtering/aggregating on. `FlatBuffers` is intentionally
+//! NOT used (Arrow rides `FlatBuffers` internally and builds on wasm — TODO #4).
 
 use foundation_arrow::{FromArrow, ToArrow};
 use foundation_arrow::arrow_array::RecordBatch;
@@ -46,7 +46,7 @@ impl std::error::Error for SerError {}
 
 /// The flat, promoted-column projection of a [`SessionRecord`] for Arrow.
 ///
-/// Promoted columns mirror F06's DocumentStore columns (consistency) so the same
+/// Promoted columns mirror F06's `DocumentStore` columns (consistency) so the same
 /// `record_type`/`title`/`summary` + token/model analytics fields exist in both
 /// the columnar batch and the document index. `content` keeps the full JSON
 /// record so nothing is lost.
@@ -55,8 +55,8 @@ pub struct SessionRecordRow {
     /// scru128 id (sortable/searchable). For `Conversation` this is the wrapped
     /// message's id; for memory/summary records it's a synthesized stable key.
     pub id: String,
-    /// The record discriminant ("conversation"/"working_memory"/"observation"/
-    /// "reflection"/"failed_action"/"summary").
+    /// The record discriminant ("`conversation"/"working_memory"/"observation`"/
+    /// "`reflection"/"failed_action"/"summary`").
     pub record_type: String,
     /// `MessageRole` wire string for conversation records, else empty.
     pub role: String,

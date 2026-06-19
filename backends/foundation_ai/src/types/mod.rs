@@ -899,7 +899,7 @@ pub enum ModelOutput {
         name: String,
         arguments: Option<HashMap<String, ArgType>>,
         signature: Option<String>,
-        /// Ids of tool calls this one depends on (Decision 04). The ToolCall DAG
+        /// Ids of tool calls this one depends on (Decision 04). The `ToolCall` DAG
         /// executor (F11) uses these to order staged execution. `#[serde(default)]`
         /// keeps legacy tool calls (without the field) deserializing to empty.
         #[serde(default)]
@@ -959,8 +959,10 @@ pub struct ToolParam {
 /// its inner string, so already-persisted sessions stay byte-compatible.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
+#[derive(Default)]
 pub enum MessageRole {
     /// Direct human user input.
+    #[default]
     User,
     /// Another LLM agent providing guidance/steering (inter-agent).
     Agent,
@@ -1019,11 +1021,6 @@ impl std::fmt::Display for MessageRole {
     }
 }
 
-impl Default for MessageRole {
-    fn default() -> Self {
-        MessageRole::User
-    }
-}
 
 #[allow(clippy::large_enum_variant)]
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]

@@ -14,7 +14,7 @@
 //! HOW: counters are `AtomicU64` (available on `wasm32-unknown-unknown`). The
 //! budget basis is computed `input + output + cache_read + cache_write` — NOT a
 //! provider `total_tokens` field, which is inconsistent across providers
-//! (Anthropic reports input+output and excludes cache; OpenAI includes cache in
+//! (Anthropic reports input+output and excludes cache; `OpenAI` includes cache in
 //! its total). `record` is called **once per turn**, not per emitted message: a
 //! streaming turn clones one `UsageReport` onto thinking/text/each tool-call
 //! message, so per-message recording would N×-count (OD-04-6).

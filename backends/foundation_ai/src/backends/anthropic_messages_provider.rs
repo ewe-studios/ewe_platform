@@ -984,7 +984,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
         };
 
         match item {
-            Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
+            Stream::Next(parse_result) => Some(self.process_parse_result(parse_result)),
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),

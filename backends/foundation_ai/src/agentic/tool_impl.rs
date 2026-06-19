@@ -9,7 +9,6 @@
 
 use crate::types::{ArgType, Args, ExecutionHint, Tool, ToolShed};
 use async_trait::async_trait;
-use foundation_jsonschema;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -17,8 +16,8 @@ use std::sync::Arc;
 // ---------------------------------------------------------------------------
 // ToolError
 
-/// Error types for tool execution — Clone + PartialEq so F02's AgenticError can
-/// embed it (the stream types must stay Clone + PartialEq).
+/// Error types for tool execution — Clone + `PartialEq` so F02's `AgenticError` can
+/// embed it (the stream types must stay Clone + `PartialEq`).
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub enum ToolError {
     /// The named tool is not registered.
@@ -96,7 +95,7 @@ pub trait ToolImpl: Send + Sync {
 // ---------------------------------------------------------------------------
 // ToolCallRequest — parsed from ModelOutput::ToolCall
 
-/// A single tool-call request (carries F01's depends_on / execution_hint).
+/// A single tool-call request (carries F01's `depends_on` / `execution_hint`).
 #[derive(Debug, Clone)]
 pub struct ToolCallRequest {
     /// The tool-call id (matches `Messages::ToolResult.tool_call_id`).
@@ -136,6 +135,7 @@ struct ToolCallManagerInner {
 
 impl ToolCallManager {
     /// Create a new empty registry for the given session.
+    #[must_use]
     pub fn new(session_id: crate::types::SessionId) -> Self {
         Self {
             inner: Arc::new(ToolCallManagerInner {
@@ -164,16 +164,19 @@ impl ToolCallManager {
     }
 
     /// Look up a registered tool.
+    #[must_use]
     pub fn get(&self, name: &str) -> Option<Arc<dyn ToolImpl>> {
         self.inner.tools.read().unwrap().get(name).cloned()
     }
 
     /// Look up a tool's definition (fast — cached at register time).
+    #[must_use]
     pub fn get_def(&self, name: &str) -> Option<ToolDefinition> {
         self.inner.defs.read().unwrap().get(name).cloned()
     }
 
     /// List all registered tool names.
+    #[must_use]
     pub fn names(&self) -> Vec<String> {
         self.inner.tools.read().unwrap().keys().cloned().collect()
     }
@@ -219,6 +222,7 @@ impl ToolCallManager {
     /// category tools are populated from the cached defs (no looping);
     /// `memory`/`delegate` are assembled from tools matching `memory_*` /
     /// `delegate_(start|check|pause|resume|result)` name prefixes.
+    #[must_use]
     pub fn build_toolshed(&self) -> ToolShed {
         let by_cat = self.defs_by_category();
         let memory = self.build_memory_tool();
@@ -284,25 +288,25 @@ impl ToolCallManager {
             arguments: Some(d.arguments.clone()),
             returns: None,
         })?;
-        let stop = defs.get("delegate_start").map(|d| Tool {
+        let stop = defs.get("delegate_stop").map(|d| Tool {
             name: d.name.clone(),
             description: d.description.clone(),
             arguments: Some(d.arguments.clone()),
             returns: None,
         })?;
-        let pause = defs.get("delegate_start").map(|d| Tool {
+        let pause = defs.get("delegate_pause").map(|d| Tool {
             name: d.name.clone(),
             description: d.description.clone(),
             arguments: Some(d.arguments.clone()),
             returns: None,
         })?;
-        let check = defs.get("delegate_start").map(|d| Tool {
+        let check = defs.get("delegate_check").map(|d| Tool {
             name: d.name.clone(),
             description: d.description.clone(),
             arguments: Some(d.arguments.clone()),
             returns: None,
         })?;
-        let result = defs.get("delegate_start").map(|d| Tool {
+        let result = defs.get("delegate_result").map(|d| Tool {
             name: d.name.clone(),
             description: d.description.clone(),
             arguments: Some(d.arguments.clone()),
@@ -319,6 +323,7 @@ impl ToolCallManager {
     }
 
     /// Access the session id (for logging / persist).
+    #[must_use]
     pub fn session_id(&self) -> &crate::types::SessionId {
         &self.inner.session_id
     }

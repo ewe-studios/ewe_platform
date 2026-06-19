@@ -32,6 +32,7 @@ pub enum MemoryTier {
 
 impl MemoryTier {
     /// Extract the tier from a memory `SessionRecord`.
+    #[must_use]
     pub fn of(record: &SessionRecord) -> Option<Self> {
         match record {
             SessionRecord::WorkingMemory { .. } => Some(MemoryTier::Working),
@@ -47,8 +48,9 @@ impl MemoryTier {
 
 /// The three latest memory records per session — one struct, one KV value.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Default)]
 pub struct SessionMemory {
-    /// Latest WorkingMemory record, if any.
+    /// Latest `WorkingMemory` record, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub working: Option<SessionRecord>,
     /// latest Observation record, if any.
@@ -80,20 +82,12 @@ impl SessionMemory {
     }
 
     /// Build the key under which this session's bundle is stored.
+    #[must_use]
     pub fn key(session: &SessionId) -> String {
-        format!("memory:{}", session)
+        format!("memory:{session}")
     }
 }
 
-impl Default for SessionMemory {
-    fn default() -> Self {
-        Self {
-            working: None,
-            observation: None,
-            reflection: None,
-        }
-    }
-}
 
 // ---------------------------------------------------------------------------
 // MemoryStore trait
@@ -140,7 +134,7 @@ pub struct KvMemoryStore<K> {
 }
 
 impl<K> KvMemoryStore<K> {
-    /// Create a new KV-backed MemoryStore.
+    /// Create a new KV-backed `MemoryStore`.
     pub fn new(kv: K) -> Self {
         Self { kv }
     }
@@ -175,7 +169,7 @@ impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
 
     async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let key = SessionMemory::key(session);
-        self.kv.get(&key).map(|m| m.unwrap_or_default())
+        self.kv.get(&key).map(std::option::Option::unwrap_or_default)
     }
 
     async fn clear_async(&self, session: &SessionId) -> StorageResult<()> {
