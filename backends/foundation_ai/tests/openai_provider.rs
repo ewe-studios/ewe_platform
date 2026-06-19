@@ -7,7 +7,7 @@ use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
     CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProvider, ModelProviders, StopReason, TextContent, UsageCosting, UsageReport,
-    UserModelContent,
+    UserModelContent, ToolShed,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
@@ -63,14 +63,15 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
         system_prompt: None,
         soul: None,
         messages: vec![foundation_ai::types::Messages::User {
-            role: String::from("user"),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: prompt.to_string(),
                 signature: None,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -433,6 +434,7 @@ fn test_llama_server_generate() {
         system_prompt: Some("You are a helpful assistant.".into()),
         soul: None,
         messages: vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
                 content: "Say hello in one word.".into(),
@@ -440,7 +442,7 @@ fn test_llama_server_generate() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -481,6 +483,7 @@ fn test_llama_server_streaming() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
                 content: "Count from 1 to 3, one number per line.".into(),
@@ -488,7 +491,7 @@ fn test_llama_server_streaming() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -522,6 +525,7 @@ fn test_llama_server_multi_turn() {
         soul: None,
         messages: vec![
             Messages::User {
+                id: foundation_compact::ids::new_scru128(),
                 role: "user".into(),
                 content: UserModelContent::Text(TextContent {
                     content: "What is the capital of France?".into(),
@@ -530,6 +534,7 @@ fn test_llama_server_multi_turn() {
                 signature: None,
             },
             Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: ModelId::Name("qwen2.5-0.5b-instruct".into(), None),
                 timestamp: std::time::SystemTime::now(),
                 content: ModelOutput::Text(TextContent {
@@ -559,6 +564,7 @@ fn test_llama_server_multi_turn() {
                 metadata: None,
             },
             Messages::User {
+                id: foundation_compact::ids::new_scru128(),
                 role: "user".into(),
                 content: UserModelContent::Text(TextContent {
                     content: "What about Spain?".into(),
@@ -567,7 +573,7 @@ fn test_llama_server_multi_turn() {
                 signature: None,
             },
         ],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -601,6 +607,7 @@ fn test_llama_server_max_tokens() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
                 content: "Write a long essay about the history of computing.".into(),
@@ -608,7 +615,7 @@ fn test_llama_server_max_tokens() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -643,6 +650,7 @@ fn test_llama_server_resolve_model() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
             role: "user".into(),
             content: UserModelContent::Text(TextContent {
                 content: "Hi".into(),
@@ -650,7 +658,7 @@ fn test_llama_server_resolve_model() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };

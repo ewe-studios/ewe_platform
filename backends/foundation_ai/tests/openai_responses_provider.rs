@@ -7,7 +7,7 @@
 use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, StopReason,
-    TextContent, UserModelContent,
+    TextContent, UserModelContent, ToolShed,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
@@ -49,7 +49,7 @@ fn test_llama_server_responses_generate() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -94,7 +94,7 @@ fn test_llama_server_responses_stream() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };

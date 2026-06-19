@@ -14,12 +14,16 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{valtron_test, Stream};
 use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use serial_test::serial;
+use tracing_test::traced_test;
 use std::net::SocketAddr;
 use std::sync::LazyLock;
+
+static POOL: LazyLock<foundation_core::valtron::PoolGuard> =
+    LazyLock::new(|| foundation_core::valtron::initialize_pool(42, None));
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -61,14 +65,15 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
-            role: String::from("user"),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: prompt.to_string(),
                 signature: None,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     }
@@ -323,14 +328,15 @@ fn test_provider_generate_multimodal() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Image(ImageContent {
                 b64: "base64data".into(),
                 mime_type: MimeType::ImagePng,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -395,14 +401,15 @@ fn test_llama_server_anthropic_generate() {
         system_prompt: Some("You are a helpful assistant.".into()),
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Say hello in one word.".into(),
                 signature: None,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -443,14 +450,15 @@ fn test_llama_server_anthropic_streaming() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Count from 1 to 3, one number per line.".into(),
                 signature: None,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -483,7 +491,8 @@ fn test_llama_server_anthropic_multi_turn() {
         soul: None,
         messages: vec![
             Messages::User {
-                role: "user".into(),
+                id: foundation_compact::ids::new_scru128(),
+                role: foundation_ai::types::MessageRole::User,
                 content: UserModelContent::Text(TextContent {
                     content: "What is the capital of France?".into(),
                     signature: None,
@@ -491,6 +500,7 @@ fn test_llama_server_anthropic_multi_turn() {
                 signature: None,
             },
             Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: ModelId::Name("claude-3-5-sonnet".into(), None),
                 timestamp: std::time::SystemTime::now(),
                 content: ModelOutput::Text(TextContent {
@@ -520,7 +530,8 @@ fn test_llama_server_anthropic_multi_turn() {
                 metadata: None,
             },
             Messages::User {
-                role: "user".into(),
+                id: foundation_compact::ids::new_scru128(),
+                role: foundation_ai::types::MessageRole::User,
                 content: UserModelContent::Text(TextContent {
                     content: "What about Spain?".into(),
                     signature: None,
@@ -528,7 +539,7 @@ fn test_llama_server_anthropic_multi_turn() {
                 signature: None,
             },
         ],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -561,14 +572,15 @@ fn test_llama_server_anthropic_max_tokens() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Write a long essay about the history of computing.".into(),
                 signature: None,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -600,14 +612,15 @@ fn test_llama_server_anthropic_resolve_model() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Hi".into(),
                 signature: None,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -935,7 +948,7 @@ fn test_parse_response_text() {
     let response = MessagesResponse {
         id: "msg_123".into(),
         response_type: "message".into(),
-        role: "assistant".into(),
+        role: "assistant".to_string(),
         content: vec![AnthropicContentBlock::Text {
             text: "Hello!".into(),
         }],
@@ -979,7 +992,7 @@ fn test_parse_response_tool_use() {
     let response = MessagesResponse {
         id: "msg_123".into(),
         response_type: "message".into(),
-        role: "assistant".into(),
+        role: "assistant".to_string(),
         content: vec![AnthropicContentBlock::ToolUse {
             id: "tool_1".into(),
             name: "get_weather".into(),
@@ -1024,7 +1037,7 @@ fn test_parse_response_thinking() {
     let response = MessagesResponse {
         id: "msg_123".into(),
         response_type: "message".into(),
-        role: "assistant".into(),
+        role: "assistant".to_string(),
         content: vec![
             AnthropicContentBlock::Thinking {
                 thinking: "Let me think...".into(),
@@ -1089,14 +1102,15 @@ fn test_build_anthropic_request_basic() {
         system_prompt: Some("You are helpful".into()),
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Hello".into(),
                 signature: None,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -1133,11 +1147,11 @@ fn test_build_anthropic_request_with_tools() {
             shed: test_tool.clone(),
             memory: None,
             delegate: None,
-            read: test_tool.clone(),
-            edit: test_tool.clone(),
-            write: test_tool.clone(),
-            search: test_tool.clone(),
-            search_files: test_tool.clone(),
+            read: Some(test_tool.clone()),
+            edit: Some(test_tool.clone()),
+            write: Some(test_tool.clone()),
+            search: Some(test_tool.clone()),
+            search_files: Some(test_tool.clone()),
             shell: None,
         },
         messages: vec![],
@@ -1161,14 +1175,15 @@ fn test_build_anthropic_request_image() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            id: foundation_compact::ids::new_scru128(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Image(ImageContent {
                 b64: "base64data".into(),
                 mime_type: MimeType::ImagePng,
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
@@ -1193,6 +1208,7 @@ fn test_build_anthropic_request_tool_result() {
         soul: None,
         messages: vec![
             Messages::Assistant {
+                id: foundation_compact::ids::new_scru128(),
                 model: ModelId::Name("test".into(), None),
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
@@ -1221,7 +1237,7 @@ fn test_build_anthropic_request_tool_result() {
                 signature: None,
             },
         ],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };
