@@ -5,13 +5,14 @@
 
 use std::path::PathBuf;
 
-use foundation_deployment_huggingface::{
-    HFClient, HFRepository, RepoDownloadFileParams,
-};
+use foundation_deployment_huggingface::{HFClient, HFRepository, RepoDownloadFileParams};
 
 use crate::backends::llamacpp::{LlamaBackendConfig, LlamaBackends, LlamaModels};
 use crate::errors::{ModelProviderErrors, ModelProviderResult};
-use crate::types::{ModelId, ModelProvider, ModelSpec};
+use crate::types::base_types::{
+    MessageType, ModelAPI, ModelId, ModelProvider, ModelProviderDescriptor, ModelProviders,
+    ModelSpec, ModelUsageCosting,
+};
 use foundation_deployment_huggingface::repository;
 
 /// `HuggingFace` Hub model provider.
@@ -85,7 +86,7 @@ impl Clone for HuggingFaceGGUFConfig {
     }
 }
 
-impl crate::types::AuthProvider for HuggingFaceGGUFConfig {
+impl crate::types::base_types::AuthProvider for HuggingFaceGGUFConfig {
     fn auth(&self) -> Option<&foundation_auth::AuthCredential> {
         self.auth.as_ref()
     }
@@ -235,16 +236,16 @@ impl HuggingFaceGGUFProvider {
             )
             .build()
             .map_err(|e| {
-                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
-                    format!("Failed to create HFClient: {e}"),
-                )))
+                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                    "Failed to create HFClient: {e}"
+                ))))
             })?;
 
         // Ensure cache directory exists
         std::fs::create_dir_all(&config.cache_dir).map_err(|e| {
-            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
-                format!("Failed to create cache directory: {e}"),
-            )))
+            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                "Failed to create cache directory: {e}"
+            ))))
         })?;
 
         Ok(Self {
@@ -345,7 +346,10 @@ impl HuggingFaceGGUFProvider {
         }
 
         // Search for matching GGUF file
-        let pattern = quantization.map_or_else(|| "*.gguf".to_string(), Self::quantization_to_filename_pattern);
+        let pattern = quantization.map_or_else(
+            || "*.gguf".to_string(),
+            Self::quantization_to_filename_pattern,
+        );
 
         if let Ok(entries) = std::fs::read_dir(&repo_path) {
             for entry in entries.flatten() {
@@ -407,9 +411,9 @@ impl HuggingFaceGGUFProvider {
         // Create destination directory
         let dest_dir = self.cache_dir.join(parsed.repo_id.replace('/', "--"));
         std::fs::create_dir_all(&dest_dir).map_err(|e| {
-            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
-                format!("Failed to create destination directory: {e}"),
-            )))
+            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                "Failed to create destination directory: {e}"
+            ))))
         })?;
 
         // Download the file
@@ -421,9 +425,9 @@ impl HuggingFaceGGUFProvider {
 
         tracing::trace!("------------download model file");
         let downloaded_path = repository::repo_download_file(&repo, &params).map_err(|e| {
-            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
-                format!("Failed to download model: {e}"),
-            )))
+            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                "Failed to download model: {e}"
+            ))))
         })?;
 
         tracing::info!("Downloaded model to: {:?}", downloaded_path);
@@ -435,10 +439,7 @@ impl ModelProvider for HuggingFaceGGUFProvider {
     type Config = HuggingFaceGGUFConfig;
     type Model = LlamaModels;
 
-    fn create(
-        self,
-        config: Option<Self::Config>,
-    ) -> ModelProviderResult<Self>
+    fn create(self, config: Option<Self::Config>) -> ModelProviderResult<Self>
     where
         Self: Sized,
     {
@@ -450,16 +451,16 @@ impl ModelProvider for HuggingFaceGGUFProvider {
         }
     }
 
-    fn describe(&self) -> ModelProviderResult<crate::types::ModelProviderDescriptor> {
-        Ok(crate::types::ModelProviderDescriptor {
+    fn describe(&self) -> ModelProviderResult<ModelProviderDescriptor> {
+        Ok(ModelProviderDescriptor {
             id: "huggingface",
             name: "HuggingFace Hub (llama.cpp)",
             reasoning: false,
-            api: crate::types::ModelAPI::Custom("huggingface-hub".to_string()),
-            provider: crate::types::ModelProviders::HUGGINGFACE,
+            api: ModelAPI::Custom("huggingface-hub".to_string()),
+            provider: ModelProviders::HUGGINGFACE,
             base_url: Some("https://huggingface.co"),
-            inputs: crate::types::MessageType::Text,
-            cost: crate::types::ModelUsageCosting {
+            inputs: MessageType::Text,
+            cost: ModelUsageCosting {
                 input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
@@ -502,13 +503,13 @@ impl ModelProvider for HuggingFaceGGUFProvider {
         ))
     }
 
-    fn get_one(&self, _model_id: ModelId) -> ModelProviderResult<crate::types::ModelSpec> {
+    fn get_one(&self, _model_id: ModelId) -> ModelProviderResult<ModelSpec> {
         Err(ModelProviderErrors::NotFound(
             "Model catalog not implemented".to_string(),
         ))
     }
 
-    fn get_all(&self, _model_id: ModelId) -> ModelProviderResult<Vec<crate::types::ModelSpec>> {
+    fn get_all(&self, _model_id: ModelId) -> ModelProviderResult<Vec<ModelSpec>> {
         Err(ModelProviderErrors::NotFound(
             "Model catalog not implemented".to_string(),
         ))
@@ -555,13 +556,12 @@ fn find_gguf_file_in_repo(
     };
 
     // List files in the repository
-    let tree =
-        foundation_deployment_huggingface::repository::repo_list_tree(repo, &params)
-            .map_err(|e| {
-                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
-                    format!("Failed to list repository files: {e}"),
-                )))
-            })?;
+    let tree = foundation_deployment_huggingface::repository::repo_list_tree(repo, &params)
+        .map_err(|e| {
+            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(format!(
+                "Failed to list repository files: {e}"
+            ))))
+        })?;
 
     // Collect all entries from the stream
     let entries: Vec<_> = tree
@@ -575,10 +575,12 @@ fn find_gguf_file_in_repo(
     let pattern = HuggingFaceGGUFProvider::quantization_to_filename_pattern(quantization);
 
     for entry in &entries {
-        if let foundation_deployment_huggingface::RepoTreeEntry::File { path, .. } =
-            entry
-        {
-            if std::path::Path::new(path).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("gguf")) && pattern_matches(&pattern, path) {
+        if let foundation_deployment_huggingface::RepoTreeEntry::File { path, .. } = entry {
+            if std::path::Path::new(path)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("gguf"))
+                && pattern_matches(&pattern, path)
+            {
                 tracing::info!(
                     "Found relevant GGUF model for pattern: {} to be: {}",
                     &pattern,
@@ -591,10 +593,11 @@ fn find_gguf_file_in_repo(
 
     // If no exact match, try to find any GGUF file
     for entry in &entries {
-        if let foundation_deployment_huggingface::RepoTreeEntry::File { path, .. } =
-            entry
-        {
-            if std::path::Path::new(path).extension().is_some_and(|ext| ext.eq_ignore_ascii_case("gguf")) {
+        if let foundation_deployment_huggingface::RepoTreeEntry::File { path, .. } = entry {
+            if std::path::Path::new(path)
+                .extension()
+                .is_some_and(|ext| ext.eq_ignore_ascii_case("gguf"))
+            {
                 tracing::warn!(
                     "Exact quantization {} not found, using: {}",
                     quantization,

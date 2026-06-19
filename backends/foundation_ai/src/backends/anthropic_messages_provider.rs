@@ -3,13 +3,13 @@
 //! Implements the `/v1/messages` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
+use foundation_compact::SystemTime;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use foundation_compact::SystemTime;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
@@ -25,11 +25,12 @@ use foundation_errstacks::ErrorTrace;
 
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
-use crate::types::{
-    AuthProvider, CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
-    UsageCosting, UsageReport,
+use crate::types::base_types::{
+    ArgType, AuthProvider, CostStatus, ExecutionHint, ExtractResult, MessageType, Messages, Model,
+    ModelAPI, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
+    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelUsageCosting, StopReason,
+    TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed, UsageCosting, UsageReport,
+    UserModelContent,
 };
 
 // ============================================================================
@@ -477,11 +478,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
             id: "anthropic",
             name: "Anthropic",
             reasoning: true,
-            api: crate::types::ModelAPI::AnthropicMessages,
+            api: ModelAPI::AnthropicMessages,
             provider: ModelProviders::ANTHROPIC,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
-            cost: crate::types::ModelUsageCosting {
+            inputs: MessageType::TextAndImages,
+            cost: ModelUsageCosting {
                 input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
@@ -717,7 +718,7 @@ impl ToolFormatter for AnthropicFormatter {
     fn extract_tool_calls(
         &self,
         response: &str,
-    ) -> Result<crate::types::ExtractResult, ErrorTrace<ToolCallingError>> {
+    ) -> Result<ExtractResult, ErrorTrace<ToolCallingError>> {
         let parsed: serde_json::Value = serde_json::from_str(response).map_err(|e| {
             ErrorTrace::new(ToolCallingError::Extract {
                 reason: e.to_string(),
@@ -746,7 +747,7 @@ impl ToolFormatter for AnthropicFormatter {
                             .get("input")
                             .cloned()
                             .unwrap_or(serde_json::Value::Null);
-                        let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                        let arguments: Option<HashMap<String, ArgType>> =
                             serde_json::from_value(input.clone()).ok();
                         calls.push(ModelOutput::ToolCall {
                             id,
@@ -754,7 +755,7 @@ impl ToolFormatter for AnthropicFormatter {
                             arguments,
                             signature: None,
                             depends_on: Vec::new(),
-                            execution_hint: crate::types::ExecutionHint::default(),
+                            execution_hint: ExecutionHint::default(),
                         });
                     }
                     Some("text") => {
@@ -779,7 +780,7 @@ impl ToolFormatter for AnthropicFormatter {
             Some(text_parts.join("\n"))
         };
 
-        Ok(crate::types::ExtractResult {
+        Ok(ExtractResult {
             calls,
             remaining_text,
             has_tool_calls,
@@ -805,8 +806,8 @@ impl ToolFormatter for AnthropicFormatter {
         };
 
         let content_str = match content {
-            crate::types::UserModelContent::Text(t) => t.content.clone(),
-            crate::types::UserModelContent::Image(_) => "[image]".to_string(),
+            UserModelContent::Text(t) => t.content.clone(),
+            UserModelContent::Image(_) => "[image]".to_string(),
         };
 
         Ok(serde_json::json!({
@@ -819,7 +820,6 @@ impl ToolFormatter for AnthropicFormatter {
 }
 
 impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
-    type Formatter = AnthropicFormatter;
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
@@ -835,10 +835,10 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             id: "anthropic",
             name: "Anthropic",
             reasoning: true,
-            api: crate::types::ModelAPI::AnthropicMessages,
+            api: crate::types::base_types::ModelAPI::AnthropicMessages,
             provider: ModelProviders::ANTHROPIC,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
+            inputs: crate::types::base_types::MessageType::TextAndImages,
             cost: self.pricing,
             context_window: 0,
             max_tokens: 0,
@@ -880,7 +880,9 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
+    ) -> GenerationResult<
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+    > {
         let params = specs.unwrap_or_default();
         let request = build_anthropic_request(&self.model_name, &interaction, &params, true);
 
@@ -915,7 +917,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         let driven = execute(task, None)
             .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
 
-        Ok(AnthropicStream {
+        Ok(Box::new(AnthropicStream {
             inner: driven,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
@@ -928,7 +930,11 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             final_message_index: 0,
             pricing: self.pricing,
             cumulative_cost: Rc::clone(&self.cumulative_cost),
-        })
+        }))
+    }
+
+    fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
+        Box::new(AnthropicFormatter::default())
     }
 }
 
@@ -997,7 +1003,11 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
                             match self.process_parse_result(parse_result) {
                                 Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
                                 Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
-                                Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
+                                Stream::Delayed(_)
+                                | Stream::Init
+                                | Stream::Ignore
+                                | Stream::Wait
+                                | Stream::Spread(_) => {}
                             }
                         }
                         StreamSpread::Pending(_) => {
@@ -1186,7 +1196,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
 
         // Emit each tool call as a separate message.
         for tc in &self.tool_calls {
-            let arguments: Option<HashMap<String, crate::types::ArgType>> =
+            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                 serde_json::from_str(&tc.arguments)
                     .ok()
                     .map(|v: serde_json::Value| {
@@ -1210,7 +1220,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                     arguments,
                     signature: None,
                     depends_on: Vec::new(),
-                    execution_hint: crate::types::ExecutionHint::default(),
+                    execution_hint: crate::types::base_types::ExecutionHint::default(),
                 },
                 stop_reason: stop_reason.clone(),
                 provider: ModelProviders::ANTHROPIC,
@@ -1278,19 +1288,19 @@ pub fn build_anthropic_request(
         .iter()
         .filter_map(|msg| match msg {
             Messages::User { content, .. } => match content {
-                crate::types::UserModelContent::Text(tc) => Some(AnthropicMessage {
+                crate::types::base_types::UserModelContent::Text(tc) => Some(AnthropicMessage {
                     role: AnthropicRole::User,
                     content: vec![AnthropicContentBlock::Text {
                         text: tc.content.clone(),
                     }],
                 }),
-                crate::types::UserModelContent::Image(img) => {
+                crate::types::base_types::UserModelContent::Image(img) => {
                     let mime_str = match img.mime_type {
                         #[allow(clippy::match_same_arms)]
-                        crate::types::MimeType::ImagePng => "image/png",
-                        crate::types::MimeType::ImageJpeg => "image/jpeg",
-                        crate::types::MimeType::ImageGif => "image/gif",
-                        crate::types::MimeType::ImageWebp => "image/webp",
+                        crate::types::base_types::MimeType::ImagePng => "image/png",
+                        crate::types::base_types::MimeType::ImageJpeg => "image/jpeg",
+                        crate::types::base_types::MimeType::ImageGif => "image/gif",
+                        crate::types::base_types::MimeType::ImageWebp => "image/webp",
                         _ => "image/png",
                     };
                     Some(AnthropicMessage {
@@ -1338,10 +1348,14 @@ pub fn build_anthropic_request(
                 }),
                 ModelOutput::Image(_) | ModelOutput::Embedding { .. } => None,
             },
-            Messages::ToolResult { tool_call_id, content, .. } => {
+            Messages::ToolResult {
+                tool_call_id,
+                content,
+                ..
+            } => {
                 let text = match content {
-                    crate::types::UserModelContent::Text(tc) => tc.content.clone(),
-                    crate::types::UserModelContent::Image(_) => String::from("[Image]"),
+                    crate::types::base_types::UserModelContent::Text(tc) => tc.content.clone(),
+                    crate::types::base_types::UserModelContent::Image(_) => String::from("[Image]"),
                 };
                 Some(AnthropicMessage {
                     role: AnthropicRole::User,
@@ -1365,11 +1379,11 @@ pub fn build_anthropic_request(
     };
 
     let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
-        crate::types::ToolChoice::Auto | crate::types::ToolChoice::None => {
+        crate::types::base_types::ToolChoice::Auto | crate::types::base_types::ToolChoice::None => {
             AnthropicToolChoice::Auto
         }
-        crate::types::ToolChoice::Required => AnthropicToolChoice::Any,
-        crate::types::ToolChoice::Function(f) => AnthropicToolChoice::Tool {
+        crate::types::base_types::ToolChoice::Required => AnthropicToolChoice::Any,
+        crate::types::base_types::ToolChoice::Function(f) => AnthropicToolChoice::Tool {
             name: f.function.name.clone(),
         },
     });
@@ -1423,13 +1437,13 @@ fn make_usage_report(
     pricing: &ModelUsageCosting,
 ) -> UsageReport {
     #[allow(clippy::cast_precision_loss)]
-    let usage = crate::types::UsageReport {
+    let usage = crate::types::base_types::UsageReport {
         input: f64::from(input_tokens),
         output: f64::from(output_tokens),
         cache_read: f64::from(cache_read),
         cache_write: f64::from(cache_write),
         total_tokens: f64::from(input_tokens + output_tokens),
-        cost: crate::types::UsageCosting {
+        cost: crate::types::base_types::UsageCosting {
             currency: String::from("USD"),
             input: 0.0,
             output: 0.0,
@@ -1488,7 +1502,7 @@ pub fn parse_response(
                 metadata: None,
             },
             AnthropicContentBlock::ToolUse { id, name, input } => {
-                let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                     serde_json::from_value(input.clone())
                         .ok()
                         .map(|v: serde_json::Value| {
@@ -1512,7 +1526,7 @@ pub fn parse_response(
                         arguments,
                         signature: None,
                         depends_on: Vec::new(),
-                        execution_hint: crate::types::ExecutionHint::default(),
+                        execution_hint: crate::types::base_types::ExecutionHint::default(),
                     },
                     stop_reason: stop_reason.clone(),
                     provider: ModelProviders::ANTHROPIC,
@@ -1613,19 +1627,19 @@ pub fn empty_usage_report() -> UsageReport {
     }
 }
 
-fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::ArgType {
+fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
     match v {
-        serde_json::Value::String(s) => crate::types::ArgType::Text(s.clone()),
+        serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
         serde_json::Value::Number(n) => {
             if let Some(i) = n.as_i64() {
-                crate::types::ArgType::I64(i)
+                crate::types::base_types::ArgType::I64(i)
             } else if let Some(f) = n.as_f64() {
-                crate::types::ArgType::Float64(f)
+                crate::types::base_types::ArgType::Float64(f)
             } else {
-                crate::types::ArgType::Text(n.to_string())
+                crate::types::base_types::ArgType::Text(n.to_string())
             }
         }
-        other => crate::types::ArgType::JSON(other.to_string()),
+        other => crate::types::base_types::ArgType::JSON(other.to_string()),
     }
 }
 

@@ -1,15 +1,17 @@
-use std::collections::BTreeMap;
 use foundation_compact::{Duration, Instant};
+use std::collections::BTreeMap;
 
 use derive_more::{Display, From};
 use foundation_core::valtron::{self, Stream, TaskIterator, TaskIteratorExt};
+use foundation_netio::simple_http::client::shared::body_reader;
 use foundation_netio::simple_http::client::HttpRequestPending;
 use foundation_netio::simple_http::client::RequestIntro;
-use foundation_netio::simple_http::client::shared::body_reader;
 use foundation_netio::simple_http::client::{SendRequestTask, SimpleHttpClient};
 use serde::Deserialize;
 
-use crate::types::{MessageType, ModelAPI, ModelProviderDescriptor, ModelProviders, ModelUsageCosting};
+use crate::types::base_types::{
+    MessageType, ModelAPI, ModelProviderDescriptor, ModelProviders, ModelUsageCosting,
+};
 
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 

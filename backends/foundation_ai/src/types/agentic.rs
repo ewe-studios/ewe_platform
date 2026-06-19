@@ -19,11 +19,11 @@
 use std::fmt;
 use std::str::FromStr;
 
-use foundation_compact::SystemTime;
 use foundation_compact::ids::{Id, ParseError};
+use foundation_compact::SystemTime;
 use serde::{Deserialize, Serialize};
 
-use super::Messages;
+use super::base_types::Messages;
 
 // ============================================================================
 // SessionId — time-ordered, machine-attributable session identity (Decision 01)
@@ -54,7 +54,9 @@ impl SessionId {
     /// ordering (entropy is the least-significant field, below timestamp+counter).
     #[must_use]
     pub fn new() -> Self {
-        Self(foundation_compact::ids::new_scru128_with_machine_id(machine_id()))
+        Self(foundation_compact::ids::new_scru128_with_machine_id(
+            machine_id(),
+        ))
     }
 
     /// Deterministic, sortable id derived from a human-friendly name.

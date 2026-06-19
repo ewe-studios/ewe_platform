@@ -21,11 +21,11 @@ use infrastructure_llama_cpp::model::{
 use infrastructure_llama_cpp::sampling::LlamaSampler;
 use infrastructure_llama_cpp::token::LlamaToken;
 
+use foundation_compact::SystemTime;
 use std::cell::RefCell;
 use std::fmt::Write;
 use std::num::NonZeroU32;
 use std::rc::Rc;
-use foundation_compact::SystemTime;
 
 use foundation_core::valtron::{Stream, StreamIterator};
 
@@ -34,10 +34,11 @@ use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{
     GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult,
 };
-use crate::types::{
-    KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelUsageCosting, ModelState, SplitMode, StopReason, TextContent,
-    TextBasedFormatter, ToolFormatter, CostStatus, ToolShed, UsageCosting, UsageReport, UserModelContent,
+use crate::types::base_types::{
+    CostStatus, KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
+    ModelUsageCosting, SplitMode, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
+    ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -103,7 +104,7 @@ fn num_cpus() -> usize {
     std::thread::available_parallelism().map_or(4, std::num::NonZeroUsize::get)
 }
 
-impl crate::types::AuthProvider for LlamaBackendConfig {
+impl crate::types::base_types::AuthProvider for LlamaBackendConfig {
     fn auth(&self) -> Option<&foundation_auth::AuthCredential> {
         None
     }
@@ -293,9 +294,12 @@ impl LlamaModels {
 }
 
 impl Model for LlamaModels {
-    type Formatter = TextBasedFormatter;
     fn spec(&self) -> ModelSpec {
         self.inner.borrow().spec.clone()
+    }
+
+    fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
+        Box::new(TextBasedFormatter::default())
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
@@ -304,10 +308,10 @@ impl Model for LlamaModels {
             id: "llamacpp",
             name: "llama.cpp",
             reasoning: false,
-            api: crate::types::ModelAPI::Custom("llamacpp".into()),
+            api: crate::types::base_types::ModelAPI::Custom("llamacpp".into()),
             provider: ModelProviders::LLAMACPP,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
+            inputs: crate::types::base_types::MessageType::TextAndImages,
             cost: inner.pricing,
             context_window: 0,
             max_tokens: 0,
@@ -374,8 +378,11 @@ impl Model for LlamaModels {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
-        LlamaCppStream::new(self.clone(), &interaction, specs)
+    ) -> GenerationResult<
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+    > {
+        let stream = LlamaCppStream::new(self.clone(), &interaction, specs)?;
+        Ok(Box::new(stream))
     }
 }
 
@@ -476,9 +483,7 @@ impl LlamaCppStream {
                         .as_ref()
                         .and_then(|a| a.schema.get("properties"))
                         .and_then(|p| p.as_object())
-                        .map(|props| {
-                            props.keys().cloned().collect::<Vec<_>>().join(", ")
-                        })
+                        .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
                         .unwrap_or_default();
                     let _ = writeln!(prompt, "- {}({})", tool.name, args);
                 }
@@ -659,7 +664,10 @@ impl Iterator for LlamaCppStream {
             id: foundation_compact::ids::new_scru128(),
             model: ModelId::Name("llamacpp".to_string(), None),
             timestamp: SystemTime::now(),
-            usage: UsageReport { cost: stream_cost, ..stream_usage },
+            usage: UsageReport {
+                cost: stream_cost,
+                ..stream_usage
+            },
             content: ModelOutput::Text(TextContent {
                 content: token_str,
                 signature: None,
@@ -692,7 +700,7 @@ fn is_embedding_request(messages: &[Messages]) -> bool {
 }
 
 /// Flatten a `ToolShed` into a Vec<Tool> for formatting.
-fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
+fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::base_types::Tool> {
     shed.all_tools()
 }
 
@@ -718,7 +726,7 @@ fn apply_chat_template(
 
     // Append tool definitions and calling instructions from tools_shed
     let shed = &interaction.tools_shed;
-        {
+    {
         let all_tools = flatten_tools(shed);
         if !all_tools.is_empty() {
             if !system_content.is_empty() {
@@ -737,9 +745,7 @@ fn apply_chat_template(
                     .as_ref()
                     .and_then(|a| a.schema.get("properties"))
                     .and_then(|p| p.as_object())
-                    .map(|props| {
-                        props.keys().cloned().collect::<Vec<_>>().join(", ")
-                    })
+                    .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
                     .unwrap_or_default();
                 let _ = writeln!(system_content, "- {}({})", tool.name, args);
             }
@@ -774,9 +780,7 @@ fn apply_chat_template(
                     } => {
                         let args_str = arguments
                             .as_ref()
-                            .map(|a| {
-                                serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string())
-                            })
+                            .map(|a| serde_json::to_string(a).unwrap_or_else(|_| "{}".to_string()))
                             .unwrap_or_default();
                         format!("[Tool call: {name}({args_str})]")
                     }
@@ -842,7 +846,8 @@ fn generate_embeddings(
         .map_err(|e| GenerationError::Generic(format!("Failed to add tokens to batch: {e}")))?;
 
     // Encode to get embeddings
-    ctx.encode(&mut batch).map_err(Into::<GenerationError>::into)?;
+    ctx.encode(&mut batch)
+        .map_err(Into::<GenerationError>::into)?;
 
     // Get embeddings for the first sequence
     let embeddings = ctx
@@ -871,7 +876,10 @@ fn generate_embeddings(
     // Local model: $0 pricing
     let zero_pricing = ModelUsageCosting::default();
     let emb_cost = calculate_cost(&zero_pricing, &emb_usage, CostStatus::Actual);
-    let emb_usage = UsageReport { cost: emb_cost, ..emb_usage };
+    let emb_usage = UsageReport {
+        cost: emb_cost,
+        ..emb_usage
+    };
     Ok(vec![Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
         model: ModelId::Name("llamacpp".to_string(), None),
@@ -923,7 +931,8 @@ fn generate_text(
         .map_err(|e| GenerationError::Generic(format!("Failed to add tokens to batch: {e}")))?;
 
     // Decode the prompt
-    ctx.decode(&mut batch).map_err(Into::<GenerationError>::into)?;
+    ctx.decode(&mut batch)
+        .map_err(Into::<GenerationError>::into)?;
 
     // Generate tokens up to max_tokens or until stop token
     let max_tokens = params.max_tokens;
@@ -962,7 +971,8 @@ fn generate_text(
             .add(next_token, current_pos, &[0], true)
             .map_err(|e| GenerationError::Generic(format!("Failed to add token to batch: {e}")))?;
 
-        ctx.decode(&mut batch).map_err(Into::<GenerationError>::into)?;
+        ctx.decode(&mut batch)
+            .map_err(Into::<GenerationError>::into)?;
     }
 
     // Calculate token counts
@@ -988,7 +998,10 @@ fn generate_text(
         },
     };
     let txt_cost = calculate_cost(&zero_pricing, &txt_usage, CostStatus::Actual);
-    let txt_usage = UsageReport { cost: txt_cost, ..txt_usage };
+    let txt_usage = UsageReport {
+        cost: txt_cost,
+        ..txt_usage
+    };
     // Return generated text as Assistant message
     Ok(vec![Messages::Assistant {
         id: foundation_compact::ids::new_scru128(),
@@ -1026,10 +1039,7 @@ impl ModelProvider for LlamaBackends {
     type Config = LlamaBackendConfig;
     type Model = LlamaModels;
 
-    fn create(
-        self,
-        _config: Option<Self::Config>,
-    ) -> ModelProviderResult<Self>
+    fn create(self, _config: Option<Self::Config>) -> ModelProviderResult<Self>
     where
         Self: Sized,
     {
@@ -1040,16 +1050,16 @@ impl ModelProvider for LlamaBackends {
         Ok(self)
     }
 
-    fn describe(&self) -> ModelProviderResult<crate::types::ModelProviderDescriptor> {
-        Ok(crate::types::ModelProviderDescriptor {
+    fn describe(&self) -> ModelProviderResult<crate::types::base_types::ModelProviderDescriptor> {
+        Ok(crate::types::base_types::ModelProviderDescriptor {
             id: "llamacpp",
             name: "llama.cpp Local Inference",
             reasoning: false,
-            api: crate::types::ModelAPI::Custom("llama-cpp".to_string()),
+            api: crate::types::base_types::ModelAPI::Custom("llama-cpp".to_string()),
             provider: ModelProviders::LLAMACPP,
             base_url: None,
-            inputs: crate::types::MessageType::Text,
-            cost: crate::types::ModelUsageCosting {
+            inputs: crate::types::base_types::MessageType::Text,
+            cost: crate::types::base_types::ModelUsageCosting {
                 input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
@@ -1096,13 +1106,19 @@ impl ModelProvider for LlamaBackends {
         Ok(LlamaModels::new(model, context_params, model_spec))
     }
 
-    fn get_one(&self, model_id: ModelId) -> ModelProviderResult<crate::types::ModelSpec> {
+    fn get_one(
+        &self,
+        model_id: ModelId,
+    ) -> ModelProviderResult<crate::types::base_types::ModelSpec> {
         Err(ModelProviderErrors::NotFound(format!(
             "Model {model_id:?} not found in registry"
         )))
     }
 
-    fn get_all(&self, _model_id: ModelId) -> ModelProviderResult<Vec<crate::types::ModelSpec>> {
+    fn get_all(
+        &self,
+        _model_id: ModelId,
+    ) -> ModelProviderResult<Vec<crate::types::base_types::ModelSpec>> {
         Err(ModelProviderErrors::NotFound(
             "Model registry not implemented".to_string(),
         ))

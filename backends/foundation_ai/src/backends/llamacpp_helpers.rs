@@ -5,7 +5,7 @@
 
 use infrastructure_llama_cpp::sampling::LlamaSampler;
 
-use crate::types::ModelParams;
+use crate::types::base_types::ModelParams;
 
 /// Build a sampler chain from [`ModelParams`] configuration.
 ///

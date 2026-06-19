@@ -3,11 +3,11 @@
 //! Implements the `/v1/responses` endpoint using Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
+use foundation_compact::SystemTime;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use foundation_compact::SystemTime;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
@@ -20,10 +20,11 @@ use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHe
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
-use crate::types::{
+use crate::types::base_types::{
     AuthProvider, CostStatus, GenerationMetadata, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
-    ModelState, StopReason, TextContent, ToolShed, UsageCosting, UsageReport,
+    ModelState, StopReason, TextBasedFormatter, TextContent, ToolFormatter, ToolShed, UsageCosting,
+    UsageReport,
 };
 
 // ============================================================================
@@ -504,11 +505,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
             id: "openai-responses",
             name: "OpenAI Responses",
             reasoning: true,
-            api: crate::types::ModelAPI::OpenAIResponses,
+            api: crate::types::base_types::ModelAPI::OpenAIResponses,
             provider: ModelProviders::OPENAIRESPONSES,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
-            cost: crate::types::ModelUsageCosting {
+            inputs: crate::types::base_types::MessageType::TextAndImages,
+            cost: crate::types::base_types::ModelUsageCosting {
                 input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
@@ -778,7 +779,6 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
 }
 
 impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
-    type Formatter = crate::types::TextBasedFormatter;
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
@@ -787,6 +787,10 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
             model_location: None,
             lora_location: None,
         }
+    }
+
+    fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
+        Box::new(TextBasedFormatter::default())
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
@@ -819,7 +823,9 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
+    ) -> GenerationResult<
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+    > {
         let params = specs.unwrap_or_default();
         let request = self.build_request(&interaction, &params, true);
 
@@ -853,13 +859,13 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
         let driven = execute(task, None)
             .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
 
-        Ok(ResponsesStream {
+        Ok(Box::new(ResponsesStream {
             inner: driven,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
             response: None,
             done: false,
-        })
+        }))
     }
 }
 
@@ -883,34 +889,45 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
             return None;
         }
 
-        loop {
-            let item = self.inner.next()?;
+        let item = self.inner.next()?;
 
-            match item {
-                Stream::Next(parse_result) => return Some(self.process_parse_result(parse_result)),
-                Stream::Pending(_) | Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait => continue,
-                Stream::Spread(items) => {
-                    let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
-                    for item in items {
-                        match item {
-                            StreamSpread::Done(parse_result) => {
-                                match self.process_parse_result(parse_result) {
-                                    Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
-                                    Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
-                                    Stream::Delayed(_) | Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
-                                }
-                            }
-                            StreamSpread::Pending(_) => {
-                                mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
-                            }
-                        }
-                    }
-                    if !mapped.is_empty() {
-                        return Some(Stream::Spread(mapped));
-                    }
-                }
-            }
+        if let Stream::Next(parse_result) = item {
+            return Some(self.process_parse_result(parse_result));
         }
+
+        if let Stream::Wait = item {
+            return Some(Stream::Wait);
+        }
+
+        if let Stream::Delayed(val) = item {
+            return Some(Stream::Delayed(val));
+        }
+
+        if let Stream::Spread(items) = item {
+            let mapped: Vec<StreamSpread<Messages, ModelState>> = items
+                .into_iter()
+                .map(|item| match item {
+                    StreamSpread::Done(inner) => match self.process_parse_result(inner) {
+                        Stream::Next(msg) => StreamSpread::Done(msg),
+                        Stream::Pending(msg) => StreamSpread::Pending(msg),
+                        Stream::Delayed(_)
+                        | Stream::Spread(_)
+                        | Stream::Init
+                        | Stream::Wait
+                        | Stream::Ignore => {
+                            StreamSpread::Pending(ModelState::GeneratingTokens(None))
+                        }
+                    },
+                    StreamSpread::Pending(_) => {
+                        StreamSpread::Pending(ModelState::GeneratingTokens(None))
+                    }
+                })
+                .collect();
+
+            return Some(Stream::Spread(mapped));
+        }
+
+        Some(Stream::Pending(ModelState::GeneratingTokens(None)))
     }
 }
 
@@ -1043,17 +1060,19 @@ fn build_response_input(interaction: &ModelInteraction) -> ResponseInput {
         .iter()
         .filter_map(|msg| match msg {
             Messages::User { content, .. } => match content {
-                crate::types::UserModelContent::Text(tc) => Some(ResponseInputItem::Message {
-                    role: String::from("user"),
-                    content: ResponseInputContent::Text(tc.content.clone()),
-                }),
-                crate::types::UserModelContent::Image(img) => {
+                crate::types::base_types::UserModelContent::Text(tc) => {
+                    Some(ResponseInputItem::Message {
+                        role: String::from("user"),
+                        content: ResponseInputContent::Text(tc.content.clone()),
+                    })
+                }
+                crate::types::base_types::UserModelContent::Image(img) => {
                     let mime_str = match img.mime_type {
                         #[allow(clippy::match_same_arms)]
-                        crate::types::MimeType::ImagePng => "image/png",
-                        crate::types::MimeType::ImageJpeg => "image/jpeg",
-                        crate::types::MimeType::ImageGif => "image/gif",
-                        crate::types::MimeType::ImageWebp => "image/webp",
+                        crate::types::base_types::MimeType::ImagePng => "image/png",
+                        crate::types::base_types::MimeType::ImageJpeg => "image/jpeg",
+                        crate::types::base_types::MimeType::ImageGif => "image/gif",
+                        crate::types::base_types::MimeType::ImageWebp => "image/webp",
                         _ => "image/png",
                     };
                     let data_url = format!("data:{};base64,{}", mime_str, img.b64);
@@ -1088,11 +1107,14 @@ fn build_response_input(interaction: &ModelInteraction) -> ResponseInput {
                 _ => None,
             },
             Messages::ToolResult {
-                tool_call_id, name, content, ..
+                tool_call_id,
+                name,
+                content,
+                ..
             } => {
                 let text = match content {
-                    crate::types::UserModelContent::Text(tc) => tc.content.clone(),
-                    crate::types::UserModelContent::Image(_) => String::from("[Image]"),
+                    crate::types::base_types::UserModelContent::Text(tc) => tc.content.clone(),
+                    crate::types::base_types::UserModelContent::Image(_) => String::from("[Image]"),
                 };
                 Some(ResponseInputItem::FunctionCallOutput {
                     call_id: tool_call_id.clone(),
@@ -1134,7 +1156,7 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
                 arguments,
                 ..
             } => {
-                let args: Option<HashMap<String, crate::types::ArgType>> =
+                let args: Option<HashMap<String, crate::types::base_types::ArgType>> =
                     serde_json::from_str(arguments)
                         .ok()
                         .map(|v: serde_json::Value| {
@@ -1152,7 +1174,7 @@ fn extract_output(output: &[ResponseOutputItem]) -> ModelOutput {
                     arguments: args,
                     signature: None,
                     depends_on: Vec::new(),
-                    execution_hint: crate::types::ExecutionHint::default(),
+                    execution_hint: crate::types::base_types::ExecutionHint::default(),
                 };
             }
             ResponseOutputItem::Reasoning { content, .. } => {
@@ -1249,19 +1271,19 @@ fn empty_usage_report() -> UsageReport {
     }
 }
 
-fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::ArgType {
+fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
     match v {
-        serde_json::Value::String(s) => crate::types::ArgType::Text(s.clone()),
+        serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
         serde_json::Value::Number(n) => {
             if let Some(i) = n.as_i64() {
-                crate::types::ArgType::I64(i)
+                crate::types::base_types::ArgType::I64(i)
             } else if let Some(f) = n.as_f64() {
-                crate::types::ArgType::Float64(f)
+                crate::types::base_types::ArgType::Float64(f)
             } else {
-                crate::types::ArgType::Text(n.to_string())
+                crate::types::base_types::ArgType::Text(n.to_string())
             }
         }
-        other => crate::types::ArgType::JSON(other.to_string()),
+        other => crate::types::base_types::ArgType::JSON(other.to_string()),
     }
 }
 
@@ -1297,16 +1319,22 @@ fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
 
 /// Flatten a `ToolShed` into a Vec<Tool> for formatting.
 #[must_use]
-pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
+pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::base_types::Tool> {
     shed.all_tools()
 }
 
-fn convert_tool_choice(choice: &crate::types::ToolChoice) -> ResponseToolChoice {
+fn convert_tool_choice(choice: &crate::types::base_types::ToolChoice) -> ResponseToolChoice {
     match choice {
-        crate::types::ToolChoice::Auto => ResponseToolChoice::Simple(String::from("auto")),
-        crate::types::ToolChoice::None => ResponseToolChoice::Simple(String::from("none")),
-        crate::types::ToolChoice::Required => ResponseToolChoice::Simple(String::from("required")),
-        crate::types::ToolChoice::Function(f) => ResponseToolChoice::Function {
+        crate::types::base_types::ToolChoice::Auto => {
+            ResponseToolChoice::Simple(String::from("auto"))
+        }
+        crate::types::base_types::ToolChoice::None => {
+            ResponseToolChoice::Simple(String::from("none"))
+        }
+        crate::types::base_types::ToolChoice::Required => {
+            ResponseToolChoice::Simple(String::from("required"))
+        }
+        crate::types::base_types::ToolChoice::Function(f) => ResponseToolChoice::Function {
             r#type: String::from("function"),
             function: ResponseToolChoiceFunction {
                 name: f.function.name.clone(),
@@ -1472,7 +1500,7 @@ mod tests {
             messages: vec![Messages::User {
                 id: foundation_compact::ids::new_scru128(),
                 role: "user".into(),
-                content: crate::types::UserModelContent::Text(TextContent {
+                content: crate::types::base_types::UserModelContent::Text(TextContent {
                     content: "Hello".into(),
                     signature: None,
                 }),

@@ -4,17 +4,18 @@
 //! Uses `foundation_core::simple_http` for HTTP I/O with Valtron `TaskIterator`/`StreamIterator`
 //! patterns — no tokio, no async-trait.
 
+use foundation_compact::SystemTime;
 use std::cell::RefCell;
 use std::collections::HashMap;
 use std::rc::Rc;
 use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
-use foundation_compact::SystemTime;
 
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
+use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{
     Event, ParseResult, ReconnectingEventSourceTask, ReconnectingProgress,
 };
@@ -23,12 +24,11 @@ use foundation_netio::simple_http::client::shared::{
 };
 use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders};
-use foundation_errstacks::ErrorTrace;
 use serde::{Deserialize, Serialize};
 
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
-use crate::types::{
+use crate::types::base_types::{
     AuthProvider, CostStatus, ExtractResult, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
     ModelState, ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter,
@@ -139,7 +139,7 @@ impl Clone for OpenAIConfig {
     }
 }
 
-impl crate::types::AuthProvider for OpenAIConfig {
+impl crate::types::base_types::AuthProvider for OpenAIConfig {
     fn auth(&self) -> Option<&AuthCredential> {
         self.auth.as_ref()
     }
@@ -304,7 +304,7 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
 
 impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
     type Config = OpenAIConfig;
-    type Model = OpenAIModel<OpenAIFormatter, R>;
+    type Model = OpenAIModel<R>;
 
     fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
@@ -356,11 +356,11 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             id: "openai",
             name: "OpenAI",
             reasoning: false,
-            api: crate::types::ModelAPI::OpenAICompletions,
+            api: crate::types::base_types::ModelAPI::OpenAICompletions,
             provider: ModelProviders::OPENAI,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
-            cost: crate::types::ModelUsageCosting {
+            inputs: crate::types::base_types::MessageType::TextAndImages,
+            cost: crate::types::base_types::ModelUsageCosting {
                 input: 0.0,
                 output: 0.0,
                 cache_read: 0.0,
@@ -384,7 +384,6 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
                 http_client: self.http_client.clone(),
                 resolver: self.resolver.clone(),
                 info: info.clone(),
-                _formatter: std::marker::PhantomData,
                 pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
                 cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
             });
@@ -420,7 +419,6 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             http_client: self.http_client.clone(),
             resolver: self.resolver.clone(),
             info,
-            _formatter: std::marker::PhantomData,
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
             cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
         })
@@ -476,7 +474,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
 /// The `F` type parameter allows customizing the tool formatter. When used
 /// natively with `OpenAI` it defaults to `OpenAIFormatter`; when used as a
 /// proxy to other endpoints the caller can supply a different formatter.
-pub struct OpenAIModel<F: ToolFormatter = OpenAIFormatter, R: DnsResolver = SystemDnsResolver> {
+pub struct OpenAIModel<R: DnsResolver = SystemDnsResolver> {
     config: OpenAIConfig,
     model_id: ModelId,
     model_name: String,
@@ -486,12 +484,11 @@ pub struct OpenAIModel<F: ToolFormatter = OpenAIFormatter, R: DnsResolver = Syst
     /// Cached model metadata from the provider (used in model identity).
     #[allow(dead_code)]
     info: OpenAIModelInfo,
-    _formatter: std::marker::PhantomData<F>,
     pricing: ModelUsageCosting,
     cumulative_cost: Rc<RefCell<CostAccumulator>>,
 }
 
-impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
+impl<R: DnsResolver + 'static> OpenAIModel<R> {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
@@ -587,7 +584,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> OpenAIModel<F, R> {
             .iter()
             .filter_map(|msg| {
                 if let Messages::User {
-                    content: crate::types::UserModelContent::Text(tc),
+                    content: crate::types::base_types::UserModelContent::Text(tc),
                     ..
                 } = msg
                 {
@@ -754,7 +751,7 @@ impl ToolFormatter for OpenAIFormatter {
                             .and_then(|f| f.get("arguments"))
                             .and_then(|v| v.as_str())
                             .unwrap_or("{}");
-                        let arguments: Option<HashMap<String, crate::types::ArgType>> =
+                        let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                             serde_json::from_str(args_str).ok();
                         calls.push(ModelOutput::ToolCall {
                             id,
@@ -762,7 +759,7 @@ impl ToolFormatter for OpenAIFormatter {
                             arguments,
                             signature: None,
                             depends_on: Vec::new(),
-                            execution_hint: crate::types::ExecutionHint::default(),
+                            execution_hint: crate::types::base_types::ExecutionHint::default(),
                         });
                     }
                 }
@@ -788,8 +785,11 @@ impl ToolFormatter for OpenAIFormatter {
         result: &Messages,
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         let Messages::ToolResult {
-            tool_call_id, content, ..
-        } = result else {
+            tool_call_id,
+            content,
+            ..
+        } = result
+        else {
             return Err(ErrorTrace::new(ToolCallingError::Response {
                 tool_name: String::new(),
                 reason: "expected Messages::ToolResult".to_string(),
@@ -798,8 +798,8 @@ impl ToolFormatter for OpenAIFormatter {
         };
 
         let content_str = match content {
-            crate::types::UserModelContent::Text(t) => t.content.clone(),
-            crate::types::UserModelContent::Image(_) => "[image]".to_string(),
+            crate::types::base_types::UserModelContent::Text(t) => t.content.clone(),
+            crate::types::base_types::UserModelContent::Image(_) => "[image]".to_string(),
         };
 
         Ok(serde_json::json!({
@@ -810,8 +810,11 @@ impl ToolFormatter for OpenAIFormatter {
     }
 }
 
-impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
-    type Formatter = F;
+impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
+    fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
+        Box::new(OpenAIFormatter::default())
+    }
+
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
@@ -827,10 +830,10 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             id: "openai",
             name: "OpenAI",
             reasoning: false,
-            api: crate::types::ModelAPI::OpenAICompletions,
+            api: crate::types::base_types::ModelAPI::OpenAICompletions,
             provider: ModelProviders::OPENAI,
             base_url: None,
-            inputs: crate::types::MessageType::TextAndImages,
+            inputs: crate::types::base_types::MessageType::TextAndImages,
             cost: self.pricing,
             context_window: 0,
             max_tokens: 0,
@@ -878,7 +881,9 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
+    ) -> GenerationResult<
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+    > {
         let params = specs.unwrap_or_default();
         let request = build_chat_request(&self.model_name, &interaction, &params, true);
 
@@ -912,7 +917,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
         let driven = execute(task, None)
             .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
 
-        Ok(OpenAIStream {
+        Ok(Box::new(OpenAIStream {
             inner: driven,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
@@ -922,7 +927,7 @@ impl<F: ToolFormatter, R: DnsResolver + 'static> Model for OpenAIModel<F, R> {
             done: false,
             pricing: self.pricing,
             cumulative_cost: Rc::clone(&self.cumulative_cost),
-        })
+        }))
     }
 }
 
@@ -989,7 +994,10 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
                                     let (msg, _) = self.build_final_message();
                                     mapped.push(StreamSpread::Done(msg));
                                 }
-                                Stream::Init | Stream::Ignore | Stream::Wait | Stream::Spread(_) => {}
+                                Stream::Init
+                                | Stream::Ignore
+                                | Stream::Wait
+                                | Stream::Spread(_) => {}
                             }
                         }
                         StreamSpread::Pending(_) => {
@@ -1153,7 +1161,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
             })
         } else {
             let tc = &self.tool_calls[0];
-            let arguments: Option<HashMap<String, crate::types::ArgType>> =
+            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                 serde_json::from_str(&tc.arguments)
                     .ok()
                     .map(|v: serde_json::Value| {
@@ -1172,7 +1180,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
                 arguments,
                 signature: None,
                 depends_on: Vec::new(),
-                execution_hint: crate::types::ExecutionHint::default(),
+                execution_hint: crate::types::base_types::ExecutionHint::default(),
             }
         };
 
@@ -1586,15 +1594,20 @@ pub struct EmbeddingData {
 pub enum OpenAIError {
     #[from(ignore)]
     Http(String),
+
+    #[from(ignore)]
+    Parse(String),
+
+    #[from(ignore)]
+    Valtron(String),
+
     HttpStatus {
         code: u16,
         body: String,
     },
-    #[from(ignore)]
-    Parse(String),
-    #[from(ignore)]
-    Valtron(String),
+
     NoResult,
+
     RateLimit {
         retry_after: Option<u64>,
     },
@@ -1650,19 +1663,19 @@ fn empty_usage_report() -> UsageReport {
     }
 }
 
-fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::ArgType {
+fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
     match v {
-        serde_json::Value::String(s) => crate::types::ArgType::Text(s.clone()),
+        serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
         serde_json::Value::Number(n) => {
             if let Some(i) = n.as_i64() {
-                crate::types::ArgType::I64(i)
+                crate::types::base_types::ArgType::I64(i)
             } else if let Some(f) = n.as_f64() {
-                crate::types::ArgType::Float64(f)
+                crate::types::base_types::ArgType::Float64(f)
             } else {
-                crate::types::ArgType::Text(n.to_string())
+                crate::types::base_types::ArgType::Text(n.to_string())
             }
         }
-        other => crate::types::ArgType::JSON(other.to_string()),
+        other => crate::types::base_types::ArgType::JSON(other.to_string()),
     }
 }
 
@@ -1706,16 +1719,16 @@ fn build_chat_request(
         match msg {
             Messages::User { content, .. } => {
                 let msg_content = match content {
-                    crate::types::UserModelContent::Text(tc) => {
+                    crate::types::base_types::UserModelContent::Text(tc) => {
                         OpenAIMessageContent::Text(tc.content.clone())
                     }
-                    crate::types::UserModelContent::Image(img) => {
+                    crate::types::base_types::UserModelContent::Image(img) => {
                         let mime_str = match img.mime_type {
                             #[allow(clippy::match_same_arms)]
-                            crate::types::MimeType::ImagePng => "image/png",
-                            crate::types::MimeType::ImageJpeg => "image/jpeg",
-                            crate::types::MimeType::ImageGif => "image/gif",
-                            crate::types::MimeType::ImageWebp => "image/webp",
+                            crate::types::base_types::MimeType::ImagePng => "image/png",
+                            crate::types::base_types::MimeType::ImageJpeg => "image/jpeg",
+                            crate::types::base_types::MimeType::ImageGif => "image/gif",
+                            crate::types::base_types::MimeType::ImageWebp => "image/webp",
                             _ => "image/png",
                         };
                         let data_url = format!("data:{};base64,{}", mime_str, img.b64);
@@ -1782,10 +1795,10 @@ fn build_chat_request(
                 ModelOutput::Image(img) => {
                     #[allow(clippy::match_same_arms)]
                     let mime_str = match img.mime_type {
-                        crate::types::MimeType::ImagePng => "image/png",
-                        crate::types::MimeType::ImageJpeg => "image/jpeg",
-                        crate::types::MimeType::ImageGif => "image/gif",
-                        crate::types::MimeType::ImageWebp => "image/webp",
+                        crate::types::base_types::MimeType::ImagePng => "image/png",
+                        crate::types::base_types::MimeType::ImageJpeg => "image/jpeg",
+                        crate::types::base_types::MimeType::ImageGif => "image/gif",
+                        crate::types::base_types::MimeType::ImageWebp => "image/webp",
                         _ => "image/png",
                     };
                     let data_url = format!("data:{};base64,{}", mime_str, img.b64);
@@ -1807,11 +1820,14 @@ fn build_chat_request(
                 ModelOutput::Embedding { .. } => {}
             },
             Messages::ToolResult {
-                tool_call_id, name, content, ..
+                tool_call_id,
+                name,
+                content,
+                ..
             } => {
                 let text = match content {
-                    crate::types::UserModelContent::Text(tc) => tc.content.clone(),
-                    crate::types::UserModelContent::Image(_) => String::from("[Image]"),
+                    crate::types::base_types::UserModelContent::Text(tc) => tc.content.clone(),
+                    crate::types::base_types::UserModelContent::Image(_) => String::from("[Image]"),
                 };
                 messages.push(OpenAIMessage {
                     role: String::from("tool"),
@@ -1845,23 +1861,31 @@ fn build_chat_request(
     };
 
     let response_format = params.output_format.as_ref().map(|fmt| match fmt {
-        crate::types::OutputFormat::Text => OpenAIResponseFormat::Text,
-        crate::types::OutputFormat::JsonObject => OpenAIResponseFormat::JsonObject,
-        crate::types::OutputFormat::JsonSchema(js) => OpenAIResponseFormat::JsonSchema {
-            json_schema: Some(OpenAIJsonSchema {
-                name: js.name.clone(),
-                description: js.description.clone(),
-                schema: js.schema.clone(),
-                strict: js.strict,
-            }),
-        },
+        crate::types::base_types::OutputFormat::Text => OpenAIResponseFormat::Text,
+        crate::types::base_types::OutputFormat::JsonObject => OpenAIResponseFormat::JsonObject,
+        crate::types::base_types::OutputFormat::JsonSchema(js) => {
+            OpenAIResponseFormat::JsonSchema {
+                json_schema: Some(OpenAIJsonSchema {
+                    name: js.name.clone(),
+                    description: js.description.clone(),
+                    schema: js.schema.clone(),
+                    strict: js.strict,
+                }),
+            }
+        }
     });
 
     let tool_choice = interaction.tool_choice.as_ref().map(|tc| match tc {
-        crate::types::ToolChoice::Auto => OpenAIToolChoice::Simple(String::from("auto")),
-        crate::types::ToolChoice::None => OpenAIToolChoice::Simple(String::from("none")),
-        crate::types::ToolChoice::Required => OpenAIToolChoice::Simple(String::from("required")),
-        crate::types::ToolChoice::Function(f) => OpenAIToolChoice::Function {
+        crate::types::base_types::ToolChoice::Auto => {
+            OpenAIToolChoice::Simple(String::from("auto"))
+        }
+        crate::types::base_types::ToolChoice::None => {
+            OpenAIToolChoice::Simple(String::from("none"))
+        }
+        crate::types::base_types::ToolChoice::Required => {
+            OpenAIToolChoice::Simple(String::from("required"))
+        }
+        crate::types::base_types::ToolChoice::Function(f) => OpenAIToolChoice::Function {
             type_: f.tool_type.clone(),
             function: OpenAIToolChoiceFunction {
                 name: f.function.name.clone(),
@@ -1979,7 +2003,7 @@ fn parse_chat_response(
 
     let output = if let Some(tool_calls) = &message.tool_calls {
         if let Some(tc) = tool_calls.first() {
-            let arguments: Option<HashMap<String, crate::types::ArgType>> =
+            let arguments: Option<HashMap<String, crate::types::base_types::ArgType>> =
                 serde_json::from_str(&tc.function.arguments)
                     .ok()
                     .map(|v: serde_json::Value| {
@@ -1998,7 +2022,7 @@ fn parse_chat_response(
                 arguments,
                 signature: None,
                 depends_on: Vec::new(),
-                execution_hint: crate::types::ExecutionHint::default(),
+                execution_hint: crate::types::base_types::ExecutionHint::default(),
             }
         } else {
             ModelOutput::Text(TextContent {
@@ -2038,23 +2062,23 @@ fn build_metadata(
     logprobs: Option<&OpenAILogProbs>,
     system_fingerprint: Option<&String>,
     refusal: Option<&String>,
-) -> Option<Vec<crate::types::GenerationMetadata>> {
+) -> Option<Vec<crate::types::base_types::GenerationMetadata>> {
     let mut metadata = Vec::new();
 
     if let Some(lp) = logprobs {
-        let content: Vec<crate::types::ContentLogProb> = lp
+        let content: Vec<crate::types::base_types::ContentLogProb> = lp
             .content
             .as_ref()
             .map(|items| {
                 items
                     .iter()
-                    .map(|p| crate::types::ContentLogProb {
+                    .map(|p| crate::types::base_types::ContentLogProb {
                         token: p.token.clone(),
                         logprob: p.logprob,
                         bytes: p.bytes.clone(),
                         top_logprobs: p.top_logprobs.as_ref().map(|tops| {
                             tops.iter()
-                                .map(|t| crate::types::TopLogProbEntry {
+                                .map(|t| crate::types::base_types::TopLogProbEntry {
                                     token: t.token.clone(),
                                     logprob: t.logprob,
                                     bytes: t.bytes.clone(),
@@ -2066,11 +2090,11 @@ fn build_metadata(
             })
             .unwrap_or_default();
 
-        let refusal_probs: Option<Vec<crate::types::RefusalLogProb>> =
+        let refusal_probs: Option<Vec<crate::types::base_types::RefusalLogProb>> =
             lp.refusal.as_ref().map(|items| {
                 items
                     .iter()
-                    .map(|p| crate::types::RefusalLogProb {
+                    .map(|p| crate::types::base_types::RefusalLogProb {
                         token: p.token.clone(),
                         logprob: p.logprob,
                         bytes: p.bytes.clone(),
@@ -2079,7 +2103,7 @@ fn build_metadata(
             });
 
         if !content.is_empty() || refusal_probs.is_some() {
-            metadata.push(crate::types::GenerationMetadata::LogProbs {
+            metadata.push(crate::types::base_types::GenerationMetadata::LogProbs {
                 content,
                 refusal: refusal_probs,
             });
@@ -2087,13 +2111,11 @@ fn build_metadata(
     }
 
     if let Some(fp) = system_fingerprint {
-        metadata.push(crate::types::GenerationMetadata::SystemFingerprint(
-            fp.clone(),
-        ));
+        metadata.push(crate::types::base_types::GenerationMetadata::SystemFingerprint(fp.clone()));
     }
 
     if let Some(reason) = refusal {
-        metadata.push(crate::types::GenerationMetadata::RefusalReason(
+        metadata.push(crate::types::base_types::GenerationMetadata::RefusalReason(
             reason.clone(),
         ));
     }
@@ -2351,18 +2373,18 @@ mod tests {
     #[test]
     fn test_json_value_to_arg_type() {
         let text = json_value_to_arg_type(&serde_json::json!("hello"));
-        assert!(matches!(text, crate::types::ArgType::Text(s) if s == "hello"));
+        assert!(matches!(text, crate::types::base_types::ArgType::Text(s) if s == "hello"));
 
         let int = json_value_to_arg_type(&serde_json::json!(42));
-        assert!(matches!(int, crate::types::ArgType::I64(42)));
+        assert!(matches!(int, crate::types::base_types::ArgType::I64(42)));
 
         let float = json_value_to_arg_type(&serde_json::json!(3.64));
         assert!(
-            matches!(float, crate::types::ArgType::Float64(f) if (f - 3.64).abs() < f64::EPSILON)
+            matches!(float, crate::types::base_types::ArgType::Float64(f) if (f - 3.64).abs() < f64::EPSILON)
         );
 
         let obj = json_value_to_arg_type(&serde_json::json!({"nested": true}));
-        assert!(matches!(obj, crate::types::ArgType::JSON(_)));
+        assert!(matches!(obj, crate::types::base_types::ArgType::JSON(_)));
     }
 
     #[test]
@@ -2586,15 +2608,17 @@ mod tests {
 
     #[test]
     fn test_build_chat_request_with_new_fields() {
-        use crate::types::{OutputFormat, ToolChoice, ToolChoiceFunction, ToolFunctionRef};
+        use crate::types::base_types::{
+            OutputFormat, ToolChoice, ToolChoiceFunction, ToolFunctionRef,
+        };
 
         let mut interaction = ModelInteraction {
             system_prompt: Some("You are helpful".into()),
             soul: Some("Be concise and technical".into()),
-            messages: vec![crate::types::Messages::User {
+            messages: vec![crate::types::base_types::Messages::User {
                 id: foundation_compact::ids::new_scru128(),
                 role: "user".into(),
-                content: crate::types::UserModelContent::Text(TextContent {
+                content: crate::types::base_types::UserModelContent::Text(TextContent {
                     content: "Hello".into(),
                     signature: None,
                 }),
