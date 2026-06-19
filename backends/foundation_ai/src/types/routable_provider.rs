@@ -71,7 +71,11 @@ where
     }
 
     fn get_model(&self, model_id: &ModelId) -> Option<BoxModel> {
-        self.0.get_model(model_id.clone()).ok()
+        if let Ok(model) = self.0.get_model(model_id.clone()) {
+            Some(Box::new(model))
+        } else {
+            None
+        }
     }
 }
 
