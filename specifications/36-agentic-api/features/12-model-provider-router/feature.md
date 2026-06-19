@@ -1,12 +1,12 @@
 ---
 feature: "ModelProviderRouter — route model→provider behind the provider trait"
-description: "A ProviderRouter in foundation_ai that presents the ModelProvider surface but routes a requested model to the provider that declares it (via provider-declared supported models / routing rules), supporting a single provider OR a multi-provider router, and designed (future impl) for same-model multi-provider fallback"
+description: "ProviderRouter + RoutableProvider (object-safe). Model trait made object-safe: type Formatter → fn tool_formatter()→Box<dyn ToolFormatter>, stream→Box<dyn StreamIterator>. BoxModel = Box<dyn Model> (replaces ErasedModel)"
 status: "completed"
 priority: "high"
 depends_on: ["00b-foundation-ai-llama-optional"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-19
 author: "Main Agent"
 tasks:
   completed: 10
@@ -23,7 +23,7 @@ tasks:
 >    `fn create(self, ..) -> Result<Self>` (:1478, `Self`-returning, consumes self). You **cannot**
 >    write `Arc<dyn ModelProvider>` (Decision 18 line 49 / 110 assumes you can — that's wrong). The
 >    router needs an **object-safe boxed surface**. **OD-12-1 (load-bearing):** define a new
->    `RoutableProvider` (object-safe: erases `Config`, returns `Box<dyn ErasedModel>` or operates on
+>    `RoutableProvider` (object-safe: erases `Config`, returns `BoxModel` (`Box<dyn Model>`) or operates on
 >    `ModelInteraction`→`Vec<Messages>` directly) that wraps any concrete `P: ModelProvider`, and have
 >    `ProviderRouter` hold `Vec<Box<dyn RoutableProvider>>`. Flag for the user — this reshapes how
 >    Decision 18's builder takes a provider.
