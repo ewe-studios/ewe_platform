@@ -1,0 +1,11 @@
+mod anthropic_messages_provider;
+mod candle_backend;
+mod huggingface_candle_provider;
+mod huggingface_gguf_provider;
+mod llamacpp_integration;
+mod memory_coordinator_tests;
+mod message_api_tests;
+mod openai_provider;
+mod openai_responses_provider;
+mod sampler_chain;
+mod tool_calling_formatter;

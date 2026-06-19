@@ -9,7 +9,7 @@ use foundation_ai::types::{
     ArgType, Args, Messages, ModelOutput, TextBasedFormatter, TextContent, ToolCallingError,
     UserModelContent,
 };
-use foundation_compact::ids::Id;
+use foundation_compact::ids;
 
 use foundation_ai::types::{Tool, ToolFormatter};
 use foundation_jsonschema::{scheme, ValidationOptions};
@@ -132,7 +132,7 @@ fn anthropic_extract_no_tool_calls() {
 fn anthropic_format_tool_response() {
     let formatter = AnthropicFormatter;
     let result = Messages::ToolResult {
-        id: foundation_compact::Id::from_str("tool_abc123"),
+        id: foundation_compact::ids::new_scru128(),
         tool_call_id: "tool_abc123".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
@@ -159,7 +159,7 @@ fn anthropic_format_tool_response() {
 fn anthropic_format_tool_response_error() {
     let formatter = AnthropicFormatter;
     let result = Messages::ToolResult {
-        id: Id::from_str("search").expect("should get id"),
+        id: foundation_compact::ids::new_scru128(),
         tool_call_id: "search".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
@@ -180,8 +180,8 @@ fn anthropic_format_tool_response_error() {
 fn anthropic_format_tool_response_wrong_variant() {
     let formatter = AnthropicFormatter;
     let wrong = Messages::User {
-        id: Id::from_str("user").expect("should get id"),
-        role: "user".to_string(),
+        id: foundation_compact::ids::new_scru128(),
+        role: foundation_ai::types::MessageRole::User,
         content: UserModelContent::Text(TextContent {
             content: "hello".to_string(),
             signature: None,
@@ -292,7 +292,7 @@ fn openai_extract_no_tool_calls() {
 fn openai_format_tool_response() {
     let formatter = OpenAIFormatter;
     let result = Messages::ToolResult {
-        id: Id::from_str("call_xyz").expect("should get id"),
+        id: foundation_compact::ids::new_scru128(),
         tool_call_id: "call_xyz".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
@@ -315,8 +315,8 @@ fn openai_format_tool_response() {
 fn openai_format_tool_response_wrong_variant() {
     let formatter = OpenAIFormatter;
     let wrong = Messages::User {
-        id: Id::from_str("user").expect("should get id"),
-        role: "user".to_string(),
+        id: foundation_compact::ids::new_scru128(),
+        role: foundation_ai::types::MessageRole::User,
         content: UserModelContent::Text(TextContent {
             content: "hello".to_string(),
             signature: None,
@@ -458,7 +458,7 @@ fn text_based_extract_whitespace_inside_tags() {
 fn text_based_format_tool_response() {
     let formatter = TextBasedFormatter;
     let result = Messages::ToolResult {
-        id: Id::from_str("user").expect("should get id"),
+        id: foundation_compact::ids::new_scru128(),
         tool_call_id: "tool_1".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
@@ -485,7 +485,7 @@ fn text_based_format_tool_response() {
 fn text_based_format_tool_response_error_note() {
     let formatter = TextBasedFormatter;
     let result = Messages::ToolResult {
-        id: Id::from_str("tool_1").expect("should get id"),
+        id: foundation_compact::ids::new_scru128(),
         tool_call_id: "tool_1".to_string(),
         name: "search".to_string(),
         timestamp: SystemTime::now(),
@@ -507,8 +507,8 @@ fn text_based_format_tool_response_error_note() {
 fn text_based_format_tool_response_wrong_variant() {
     let formatter = TextBasedFormatter;
     let wrong = Messages::User {
-        id: Id::from_str("user").expect("should get id"),
-        role: "user".to_string(),
+        id: foundation_compact::ids::new_scru128(),
+        role: foundation_ai::types::MessageRole::User,
         content: UserModelContent::Text(TextContent {
             content: "hello".to_string(),
             signature: None,

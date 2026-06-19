@@ -70,8 +70,10 @@ tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 futures-lite = "2"
 
 [[test]]
-name = "message_api_tests"
-path = "tests/message_api_tests.rs"
+name = "foundation_ai_tests"
+path = "tests/mod.rs"
+required-features = ["agentic", "llamacpp", "candle", "candle-cuda", "cuda", "vulkan", "mtd", "multi"]
+
 
 [features]
 default = ["llamacpp", "agentic"]

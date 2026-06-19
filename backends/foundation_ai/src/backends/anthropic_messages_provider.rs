@@ -791,8 +791,7 @@ impl ToolFormatter for AnthropicFormatter {
         result: &Messages,
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
         let Messages::ToolResult {
-            id,
-            name: _,
+            tool_call_id,
             content,
             error_detail,
             ..
@@ -812,7 +811,7 @@ impl ToolFormatter for AnthropicFormatter {
 
         Ok(serde_json::json!({
             "type": "tool_result",
-            "tool_use_id": id,
+            "tool_use_id": tool_call_id,
             "content": [{"type": "text", "text": content_str}],
             "is_error": error_detail.is_some(),
         }))
