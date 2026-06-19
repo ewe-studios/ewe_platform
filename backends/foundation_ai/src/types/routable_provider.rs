@@ -3,25 +3,15 @@
 //!
 //! WHY: `ModelProvider` is NOT object-safe (associated types `Config`, `Model`),
 //! so `Arc<dyn ModelProvider>` cannot exist. A router needs an erased surface
-//! that can hold heterogeneous providers (OpenAI, Anthropic, llama.cpp, etc.).
+//! that can hold heterogeneous providers (OpenAI, Anthropic, `llama.cpp`, etc.).
 //!
 //! WHAT: `RoutableProvider` is object-safe, wraps any concrete `P: ModelProvider`,
-//! and returns `Box<dyn ErasedModel>` which exposes `generate`/`stream` via
-//! concrete return types (no associated types, no RPIT).
-
-use foundation_core::valtron::{Stream, StreamIterator};
+//! and returns `BoxModel` (`Box<dyn Model>`) which the `Model` trait now exposes
+//! via concrete return types (no associated types, no RPIT — see F12 decisions).
 
 use super::base_types::{
-    Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider,
-    ModelProviderDescriptor, ModelSpec, ModelState,
+    BoxModel, ModelId, ModelProvider, ModelProviderDescriptor, ModelSpec,
 };
-use crate::{
-    errors::{GenerationError, GenerationResult},
-    types::base_types::BoxModel,
-};
-
-// ---------------------------------------------------------------------------
-// ErasedModel — object-safe wrapper around any `M: Model`
 
 // ---------------------------------------------------------------------------
 // RoutableProvider — object-safe provider surface
@@ -45,6 +35,7 @@ pub struct RoutableProviderBox<P: Send + Sync>(P);
 
 impl<P: Send + Sync> RoutableProviderBox<P> {
     /// Wrap a provider.
+    #[must_use]
     pub fn new(provider: P) -> Self {
         Self(provider)
     }
@@ -71,11 +62,7 @@ where
     }
 
     fn get_model(&self, model_id: &ModelId) -> Option<BoxModel> {
-        if let Ok(model) = self.0.get_model(model_id.clone()) {
-            Some(Box::new(model))
-        } else {
-            None
-        }
+        self.0.get_model(model_id.clone()).ok().map(|m| Box::new(m) as BoxModel)
     }
 }
 
@@ -89,6 +76,8 @@ pub struct ProviderRouter {
 }
 
 impl ProviderRouter {
+    /// Create an empty router.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             providers: Vec::new(),
@@ -101,6 +90,7 @@ impl ProviderRouter {
     }
 
     /// Find the provider that owns the given model id.
+    #[must_use]
     pub fn find_provider(&self, model_id: &ModelId) -> Option<&dyn RoutableProvider> {
         for p in &self.providers {
             if p.get_one(model_id).is_some() {
@@ -111,6 +101,7 @@ impl ProviderRouter {
     }
 
     /// Get an erased model for the given model id.
+    #[must_use]
     pub fn get_model(&self, model_id: &ModelId) -> Option<BoxModel> {
         for p in &self.providers {
             if let Some(model) = p.get_model(model_id) {
@@ -121,6 +112,7 @@ impl ProviderRouter {
     }
 
     /// List all available model specs across all providers.
+    #[must_use]
     pub fn list_all(&self) -> Vec<ModelSpec> {
         let mut all = Vec::new();
         for p in &self.providers {
