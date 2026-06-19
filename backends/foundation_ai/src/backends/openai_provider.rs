@@ -787,7 +787,9 @@ impl ToolFormatter for OpenAIFormatter {
         &self,
         result: &Messages,
     ) -> Result<serde_json::Value, ErrorTrace<ToolCallingError>> {
-        let Messages::ToolResult { id, content, .. } = result else {
+        let Messages::ToolResult {
+            tool_call_id, content, ..
+        } = result else {
             return Err(ErrorTrace::new(ToolCallingError::Response {
                 tool_name: String::new(),
                 reason: "expected Messages::ToolResult".to_string(),
@@ -802,7 +804,7 @@ impl ToolFormatter for OpenAIFormatter {
 
         Ok(serde_json::json!({
             "role": "tool",
-            "tool_call_id": id,
+            "tool_call_id": tool_call_id,
             "content": content_str,
         }))
     }
