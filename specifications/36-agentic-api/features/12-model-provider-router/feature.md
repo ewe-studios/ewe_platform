@@ -1,7 +1,7 @@
 ---
 feature: "ModelProviderRouter — route model→provider behind the provider trait"
 description: "A ProviderRouter in foundation_ai that presents the ModelProvider surface but routes a requested model to the provider that declares it (via provider-declared supported models / routing rules), supporting a single provider OR a multi-provider router, and designed (future impl) for same-model multi-provider fallback"
-status: "pending"
+status: "completed"
 priority: "high"
 depends_on: ["00b-foundation-ai-llama-optional"]
 estimated_effort: "medium"
@@ -9,10 +9,10 @@ created: 2026-06-14
 last_updated: 2026-06-14
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 12: ModelProviderRouter
