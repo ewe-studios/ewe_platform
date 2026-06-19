@@ -22,6 +22,8 @@ LLAMA_SUBMODULE_PATH = "tools/llama.cpp"
 LLAMA_DIR = "{{config_root}}/{{env.LLAMA_SUBMODULE_PATH}}"
 LLAMA_BINDINGS_DIR = "{{config_root}}/infrastructure/llama-bindings"
 LLAMA_SYMLINK_DIR = "{{env.LLAMA_BINDINGS_DIR}}/llama.cpp"
+NO_CAPTURE = "{{ env.NO_CAPTURE | default(value='--show-output') }}"
+TARGET_TEST = "{{ env.TARGET_TEST | default(value='') }}"
 _.path = ["./node_modules/.bin", "{{env.DEPOT_DIR}}"]
 
 # =============================================================================
@@ -879,11 +881,11 @@ export LLAMA_SERVER_API_KEY="test-api-key-123"
 
 echo ""
 echo "=== Running OpenAI Provider Tests ==="
-cargo test --package foundation_ai --test openai_provider -- --ignored --show-output
+cargo test --package foundation_ai --test openai_provider -- --ignored ${NO_CAPTURE} ${TARGET_TEST}
 
 echo ""
 echo "=== Running Responses Provider Tests ==="
-cargo test --package foundation_ai --test openai_responses_provider -- --ignored --show-output
+cargo test --package foundation_ai --test openai_responses_provider -- --ignored ${NO_CAPTURE} ${TARGET_TEST}
 
 echo ""
 echo "All llama-server integration tests passed"
@@ -902,7 +904,7 @@ export LLAMA_SERVER_TEST=1
 export LLAMA_SERVER_URL="http://127.0.0.1:${LLAMA_SERVER_PORT:-8999}"
 export LLAMA_SERVER_API_KEY="test-api-key-123"
 
-cargo test --package foundation_ai --test openai_provider -- --ignored --show-output
+cargo test --package foundation_ai --test openai_provider -- --ignored ${NO_CAPTURE} ${TARGET_TEST}
 """
 
 [tasks."test:llama-server:responses"]
@@ -918,7 +920,7 @@ export LLAMA_SERVER_TEST=1
 export LLAMA_SERVER_URL="http://127.0.0.1:${LLAMA_SERVER_PORT:-8999}"
 export LLAMA_SERVER_API_KEY="test-api-key-123"
 
-cargo test --package foundation_ai --test openai_responses_provider -- --ignored --show-output
+cargo test --package foundation_ai --test openai_responses_provider -- --ignored ${NO_CAPTURE} ${TARGET_TEST}
 """
 
 # --- Foundation NoStd Testing ---
