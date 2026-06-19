@@ -767,7 +767,7 @@ fn test_tool_use_content_block() {
     let msg = AnthropicMessage {
         role: AnthropicRole::Assistant,
         content: vec![AnthropicContentBlock::ToolUse {
-            id: "tool_123".into(),
+            id: "tool_abc123".to_string(),
             name: "get_weather".into(),
             input: serde_json::json!({"location": "Paris"}),
         }],
@@ -783,7 +783,7 @@ fn test_tool_result_content_block() {
     let msg = AnthropicMessage {
         role: AnthropicRole::User,
         content: vec![AnthropicContentBlock::ToolResult {
-            tool_use_id: "tool_123".into(),
+            tool_use_id: "tool_abc123".to_string(),
             content: "Sunny, 25°C".into(),
             is_error: None,
         }],
@@ -946,7 +946,7 @@ fn test_message_delta_deserialization() {
 #[test]
 fn test_parse_response_text() {
     let response = MessagesResponse {
-        id: "msg_123".into(),
+        id: "msg_123".to_string(),
         response_type: "message".into(),
         role: "assistant".to_string(),
         content: vec![AnthropicContentBlock::Text {
@@ -990,11 +990,11 @@ fn test_parse_response_text() {
 #[test]
 fn test_parse_response_tool_use() {
     let response = MessagesResponse {
-        id: "msg_123".into(),
+        id: "msg_123".to_string(),
         response_type: "message".into(),
         role: "assistant".to_string(),
         content: vec![AnthropicContentBlock::ToolUse {
-            id: "tool_1".into(),
+            id: "msg_123".to_string(),
             name: "get_weather".into(),
             input: serde_json::json!({"location": "Paris"}),
         }],
@@ -1035,7 +1035,7 @@ fn test_parse_response_tool_use() {
 #[test]
 fn test_parse_response_thinking() {
     let response = MessagesResponse {
-        id: "msg_123".into(),
+        id: "msg_123".to_string(),
         response_type: "message".into(),
         role: "assistant".to_string(),
         content: vec![
@@ -1213,10 +1213,12 @@ fn test_build_anthropic_request_tool_result() {
                 timestamp: SystemTime::now(),
                 usage: empty_usage_report(),
                 content: ModelOutput::ToolCall {
-                    id: "tool_1".into(),
+                    id: "tool_1".to_string(),
                     name: "get_weather".into(),
                     arguments: None,
                     signature: None,
+                depends_on: vec![],
+                execution_hint: foundation_ai::types::ExecutionHint::default(),
                 },
                 stop_reason: StopReason::ToolUse,
                 provider: ModelProviders::ANTHROPIC,
@@ -1225,7 +1227,8 @@ fn test_build_anthropic_request_tool_result() {
                 metadata: None,
             },
             Messages::ToolResult {
-                id: "tool_1".into(),
+                id: foundation_compact::ids::new_scru128(),
+                tool_call_id: "tool_1".to_string(),
                 name: "get_weather".into(),
                 timestamp: SystemTime::now(),
                 details: None,
