@@ -783,7 +783,7 @@ fn test_tool_result_content_block() {
     let msg = AnthropicMessage {
         role: AnthropicRole::User,
         content: vec![AnthropicContentBlock::ToolResult {
-            tool_use_id: "tool_abc123".to_string(),
+            tool_use_id: "tool_123".to_string(),
             content: "Sunny, 25°C".into(),
             is_error: None,
         }],
@@ -994,7 +994,7 @@ fn test_parse_response_tool_use() {
         response_type: "message".into(),
         role: "assistant".to_string(),
         content: vec![AnthropicContentBlock::ToolUse {
-            id: "msg_123".to_string(),
+            id: "tool_1".to_string(),
             name: "get_weather".into(),
             input: serde_json::json!({"location": "Paris"}),
         }],
@@ -1164,7 +1164,7 @@ fn test_build_anthropic_request_with_tools() {
 
     assert!(request.tools.is_some());
     let tools = request.tools.unwrap();
-    assert_eq!(tools.len(), 5); // shed + read + edit + write + search
+    assert_eq!(tools.len(), 6); // shed + read + edit + write + search
     assert_eq!(tools[0].name, "get_weather");
     assert_eq!(tools[0].description, "Get weather info");
 }

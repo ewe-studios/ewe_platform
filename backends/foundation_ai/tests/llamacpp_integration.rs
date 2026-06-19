@@ -166,6 +166,7 @@ fn test_llama_with_smollm_model() {
         system_prompt: Some("You are a helpful assistant.".to_string()),
         soul: None,
         messages: vec![Messages::User {
+            id: foundation_compact::ids::new_scru128(),
             role: "user".to_string(),
             content: UserModelContent::Text(TextContent {
                 content: "Hello! How are you?".to_string(),
