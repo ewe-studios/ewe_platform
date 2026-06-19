@@ -1,8 +1,8 @@
 #[cfg(test)]
 mod test_http_reader {
 
-    use foundation_netio::netcap::RawStream;
     use foundation_core::panic_if_failed;
+    use foundation_netio::netcap::RawStream;
     use foundation_netio::simple_http::client::shared::body_reader::{
         collect_bytes_from_send_safe, try_collect_bytes,
     };
@@ -9746,8 +9746,8 @@ mod hardening_tests {
     //! - OWS whitespace handling
     //! - Duplicate header combination
 
-    use foundation_netio::netcap::RawStream;
     use foundation_core::panic_if_failed;
+    use foundation_netio::netcap::RawStream;
     use foundation_netio::simple_http::shared::{
         http_streams, HttpReaderError, IncomingRequestParts, IncomingResponseParts, SendSafeBody,
     };
