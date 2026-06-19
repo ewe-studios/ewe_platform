@@ -10,7 +10,7 @@ use foundation_ai::backends::huggingface_gguf_provider::{
 };
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider, Quantization,
-    TextContent, UserModelContent,
+    TextContent, UserModelContent, ToolShed,
 };
 use foundation_core::valtron;
 use tracing_test::traced_test;
@@ -213,7 +213,7 @@ fn test_huggingface_gguf_provider_with_smollm_inference() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };

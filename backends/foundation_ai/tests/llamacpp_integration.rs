@@ -6,7 +6,7 @@
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider, ModelSpec, TextContent,
-    UserModelContent,
+    UserModelContent, ToolShed,
 };
 use foundation_core::valtron;
 use foundation_testing::huggingface::TestHarness;
@@ -173,7 +173,7 @@ fn test_llama_with_smollm_model() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
         tool_choice: None,
     };

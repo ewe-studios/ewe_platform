@@ -14,7 +14,7 @@ use foundation_ai::backends::huggingface_candle_provider::{
 };
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, TextContent,
-    UserModelContent,
+    UserModelContent, ToolShed,
 };
 use foundation_core::valtron;
 use tracing_test::traced_test;
@@ -192,7 +192,7 @@ fn test_candle_provider_smollm_inference() {
             }),
             signature: None,
         }],
-        tools_shed: None,
+        tools_shed: ToolShed::default(),
         chat_template: None,
     };
 

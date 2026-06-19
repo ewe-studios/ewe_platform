@@ -42,7 +42,7 @@ fn test_llama_server_responses_generate() {
         system_prompt: Some("You are a helpful assistant.".into()),
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Say hello in one word.".into(),
                 signature: None,
@@ -87,7 +87,7 @@ fn test_llama_server_responses_stream() {
         system_prompt: None,
         soul: None,
         messages: vec![Messages::User {
-            role: "user".into(),
+            role: foundation_ai::types::MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Count from 1 to 3.".into(),
                 signature: None,
