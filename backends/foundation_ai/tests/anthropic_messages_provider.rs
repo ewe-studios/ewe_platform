@@ -13,17 +13,10 @@ use foundation_ai::types::{
     TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron;
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
-use serial_test::serial;
-use tracing_test::traced_test;
 use std::net::SocketAddr;
-use std::sync::LazyLock;
-
-static POOL: LazyLock<foundation_core::valtron::PoolGuard> =
-    LazyLock::new(|| foundation_core::valtron::initialize_pool(42, None));
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -100,8 +93,6 @@ fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_provider_generate() {
-    let _guard = &*POOL;
-
     let chat_response = br#"{
         "id": "msg_abc123",
         "type": "message",
@@ -142,8 +133,6 @@ fn test_provider_generate() {
 #[tracing_test::traced_test]
 #[valtron_test]
 fn test_provider_streaming_text() {
-    let _guard = &*POOL;
-
     let sse_body = b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_123\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-5-sonnet\",\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":10,\"output_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}\n\n\
 event: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"text\",\"text\":\"\"}}\n\n\
 event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"text_delta\",\"text\":\"Hello\"}}\n\n\
@@ -193,8 +182,6 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
 #[tracing_test::traced_test]
 #[valtron_test]
 fn test_provider_streaming_tool_calls() {
-    let _guard = &*POOL;
-
     let sse_body = b"event: message_start\ndata: {\"type\":\"message_start\",\"message\":{\"id\":\"msg_123\",\"type\":\"message\",\"role\":\"assistant\",\"content\":[],\"model\":\"claude-3-5-sonnet\",\"stop_reason\":null,\"stop_sequence\":null,\"usage\":{\"input_tokens\":50,\"output_tokens\":0,\"cache_creation_input_tokens\":0,\"cache_read_input_tokens\":0}}}\n\n\
 event: content_block_start\ndata: {\"type\":\"content_block_start\",\"index\":0,\"content_block\":{\"type\":\"tool_use\",\"id\":\"tool_abc\",\"name\":\"get_weather\",\"input\":{}}}\n\n\
 event: content_block_delta\ndata: {\"type\":\"content_block_delta\",\"index\":0,\"delta\":{\"type\":\"input_json_delta\",\"partial_json\":\"{\\\"location\\\": \\\"Paris\\\"}\"}}\n\n\
@@ -250,8 +237,6 @@ event: message_stop\ndata: {\"type\":\"message_stop\"}\n\n";
 #[tracing_test::traced_test]
 #[valtron_test]
 fn test_provider_generate_with_thinking() {
-    let _guard = &*POOL;
-
     let chat_response = br#"{
         "id": "msg_abc123",
         "type": "message",
@@ -306,8 +291,6 @@ fn test_provider_generate_with_thinking() {
 #[tracing_test::traced_test]
 #[valtron_test]
 fn test_provider_generate_multimodal() {
-    let _guard = &*POOL;
-
     let chat_response = br#"{
         "id": "msg_abc123",
         "type": "message",
@@ -394,7 +377,6 @@ fn setup_llama_server_provider() -> impl Model {
 #[valtron_test]
 #[ignore]
 fn test_llama_server_anthropic_generate() {
-    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -440,10 +422,8 @@ fn test_llama_server_anthropic_generate() {
 /// Test: streaming text generation against the real llama-server.
 #[tracing_test::traced_test]
 #[valtron_test]
-#[tracing_test::traced_test]
 #[ignore]
 fn test_llama_server_anthropic_streaming() {
-    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -483,7 +463,6 @@ fn test_llama_server_anthropic_streaming() {
 #[valtron_test]
 #[ignore]
 fn test_llama_server_anthropic_multi_turn() {
-    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -565,7 +544,6 @@ fn test_llama_server_anthropic_multi_turn() {
 #[valtron_test]
 #[ignore]
 fn test_llama_server_anthropic_max_tokens() {
-    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -605,7 +583,6 @@ fn test_llama_server_anthropic_max_tokens() {
 #[valtron_test]
 #[ignore]
 fn test_llama_server_anthropic_resolve_model() {
-    let _guard = &*POOL;
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -1217,8 +1194,8 @@ fn test_build_anthropic_request_tool_result() {
                     name: "get_weather".into(),
                     arguments: None,
                     signature: None,
-                depends_on: vec![],
-                execution_hint: foundation_ai::types::ExecutionHint::default(),
+                    depends_on: vec![],
+                    execution_hint: foundation_ai::types::ExecutionHint::default(),
                 },
                 stop_reason: StopReason::ToolUse,
                 provider: ModelProviders::ANTHROPIC,

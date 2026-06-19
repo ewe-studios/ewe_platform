@@ -5,19 +5,17 @@
 
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider, ModelSpec, TextContent,
-    UserModelContent, ToolShed,
+    MessageRole, Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider, ModelSpec,
+    TextContent, ToolShed, UserModelContent,
 };
-use foundation_core::valtron;
+use foundation_core::valtron::valtron_test;
 use foundation_testing::huggingface::TestHarness;
 use tracing_test::traced_test;
 
-#[test]
+#[valtron_test]
 #[traced_test]
 #[ignore = "requires a local GGUF model file"]
 fn test_llama_backend_creation() {
-    // Initialize valtron pool for blocking execution
-    let _guard = valtron::initialize_pool(42, Some(4));
     let backend = LlamaBackends::LLamaCPU;
     let config = LlamaBackendConfig::builder()
         .n_gpu_layers(0)
@@ -34,12 +32,10 @@ fn test_llama_backend_creation() {
 ///
 /// This test downloads the model if not present and then verifies
 /// the backend can load it.
-#[test]
+#[valtron_test]
 #[traced_test]
 #[ignore = "downloads a ~150MB model from HuggingFace"]
 fn test_llama_model_loading() {
-    // Initialize valtron pool for blocking execution
-    let _guard = valtron::initialize_pool(42, Some(4));
     // Get the project root
     let manifest_dir =
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR should be set");
@@ -84,12 +80,10 @@ fn test_llama_model_loading() {
 /// This test downloads a small GGUF model (~150MB `Q2_K` quantized)
 /// from `HuggingFace` Hub for testing the llama.cpp backend.
 /// The model is cached in the `.artifacts` directory.
-#[test]
+#[valtron_test]
 #[traced_test]
 #[ignore = "downloads a ~150MB model from HuggingFace"]
 fn test_download_smollm_model() {
-    // Initialize valtron pool for blocking execution
-    let _guard = valtron::initialize_pool(42, Some(4));
     // Get the project root (workspace directory)
     let manifest_dir =
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR should be set");
@@ -116,12 +110,10 @@ fn test_download_smollm_model() {
 ///
 /// This test downloads the model if not present and then verifies
 /// the backend can load and use it for generation.
-#[test]
+#[valtron_test]
 #[traced_test]
 #[ignore = "downloads a ~150MB model and performs generation"]
 fn test_llama_with_smollm_model() {
-    // Initialize valtron pool for blocking execution
-    let _guard = valtron::initialize_pool(42, Some(4));
     // Get the project root
     let manifest_dir =
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR should be set");
@@ -167,7 +159,7 @@ fn test_llama_with_smollm_model() {
         soul: None,
         messages: vec![Messages::User {
             id: foundation_compact::ids::new_scru128(),
-            role: "user".to_string(),
+            role: MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Hello! How are you?".to_string(),
                 signature: None,
