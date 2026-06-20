@@ -444,18 +444,38 @@ fn test_llama_server_anthropic_streaming() {
     };
 
     let mut stream = model.stream(interaction, None).unwrap();
-    let mut total_chars = 0;
+    let mut last_text = String::new();
+    let mut tool_call_name = None;
+    let mut tool_call_id = None;
     for item in &mut stream {
         if let Stream::Next(msg) = item {
             if let Messages::Assistant { content, .. } = &msg {
-                if let ModelOutput::Text(tc) = content {
-                    total_chars += tc.content.len();
+                match content {
+                    ModelOutput::Text(tc) => {
+                        last_text.clone_from(&tc.content);
+                    }
+                    ModelOutput::ToolCall { name, id, .. } => {
+                        tool_call_name = Some(name.clone());
+                        tool_call_id = Some(id.clone());
+                    }
+                    _ => {}
                 }
             }
         }
     }
 
-    assert!(total_chars > 0, "Should have received streamed tokens");
+    if let Some(name) = &tool_call_name {
+        assert!(!name.is_empty(), "Tool call name should not be empty");
+        assert!(
+            tool_call_id.as_ref().is_some_and(|id| !id.is_empty()),
+            "Tool call id should not be empty"
+        );
+    } else {
+        assert!(
+            !last_text.is_empty(),
+            "Should have received non-empty streamed text or a tool call"
+        );
+    }
 }
 
 /// Test: multi-turn conversation with conversation history.

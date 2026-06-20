@@ -238,6 +238,7 @@ pub enum AnthropicContentBlock {
     ToolUse {
         id: String,
         name: String,
+        #[serde(default)]
         input: serde_json::Value,
     },
     ToolResult {

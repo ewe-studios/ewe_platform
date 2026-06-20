@@ -195,6 +195,7 @@ fn test_candle_provider_smollm_inference() {
         }],
         tools_shed: ToolShed::default(),
         chat_template: None,
+        tool_choice: None,
     };
 
     let params = foundation_ai::types::ModelParams {

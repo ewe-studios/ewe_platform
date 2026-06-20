@@ -159,15 +159,14 @@ pub struct ResponseRequest {
 }
 
 /// Tool definition for the Responses API.
+///
+/// Unlike the Chat Completions API (`{"type":"function","function":{...}}`),
+/// the Responses API puts name/description/parameters at the top level:
+/// `{"type":"function","name":"...","description":"...","parameters":{...}}`.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ResponseTool {
     #[serde(rename = "type")]
     pub tool_type: String,
-    pub function: ResponseFunction,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct ResponseFunction {
     pub name: String,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub description: Option<String>,
@@ -668,12 +667,10 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
                     all.iter()
                         .map(|tool| ResponseTool {
                             tool_type: String::from("function"),
-                            function: ResponseFunction {
-                                name: tool.name.clone(),
-                                description: Some(tool.description.clone()),
-                                parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
-                                strict: None,
-                            },
+                            name: tool.name.clone(),
+                            description: Some(tool.description.clone()),
+                            parameters: tool.arguments.as_ref().map(|a| a.schema.clone()),
+                            strict: None,
                         })
                         .collect::<Vec<_>>(),
                 )

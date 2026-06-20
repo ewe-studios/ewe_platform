@@ -102,11 +102,36 @@ fn test_llama_server_responses_stream() {
     };
 
     let mut stream = model.stream(interaction, None).unwrap();
-    let mut received_any = false;
+    let mut last_text = String::new();
+    let mut tool_call_name = None;
+    let mut tool_call_id = None;
     for item in &mut stream {
-        if let Stream::Next(_) = item {
-            received_any = true;
+        if let Stream::Next(msg) = item {
+            if let Messages::Assistant { content, .. } = &msg {
+                match content {
+                    ModelOutput::Text(tc) => {
+                        last_text.clone_from(&tc.content);
+                    }
+                    ModelOutput::ToolCall { name, id, .. } => {
+                        tool_call_name = Some(name.clone());
+                        tool_call_id = Some(id.clone());
+                    }
+                    _ => {}
+                }
+            }
         }
     }
-    assert!(received_any, "Should have received streaming events");
+
+    if let Some(name) = &tool_call_name {
+        assert!(!name.is_empty(), "Tool call name should not be empty");
+        assert!(
+            tool_call_id.as_ref().is_some_and(|id| !id.is_empty()),
+            "Tool call id should not be empty"
+        );
+    } else {
+        assert!(
+            !last_text.is_empty(),
+            "Should have received non-empty streamed text or a tool call"
+        );
+    }
 }

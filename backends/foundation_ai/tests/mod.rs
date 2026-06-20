@@ -2,6 +2,7 @@ mod anthropic_messages_provider;
 mod candle_backend;
 mod huggingface_candle_provider;
 mod huggingface_gguf_provider;
+mod llama_server_harness;
 mod llamacpp_integration;
 mod memory_coordinator_tests;
 mod message_api_tests;

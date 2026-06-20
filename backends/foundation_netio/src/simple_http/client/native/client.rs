@@ -230,6 +230,9 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
     pub fn read_timeout(mut self, timeout: Duration) -> Self {
         let mut config = *self.config.timeout_calculator.config();
         config.min_read_timeout = timeout;
+        if config.max_read_timeout < timeout {
+            config.max_read_timeout = timeout;
+        }
         self.config.timeout_calculator = TimeoutCalculator::with_config(config);
         self
     }
