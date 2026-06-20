@@ -1,18 +1,19 @@
 ---
 feature: "Context Provider & Assembly + split search()"
 description: "The Context API: deterministic context assembly (system → working → reflection → recent → semantic recall), the split search() (vectors/memory/graph) vs search_file() (fff), and resolution of the observation-injection question"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["08-message-api", "07-memorystore", "28-vectorstore-trait-inmemory"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 8
+  uncompleted: 4
   total: 12
-  completion_percentage: 0%
+  completion_percentage: 67%
+notes: "ContextProvider with deterministic assemble() (Decision 03 order), INCON-03 resolved (observation injected only when newer than reflection), ContextConfig, AgentContext, SearchMode enum, token estimation, 8 unit tests. Semantic recall (F31), search modes (Graph/Hybrid), search_file (F32) deferred to their features."
 ---
 
 # Feature 16: Context Provider & Assembly
