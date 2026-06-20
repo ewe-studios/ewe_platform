@@ -201,6 +201,14 @@ pub struct MessageApi<D> {
     inner: Arc<MessageInner<D>>,
 }
 
+impl<D> Clone for MessageApi<D> {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
+}
+
 impl<D> MessageApi<D> {
     /// Create a new `MessageApi` over the given `DocumentStore`.
     pub fn new(session_id: SessionId, doc_store: D) -> Self {
@@ -283,25 +291,19 @@ impl<D: DocumentStore> MessageApi<D> {
     }
 
     /// Return all session records (oldest-first) as an iterator.
-    pub fn all(&self) -> StorageResult<impl Iterator<Item = SessionRecord>> {
+    pub fn all(&self) -> StorageResult<Vec<SessionRecord>> {
         let _ = self.inner.flush();
-        let docs = self
+        let stream = self
             .inner
             .doc_store
-            .scan_all::<serde_json::Value>(&self.inner.session_id.to_string())?;
-        let records: Vec<SessionRecord> = docs
-            .filter_map(|s| match s {
-                Stream::Next(Ok(v)) => Some(v),
-                _ => None,
-            })
-            .map(|v| {
-                serde_json::from_str::<SessionRecord>(
-                    v.get("content").and_then(|c| c.as_str()).unwrap_or(""),
-                )
-            })
-            .collect::<Result<Vec<_>, _>>()
-            .map_err(|e| foundation_db::StorageError::Deserialization(e.to_string()))?;
-        Ok(records.into_iter())
+            .scan_all::<SessionRecord>(&self.inner.session_id.to_string())?;
+        let mut records = Vec::new();
+        for item in stream {
+            if let Stream::Next(result) = item {
+                records.push(result?);
+            }
+        }
+        Ok(records)
     }
 
     /// Scan from a given id (inclusive), returning up to `n` records.

@@ -131,3 +131,112 @@ fn memory_records_use_promotable_columns() {
     });
     assert_eq!(is_memory.count(), 2);
 }
+
+#[test]
+fn all_returns_oldest_first() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), 100, 256);
+
+    let _ = api.append(user_record("first"));
+    let _ = api.append(user_record("second"));
+    let _ = api.append(user_record("third"));
+    api.flush().unwrap();
+
+    let records = api.all().unwrap();
+    assert_eq!(records.len(), 3);
+
+    let texts: Vec<&str> = records
+        .iter()
+        .filter_map(|r| match r {
+            SessionRecord::Conversation {
+                message: Messages::User { content, .. },
+            } => match content {
+                UserModelContent::Text(tc) => Some(tc.content.as_str()),
+                _ => None,
+            },
+            _ => None,
+        })
+        .collect();
+    assert_eq!(texts, vec!["first", "second", "third"]);
+}
+
+#[test]
+fn flush_on_end_loses_nothing() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), 1000, 256);
+
+    for i in 0..20 {
+        api.append(user_record(&format!("msg-{i}")));
+    }
+    // Buffer is not auto-flushed (threshold=1000).
+    // Explicit flush simulates session-end flush.
+    let count = api.flush().unwrap();
+    assert_eq!(count, 20);
+
+    let all = api.all().unwrap();
+    assert_eq!(all.len(), 20);
+}
+
+#[test]
+fn concurrent_append_and_read() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), 5, 256);
+
+    let writers: Vec<_> = (0..4)
+        .map(|t| {
+            let api = api.clone();
+            std::thread::spawn(move || {
+                for i in 0..10 {
+                    api.append(user_record(&format!("t{t}-{i}")));
+                }
+            })
+        })
+        .collect();
+
+    for w in writers {
+        w.join().unwrap();
+    }
+
+    api.flush().unwrap();
+    let all = api.all().unwrap();
+    assert_eq!(all.len(), 40);
+}
+
+#[test]
+fn pub_sub_flush_event_includes_count() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), 100, 256);
+    let rx = api.subscribe();
+
+    api.append(user_record("a"));
+    api.append(user_record("b"));
+    api.flush().unwrap();
+
+    let events: Vec<_> = rx.try_iter().collect();
+    // 2 Appended + 1 Flushed
+    assert_eq!(events.len(), 3);
+    assert!(matches!(&events[2], MessageEvent::Flushed { count: 2 }));
+}
+
+#[test]
+fn clear_removes_all_records() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), 100, 256);
+    api.append(user_record("will be gone"));
+    api.flush().unwrap();
+    assert_eq!(api.recent(10).unwrap().len(), 1);
+
+    api.clear().unwrap();
+    assert_eq!(api.recent(10).unwrap().len(), 0);
+}
+
+#[test]
+fn mixed_record_types_roundtrip() {
+    let api = MessageApi::with_config(SessionId::new(), MemoryDocumentStore::new(), 100, 256);
+
+    api.append(user_record("hello"));
+    api.append(working_record("user preference"));
+    api.append(observation_record("noted pattern"));
+    api.flush().unwrap();
+
+    let all = api.all().unwrap();
+    assert_eq!(all.len(), 3);
+    assert!(matches!(&all[0], SessionRecord::Conversation { .. }));
+    assert!(matches!(&all[1], SessionRecord::WorkingMemory { .. }));
+    assert!(matches!(&all[2], SessionRecord::Observation { .. }));
+}

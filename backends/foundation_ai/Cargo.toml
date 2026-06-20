@@ -72,8 +72,23 @@ futures-lite = "2"
 [[test]]
 name = "foundation_ai_tests"
 path = "tests/mod.rs"
-required-features = ["agentic", "llamacpp", "candle", "candle-cuda", "cuda", "vulkan", "mtd", "multi"]
+required-features = ["agentic", "llamacpp"]
 
+[[test]]
+name = "agentic_tests"
+path = "tests/agentic_tests.rs"
+required-features = ["agentic"]
+
+[[test]]
+name = "candle_tests"
+path = "tests/candle/mod.rs"
+required-features = ["candle"]
+
+
+[[test]]
+name = "gpu_tests"
+path = "tests/gpu/mod.rs"
+required-features = ["candle", "candle-gpu", "cuda", "cuda_static"]
 
 [features]
 default = ["llamacpp", "agentic"]
