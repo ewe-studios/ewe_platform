@@ -4,7 +4,9 @@
 //! Feature-by-feature this module grows the error taxonomy (F02), the stream
 //! contract (F03), token accounting (F04), and the agentic loop (F19+).
 
+pub mod access;
 pub mod errors;
+pub mod loop_detection;
 pub mod memory_coordinator;
 pub mod memory_store;
 pub mod message_api;
@@ -14,6 +16,11 @@ pub mod steering;
 pub mod token_ledger;
 pub mod tool_impl;
 
+pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
+pub use loop_detection::{
+    Escalation, LoopDetector, LoopDetectorConfig, ToolCallSignature,
+    LoopDetection as InlineLoopDetection,
+};
 pub use errors::{
     AgentAction, AgenticError, AuthError, CircuitBreaker, ErrorPolicy, GenKind, GenerationFailure,
     LoopDetection, UserId,
@@ -26,5 +33,6 @@ pub use serialization::{from_record_batch, to_record_batch, SerError, SessionRec
 pub use token_ledger::{TokenLedger, TokenSnapshot};
 pub use steering::{CancelCode, SteeringQueues};
 pub use tool_impl::{
-    ToolCallManager, ToolCallRequest, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
+    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolCallWorkflow,
+    ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig, WorkflowResult,
 };

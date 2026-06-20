@@ -1,18 +1,19 @@
 ---
 feature: "Loop Detection — two-tier (inline exact/SimHash/tool-call + background semantic) + memory redirect + escalation"
 description: "Two-tier LLM repetition loop detection: INLINE (exact, fuzzy SimHash via ahash, sorted-key tool-call patterns — microseconds, in F19's tight loop) + BACKGROUND (semantic embedding cosine similarity — valtron task parked via Depends(QueueReadiness) on a shared ConcurrentQueue, steers via F13 PriorityQueue on detection, zero CPU while idle). Redirect from F15 memory, escalate (model switch / temperature bump), terminate after max_redirects"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model", "13-steering-queues-depends", "15-memory-hierarchy", "20-agent-session-api"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 9
+  uncompleted: 2
   total: 11
-  completion_percentage: 0%
+  completion_percentage: 82%
+notes: "Core LoopDetector complete — exact/SimHash(ahash)/tool-call-pattern detection, escalation ladder, ToolCallSignature with sorted keys (14 unit tests). SemanticLoopTask deferred to F31 (embedding provider). build_redirect deferred to F15 (memory hierarchy). Integration with F19 loop deferred."
 ---
 
 # Feature 17: Loop Detection

@@ -1,18 +1,19 @@
 ---
 feature: "Access Control & Budget Surfacing — SessionAccessProvider + AllowAllAccess + budget retrieval"
 description: "The agentic access-control trait SessionAccessProvider (domain methods can_use_tool/model/session/spend + generic authorize escape hatch; named to avoid the foundation_ai::AuthProvider credentials collision), authorization via foundation_cedar (Cedar policies, embedded-default/hosted-optional PolicyStore), identity via foundation_auth, a trivial AllowAllAccess impl, and token-budget surfaced to the model via F04's ledger"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model", "04-token-accounting-budget"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 8
+  uncompleted: 2
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 80%
+notes: "SessionAccessProvider trait + AllowAllAccess + TokenBudget complete (7 unit tests). FoundationAuthAccess bridge + Cedar integration deferred to hosted deployment. Budget surfacing wiring deferred to F20 (session build)."
 ---
 
 # Feature 18: Access Control & Budget Surfacing

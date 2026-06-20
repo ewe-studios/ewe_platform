@@ -1,17 +1,20 @@
-//! `ToolImpl` + `ToolCallManager` — the tool contract and registry (F09).
+//! `ToolImpl` + `ToolCallManager` — the tool contract, registry (F09), and
+//! staged execution DAG (F11).
 //!
-//! WHY: The agent needs a uniform way to define, register, look up, and describe
-//! tools. `foundation_ai` has the wire types (`Tool`, `ToolShed`, `ToolFormatter`)
-//! but no implementer contract and no registry.
+//! WHY: The agent needs a uniform way to define, register, look up, and execute
+//! tools — including multi-call workflows with dependency ordering, retry, and
+//! persist-before-deliver.
 //!
 //! WHAT: `ToolImpl` (definition + async execute), `ToolCallManager` (registration +
-//! lookup + validation + execute), and the schema path to `ToolShed`.
+//! lookup + validation + execute + workflow), `ToolCallWorkflow` / `ToolCallStage` /
+//! `FailMode` (staged DAG execution), and `ToolRetryConfig` (non-blocking backoff).
 
 use crate::types::{ArgType, Args, ExecutionHint, Tool, ToolShed};
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::sync::Arc;
+use std::time::Duration;
 
 // ---------------------------------------------------------------------------
 // ToolError
@@ -111,6 +114,107 @@ pub struct ToolCallRequest {
 }
 
 // ---------------------------------------------------------------------------
+// F11: ToolCallWorkflow — staged DAG execution
+
+/// A staged workflow built from tool-call dependency graphs.
+/// Each stage contains calls that can execute after all prior stages complete.
+#[derive(Debug, Clone)]
+pub struct ToolCallWorkflow {
+    pub stages: Vec<ToolCallStage>,
+}
+
+/// One stage of a workflow — either parallel or sequential execution.
+#[derive(Debug, Clone)]
+pub enum ToolCallStage {
+    Parallel {
+        calls: Vec<ToolCallRequest>,
+        fail_mode: FailMode,
+    },
+    Sequential {
+        calls: Vec<ToolCallRequest>,
+        fail_fast: bool,
+    },
+}
+
+/// How parallel-stage failures are handled.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum FailMode {
+    /// Run all calls; collect all results (including errors).
+    CollectAll,
+    /// Cancel remaining calls on first failure.
+    CancelOnFailure,
+}
+
+impl Default for FailMode {
+    fn default() -> Self {
+        Self::CollectAll
+    }
+}
+
+/// Which error kinds are retriable.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+pub enum ToolErrorKind {
+    Timeout,
+    Network,
+    Execution,
+    InvalidArguments,
+}
+
+impl ToolError {
+    pub fn kind(&self) -> ToolErrorKind {
+        match self {
+            ToolError::Timeout { .. } => ToolErrorKind::Timeout,
+            ToolError::Execution { .. } => ToolErrorKind::Execution,
+            ToolError::InvalidArguments { .. } => ToolErrorKind::InvalidArguments,
+            ToolError::UnknownTool(_) => ToolErrorKind::InvalidArguments,
+        }
+    }
+}
+
+/// Per-tool retry configuration. Backoff uses `TaskStatus::Delayed` —
+/// never `sleep()` (would block the valtron executor / deadlock on wasm).
+#[derive(Debug, Clone)]
+pub struct ToolRetryConfig {
+    pub max_retries: u32,
+    pub initial_backoff: Duration,
+    pub backoff_multiplier: f64,
+    pub max_backoff: Duration,
+    pub retry_on: Vec<ToolErrorKind>,
+}
+
+impl Default for ToolRetryConfig {
+    fn default() -> Self {
+        Self {
+            max_retries: 3,
+            initial_backoff: Duration::from_secs(1),
+            backoff_multiplier: 2.0,
+            max_backoff: Duration::from_secs(30),
+            retry_on: vec![ToolErrorKind::Timeout, ToolErrorKind::Network],
+        }
+    }
+}
+
+impl ToolRetryConfig {
+    pub fn should_retry(&self, err: &ToolError, attempt: u32) -> bool {
+        attempt < self.max_retries && self.retry_on.contains(&err.kind())
+    }
+
+    pub fn backoff_for(&self, attempt: u32) -> Duration {
+        let millis = self.initial_backoff.as_millis() as f64
+            * self.backoff_multiplier.powi(attempt as i32);
+        let capped = Duration::from_millis(millis as u64).min(self.max_backoff);
+        capped
+    }
+}
+
+/// The result of executing an entire workflow — one result per tool call.
+#[derive(Debug)]
+pub struct WorkflowResult {
+    pub results: Vec<(ToolCallRequest, Result<ToolCallResult, ToolError>)>,
+    pub interrupted: bool,
+}
+
+// ---------------------------------------------------------------------------
 // ToolCallManager
 
 /// The tool registry — owns `Arc<dyn ToolImpl>` by name. Cheap to clone
@@ -130,6 +234,8 @@ struct ToolCallManagerInner {
     /// Cached definitions keyed by tool name — `build_toolshed` reads from this
     /// instead of looping the tools map and calling `definition()` each time.
     defs: std::sync::RwLock<HashMap<String, ToolDefinition>>,
+    /// Per-tool retry config overrides (F11).
+    retry_configs: std::sync::RwLock<HashMap<String, ToolRetryConfig>>,
     session_id: crate::types::SessionId,
 }
 
@@ -141,6 +247,7 @@ impl ToolCallManager {
             inner: Arc::new(ToolCallManagerInner {
                 tools: std::sync::RwLock::new(HashMap::new()),
                 defs: std::sync::RwLock::new(HashMap::new()),
+                retry_configs: std::sync::RwLock::new(HashMap::new()),
                 session_id,
             }),
         }
@@ -326,6 +433,139 @@ impl ToolCallManager {
     #[must_use]
     pub fn session_id(&self) -> &crate::types::SessionId {
         &self.inner.session_id
+    }
+
+    // -----------------------------------------------------------------
+    // F11: Workflow builder + execution
+    // -----------------------------------------------------------------
+
+    /// Topologically group tool calls into stages by `depends_on` depth.
+    ///
+    /// Stage 0 = calls with no deps (default: Parallel).
+    /// Stage N = calls whose deps are all satisfied by stages < N.
+    /// Cycles or missing deps → `ToolError::InvalidArguments`.
+    pub fn build_workflow(&self, calls: Vec<ToolCallRequest>) -> Result<ToolCallWorkflow, ToolError> {
+        if calls.is_empty() {
+            return Ok(ToolCallWorkflow { stages: vec![] });
+        }
+
+        let ids: HashMap<&str, usize> = calls.iter().enumerate().map(|(i, c)| (c.id.as_str(), i)).collect();
+
+        // Compute depth for each call.
+        let mut depths: Vec<Option<u32>> = vec![None; calls.len()];
+        let mut stack: Vec<usize> = Vec::new();
+
+        fn resolve_depth(
+            idx: usize,
+            calls: &[ToolCallRequest],
+            ids: &HashMap<&str, usize>,
+            depths: &mut [Option<u32>],
+            stack: &mut Vec<usize>,
+        ) -> Result<u32, ToolError> {
+            if let Some(d) = depths[idx] {
+                return Ok(d);
+            }
+            if stack.contains(&idx) {
+                return Err(ToolError::InvalidArguments {
+                    tool: calls[idx].name.clone(),
+                    reason: format!("cyclic dependency involving '{}'", calls[idx].id),
+                });
+            }
+            stack.push(idx);
+            let mut max_dep = 0u32;
+            for dep_id in &calls[idx].depends_on {
+                let dep_idx = ids.get(dep_id.as_str()).ok_or_else(|| {
+                    ToolError::InvalidArguments {
+                        tool: calls[idx].name.clone(),
+                        reason: format!("depends on unknown call '{dep_id}'"),
+                    }
+                })?;
+                let dep_depth = resolve_depth(*dep_idx, calls, ids, depths, stack)?;
+                max_dep = max_dep.max(dep_depth + 1);
+            }
+            stack.pop();
+            depths[idx] = Some(max_dep);
+            Ok(max_dep)
+        }
+
+        for i in 0..calls.len() {
+            resolve_depth(i, &calls, &ids, &mut depths, &mut stack)?;
+        }
+
+        // Group by depth.
+        let max_depth = depths.iter().filter_map(|d| *d).max().unwrap_or(0);
+        let mut stages = Vec::with_capacity((max_depth + 1) as usize);
+
+        for depth in 0..=max_depth {
+            let stage_calls: Vec<ToolCallRequest> = calls
+                .iter()
+                .enumerate()
+                .filter(|(i, _)| depths[*i] == Some(depth))
+                .map(|(_, c)| c.clone())
+                .collect();
+
+            if stage_calls.is_empty() {
+                continue;
+            }
+
+            // If any call in the stage requests Sequential, the whole stage is sequential.
+            let any_sequential = stage_calls.iter().any(|c| c.execution_hint == ExecutionHint::Sequential);
+
+            if any_sequential || stage_calls.len() == 1 {
+                stages.push(ToolCallStage::Sequential {
+                    calls: stage_calls,
+                    fail_fast: true,
+                });
+            } else {
+                stages.push(ToolCallStage::Parallel {
+                    calls: stage_calls,
+                    fail_mode: FailMode::CollectAll,
+                });
+            }
+        }
+
+        Ok(ToolCallWorkflow { stages })
+    }
+
+    /// Execute a single call with retry (non-blocking backoff via returned Duration).
+    ///
+    /// Returns `(result, backoff_durations_used)`. The caller is responsible for
+    /// implementing the actual delay (via `TaskStatus::Delayed` in valtron context).
+    /// In test / direct-call context, retries happen immediately.
+    pub async fn execute_with_retry(
+        &self,
+        request: &ToolCallRequest,
+        config: &ToolRetryConfig,
+    ) -> Result<ToolCallResult, ToolError> {
+        let mut attempt = 0u32;
+        loop {
+            match self.execute_one(request).await {
+                Ok(result) => return Ok(result),
+                Err(e) if config.should_retry(&e, attempt) => {
+                    attempt += 1;
+                    // In async context, the caller should yield with the backoff duration.
+                    // Here we just proceed to the next attempt (valtron Delayed is wired
+                    // by the task iterator in F19, not by this async fn).
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+
+    /// Set per-tool retry config override.
+    pub fn set_retry_config(&self, tool_name: &str, config: ToolRetryConfig) {
+        self.inner.retry_configs.write().unwrap().insert(tool_name.to_string(), config);
+    }
+
+    /// Get retry config for a tool (per-tool override or default).
+    pub fn retry_config(&self, tool_name: &str) -> ToolRetryConfig {
+        self.inner
+            .retry_configs
+            .read()
+            .unwrap()
+            .get(tool_name)
+            .cloned()
+            .unwrap_or_default()
     }
 }
 

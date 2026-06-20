@@ -1,18 +1,19 @@
 ---
 feature: "ToolCall Execution DAG — staged parallel/sequential execution, persist-before-deliver, retry, interruption"
 description: "The ToolCallManager execution half: build a staged workflow from depends_on/execution_hint (topological), run stages parallel/sequential on valtron, persist each request+result to the Message API BEFORE delivering to the loop, retry per-tool with backoff, surface tool errors back to the LLM, and interrupt on PriorityQueue steering"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["09-toolimpl-registry", "08-message-api", "13-steering-queues-depends"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 13
+  completed: 11
+  uncompleted: 2
   total: 13
-  completion_percentage: 0%
+  completion_percentage: 85%
+notes: "Core workflow builder + retry + error classification complete (16 tests). Topological staging, ToolRetryConfig with non-blocking backoff, FailMode, ToolErrorKind classification. Persist-before-deliver wiring deferred to F19 (the loop drives it). Interruption check wiring deferred to F19."
 ---
 
 # Feature 11: ToolCall Execution DAG

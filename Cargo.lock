@@ -3494,6 +3494,7 @@ dependencies = [
 name = "foundation_ai"
 version = "0.0.1"
 dependencies = [
+ "ahash",
  "async-trait",
  "candle-core",
  "candle-nn",

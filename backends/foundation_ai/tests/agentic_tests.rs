@@ -3,3 +3,4 @@ mod message_api_tests;
 mod provider_router_tests;
 mod steering_tests;
 mod tool_calling_formatter;
+mod tool_exec_tests;
