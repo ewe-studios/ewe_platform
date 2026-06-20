@@ -81,6 +81,20 @@ impl SteeringQueues {
         }
     }
 
+    /// Wrap existing shared handles — used when the session holds Arc handles
+    /// and the AgentLoop needs its own SteeringQueues view.
+    pub fn from_shared(
+        priority: Arc<ConcurrentQueue<Messages>>,
+        follow_up: Arc<ConcurrentQueue<Messages>>,
+        cancel_signal: Arc<AtomicU32>,
+    ) -> Self {
+        Self {
+            priority,
+            follow_up,
+            cancel_signal,
+        }
+    }
+
     /// Push a message to the priority queue (interrupts current work).
     pub fn push_priority(&self, msg: Messages) {
         let _ = self.priority.push(msg);

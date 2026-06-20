@@ -13,19 +13,17 @@
 //! F16 context, F15 memory, F17 loop detection, F02 circuit breaker). The
 //! loop orchestrates — it owns no logic beyond sequencing.
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use foundation_core::valtron::{
-    BoxedSendExecutionAction, CancellableFutureTask, CancelOutcome, DrivenTaskIterator,
-    FuturePollState, Stream, TaskIterator, TaskStatus,
+    BoxedSendExecutionAction, CancelOutcome, CancellableFutureTask, DrivenTaskIterator, Stream,
+    TaskIterator, TaskStatus,
 };
 use foundation_db::traits::DocumentStore;
 
 use crate::agentic::context::{AgentContext, ContextProvider};
-use crate::agentic::errors::{
-    AgentAction, AgenticError, CircuitBreaker, ErrorPolicy,
-};
+use crate::agentic::errors::{AgentAction, AgenticError, CircuitBreaker, ErrorPolicy};
 use crate::agentic::loop_detection::{Escalation, LoopDetection, LoopDetector, LoopDetectorConfig};
 use crate::agentic::memory::{MemoryAction, MemoryHierarchy};
 use crate::agentic::memory_store::MemoryStore;
@@ -35,8 +33,8 @@ use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::agentic::tool_impl::{ToolCallManager, ToolCallRequest, ToolCallResult, ToolError};
 use crate::types::{
-    MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelState, SessionId, SessionRecord, TextContent, UserModelContent,
+    MessageRole, Messages, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelState,
+    SessionId, SessionRecord, TextContent, UserModelContent,
 };
 
 // ---------------------------------------------------------------------------
@@ -87,14 +85,6 @@ impl Default for AgentConfig {
 }
 
 // ---------------------------------------------------------------------------
-// TurnOutput — collected outputs from a single generate step
-
-struct TurnOutput {
-    messages: Vec<Messages>,
-    tool_calls: Vec<ToolCallRequest>,
-}
-
-// ---------------------------------------------------------------------------
 // AgentLoopState
 
 /// The state machine driving the orchestrator.
@@ -127,22 +117,28 @@ pub enum AgentLoopState {
         collected: Vec<Messages>,
     },
     /// Tool calls extracted from the model's output.
-    InnerToolCalls {
-        calls: Vec<ToolCallRequest>,
-    },
+    InnerToolCalls { calls: Vec<ToolCallRequest> },
     /// Tool execution in progress — drives CancellableFutureTask per call.
     InnerExecuting {
         calls: Vec<ToolCallRequest>,
         results: Vec<(ToolCallRequest, Result<ToolCallResult, ToolError>)>,
         idx: usize,
-        active: Option<DrivenTaskIterator<CancellableFutureTask<core::pin::Pin<Box<dyn core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send>>>>>,
+        active: Option<
+            DrivenTaskIterator<
+                CancellableFutureTask<
+                    core::pin::Pin<
+                        Box<
+                            dyn core::future::Future<Output = Result<ToolCallResult, ToolError>>
+                                + Send,
+                        >,
+                    >,
+                >,
+            >,
+        >,
         cancel_signals: Vec<Arc<AtomicBool>>,
     },
     /// Emit tool results back as records and loop back to InnerAssemble.
-    InnerEmitResults {
-        results: Vec<Messages>,
-        idx: usize,
-    },
+    InnerEmitResults { results: Vec<Messages>, idx: usize },
     /// Output processing — fire memory triggers, persist.
     OutputProcessing,
     /// Emit the final Summary record and end.
@@ -198,8 +194,6 @@ pub struct AgentLoop<D, M> {
 
     /// Pending messages to prepend (from steering/follow-up).
     pending_user_messages: Vec<Messages>,
-    /// Last assembled context (reused on retry).
-    last_context: Option<AgentContext>,
 }
 
 impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
@@ -239,13 +233,12 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             outer_iteration: 0,
             message_count: 0,
             pending_user_messages: Vec::new(),
-            last_context: None,
         }
     }
 
     /// Push a user message to be processed in the next inner iteration.
     pub fn push_user_message(&mut self, msg: Messages) {
-        self.message_api.append(SessionRecord::Conversation {
+        let _ = self.message_api.append(SessionRecord::Conversation {
             message: msg.clone(),
         });
         self.pending_user_messages.push(msg);
@@ -277,7 +270,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     // -----------------------------------------------------------------------
     // State transition helpers
 
-    fn transition_outer_boundary(&mut self) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    fn transition_outer_boundary(
+        &mut self,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
         self.outer_iteration += 1;
         if self.outer_iteration > self.config.max_outer_iterations {
             self.state = AgentLoopState::Ending;
@@ -316,7 +311,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         Some(TaskStatus::Pending(AgentProgress::SessionEnding))
     }
 
-    fn transition_inner_assemble(&mut self) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    fn transition_inner_assemble(
+        &mut self,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
         // Check priority queue — front-inject interruption.
         if self.queues.has_priority() {
             let msgs = self.queues.drain_priority();
@@ -348,7 +345,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         };
 
         // Hydrate memory synchronously and assemble context.
-        let memory = self.context_provider.memory_store()
+        let memory = self
+            .context_provider
+            .memory_store()
             .hydrate_sync(&self.session_id)
             .unwrap_or_default();
         let ctx = self.context_provider.assemble_from_memory(&memory);
@@ -393,7 +392,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }
     }
 
-    fn transition_inner_generate(&mut self) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    fn transition_inner_generate(
+        &mut self,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
         // We need to take ownership of the state to pump the stream.
         let (mut stream, mut collected) = match std::mem::replace(
             &mut self.state,
@@ -446,7 +447,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     Stream::Spread(items) => {
                         use foundation_core::valtron::StreamSpread;
                         for s in &items {
-                            if let StreamSpread::Done(SessionRecord::Conversation { ref message }) = s {
+                            if let StreamSpread::Done(SessionRecord::Conversation { ref message }) =
+                                s
+                            {
                                 collected.push(message.clone());
                                 self.message_count += 1;
                             }
@@ -523,12 +526,11 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                             }));
                         }
                         Escalation::Terminate => {
-                            let err = AgenticError::LoopDetected(
-                                crate::agentic::errors::LoopDetection {
+                            let err =
+                                AgenticError::LoopDetected(crate::agentic::errors::LoopDetection {
                                     kind: format!("{detection:?}"),
                                     occurrences: self.detector.redirect_count() as u32,
-                                },
-                            );
+                                });
                             self.state = AgentLoopState::Ending;
                             return Some(TaskStatus::Ready(err.into_failed_action()));
                         }
@@ -580,7 +582,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         calls
     }
 
-    fn transition_inner_tool_calls(&mut self) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    fn transition_inner_tool_calls(
+        &mut self,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
         let calls = match std::mem::replace(&mut self.state, AgentLoopState::Done) {
             AgentLoopState::InnerToolCalls { calls } => calls,
             _ => unreachable!(),
@@ -625,7 +629,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         Some(TaskStatus::Ignore)
     }
 
-    fn transition_inner_executing(&mut self) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    fn transition_inner_executing(
+        &mut self,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
         let (calls, mut results, idx, mut active, mut cancel_signals) =
             match std::mem::replace(&mut self.state, AgentLoopState::Done) {
                 AgentLoopState::InnerExecuting {
@@ -699,10 +705,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             let call = calls[idx].clone();
             let mgr = self.tool_manager.clone();
             let retry_config = mgr.retry_config(&call.name);
-            let fut: core::pin::Pin<Box<dyn core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send>> =
-                Box::pin(async move {
-                    mgr.execute_with_retry(&call, &retry_config).await
-                });
+            let fut: core::pin::Pin<
+                Box<dyn core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send>,
+            > = Box::pin(async move { mgr.execute_with_retry(&call, &retry_config).await });
             let signal = Arc::new(AtomicBool::new(false));
             cancel_signals.push(Arc::clone(&signal));
             let task = CancellableFutureTask::new(fut, signal);
@@ -784,7 +789,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }
     }
 
-    fn transition_inner_emit_results(&mut self) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    fn transition_inner_emit_results(
+        &mut self,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
         let (results, idx) = match std::mem::replace(&mut self.state, AgentLoopState::Done) {
             AgentLoopState::InnerEmitResults { results, idx } => (results, idx),
             _ => unreachable!(),
@@ -803,7 +810,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }
 
         let msg = results[idx].clone();
-        self.message_api.append(SessionRecord::Conversation {
+        let _ = self.message_api.append(SessionRecord::Conversation {
             message: msg.clone(),
         });
         self.message_count += 1;
@@ -817,7 +824,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }))
     }
 
-    fn transition_output_processing(&mut self) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    fn transition_output_processing(
+        &mut self,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
         // Fire memory triggers (F15) — check if observation/reflection needed.
         let action = self.memory.check_triggers();
         match action {
@@ -840,7 +849,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }
     }
 
-    fn transition_ending(&mut self) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    fn transition_ending(
+        &mut self,
+    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
         let snapshot = self.ledger.snapshot();
         let summary = SessionRecord::Summary {
             message_count: self.message_count,
@@ -853,7 +864,10 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
     // -----------------------------------------------------------------------
     // Error handling (F02)
 
-    fn handle_error(&mut self, error: AgenticError) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+    fn handle_error(
+        &mut self,
+        error: AgenticError,
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
         let action = self.policy.classify(error.clone());
         match action {
             AgentAction::Continue => TaskStatus::Ignore,
@@ -940,4 +954,3 @@ where
         }
     }
 }
-
