@@ -115,6 +115,7 @@ mtmd = ["llamacpp", "infrastructure_llama_cpp/mtmd"]
 # Candle inference backend
 candle = ["candle-nn", "candle-transformers", "tokenizers", "fastrand"]
 candle-cuda = ["candle", "candle-core/cuda"]
+candle-gpu = ["candle-cuda"]
 
 # Multi-threaded executor
 multi = ["foundation_deployment_huggingface/multi", "foundation_core/multi"]

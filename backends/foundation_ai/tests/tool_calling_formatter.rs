@@ -9,7 +9,6 @@ use foundation_ai::types::{
     ArgType, Args, Messages, ModelOutput, TextBasedFormatter, TextContent, ToolCallingError,
     UserModelContent,
 };
-use foundation_compact::ids;
 
 use foundation_ai::types::{Tool, ToolFormatter};
 use foundation_jsonschema::{scheme, ValidationOptions};

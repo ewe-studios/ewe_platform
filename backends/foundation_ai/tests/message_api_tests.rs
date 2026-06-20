@@ -2,6 +2,8 @@
 //!
 //! Tests the append/flush/pub-sub surface over the in-memory `DocumentStore`.
 
+#![allow(unused_must_use)]
+
 use foundation_ai::agentic::{MessageApi, MessageEvent};
 use foundation_ai::types::{
     MemoryFact, MessageRole, Messages, ObservationEntry, ObservationKind, SessionId,
@@ -86,7 +88,7 @@ fn scan_from_returns_from_id() {
     let store = MemoryDocumentStore::new();
     let api = MessageApi::with_config(SessionId::new(), store, 2, 256);
 
-    let id1 = api.append(user_record("first"));
+    let _id1 = api.append(user_record("first"));
     let id2 = api.append(user_record("second"));
     let _id3 = api.append(user_record("third"));
     api.flush().unwrap();

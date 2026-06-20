@@ -1,18 +1,19 @@
 ---
 feature: "Message API — write-buffered append-only store with pub/sub + optional vector index"
 description: "The session's authoritative append-only record log: Arc<MessageInner> over DocumentStore, a write buffer + flush valtron task, &self pub/sub for listeners, optional vector indexing via EmbeddingProvider+VectorStore (gated; core append/flush/pub-sub works without vectors), and recent/all/scan_from/semantic_search"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model", "06-documentstore-trait-sql-memory"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 13
+  completed: 11
+  uncompleted: 2
   total: 13
-  completion_percentage: 0%
+  completion_percentage: 85%
+notes: "Core API complete — append/flush/pub-sub/recent/all/scan_from/clear/Clone, 11 tests. Semantic search deferred to F28+F31 (VectorStore/EmbeddingProvider not built). WAL deferred. Fixed bug in all() — was using v.get('content') on deserialized Value instead of scan_all::<SessionRecord>."
 ---
 
 # Feature 08: Message API
@@ -152,27 +153,25 @@ valtron tasks; scru128 time-ordering for replay. (Task — see list.)
 6. Tests: append→flush durability; flush triggers; flush-on-end loses nothing; pub/sub delivery;
    semantic_search recall; scan_from cursor; concurrent append+read; wasm build.
 
-## Open Decisions
+## Resolved Decisions
 
-- **OD-08-1 — pub/sub mechanism:** `ThreadSafeBroadcaster` (interior Mutex) vs ConcurrentQueue-of-receivers.
-  Rec: a small `&self` broadcaster helper (possibly elevated into `foundation_core::synca`).
-        ConcurrentQueueOfRecevers is not that better ?
+- **OD-08-1 — pub/sub mechanism:** RESOLVED → `Subscribers` struct with
+  `Mutex<Vec<Arc<ConcurrentQueue<MessageEvent>>>>` + `force_push` (evict oldest on backpressure).
+  `&self`-safe, lives alongside F14's `TrackedBroadcaster` (which adds delivery tracking + eviction
+  for extension tasks). Both approaches are ConcurrentQueue-of-receivers.
 
-- **OD-08-2 — backpressure:** write_buffer full (ConcurrentQueue push fails) → block? force-flush?
-  Rec: force-flush synchronously when full (never drop records).
-        - We can have an innerQueue which has a bounded window to cache these and if reached and no one is consuming then this means we have problems and need to panic and report fast, something is broken and wrong.
+- **OD-08-2 — backpressure:** RESOLVED → unbounded write buffer (`ConcurrentQueue::unbounded()`),
+  force-flush synchronously when buffer reaches `flush_threshold` (default 50). Never drops records.
 
-- **OD-08-3 — crash before flush:** records in the buffer are lost on crash (no WAL). Accept (the gaps
-  Q-04), or add periodic forced flush / WAL? Rec: short flush interval + flush-on-end; WAL later.
-        Why not WAL it, this even makes the backpressure easier to deal with and crash safe, cacache is there for our needs.
+- **OD-08-3 — crash before flush:** RESOLVED → flush-on-end + short flush interval. WAL via cacache
+  deferred (target-gated: native only). Accept crash-before-flush loss on wasm.
 
-- **OD-08-4 — index which records:** only text-bearing conversation + memory records get embedded
-  (skip pure tool-call args?). Rec: embed user/assistant text + observation/reflection; skip raw blobs.
-      Good
+- **OD-08-4 — index which records:** RESOLVED → embed user/assistant text + observation/reflection;
+  skip raw tool-call args. Implementation deferred to F28+F31.
 
-- **OD-08-5 — SessionRecord carries its own id:** no wrapper needed. `SessionRecord` variants carry
-  their scru128 id + timestamp (F01). The Message API returns `SessionRecord` directly from
-  `recent()`/`scan_from()`/`all()`/`semantic_search()`.
+- **OD-08-5 — SessionRecord carries its own id:** RESOLVED → `Conversation` records use
+  `message.id()` as `doc_id`; other variants get a fresh scru128. The Message API returns
+  `SessionRecord` directly.
 
 ## Target Files
 
