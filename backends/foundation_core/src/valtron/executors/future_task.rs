@@ -20,9 +20,13 @@ use core::task::{Context, Poll};
 
 #[cfg(feature = "std")]
 use std::boxed::Box;
+#[cfg(feature = "std")]
+use std::sync::Arc;
 
 #[cfg(all(feature = "alloc", not(feature = "std")))]
 use alloc::boxed::Box;
+#[cfg(all(feature = "alloc", not(feature = "std")))]
+use alloc::sync::Arc;
 
 #[cfg(all(feature = "std", feature = "multi"))]
 use crate::synca::mpp::{self, SenderError};
@@ -275,6 +279,140 @@ where
                 Some(TaskStatus::Ready(None))
             }
             Poll::Pending => Some(TaskStatus::Pending(StreamPollState::Pending)),
+        }
+    }
+}
+
+// ============================================================================
+// CancellableFutureTask - FutureTask with external cancel signal
+// ============================================================================
+
+/// Outcome of a cancelled future.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum CancelOutcome {
+    Cancelled,
+}
+
+/// Wraps a [`FutureTask`] with an `Arc<AtomicBool>` cancel signal.
+///
+/// On each `next_status` poll the flag is checked first — if set, the
+/// inner future is dropped and `Ready(Err(CancelOutcome::Cancelled))` is
+/// returned immediately. This lets the agent loop cancel in-flight tool
+/// executions when a steering interrupt arrives.
+#[cfg(any(feature = "std", feature = "alloc"))]
+pub struct CancellableFutureTask<F>
+where
+    F: Future,
+{
+    inner: FutureTask<F>,
+    cancel: Arc<core::sync::atomic::AtomicBool>,
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+impl<F: Future> CancellableFutureTask<F> {
+    pub fn new(
+        future: F,
+        cancel: Arc<core::sync::atomic::AtomicBool>,
+    ) -> Self {
+        Self {
+            inner: FutureTask::new(future),
+            cancel,
+        }
+    }
+
+    pub fn request_cancel(&self) {
+        self.cancel
+            .store(true, core::sync::atomic::Ordering::Release);
+    }
+
+    #[must_use]
+    pub fn is_cancelled(&self) -> bool {
+        self.cancel
+            .load(core::sync::atomic::Ordering::Acquire)
+    }
+
+    #[must_use]
+    pub fn cancel_signal(&self) -> Arc<core::sync::atomic::AtomicBool> {
+        self.cancel.clone()
+    }
+}
+
+#[cfg(feature = "multi")]
+impl<F> TaskIterator for CancellableFutureTask<F>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    type Ready = Result<F::Output, CancelOutcome>;
+    type Pending = FuturePollState;
+    type Spawner = NoAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        if self.is_cancelled() {
+            return Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled)));
+        }
+        match self.inner.next_status() {
+            Some(TaskStatus::Ready(v)) => Some(TaskStatus::Ready(Ok(v))),
+            Some(TaskStatus::Pending(p)) => Some(TaskStatus::Pending(p)),
+            Some(TaskStatus::Init) => Some(TaskStatus::Init),
+            Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
+            Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Delayed(d)) => Some(TaskStatus::Delayed(d)),
+            Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
+            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(r)),
+            Some(TaskStatus::Spread(items)) => {
+                use crate::valtron::TaskSpread;
+                Some(TaskStatus::Spread(
+                    items
+                        .into_iter()
+                        .map(|item| match item {
+                            TaskSpread::Ready(v) => TaskSpread::Ready(Ok(v)),
+                            TaskSpread::Pending(p) => TaskSpread::Pending(p),
+                        })
+                        .collect(),
+                ))
+            }
+            None => None,
+        }
+    }
+}
+
+#[cfg(all(not(feature = "multi"), any(feature = "std", feature = "alloc")))]
+impl<F> TaskIterator for CancellableFutureTask<F>
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    type Ready = Result<F::Output, CancelOutcome>;
+    type Pending = FuturePollState;
+    type Spawner = NoAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        if self.is_cancelled() {
+            return Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled)));
+        }
+        match self.inner.next_status() {
+            Some(TaskStatus::Ready(v)) => Some(TaskStatus::Ready(Ok(v))),
+            Some(TaskStatus::Pending(p)) => Some(TaskStatus::Pending(p)),
+            Some(TaskStatus::Init) => Some(TaskStatus::Init),
+            Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
+            Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
+            Some(TaskStatus::Delayed(d)) => Some(TaskStatus::Delayed(d)),
+            Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
+            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(r)),
+            Some(TaskStatus::Spread(items)) => {
+                use crate::valtron::TaskSpread;
+                Some(TaskStatus::Spread(
+                    items
+                        .into_iter()
+                        .map(|item| match item {
+                            TaskSpread::Ready(v) => TaskSpread::Ready(Ok(v)),
+                            TaskSpread::Pending(p) => TaskSpread::Pending(p),
+                        })
+                        .collect(),
+                ))
+            }
+            None => None,
         }
     }
 }

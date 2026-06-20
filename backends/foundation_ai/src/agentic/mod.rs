@@ -5,6 +5,7 @@
 //! contract (F03), token accounting (F04), and the agentic loop (F19+).
 
 pub mod access;
+pub mod agent_loop;
 pub mod context;
 pub mod errors;
 pub mod loop_detection;
@@ -19,6 +20,7 @@ pub mod token_ledger;
 pub mod tool_impl;
 
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
+pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState};
 pub use context::{AgentContext, ContextConfig, ContextProvider, SearchMode};
 pub use memory::{MemoryAction, MemoryConfig, MemoryHierarchy, MemoryParseStrategy};
 pub use loop_detection::{

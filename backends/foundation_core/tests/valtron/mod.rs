@@ -1,6 +1,7 @@
 #[cfg(not(target_arch = "wasm32"))]
 mod channel_backpressure_tests;
 mod flatten_combinators;
+mod cancellable_future;
 mod futures_in_valtron;
 mod map_circuit;
 #[cfg(not(target_arch = "wasm32"))]

@@ -10,7 +10,6 @@ use foundation_core::valtron::{
     block_on, get_pool, valtron_test, FnReady, NoSpawner, NotificationItem, Stream, TaskIterator,
     TaskStatus,
 };
-use rand::RngCore;
 use tracing_test::traced_test;
 
 use foundation_core::synca::WaitGroup;
@@ -166,7 +165,7 @@ fn can_queue_use_stream_iterator_from_task_iterator() {
 // get_pool() after the guard clears the global registry.
 #[traced_test]
 fn can_finish_even_when_task_panics() {
-    let seed = rand::rng().next_u64();
+    let seed = fastrand::u64(..);
 
     block_on(seed, None, |pool| {
         let pool_clone = pool.clone();
@@ -198,7 +197,7 @@ fn can_finish_even_when_task_panics() {
 // drops (which clears the global registry).
 #[traced_test]
 fn can_queue_and_complete_task() {
-    let seed = rand::rng().next_u64();
+    let seed = fastrand::u64(..);
 
     let shared_list = Arc::new(Mutex::new(vec![]));
     let (counter, receiver) = Counter::new(5, shared_list.clone());

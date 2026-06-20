@@ -16,6 +16,8 @@ use crate::valtron::{GenericResult, StreamIterator};
 use core::future::Future;
 
 #[cfg(any(feature = "std", feature = "alloc"))]
+use crate::valtron::CancellableFutureTask;
+#[cfg(any(feature = "std", feature = "alloc"))]
 use crate::valtron::FutureTask;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use crate::valtron::StreamTask;
@@ -217,6 +219,49 @@ where
     F::Output: 'static,
 {
     drive_iterator(crate::valtron::from_future(future))
+}
+
+/// Wrap a future into a [`CancellableFutureTask`] (non-Send — for single-threaded / wasm).
+#[cfg(any(feature = "std", feature = "alloc"))]
+pub fn from_cancellable_future<F>(
+    future: F,
+    cancel: std::sync::Arc<core::sync::atomic::AtomicBool>,
+) -> CancellableFutureTask<F>
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    CancellableFutureTask::new(future, cancel)
+}
+
+/// Create a new cancel signal (shared `Arc<AtomicBool>` set to `false`).
+#[cfg(any(feature = "std", feature = "alloc"))]
+#[must_use]
+pub fn cancel_signal() -> std::sync::Arc<core::sync::atomic::AtomicBool> {
+    std::sync::Arc::new(core::sync::atomic::AtomicBool::new(false))
+}
+
+/// Schedule a cancellable future on the valtron executor.
+///
+/// Returns `(stream, cancel_signal)` — the caller keeps the signal
+/// and sets it to `true` to cancel the in-flight future. The stream
+/// yields `Stream<Result<F::Output, CancelOutcome>, FuturePollState>`.
+#[cfg(any(feature = "std", feature = "alloc"))]
+pub fn drive_cancellable_future<F>(
+    future: F,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<(
+    DrivenStreamIterator<CancellableFutureTask<F>>,
+    std::sync::Arc<core::sync::atomic::AtomicBool>,
+)>
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    let signal = cancel_signal();
+    let task = from_cancellable_future(future, std::sync::Arc::clone(&signal));
+    let stream = execute(task, wait_cycle)?;
+    Ok((stream, signal))
 }
 
 /// Wrap a future into a `TaskIterator` (wasm32 - no Send required).

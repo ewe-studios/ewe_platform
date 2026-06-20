@@ -377,7 +377,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
 
     let results: Arc<Mutex<Vec<usize>>> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = rand::random();
+    let seed = fastrand::u64(..);
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -438,7 +438,7 @@ fn test_single_threaded_executor_pends_without_blocking() {
 
     let counter: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
 
-    let seed = rand::random();
+    let seed = fastrand::u64(..);
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),

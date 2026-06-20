@@ -129,6 +129,13 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     /// 6. Semantic recall (fills remaining budget — deferred to F31 wiring)
     pub async fn assemble(&self) -> AgentContext {
         let memory = self.hydrate_memory().await;
+        self.assemble_from_memory(&memory)
+    }
+
+    /// Build context from a pre-hydrated `SessionMemory` — synchronous,
+    /// suitable for the `AgentLoop`'s `TaskIterator::next_status` (F19).
+    #[must_use]
+    pub fn assemble_from_memory(&self, memory: &SessionMemory) -> AgentContext {
         let mut messages = Vec::new();
         let mut token_estimate: u64 = 0;
 
@@ -175,7 +182,6 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
         }
 
         // 5. Semantic recall — deferred to F31 (EmbeddingProvider) wiring.
-        //    Slot exists for future integration.
 
         AgentContext {
             system_prompt: self.system_prompt.clone(),
@@ -190,6 +196,12 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
             .hydrate_async(&self.session_id)
             .await
             .unwrap_or_default()
+    }
+
+    /// The memory store (for sync hydrate in F19).
+    #[must_use]
+    pub fn memory_store(&self) -> &Arc<M> {
+        &self.memory_store
     }
 
     /// The session's token ledger.

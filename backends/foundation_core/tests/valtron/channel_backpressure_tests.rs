@@ -180,7 +180,7 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = rand::random();
+    let seed = fastrand::u64(..);
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),
@@ -243,7 +243,7 @@ fn test_executor_ready_iter_no_message_loss() {
 
     let results: Arc<Mutex<Vec<i32>>> = Arc::new(Mutex::new(Vec::new()));
 
-    let seed = rand::random();
+    let seed = fastrand::u64(..);
     let executor = LocalThreadExecutor::from_seed(
         seed,
         "1".into(),

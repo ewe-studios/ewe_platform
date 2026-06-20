@@ -31,6 +31,8 @@ pub enum ToolError {
     Execution { tool: String, reason: String },
     /// Tool execution exceeded its deadline (valtron-driven timeout, F11).
     Timeout { tool: String },
+    /// Tool execution was cancelled via steering signal.
+    Cancelled(String),
 }
 
 impl std::fmt::Display for ToolError {
@@ -44,6 +46,7 @@ impl std::fmt::Display for ToolError {
                 write!(f, "execution error in {tool}: {reason}")
             }
             ToolError::Timeout { tool } => write!(f, "timeout in {tool}"),
+            ToolError::Cancelled(tool) => write!(f, "cancelled: {tool}"),
         }
     }
 }
@@ -167,6 +170,7 @@ impl ToolError {
             ToolError::Execution { .. } => ToolErrorKind::Execution,
             ToolError::InvalidArguments { .. } => ToolErrorKind::InvalidArguments,
             ToolError::UnknownTool(_) => ToolErrorKind::InvalidArguments,
+            ToolError::Cancelled(_) => ToolErrorKind::Execution,
         }
     }
 }
@@ -227,6 +231,14 @@ pub struct WorkflowResult {
 /// ```
 pub struct ToolCallManager {
     inner: Arc<ToolCallManagerInner>,
+}
+
+impl Clone for ToolCallManager {
+    fn clone(&self) -> Self {
+        Self {
+            inner: self.inner.clone(),
+        }
+    }
 }
 
 struct ToolCallManagerInner {

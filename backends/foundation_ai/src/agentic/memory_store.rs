@@ -121,6 +121,13 @@ pub trait MemoryStore: Send + Sync {
 
     /// Clear a session's cached memory.
     async fn clear_async(&self, session: &SessionId) -> StorageResult<()>;
+
+    /// Synchronous hydrate for the `AgentLoop`'s `TaskIterator` (F19).
+    /// Default returns empty — concrete stores override when sync is cheap.
+    fn hydrate_sync(&self, session: &SessionId) -> StorageResult<SessionMemory> {
+        let _ = session;
+        Ok(SessionMemory::default())
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -174,6 +181,11 @@ impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
 
     async fn clear_async(&self, session: &SessionId) -> StorageResult<()> {
         self.kv.delete(&SessionMemory::key(session))
+    }
+
+    fn hydrate_sync(&self, session: &SessionId) -> StorageResult<SessionMemory> {
+        let key = SessionMemory::key(session);
+        self.kv.get(&key).map(std::option::Option::unwrap_or_default)
     }
 }
 

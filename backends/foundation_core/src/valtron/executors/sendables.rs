@@ -4,6 +4,7 @@
 use crate::valtron::multi;
 pub use crate::valtron::multi::{block_on, get_pool};
 
+use crate::valtron::CancellableFutureTask;
 use crate::valtron::FutureTask;
 use crate::valtron::ReadyValues;
 use crate::valtron::StreamConfig;
@@ -16,6 +17,8 @@ use crate::valtron::{
     TaskStatus,
 };
 use core::future::Future;
+use std::sync::Arc;
+use core::sync::atomic::AtomicBool;
 
 use crate::valtron::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION, DEFAULT_WAIT_CYCLE};
 
@@ -434,6 +437,74 @@ where
     S::Item: Send + 'static,
 {
     drive_iterator(crate::valtron::from_stream(stream))
+}
+
+/// Wrap a future into a [`CancellableFutureTask`] (native — requires Send).
+pub fn from_cancellable_future<F>(
+    future: F,
+    cancel: Arc<AtomicBool>,
+) -> CancellableFutureTask<F>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    CancellableFutureTask::new(future, cancel)
+}
+
+/// Create a new cancel signal (shared `Arc<AtomicBool>` set to `false`).
+#[must_use]
+pub fn cancel_signal() -> Arc<AtomicBool> {
+    Arc::new(AtomicBool::new(false))
+}
+
+/// Schedule a cancellable future on the valtron executor.
+///
+/// Returns `(stream, cancel_signal)` — the caller keeps the signal
+/// and sets it to `true` to cancel the in-flight future. The stream
+/// yields `Stream<Result<F::Output, CancelOutcome>, FuturePollState>`.
+pub fn drive_cancellable_future<F>(
+    future: F,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<(
+    DrivenStreamIterator<CancellableFutureTask<F>>,
+    Arc<AtomicBool>,
+)>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    let signal = cancel_signal();
+    let task = from_cancellable_future(future, Arc::clone(&signal));
+    let stream = execute(task, wait_cycle)?;
+    Ok((stream, signal))
+}
+
+/// Schedule multiple cancellable futures in parallel and collect results as they arrive.
+///
+/// Returns `(stream, cancel_signals)` — one signal per future. Setting any
+/// signal cancels the corresponding future.
+pub fn execute_cancellable_futures<F>(
+    futures: Vec<F>,
+    wait_cycle: Option<std::time::Duration>,
+) -> GenericResult<(
+    CollectNextFromAllStream<CancellableFutureTask<F>>,
+    Vec<Arc<AtomicBool>>,
+)>
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    let mut signals = Vec::with_capacity(futures.len());
+    let tasks: Vec<CancellableFutureTask<F>> = futures
+        .into_iter()
+        .map(|f| {
+            let sig = cancel_signal();
+            signals.push(Arc::clone(&sig));
+            from_cancellable_future(f, sig)
+        })
+        .collect();
+    let stream = execute_collect_next_from_all(tasks, wait_cycle)?;
+    Ok((stream, signals))
 }
 
 // ===========================================
