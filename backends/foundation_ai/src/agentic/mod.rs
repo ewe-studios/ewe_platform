@@ -8,6 +8,7 @@ pub mod access;
 pub mod context;
 pub mod errors;
 pub mod loop_detection;
+pub mod memory;
 pub mod memory_coordinator;
 pub mod memory_store;
 pub mod message_api;
@@ -19,6 +20,7 @@ pub mod tool_impl;
 
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
 pub use context::{AgentContext, ContextConfig, ContextProvider, SearchMode};
+pub use memory::{MemoryAction, MemoryConfig, MemoryHierarchy, MemoryParseStrategy};
 pub use loop_detection::{
     Escalation, LoopDetector, LoopDetectorConfig, ToolCallSignature,
     LoopDetection as InlineLoopDetection,

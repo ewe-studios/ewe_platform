@@ -1,18 +1,19 @@
 ---
 feature: "Memory Hierarchy — Working / Observation / Reflection generation + triggers"
 description: "The three-tier memory generator: a memory-model-driven distillation pipeline that turns raw messages into Working/Observation/Reflection snapshots, triggered off F04's TokenLedger rolling counter (~30k obs) and observation-memory size (~40k refl), where reflections REPLACE observation content and every snapshot is pushed to the Message API + MemoryStore"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model", "04-token-accounting-budget", "07-memorystore", "08-message-api", "16-context-provider-assembly"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 8
+  uncompleted: 4
   total: 12
-  completion_percentage: 0%
+  completion_percentage: 67%
+notes: "MemoryHierarchy with check_triggers (30k rolling obs, 40k obs-store reflection), persist_observation (audit-first dual-write + reset_rolling), persist_reflection (reset obs counter), update_working_memory (version bump), begin/end_generation exclusion gate, MemoryConfig + MemoryAction + MemoryParseStrategy. 10 unit tests. Model-driven generation prompts + MemoryGenTask valtron sub-task deferred to F19 integration."
 ---
 
 # Feature 15: Memory Hierarchy
