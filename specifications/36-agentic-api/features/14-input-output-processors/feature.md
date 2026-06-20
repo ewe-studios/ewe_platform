@@ -1,18 +1,19 @@
 ---
 feature: "Internal Pipeline & Extension Hooks — fixed internal steps, pub/sub fan-out, steer-to-hook"
 description: "The agent loop's internal pipeline is fixed (no processor traits): F16 assembles context, F19 calls the model, F08 saves, F15 checks memory triggers, F31 embeds — all in a deterministic order. User extensions are valtron tasks that subscribe to F08's pub/sub broadcaster (bounded per-subscriber queues, slowest-consumer pacing, eviction on max-retry failure) and steer via F13's queues. AgentSession exposes all handles."
-status: "pending"
+status: "partial"
 priority: "high"
 depends_on: ["08-message-api", "13-steering-queues-depends", "15-memory-hierarchy", "16-context-provider-assembly", "19-agentic-loop"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-15
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 4
+  uncompleted: 4
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 50%
+notes: "TrackedBroadcaster delivered in foundation_core::synca::mpp (10 tests). AgentSession extension handles deferred to F20. Fixed pipeline documentation deferred to F19. OD-14-1..7 already resolved."
 ---
 
 # Feature 14: Internal Pipeline & Extension Hooks

@@ -12,6 +12,7 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
+use foundation_core::valtron::{EventReadiness, QueueReadiness};
 
 use crate::types::Messages;
 
@@ -124,6 +125,36 @@ impl SteeringQueues {
     /// Check if any steering is pending (priority messages or active cancel).
     pub fn is_active(&self) -> bool {
         self.has_priority() || self.cancel_code().is_active()
+    }
+
+    /// Readiness signal for `TaskStatus::Depends` — parks the agent task
+    /// until a priority message arrives. Zero CPU spin.
+    pub fn priority_readiness(&self) -> Arc<dyn EventReadiness> {
+        Arc::new(QueueReadiness::new(self.priority.clone()))
+    }
+
+    /// Readiness signal for `TaskStatus::Depends` — parks the agent task
+    /// until a follow-up message arrives.
+    pub fn followup_readiness(&self) -> Arc<dyn EventReadiness> {
+        Arc::new(QueueReadiness::new(self.follow_up.clone()))
+    }
+
+    /// Drain all priority messages (session end: caller persists, then clears).
+    pub fn drain_priority(&self) -> Vec<Messages> {
+        let mut out = Vec::new();
+        while let Ok(msg) = self.priority.pop() {
+            out.push(msg);
+        }
+        out
+    }
+
+    /// Drain all follow-up messages (session end: caller persists, then clears).
+    pub fn drain_follow_up(&self) -> Vec<Messages> {
+        let mut out = Vec::new();
+        while let Ok(msg) = self.follow_up.pop() {
+            out.push(msg);
+        }
+        out
     }
 }
 

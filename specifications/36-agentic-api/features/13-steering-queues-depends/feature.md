@@ -1,18 +1,18 @@
 ---
 feature: "Steering Queues & Depends — PriorityQueue / FollowUpQueue + CancelCode + sequenced composition"
 description: "The two steering mechanisms: PriorityQueue (interrupt now) and FollowUpQueue (defer) as Arc<ConcurrentQueue<Messages>>, a valid #[repr(u32)] CancelCode signal, sequenced agent+LLM valtron composition, and queue waits via TaskStatus::Depends(QueueReadiness) so the loop never spins on Pending/Delayed"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 13: Steering Queues & Depends
@@ -160,18 +160,20 @@ drain-persist-clear on session end. (Task — see list.)
    push (no spin); drain returns + clears; CancelCode round-trips through AtomicU32; multi-producer
    push from several "sources" all land as `Messages::User`; wasm build.
 
-## Open Decisions
+## Resolved Decisions
 
-- **OD-13-1 — queue bound:** unbounded (rec, Decision 05 uses ConcurrentQueue without backpressure) vs
-  bounded with force-flush. Rec: unbounded; steering volume is low.
-- **OD-13-2 — steer auto-sets signal:** `steer()` pushes AND sets `PauseForPriority` (rec) vs caller
-  sets separately. Rec: auto-set (atomic intent).
-- **OD-13-3 — Abort semantics:** `Abort` ends the session vs only the current turn. Rec: `Abort` ends
-  the turn (loop returns to outer boundary); session end is `end()` (F20). Confirm.
-- **OD-13-4 — sequenced spawn API:** confirm the valtron `sequenced()`/`DualSequeunceChildAndParentLinkedTask`
-  entrypoint name + signature in `dependent_lift.rs` before coding. Flag.
-- **OD-13-5 — readiness timeout:** `Depends` `is_ready(dur)` — pass `None` (immediate, executor parks)
-  vs a timeout. Rec: `None` (full park; the executor wakes on push).
+- **OD-13-1 — queue bound:** RESOLVED → unbounded. `ConcurrentQueue::unbounded()`. Steering volume is
+  low; backpressure is unnecessary overhead.
+- **OD-13-2 — steer auto-sets signal:** RESOLVED → auto-set. `push_priority()` pushes AND stores
+  `PauseForPriority` atomically. Single call = atomic intent.
+- **OD-13-3 — Abort semantics:** RESOLVED → `Abort` ends the current turn (loop returns to outer
+  boundary). Session end is `end()` (F20).
+- **OD-13-4 — sequenced spawn API:** RESOLVED → confirmed.
+  `DualSequeunceChildAndParentLinkedTask::new(info: SpawnInfo, parent: BoxedExecutionIterator, child: BoxedExecutionIterator)`
+  in `foundation_core::valtron::executors::dependent_lift`. Each step: child yields one state, parent
+  runs once (can check priority queue + set cancel). F19 wires this up; F13 owns the primitives.
+- **OD-13-5 — readiness timeout:** RESOLVED → `None` (immediate check, executor parks). The executor
+  wakes the task when `QueueReadiness::is_ready` flips true on push.
 
 ## Target Files
 

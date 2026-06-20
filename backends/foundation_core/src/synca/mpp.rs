@@ -453,6 +453,121 @@ impl<T: Clone + Send + 'static> Default for Broadcaster<T> {
     }
 }
 
+// ---------------------------------------------------------------------------
+// TrackedBroadcaster — &self-safe fan-out with delivery tracking & eviction
+// ---------------------------------------------------------------------------
+
+struct TrackedSlot<T> {
+    sender: Sender<T>,
+    delivered_up_to: u64,
+    consecutive_failures: u32,
+}
+
+struct TrackedInner<T: Clone + Send + 'static> {
+    slots: Vec<TrackedSlot<T>>,
+    capacity: usize,
+    max_retries: u32,
+    event_index: u64,
+}
+
+/// `&self`-safe multi-subscriber broadcaster with bounded per-subscriber
+/// queues, delivery tracking, and eviction on max-retry failure.
+///
+/// Unlike [`Broadcaster`] (which requires `&mut self`), all methods here take
+/// `&self` — an internal `Mutex` handles synchronization. Each subscriber gets
+/// an independent bounded `Receiver<T>`. `broadcast()` fans out via try-push
+/// (never blocks). Subscribers that fail to keep up are evicted after
+/// `max_retries` consecutive push failures; their queue is closed so the
+/// consumer sees `PopError::Closed`.
+pub struct TrackedBroadcaster<T: Clone + Send + 'static> {
+    inner: std::sync::Mutex<TrackedInner<T>>,
+}
+
+impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
+    pub fn new(capacity: usize) -> Self {
+        Self::with_max_retries(capacity, 16)
+    }
+
+    pub fn with_max_retries(capacity: usize, max_retries: u32) -> Self {
+        Self {
+            inner: std::sync::Mutex::new(TrackedInner {
+                slots: Vec::new(),
+                capacity,
+                max_retries,
+                event_index: 0,
+            }),
+        }
+    }
+
+    pub fn subscribe(&self) -> Receiver<T> {
+        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        let cap = inner.capacity;
+        let idx = inner.event_index;
+        let (tx, rx) = bounded(cap);
+        inner.slots.push(TrackedSlot {
+            sender: tx,
+            delivered_up_to: idx,
+            consecutive_failures: 0,
+        });
+        rx
+    }
+
+    /// Fan out an event to all subscribers. Never blocks.
+    ///
+    /// Try-push to each subscriber's queue. On success, reset the failure
+    /// counter. On failure (queue full or closed), increment
+    /// `consecutive_failures`. After `max_retries` consecutive failures,
+    /// evict: close the queue and remove the slot.
+    pub fn broadcast(&self, event: T) {
+        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        inner.event_index += 1;
+        let idx = inner.event_index;
+        let max = inner.max_retries;
+
+        inner.slots.retain_mut(|slot| {
+            if slot.sender.is_closed() {
+                return false;
+            }
+            match slot.sender.send(event.clone()) {
+                Ok(()) => {
+                    slot.delivered_up_to = idx;
+                    slot.consecutive_failures = 0;
+                    true
+                }
+                Err(_) => {
+                    slot.consecutive_failures += 1;
+                    if slot.consecutive_failures >= max {
+                        slot.sender.close();
+                        false
+                    } else {
+                        true
+                    }
+                }
+            }
+        });
+    }
+
+    pub fn subscriber_count(&self) -> usize {
+        let inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        inner.slots.len()
+    }
+
+    /// Close all subscriber queues (session-end lifecycle signal).
+    pub fn close(&self) {
+        let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
+        for slot in &inner.slots {
+            slot.sender.close();
+        }
+        inner.slots.clear();
+    }
+}
+
+impl<T: Clone + Send + 'static> Default for TrackedBroadcaster<T> {
+    fn default() -> Self {
+        Self::new(64)
+    }
+}
+
 #[cfg(test)]
 mod test_channels {
     use std::{sync::Arc, thread, time::Duration};
@@ -528,5 +643,164 @@ mod test_channels {
         dbg!("Received values: {:?}", &items);
 
         assert_eq!(items, vec![42]);
+    }
+}
+
+#[cfg(test)]
+mod test_tracked_broadcaster {
+    use super::TrackedBroadcaster;
+
+    #[test]
+    fn fans_out_to_multiple_subscribers() {
+        let b = TrackedBroadcaster::new(16);
+        let r1 = b.subscribe();
+        let r2 = b.subscribe();
+        let r3 = b.subscribe();
+
+        b.broadcast(42);
+        b.broadcast(99);
+
+        assert_eq!(r1.recv().unwrap(), 42);
+        assert_eq!(r1.recv().unwrap(), 99);
+        assert_eq!(r2.recv().unwrap(), 42);
+        assert_eq!(r2.recv().unwrap(), 99);
+        assert_eq!(r3.recv().unwrap(), 42);
+        assert_eq!(r3.recv().unwrap(), 99);
+    }
+
+    #[test]
+    fn subscriber_added_after_broadcast_misses_earlier_events() {
+        let b = TrackedBroadcaster::new(16);
+        let r1 = b.subscribe();
+        b.broadcast(1);
+
+        let r2 = b.subscribe();
+        b.broadcast(2);
+
+        assert_eq!(r1.recv().unwrap(), 1);
+        assert_eq!(r1.recv().unwrap(), 2);
+        assert_eq!(r2.recv().unwrap(), 2);
+        assert!(r2.recv().is_err());
+    }
+
+    #[test]
+    fn slow_subscriber_evicted_after_max_retries() {
+        let b = TrackedBroadcaster::with_max_retries(2, 3);
+        let slow = b.subscribe();
+        let fast = b.subscribe();
+
+        b.broadcast(1);
+        b.broadcast(2);
+        assert_eq!(b.subscriber_count(), 2);
+
+        // Drain fast so it stays healthy; slow stays full
+        assert_eq!(fast.recv().unwrap(), 1);
+        assert_eq!(fast.recv().unwrap(), 2);
+
+        // 3 more pushes: slow fails each time → evicted at 3
+        b.broadcast(3);
+        b.broadcast(4);
+        b.broadcast(5);
+
+        assert_eq!(b.subscriber_count(), 1);
+        assert!(slow.is_closed());
+
+        assert_eq!(fast.recv().unwrap(), 3);
+    }
+
+    #[test]
+    fn success_resets_failure_counter() {
+        let b = TrackedBroadcaster::with_max_retries(2, 3);
+        let r = b.subscribe();
+
+        b.broadcast(1);
+        b.broadcast(2);
+        // 2 failures (queue full, capacity 2)
+        b.broadcast(3);
+        b.broadcast(4);
+        assert_eq!(b.subscriber_count(), 1);
+
+        // Drain to reset
+        r.recv().unwrap();
+        r.recv().unwrap();
+
+        // Next broadcast succeeds → resets counter
+        b.broadcast(5);
+        assert_eq!(b.subscriber_count(), 1);
+        assert_eq!(r.recv().unwrap(), 5);
+    }
+
+    #[test]
+    fn closed_receiver_removed_on_next_broadcast() {
+        let b = TrackedBroadcaster::new(16);
+        let r1 = b.subscribe();
+        let r2 = b.subscribe();
+        assert_eq!(b.subscriber_count(), 2);
+
+        r2.close();
+        b.broadcast(1);
+
+        assert_eq!(b.subscriber_count(), 1);
+        assert_eq!(r1.recv().unwrap(), 1);
+    }
+
+    #[test]
+    fn close_closes_all_subscribers() {
+        let b = TrackedBroadcaster::<i32>::new(16);
+        let r1 = b.subscribe();
+        let r2 = b.subscribe();
+
+        b.close();
+
+        assert!(r1.is_closed());
+        assert!(r2.is_closed());
+        assert_eq!(b.subscriber_count(), 0);
+    }
+
+    #[test]
+    fn broadcast_with_no_subscribers_is_noop() {
+        let b = TrackedBroadcaster::<i32>::new(16);
+        b.broadcast(42);
+        assert_eq!(b.subscriber_count(), 0);
+    }
+
+    #[test]
+    fn subscribe_and_broadcast_from_multiple_threads() {
+        use std::sync::Arc;
+
+        let b = Arc::new(TrackedBroadcaster::new(64));
+        let r = b.subscribe();
+
+        let handles: Vec<_> = (0..4)
+            .map(|i| {
+                let b = b.clone();
+                std::thread::spawn(move || {
+                    b.broadcast(i);
+                })
+            })
+            .collect();
+
+        for h in handles {
+            h.join().unwrap();
+        }
+
+        let mut received = Vec::new();
+        while let Ok(v) = r.recv() {
+            received.push(v);
+        }
+        received.sort();
+        assert_eq!(received, vec![0, 1, 2, 3]);
+    }
+
+    #[test]
+    fn default_has_capacity_64() {
+        let b = TrackedBroadcaster::<i32>::default();
+        let r = b.subscribe();
+        for i in 0..64 {
+            b.broadcast(i);
+        }
+        for i in 0..64 {
+            assert_eq!(r.recv().unwrap(), i);
+        }
     }
 }

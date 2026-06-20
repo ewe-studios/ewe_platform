@@ -24,6 +24,7 @@ pub use message_api::{MessageApi, MessageEvent, Receiver as MessageReceiver};
 pub use progress::{lift_model_item, AgentProgress, AgentStream, MemoryKind};
 pub use serialization::{from_record_batch, to_record_batch, SerError, SessionRecordRow};
 pub use token_ledger::{TokenLedger, TokenSnapshot};
+pub use steering::{CancelCode, SteeringQueues};
 pub use tool_impl::{
     ToolCallManager, ToolCallRequest, ToolCallResult, ToolDefinition, ToolError, ToolImpl,
 };
