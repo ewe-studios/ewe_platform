@@ -1,0 +1,19 @@
+[package]
+name = "foundation_vectors"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Dense vector distance metrics, flat-scan top-k, and VectorStore trait. Pure Rust, WASM-safe."
+keywords = ["vectors", "embeddings", "search", "ewe-platform"]
+
+[dependencies]
+serde = { workspace = true }
+libm = "0.2"
+
+[dev-dependencies]
+
+[lints]
+workspace = true

@@ -1,18 +1,19 @@
 ---
 feature: "MemoryStore — fast latest-memory retrieval per session"
 description: "A MemoryStore cache (over KeyValueStore + optional fjall) that stores the latest memory SessionRecord per tier per SessionId (one key/session, O(1) hydrate) — no Snapshot structs; a MemoryCoordinator facade (held by AgentSession) owns MemoryStore + DocumentStore and does dual-write + cache->audit fallback"
-status: "in-progress"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model", "06-documentstore-trait-sql-memory"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-18
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 6
-  uncompleted: 3
+  completed: 7
+  uncompleted: 2
   total: 9
-  completion_percentage: 67%
+  completion_percentage: 78%
+notes: "Core complete — MemoryStore trait, KvMemoryStore (single-key bundle), MemoryCoordinator (audit-first dual-write + fallback), MemoryTier, SessionMemory, impl PromotableDocument for SessionRecord. 8 tests (4 unit + 4 coordinator integration). FjallMemoryStore (native perf opt-in) deferred. Fundamentals doc deferred."
 ---
 
 # Feature 07: MemoryStore

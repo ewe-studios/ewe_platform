@@ -4257,6 +4257,14 @@ name = "foundation_ui_traits"
 version = "0.0.1"
 
 [[package]]
+name = "foundation_vectors"
+version = "0.0.1"
+dependencies = [
+ "libm",
+ "serde",
+]
+
+[[package]]
 name = "foundation_wasm"
 version = "0.0.3"
 dependencies = [

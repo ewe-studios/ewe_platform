@@ -1,18 +1,19 @@
 ---
 feature: "VectorStore trait + in-memory backend (namespace-scoped)"
 description: "The VectorStore trait + in-memory backend (insert/query/delete with session namespace scoping + dimension enforcement), lives in foundation_vectors (Item #16). FlatIndex from F24; swappable to IVF/HNSW (F25) via config. foundation_db re-exports for convenience."
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["24-foundation-vectors-core"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 7
+  uncompleted: 3
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 70%
+notes: "VectorStore trait + InMemoryVectorStore + all types (VectorEntry, VectorMatch, VectorMetadata, VectorStoreConfig, VectorStoreError) delivered in foundation_vectors (F24, per OD-24-8). Namespace scoping, AsyncVectorStore, and foundation_db re-export deferred."
 ---
 
 # Feature 28: VectorStore trait + in-memory backend
