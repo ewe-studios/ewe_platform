@@ -101,6 +101,8 @@ pub enum AgenticError {
     BudgetExhausted {
         snapshot: crate::agentic::token_ledger::TokenSnapshot,
     },
+    /// Model routing failure (no provider found, rule mismatch — F12).
+    Routing(String),
     /// Catch-all for anything unmapped (`ErrorTrace<T>` flattenings, etc.).
     Unexpected(String),
 }
@@ -193,12 +195,19 @@ impl std::fmt::Display for AgenticError {
                 "token budget exhausted ({} / {:?} tokens)",
                 snapshot.total, snapshot.budget
             ),
+            AgenticError::Routing(m) => write!(f, "routing: {m}"),
             AgenticError::Unexpected(m) => write!(f, "unexpected: {m}"),
         }
     }
 }
 
 impl std::error::Error for AgenticError {}
+
+impl From<crate::types::RouterError> for AgenticError {
+    fn from(e: crate::types::RouterError) -> Self {
+        AgenticError::Routing(e.to_string())
+    }
+}
 
 impl AgenticError {
     /// Build a `SessionRecord::FailedAction` carrying this error and the
@@ -391,6 +400,7 @@ mod tests {
             AgenticError::Auth(AuthError {
                 reason: "expired".into(),
             }),
+            AgenticError::Routing("no provider for model x".into()),
             AgenticError::Unexpected("???".into()),
         ];
         for e in errors {

@@ -7,5 +7,6 @@ mod memory_coordinator_tests;
 mod message_api_tests;
 mod openai_provider;
 mod openai_responses_provider;
+mod provider_router_tests;
 mod sampler_chain;
 mod tool_calling_formatter;

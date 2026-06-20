@@ -10,6 +10,7 @@ pub mod memory_store;
 pub mod message_api;
 pub mod progress;
 pub mod serialization;
+pub mod steering;
 pub mod token_ledger;
 pub mod tool_impl;
 
