@@ -4,10 +4,8 @@
 //! patterns — no tokio, no async-trait.
 
 use foundation_compact::SystemTime;
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
@@ -508,7 +506,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
                 resolver: self.resolver.clone(),
                 info: info.clone(),
                 pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-                cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
+                cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
             });
         }
         drop(cache);
@@ -534,7 +532,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
             resolver: self.resolver.clone(),
             info,
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-            cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
+            cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
         })
     }
 
@@ -578,7 +576,7 @@ pub struct AnthropicModel<R: DnsResolver = SystemDnsResolver> {
     #[allow(dead_code)]
     info: crate::backends::openai_provider::OpenAIModelInfo,
     pricing: ModelUsageCosting,
-    cumulative_cost: Rc<RefCell<CostAccumulator>>,
+    cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
 impl<R: DnsResolver + 'static> AnthropicModel<R> {
@@ -847,7 +845,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        let cost = self.cumulative_cost.borrow().result();
+        let cost = self.cumulative_cost.lock().unwrap().result();
         Ok(UsageReport {
             input: 0.0,
             output: 0.0,
@@ -873,7 +871,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         let response: MessagesResponse = self.execute_request(&url, &body)?;
 
         let (messages, report) = parse_response(&response, &self.model_id, &self.pricing)?;
-        self.cumulative_cost.borrow_mut().add(&report.cost);
+        self.cumulative_cost.lock().unwrap().add(&report.cost);
         Ok(messages)
     }
 
@@ -882,7 +880,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
     > {
         let params = specs.unwrap_or_default();
         let request = build_anthropic_request(&self.model_name, &interaction, &params, true);
@@ -930,7 +928,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
             final_messages: Vec::new(),
             final_message_index: 0,
             pricing: self.pricing,
-            cumulative_cost: Rc::clone(&self.cumulative_cost),
+            cumulative_cost: Arc::clone(&self.cumulative_cost),
         }))
     }
 
@@ -961,7 +959,7 @@ struct AnthropicStream<R: DnsResolver + 'static> {
     final_messages: Vec<Messages>,
     final_message_index: usize,
     pricing: ModelUsageCosting,
-    cumulative_cost: Rc<RefCell<CostAccumulator>>,
+    cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
 impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
@@ -1135,7 +1133,7 @@ impl<R: DnsResolver + 'static> AnthropicStream<R> {
                 let (messages, report) = self.build_final_messages_with_cost();
                 self.final_messages = messages;
                 self.final_message_index = 0;
-                self.cumulative_cost.borrow_mut().add(&report.cost);
+                self.cumulative_cost.lock().unwrap().add(&report.cost);
                 Stream::Ignore
             }
             _ => Stream::Ignore,

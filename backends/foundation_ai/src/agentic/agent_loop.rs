@@ -113,7 +113,7 @@ pub enum AgentLoopState {
     InnerAssemble,
     /// Model generation in progress — pump the stream step-wise.
     InnerGenerate {
-        stream: Box<dyn Iterator<Item = Stream<Messages, ModelState>>>,
+        stream: Box<dyn Iterator<Item = Stream<Messages, ModelState>> + Send>,
         collected: Vec<Messages>,
     },
     /// Tool calls extracted from the model's output.

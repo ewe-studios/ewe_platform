@@ -1712,7 +1712,7 @@ pub trait Model {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
     >;
 }
 

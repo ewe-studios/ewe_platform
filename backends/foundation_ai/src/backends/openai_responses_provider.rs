@@ -821,7 +821,7 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
     > {
         let params = specs.unwrap_or_default();
         let request = self.build_request(&interaction, &params, true);

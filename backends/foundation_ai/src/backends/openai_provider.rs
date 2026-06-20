@@ -5,10 +5,8 @@
 //! patterns — no tokio, no async-trait.
 
 use foundation_compact::SystemTime;
-use std::cell::RefCell;
 use std::collections::HashMap;
-use std::rc::Rc;
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
@@ -385,7 +383,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
                 resolver: self.resolver.clone(),
                 info: info.clone(),
                 pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-                cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
+                cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
             });
         }
         drop(cache);
@@ -420,7 +418,7 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             resolver: self.resolver.clone(),
             info,
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
-            cumulative_cost: Rc::new(RefCell::new(CostAccumulator::new())),
+            cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
         })
     }
 
@@ -485,7 +483,7 @@ pub struct OpenAIModel<R: DnsResolver = SystemDnsResolver> {
     #[allow(dead_code)]
     info: OpenAIModelInfo,
     pricing: ModelUsageCosting,
-    cumulative_cost: Rc<RefCell<CostAccumulator>>,
+    cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
 impl<R: DnsResolver + 'static> OpenAIModel<R> {
@@ -646,7 +644,7 @@ impl<R: DnsResolver + 'static> OpenAIModel<R> {
             cost: emb_cost,
             ..emb_usage
         };
-        self.cumulative_cost.borrow_mut().add(&emb_usage.cost);
+        self.cumulative_cost.lock().unwrap().add(&emb_usage.cost);
         Ok(vec![Messages::Assistant {
             id: foundation_compact::ids::new_scru128(),
             model: self.model_id.clone(),
@@ -841,7 +839,7 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        let cost = self.cumulative_cost.borrow().result();
+        let cost = self.cumulative_cost.lock().unwrap().result();
         Ok(UsageReport {
             input: 0.0,
             output: 0.0,
@@ -873,7 +871,7 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
         let response: ChatCompletionResponse = self.execute_request(&url, &body)?;
 
         let (message, report) = parse_chat_response(&response, &self.model_id, &self.pricing)?;
-        self.cumulative_cost.borrow_mut().add(&report.cost);
+        self.cumulative_cost.lock().unwrap().add(&report.cost);
         Ok(vec![message])
     }
 
@@ -882,7 +880,7 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
     > {
         let params = specs.unwrap_or_default();
         let request = build_chat_request(&self.model_name, &interaction, &params, true);
@@ -926,7 +924,7 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
             usage: None,
             done: false,
             pricing: self.pricing,
-            cumulative_cost: Rc::clone(&self.cumulative_cost),
+            cumulative_cost: Arc::clone(&self.cumulative_cost),
         }))
     }
 }
@@ -949,7 +947,7 @@ struct OpenAIStream<R: DnsResolver + 'static> {
     usage: Option<OpenAIUsage>,
     done: bool,
     pricing: ModelUsageCosting,
-    cumulative_cost: Rc<RefCell<CostAccumulator>>,
+    cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
 struct AccumulatedToolCall {
@@ -1025,7 +1023,7 @@ impl<R: DnsResolver + 'static> OpenAIStream<R> {
         if data.trim() == "[DONE]" {
             self.done = true;
             let (msg, report) = self.build_final_message();
-            self.cumulative_cost.borrow_mut().add(&report.cost);
+            self.cumulative_cost.lock().unwrap().add(&report.cost);
             return Stream::Next(msg);
         }
 

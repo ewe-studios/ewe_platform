@@ -4,10 +4,9 @@
 //! and [`CandleModels`] implementing [`Model`] for safetensors models via
 //! HuggingFace's Candle framework.
 
-use std::cell::RefCell;
 use std::collections::HashMap;
 use std::path::PathBuf;
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use foundation_compact::SystemTime;
 
 use candle_core::{DType, Device, Tensor};
@@ -174,21 +173,21 @@ pub enum CandleBackend {
     /// CPU-only execution.
     Cpu {
         config: CandleBackendConfig,
-        cache: Rc<RefCell<HashMap<String, CandleModels>>>,
+        cache: Arc<Mutex<HashMap<String, CandleModels>>>,
     },
     /// CUDA GPU execution.
     #[cfg(feature = "candle-cuda")]
     Cuda {
         config: CandleBackendConfig,
         device_id: usize,
-        cache: Rc<RefCell<HashMap<String, CandleModels>>>,
+        cache: Arc<Mutex<HashMap<String, CandleModels>>>,
     },
     /// Apple Metal execution.
     #[cfg(all(target_vendor = "apple", feature = "candle"))]
     Metal {
         config: CandleBackendConfig,
         device_id: usize,
-        cache: Rc<RefCell<HashMap<String, CandleModels>>>,
+        cache: Arc<Mutex<HashMap<String, CandleModels>>>,
     },
 }
 
@@ -198,7 +197,7 @@ impl CandleBackend {
     pub fn cpu() -> Self {
         Self::Cpu {
             config: CandleBackendConfig::default(),
-            cache: Rc::new(RefCell::new(HashMap::new())),
+            cache: Arc::new(Mutex::new(HashMap::new())),
         }
     }
 
@@ -222,7 +221,7 @@ impl CandleBackend {
         }
     }
 
-    fn cache(&self) -> &Rc<RefCell<HashMap<String, CandleModels>>> {
+    fn cache(&self) -> &Arc<Mutex<HashMap<String, CandleModels>>> {
         match self {
             CandleBackend::Cpu { cache, .. } => cache,
             #[cfg(feature = "candle-cuda")]
@@ -249,7 +248,7 @@ impl ModelProvider for CandleBackend {
         Self: Sized,
     {
         if let Some(config) = config {
-            let cache = Rc::new(RefCell::new(HashMap::new()));
+            let cache = Arc::new(Mutex::new(HashMap::new()));
             match self {
                 CandleBackend::Cpu { .. } => Ok(CandleBackend::Cpu { config, cache }),
                 #[cfg(feature = "candle-cuda")]
@@ -303,7 +302,7 @@ impl ModelProvider for CandleBackend {
     fn get_model_by_spec(&self, model_spec: ModelSpec) -> ModelProviderResult<Self::Model> {
         let key = Self::model_id_key(&model_spec.id);
 
-        if let Some(model) = self.cache().borrow().get(&key) {
+        if let Some(model) = self.cache().lock().unwrap().get(&key) {
             return Ok(model.clone());
         }
 
@@ -315,7 +314,7 @@ impl ModelProvider for CandleBackend {
 
         let model = load_from_local(self, path, &model_spec)?;
 
-        self.cache().borrow_mut().insert(key, model.clone());
+        self.cache().lock().unwrap().insert(key, model.clone());
         Ok(model)
     }
 
@@ -507,15 +506,15 @@ struct CandleModelsState {
 
 /// Candle model wrapper implementing the [`Model`] trait.
 ///
-/// Uses interior mutability (`RefCell`) so that `&self` methods can mutate
+/// Uses interior mutability (`Mutex`) so that `&self` methods can mutate
 /// state during generation.
 pub struct CandleModels {
-    inner: Rc<RefCell<CandleModelsState>>,
+    inner: Arc<Mutex<CandleModelsState>>,
 }
 
 impl core::fmt::Debug for CandleModels {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        let inner = self.inner.borrow();
+        let inner = self.inner.lock().unwrap();
         f.debug_struct("CandleModels")
             .field("spec", &inner.spec)
             .field("tokens_generated", &inner.tokens_generated)
@@ -526,7 +525,7 @@ impl core::fmt::Debug for CandleModels {
 impl Clone for CandleModels {
     fn clone(&self) -> Self {
         Self {
-            inner: Rc::clone(&self.inner),
+            inner: Arc::clone(&self.inner),
         }
     }
 }
@@ -544,7 +543,7 @@ impl CandleModels {
         let cache = candle_llama::Cache::new(false, dtype, &config, &device)
             .expect("Failed to create KV cache");
         Self {
-            inner: Rc::new(RefCell::new(CandleModelsState {
+            inner: Arc::new(Mutex::new(CandleModelsState {
                 model,
                 tokenizer,
                 config,
@@ -565,11 +564,11 @@ impl CandleModels {
 impl Model for CandleModels {
     type Formatter = TextBasedFormatter;
     fn spec(&self) -> ModelSpec {
-        self.inner.borrow().spec.clone()
+        self.inner.lock().unwrap().spec.clone()
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        let inner = self.inner.borrow();
+        let inner = self.inner.lock().unwrap();
         let cost = inner.cumulative_cost.result();
         Ok(UsageReport {
             input: 0.0,
@@ -582,7 +581,7 @@ impl Model for CandleModels {
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
-        let inner = self.inner.borrow();
+        let inner = self.inner.lock().unwrap();
         Some(ModelProviderDescriptor {
             id: "candle",
             name: "Candle",
@@ -603,7 +602,7 @@ impl Model for CandleModels {
         specs: Option<ModelParams>,
     ) -> GenerationResult<Vec<Messages>> {
         let params = specs.unwrap_or_default();
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().unwrap();
 
         let prompt = build_prompt(&inner.tokenizer, &interaction);
 
@@ -703,8 +702,11 @@ impl Model for CandleModels {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<impl StreamIterator<D = Messages, P = ModelState>> {
-        CandleStream::new(self.clone(), interaction, specs)
+    ) -> GenerationResult<
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
+    > {
+        let stream = CandleStream::new(self.clone(), interaction, specs)?;
+        Ok(Box::new(stream))
     }
 }
 
@@ -714,7 +716,7 @@ impl Model for CandleModels {
 
 /// Stream iterator for token-by-token Candle generation.
 pub struct CandleStream {
-    inner: Rc<RefCell<CandleStreamState>>,
+    inner: Arc<Mutex<CandleStreamState>>,
 }
 
 struct CandleStreamState {
@@ -736,7 +738,7 @@ impl CandleStream {
         let params = specs.unwrap_or_default();
 
         let (input_ids, _prompt) = {
-            let inner = model.inner.borrow();
+            let inner = model.inner.lock().unwrap();
             let prompt = build_prompt(&inner.tokenizer, &interaction);
             let tokens = inner
                 .tokenizer
@@ -749,13 +751,13 @@ impl CandleStream {
 
         // Reset cache
         {
-            let mut inner = model.inner.borrow_mut();
+            let mut inner = model.inner.lock().unwrap();
             inner.cache = candle_llama::Cache::new(false, inner.dtype, &inner.config, &inner.device)
                 .map_err(GenerationError::Candle)?;
         }
 
         Ok(Self {
-            inner: Rc::new(RefCell::new(CandleStreamState {
+            inner: Arc::new(Mutex::new(CandleStreamState {
                 model,
                 params,
                 all_tokens: input_ids,
@@ -773,7 +775,7 @@ impl Iterator for CandleStream {
 
     #[allow(clippy::cast_precision_loss)]
     fn next(&mut self) -> Option<Self::Item> {
-        let mut state = self.inner.borrow_mut();
+        let mut state = self.inner.lock().unwrap();
 
         if state.finished {
             return None;
@@ -801,12 +803,12 @@ impl Iterator for CandleStream {
             state.all_tokens.len() - 1
         };
 
-        let model_rc = Rc::clone(&state.model.inner);
+        let model_rc = Arc::clone(&state.model.inner);
         let params = state.params.clone();
 
         // Scope the model borrow so it's dropped before we mutate state
         let (next_token, token_str, eos_hit, spec) = {
-            let mut model_inner = model_rc.borrow_mut();
+            let mut model_inner = model_rc.lock().unwrap();
 
             let device = model_inner.device.clone();
 

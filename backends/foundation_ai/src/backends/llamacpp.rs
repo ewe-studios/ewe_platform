@@ -22,10 +22,9 @@ use infrastructure_llama_cpp::sampling::LlamaSampler;
 use infrastructure_llama_cpp::token::LlamaToken;
 
 use foundation_compact::SystemTime;
-use std::cell::RefCell;
 use std::fmt::Write;
 use std::num::NonZeroU32;
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 
 use foundation_core::valtron::{Stream, StreamIterator};
 
@@ -246,7 +245,7 @@ impl Default for LlamaBackendConfigBuilder {
 
 /// Internal state for `LlamaModels` with interior mutability.
 struct LlamaModelsInner {
-    model: Rc<LlamaModel>,
+    model: Arc<LlamaModel>,
     context: LlamaModelContextParams,
     #[allow(dead_code)]
     sampler: Option<LlamaSampler>,
@@ -257,16 +256,16 @@ struct LlamaModelsInner {
 
 /// `llama.cpp` model wrapper implementing the `Model` trait.
 ///
-/// Uses interior mutability (`RefCell`) so that `&self` methods can mutate
+/// Uses interior mutability (`Mutex`) so that `&self` methods can mutate
 /// the context and sampler during generation.
 pub struct LlamaModels {
-    inner: Rc<RefCell<LlamaModelsInner>>,
+    inner: Arc<Mutex<LlamaModelsInner>>,
 }
 
 impl Clone for LlamaModels {
     fn clone(&self) -> Self {
         Self {
-            inner: Rc::clone(&self.inner),
+            inner: Arc::clone(&self.inner),
         }
     }
 }
@@ -275,8 +274,8 @@ impl LlamaModels {
     /// Create a new `LlamaModels` instance.
     fn new(model: LlamaModel, context: LlamaModelContextParams, spec: ModelSpec) -> Self {
         Self {
-            inner: Rc::new(RefCell::new(LlamaModelsInner {
-                model: Rc::new(model),
+            inner: Arc::new(Mutex::new(LlamaModelsInner {
+                model: Arc::new(model),
                 context,
                 sampler: None,
                 spec,
@@ -289,13 +288,13 @@ impl LlamaModels {
     /// Get the model spec.
     #[must_use]
     pub fn spec(&self) -> ModelSpec {
-        self.inner.borrow().spec.clone()
+        self.inner.lock().unwrap().spec.clone()
     }
 }
 
 impl Model for LlamaModels {
     fn spec(&self) -> ModelSpec {
-        self.inner.borrow().spec.clone()
+        self.inner.lock().unwrap().spec.clone()
     }
 
     fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
@@ -303,7 +302,7 @@ impl Model for LlamaModels {
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
-        let inner = self.inner.borrow();
+        let inner = self.inner.lock().unwrap();
         Some(ModelProviderDescriptor {
             id: "llamacpp",
             name: "llama.cpp",
@@ -319,7 +318,7 @@ impl Model for LlamaModels {
     }
 
     fn costing(&self) -> GenerationResult<UsageReport> {
-        let inner = self.inner.borrow();
+        let inner = self.inner.lock().unwrap();
         let cost = inner.cumulative_cost.result();
         Ok(UsageReport {
             input: 0.0,
@@ -340,9 +339,9 @@ impl Model for LlamaModels {
 
         // Get model, spec, and context params
         let (model, spec, ctx_params) = {
-            let inner = self.inner.borrow();
+            let inner = self.inner.lock().unwrap();
             (
-                Rc::clone(&inner.model),
+                Arc::clone(&inner.model),
                 inner.spec.clone(),
                 inner.context.clone(),
             )
@@ -379,7 +378,7 @@ impl Model for LlamaModels {
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
     ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>>>,
+        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
     > {
         let stream = LlamaCppStream::new(self.clone(), &interaction, specs)?;
         Ok(Box::new(stream))
@@ -395,8 +394,15 @@ impl Model for LlamaModels {
 /// Implements `StreamIterator` to yield `Messages` one token at a time.
 /// Holds a clone of `LlamaModels` to access the model/context during iteration.
 pub struct LlamaCppStream {
-    inner: Rc<RefCell<LlamaCppStreamInner>>,
+    inner: Arc<Mutex<LlamaCppStreamInner>>,
 }
+
+// LlamaCppStreamInner holds FFI pointers (LlamaModelContext, LlamaSampler)
+// that are !Send. These are only ever accessed inside Iterator::next() on
+// the thread that polls the stream — they never cross thread boundaries.
+// The Arc<Mutex<>> wrapper is for type-level Send compatibility with the
+// valtron executor; the Mutex ensures exclusive access.
+unsafe impl Send for LlamaCppStreamInner {}
 
 /// Internal stream state - uses Clone for context
 struct LlamaCppStreamInner {
@@ -491,7 +497,7 @@ impl LlamaCppStream {
         }
 
         Ok(Self {
-            inner: Rc::new(RefCell::new(LlamaCppStreamInner {
+            inner: Arc::new(Mutex::new(LlamaCppStreamInner {
                 model,
                 backend: Some(backend),
                 ctx: None,
@@ -521,7 +527,7 @@ impl Iterator for LlamaCppStream {
         clippy::cast_sign_loss
     )] // FFI boundary: llama.cpp integration requires these patterns for C API interop
     fn next(&mut self) -> Option<Self::Item> {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().unwrap();
 
         // Check if finished
         if inner.finished {
@@ -542,8 +548,8 @@ impl Iterator for LlamaCppStream {
             };
 
             let (model, ctx_params) = {
-                let model_inner = inner.model.inner.borrow();
-                (Rc::clone(&model_inner.model), model_inner.context.clone())
+                let model_inner = inner.model.inner.lock().unwrap();
+                (Arc::clone(&model_inner.model), model_inner.context.clone())
             };
 
             let ctx = match model.new_context(&backend, ctx_params) {
@@ -569,7 +575,7 @@ impl Iterator for LlamaCppStream {
             return Some(Stream::Pending(ModelState::GeneratingTokens(None)));
         }
 
-        // Check max tokens first (before any borrows)
+        // Check max tokens first (before any locks)
         if inner.tokens_generated >= inner.max_tokens {
             inner.finished = true;
             return Some(Stream::Pending(ModelState::Finished));
@@ -581,8 +587,8 @@ impl Iterator for LlamaCppStream {
             return None;
         };
         let model = {
-            let model_inner = inner.model.inner.borrow();
-            Rc::clone(&model_inner.model)
+            let model_inner = inner.model.inner.lock().unwrap();
+            Arc::clone(&model_inner.model)
         };
 
         // Check if sampler exists
@@ -593,7 +599,7 @@ impl Iterator for LlamaCppStream {
 
         // On first token generation, tokenize and evaluate the prompt
         if inner.tokens_generated == 0 {
-            // Extract prompt early to avoid borrow conflicts
+            // Extract prompt early to avoid lock conflicts
             let prompt = inner.prompt.take().unwrap_or_default();
             let Ok(tokens) = model.str_to_token(&prompt, AddBos::Always) else {
                 inner.finished = true;
