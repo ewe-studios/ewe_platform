@@ -15,6 +15,20 @@ use std::hash::{Hash, Hasher};
 // ---------------------------------------------------------------------------
 // LoopDetectorConfig
 
+/// Tuning knobs for `LoopDetector`.
+///
+/// WHY: Different deployments tolerate different repetition levels — a
+/// coding assistant can retry tool calls more aggressively than a chat
+/// agent. Externalising the thresholds lets callers tune detection
+/// sensitivity without touching detection logic.
+///
+/// WHAT: Sliding-window size, SimHash similarity cutoff, tool-call repeat
+/// limit, max redirect attempts, whether to try a model/temperature switch,
+/// and the temperature delta to apply on switch.
+///
+/// HOW: Passed to `LoopDetector::new`; the detector reads these on every
+/// `check` call. Sensible defaults (window 5, similarity 0.9, 3 repeats)
+/// cover the common case.
 #[derive(Debug, Clone)]
 pub struct LoopDetectorConfig {
     pub window_size: usize,
@@ -41,6 +55,20 @@ impl Default for LoopDetectorConfig {
 // ---------------------------------------------------------------------------
 // ToolCallSignature — sorted-key deterministic comparison
 
+/// Deterministic fingerprint of a single tool call (name + sorted argument keys + hash).
+///
+/// WHY: Tool-call loop detection must compare calls structurally, not by
+/// identity. Two calls to `read_file(path="/a")` are semantically identical
+/// regardless of generation order or call-id. A canonical fingerprint makes
+/// that comparison O(1) after construction.
+///
+/// WHAT: Stores the tool name, sorted argument key list, and a combined
+/// `ahash` digest of name + keys + values. Two signatures with the same
+/// `argument_hash` represent identical calls.
+///
+/// HOW: `from_tool_call` sorts argument keys, hashes name + key/value pairs
+/// in sorted order. The `LoopDetector` keeps a sliding deque of these and
+/// checks for repeating subsequences.
 #[derive(Debug, Clone, PartialEq)]
 pub struct ToolCallSignature {
     pub tool_name: String,
@@ -81,6 +109,19 @@ impl ToolCallSignature {
 // ---------------------------------------------------------------------------
 // LoopDetection
 
+/// Result of a single `LoopDetector::check` call.
+///
+/// WHY: The agent loop needs to know *what kind* of repetition was detected
+/// so it can choose the right escalation — exact repeats warrant a redirect,
+/// fuzzy repeats may just bump temperature, and tool-call patterns need the
+/// offending signature for diagnostics.
+///
+/// WHAT: Four variants — `NoLoop` (clean), `ExactLoop` (verbatim text
+/// match with repetition count), `FuzzyLoop` (SimHash similarity above
+/// threshold), `ToolCallLoop` (repeated tool-call signature pattern).
+///
+/// HOW: Returned by `LoopDetector::check`; the agent loop feeds it into
+/// `LoopDetector::escalate` to get the corresponding `Escalation` action.
 #[derive(Debug, Clone, PartialEq)]
 pub enum LoopDetection {
     NoLoop,
@@ -99,6 +140,20 @@ pub enum LoopDetection {
 // ---------------------------------------------------------------------------
 // Escalation
 
+/// What the agent loop should do when a loop is detected.
+///
+/// WHY: Detection and response are separate concerns — the detector
+/// identifies repetition, the escalation policy decides the remedy. This
+/// separation lets callers override the policy without reimplementing
+/// detection.
+///
+/// WHAT: Three escalation levels — `Redirect` (inject a memory-based
+/// redirect prompt), `SwitchModelOrTemperature` (try a different model or
+/// bump temperature by `delta`), `Terminate` (give up after max redirects).
+///
+/// HOW: `LoopDetector::escalate` maps a `LoopDetection` to an `Escalation`
+/// using the config's `max_redirects` and `try_model_change` flags. The
+/// agent loop acts on the returned variant.
 #[derive(Debug, Clone, PartialEq)]
 pub enum Escalation {
     Redirect,
@@ -157,6 +212,22 @@ fn extract_tool_signatures(output: &ModelOutput) -> Option<ToolCallSignature> {
 // ---------------------------------------------------------------------------
 // LoopDetector
 
+/// Sliding-window detector for repetitive model output (F17).
+///
+/// WHY: LLMs can enter degenerate loops — repeating the same text verbatim,
+/// producing near-identical fuzzy output, or issuing the same tool calls
+/// repeatedly. Each iteration burns tokens with no progress. Cheap inline
+/// detection lets the agent loop break out early.
+///
+/// WHAT: Maintains two sliding windows — one of raw `ModelOutput` for
+/// text-level checks (exact match + SimHash fuzzy), one of
+/// `ToolCallSignature` for tool-call pattern checks. Returns a
+/// `LoopDetection` on each `check` and an `Escalation` via `escalate`.
+///
+/// HOW: `check` pushes the latest output into the windows, runs three
+/// detectors in order (exact → SimHash → tool-call pattern), and returns
+/// the first match. `escalate` counts cumulative redirects and escalates
+/// through Redirect → SwitchModel → Terminate.
 pub struct LoopDetector {
     window: VecDeque<ModelOutput>,
     tool_signatures: VecDeque<ToolCallSignature>,

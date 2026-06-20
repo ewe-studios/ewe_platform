@@ -24,7 +24,18 @@ use serde::{Deserialize, Serialize};
 
 use crate::types::{Messages, ModelOutput, SessionRecord};
 
-/// Serialization error.
+/// Serialization error for the dual JSON/Arrow codec.
+///
+/// WHY: `SessionRecord` supports two serialization formats (JSON for
+/// storage, Arrow for analytics). Failures in either path must be
+/// distinguishable so callers can log which codec broke and whether
+/// the data is still readable via the other format.
+///
+/// WHAT: Two variants — `Json` (serde_json failure) and `Arrow`
+/// (arrow-rs batch conversion failure), each carrying a diagnostic string.
+///
+/// HOW: Returned by `to_record_batch` / `from_record_batch` and the JSON
+/// round-trip helpers. Implements `Display` and `Error` for `?` propagation.
 #[derive(Debug)]
 pub enum SerError {
     /// JSON (de)serialization failed.

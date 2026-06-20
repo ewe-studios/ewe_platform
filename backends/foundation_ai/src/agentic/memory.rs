@@ -30,6 +30,19 @@ use super::memory_store::MemoryStore;
 // ---------------------------------------------------------------------------
 // MemoryAction
 
+/// What kind of memory generation the agent loop should schedule next.
+///
+/// WHY: The agent loop polls `MemoryHierarchy::check_triggers` every turn
+/// but must not block on generation. Returning an enum lets the loop decide
+/// *when* to schedule the work (e.g. after tool results, not mid-stream).
+///
+/// WHAT: Three variants — `None` (thresholds not reached), `GenerateObservation`
+/// (rolling token counter hit the observation threshold), `GenerateReflection`
+/// (observation store size hit the reflection threshold).
+///
+/// HOW: `check_triggers` reads two cheap atomics and returns the
+/// corresponding variant. The agent loop maps it to a valtron background
+/// task via `Spawn`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum MemoryAction {
     None,
@@ -40,6 +53,17 @@ pub enum MemoryAction {
 // ---------------------------------------------------------------------------
 // MemoryParseStrategy
 
+/// How to parse the memory model's output into structured entries.
+///
+/// WHY: The memory model can produce output in different formats depending
+/// on the prompt template. The parser must match the format the model was
+/// told to use, and different deployments may prefer one over the other.
+///
+/// WHAT: `StructuredText` — freeform text parsed with regex/heading
+/// conventions; `TwoStepJson` — model emits JSON, parsed with serde.
+///
+/// HOW: `MemoryHierarchy` passes this to the generation task, which selects
+/// the matching prompt template and parser.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum MemoryParseStrategy {
     StructuredText,
@@ -55,6 +79,18 @@ impl Default for MemoryParseStrategy {
 // ---------------------------------------------------------------------------
 // MemoryConfig
 
+/// Tuning knobs for the three-tier memory generator.
+///
+/// WHY: Observation and reflection thresholds depend on the model's context
+/// window and the desired compression ratio. Hard-coding them would prevent
+/// callers from adjusting to different models or session profiles.
+///
+/// WHAT: Token thresholds for observation and reflection triggers, an
+/// optional dedicated memory model id (falls back to the agent's primary
+/// model), and the parse strategy for the model's output.
+///
+/// HOW: Passed to `MemoryHierarchy::new`; `check_triggers` compares the
+/// rolling token counter against these thresholds.
 #[derive(Debug, Clone)]
 pub struct MemoryConfig {
     pub observation_trigger_tokens: u64,
@@ -77,6 +113,25 @@ impl Default for MemoryConfig {
 // ---------------------------------------------------------------------------
 // MemoryHierarchy
 
+/// Three-tier progressive memory distillation (F15).
+///
+/// WHY: Long sessions produce more messages than a model's context window
+/// can hold. Rather than truncating (losing information), the hierarchy
+/// distils raw messages into observations, then observations into
+/// reflections, then reflections into working memory — each tier is
+/// smaller and more abstract.
+///
+/// WHAT: Wraps a `MemoryCoordinator` (F07/F08 storage), a `TokenLedger`
+/// (rolling counter), and a `MemoryConfig` (trigger thresholds). Exposes
+/// `check_triggers` (cheap atomic reads) and `generate_*` (background
+/// model calls).
+///
+/// HOW: `check_triggers` compares the rolling token counter against
+/// `MemoryConfig` thresholds and returns a `MemoryAction`. The agent loop
+/// schedules the corresponding generation task via `Spawn`. Generation
+/// calls the memory model through the router, parses output, and appends
+/// to `MemoryCoordinator`. `Arc`-wrapped inner state makes it cheaply
+/// clonable for cross-task sharing.
 pub struct MemoryHierarchy<M, D> {
     inner: Arc<MemoryInner<M, D>>,
 }

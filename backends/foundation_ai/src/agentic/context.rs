@@ -41,6 +41,19 @@ pub enum SearchMode {
 // AgentContext
 
 /// The assembled context for a single LLM turn.
+///
+/// WHY: Model calls need a complete, token-budgeted payload — system
+/// prompt, ordered messages, and a token estimate for budget checks. Passing
+/// these as a struct guarantees the caller cannot forget a field and lets
+/// downstream layers (context pressure, preflight compression) inspect the
+/// whole payload before it reaches the model.
+///
+/// WHAT: System prompt (optional), ordered message list, and a rough token
+/// estimate for the assembled payload.
+///
+/// HOW: Built by `ContextProvider::assemble_from_memory` in Decision 03
+/// order. The `token_estimate` is a heuristic (character count / 4); the
+/// agent loop feeds it to budget checks and context-pressure injection.
 #[derive(Debug, Clone)]
 pub struct AgentContext {
     pub system_prompt: Option<String>,
@@ -51,6 +64,19 @@ pub struct AgentContext {
 // ---------------------------------------------------------------------------
 // ContextConfig
 
+/// Tuning knobs for `ContextProvider` assembly.
+///
+/// WHY: The right number of recent messages and recall budget depends on
+/// the model's context window and the session's communication pattern.
+/// Externalising these lets callers tune context composition without
+/// touching assembly logic.
+///
+/// WHAT: `recent_message_count` — how many raw messages to include;
+/// `recall_budget_tokens` — token budget allocated for semantic recall
+/// results; `inject_newer_observations` — whether to include observations
+/// that are newer than the latest reflection (INCON-03).
+///
+/// HOW: Passed to `ContextProvider::new`; read during `assemble_from_memory`.
 #[derive(Debug, Clone)]
 pub struct ContextConfig {
     /// Max recent raw messages to include.

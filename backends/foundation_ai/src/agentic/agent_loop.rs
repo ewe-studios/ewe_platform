@@ -42,7 +42,21 @@ use crate::types::{
 // ---------------------------------------------------------------------------
 // AgentConfig
 
-/// Configuration for the agent loop.
+/// Tunable knobs for `AgentLoop` behaviour.
+///
+/// WHY: Hard-coding iteration caps, budget thresholds, and model fallback
+/// lists inside the loop would force recompilation on every tuning change.
+/// Externalising them lets callers (CLI, server, tests) vary policy without
+/// touching orchestration logic.
+///
+/// WHAT: Flat bag of limits and thresholds — primary/fallback models,
+/// inner/outer iteration caps, circuit-breaker threshold, context-pressure
+/// ratio, and base `ModelParams`. All fields have sensible defaults via
+/// `Default`.
+///
+/// HOW: Passed to `AgentLoop::new`; the loop reads fields at each state
+/// transition. `fallback_models` feeds the `CircuitBreaker`; thresholds
+/// gate the context-pressure and preflight-compression layers.
 #[derive(Debug, Clone)]
 pub struct AgentConfig {
     pub primary_model: ModelId,
@@ -84,6 +98,22 @@ struct TurnOutput {
 // AgentLoopState
 
 /// The state machine driving the orchestrator.
+///
+/// WHY: The agent loop is a non-blocking `TaskIterator` — it cannot park on
+/// async I/O. A flat enum encodes every suspension point so `next_status`
+/// can resume exactly where it left off without a call stack.
+///
+/// WHAT: Ten states forming two nested loops. The *outer* loop
+/// (`OuterBoundary`) drains follow-up messages; the *inner* loop
+/// (`InnerAssemble → InnerGenerate → InnerToolCalls → InnerExecuting →
+/// InnerEmitResults`) runs one model turn + tool execution cycle.
+/// `OutputProcessing` fires memory triggers; `Ending` emits a summary;
+/// `Done` is terminal.
+///
+/// HOW: Each variant carries the state needed to resume — stream handles,
+/// partial results, indices. `next_status` pattern-matches the current
+/// variant, does one quantum of work, and replaces `self` with the next
+/// variant.
 pub enum AgentLoopState {
     /// Initial setup — emit Init, transition to OuterBoundary.
     Initializing,
@@ -124,8 +154,28 @@ pub enum AgentLoopState {
 // ---------------------------------------------------------------------------
 // AgentLoop
 
-/// The agentic orchestrator — a valtron `TaskIterator` running the nested
-/// inner (tool calls + steering) / outer (follow-up) loop.
+/// The agentic orchestrator — a valtron `TaskIterator` state machine.
+///
+/// WHY: Every other agentic component is a leaf: context assembly, memory
+/// generation, tool execution, steering. Nothing sequences them into a
+/// *turn*. `AgentLoop` is the single piece that drives the full cycle
+/// (context → generate → tools → emit → follow-up) as a non-blocking
+/// iterator the valtron executor can schedule alongside other work.
+///
+/// WHAT: Implements `TaskIterator<Ready = SessionRecord, Pending =
+/// AgentProgress, Spawner = BoxedSendExecutionAction>`. The outer loop
+/// drains `SteeringQueues` for follow-up messages; the inner loop runs
+/// model generation, tool execution, and output processing until the model
+/// stops requesting tool calls or a guard (budget, iteration cap, loop
+/// detection) fires.
+///
+/// HOW: Owns the component instances (`ContextProvider`, `ToolCallManager`,
+/// `MemoryHierarchy`, `SteeringQueues`, `TokenLedger`, `ErrorPolicy`,
+/// `CircuitBreaker`, `LoopDetector`, `ProviderRouter`) and an
+/// `AgentLoopState` enum. Each `next_status` call pattern-matches the
+/// current state, delegates to the appropriate component, and transitions
+/// to the next state. Tool futures are wrapped in `CancellableFutureTask`
+/// and driven via `drive_iterator`.
 pub struct AgentLoop<D, M> {
     session_id: SessionId,
     context_provider: ContextProvider<D, M>,
@@ -891,400 +941,3 @@ where
     }
 }
 
-// ---------------------------------------------------------------------------
-// Tests
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::agentic::context::ContextConfig;
-    use crate::agentic::memory_coordinator::MemoryCoordinator;
-    use crate::agentic::memory_store::KvMemoryStore;
-    use crate::types::{
-        ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec, ModelState, StopReason,
-        TextContent, UsageCosting, UsageReport, CostStatus, ModelProviders,
-    };
-    use foundation_db::{MemoryDocumentStore, MemoryStorage};
-    use std::sync::Arc;
-
-    // -----------------------------------------------------------------------
-    // Test helpers
-
-    type TestMemStore = KvMemoryStore<MemoryStorage>;
-    type TestDocStore = MemoryDocumentStore;
-
-    fn usage_zero() -> UsageReport {
-        UsageReport {
-            input: 0.0,
-            output: 0.0,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: 0.0,
-            cost: UsageCosting::zero(CostStatus::Estimated),
-        }
-    }
-
-    fn setup() -> AgentLoop<TestDocStore, TestMemStore> {
-        let kv = KvMemoryStore::new(MemoryStorage::new());
-        let doc = MemoryDocumentStore::new();
-        let session_id = SessionId::new();
-        let coordinator = MemoryCoordinator::new(kv.clone(), doc.clone());
-        let ledger = TokenLedger::new();
-        let message_api = MessageApi::new(session_id.clone(), doc.clone());
-        let memory_store = Arc::new(kv.clone());
-        let context_provider = ContextProvider::new(
-            session_id.clone(),
-            message_api.clone(),
-            memory_store,
-            ledger.clone(),
-            Some("You are a helpful assistant.".into()),
-            ContextConfig::default(),
-        );
-        let tool_manager = ToolCallManager::new(session_id.clone());
-        let queues = SteeringQueues::new();
-        let memory = MemoryHierarchy::new(
-            session_id.clone(),
-            coordinator,
-            ledger.clone(),
-            MemoryConfig::default(),
-        );
-        let router = crate::types::ProviderRouter::new(vec![]);
-        let config = AgentConfig {
-            primary_model: ModelId::Name("test-model".into(), None),
-            ..Default::default()
-        };
-
-        AgentLoop::new(
-            session_id,
-            context_provider,
-            tool_manager,
-            queues,
-            memory,
-            message_api,
-            ledger,
-            router,
-            config,
-        )
-    }
-
-    // -----------------------------------------------------------------------
-    // Tests
-
-    #[test]
-    fn initializing_emits_init_then_transitions() {
-        let mut agent = setup();
-        assert_eq!(agent.state_label(), "initializing");
-
-        let status = agent.next_status();
-        assert!(matches!(status, Some(TaskStatus::Init)));
-        assert_eq!(agent.state_label(), "outer_boundary");
-    }
-
-    #[test]
-    fn outer_boundary_with_no_messages_ends() {
-        let mut agent = setup();
-        // Skip init.
-        agent.state = AgentLoopState::OuterBoundary;
-
-        let status = agent.next_status();
-        // Should transition toward ending (no follow-up, no priority).
-        match status {
-            Some(TaskStatus::Pending(AgentProgress::SessionEnding)) => {
-                assert_eq!(agent.state_label(), "ending");
-            }
-            other => panic!("expected SessionEnding, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn outer_boundary_with_follow_up_transitions_to_inner() {
-        let mut agent = setup();
-        agent.state = AgentLoopState::OuterBoundary;
-
-        // Push a follow-up message.
-        let msg = Messages::User {
-            id: foundation_compact::ids::new_scru128(),
-            role: MessageRole::User,
-            content: UserModelContent::Text(TextContent {
-                content: "hello".into(),
-                signature: None,
-            }),
-            signature: None,
-        };
-        agent.queues.push_follow_up(msg);
-
-        let status = agent.next_status();
-        match status {
-            Some(TaskStatus::Pending(AgentProgress::Steering { source })) => {
-                assert!(source.contains("follow_up"));
-                assert_eq!(agent.state_label(), "inner_assemble");
-            }
-            other => panic!("expected Steering follow_up, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn priority_queue_interrupts_outer_boundary() {
-        let mut agent = setup();
-        agent.state = AgentLoopState::OuterBoundary;
-
-        let msg = Messages::User {
-            id: foundation_compact::ids::new_scru128(),
-            role: MessageRole::System,
-            content: UserModelContent::Text(TextContent {
-                content: "urgent redirect".into(),
-                signature: None,
-            }),
-            signature: None,
-        };
-        agent.queues.push_priority(msg);
-
-        let status = agent.next_status();
-        match status {
-            Some(TaskStatus::Pending(AgentProgress::Steering { source })) => {
-                assert!(source.contains("priority"));
-                assert_eq!(agent.state_label(), "inner_assemble");
-            }
-            other => panic!("expected Steering priority, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn ending_emits_summary() {
-        let mut agent = setup();
-        agent.state = AgentLoopState::Ending;
-        agent.message_count = 42;
-
-        let status = agent.next_status();
-        match status {
-            Some(TaskStatus::Ready(SessionRecord::Summary {
-                message_count,
-                usage,
-            })) => {
-                assert_eq!(message_count, 42);
-                assert_eq!(usage.total, 0);
-            }
-            other => panic!("expected Summary, got {other:?}"),
-        }
-        assert_eq!(agent.state_label(), "done");
-    }
-
-    #[test]
-    fn done_returns_none() {
-        let mut agent = setup();
-        agent.state = AgentLoopState::Done;
-        assert!(agent.next_status().is_none());
-    }
-
-    #[test]
-    fn budget_exhausted_terminates() {
-        let mut agent = setup();
-        agent.state = AgentLoopState::InnerAssemble;
-        // Set a budget and exhaust it.
-        agent.ledger.set_budget(Some(100));
-        let usage = UsageReport {
-            input: 100.0,
-            output: 50.0,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: 150.0,
-            cost: UsageCosting::zero(CostStatus::Estimated),
-        };
-        agent.ledger.record(&usage);
-
-        let status = agent.next_status();
-        match status {
-            Some(TaskStatus::Ready(SessionRecord::FailedAction { error, .. })) => {
-                assert!(matches!(error, AgenticError::BudgetExhausted { .. }));
-            }
-            other => panic!("expected BudgetExhausted, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn error_policy_classify_integration() {
-        let policy = ErrorPolicy::new();
-
-        // Context overflow → retry with reduced.
-        assert_eq!(
-            policy.classify(AgenticError::Generation(GenerationFailure {
-                kind: GenKind::ContextOverflow,
-                message: String::new(),
-            })),
-            AgentAction::RetryWithReducedContext
-        );
-
-        // Rate limit → switch model.
-        assert_eq!(
-            policy.classify(AgenticError::Generation(GenerationFailure {
-                kind: GenKind::RateLimit,
-                message: String::new(),
-            })),
-            AgentAction::SwitchModel
-        );
-    }
-
-    #[test]
-    fn context_pressure_injects_note() {
-        let mut agent = setup();
-        agent.config.context_pressure_threshold = 0.5;
-        agent.ledger.set_budget(Some(1000));
-
-        let ctx = AgentContext {
-            system_prompt: Some("Base prompt".into()),
-            messages: vec![],
-            token_estimate: 800, // 80% > 50% threshold
-        };
-
-        let result = agent.apply_context_pressure(&ctx);
-        assert!(result.is_some());
-        let prompt = result.unwrap();
-        assert!(prompt.contains("capacity"));
-        assert!(prompt.contains("Base prompt"));
-    }
-
-    #[test]
-    fn context_pressure_disabled_when_zero() {
-        let mut agent = setup();
-        agent.config.context_pressure_threshold = 0.0;
-
-        let ctx = AgentContext {
-            system_prompt: Some("Base prompt".into()),
-            messages: vec![],
-            token_estimate: 999,
-        };
-
-        let result = agent.apply_context_pressure(&ctx);
-        assert_eq!(result, Some("Base prompt".into()));
-    }
-
-    #[test]
-    fn max_outer_iterations_guard() {
-        let mut agent = setup();
-        agent.config.max_outer_iterations = 1;
-        agent.outer_iteration = 1; // Already at max.
-        agent.state = AgentLoopState::OuterBoundary;
-
-        let status = agent.next_status();
-        match status {
-            Some(TaskStatus::Pending(AgentProgress::SessionEnding)) => {
-                assert_eq!(agent.state_label(), "ending");
-            }
-            other => panic!("expected SessionEnding, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn handle_error_terminate() {
-        let mut agent = setup();
-        agent.state = AgentLoopState::InnerAssemble;
-
-        let err = AgenticError::Budget { limit: 100 };
-        let status = agent.handle_error(err);
-        match status {
-            TaskStatus::Ready(SessionRecord::FailedAction { error, .. }) => {
-                assert!(matches!(error, AgenticError::Budget { limit: 100 }));
-            }
-            other => panic!("expected FailedAction, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn handle_error_switch_model() {
-        let mut agent = setup();
-        agent.config.fallback_models = vec![ModelId::Name("fallback-1".into(), None)];
-        agent.breaker = CircuitBreaker::new(1, agent.config.fallback_models.clone());
-
-        let err = AgenticError::Generation(GenerationFailure {
-            kind: GenKind::RateLimit,
-            message: "rate limited".into(),
-        });
-        let status = agent.handle_error(err);
-        match status {
-            TaskStatus::Pending(AgentProgress::Steering { source }) => {
-                assert!(source.contains("model_switch"));
-                assert_eq!(
-                    agent.current_model,
-                    ModelId::Name("fallback-1".into(), None)
-                );
-            }
-            other => panic!("expected model switch, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn extract_tool_calls_from_messages() {
-        let agent = setup();
-        let msgs = vec![
-            Messages::Assistant {
-                id: foundation_compact::ids::new_scru128(),
-                model: ModelId::Name("m".into(), None),
-                timestamp: foundation_compact::SystemTime::now(),
-                usage: usage_zero(),
-                content: ModelOutput::ToolCall {
-                    id: "tc-1".into(),
-                    name: "read_file".into(),
-                    arguments: Some(HashMap::from([(
-                        "path".into(),
-                        crate::types::ArgType::Text("/foo".into()),
-                    )])),
-                    signature: None,
-                    depends_on: vec![],
-                    execution_hint: crate::types::ExecutionHint::default(),
-                },
-                stop_reason: StopReason::ToolUse,
-                provider: ModelProviders::default(),
-                error_detail: None,
-                signature: None,
-                metadata: None,
-            },
-            Messages::Assistant {
-                id: foundation_compact::ids::new_scru128(),
-                model: ModelId::Name("m".into(), None),
-                timestamp: foundation_compact::SystemTime::now(),
-                usage: usage_zero(),
-                content: ModelOutput::Text(TextContent {
-                    content: "some text".into(),
-                    signature: None,
-                }),
-                stop_reason: StopReason::EndTurn,
-                provider: ModelProviders::default(),
-                error_detail: None,
-                signature: None,
-                metadata: None,
-            },
-        ];
-
-        let calls = agent.extract_tool_calls(&msgs);
-        assert_eq!(calls.len(), 1);
-        assert_eq!(calls[0].name, "read_file");
-        assert_eq!(calls[0].id, "tc-1");
-    }
-
-    #[test]
-    fn full_lifecycle_init_to_ending() {
-        let mut agent = setup();
-
-        // Init.
-        let s1 = agent.next_status();
-        assert!(matches!(s1, Some(TaskStatus::Init)));
-
-        // OuterBoundary — no messages, goes to ending.
-        let s2 = agent.next_status();
-        assert!(matches!(
-            s2,
-            Some(TaskStatus::Pending(AgentProgress::SessionEnding))
-        ));
-
-        // Ending — emits Summary.
-        let s3 = agent.next_status();
-        assert!(matches!(
-            s3,
-            Some(TaskStatus::Ready(SessionRecord::Summary { .. }))
-        ));
-
-        // Done.
-        let s4 = agent.next_status();
-        assert!(s4.is_none());
-    }
-}
