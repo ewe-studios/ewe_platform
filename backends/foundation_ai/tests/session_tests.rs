@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
 use foundation_ai::agentic::{
-    AgentConfig, AgentSession, AllowAllAccess, KvMemoryStore, SessionAccessProvider, TokenBudget,
+    AgentConfig, AgentSession, KvMemoryStore, SessionAccessProvider, TokenBudget,
 };
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ProviderRouter, SessionId, TextContent, UserModelContent,
@@ -226,4 +226,39 @@ fn builder_wires_config_overrides() {
         .with_user(UserId("custom-user".into()))
         .build()
         .expect("build with custom config should succeed");
+}
+
+// ---------------------------------------------------------------------------
+// Extension handles (F14)
+
+#[test]
+fn extension_handles_are_accessible() {
+    let session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
+        .build()
+        .expect("build should succeed");
+
+    let _api = session.message_api();
+    let _ledger = session.ledger();
+    let _queues = session.steering_queues();
+    let _router = session.router();
+    let _tools = session.tool_manager();
+}
+
+#[test]
+fn message_api_subscribe_receives_events() {
+    let session: TestSession =
+        AgentSession::builder(SessionId::from_name("test-subscribe"), empty_router())
+            .build()
+            .expect("build should succeed");
+
+    let rx = session.message_api().subscribe();
+
+    session.steer(user_msg("event test"));
+    session.end().expect("end should succeed");
+
+    let mut found = false;
+    while let Ok(_event) = rx.try_recv() {
+        found = true;
+    }
+    assert!(found, "subscriber should have received at least one event");
 }

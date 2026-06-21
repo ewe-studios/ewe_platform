@@ -342,6 +342,36 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         &self.inner.session_id
     }
 
+    /// Extension handle: subscribe to message events, read records (F14).
+    #[must_use]
+    pub fn message_api(&self) -> &MessageApi<D> {
+        &self.inner.message_api
+    }
+
+    /// Extension handle: read token/budget state (F14).
+    #[must_use]
+    pub fn ledger(&self) -> &TokenLedger {
+        &self.inner.ledger
+    }
+
+    /// Extension handle: low-level queue access for steering (F14).
+    #[must_use]
+    pub fn steering_queues(&self) -> &SteeringQueues {
+        &self.inner.queues
+    }
+
+    /// Extension handle: the model routing table (F14).
+    #[must_use]
+    pub fn router(&self) -> &ProviderRouter {
+        &self.inner.router
+    }
+
+    /// Extension handle: the tool registry (F14).
+    #[must_use]
+    pub fn tool_manager(&self) -> &ToolCallManager {
+        &self.inner.tool_manager
+    }
+
     /// Stream each `SessionRecord` as produced — the primary API.
     ///
     /// Pushes the prompt into the follow-up queue, builds a fresh `AgentLoop`,
