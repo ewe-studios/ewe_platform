@@ -1,7 +1,7 @@
 ---
 feature: "Testing Strategy — MockModelProvider (ModelInteraction-driven), mock tools, tiers, valtron annotations, wasm"
 description: "The deterministic test substrate: a MockModelProvider driven by ModelInteraction matching (NOT regex over strings), mock tools, the test tiers (unit/integration/e2e/deterministic), standard valtron pool annotations (initialize_pool, #[serial], timeout), reuse of the existing Candle/llama.cpp/TestHarness infra, and wasm testing"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["12-model-provider-router", "09-toolimpl-registry", "19-agentic-loop", "20-agent-session-api"]
 estimated_effort: "medium"

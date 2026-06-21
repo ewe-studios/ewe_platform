@@ -1,7 +1,7 @@
 ---
 feature: "Agentic Loop — inner/outer loop as a valtron TaskIterator"
 description: "The orchestrator: a valtron TaskIterator running the nested inner (tool calls + steering) / outer (follow-up) loop, consuming F03's stream contract (rich SessionRecord on Next, AgentProgress on Pending), wiring input/output processors, memory triggers, loop detection, and the circuit breaker, with PriorityQueue interruption (front-inject) and FollowUpQueue continuation"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["03-agent-stream-contract", "11-toolcall-execution-dag", "12-model-provider-router", "13-steering-queues-depends", "14-input-output-processors", "17-loop-detection", "02-error-handling"]
 estimated_effort: "large"

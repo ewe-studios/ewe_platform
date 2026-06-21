@@ -1,7 +1,7 @@
 ---
 feature: "Agent Session API + Resume Protocol — builder (ToolShed + ProviderRouter), preflight, run_turn/stream/end, deterministic resume"
 description: "The high-level AgentSession: a builder requiring a ToolShed + a ProviderRouter (the user rejected tools(vec![...])), preflight checks (toolshed tools registered with the ToolCallManager, access passes, budget retrieved) BEFORE scheduling onto valtron, run_turn/run_turn_stream/end lifecycle, and the deterministic resume protocol (working+reflection memory + last-N messages + semantic recall, in Decision 01's exact order)"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["16-context-provider-assembly", "15-memory-hierarchy", "10-toolshed-shed-metatool", "11-toolcall-execution-dag", "12-model-provider-router", "19-agentic-loop", "18-access-control-budget"]
 estimated_effort: "large"
