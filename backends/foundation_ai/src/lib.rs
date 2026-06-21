@@ -1,3 +1,5 @@
+#![allow(clippy::too_many_lines)]
+
 extern crate lazy_regex;
 // extern crate lazy_static;
 
