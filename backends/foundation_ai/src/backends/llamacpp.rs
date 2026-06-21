@@ -26,7 +26,7 @@ use std::fmt::Write;
 use std::num::NonZeroU32;
 use std::sync::{Arc, Mutex};
 
-use foundation_core::valtron::{Stream, StreamIterator};
+use foundation_core::valtron::Stream;
 
 use crate::backends::llamacpp_helpers::build_sampler_chain;
 use crate::costing::{calculate_cost, CostAccumulator};
@@ -36,8 +36,8 @@ use crate::errors::{
 use crate::types::base_types::{
     CostStatus, KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState,
-    ModelUsageCosting, SplitMode, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
-    ToolShed, UsageCosting, UsageReport, UserModelContent,
+    ModelStreamBox, ModelUsageCosting, SplitMode, StopReason, TextBasedFormatter, TextContent,
+    ToolFormatter, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -272,6 +272,7 @@ impl Clone for LlamaModels {
 
 impl LlamaModels {
     /// Create a new `LlamaModels` instance.
+    #[allow(clippy::arc_with_non_send_sync)]
     fn new(model: LlamaModel, context: LlamaModelContextParams, spec: ModelSpec) -> Self {
         Self {
             inner: Arc::new(Mutex::new(LlamaModelsInner {
@@ -298,7 +299,7 @@ impl Model for LlamaModels {
     }
 
     fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
-        Box::new(TextBasedFormatter::default())
+        Box::new(TextBasedFormatter)
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
@@ -377,9 +378,7 @@ impl Model for LlamaModels {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
-    > {
+    ) -> GenerationResult<ModelStreamBox> {
         let stream = LlamaCppStream::new(self.clone(), &interaction, specs)?;
         Ok(Box::new(stream))
     }

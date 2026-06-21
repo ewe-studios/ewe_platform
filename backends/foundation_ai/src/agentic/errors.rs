@@ -299,14 +299,11 @@ impl ErrorPolicy {
             // A tool failure that reached here is the rare non-recoverable case;
             // the recoverable path is a ToolResult to the LLM (F11), surfaced before
             // this point. We keep going and let the LLM react.
-            AgenticError::ToolCall { .. } => AgentAction::Continue,
-            // F17 owns loop redirect/escalation; the loop continues.
-            AgenticError::LoopDetected(_) => AgentAction::Continue,
-            // Hard stops.
-            AgenticError::Auth(_)
-            | AgenticError::ToolNotAuthorized { .. }
-            | AgenticError::Budget { .. } => AgentAction::Terminate(error),
-            // Other generation failures + all infrastructure failures terminate.
+            // F17 owns loop redirect/escalation; the loop also continues.
+            AgenticError::ToolCall { .. } | AgenticError::LoopDetected(_) => {
+                AgentAction::Continue
+            }
+            // Hard stops + all other generation/infrastructure failures terminate.
             _ => AgentAction::Terminate(error),
         }
     }

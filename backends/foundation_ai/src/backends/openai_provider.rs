@@ -12,7 +12,7 @@ use std::time::Duration;
 
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
+use foundation_core::valtron::{execute, Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{
     Event, ParseResult, ReconnectingEventSourceTask, ReconnectingProgress,
@@ -29,8 +29,8 @@ use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, Mode
 use crate::types::base_types::{
     AuthProvider, CostStatus, ExtractResult, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
-    ModelState, ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter,
-    ToolShed, UsageCosting, UsageReport,
+    ModelState, ModelStreamBox, ModelUsageCosting, StopReason, TextContent, Tool,
+    ToolCallingError, ToolFormatter, ToolShed, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -810,7 +810,7 @@ impl ToolFormatter for OpenAIFormatter {
 
 impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
     fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
-        Box::new(OpenAIFormatter::default())
+        Box::new(OpenAIFormatter)
     }
 
     fn spec(&self) -> ModelSpec {
@@ -879,9 +879,7 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
-    > {
+    ) -> GenerationResult<ModelStreamBox> {
         let params = specs.unwrap_or_default();
         let request = build_chat_request(&self.model_name, &interaction, &params, true);
 
@@ -967,7 +965,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
         let item = self.inner.next()?;
 
         match item {
-            Stream::Next(parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
             Stream::Pending(p) => Some(Stream::Pending(match p {
                 ReconnectingProgress::Connecting | ReconnectingProgress::Reading => {
                     ModelState::GeneratingTokens(None)
@@ -982,7 +980,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
                 let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
                 for item in items {
                     match item {
-                        StreamSpread::Done(parse_result) => {
+                        StreamSpread::Done(ref parse_result) => {
                             match self.process_parse_result(parse_result) {
                                 Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
                                 Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
@@ -1015,7 +1013,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
 
 impl<R: DnsResolver + 'static> OpenAIStream<R> {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
-    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+    fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message { data, .. } = &parse_result.event else {
             return Stream::Ignore;
         };

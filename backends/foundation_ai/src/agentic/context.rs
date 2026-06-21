@@ -295,30 +295,24 @@ fn memory_record_to_message(record: &SessionRecord, label: &str) -> Option<Messa
 }
 
 fn observation_is_newer(obs: &SessionRecord, refl: &SessionRecord) -> bool {
-    let obs_ts = match obs {
-        SessionRecord::Observation { timestamp, .. } => timestamp,
-        _ => return false,
+    let SessionRecord::Observation { timestamp, .. } = obs else {
+        return false;
     };
-    let refl_ts = match refl {
-        SessionRecord::Reflection { generated_at, .. } => generated_at,
-        _ => return true,
+    let SessionRecord::Reflection { generated_at, .. } = refl else {
+        return true;
     };
-    obs_ts > refl_ts
+    timestamp > generated_at
 }
 
 fn estimate_tokens(msg: &Messages) -> u64 {
     let text_len = match msg {
-        Messages::User { content, .. } => match content {
+        Messages::User { content, .. } | Messages::ToolResult { content, .. } => match content {
             UserModelContent::Text(tc) => tc.content.len(),
             UserModelContent::Image(_) => 200,
         },
         Messages::Assistant { content, .. } => match content {
             crate::types::ModelOutput::Text(tc) => tc.content.len(),
             _ => 50,
-        },
-        Messages::ToolResult { content, .. } => match content {
-            UserModelContent::Text(tc) => tc.content.len(),
-            UserModelContent::Image(_) => 200,
         },
     };
     (text_len as u64) / 4

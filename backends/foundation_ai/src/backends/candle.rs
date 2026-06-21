@@ -14,16 +14,17 @@ use candle_nn::VarBuilder;
 use candle_transformers::models::llama as candle_llama;
 use tokenizers::Tokenizer;
 
-use foundation_core::valtron::{Stream, StreamIterator};
+use foundation_core::valtron::Stream;
 
 use crate::errors::{
     GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult,
 };
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    ModelProviders, ModelSpec, ModelState, StopReason, TextBasedFormatter, TextContent,
-    CostStatus, ModelUsageCosting, ToolShed, UsageCosting, UsageReport, UserModelContent,
+    CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProvider, ModelProviders, ModelSpec, ModelState, ModelStreamBox, ModelUsageCosting,
+    StopReason, TextBasedFormatter, TextContent, ToolShed, UsageCosting, UsageReport,
+    UserModelContent,
 };
 
 // ==================================
@@ -702,9 +703,7 @@ impl Model for CandleModels {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
-    > {
+    ) -> GenerationResult<ModelStreamBox> {
         let stream = CandleStream::new(self.clone(), interaction, specs)?;
         Ok(Box::new(stream))
     }

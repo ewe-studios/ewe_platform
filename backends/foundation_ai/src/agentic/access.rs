@@ -22,14 +22,17 @@ pub struct TokenBudget {
 }
 
 impl TokenBudget {
+    #[must_use]
     pub fn remaining(&self) -> Option<u64> {
         self.limit.map(|l| l.saturating_sub(self.used))
     }
 
+    #[must_use]
     pub fn is_exhausted(&self) -> bool {
         self.limit.is_some_and(|l| self.used >= l)
     }
 
+    #[must_use]
     pub fn unlimited() -> Self {
         Self {
             limit: None,

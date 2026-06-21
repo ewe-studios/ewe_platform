@@ -107,14 +107,14 @@ fn mgr() -> ToolCallManager {
 
 #[test]
 fn empty_calls_produces_empty_workflow() {
-    let wf = mgr().build_workflow(vec![]).unwrap();
+    let wf = mgr().build_workflow(&[]).unwrap();
     assert!(wf.stages.is_empty());
 }
 
 #[test]
 fn single_call_produces_one_sequential_stage() {
     let wf = mgr()
-        .build_workflow(vec![req("a", "echo", vec![], ExecutionHint::Unspecified)])
+        .build_workflow(&[req("a", "echo", vec![], ExecutionHint::Unspecified)])
         .unwrap();
     assert_eq!(wf.stages.len(), 1);
     assert!(matches!(&wf.stages[0], ToolCallStage::Sequential { calls, .. } if calls.len() == 1));
@@ -123,7 +123,7 @@ fn single_call_produces_one_sequential_stage() {
 #[test]
 fn independent_calls_produce_one_parallel_stage() {
     let wf = mgr()
-        .build_workflow(vec![
+        .build_workflow(&[
             req("a", "echo", vec![], ExecutionHint::Unspecified),
             req("b", "echo", vec![], ExecutionHint::Unspecified),
             req("c", "echo", vec![], ExecutionHint::Unspecified),
@@ -141,7 +141,7 @@ fn independent_calls_produce_one_parallel_stage() {
 fn linear_chain_produces_multiple_stages() {
     // a -> b -> c
     let wf = mgr()
-        .build_workflow(vec![
+        .build_workflow(&[
             req("a", "echo", vec![], ExecutionHint::Unspecified),
             req("b", "echo", vec!["a"], ExecutionHint::Unspecified),
             req("c", "echo", vec!["b"], ExecutionHint::Unspecified),
@@ -154,7 +154,7 @@ fn linear_chain_produces_multiple_stages() {
 fn diamond_dependency_produces_three_stages() {
     // a -> b, a -> c, b+c -> d
     let wf = mgr()
-        .build_workflow(vec![
+        .build_workflow(&[
             req("a", "echo", vec![], ExecutionHint::Unspecified),
             req("b", "echo", vec!["a"], ExecutionHint::Unspecified),
             req("c", "echo", vec!["a"], ExecutionHint::Unspecified),
@@ -178,7 +178,7 @@ fn decision_04_five_call_example() {
     // analyze (depends on read_a, read_b, read_c, depth 1) → sequential stage 1
     // summarize (depends on analyze, depth 2) → sequential stage 2
     let wf = mgr()
-        .build_workflow(vec![
+        .build_workflow(&[
             req("read_a", "echo", vec![], ExecutionHint::Parallel),
             req("read_b", "echo", vec![], ExecutionHint::Parallel),
             req("read_c", "echo", vec![], ExecutionHint::Parallel),
@@ -214,7 +214,7 @@ fn decision_04_five_call_example() {
 #[test]
 fn sequential_hint_forces_sequential_stage() {
     let wf = mgr()
-        .build_workflow(vec![
+        .build_workflow(&[
             req("a", "echo", vec![], ExecutionHint::Sequential),
             req("b", "echo", vec![], ExecutionHint::Parallel),
         ])
@@ -226,7 +226,7 @@ fn sequential_hint_forces_sequential_stage() {
 
 #[test]
 fn cyclic_dependency_rejected() {
-    let result = mgr().build_workflow(vec![
+    let result = mgr().build_workflow(&[
         req("a", "echo", vec!["b"], ExecutionHint::Unspecified),
         req("b", "echo", vec!["a"], ExecutionHint::Unspecified),
     ]);
@@ -237,7 +237,7 @@ fn cyclic_dependency_rejected() {
 
 #[test]
 fn missing_dependency_rejected() {
-    let result = mgr().build_workflow(vec![req(
+    let result = mgr().build_workflow(&[req(
         "a",
         "echo",
         vec!["nonexistent"],

@@ -77,6 +77,7 @@ pub struct ToolCallSignature {
 }
 
 impl ToolCallSignature {
+    #[must_use]
     pub fn from_tool_call(
         name: &str,
         args: &Option<std::collections::HashMap<String, ArgType>>,
@@ -170,17 +171,17 @@ fn simhash_text(text: &str) -> u64 {
         let mut hasher = ahash::AHasher::default();
         token.hash(&mut hasher);
         let h = hasher.finish();
-        for bit in 0..64 {
+        for (bit, count) in counts.iter_mut().enumerate() {
             if (h >> bit) & 1 == 1 {
-                counts[bit] += 1;
+                *count += 1;
             } else {
-                counts[bit] -= 1;
+                *count -= 1;
             }
         }
     }
     let mut hash = 0u64;
-    for bit in 0..64 {
-        if counts[bit] > 0 {
+    for (bit, count) in counts.iter().enumerate() {
+        if *count > 0 {
             hash |= 1 << bit;
         }
     }
@@ -189,7 +190,10 @@ fn simhash_text(text: &str) -> u64 {
 
 fn hamming_similarity(a: u64, b: u64) -> f32 {
     let diff = (a ^ b).count_ones();
-    1.0 - (diff as f32 / 64.0)
+    // diff is at most 64 — fits in f32 without precision loss.
+    #[allow(clippy::cast_precision_loss)]
+    let result = 1.0 - (diff as f32 / 64.0);
+    result
 }
 
 fn extract_text(output: &ModelOutput) -> Option<&str> {
@@ -236,6 +240,7 @@ pub struct LoopDetector {
 }
 
 impl LoopDetector {
+    #[must_use]
     pub fn new(config: LoopDetectorConfig) -> Self {
         Self {
             window: VecDeque::with_capacity(config.window_size + 1),
@@ -362,10 +367,12 @@ impl LoopDetector {
         self.redirect_count = 0;
     }
 
+    #[must_use]
     pub fn redirect_count(&self) -> usize {
         self.redirect_count
     }
 
+    #[must_use]
     pub fn config(&self) -> &LoopDetectorConfig {
         &self.config
     }

@@ -116,8 +116,12 @@ impl SessionRecordRow {
                     } => {
                         row.role = "assistant".to_string();
                         row.model = Some(model.to_string());
-                        row.input_tokens = Some(usage.input.max(0.0).round() as u32);
-                        row.output_tokens = Some(usage.output.max(0.0).round() as u32);
+                        // Token counts are clamped non-negative and within u32 range.
+                        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+                        {
+                            row.input_tokens = Some(usage.input.max(0.0).round() as u32);
+                            row.output_tokens = Some(usage.output.max(0.0).round() as u32);
+                        }
                         // Surface a tool-call name as the title for quick scanning.
                         if let ModelOutput::ToolCall { name, .. } = content {
                             row.title = Some(name.clone());
@@ -143,8 +147,12 @@ impl SessionRecordRow {
             }
             SessionRecord::Summary { message_count, usage } => {
                 row.title = Some(format!("summary ({message_count} msgs)"));
-                row.input_tokens = Some(usage.input.min(u64::from(u32::MAX)) as u32);
-                row.output_tokens = Some(usage.output.min(u64::from(u32::MAX)) as u32);
+                // Clamped to u32::MAX so truncation is safe.
+                #[allow(clippy::cast_possible_truncation)]
+                {
+                    row.input_tokens = Some(usage.input.min(u64::from(u32::MAX)) as u32);
+                    row.output_tokens = Some(usage.output.min(u64::from(u32::MAX)) as u32);
+                }
             }
         }
         Ok(row)

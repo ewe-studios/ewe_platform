@@ -10,7 +10,7 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
+use foundation_core::valtron::{execute, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
 use foundation_netio::simple_http::client::shared::{
     body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
@@ -26,9 +26,9 @@ use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, Mode
 use crate::types::base_types::{
     ArgType, AuthProvider, CostStatus, ExecutionHint, ExtractResult, MessageType, Messages, Model,
     ModelAPI, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelProvider,
-    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelUsageCosting, StopReason,
-    TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed, UsageCosting, UsageReport,
-    UserModelContent,
+    ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelStreamBox,
+    ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError, ToolFormatter, ToolShed,
+    UsageCosting, UsageReport, UserModelContent,
 };
 
 // ============================================================================
@@ -879,9 +879,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
-    > {
+    ) -> GenerationResult<ModelStreamBox> {
         let params = specs.unwrap_or_default();
         let request = build_anthropic_request(&self.model_name, &interaction, &params, true);
 
@@ -933,7 +931,7 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
     }
 
     fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
-        Box::new(AnthropicFormatter::default())
+        Box::new(AnthropicFormatter)
     }
 }
 
@@ -988,7 +986,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
         };
 
         match item {
-            Stream::Next(parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
             Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
@@ -998,7 +996,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
                 let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
                 for item in items {
                     match item {
-                        StreamSpread::Done(parse_result) => {
+                        StreamSpread::Done(ref parse_result) => {
                             match self.process_parse_result(parse_result) {
                                 Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
                                 Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
@@ -1026,7 +1024,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
 
 impl<R: DnsResolver + 'static> AnthropicStream<R> {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
-    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+    fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message {
             data, event_type, ..
         } = &parse_result.event

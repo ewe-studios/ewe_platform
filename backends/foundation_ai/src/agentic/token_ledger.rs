@@ -111,6 +111,8 @@ impl TokenLedger {
             .rolling_tokens
             .fetch_add(input + output, Ordering::Relaxed);
 
+        // Cost is non-negative; round() fits in u64 for any realistic cost.
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
         let cost_micros = (cost_of(usage) * COST_SCALE).round() as u64;
         self.inner
             .total_cost_micros
@@ -142,7 +144,10 @@ impl TokenLedger {
     /// Cumulative cost in currency units.
     #[must_use]
     pub fn cost(&self) -> f64 {
-        self.inner.total_cost_micros.load(Ordering::Relaxed) as f64 / COST_SCALE
+        // u64 → f64: precision loss acceptable for cost display.
+        #[allow(clippy::cast_precision_loss)]
+        let micros = self.inner.total_cost_micros.load(Ordering::Relaxed) as f64;
+        micros / COST_SCALE
     }
 
     /// Rolling count (input+output) since the last memory reset. F15 reads this
@@ -211,6 +216,9 @@ impl TokenLedger {
     pub fn effective_max_tokens(&self, params: &ModelParams) -> usize {
         match self.remaining() {
             None => params.max_tokens,
+            // u64 → usize: on 32-bit targets this may truncate, but budget
+            // values that large are unreachable in practice.
+            #[allow(clippy::cast_possible_truncation)]
             Some(rem) => params.max_tokens.min(rem as usize),
         }
     }
@@ -241,7 +249,10 @@ pub struct TokenSnapshot {
 
 /// Fold an `f64` token count into a `u64` (counts are integral; clamp negatives).
 fn fold(v: f64) -> u64 {
-    v.max(0.0).round() as u64
+    // Non-negative after max(0.0); truncation acceptable for token counts.
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    let result = v.max(0.0).round() as u64;
+    result
 }
 
 /// Total cost (currency units) of a `UsageReport`, read from its `UsageCosting`.

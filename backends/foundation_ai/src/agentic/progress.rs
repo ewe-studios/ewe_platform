@@ -91,6 +91,8 @@ impl From<&ModelState> for AgentProgress {
                 // placeholder so the conversion is total. Callers that know the
                 // model should construct `Generating` directly.
                 model: ModelId::Name(String::new(), None),
+                // Token counts are non-negative and within u64 range.
+                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
                 tokens_so_far: usage
                     .as_ref()
                     .map(|u| (u.input + u.output) as u64),
@@ -132,6 +134,8 @@ pub fn lift_model_item(item: Stream<Messages, ModelState>, model: &ModelId) -> A
         Stream::Pending(ModelState::GeneratingTokens(usage)) => {
             Stream::Pending(AgentProgress::Generating {
                 model: model.clone(),
+                // Token counts are non-negative and within u64 range.
+                #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
                 tokens_so_far: usage.as_ref().map(|u| (u.input + u.output) as u64),
             })
         }

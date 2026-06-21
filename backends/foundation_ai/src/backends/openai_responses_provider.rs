@@ -10,7 +10,7 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamIterator, StreamSpread};
+use foundation_core::valtron::{execute, Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
 use foundation_netio::simple_http::client::shared::{
     body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
@@ -23,8 +23,8 @@ use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, Mode
 use crate::types::base_types::{
     AuthProvider, CostStatus, GenerationMetadata, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
-    ModelState, StopReason, TextBasedFormatter, TextContent, ToolFormatter, ToolShed, UsageCosting,
-    UsageReport,
+    ModelState, ModelStreamBox, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
+    ToolShed, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -787,7 +787,7 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
     }
 
     fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
-        Box::new(TextBasedFormatter::default())
+        Box::new(TextBasedFormatter)
     }
 
     fn descriptor(&self) -> Option<ModelProviderDescriptor> {
@@ -820,9 +820,7 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
         &self,
         interaction: ModelInteraction,
         specs: Option<ModelParams>,
-    ) -> GenerationResult<
-        Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>,
-    > {
+    ) -> GenerationResult<ModelStreamBox> {
         let params = specs.unwrap_or_default();
         let request = self.build_request(&interaction, &params, true);
 
@@ -888,7 +886,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
 
         let item = self.inner.next()?;
 
-        if let Stream::Next(parse_result) = item {
+        if let Stream::Next(ref parse_result) = item {
             return Some(self.process_parse_result(parse_result));
         }
 
@@ -904,7 +902,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
             let mapped: Vec<StreamSpread<Messages, ModelState>> = items
                 .into_iter()
                 .map(|item| match item {
-                    StreamSpread::Done(inner) => match self.process_parse_result(inner) {
+                    StreamSpread::Done(ref inner) => match self.process_parse_result(inner) {
                         Stream::Next(msg) => StreamSpread::Done(msg),
                         Stream::Pending(msg) => StreamSpread::Pending(msg),
                         Stream::Delayed(_)
@@ -930,7 +928,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
 
 impl<R: DnsResolver + 'static> ResponsesStream<R> {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
-    fn process_parse_result(&mut self, parse_result: ParseResult) -> Stream<Messages, ModelState> {
+    fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message { data, .. } = &parse_result.event else {
             return Stream::Ignore;
         };

@@ -53,6 +53,7 @@ impl CancelCode {
     }
 
     /// Check if any cancellation is pending.
+    #[must_use]
     pub fn is_active(self) -> bool {
         self != CancelCode::None
     }
@@ -73,6 +74,7 @@ pub struct SteeringQueues {
 
 impl SteeringQueues {
     /// Create new empty steering queues.
+    #[must_use]
     pub fn new() -> Self {
         Self {
             priority: Arc::new(ConcurrentQueue::unbounded()),
@@ -83,6 +85,7 @@ impl SteeringQueues {
 
     /// Wrap existing shared handles — used when the session holds Arc handles
     /// and the AgentLoop needs its own SteeringQueues view.
+    #[must_use]
     pub fn from_shared(
         priority: Arc<ConcurrentQueue<Messages>>,
         follow_up: Arc<ConcurrentQueue<Messages>>,
@@ -107,26 +110,31 @@ impl SteeringQueues {
     }
 
     /// Pop a priority message, if any.
+    #[must_use]
     pub fn pop_priority(&self) -> Option<Messages> {
         self.priority.pop().ok()
     }
 
     /// Pop a follow-up message, if any.
+    #[must_use]
     pub fn pop_follow_up(&self) -> Option<Messages> {
         self.follow_up.pop().ok()
     }
 
     /// Check if the priority queue has messages.
+    #[must_use]
     pub fn has_priority(&self) -> bool {
         !self.priority.is_empty()
     }
 
     /// Check if the follow-up queue has messages.
+    #[must_use]
     pub fn has_follow_up(&self) -> bool {
         !self.follow_up.is_empty()
     }
 
     /// Get the current cancel code.
+    #[must_use]
     pub fn cancel_code(&self) -> CancelCode {
         CancelCode::load(&self.cancel_signal)
     }
@@ -137,23 +145,27 @@ impl SteeringQueues {
     }
 
     /// Check if any steering is pending (priority messages or active cancel).
+    #[must_use]
     pub fn is_active(&self) -> bool {
         self.has_priority() || self.cancel_code().is_active()
     }
 
     /// Readiness signal for `TaskStatus::Depends` — parks the agent task
     /// until a priority message arrives. Zero CPU spin.
+    #[must_use]
     pub fn priority_readiness(&self) -> Arc<dyn EventReadiness> {
         Arc::new(QueueReadiness::new(self.priority.clone()))
     }
 
     /// Readiness signal for `TaskStatus::Depends` — parks the agent task
     /// until a follow-up message arrives.
+    #[must_use]
     pub fn followup_readiness(&self) -> Arc<dyn EventReadiness> {
         Arc::new(QueueReadiness::new(self.follow_up.clone()))
     }
 
     /// Drain all priority messages (session end: caller persists, then clears).
+    #[must_use]
     pub fn drain_priority(&self) -> Vec<Messages> {
         let mut out = Vec::new();
         while let Ok(msg) = self.priority.pop() {
@@ -163,6 +175,7 @@ impl SteeringQueues {
     }
 
     /// Drain all follow-up messages (session end: caller persists, then clears).
+    #[must_use]
     pub fn drain_follow_up(&self) -> Vec<Messages> {
         let mut out = Vec::new();
         while let Ok(msg) = self.follow_up.pop() {

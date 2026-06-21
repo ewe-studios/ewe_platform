@@ -85,6 +85,18 @@ impl Default for AgentConfig {
 }
 
 // ---------------------------------------------------------------------------
+// Type aliases for complex types
+
+/// Type alias for the driven tool-execution future used in `InnerExecuting`.
+type ToolDrivenIterator = DrivenTaskIterator<
+    CancellableFutureTask<
+        core::pin::Pin<
+            Box<dyn core::future::Future<Output = Result<ToolCallResult, ToolError>> + Send>,
+        >,
+    >,
+>;
+
+// ---------------------------------------------------------------------------
 // AgentLoopState
 
 /// The state machine driving the orchestrator.
@@ -118,23 +130,12 @@ pub enum AgentLoopState {
     },
     /// Tool calls extracted from the model's output.
     InnerToolCalls { calls: Vec<ToolCallRequest> },
-    /// Tool execution in progress — drives CancellableFutureTask per call.
+    /// Tool execution in progress — drives `CancellableFutureTask` per call.
     InnerExecuting {
         calls: Vec<ToolCallRequest>,
         results: Vec<(ToolCallRequest, Result<ToolCallResult, ToolError>)>,
         idx: usize,
-        active: Option<
-            DrivenTaskIterator<
-                CancellableFutureTask<
-                    core::pin::Pin<
-                        Box<
-                            dyn core::future::Future<Output = Result<ToolCallResult, ToolError>>
-                                + Send,
-                        >,
-                    >,
-                >,
-            >,
-        >,
+        active: Option<ToolDrivenIterator>,
         cancel_signals: Vec<Arc<AtomicBool>>,
     },
     /// Emit tool results back as records and loop back to InnerAssemble.
@@ -272,11 +273,11 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_outer_boundary(
         &mut self,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
         self.outer_iteration += 1;
         if self.outer_iteration > self.config.max_outer_iterations {
             self.state = AgentLoopState::Ending;
-            return Some(TaskStatus::Pending(AgentProgress::SessionEnding));
+            return TaskStatus::Pending(AgentProgress::SessionEnding);
         }
 
         // Drain priority queue first.
@@ -288,9 +289,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             }
             self.inner_iteration = 0;
             self.state = AgentLoopState::InnerAssemble;
-            return Some(TaskStatus::Pending(AgentProgress::Steering {
+            return TaskStatus::Pending(AgentProgress::Steering {
                 source: std::borrow::Cow::Borrowed("priority_queue"),
-            }));
+            });
         }
 
         // Drain follow-up queue.
@@ -301,19 +302,19 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             }
             self.inner_iteration = 0;
             self.state = AgentLoopState::InnerAssemble;
-            return Some(TaskStatus::Pending(AgentProgress::Steering {
+            return TaskStatus::Pending(AgentProgress::Steering {
                 source: std::borrow::Cow::Borrowed("follow_up_queue"),
-            }));
+            });
         }
 
         // No more work — end the session.
         self.state = AgentLoopState::Ending;
-        Some(TaskStatus::Pending(AgentProgress::SessionEnding))
+        TaskStatus::Pending(AgentProgress::SessionEnding)
     }
 
     fn transition_inner_assemble(
         &mut self,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
         // Check priority queue — front-inject interruption.
         if self.queues.has_priority() {
             let msgs = self.queues.drain_priority();
@@ -321,18 +322,18 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             for msg in msgs {
                 self.push_user_message(msg);
             }
-            return Some(TaskStatus::Pending(AgentProgress::Steering {
+            return TaskStatus::Pending(AgentProgress::Steering {
                 source: std::borrow::Cow::Borrowed("priority_interrupt"),
-            }));
+            });
         }
 
         // Check budget exhaustion.
         if self.ledger.is_exhausted() {
             let snapshot = self.ledger.snapshot();
             self.state = AgentLoopState::Ending;
-            return Some(TaskStatus::Ready(
+            return TaskStatus::Ready(
                 AgenticError::BudgetExhausted { snapshot }.into_failed_action(),
-            ));
+            );
         }
 
         // Attempt to get the model from the router.
@@ -340,7 +341,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             Ok(m) => m,
             Err(e) => {
                 let err = AgenticError::from(e);
-                return Some(self.handle_error(err));
+                return self.handle_error(err);
             }
         };
 
@@ -380,107 +381,103 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     stream: Box::new(stream),
                     collected: Vec::new(),
                 };
-                Some(TaskStatus::Pending(AgentProgress::Generating {
+                TaskStatus::Pending(AgentProgress::Generating {
                     model: self.current_model.clone(),
                     tokens_so_far: None,
-                }))
+                })
             }
             Err(gen_err) => {
                 let err = AgenticError::from_generation(&gen_err, None, 0);
-                Some(self.handle_error(err))
+                self.handle_error(err)
             }
         }
     }
 
     fn transition_inner_generate(
         &mut self,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
         // We need to take ownership of the state to pump the stream.
-        let (mut stream, mut collected) = match std::mem::replace(
-            &mut self.state,
-            AgentLoopState::Done, // temporary placeholder
-        ) {
-            AgentLoopState::InnerGenerate { stream, collected } => (stream, collected),
-            _ => unreachable!(),
+        let AgentLoopState::InnerGenerate {
+            mut stream,
+            mut collected,
+        } = std::mem::replace(&mut self.state, AgentLoopState::Done)
+        else {
+            unreachable!()
         };
 
         // Pump one item from the stream.
-        match stream.next() {
-            Some(item) => {
-                // Check for mid-generation steering interruption (OD-19-3).
-                if self.queues.has_priority() {
-                    self.queues.reset_cancel();
-                    let msgs = self.queues.drain_priority();
-                    for msg in msgs {
-                        self.push_user_message(msg);
-                    }
-                    // Discard current generation, re-assemble with new priority.
-                    self.state = AgentLoopState::InnerAssemble;
-                    return Some(TaskStatus::Pending(AgentProgress::Steering {
-                        source: std::borrow::Cow::Borrowed("mid_gen_priority"),
-                    }));
-                }
+        let Some(item) = stream.next() else {
+            // Stream finished — run loop detection, extract tool calls.
+            self.breaker.on_success();
+            return self.on_generation_complete(&collected);
+        };
 
-                let lifted = lift_model_item(item, &self.current_model);
-                match lifted {
-                    Stream::Next(record) => {
-                        // Collect the message for tool-call extraction + loop detection.
-                        if let SessionRecord::Conversation { ref message } = record {
-                            collected.push(message.clone());
-                            self.message_count += 1;
-                        }
-                        self.state = AgentLoopState::InnerGenerate { stream, collected };
-                        Some(TaskStatus::Ready(record))
-                    }
-                    Stream::Pending(progress) => {
-                        self.state = AgentLoopState::InnerGenerate { stream, collected };
-                        Some(TaskStatus::Pending(progress))
-                    }
-                    Stream::Init | Stream::Ignore | Stream::Wait => {
-                        self.state = AgentLoopState::InnerGenerate { stream, collected };
-                        Some(TaskStatus::Ignore)
-                    }
-                    Stream::Delayed(d) => {
-                        self.state = AgentLoopState::InnerGenerate { stream, collected };
-                        Some(TaskStatus::Delayed(d))
-                    }
-                    Stream::Spread(items) => {
-                        use foundation_core::valtron::StreamSpread;
-                        for s in &items {
-                            if let StreamSpread::Done(SessionRecord::Conversation { ref message }) =
-                                s
-                            {
-                                collected.push(message.clone());
-                                self.message_count += 1;
-                            }
-                        }
-                        self.state = AgentLoopState::InnerGenerate { stream, collected };
-                        // Emit the first spread item; rest will be picked up on next poll.
-                        if let Some(first) = items.into_iter().next() {
-                            match first {
-                                StreamSpread::Done(rec) => Some(TaskStatus::Ready(rec)),
-                                StreamSpread::Pending(p) => Some(TaskStatus::Pending(p)),
-                            }
-                        } else {
-                            Some(TaskStatus::Ignore)
-                        }
+        // Check for mid-generation steering interruption (OD-19-3).
+        if self.queues.has_priority() {
+            self.queues.reset_cancel();
+            let msgs = self.queues.drain_priority();
+            for msg in msgs {
+                self.push_user_message(msg);
+            }
+            // Discard current generation, re-assemble with new priority.
+            self.state = AgentLoopState::InnerAssemble;
+            return TaskStatus::Pending(AgentProgress::Steering {
+                source: std::borrow::Cow::Borrowed("mid_gen_priority"),
+            });
+        }
+
+        let lifted = lift_model_item(item, &self.current_model);
+        match lifted {
+            Stream::Next(record) => {
+                // Collect the message for tool-call extraction + loop detection.
+                if let SessionRecord::Conversation { ref message } = record {
+                    collected.push(message.clone());
+                    self.message_count += 1;
+                }
+                self.state = AgentLoopState::InnerGenerate { stream, collected };
+                TaskStatus::Ready(record)
+            }
+            Stream::Pending(progress) => {
+                self.state = AgentLoopState::InnerGenerate { stream, collected };
+                TaskStatus::Pending(progress)
+            }
+            Stream::Init | Stream::Ignore | Stream::Wait => {
+                self.state = AgentLoopState::InnerGenerate { stream, collected };
+                TaskStatus::Ignore
+            }
+            Stream::Delayed(d) => {
+                self.state = AgentLoopState::InnerGenerate { stream, collected };
+                TaskStatus::Delayed(d)
+            }
+            Stream::Spread(items) => {
+                use foundation_core::valtron::StreamSpread;
+                for s in &items {
+                    if let StreamSpread::Done(SessionRecord::Conversation { ref message }) = s
+                    {
+                        collected.push(message.clone());
+                        self.message_count += 1;
                     }
                 }
-            }
-            None => {
-                // Stream finished — run loop detection, extract tool calls.
-                self.breaker.on_success();
-                self.on_generation_complete(collected)
+                self.state = AgentLoopState::InnerGenerate { stream, collected };
+                // Emit the first spread item; rest will be picked up on next poll.
+                if let Some(first) = items.into_iter().next() {
+                    match first {
+                        StreamSpread::Done(rec) => TaskStatus::Ready(rec),
+                        StreamSpread::Pending(p) => TaskStatus::Pending(p),
+                    }
+                } else {
+                    TaskStatus::Ignore
+                }
             }
         }
     }
 
     fn on_generation_complete(
         &mut self,
-        collected: Vec<Messages>,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+        collected: &[Messages],
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
         // Run loop detection (F17) synchronously on the model outputs.
-        for msg in &collected {
+        for msg in collected {
             if let Messages::Assistant { ref content, .. } = msg {
                 let detection = self.detector.check(content);
                 if detection != LoopDetection::NoLoop {
@@ -501,9 +498,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                             };
                             self.push_user_message(redirect);
                             self.state = AgentLoopState::InnerAssemble;
-                            return Some(TaskStatus::Pending(AgentProgress::Steering {
+                            return TaskStatus::Pending(AgentProgress::Steering {
                                 source: std::borrow::Cow::Borrowed("loop_redirect"),
-                            }));
+                            });
                         }
                         Escalation::SwitchModelOrTemperature { .. } => {
                             if let Some(fallback) = self.breaker.on_failure() {
@@ -521,18 +518,21 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                             };
                             self.push_user_message(redirect);
                             self.state = AgentLoopState::InnerAssemble;
-                            return Some(TaskStatus::Pending(AgentProgress::Steering {
+                            return TaskStatus::Pending(AgentProgress::Steering {
                                 source: std::borrow::Cow::Borrowed("loop_model_switch"),
-                            }));
+                            });
                         }
                         Escalation::Terminate => {
+                            // redirect_count is small (bounded by max_redirects).
+                            #[allow(clippy::cast_possible_truncation)]
+                            let occurrences = self.detector.redirect_count() as u32;
                             let err =
                                 AgenticError::LoopDetected(crate::agentic::errors::LoopDetection {
                                     kind: format!("{detection:?}"),
-                                    occurrences: self.detector.redirect_count() as u32,
+                                    occurrences,
                                 });
                             self.state = AgentLoopState::Ending;
-                            return Some(TaskStatus::Ready(err.into_failed_action()));
+                            return TaskStatus::Ready(err.into_failed_action());
                         }
                     }
                 }
@@ -540,43 +540,45 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }
 
         // Extract tool calls from assistant messages.
-        let tool_calls = self.extract_tool_calls(&collected);
+        let tool_calls = Self::extract_tool_calls(collected);
 
         if tool_calls.is_empty() {
             // No tools — go to output processing.
             self.state = AgentLoopState::OutputProcessing;
-            Some(TaskStatus::Ignore)
+            TaskStatus::Ignore
         } else {
             let total = tool_calls.len();
             self.state = AgentLoopState::InnerToolCalls { calls: tool_calls };
-            Some(TaskStatus::Pending(AgentProgress::ExecutingTools {
+            TaskStatus::Pending(AgentProgress::ExecutingTools {
                 total,
                 completed: 0,
-            }))
+            })
         }
     }
 
-    fn extract_tool_calls(&self, messages: &[Messages]) -> Vec<ToolCallRequest> {
+    fn extract_tool_calls(messages: &[Messages]) -> Vec<ToolCallRequest> {
         let mut calls = Vec::new();
         for msg in messages {
-            if let Messages::Assistant { content, .. } = msg {
-                if let ModelOutput::ToolCall {
-                    id,
-                    name,
-                    arguments,
-                    depends_on,
-                    execution_hint,
-                    ..
-                } = content
-                {
-                    calls.push(ToolCallRequest {
-                        id: id.clone(),
-                        name: name.clone(),
-                        arguments: arguments.clone().unwrap_or_default(),
-                        depends_on: depends_on.clone(),
-                        execution_hint: *execution_hint,
-                    });
-                }
+            if let Messages::Assistant {
+                content:
+                    ModelOutput::ToolCall {
+                        id,
+                        name,
+                        arguments,
+                        depends_on,
+                        execution_hint,
+                        ..
+                    },
+                ..
+            } = msg
+            {
+                calls.push(ToolCallRequest {
+                    id: id.clone(),
+                    name: name.clone(),
+                    arguments: arguments.clone().unwrap_or_default(),
+                    depends_on: depends_on.clone(),
+                    execution_hint: *execution_hint,
+                });
             }
         }
         calls
@@ -584,14 +586,15 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
     fn transition_inner_tool_calls(
         &mut self,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
-        let calls = match std::mem::replace(&mut self.state, AgentLoopState::Done) {
-            AgentLoopState::InnerToolCalls { calls } => calls,
-            _ => unreachable!(),
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+        let AgentLoopState::InnerToolCalls { calls } =
+            std::mem::replace(&mut self.state, AgentLoopState::Done)
+        else {
+            unreachable!()
         };
 
         // Build the workflow (topological sort by depends_on).
-        let workflow = match self.tool_manager.build_workflow(calls.clone()) {
+        let workflow = match self.tool_manager.build_workflow(&calls) {
             Ok(w) => w,
             Err(e) => {
                 let err = AgenticError::ToolCall {
@@ -599,7 +602,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     reason: e.to_string(),
                 };
                 self.state = AgentLoopState::OutputProcessing;
-                return Some(TaskStatus::Ready(err.into_failed_action()));
+                return TaskStatus::Ready(err.into_failed_action());
             }
         };
 
@@ -616,7 +619,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
         if flat_calls.is_empty() {
             self.state = AgentLoopState::OutputProcessing;
-            return Some(TaskStatus::Ignore);
+            return TaskStatus::Ignore;
         }
 
         self.state = AgentLoopState::InnerExecuting {
@@ -626,23 +629,22 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             active: None,
             cancel_signals: Vec::new(),
         };
-        Some(TaskStatus::Ignore)
+        TaskStatus::Ignore
     }
 
     fn transition_inner_executing(
         &mut self,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
-        let (calls, mut results, idx, mut active, mut cancel_signals) =
-            match std::mem::replace(&mut self.state, AgentLoopState::Done) {
-                AgentLoopState::InnerExecuting {
-                    calls,
-                    results,
-                    idx,
-                    active,
-                    cancel_signals,
-                } => (calls, results, idx, active, cancel_signals),
-                _ => unreachable!(),
-            };
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+        let AgentLoopState::InnerExecuting {
+            calls,
+            mut results,
+            idx,
+            mut active,
+            mut cancel_signals,
+        } = std::mem::replace(&mut self.state, AgentLoopState::Done)
+        else {
+            unreachable!()
+        };
 
         // Check for steering cancel — abort all in-flight tool futures.
         if self.queues.has_priority() {
@@ -655,9 +657,9 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                 self.push_user_message(msg);
             }
             self.state = AgentLoopState::InnerAssemble;
-            return Some(TaskStatus::Pending(AgentProgress::Steering {
+            return TaskStatus::Pending(AgentProgress::Steering {
                 source: std::borrow::Cow::Borrowed("cancel_executing"),
-            }));
+            });
         }
 
         if idx >= calls.len() {
@@ -690,14 +692,14 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
 
             if result_messages.is_empty() {
                 self.state = AgentLoopState::OutputProcessing;
-                return Some(TaskStatus::Ignore);
+                return TaskStatus::Ignore;
             }
 
             self.state = AgentLoopState::InnerEmitResults {
                 results: result_messages,
                 idx: 0,
             };
-            return Some(TaskStatus::Ignore);
+            return TaskStatus::Ignore;
         }
 
         // If no active driven iterator, start one via drive_future with CancellableFutureTask.
@@ -727,10 +729,10 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     active: None,
                     cancel_signals,
                 };
-                Some(TaskStatus::Pending(AgentProgress::ExecutingTools {
+                TaskStatus::Pending(AgentProgress::ExecutingTools {
                     total,
                     completed: idx + 1,
-                }))
+                })
             }
             Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled))) => {
                 let err = ToolError::Cancelled(calls[idx].name.clone());
@@ -742,10 +744,10 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     active: None,
                     cancel_signals,
                 };
-                Some(TaskStatus::Pending(AgentProgress::ExecutingTools {
+                TaskStatus::Pending(AgentProgress::ExecutingTools {
                     total,
                     completed: idx + 1,
-                }))
+                })
             }
             Some(TaskStatus::Pending(_)) => {
                 self.state = AgentLoopState::InnerExecuting {
@@ -755,10 +757,10 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     active,
                     cancel_signals,
                 };
-                Some(TaskStatus::Pending(AgentProgress::ExecutingTools {
+                TaskStatus::Pending(AgentProgress::ExecutingTools {
                     total,
                     completed: idx,
-                }))
+                })
             }
             None => {
                 // Driven iterator exhausted without Ready — treat as error.
@@ -774,7 +776,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     active: None,
                     cancel_signals,
                 };
-                Some(TaskStatus::Ignore)
+                TaskStatus::Ignore
             }
             _ => {
                 self.state = AgentLoopState::InnerExecuting {
@@ -784,17 +786,18 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
                     active,
                     cancel_signals,
                 };
-                Some(TaskStatus::Ignore)
+                TaskStatus::Ignore
             }
         }
     }
 
     fn transition_inner_emit_results(
         &mut self,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
-        let (results, idx) = match std::mem::replace(&mut self.state, AgentLoopState::Done) {
-            AgentLoopState::InnerEmitResults { results, idx } => (results, idx),
-            _ => unreachable!(),
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
+        let AgentLoopState::InnerEmitResults { results, idx } =
+            std::mem::replace(&mut self.state, AgentLoopState::Done)
+        else {
+            unreachable!()
         };
 
         if idx >= results.len() {
@@ -803,10 +806,10 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             self.inner_iteration += 1;
             if self.inner_iteration >= self.config.max_inner_iterations {
                 self.state = AgentLoopState::OutputProcessing;
-                return Some(TaskStatus::Pending(AgentProgress::SessionEnding));
+                return TaskStatus::Pending(AgentProgress::SessionEnding);
             }
             self.state = AgentLoopState::InnerAssemble;
-            return Some(TaskStatus::Ignore);
+            return TaskStatus::Ignore;
         }
 
         let msg = results[idx].clone();
@@ -819,46 +822,42 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             results,
             idx: idx + 1,
         };
-        Some(TaskStatus::Ready(SessionRecord::Conversation {
+        TaskStatus::Ready(SessionRecord::Conversation {
             message: msg,
-        }))
+        })
     }
 
     fn transition_output_processing(
         &mut self,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
         // Fire memory triggers (F15) — check if observation/reflection needed.
         let action = self.memory.check_triggers();
+        self.state = AgentLoopState::OuterBoundary;
         match action {
             MemoryAction::GenerateObservation => {
-                self.state = AgentLoopState::OuterBoundary;
-                Some(TaskStatus::Pending(AgentProgress::ProcessingMemory {
+                TaskStatus::Pending(AgentProgress::ProcessingMemory {
                     kind: MemoryKind::Observation,
-                }))
+                })
             }
             MemoryAction::GenerateReflection => {
-                self.state = AgentLoopState::OuterBoundary;
-                Some(TaskStatus::Pending(AgentProgress::ProcessingMemory {
+                TaskStatus::Pending(AgentProgress::ProcessingMemory {
                     kind: MemoryKind::Reflection,
-                }))
+                })
             }
-            MemoryAction::None => {
-                self.state = AgentLoopState::OuterBoundary;
-                Some(TaskStatus::Ignore)
-            }
+            MemoryAction::None => TaskStatus::Ignore,
         }
     }
 
     fn transition_ending(
         &mut self,
-    ) -> Option<TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction>> {
+    ) -> TaskStatus<SessionRecord, AgentProgress, BoxedSendExecutionAction> {
         let snapshot = self.ledger.snapshot();
         let summary = SessionRecord::Summary {
             message_count: self.message_count,
             usage: snapshot,
         };
         self.state = AgentLoopState::Done;
-        Some(TaskStatus::Ready(summary))
+        TaskStatus::Ready(summary)
     }
 
     // -----------------------------------------------------------------------
@@ -908,9 +907,13 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         }
 
         let budget = self.ledger.budget().unwrap_or(u64::MAX);
+        // u64 → f64: precision loss acceptable for ratio computation.
+        #[allow(clippy::cast_precision_loss)]
         let usage_ratio = ctx.token_estimate as f64 / budget as f64;
 
         if usage_ratio >= f64::from(self.config.context_pressure_threshold) {
+            // Percentage is in [0, ~100]; truncation/sign loss are safe.
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
             let pct = (usage_ratio * 100.0) as u32;
             let pressure_note = format!(
                 "Context is at {pct}% capacity — prefer concise responses \
@@ -942,14 +945,14 @@ where
                 self.state = AgentLoopState::OuterBoundary;
                 Some(TaskStatus::Init)
             }
-            AgentLoopState::OuterBoundary => self.transition_outer_boundary(),
-            AgentLoopState::InnerAssemble => self.transition_inner_assemble(),
-            AgentLoopState::InnerGenerate { .. } => self.transition_inner_generate(),
-            AgentLoopState::InnerToolCalls { .. } => self.transition_inner_tool_calls(),
-            AgentLoopState::InnerExecuting { .. } => self.transition_inner_executing(),
-            AgentLoopState::InnerEmitResults { .. } => self.transition_inner_emit_results(),
-            AgentLoopState::OutputProcessing => self.transition_output_processing(),
-            AgentLoopState::Ending => self.transition_ending(),
+            AgentLoopState::OuterBoundary => Some(self.transition_outer_boundary()),
+            AgentLoopState::InnerAssemble => Some(self.transition_inner_assemble()),
+            AgentLoopState::InnerGenerate { .. } => Some(self.transition_inner_generate()),
+            AgentLoopState::InnerToolCalls { .. } => Some(self.transition_inner_tool_calls()),
+            AgentLoopState::InnerExecuting { .. } => Some(self.transition_inner_executing()),
+            AgentLoopState::InnerEmitResults { .. } => Some(self.transition_inner_emit_results()),
+            AgentLoopState::OutputProcessing => Some(self.transition_output_processing()),
+            AgentLoopState::Ending => Some(self.transition_ending()),
             AgentLoopState::Done => None,
         }
     }

@@ -75,7 +75,7 @@ impl Subscribers {
         Receiver::new(chan)
     }
 
-    fn broadcast(&self, event: MessageEvent) {
+    fn broadcast(&self, event: &MessageEvent) {
         let mut stale = Vec::new();
         let mut queues = self.queues.lock().unwrap();
         for (i, q) in queues.iter().enumerate() {
@@ -138,43 +138,38 @@ impl<D: DocumentStore> MessageInner<D> {
             return Ok(0); // another flush in progress
         }
         let mut count = 0;
-        loop {
-            match self.write_buffer.pop() {
-                Ok(record) => {
-                    let id = match &record {
-                        SessionRecord::Conversation { message } => message.id().to_string(),
-                        _ => foundation_compact::ids::new_scru128_string(),
-                    };
-                    // Use append_with_id for conversation records (stable id),
-                    // append_promotable for memory records (promotes columns).
-                    match &record {
-                        SessionRecord::Conversation { .. } => {
-                            self.doc_store.append_with_id(
-                                &self.session_id.to_string(),
-                                &id,
-                                record.clone(),
-                            )?;
-                        }
-                        SessionRecord::WorkingMemory { .. }
-                        | SessionRecord::Observation { .. }
-                        | SessionRecord::Reflection { .. } => {
-                            self.doc_store
-                                .append_promotable(&self.session_id.to_string(), record.clone())?;
-                        }
-                        _ => {
-                            self.doc_store
-                                .append(&self.session_id.to_string(), record.clone())?;
-                        }
-                    }
-                    count += 1;
+        while let Ok(record) = self.write_buffer.pop() {
+            let id = match &record {
+                SessionRecord::Conversation { message } => message.id().to_string(),
+                _ => foundation_compact::ids::new_scru128_string(),
+            };
+            // Use append_with_id for conversation records (stable id),
+            // append_promotable for memory records (promotes columns).
+            match &record {
+                SessionRecord::Conversation { .. } => {
+                    self.doc_store.append_with_id(
+                        &self.session_id.to_string(),
+                        &id,
+                        record.clone(),
+                    )?;
                 }
-                Err(_) => break, // queue empty
+                SessionRecord::WorkingMemory { .. }
+                | SessionRecord::Observation { .. }
+                | SessionRecord::Reflection { .. } => {
+                    self.doc_store
+                        .append_promotable(&self.session_id.to_string(), record.clone())?;
+                }
+                _ => {
+                    self.doc_store
+                        .append(&self.session_id.to_string(), record.clone())?;
+                }
             }
+            count += 1;
         }
         self.flush_pending
             .store(false, std::sync::atomic::Ordering::SeqCst);
         if count > 0 {
-            self.subscribers.broadcast(MessageEvent::Flushed { count });
+            self.subscribers.broadcast(&MessageEvent::Flushed { count });
         }
         Ok(count)
     }
@@ -258,7 +253,7 @@ impl<D: DocumentStore> MessageApi<D> {
             .push(record)
             .expect("unbounded queue never fails");
 
-        self.inner.subscribers.broadcast(MessageEvent::Appended {
+        self.inner.subscribers.broadcast(&MessageEvent::Appended {
             id: id.clone(),
             variant,
         });

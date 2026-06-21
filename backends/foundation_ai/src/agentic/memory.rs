@@ -64,16 +64,11 @@ pub enum MemoryAction {
 ///
 /// HOW: `MemoryHierarchy` passes this to the generation task, which selects
 /// the matching prompt template and parser.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum MemoryParseStrategy {
+    #[default]
     StructuredText,
     TwoStepJson,
-}
-
-impl Default for MemoryParseStrategy {
-    fn default() -> Self {
-        Self::StructuredText
-    }
 }
 
 // ---------------------------------------------------------------------------
@@ -281,6 +276,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
     }
 
     /// Mark generation as in-progress (prevents re-triggering).
+    #[must_use]
     pub fn begin_generation(&self) -> bool {
         self.inner
             .is_generating

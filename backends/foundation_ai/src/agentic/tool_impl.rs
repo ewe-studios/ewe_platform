@@ -140,18 +140,13 @@ pub enum ToolCallStage {
 }
 
 /// How parallel-stage failures are handled.
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 pub enum FailMode {
     /// Run all calls; collect all results (including errors).
+    #[default]
     CollectAll,
     /// Cancel remaining calls on first failure.
     CancelOnFailure,
-}
-
-impl Default for FailMode {
-    fn default() -> Self {
-        Self::CollectAll
-    }
 }
 
 /// Which error kinds are retriable.
@@ -164,13 +159,14 @@ pub enum ToolErrorKind {
 }
 
 impl ToolError {
+    #[must_use]
     pub fn kind(&self) -> ToolErrorKind {
         match self {
             ToolError::Timeout { .. } => ToolErrorKind::Timeout,
-            ToolError::Execution { .. } => ToolErrorKind::Execution,
-            ToolError::InvalidArguments { .. } => ToolErrorKind::InvalidArguments,
-            ToolError::UnknownTool(_) => ToolErrorKind::InvalidArguments,
-            ToolError::Cancelled(_) => ToolErrorKind::Execution,
+            ToolError::Execution { .. } | ToolError::Cancelled(_) => ToolErrorKind::Execution,
+            ToolError::InvalidArguments { .. } | ToolError::UnknownTool(_) => {
+                ToolErrorKind::InvalidArguments
+            }
         }
     }
 }
@@ -199,15 +195,20 @@ impl Default for ToolRetryConfig {
 }
 
 impl ToolRetryConfig {
+    #[must_use]
     pub fn should_retry(&self, err: &ToolError, attempt: u32) -> bool {
         attempt < self.max_retries && self.retry_on.contains(&err.kind())
     }
 
+    #[must_use]
     pub fn backoff_for(&self, attempt: u32) -> Duration {
+        // as_millis returns u128; precision loss acceptable for backoff durations.
+        #[allow(clippy::cast_precision_loss)]
         let millis = self.initial_backoff.as_millis() as f64
-            * self.backoff_multiplier.powi(attempt as i32);
-        let capped = Duration::from_millis(millis as u64).min(self.max_backoff);
-        capped
+            * self.backoff_multiplier.powi(attempt.cast_signed());
+        // millis is non-negative and capped by max_backoff.
+        #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+        Duration::from_millis(millis as u64).min(self.max_backoff)
     }
 }
 
@@ -456,17 +457,7 @@ impl ToolCallManager {
     /// Stage 0 = calls with no deps (default: Parallel).
     /// Stage N = calls whose deps are all satisfied by stages < N.
     /// Cycles or missing deps → `ToolError::InvalidArguments`.
-    pub fn build_workflow(&self, calls: Vec<ToolCallRequest>) -> Result<ToolCallWorkflow, ToolError> {
-        if calls.is_empty() {
-            return Ok(ToolCallWorkflow { stages: vec![] });
-        }
-
-        let ids: HashMap<&str, usize> = calls.iter().enumerate().map(|(i, c)| (c.id.as_str(), i)).collect();
-
-        // Compute depth for each call.
-        let mut depths: Vec<Option<u32>> = vec![None; calls.len()];
-        let mut stack: Vec<usize> = Vec::new();
-
+    pub fn build_workflow(&self, calls: &[ToolCallRequest]) -> Result<ToolCallWorkflow, ToolError> {
         fn resolve_depth(
             idx: usize,
             calls: &[ToolCallRequest],
@@ -500,8 +491,18 @@ impl ToolCallManager {
             Ok(max_dep)
         }
 
+        if calls.is_empty() {
+            return Ok(ToolCallWorkflow { stages: vec![] });
+        }
+
+        let ids: HashMap<&str, usize> = calls.iter().enumerate().map(|(i, c)| (c.id.as_str(), i)).collect();
+
+        // Compute depth for each call.
+        let mut depths: Vec<Option<u32>> = vec![None; calls.len()];
+        let mut stack: Vec<usize> = Vec::new();
+
         for i in 0..calls.len() {
-            resolve_depth(i, &calls, &ids, &mut depths, &mut stack)?;
+            resolve_depth(i, calls, &ids, &mut depths, &mut stack)?;
         }
 
         // Group by depth.
@@ -570,6 +571,7 @@ impl ToolCallManager {
     }
 
     /// Get retry config for a tool (per-tool override or default).
+    #[must_use]
     pub fn retry_config(&self, tool_name: &str) -> ToolRetryConfig {
         self.inner
             .retry_configs
