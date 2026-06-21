@@ -372,6 +372,12 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
         &self.inner.tool_manager
     }
 
+    /// Extension handle: memory hierarchy + coordinator (F14).
+    #[must_use]
+    pub fn memory_hierarchy(&self) -> &MemoryHierarchy<M, D> {
+        &self.inner.memory
+    }
+
     /// Stream each `SessionRecord` as produced — the primary API.
     ///
     /// Pushes the prompt into the follow-up queue, builds a fresh `AgentLoop`,

@@ -1,7 +1,7 @@
 ---
 feature: "Search Tools — split search_context() (semantic/memory/graph) vs search_file() (fff + VFS)"
 description: "Two distinct tools per Decision 14 TODO #6: search_context() over the Context API's knowledge surfaces (semantic message recall, memory vectors, code-graph) and search_file() over the filesystem via fff (native, target-gated) or VFS (wasm). Both are ToolImpls with ToolShed fields, registered with the ToolCallManager"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["09-toolimpl-registry", "16-context-provider-assembly"]
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-06-14
 last_updated: 2026-06-14
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 32: Search Tools — `search_context()` vs `search_file()`

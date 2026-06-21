@@ -256,9 +256,6 @@ fn message_api_subscribe_receives_events() {
     session.steer(user_msg("event test"));
     session.end().expect("end should succeed");
 
-    let mut found = false;
-    while let Ok(_event) = rx.try_recv() {
-        found = true;
-    }
-    assert!(found, "subscriber should have received at least one event");
+    let events: Vec<_> = rx.try_iter().collect();
+    assert!(!events.is_empty(), "subscriber should have received at least one event");
 }

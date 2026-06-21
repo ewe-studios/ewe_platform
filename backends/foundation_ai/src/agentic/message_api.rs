@@ -9,6 +9,8 @@
 //! works without them).
 
 use concurrent_queue::ConcurrentQueue;
+pub use foundation_core::synca::mpp::Receiver;
+use foundation_core::synca::mpp::TrackedBroadcaster;
 use foundation_core::valtron::Stream;
 use foundation_db::traits::DocumentStore;
 use foundation_db::StorageResult;
@@ -51,77 +53,13 @@ impl MessageEvent {
 }
 
 // ---------------------------------------------------------------------------
-// Subscriber — &self pub/sub (CRIT-02 fix)
-
-/// A `&self`-safe broadcaster built on `Arc<Mutex<Vec<ConcurrentQueue>>>`.
-/// Each subscriber gets its own `Receiver<MessageEvent>` backed by a bounded
-/// `ConcurrentQueue`; `try_push` never blocks (drops on back-pressure).
-struct Subscribers {
-    queues: std::sync::Mutex<Vec<Arc<ConcurrentQueue<MessageEvent>>>>,
-    capacity: usize,
-}
-
-impl Subscribers {
-    fn new(capacity: usize) -> Self {
-        Self {
-            queues: std::sync::Mutex::new(Vec::new()),
-            capacity,
-        }
-    }
-
-    fn subscribe(&self) -> Receiver<MessageEvent> {
-        let chan = Arc::new(ConcurrentQueue::bounded(self.capacity));
-        self.queues.lock().unwrap().push(chan.clone());
-        Receiver::new(chan)
-    }
-
-    fn broadcast(&self, event: &MessageEvent) {
-        let mut stale = Vec::new();
-        let mut queues = self.queues.lock().unwrap();
-        for (i, q) in queues.iter().enumerate() {
-            // Force-push (evicts oldest if full — subscribers that can't keep up
-            // get partial history, which is acceptable for observability).
-            if q.force_push(event.clone()).is_err() {
-                stale.push(i);
-            }
-        }
-        // Remove stale subscribers (all were force-pushed so this is dead code,
-        // but keep the cleanup path for future bounded-push changes).
-        for i in stale.into_iter().rev() {
-            queues.remove(i);
-        }
-    }
-}
-
-// A bounded channel receiver for MessageEvent.
-pub struct Receiver<T> {
-    chan: Arc<ConcurrentQueue<T>>,
-}
-
-impl<T> Receiver<T> {
-    fn new(chan: Arc<ConcurrentQueue<T>>) -> Self {
-        Self { chan }
-    }
-
-    /// Try to receive the next message (non-blocking).
-    pub fn try_recv(&self) -> Result<T, concurrent_queue::PopError> {
-        self.chan.pop()
-    }
-
-    /// Iterate all currently buffered messages (non-blocking drain).
-    pub fn try_iter(&self) -> concurrent_queue::TryIter<'_, T> {
-        self.chan.try_iter()
-    }
-}
-
-// ---------------------------------------------------------------------------
 // MessageInner
 
 struct MessageInner<D> {
     session_id: SessionId,
     doc_store: D,
     write_buffer: ConcurrentQueue<SessionRecord>,
-    subscribers: Arc<Subscribers>,
+    broadcaster: TrackedBroadcaster<MessageEvent>,
     /// Maximum buffered records before flush is triggered (default: 50).
     flush_threshold: usize,
     /// Pending flush flag — set when a flush is in progress.
@@ -169,7 +107,7 @@ impl<D: DocumentStore> MessageInner<D> {
         self.flush_pending
             .store(false, std::sync::atomic::Ordering::SeqCst);
         if count > 0 {
-            self.subscribers.broadcast(&MessageEvent::Flushed { count });
+            self.broadcaster.broadcast(MessageEvent::Flushed { count });
         }
         Ok(count)
     }
@@ -222,7 +160,7 @@ impl<D> MessageApi<D> {
                 session_id,
                 doc_store,
                 write_buffer: ConcurrentQueue::unbounded(),
-                subscribers: Arc::new(Subscribers::new(subscriber_capacity)),
+                broadcaster: TrackedBroadcaster::new(subscriber_capacity),
                 flush_threshold,
                 flush_pending: std::sync::atomic::AtomicBool::new(false),
             }),
@@ -232,7 +170,7 @@ impl<D> MessageApi<D> {
     /// Subscribe to message events (appends, flushes, errors).
     #[must_use]
     pub fn subscribe(&self) -> Receiver<MessageEvent> {
-        self.inner.subscribers.subscribe()
+        self.inner.broadcaster.subscribe()
     }
 }
 
@@ -253,7 +191,7 @@ impl<D: DocumentStore> MessageApi<D> {
             .push(record)
             .expect("unbounded queue never fails");
 
-        self.inner.subscribers.broadcast(&MessageEvent::Appended {
+        self.inner.broadcaster.broadcast(MessageEvent::Appended {
             id: id.clone(),
             variant,
         });

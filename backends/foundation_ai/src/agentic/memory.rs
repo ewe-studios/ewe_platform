@@ -168,8 +168,11 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         }
     }
 
-    /// Cheap counter check — called after each turn by the agent loop.
-    /// Returns what (if anything) to generate next.
+    #[must_use]
+    pub fn coordinator(&self) -> &MemoryCoordinator<M, D> {
+        &self.inner.coordinator
+    }
+
     #[must_use]
     pub fn check_triggers(&self) -> MemoryAction {
         if self.inner.is_generating.load(Ordering::Relaxed) {
