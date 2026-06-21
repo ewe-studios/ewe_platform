@@ -15,6 +15,7 @@ pub mod memory_store;
 pub mod message_api;
 pub mod progress;
 pub mod serialization;
+pub mod session;
 pub mod steering;
 pub mod token_ledger;
 pub mod tool_impl;
@@ -36,6 +37,7 @@ pub use memory_store::{KvMemoryStore, MemoryStore, MemoryTier, SessionMemory};
 pub use message_api::{MessageApi, MessageEvent, Receiver as MessageReceiver};
 pub use progress::{lift_model_item, AgentProgress, AgentStream, MemoryKind};
 pub use serialization::{from_record_batch, to_record_batch, SerError, SessionRecordRow};
+pub use session::{AgentSession, AgentSessionBuilder};
 pub use steering::{CancelCode, SteeringQueues};
 pub use token_ledger::{TokenLedger, TokenSnapshot};
 pub use tool_impl::{
