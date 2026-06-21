@@ -21,10 +21,11 @@ pub mod steering;
 pub mod testing;
 pub mod token_ledger;
 pub mod tool_impl;
+pub mod tools;
 
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
 pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState};
-pub use context::{AgentContext, ContextConfig, ContextProvider, SearchMode};
+pub use context::{AgentContext, ContextConfig, ContextProvider, KnowledgeHit, SearchMode};
 pub use errors::{
     AgentAction, AgenticError, AuthError, CircuitBreaker, ErrorPolicy, GenKind, GenerationFailure,
     LoopDetection, UserId,
@@ -46,3 +47,7 @@ pub use tool_impl::{
     FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolCallWorkflow,
     ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig, WorkflowResult,
 };
+pub use tools::search::{
+    FileMatch, FileSearch, FileSearchKind, SearchContextTool, SearchFileTool, VfsSearchBackend,
+};
+pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};

@@ -176,6 +176,8 @@ pub enum SessionRecord {
 
     /// Permanent curated facts about the user/session (Decision 03, Tier 1).
     WorkingMemory {
+        #[serde(default = "fresh_record_id")]
+        id: Id,
         facts: Vec<MemoryFact>,
         version: u64,
         timestamp: SystemTime,
@@ -183,6 +185,8 @@ pub enum SessionRecord {
 
     /// Time-scoped structured observations (Decision 03, Tier 2).
     Observation {
+        #[serde(default = "fresh_record_id")]
+        id: Id,
         observations: Vec<ObservationEntry>,
         token_count: u64,
         timestamp: SystemTime,
@@ -190,6 +194,8 @@ pub enum SessionRecord {
 
     /// Condensed reflections over observations (Decision 03, Tier 3).
     Reflection {
+        #[serde(default = "fresh_record_id")]
+        id: Id,
         reflections: Vec<ReflectionEntry>,
         generated_at: SystemTime,
         observation_token_count_before: u64,
@@ -224,8 +230,7 @@ pub enum SessionRecord {
 pub struct MemoryFact {
     pub fact: String,
     pub asserted_at: SystemTime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source_message_id: Option<Id>,
+    pub source_message_id: Id,
     pub confidence: f32,
 }
 
@@ -236,8 +241,7 @@ pub struct ObservationEntry {
     pub kind: ObservationKind,
     pub content: String,
     pub timestamp: SystemTime,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    pub source_message_id: Option<Id>,
+    pub source_message_id: Id,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub scope: Option<String>,
 }
@@ -265,6 +269,10 @@ pub struct ReflectionEntry {
 pub struct TimeRange {
     pub from: SystemTime,
     pub to: SystemTime,
+}
+
+fn fresh_record_id() -> Id {
+    foundation_compact::ids::new_scru128()
 }
 
 #[cfg(test)]
@@ -325,10 +333,11 @@ mod tests {
     #[test]
     fn session_record_working_memory_round_trips() {
         let rec = SessionRecord::WorkingMemory {
+            id: foundation_compact::ids::new_scru128(),
             facts: vec![MemoryFact {
                 fact: "user prefers dark mode".into(),
                 asserted_at: SystemTime::UNIX_EPOCH,
-                source_message_id: None,
+                source_message_id: foundation_compact::ids::new_scru128(),
                 confidence: 0.9,
             }],
             version: 1,

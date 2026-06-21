@@ -38,6 +38,7 @@ nfsserve = { version = "0.11", optional = true }
 hex = { version = "0.4", optional = true }
 blake3 = { version = "1", optional = true }
 async-trait = "0.1"
+regex = { version = "1.10", optional = true }
 foundation_arrow = { workspace = true, optional = true }
 
 # Unix-only: libc for epoll/kqueue/eventfd syscalls
@@ -267,6 +268,9 @@ ipc = ["dep:bincode", "dep:foundation_macros", "dep:serde_bytes", "dep:uuid", "d
 # Virtual filesystem abstraction — core traits + in-memory impls + overlay
 vfs = []
 
+# VFS search — grep/find over any VfsFileSystem with CLI fallback cascade
+vfs-search = ["vfs", "dep:regex"]
+
 # VFS native filesystem passthrough + directory delta
 vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]
 
@@ -309,6 +313,11 @@ native-windows = ["native", "watcher-windows"]
 
 [lints]
 workspace = true
+
+[[test]]
+name = "vfs_search"
+path = "tests/vfs_search/mod.rs"
+required-features = ["vfs-search"]
 
 [[test]]
 name = "d1_delta_vfs"

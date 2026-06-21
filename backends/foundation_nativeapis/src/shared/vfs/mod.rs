@@ -11,6 +11,9 @@ pub mod sync_bridge;
 pub mod traits;
 pub mod types;
 
+#[cfg(feature = "vfs-search")]
+pub mod search;
+
 #[cfg(feature = "vfs-arrow")]
 pub mod arrow;
 
@@ -39,8 +42,14 @@ pub use types::{
     VfsMetadata,
 };
 
+#[cfg(feature = "vfs-search")]
+pub use search::{
+    CascadingVfsSearcher, InCodeVfsSearcher, VfsSearchKind, VfsSearchMatch, VfsSearcher,
+    vfs_searcher,
+};
 
-
+#[cfg(all(feature = "vfs-search", not(target_family = "wasm")))]
+pub use search::{CliSearcher, native_vfs_searcher};
 
 
 #[cfg(feature = "vfs-fjall")]

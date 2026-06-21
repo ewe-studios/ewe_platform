@@ -203,6 +203,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         token_count: u64,
     ) -> StorageResult<()> {
         let record = SessionRecord::Observation {
+            id: foundation_compact::ids::new_scru128(),
             observations,
             token_count,
             timestamp: SystemTime::now(),
@@ -237,6 +238,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
             .sum::<u64>();
 
         let record = SessionRecord::Reflection {
+            id: foundation_compact::ids::new_scru128(),
             reflections,
             generated_at: SystemTime::now(),
             observation_token_count_before,
@@ -263,6 +265,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         prev_version: u64,
     ) -> StorageResult<()> {
         let record = SessionRecord::WorkingMemory {
+            id: foundation_compact::ids::new_scru128(),
             facts,
             version: prev_version + 1,
             timestamp: SystemTime::now(),
@@ -408,7 +411,7 @@ mod tests {
                 kind: ObservationKind::Assertion,
                 content: "user likes rust".into(),
                 timestamp: SystemTime::UNIX_EPOCH,
-                source_message_id: None,
+                source_message_id: foundation_compact::ids::new_scru128(),
                 scope: None,
             }];
             h.persist_observation(obs, 500).await.unwrap();
@@ -446,7 +449,7 @@ mod tests {
             let facts = vec![MemoryFact {
                 fact: "user is a Rust developer".into(),
                 asserted_at: SystemTime::now(),
-                source_message_id: None,
+                source_message_id: foundation_compact::ids::new_scru128(),
                 confidence: 0.95,
             }];
             h.update_working_memory(facts, 0).await.unwrap();

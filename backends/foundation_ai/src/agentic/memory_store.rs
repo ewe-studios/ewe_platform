@@ -204,10 +204,11 @@ mod tests {
 
     fn working_record(fact: &str) -> SessionRecord {
         SessionRecord::WorkingMemory {
+            id: foundation_compact::ids::new_scru128(),
             facts: vec![MemoryFact {
                 fact: fact.into(),
                 asserted_at: SystemTime::UNIX_EPOCH,
-                source_message_id: None,
+                source_message_id: foundation_compact::ids::new_scru128(),
                 confidence: 0.9,
             }],
             version: 1,
@@ -217,11 +218,12 @@ mod tests {
 
     fn observation_record(content: &str) -> SessionRecord {
         SessionRecord::Observation {
+            id: foundation_compact::ids::new_scru128(),
             observations: vec![ObservationEntry {
                 kind: ObservationKind::Assertion,
                 content: content.into(),
                 timestamp: SystemTime::UNIX_EPOCH,
-                source_message_id: None,
+                source_message_id: foundation_compact::ids::new_scru128(),
                 scope: None,
             }],
             token_count: 5,
@@ -231,6 +233,7 @@ mod tests {
 
     fn reflection_record(summary: &str) -> SessionRecord {
         SessionRecord::Reflection {
+            id: foundation_compact::ids::new_scru128(),
             reflections: vec![ReflectionEntry {
                 summary: summary.into(),
                 time_range: None,
@@ -276,16 +279,12 @@ mod tests {
 
     #[test]
     fn session_memory_round_trips() {
+        let working = working_record("user likes rust");
+        let obs = observation_record("observed preference");
         let mut mem = SessionMemory::default();
-        mem = mem.set(MemoryTier::Working, working_record("user likes rust"));
-        mem = mem.set(
-            MemoryTier::Observation,
-            observation_record("observed preference"),
-        );
-        assert_eq!(
-            mem.working.as_ref().unwrap(),
-            &working_record("user likes rust")
-        );
+        mem = mem.set(MemoryTier::Working, working.clone());
+        mem = mem.set(MemoryTier::Observation, obs);
+        assert_eq!(mem.working.as_ref().unwrap(), &working);
         assert!(mem.reflection.is_none());
     }
 
@@ -305,10 +304,8 @@ mod tests {
             assert!(store.hydrate_async(&sid).await.unwrap().working.is_none());
 
             // Set working memory.
-            store
-                .set_async(&sid, &working_record("test fact"))
-                .await
-                .unwrap();
+            let rec = working_record("test fact");
+            store.set_async(&sid, &rec).await.unwrap();
 
             // Get single tier.
             let got = store
@@ -316,7 +313,7 @@ mod tests {
                 .await
                 .unwrap()
                 .unwrap();
-            assert_eq!(got, working_record("test fact"));
+            assert_eq!(got, rec);
 
             // Non-memory record is rejected.
             let conv = crate::types::Messages::User {
@@ -342,16 +339,14 @@ mod tests {
             assert!(mem.reflection.is_none());
 
             // Overwrite updates the tier.
-            store
-                .set_async(&sid, &working_record("updated"))
-                .await
-                .unwrap();
+            let updated = working_record("updated");
+            store.set_async(&sid, &updated).await.unwrap();
             let got = store
                 .get_async(&sid, MemoryTier::Working)
                 .await
                 .unwrap()
                 .unwrap();
-            assert_eq!(got, working_record("updated"));
+            assert_eq!(got, updated);
 
             // Clear removes all.
             store.clear_async(&sid).await.unwrap();

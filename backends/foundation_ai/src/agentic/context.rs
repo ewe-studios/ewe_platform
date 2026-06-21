@@ -20,12 +20,13 @@ use crate::types::{
     MessageRole, Messages, SessionId, SessionRecord, TextContent, UserModelContent,
 };
 use foundation_db::traits::DocumentStore;
+use serde::{Deserialize, Serialize};
 
 // ---------------------------------------------------------------------------
 // SearchMode
 
 /// What kind of search to perform via `ContextProvider::search`.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum SearchMode {
     /// Semantic vector recall over session messages.
     Semantic,
@@ -35,6 +36,19 @@ pub enum SearchMode {
     Graph,
     /// Hybrid fusion of vector + BM25 (F26 — deferred).
     Hybrid,
+}
+
+/// A single knowledge-recall hit from `ContextProvider::search`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct KnowledgeHit {
+    /// Where this hit came from (e.g. `message`, `working_memory`, `observation`).
+    pub source: String,
+    /// Relevance score (0.0–1.0).
+    pub score: f32,
+    /// The matched content.
+    pub content: String,
+    /// Optional reference to the source record.
+    pub record_ref: Option<String>,
 }
 
 // ---------------------------------------------------------------------------
@@ -224,6 +238,12 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
             .unwrap_or_default()
     }
 
+    /// The message API (for appending messages / test injection).
+    #[must_use]
+    pub fn message_api(&self) -> &MessageApi<D> {
+        &self.message_api
+    }
+
     /// The memory store (for sync hydrate in F19).
     #[must_use]
     pub fn memory_store(&self) -> &Arc<M> {
@@ -246,10 +266,139 @@ impl<D: DocumentStore, M: MemoryStore> ContextProvider<D, M> {
     pub fn set_config(&mut self, config: ContextConfig) {
         self.config = config;
     }
+
+    /// Search knowledge surfaces: semantic message recall, memory-tier vectors,
+    /// code-graph, or hybrid fusion.
+    ///
+    /// Returns up to `k` hits ranked by relevance. The actual vector search
+    /// backends are wired in F31; until then this performs keyword matching
+    /// over assembled context as a functional placeholder.
+    pub async fn search(&self, query: &str, mode: SearchMode, k: usize) -> Vec<KnowledgeHit> {
+        let memory = self.hydrate_memory().await;
+        self.search_from_memory(query, mode, k, &memory)
+    }
+
+    /// Synchronous search over pre-hydrated memory.
+    #[must_use]
+    pub fn search_from_memory(
+        &self,
+        query: &str,
+        mode: SearchMode,
+        k: usize,
+        memory: &SessionMemory,
+    ) -> Vec<KnowledgeHit> {
+        let query_lower = query.to_lowercase();
+        let mut hits = Vec::new();
+
+        match mode {
+            SearchMode::Semantic => {
+                self.search_messages(&query_lower, &mut hits);
+            }
+            SearchMode::Memory => {
+                Self::search_memory_tiers(&query_lower, memory, &mut hits);
+            }
+            SearchMode::Graph => {
+                // F27 deferred — return empty.
+            }
+            SearchMode::Hybrid => {
+                self.search_messages(&query_lower, &mut hits);
+                Self::search_memory_tiers(&query_lower, memory, &mut hits);
+            }
+        }
+
+        hits.sort_by(|a, b| b.score.partial_cmp(&a.score).unwrap_or(std::cmp::Ordering::Equal));
+        hits.truncate(k);
+        hits
+    }
+
+    fn search_messages(&self, query_lower: &str, hits: &mut Vec<KnowledgeHit>) {
+        if let Ok(recent) = self.message_api.recent(self.config.recent_message_count) {
+            for record in recent {
+                if let SessionRecord::Conversation { ref message } = record {
+                    let text = extract_message_text(message);
+                    if let Some(score) = keyword_score(&text, query_lower) {
+                        hits.push(KnowledgeHit {
+                            source: "message".into(),
+                            score,
+                            content: text,
+                            record_ref: None,
+                        });
+                    }
+                }
+            }
+        }
+    }
+
+    fn search_memory_tiers(
+        query_lower: &str,
+        memory: &SessionMemory,
+        hits: &mut Vec<KnowledgeHit>,
+    ) {
+        if let Some(SessionRecord::WorkingMemory { facts, .. }) = &memory.working {
+            for fact in facts {
+                if let Some(score) = keyword_score(&fact.fact, query_lower) {
+                    hits.push(KnowledgeHit {
+                        source: "working_memory".into(),
+                        score,
+                        content: fact.fact.clone(),
+                        record_ref: None,
+                    });
+                }
+            }
+        }
+        if let Some(SessionRecord::Observation { observations, .. }) = &memory.observation {
+            for entry in observations {
+                if let Some(score) = keyword_score(&entry.content, query_lower) {
+                    hits.push(KnowledgeHit {
+                        source: "observation".into(),
+                        score,
+                        content: entry.content.clone(),
+                        record_ref: None,
+                    });
+                }
+            }
+        }
+        if let Some(SessionRecord::Reflection { reflections, .. }) = &memory.reflection {
+            for entry in reflections {
+                if let Some(score) = keyword_score(&entry.summary, query_lower) {
+                    hits.push(KnowledgeHit {
+                        source: "reflection".into(),
+                        score,
+                        content: entry.summary.clone(),
+                        record_ref: None,
+                    });
+                }
+            }
+        }
+    }
 }
 
 // ---------------------------------------------------------------------------
 // Helpers
+
+fn extract_message_text(msg: &Messages) -> String {
+    match msg {
+        Messages::User { content, .. } | Messages::ToolResult { content, .. } => match content {
+            UserModelContent::Text(tc) => tc.content.clone(),
+            UserModelContent::Image(_) => String::new(),
+        },
+        Messages::Assistant { content, .. } => match content {
+            crate::types::ModelOutput::Text(tc) => tc.content.clone(),
+            _ => String::new(),
+        },
+    }
+}
+
+fn keyword_score(text: &str, query_lower: &str) -> Option<f32> {
+    let text_lower = text.to_lowercase();
+    if !text_lower.contains(query_lower) {
+        return None;
+    }
+    let count = text_lower.matches(query_lower).count();
+    #[allow(clippy::cast_precision_loss)]
+    let density = (count as f32) / (text.len().max(1) as f32);
+    Some((density * 1000.0).min(1.0))
+}
 
 fn memory_record_to_message(record: &SessionRecord, label: &str) -> Option<Messages> {
     let text = match record {
@@ -292,13 +441,13 @@ fn memory_record_to_message(record: &SessionRecord, label: &str) -> Option<Messa
 }
 
 fn observation_is_newer(obs: &SessionRecord, refl: &SessionRecord) -> bool {
-    let SessionRecord::Observation { timestamp, .. } = obs else {
+    let SessionRecord::Observation { id: obs_id, .. } = obs else {
         return false;
     };
-    let SessionRecord::Reflection { generated_at, .. } = refl else {
+    let SessionRecord::Reflection { id: refl_id, .. } = refl else {
         return true;
     };
-    timestamp > generated_at
+    obs_id > refl_id
 }
 
 fn estimate_tokens(msg: &Messages) -> u64 {
@@ -342,10 +491,11 @@ mod tests {
 
     fn working_record(fact: &str) -> SessionRecord {
         SessionRecord::WorkingMemory {
+            id: foundation_compact::ids::new_scru128(),
             facts: vec![MemoryFact {
                 fact: fact.into(),
                 asserted_at: SystemTime::UNIX_EPOCH,
-                source_message_id: None,
+                source_message_id: foundation_compact::ids::new_scru128(),
                 confidence: 0.9,
             }],
             version: 1,
@@ -353,29 +503,31 @@ mod tests {
         }
     }
 
-    fn observation_record(content: &str, ts: SystemTime) -> SessionRecord {
+    fn observation_record(content: &str, _ts: SystemTime) -> SessionRecord {
         SessionRecord::Observation {
+            id: foundation_compact::ids::new_scru128(),
             observations: vec![ObservationEntry {
                 kind: ObservationKind::Assertion,
                 content: content.into(),
-                timestamp: ts,
-                source_message_id: None,
+                timestamp: _ts,
+                source_message_id: foundation_compact::ids::new_scru128(),
                 scope: None,
             }],
             token_count: 5,
-            timestamp: ts,
+            timestamp: _ts,
         }
     }
 
-    fn reflection_record(summary: &str, ts: SystemTime) -> SessionRecord {
+    fn reflection_record(summary: &str, _ts: SystemTime) -> SessionRecord {
         SessionRecord::Reflection {
+            id: foundation_compact::ids::new_scru128(),
             reflections: vec![ReflectionEntry {
                 summary: summary.into(),
                 time_range: None,
                 observation_refs: vec![],
                 importance: 0.8,
             }],
-            generated_at: ts,
+            generated_at: _ts,
             observation_token_count_before: 5,
             reflection_token_count_after: 2,
         }

@@ -288,11 +288,12 @@ mod tests {
 
     fn observation_record() -> SessionRecord {
         SessionRecord::Observation {
+            id: foundation_compact::ids::new_scru128(),
             observations: vec![ObservationEntry {
                 kind: ObservationKind::Assertion,
                 content: "user likes rust".into(),
                 timestamp: SystemTime::UNIX_EPOCH,
-                source_message_id: None,
+                source_message_id: foundation_compact::ids::new_scru128(),
                 scope: None,
             }],
             token_count: 12,

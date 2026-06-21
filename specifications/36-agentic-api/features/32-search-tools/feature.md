@@ -54,6 +54,8 @@ unambiguous to the LLM.
 
 ### `search_context` — knowledge tool (wraps F16, all platforms)
 
+FFF source code here: /home/darkvoid/Boxxed/@formulas/src.rust/src.FileSystemAPIs/src.Search/fff
+
 ```rust
 // backends/foundation_ai/src/agentic/tools/search.rs
 pub struct SearchContextTool { context: ContextProvider }   // F16

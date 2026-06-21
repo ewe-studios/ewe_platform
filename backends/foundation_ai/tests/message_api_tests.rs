@@ -29,10 +29,11 @@ fn user_record(text: &str) -> SessionRecord {
 
 fn working_record(fact: &str) -> SessionRecord {
     SessionRecord::WorkingMemory {
+        id: foundation_compact::ids::new_scru128(),
         facts: vec![MemoryFact {
             fact: fact.into(),
             asserted_at: SystemTime::UNIX_EPOCH,
-            source_message_id: None,
+            source_message_id: foundation_compact::ids::new_scru128(),
             confidence: 0.9,
         }],
         version: 1,
@@ -42,11 +43,12 @@ fn working_record(fact: &str) -> SessionRecord {
 
 fn observation_record(content: &str) -> SessionRecord {
     SessionRecord::Observation {
+        id: foundation_compact::ids::new_scru128(),
         observations: vec![ObservationEntry {
             kind: ObservationKind::Assertion,
             content: content.into(),
             timestamp: SystemTime::UNIX_EPOCH,
-            source_message_id: None,
+            source_message_id: foundation_compact::ids::new_scru128(),
             scope: None,
         }],
         token_count: 5,

@@ -12,11 +12,12 @@ use futures_lite::future::block_on;
 
 fn observation(content: &str) -> SessionRecord {
     SessionRecord::Observation {
+        id: foundation_compact::ids::new_scru128(),
         observations: vec![ObservationEntry {
             kind: ObservationKind::Assertion,
             content: content.into(),
             timestamp: SystemTime::UNIX_EPOCH,
-            source_message_id: None,
+            source_message_id: foundation_compact::ids::new_scru128(),
             scope: None,
         }],
         token_count: 4,
@@ -26,6 +27,7 @@ fn observation(content: &str) -> SessionRecord {
 
 fn reflection(summary: &str) -> SessionRecord {
     SessionRecord::Reflection {
+        id: foundation_compact::ids::new_scru128(),
         reflections: vec![ReflectionEntry {
             summary: summary.into(),
             time_range: None,

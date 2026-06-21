@@ -51,3 +51,13 @@ pub use shared::vfs::{
     ObservableFs, ObservableFile, ObservableSeekableFile, VfsEvent,
     VfsError, VfsResult, VfsFileSystem, MemoryFs,
 };
+
+// VFS search types when the vfs-search feature is enabled.
+#[cfg(feature = "vfs-search")]
+pub use shared::vfs::{
+    CascadingVfsSearcher, InCodeVfsSearcher, VfsSearchKind, VfsSearchMatch, VfsSearcher,
+    vfs_searcher,
+};
+
+#[cfg(all(feature = "vfs-search", not(target_family = "wasm")))]
+pub use shared::vfs::{CliSearcher, native_vfs_searcher};
