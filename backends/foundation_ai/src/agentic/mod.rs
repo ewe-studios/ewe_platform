@@ -17,6 +17,8 @@ pub mod progress;
 pub mod serialization;
 pub mod session;
 pub mod steering;
+#[cfg(any(test, feature = "testing"))]
+pub mod testing;
 pub mod token_ledger;
 pub mod tool_impl;
 

@@ -1141,7 +1141,7 @@ fn test_build_anthropic_request_with_tools() {
         system_prompt: None,
         soul: None,
         tools_shed: ToolShed {
-            shed: test_tool.clone(),
+            shed: Some(test_tool.clone()),
             memory: None,
             delegate: None,
             read: Some(test_tool.clone()),

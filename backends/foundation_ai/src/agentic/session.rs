@@ -102,6 +102,7 @@ struct SessionInner<D, M> {
 /// chain optional `.with_*()` methods, then `.build()`. Preflight checks
 /// run inside `build()` — if they fail, no valtron task is scheduled.
 pub struct AgentSessionBuilder<D, M> {
+    session_id: SessionId,
     router: ProviderRouter,
     toolshed: ToolShed,
     access: Arc<dyn SessionAccessProvider>,
@@ -109,7 +110,6 @@ pub struct AgentSessionBuilder<D, M> {
     model: Option<ModelId>,
     fallback_models: Vec<ModelId>,
     memory_model: Option<ModelId>,
-    session_id: Option<SessionId>,
     doc_store: Option<D>,
     memory_store: Option<M>,
     system_prompt: Option<String>,
@@ -120,16 +120,16 @@ pub struct AgentSessionBuilder<D, M> {
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     #[must_use]
-    pub fn builder(router: ProviderRouter, toolshed: ToolShed) -> AgentSessionBuilder<D, M> {
+    pub fn builder(session_id: SessionId, router: ProviderRouter) -> AgentSessionBuilder<D, M> {
         AgentSessionBuilder {
+            session_id,
             router,
-            toolshed,
+            toolshed: ToolShed::default(),
             access: Arc::new(AllowAllAccess),
             user: UserId("local".into()),
             model: None,
             fallback_models: Vec::new(),
             memory_model: None,
-            session_id: None,
             doc_store: None,
             memory_store: None,
             system_prompt: None,
@@ -141,6 +141,12 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
 }
 
 impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D, M> {
+    #[must_use]
+    pub fn with_toolshed(mut self, toolshed: ToolShed) -> Self {
+        self.toolshed = toolshed;
+        self
+    }
+
     #[must_use]
     pub fn with_access(mut self, access: Arc<dyn SessionAccessProvider>) -> Self {
         self.access = access;
@@ -168,12 +174,6 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
     #[must_use]
     pub fn with_memory_model(mut self, model: ModelId) -> Self {
         self.memory_model = Some(model);
-        self
-    }
-
-    #[must_use]
-    pub fn with_session_id(mut self, id: SessionId) -> Self {
-        self.session_id = Some(id);
         self
     }
 
@@ -224,7 +224,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
         D: Default,
         M: Default,
     {
-        let session_id = self.session_id.unwrap_or_default();
+        let session_id = self.session_id;
 
         let doc_store = self.doc_store.unwrap_or_default();
         let memory_store = self.memory_store.unwrap_or_default();
@@ -289,11 +289,9 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 impl<D: DocumentStore, M: MemoryStore> SessionInner<D, M> {
     fn preflight(&self) -> Result<(), ErrorTrace<AgenticError>> {
         let registered = self.tool_manager.names();
-        let shed_name = &self.toolshed.shed.name;
+        let shed_name = self.toolshed.shed.as_ref().map(|t| t.name.as_str());
         for tool in self.toolshed.all_tools() {
-            // The shed meta-tool is handled internally by the agent loop,
-            // not dispatched through ToolCallManager.
-            if tool.name == *shed_name {
+            if shed_name == Some(tool.name.as_str()) {
                 continue;
             }
             if !registered.contains(&tool.name) {
@@ -464,9 +462,9 @@ impl<D: DocumentStore + Default + 'static, M: MemoryStore + Default + 'static> A
     pub fn resume(
         session_id: SessionId,
         router: ProviderRouter,
-        toolshed: ToolShed,
         config: AgentConfig,
     ) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
+        let toolshed = ToolShed::default();
         let doc_store = D::default();
         let memory_store = M::default();
         let memory_store_arc = Arc::new(memory_store);

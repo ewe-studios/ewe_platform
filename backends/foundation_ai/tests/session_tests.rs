@@ -4,8 +4,7 @@ use foundation_ai::agentic::{
     AgentConfig, AgentSession, AllowAllAccess, KvMemoryStore, SessionAccessProvider, TokenBudget,
 };
 use foundation_ai::types::{
-    MessageRole, Messages, ModelId, ProviderRouter, SessionId, TextContent, ToolShed,
-    UserModelContent,
+    MessageRole, Messages, ModelId, ProviderRouter, SessionId, TextContent, UserModelContent,
 };
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
@@ -37,27 +36,23 @@ fn empty_router() -> ProviderRouter {
     ProviderRouter::builder().build()
 }
 
-fn empty_toolshed() -> ToolShed {
-    ToolShed::default()
-}
-
 // ---------------------------------------------------------------------------
 // Builder + preflight tests
 
 #[test]
-fn builder_creates_session_with_defaults() {
-    let session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
+fn builder_creates_session_with_named_id() {
+    let id = SessionId::from_name("test-defaults");
+    let session: TestSession = AgentSession::builder(id.clone(), empty_router())
         .build()
-        .expect("build should succeed with defaults");
+        .expect("build should succeed");
 
-    assert!(!session.session_id().to_string().is_empty());
+    assert_eq!(*session.session_id(), id);
 }
 
 #[test]
 fn builder_accepts_custom_session_id() {
     let custom_id = SessionId::from_name("test-session");
-    let session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
-        .with_session_id(custom_id.clone())
+    let session: TestSession = AgentSession::builder(custom_id.clone(), empty_router())
         .build()
         .expect("build should succeed");
 
@@ -66,7 +61,7 @@ fn builder_accepts_custom_session_id() {
 
 #[test]
 fn builder_accepts_system_prompt() {
-    let _session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
+    let _session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
         .with_system_prompt("You are a coding assistant.")
         .build()
         .expect("build should succeed with system prompt");
@@ -74,7 +69,7 @@ fn builder_accepts_system_prompt() {
 
 #[test]
 fn builder_accepts_custom_model() {
-    let _session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
+    let _session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
         .with_model(ModelId::Name("gpt-4".into(), None))
         .build()
         .expect("build should succeed with custom model");
@@ -82,7 +77,7 @@ fn builder_accepts_custom_model() {
 
 #[test]
 fn builder_accepts_fallback_models() {
-    let _session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
+    let _session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
         .with_fallback_models(vec![
             ModelId::Name("gpt-4".into(), None),
             ModelId::Name("claude-3".into(), None),
@@ -93,7 +88,7 @@ fn builder_accepts_fallback_models() {
 
 #[test]
 fn session_is_clone() {
-    let session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
+    let session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
         .build()
         .expect("build should succeed");
 
@@ -132,9 +127,10 @@ impl SessionAccessProvider for DenyModelAccess {
 
 #[test]
 fn preflight_denies_session_access() {
-    let result: Result<TestSession, _> = AgentSession::builder(empty_router(), empty_toolshed())
-        .with_access(Arc::new(DenySessionAccess))
-        .build();
+    let result: Result<TestSession, _> =
+        AgentSession::builder(SessionId::from_name("test"), empty_router())
+            .with_access(Arc::new(DenySessionAccess))
+            .build();
 
     match result {
         Ok(_) => panic!("expected preflight to deny session access"),
@@ -147,9 +143,10 @@ fn preflight_denies_session_access() {
 
 #[test]
 fn preflight_denies_model_access() {
-    let result: Result<TestSession, _> = AgentSession::builder(empty_router(), empty_toolshed())
-        .with_access(Arc::new(DenyModelAccess))
-        .build();
+    let result: Result<TestSession, _> =
+        AgentSession::builder(SessionId::from_name("test"), empty_router())
+            .with_access(Arc::new(DenyModelAccess))
+            .build();
 
     match result {
         Ok(_) => panic!("expected preflight to deny model access"),
@@ -165,7 +162,7 @@ fn preflight_denies_model_access() {
 
 #[test]
 fn steer_and_follow_up_inject_messages() {
-    let session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
+    let session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
         .build()
         .expect("build should succeed");
 
@@ -178,7 +175,7 @@ fn steer_and_follow_up_inject_messages() {
 
 #[test]
 fn end_is_idempotent() {
-    let session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
+    let session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
         .build()
         .expect("build should succeed");
 
@@ -193,13 +190,9 @@ fn end_is_idempotent() {
 fn resume_creates_session_with_given_id() {
     let original_id = SessionId::from_name("resume-test");
 
-    let resumed: TestSession = AgentSession::resume(
-        original_id.clone(),
-        empty_router(),
-        empty_toolshed(),
-        AgentConfig::default(),
-    )
-    .expect("resume should succeed");
+    let resumed: TestSession =
+        AgentSession::resume(original_id.clone(), empty_router(), AgentConfig::default())
+            .expect("resume should succeed");
 
     assert_eq!(*resumed.session_id(), original_id);
 }
@@ -207,9 +200,8 @@ fn resume_creates_session_with_given_id() {
 #[test]
 fn resumed_session_has_empty_queues() {
     let session: TestSession = AgentSession::resume(
-        SessionId::new(),
+        SessionId::from_name("resume-empty"),
         empty_router(),
-        empty_toolshed(),
         AgentConfig::default(),
     )
     .expect("resume should succeed");
@@ -229,7 +221,7 @@ fn builder_wires_config_overrides() {
     config.max_outer_iterations = 3;
     config.max_inner_iterations = 5;
 
-    let _session: TestSession = AgentSession::builder(empty_router(), empty_toolshed())
+    let _session: TestSession = AgentSession::builder(SessionId::from_name("test"), empty_router())
         .with_config(config)
         .with_user(UserId("custom-user".into()))
         .build()

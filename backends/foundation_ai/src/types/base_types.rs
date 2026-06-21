@@ -1226,9 +1226,10 @@ pub struct DelegationTool {
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
 pub struct ToolShed {
-    /// The `shed` meta-tool — always present; tells the agent to query the
+    /// The `shed` meta-tool — when present, tells the agent to query the
     /// `ToolCallManager` for any tools registered into its internal store.
-    pub shed: Tool,
+    /// `None` when the model should have zero tools.
+    pub shed: Option<Tool>,
     pub memory: Option<MemoryTool>,
     pub delegate: Option<DelegationTool>,
     pub read: Option<Tool>,
@@ -1246,13 +1247,13 @@ pub struct ToolShed {
 impl Default for ToolShed {
     fn default() -> Self {
         Self {
-            shed: Tool {
+            shed: Some(Tool {
                 name: "shed".into(),
                 description: "Query the tool registry for available tools by category or search."
                     .into(),
                 arguments: None,
                 returns: None,
-            },
+            }),
             memory: None,
             delegate: None,
             read: None,
@@ -1309,12 +1310,12 @@ impl ToolShed {
         self
     }
 
-    /// Flatten the shed into the full list of tools the LLM sees: the always-present
+    /// Flatten the shed into the full list of tools the LLM sees: the optional
     /// `shed` meta-tool, every populated category tool, and the memory/delegate
-    /// sub-tools when present.
+    /// sub-tools when present. Returns empty when shed is `None` and no tools set.
     #[must_use]
     pub fn all_tools(&self) -> Vec<Tool> {
-        let mut tools = vec![self.shed.clone()];
+        let mut tools: Vec<Tool> = self.shed.iter().cloned().collect();
         tools.extend(
             [
                 &self.read,

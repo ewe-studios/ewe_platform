@@ -121,5 +121,8 @@ candle-gpu = ["candle-cuda"]
 # Multi-threaded executor
 multi = ["foundation_deployment_huggingface/multi", "foundation_core/multi"]
 
+# Test substrate (F21): MockModelProvider, MockTool, message builders
+testing = []
+
 [lints]
 workspace = true

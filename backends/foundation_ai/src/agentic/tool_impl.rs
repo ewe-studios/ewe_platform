@@ -349,14 +349,14 @@ impl ToolCallManager {
         let delegate = self.build_delegate_tool();
 
         ToolShed {
-            shed: Tool {
+            shed: Some(Tool {
                 name: "shed".into(),
                 description:
                     "Search the tool registry for available tools by category or free-text query."
                         .into(),
                 arguments: None,
                 returns: None,
-            },
+            }),
             memory,
             delegate,
             read: by_cat.get("read").cloned(),
@@ -702,7 +702,7 @@ mod tests {
         futures_lite::future::block_on(async {
             let mgr = ToolCallManager::new(crate::types::SessionId::new());
             let shed = mgr.build_toolshed();
-            assert_eq!(shed.shed.name, "shed");
+            assert_eq!(shed.shed.as_ref().unwrap().name, "shed");
             assert!(shed.shell.is_none());
             assert!(shed.read.is_none());
         })
