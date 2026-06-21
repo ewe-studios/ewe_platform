@@ -289,7 +289,13 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 impl<D: DocumentStore, M: MemoryStore> SessionInner<D, M> {
     fn preflight(&self) -> Result<(), ErrorTrace<AgenticError>> {
         let registered = self.tool_manager.names();
+        let shed_name = &self.toolshed.shed.name;
         for tool in self.toolshed.all_tools() {
+            // The shed meta-tool is handled internally by the agent loop,
+            // not dispatched through ToolCallManager.
+            if tool.name == *shed_name {
+                continue;
+            }
             if !registered.contains(&tool.name) {
                 return Err(ErrorTrace::new(AgenticError::Session(format!(
                     "toolshed tool '{}' not registered with ToolCallManager",

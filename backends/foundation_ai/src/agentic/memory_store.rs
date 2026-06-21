@@ -141,6 +141,12 @@ impl<K> KvMemoryStore<K> {
     }
 }
 
+impl<K: Default> Default for KvMemoryStore<K> {
+    fn default() -> Self {
+        Self { kv: K::default() }
+    }
+}
+
 #[async_trait::async_trait]
 impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
     async fn get_async(
