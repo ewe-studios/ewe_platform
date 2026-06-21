@@ -3980,6 +3980,7 @@ dependencies = [
  "derive_more",
  "fjall",
  "foundation_arrow",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",

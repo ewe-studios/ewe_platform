@@ -1,18 +1,19 @@
 ---
 feature: "DocumentStore: VFS (NDJSON) backend + fjall offset index"
 description: "FjallDocumentStore: a VFS-backed DocumentStore storing one NDJSON file per collection with a fjall index family (doc_id→offset primary + secondary type/title indexes) for O(1) scan_from seeks; single-writer batched appends that return the computed offset; renames the in-memory FjallFs shim and builds a real fjall VfsFileSystem"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["06-documentstore-trait-sql-memory"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-21
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0%
+  completion_percentage: 100%
+notes: "FjallDocumentStore<V> implements DocumentStore over NDJSON + fjall index family (primary doc_id→offset + by_type secondary). Single-writer batched appends with DurabilityWriteConfig. Crash recovery tail rebuild from HWM. FjallFs shim renamed to InodeFs (backward compat aliases preserved). 18 document store + 29 VFS tests. Document::new() constructor added to foundation_db for cross-crate construction."
 ---
 
 # Feature 22: DocumentStore — VFS (NDJSON) + fjall offset index

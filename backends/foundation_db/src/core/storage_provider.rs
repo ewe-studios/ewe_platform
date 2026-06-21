@@ -506,6 +506,27 @@ pub struct Document {
     pub record_type: Option<String>,
 }
 
+impl Document {
+    #[must_use]
+    pub fn new(
+        id: String,
+        content: String,
+        metadata: serde_json::Value,
+        title: Option<String>,
+        summary: Option<String>,
+        record_type: Option<String>,
+    ) -> Self {
+        Self {
+            id,
+            content,
+            metadata,
+            title,
+            summary,
+            record_type,
+        }
+    }
+}
+
 /// Document append operations — available on all backends.
 ///
 /// Documents are stored as JSON strings in an append-only collection.

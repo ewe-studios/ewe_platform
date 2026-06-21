@@ -1,18 +1,19 @@
 ---
 feature: "foundation_ai: optional llama + error-enum gating + compat wiring"
 description: "Make foundation_ai's native model backends optional/target-gated, gate the llama-contaminated error enums, migrate SystemTime to foundation_compact, and wire foundation_compact — so the crate builds native (unchanged) and is one step from a wasm build (completed in 00c)"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["00-foundation-compact"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-21
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 100%
+notes: "All parts done: llamacpp is optional (default feature, cfg-gated), error variants gated behind cfg(feature=llamacpp), SystemTime migrated to foundation_compact, foundation_compact wired. Builds with --no-default-features (no llama)."
 ---
 
 # Feature 00b: foundation_ai — optional llama, error gating, compat wiring

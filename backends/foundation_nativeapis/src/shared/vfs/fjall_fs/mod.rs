@@ -1,6 +1,11 @@
 #![cfg(feature = "vfs-fjall")]
 
-//! FjallFs / FjallDelta — simplified in-memory VFS (fjall-compatible API).
+//! InodeFs / InodeDelta — inode-based in-memory VFS.
+//!
+//! Originally named `InodeFs` (misleading — no fjall involvement). Renamed to
+//! reflect what it actually is: a POSIX-like in-memory filesystem with inode
+//! tracking, symlinks, and seekable files. Backward-compatible type aliases
+//! (`InodeFs`, `InodeDelta`, `InodeFsConfig`) are provided below.
 
 use std::collections::HashMap;
 use std::sync::{Arc, RwLock};
@@ -38,13 +43,13 @@ fn inode_to_metadata(e: &InodeEntry) -> VfsMetadata {
     }
 }
 
-struct FjallFsInner {
+struct InodeFsInner {
     inodes: RwLock<HashMap<u64, InodeEntry>>,
     paths: RwLock<HashMap<String, u64>>,
     next_ino: std::sync::atomic::AtomicU64,
 }
 
-impl FjallFsInner {
+impl InodeFsInner {
     fn new() -> Arc<Self> {
         let inner = Arc::new(Self {
             inodes: RwLock::new(HashMap::new()),
@@ -66,33 +71,34 @@ impl FjallFsInner {
     }
 }
 
-/// FjallFs — VfsFileSystem with in-memory storage.
-pub struct FjallFs {
-    inner: Arc<FjallFsInner>,
+/// InodeFs — VfsFileSystem with in-memory storage.
+#[derive(Clone)]
+pub struct InodeFs {
+    inner: Arc<InodeFsInner>,
 }
 
-/// FjallVfsConfig — placeholder config.
+/// InodeFsConfig — placeholder config.
 #[derive(Clone, Debug, Default)]
-pub struct FjallVfsConfig;
+pub struct InodeFsConfig;
 
-impl FjallFs {
+impl InodeFs {
     pub fn open(_path: impl AsRef<std::path::Path>) -> VfsResult<Self> {
-        Ok(Self { inner: FjallFsInner::new() })
+        Ok(Self { inner: InodeFsInner::new() })
     }
-    pub fn open_with_config(_path: impl AsRef<std::path::Path>, _config: FjallVfsConfig) -> VfsResult<Self> {
+    pub fn open_with_config(_path: impl AsRef<std::path::Path>, _config: InodeFsConfig) -> VfsResult<Self> {
         Self::open("/tmp")
     }
     pub fn in_memory() -> VfsResult<Self> { Self::open("/tmp") }
 }
 
-pub struct FjallFile { path: String, mode: OpenMode, inner: Arc<FjallFsInner> }
-pub struct SeekableFjallFile { file: FjallFile, pos: Arc<RwLock<u64>> }
-pub struct FjallDirectory { path: String, inner: Arc<FjallFsInner> }
+pub struct InodeFile { path: String, mode: OpenMode, inner: Arc<InodeFsInner> }
+pub struct SeekableInodeFile { file: InodeFile, pos: Arc<RwLock<u64>> }
+pub struct InodeDir { path: String, inner: Arc<InodeFsInner> }
 
-impl SeekableFjallFile { pub fn new(file: FjallFile) -> Self { Self { file, pos: Arc::new(RwLock::new(0)) } } }
-impl FjallDirectory { pub fn new(path: String, inner: Arc<FjallFsInner>) -> Self { Self { path, inner } } }
+impl SeekableInodeFile { pub fn new(file: InodeFile) -> Self { Self { file, pos: Arc::new(RwLock::new(0)) } } }
+impl InodeDir { pub fn new(path: String, inner: Arc<InodeFsInner>) -> Self { Self { path, inner } } }
 
-impl VfsFile for FjallFile {
+impl VfsFile for InodeFile {
     fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
         let entries = self.inner.inodes.read().unwrap();
         let ino = self.inner.paths.read().unwrap().get(&self.path).copied()
@@ -143,7 +149,7 @@ impl VfsFile for FjallFile {
     }
 }
 
-impl VfsFile for SeekableFjallFile {
+impl VfsFile for SeekableInodeFile {
     fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> { self.file.read_at(buf, offset) }
     fn write_at(&self, buf: &[u8], offset: u64) -> VfsResult<usize> { self.file.write_at(buf, offset) }
     fn sync_data(&self) -> VfsResult<()> { self.file.sync_data() }
@@ -152,7 +158,7 @@ impl VfsFile for SeekableFjallFile {
     fn metadata(&self) -> VfsResult<VfsMetadata> { self.file.metadata() }
 }
 
-impl SeekableVfsFile for SeekableFjallFile {
+impl SeekableVfsFile for SeekableInodeFile {
     fn read(&mut self, buf: &mut [u8]) -> VfsResult<usize> {
         let pos = *self.pos.read().unwrap();
         let n = self.file.read_at(buf, pos)?;
@@ -179,9 +185,9 @@ impl SeekableVfsFile for SeekableFjallFile {
     fn position(&self) -> u64 { *self.pos.read().unwrap() }
 }
 
-impl VfsDirectory for FjallDirectory {
-    type File = FjallFile;
-    type SeekableFile = SeekableFjallFile;
+impl VfsDirectory for InodeDir {
+    type File = InodeFile;
+    type SeekableFile = SeekableInodeFile;
     fn path(&self) -> &str { &self.path }
     fn metadata(&self) -> VfsResult<VfsMetadata> {
         let entries = self.inner.inodes.read().unwrap();
@@ -221,7 +227,7 @@ impl VfsDirectory for FjallDirectory {
             created_at: now_ms(), updated_at: now_ms(), content: Vec::new(), symlink_target: None,
         });
         self.inner.paths.write().unwrap().insert(path.clone(), ino);
-        Ok(FjallFile { path, mode: OpenMode::ReadWrite, inner: self.inner.clone() })
+        Ok(InodeFile { path, mode: OpenMode::ReadWrite, inner: self.inner.clone() })
     }
     fn create_dir(&self, name: &str) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
         let path = if self.path.ends_with('/') { format!("{}{}", self.path, name) } else { format!("{}/{}", self.path, name) };
@@ -232,7 +238,7 @@ impl VfsDirectory for FjallDirectory {
             created_at: now_ms(), updated_at: now_ms(), content: Vec::new(), symlink_target: None,
         });
         self.inner.paths.write().unwrap().insert(path.clone(), ino);
-        Ok(Box::new(FjallDirectory { path, inner: self.inner.clone() }))
+        Ok(Box::new(InodeDir { path, inner: self.inner.clone() }))
     }
     fn remove_entry(&self, name: &str) -> VfsResult<()> {
         let path = if self.path.ends_with('/') { format!("{}{}", self.path, name) } else { format!("{}/{}", self.path, name) };
@@ -256,17 +262,17 @@ impl VfsDirectory for FjallDirectory {
         let full = if path.starts_with('/') { path.to_string() } else if self.path.ends_with('/') { format!("{}{}", self.path, path) } else { format!("{}/{}", self.path, path) };
         let paths = self.inner.paths.read().unwrap();
         if !paths.contains_key(&full) { return Err(VfsError::Backend { message: format!("not found: {}", full) }.into()); }
-        Ok(FjallFile { path: full, mode, inner: self.inner.clone() })
+        Ok(InodeFile { path: full, mode, inner: self.inner.clone() })
     }
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
         let file = self.open(path, mode)?;
-        Ok(SeekableFjallFile::new(file))
+        Ok(SeekableInodeFile::new(file))
     }
     fn open_directory(&self, path: &str) -> VfsResult<Box<dyn VfsDirectory<File = Self::File, SeekableFile = Self::SeekableFile>>> {
         let full = if path.starts_with('/') { path.to_string() } else if self.path.ends_with('/') { format!("{}{}", self.path, path) } else { format!("{}/{}", self.path, path) };
         let paths = self.inner.paths.read().unwrap();
         if !paths.contains_key(&full) { return Err(VfsError::NotADirectory { path: full }.into()); }
-        Ok(Box::new(FjallDirectory { path: full, inner: self.inner.clone() }))
+        Ok(Box::new(InodeDir { path: full, inner: self.inner.clone() }))
     }
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> {
         let full = if path.starts_with('/') { path.to_string() } else if self.path.ends_with('/') { format!("{}{}", self.path, path) } else { format!("{}/{}", self.path, path) };
@@ -281,10 +287,10 @@ impl VfsDirectory for FjallDirectory {
     }
 }
 
-impl VfsFileSystem for FjallFs {
-    type File = FjallFile;
-    type SeekableFile = SeekableFjallFile;
-    type Directory = FjallDirectory;
+impl VfsFileSystem for InodeFs {
+    type File = InodeFile;
+    type SeekableFile = SeekableInodeFile;
+    type Directory = InodeDir;
 
     fn capabilities(&self) -> VfsCapabilities {
         VfsCapabilities { seekable: true, symlinks: true, permissions_enforced: false, event_emission: false, persistent: true }
@@ -339,11 +345,11 @@ impl VfsFileSystem for FjallFs {
     fn open(&self, path: &str, mode: OpenMode) -> VfsResult<Self::File> {
         let paths = self.inner.paths.read().unwrap();
         if !paths.contains_key(path) { return Err(VfsError::Backend { message: format!("not found: {}", path) }.into()); }
-        Ok(FjallFile { path: path.to_string(), mode, inner: self.inner.clone() })
+        Ok(InodeFile { path: path.to_string(), mode, inner: self.inner.clone() })
     }
     fn open_seekable(&self, path: &str, mode: OpenMode) -> VfsResult<Self::SeekableFile> {
         let file = self.open(path, mode)?;
-        Ok(SeekableFjallFile::new(file))
+        Ok(SeekableInodeFile::new(file))
     }
     fn open_directory(&self, path: &str) -> VfsResult<Self::Directory> {
         let paths = self.inner.paths.read().unwrap();
@@ -353,7 +359,7 @@ impl VfsFileSystem for FjallFs {
         if let Some(e) = entries.get(ino) {
             if e.file_type != VfsFileType::Directory { return Err(VfsError::NotADirectory { path: path.to_string() }.into()); }
         }
-        Ok(FjallDirectory { path: path.to_string(), inner: self.inner.clone() })
+        Ok(InodeDir { path: path.to_string(), inner: self.inner.clone() })
     }
     fn create(&self, path: &str, mode: u32) -> VfsResult<Self::File> {
         // Check if parent directory exists
@@ -370,7 +376,7 @@ impl VfsFileSystem for FjallFs {
             version: 0, created_at: now_ms(), updated_at: now_ms(), content: Vec::new(), symlink_target: None,
         });
         self.inner.paths.write().unwrap().insert(path.to_string(), ino);
-        Ok(FjallFile { path: path.to_string(), mode: OpenMode::ReadWrite, inner: self.inner.clone() })
+        Ok(InodeFile { path: path.to_string(), mode: OpenMode::ReadWrite, inner: self.inner.clone() })
     }
     fn mkdir(&self, path: &str) -> VfsResult<()> {
         let ino = self.inner.next_ino();
@@ -421,20 +427,20 @@ impl VfsFileSystem for FjallFs {
     }
 }
 
-pub struct FjallDelta { inner: FjallFs, whiteouts: Arc<RwLock<HashMap<String, u64>>> }
+pub struct InodeDelta { inner: InodeFs, whiteouts: Arc<RwLock<HashMap<String, u64>>> }
 
-impl FjallDelta {
+impl InodeDelta {
     pub fn open(path: impl AsRef<std::path::Path>) -> VfsResult<Self> {
-        Ok(Self { inner: FjallFs::open(path)?, whiteouts: Arc::new(RwLock::new(HashMap::new())) })
+        Ok(Self { inner: InodeFs::open(path)?, whiteouts: Arc::new(RwLock::new(HashMap::new())) })
     }
-    pub fn open_with_config(path: impl AsRef<std::path::Path>, config: FjallVfsConfig) -> VfsResult<Self> {
-        Ok(Self { inner: FjallFs::open_with_config(path, config)?, whiteouts: Arc::new(RwLock::new(HashMap::new())) })
+    pub fn open_with_config(path: impl AsRef<std::path::Path>, config: InodeFsConfig) -> VfsResult<Self> {
+        Ok(Self { inner: InodeFs::open_with_config(path, config)?, whiteouts: Arc::new(RwLock::new(HashMap::new())) })
     }
     pub fn in_memory() -> VfsResult<Self> { Self::open("/tmp") }
 }
 
-impl VfsFileSystem for FjallDelta {
-    type File = FjallFile; type SeekableFile = SeekableFjallFile; type Directory = FjallDirectory;
+impl VfsFileSystem for InodeDelta {
+    type File = InodeFile; type SeekableFile = SeekableInodeFile; type Directory = InodeDir;
     fn capabilities(&self) -> VfsCapabilities { self.inner.capabilities() }
     fn stat(&self, path: &str) -> VfsResult<VfsMetadata> { self.inner.stat(path) }
     fn exists(&self, path: &str) -> VfsResult<bool> {
@@ -461,7 +467,7 @@ impl VfsFileSystem for FjallDelta {
     fn stat_by_inode(&self, ino: u64) -> VfsResult<VfsMetadata> { self.inner.stat_by_inode(ino) }
 }
 
-impl DeltaStore for FjallDelta {
+impl DeltaStore for InodeDelta {
     fn add_whiteout(&self, path: &str, version: u64) -> VfsResult<()> {
         self.whiteouts.write().unwrap().insert(path.to_string(), version); Ok(())
     }
@@ -477,3 +483,8 @@ impl DeltaStore for FjallDelta {
     fn flush(&self) -> VfsResult<()> { Ok(()) }
     fn reset(&self) -> VfsResult<()> { self.whiteouts.write().unwrap().clear(); Ok(()) }
 }
+
+// Backward-compatible type aliases (old misleading names).
+pub type FjallFs = InodeFs;
+pub type FjallDelta = InodeDelta;
+pub type FjallVfsConfig = InodeFsConfig;

@@ -29,6 +29,7 @@ foundation_nostd = { workspace = true, optional = true }
 foundation_errstacks = { workspace = true }
 derive_more = { workspace = true }
 serde_json = { version = "1", optional = true }
+foundation_compact = { workspace = true, optional = true }
 foundation_db = { workspace = true, optional = true }
 foundation_netio = { workspace = true, optional = true }
 libsql = { version = "0.9", optional = true }
@@ -298,7 +299,7 @@ vfs-ptrace = ["vfs-ptrace-nix"]
 
 # FUSE mount adapter (Linux only)
 vfs-fuse = ["vfs-native", "dep:fuser"]
-vfs-fjall = ["vfs", "dep:fjall", "dep:hex"]
+vfs-fjall = ["vfs", "dep:fjall", "dep:hex", "dep:foundation_db", "dep:serde_json", "dep:foundation_compact"]
 vfs-nfs = ["vfs", "dep:nfsserve"]
 # Fjall LSM-tree + cacache CAS VFS backend
 
@@ -332,6 +333,11 @@ required-features = ["vfs-native", "vfs-r2"]
 [[test]]
 name = "fjall_vfs"
 path = "tests/fjall_vfs/mod.rs"
+required-features = ["vfs-fjall"]
+
+[[test]]
+name = "fjall_document_store"
+path = "tests/fjall_document_store/mod.rs"
 required-features = ["vfs-fjall"]
 
 [[test]]

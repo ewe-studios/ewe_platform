@@ -1,18 +1,19 @@
 ---
 feature: "foundation_compact — cross-platform substrate (time + vendored entropy/rand + scru128)"
 description: "Rename foundation_webwasm → foundation_compact and make it the workspace's single cross-platform substrate: SystemTime/Instant, a VENDORED in-house getrandom (entropy), a VENDORED in-house rand (RNG), and the folded-in foundation_rng (scru128 ids) — closing the external rand→getrandom chain that breaks wasm, owning the adaptive wasm entropy paths across unknown-unknown/emscripten/wasi"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: []
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-15
+last_updated: 2026-06-21
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 18
+  completed: 18
+  uncompleted: 0
   total: 18
-  completion_percentage: 0%
+  completion_percentage: 100%
+notes: "All parts complete: rename foundation_webwasm→foundation_compact done, vendored getrandom (entropy module, all platform backends), vendored rand (rng module, ChaCha CSPRNG), scru128 ids folded in. 27 tests passing. No references to old foundation_webwasm remain."
 ---
 
 > **Reworked 2026-06-15 per user TODOs (which resolve the inline notes that were in this file):**

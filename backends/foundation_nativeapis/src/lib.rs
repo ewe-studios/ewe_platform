@@ -61,3 +61,6 @@ pub use shared::vfs::{
 
 #[cfg(all(feature = "vfs-search", not(target_family = "wasm")))]
 pub use shared::vfs::{CliSearcher, native_vfs_searcher};
+
+#[cfg(feature = "vfs-fjall")]
+pub use shared::vfs::{DurabilityWriteConfig, FjallDocumentStore};
