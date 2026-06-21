@@ -390,8 +390,8 @@ pub trait QueryStore: Send + Sync {
 
 /// Async SQL query operations — for wasm backends (D1) where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncQueryStore {
+#[async_trait::async_trait]
+pub trait AsyncQueryStore: Send + Sync {
     /// Execute a query that returns rows as an async stream.
     ///
     /// For Turso/Libsql: yields rows one at a time as they're fetched.
@@ -414,8 +414,8 @@ pub trait AsyncQueryStore {
 
 /// Async key-value store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncKeyValueStore {
+#[async_trait::async_trait]
+pub trait AsyncKeyValueStore: Send + Sync {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>>;
     async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()>;
     async fn delete_async(&self, key: &str) -> StorageResult<()>;
@@ -446,8 +446,8 @@ pub trait RateLimiterStore: Send + Sync {
 
 /// Async blob store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncBlobStore {
+#[async_trait::async_trait]
+pub trait AsyncBlobStore: Send + Sync {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()>;
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>>;
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()>;
@@ -456,8 +456,8 @@ pub trait AsyncBlobStore {
 
 /// Async rate limiter store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncRateLimiterStore {
+#[async_trait::async_trait]
+pub trait AsyncRateLimiterStore: Send + Sync {
     async fn check_rate_limit_async(
         &self,
         key: &str,
@@ -639,8 +639,8 @@ pub trait PromotableDocument {
 
 /// Async document store operations — for wasm backends where the underlying
 /// JS APIs are Promise-based and cannot be called synchronously.
-#[async_trait::async_trait(?Send)]
-pub trait AsyncDocumentStore {
+#[async_trait::async_trait]
+pub trait AsyncDocumentStore: Send + Sync {
     /// Append a document to a collection.
     async fn append_async<V: Serialize + Send + 'static>(&self, key: &str, content: V) -> StorageResult<Document>;
 

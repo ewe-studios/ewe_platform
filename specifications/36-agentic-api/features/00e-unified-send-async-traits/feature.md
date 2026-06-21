@@ -1,18 +1,18 @@
 ---
 feature: "Unified Send async traits (foundation_db + nativeapis)"
 description: "Collapse the spec-wide async-trait Send/?Send split (Item #1, discussion §A1) into ONE Send async-trait surface for every existing Async* store trait — AsyncQueryStore/AsyncKeyValueStore/AsyncBlobStore/AsyncRateLimiterStore/AsyncDocumentStore (+ AsyncVectorStore) — with a SendWrapper adapter that makes !Send JS/Promise futures present as Send on single-threaded wasm only; native + emscripten require genuine Send"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["00-foundation-compact"]
 estimated_effort: "medium"
 created: 2026-06-15
-last_updated: 2026-06-15
+last_updated: 2026-06-21
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 00e: Unified `Send` async traits

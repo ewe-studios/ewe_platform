@@ -400,7 +400,7 @@ impl BlobStore for R2Store {
 // AsyncBlobStore
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for R2Store {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_object_async(&self.blob_object_key(key), data, "application/octet-stream").await

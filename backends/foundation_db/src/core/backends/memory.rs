@@ -263,7 +263,7 @@ impl BlobStore for MemoryStorage {
 // Async trait implementations — in-memory ops resolve immediately.
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for MemoryStorage {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let bytes = self.data.lock()
@@ -314,7 +314,7 @@ impl AsyncKeyValueStore for MemoryStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for MemoryStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let mut storage = self.data.lock()
@@ -343,7 +343,7 @@ impl AsyncBlobStore for MemoryStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for MemoryStorage {
     async fn check_rate_limit_async(
         &self,

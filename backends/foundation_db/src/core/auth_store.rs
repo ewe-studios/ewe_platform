@@ -75,7 +75,7 @@ pub trait AuthStore: PasskeyStore + TosStore {
 /// Mirrors `PasskeyStore` with `*_async` methods for use with `AsyncQueryStore`
 /// backends (Turso/Libsql, D1). Multi-value methods return streams to avoid
 /// loading all passkeys into memory at once.
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 pub trait AsyncPasskeyStore {
     async fn store_passkey_async(&self, passkey: &StoredPasskey) -> Result<(), String>;
     async fn find_passkeys_by_user_async<'a>(&'a self, user_id: &'a str) -> StorageResult<AsyncStorageItemStream<'a, StoredPasskey>>;
@@ -87,7 +87,7 @@ pub trait AsyncPasskeyStore {
 }
 
 /// Async storage operations for Terms of Service acceptances.
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 pub trait AsyncTosStore {
     async fn store_tos_acceptance_async(&self, acceptance: &StoredTosAcceptance) -> Result<(), String>;
     async fn find_tos_acceptance_async<'a>(&'a self, user_id: &'a str, tos_version: &'a str) -> StorageResult<Option<StoredTosAcceptance>>;
@@ -95,7 +95,7 @@ pub trait AsyncTosStore {
 }
 
 /// Combined async auth store — the primary trait for async auth handlers.
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 pub trait AsyncAuthStore: AsyncPasskeyStore + AsyncTosStore {
     /// Find a user by email (used by passkey login flow).
     /// Returns (user_id, has_password).

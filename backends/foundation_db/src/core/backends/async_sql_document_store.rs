@@ -50,17 +50,15 @@ fn map_content<V: DeserializeOwned + 'static>(
 }
 
 impl<Q: AsyncQueryStore> AsyncSqlDocumentStore<Q> {
-    async fn insert_promoted<V: Serialize + Send + 'static>(
+    async fn insert_row(
         &self,
         key: &str,
         doc_id: String,
-        content: &V,
+        content_json: String,
         title: Option<String>,
         summary: Option<String>,
         record_type: Option<String>,
     ) -> StorageResult<Document> {
-        let content_json = serde_json::to_string(content)
-            .map_err(|e| StorageError::Serialization(e.to_string()))?;
         let params = sql::insert_params(
             key,
             &doc_id,
@@ -97,7 +95,7 @@ impl<Q: AsyncQueryStore> AsyncSqlDocumentStore<Q> {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl<Q: AsyncQueryStore> AsyncDocumentStore for AsyncSqlDocumentStore<Q> {
     async fn append_async<V: Serialize + Send + 'static>(
         &self,
@@ -105,7 +103,9 @@ impl<Q: AsyncQueryStore> AsyncDocumentStore for AsyncSqlDocumentStore<Q> {
         content: V,
     ) -> StorageResult<Document> {
         let doc_id = foundation_compact::ids::new_scru128_string();
-        self.insert_promoted(key, doc_id, &content, None, None, None).await
+        let json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.insert_row(key, doc_id, json, None, None, None).await
     }
 
     async fn append_with_id_async<V: Serialize + Send + 'static>(
@@ -114,7 +114,9 @@ impl<Q: AsyncQueryStore> AsyncDocumentStore for AsyncSqlDocumentStore<Q> {
         doc_id: &str,
         content: V,
     ) -> StorageResult<Document> {
-        self.insert_promoted(key, doc_id.to_string(), &content, None, None, None).await
+        let json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.insert_row(key, doc_id.to_string(), json, None, None, None).await
     }
 
     async fn append_promotable_async<V: Serialize + PromotableDocument + Send + 'static>(
@@ -124,7 +126,9 @@ impl<Q: AsyncQueryStore> AsyncDocumentStore for AsyncSqlDocumentStore<Q> {
     ) -> StorageResult<Document> {
         let doc_id = foundation_compact::ids::new_scru128_string();
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        self.insert_promoted(key, doc_id, &content, t, s, rt).await
+        let json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.insert_row(key, doc_id, json, t, s, rt).await
     }
 
     async fn append_promotable_with_id_async<V: Serialize + PromotableDocument + Send + 'static>(
@@ -134,7 +138,9 @@ impl<Q: AsyncQueryStore> AsyncDocumentStore for AsyncSqlDocumentStore<Q> {
         content: V,
     ) -> StorageResult<Document> {
         let (t, s, rt) = (content.title(), content.summary(), content.record_type());
-        self.insert_promoted(key, doc_id.to_string(), &content, t, s, rt).await
+        let json = serde_json::to_string(&content)
+            .map_err(|e| StorageError::Serialization(e.to_string()))?;
+        self.insert_row(key, doc_id.to_string(), json, t, s, rt).await
     }
 
     async fn scan_documents_async(&self, key: &str, limit: usize) -> StorageResult<Vec<Document>> {

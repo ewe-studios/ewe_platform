@@ -675,7 +675,7 @@ impl BlobStore for StorageProvider {
 // Async trait implementations — delegate to inner backend.
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for StorageProvider {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         match &self.inner {
@@ -813,7 +813,7 @@ impl AsyncKeyValueStore for StorageProvider {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncQueryStore for StorageProvider {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         match &self.inner {
@@ -921,7 +921,7 @@ impl AsyncQueryStore for StorageProvider {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for StorageProvider {
     async fn check_rate_limit_async(
         &self,
@@ -1030,7 +1030,7 @@ impl AsyncRateLimiterStore for StorageProvider {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for StorageProvider {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         match &self.inner {

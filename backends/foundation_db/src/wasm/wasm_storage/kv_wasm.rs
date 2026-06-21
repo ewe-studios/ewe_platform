@@ -243,26 +243,26 @@ impl KVWasmStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for KVWasmStorage {
     async fn get_async<V: serde::de::DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
-        self.get_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.get_async(key).await }).await
     }
 
     async fn set_async<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
-        self.set_async(key, value).await
+        foundation_compact::SendWrapper::new(async move { self.set_async(key, value).await }).await
     }
 
     async fn delete_async(&self, key: &str) -> StorageResult<()> {
-        self.delete_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.delete_async(key).await }).await
     }
 
     async fn exists_async(&self, key: &str) -> StorageResult<bool> {
-        self.exists_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.exists_async(key).await }).await
     }
 
     async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
-        self.list_keys_async(prefix).await
+        foundation_compact::SendWrapper::new(async move { self.list_keys_async(prefix).await }).await
     }
 }
 
@@ -448,7 +448,7 @@ impl KVWasmStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for KVWasmStorage {
     async fn check_rate_limit_async(
         &self,
@@ -456,15 +456,17 @@ impl AsyncRateLimiterStore for KVWasmStorage {
         max_count: u32,
         window_seconds: u64,
     ) -> StorageResult<bool> {
-        self.check_rate_limit_async(key, max_count, window_seconds).await
+        foundation_compact::SendWrapper::new(async move {
+            self.check_rate_limit_async(key, max_count, window_seconds).await
+        }).await
     }
 
     async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
-        self.record_rate_limit_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.record_rate_limit_async(key).await }).await
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
-        self.reset_rate_limit_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.reset_rate_limit_async(key).await }).await
     }
 }
 
@@ -577,21 +579,21 @@ impl KVWasmStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for KVWasmStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        self.put_blob_async(key, data).await
+        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }
 
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        self.get_blob_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.get_blob_async(key).await }).await
     }
 
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
-        self.delete_blob_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.delete_blob_async(key).await }).await
     }
 
     async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
-        self.blob_exists_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.blob_exists_async(key).await }).await
     }
 }

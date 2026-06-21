@@ -173,21 +173,21 @@ impl R2WasmStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for R2WasmStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
-        self.put_blob_async(key, data).await
+        foundation_compact::SendWrapper::new(async move { self.put_blob_async(key, data).await }).await
     }
 
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
-        self.get_blob_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.get_blob_async(key).await }).await
     }
 
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
-        self.delete_blob_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.delete_blob_async(key).await }).await
     }
 
     async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
-        self.blob_exists_async(key).await
+        foundation_compact::SendWrapper::new(async move { self.blob_exists_async(key).await }).await
     }
 }

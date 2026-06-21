@@ -278,7 +278,7 @@ impl BlobStore for JsonFileStorage {
 // Async trait implementations — disk-backed, but async since I/O is involved.
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for JsonFileStorage {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.data.lock()
@@ -331,7 +331,7 @@ impl AsyncKeyValueStore for JsonFileStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for JsonFileStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let mut storage = self.data.lock()

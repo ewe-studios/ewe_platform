@@ -773,7 +773,7 @@ impl BlobStore for TursoStorage {
 // Async trait implementations — direct calls to _async_internal methods.
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for TursoStorage {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         self.get_async_internal::<V>(key).await
@@ -809,7 +809,7 @@ impl AsyncKeyValueStore for TursoStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncQueryStore for TursoStorage {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let conn = Arc::clone(&self.conn);
@@ -828,7 +828,7 @@ impl AsyncQueryStore for TursoStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for TursoStorage {
     async fn check_rate_limit_async(
         &self,
@@ -848,7 +848,7 @@ impl AsyncRateLimiterStore for TursoStorage {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for TursoStorage {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         self.put_blob_async_internal(key, data).await

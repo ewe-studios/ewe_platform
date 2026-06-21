@@ -702,7 +702,7 @@ impl StateStore for D1Store {
 // Async trait implementations
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for D1Store {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let sql = format!("SELECT value FROM {} WHERE key = ?", self.kv_table());
@@ -765,7 +765,7 @@ impl AsyncKeyValueStore for D1Store {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncQueryStore for D1Store {
     async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         let json_params: Vec<serde_json::Value> = params.iter().map(|v| match v {
@@ -820,7 +820,7 @@ impl AsyncQueryStore for D1Store {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for D1Store {
     async fn check_rate_limit_async(&self, key: &str, max_count: u32, window_seconds: u64) -> StorageResult<bool> {
         let create_table = r"CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, window_start INTEGER NOT NULL)";
@@ -861,7 +861,7 @@ impl AsyncRateLimiterStore for D1Store {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for D1Store {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = STANDARD.encode(data);

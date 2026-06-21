@@ -44,3 +44,8 @@ pub mod rng;
 // ─── IDs ────────────────────────────────────────────────────────────────────────
 
 pub mod ids;
+
+// ─── Send Wrapper ──────────────────────────────────────────────────────────────
+
+pub mod send_wrapper;
+pub use send_wrapper::SendWrapper;

@@ -293,7 +293,7 @@ impl DocumentStore for MemoryDocumentStore {
 /// Promise-based backend. Scans return a lazily-pulled [`AsyncStorageItemStream`]
 /// (never a `Vec`); every method delegates to the same neutral helpers the sync
 /// impl uses, so ordering/id/promoted-column semantics are identical.
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncDocumentStore for MemoryDocumentStore {
     async fn append_async<V: Serialize + Send + 'static>(
         &self,

@@ -226,7 +226,7 @@ impl BlobStore for MemoryJsonStore {
 // Async trait implementations — in-memory ops resolve immediately.
 // ===========================================================================
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncKeyValueStore for MemoryJsonStore {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         let data = self.lock()?;
@@ -271,7 +271,7 @@ impl AsyncKeyValueStore for MemoryJsonStore {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncBlobStore for MemoryJsonStore {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         let encoded = base64::Engine::encode(&base64::engine::general_purpose::STANDARD, data);
@@ -303,7 +303,7 @@ impl AsyncBlobStore for MemoryJsonStore {
     }
 }
 
-#[async_trait::async_trait(?Send)]
+#[async_trait::async_trait]
 impl AsyncRateLimiterStore for MemoryJsonStore {
     async fn check_rate_limit_async(
         &self,
