@@ -271,10 +271,7 @@ fn memory_record_to_message(record: &SessionRecord, label: &str) -> Option<Messa
             format!("[{label}]\n{}", lines.join("\n"))
         }
         SessionRecord::Reflection { reflections, .. } => {
-            let lines: Vec<String> = reflections
-                .iter()
-                .map(|r| r.summary.clone())
-                .collect();
+            let lines: Vec<String> = reflections.iter().map(|r| r.summary.clone()).collect();
             if lines.is_empty() {
                 return None;
             }
@@ -401,7 +398,10 @@ mod tests {
         use futures_lite::future::block_on;
         let provider = make_provider();
         let ctx = block_on(provider.assemble());
-        assert_eq!(ctx.system_prompt.as_deref(), Some("You are a helpful assistant."));
+        assert_eq!(
+            ctx.system_prompt.as_deref(),
+            Some("You are a helpful assistant.")
+        );
         assert!(ctx.messages.is_empty());
     }
 
@@ -446,8 +446,7 @@ mod tests {
         let provider = make_provider();
         block_on(async {
             let t1 = SystemTime::UNIX_EPOCH;
-            let t2 = SystemTime::UNIX_EPOCH
-                + std::time::Duration::from_secs(100);
+            let t2 = SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(100);
             let obs = observation_record("old observation", t1);
             let refl = reflection_record("newer reflection", t2);
             provider
@@ -480,8 +479,7 @@ mod tests {
         let provider = make_provider();
         block_on(async {
             let t1 = SystemTime::UNIX_EPOCH;
-            let t2 = SystemTime::UNIX_EPOCH
-                + std::time::Duration::from_secs(100);
+            let t2 = SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(100);
             let refl = reflection_record("old reflection", t1);
             let obs = observation_record("newer observation", t2);
             provider
@@ -507,9 +505,9 @@ mod tests {
         let provider = make_provider();
         block_on(async {
             let msg = user_message("hello world");
-            provider.message_api.append(SessionRecord::Conversation {
-                message: msg,
-            });
+            provider
+                .message_api
+                .append(SessionRecord::Conversation { message: msg });
             let _ = provider.message_api.flush();
             let ctx = provider.assemble().await;
             assert_eq!(ctx.messages.len(), 1);
@@ -524,8 +522,7 @@ mod tests {
         let provider = make_provider();
         block_on(async {
             let t1 = SystemTime::UNIX_EPOCH;
-            let t2 = SystemTime::UNIX_EPOCH
-                + std::time::Duration::from_secs(100);
+            let t2 = SystemTime::UNIX_EPOCH + std::time::Duration::from_secs(100);
 
             provider
                 .memory_store
@@ -534,10 +531,7 @@ mod tests {
                 .unwrap();
             provider
                 .memory_store
-                .set_async(
-                    &provider.session_id,
-                    &reflection_record("reflection B", t1),
-                )
+                .set_async(&provider.session_id, &reflection_record("reflection B", t1))
                 .await
                 .unwrap();
             provider
@@ -550,22 +544,31 @@ mod tests {
                 .unwrap();
 
             let msg = user_message("user message D");
-            provider.message_api.append(SessionRecord::Conversation {
-                message: msg,
-            });
+            provider
+                .message_api
+                .append(SessionRecord::Conversation { message: msg });
             let _ = provider.message_api.flush();
 
             let ctx = provider.assemble().await;
             // Order: working → reflection → observation (newer) → recent messages
             assert_eq!(ctx.messages.len(), 4);
             let texts: Vec<String> = ctx.messages.iter().map(|m| extract_text(m)).collect();
-            assert!(texts[0].contains("fact A"), "first should be working memory");
-            assert!(texts[1].contains("reflection B"), "second should be reflection");
+            assert!(
+                texts[0].contains("fact A"),
+                "first should be working memory"
+            );
+            assert!(
+                texts[1].contains("reflection B"),
+                "second should be reflection"
+            );
             assert!(
                 texts[2].contains("observation C"),
                 "third should be observation (newer than reflection)"
             );
-            assert!(texts[3].contains("user message D"), "fourth should be recent message");
+            assert!(
+                texts[3].contains("user message D"),
+                "fourth should be recent message"
+            );
         });
     }
 
@@ -577,10 +580,12 @@ mod tests {
 
     fn extract_text(msg: &Messages) -> String {
         match msg {
-            Messages::User { content, .. } | Messages::ToolResult { content, .. } => match content {
-                UserModelContent::Text(tc) => tc.content.clone(),
-                _ => String::new(),
-            },
+            Messages::User { content, .. } | Messages::ToolResult { content, .. } => {
+                match content {
+                    UserModelContent::Text(tc) => tc.content.clone(),
+                    _ => String::new(),
+                }
+            }
             Messages::Assistant { content, .. } => match content {
                 crate::types::ModelOutput::Text(tc) => tc.content.clone(),
                 _ => String::new(),

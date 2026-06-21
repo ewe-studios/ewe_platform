@@ -17,8 +17,8 @@
 //! carry the bits worth filtering/aggregating on. `FlatBuffers` is intentionally
 //! NOT used (Arrow rides `FlatBuffers` internally and builds on wasm — TODO #4).
 
-use foundation_arrow::{FromArrow, ToArrow};
 use foundation_arrow::arrow_array::RecordBatch;
+use foundation_arrow::{FromArrow, ToArrow};
 use foundation_macros::{ArrowSchema, FromArrow, ToArrow};
 use serde::{Deserialize, Serialize};
 
@@ -112,7 +112,10 @@ impl SessionRecordRow {
                     Messages::User { role, .. } => row.role = role.as_wire().to_string(),
                     Messages::ToolResult { .. } => row.role = "tool".to_string(),
                     Messages::Assistant {
-                        model, usage, content, ..
+                        model,
+                        usage,
+                        content,
+                        ..
                     } => {
                         row.role = "assistant".to_string();
                         row.model = Some(model.to_string());
@@ -145,7 +148,10 @@ impl SessionRecordRow {
                 row.summary = Some(error.to_string());
                 row.title = Some("failed_action".to_string());
             }
-            SessionRecord::Summary { message_count, usage } => {
+            SessionRecord::Summary {
+                message_count,
+                usage,
+            } => {
                 row.title = Some(format!("summary ({message_count} msgs)"));
                 // Clamped to u32::MAX so truncation is safe.
                 #[allow(clippy::cast_possible_truncation)]
@@ -176,8 +182,11 @@ pub fn to_record_batch(records: &[SessionRecord]) -> Result<RecordBatch, SerErro
 
 /// Decode a columnar Arrow `RecordBatch` back to records (via the content blob).
 pub fn from_record_batch(batch: &RecordBatch) -> Result<Vec<SessionRecord>, SerError> {
-    let rows = SessionRecordRow::from_arrow_batch(batch).map_err(|e| SerError::Arrow(e.to_string()))?;
-    rows.into_iter().map(SessionRecordRow::into_record).collect()
+    let rows =
+        SessionRecordRow::from_arrow_batch(batch).map_err(|e| SerError::Arrow(e.to_string()))?;
+    rows.into_iter()
+        .map(SessionRecordRow::into_record)
+        .collect()
 }
 
 /// The `record_type` discriminant string for a record (matches serde's tag).
@@ -200,13 +209,19 @@ fn record_type_of(record: &SessionRecord) -> &'static str {
 /// `SELECT SUM(output_tokens)`.
 #[must_use]
 pub fn sum_output_tokens(rows: &[SessionRecordRow]) -> u64 {
-    rows.iter().filter_map(|r| r.output_tokens).map(u64::from).sum()
+    rows.iter()
+        .filter_map(|r| r.output_tokens)
+        .map(u64::from)
+        .sum()
 }
 
 /// Sum of `input_tokens` across rows (skips nulls).
 #[must_use]
 pub fn sum_input_tokens(rows: &[SessionRecordRow]) -> u64 {
-    rows.iter().filter_map(|r| r.input_tokens).map(u64::from).sum()
+    rows.iter()
+        .filter_map(|r| r.input_tokens)
+        .map(u64::from)
+        .sum()
 }
 
 /// Filter rows by `record_type` — the columnar analog of
@@ -216,7 +231,9 @@ pub fn filter_by_type<'a>(
     rows: &'a [SessionRecordRow],
     record_type: &str,
 ) -> Vec<&'a SessionRecordRow> {
-    rows.iter().filter(|r| r.record_type == record_type).collect()
+    rows.iter()
+        .filter(|r| r.record_type == record_type)
+        .collect()
 }
 
 #[cfg(test)]
@@ -285,7 +302,11 @@ mod tests {
 
     #[test]
     fn json_round_trips_for_each_variant() {
-        for rec in [user_record("hi"), assistant_record(10.0, 5.0), observation_record()] {
+        for rec in [
+            user_record("hi"),
+            assistant_record(10.0, 5.0),
+            observation_record(),
+        ] {
             let json = serde_json::to_string(&rec).unwrap();
             let back: SessionRecord = serde_json::from_str(&json).unwrap();
             assert_eq!(rec, back);

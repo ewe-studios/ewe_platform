@@ -13,8 +13,8 @@ use foundation_ai::backends::huggingface_candle_provider::{
     HuggingFaceCandleConfig, HuggingFaceCandleProvider,
 };
 use foundation_ai::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, TextContent,
-    UserModelContent, ToolShed,
+    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, TextContent, ToolShed,
+    UserModelContent,
 };
 use foundation_core::valtron;
 use tracing_test::traced_test;

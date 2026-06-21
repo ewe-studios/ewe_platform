@@ -1664,8 +1664,9 @@ pub type BoxModel = Box<dyn Model>;
 /// Type alias for the boxed stream iterator returned by [`Model::stream`].
 ///
 /// Reduces repetition and silences `clippy::type_complexity`.
-pub type ModelStreamBox =
-    Box<dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send>;
+pub type ModelStreamBox = Box<
+    dyn StreamIterator<D = Messages, P = ModelState, Item = Stream<Messages, ModelState>> + Send,
+>;
 
 pub trait Model {
     /// [`spec`] returns model specification information for this target model.

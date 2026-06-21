@@ -7,7 +7,7 @@
 use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, StopReason,
-    TextContent, UserModelContent, ToolShed,
+    TextContent, ToolShed, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;

@@ -2,14 +2,14 @@
 //!
 //! Tests workflow building (topological staging), retry config, and error classification.
 
+use async_trait::async_trait;
 use foundation_ai::agentic::{
-    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage,
-    ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig,
+    FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolDefinition,
+    ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig,
 };
 use foundation_ai::types::{
     ArgType, Args, ExecutionHint, SessionId, TextContent, UserModelContent,
 };
-use async_trait::async_trait;
 use std::collections::HashMap;
 use std::sync::Arc;
 use std::time::Duration;
@@ -256,10 +256,7 @@ fn missing_dependency_rejected() {
 #[test]
 fn tool_error_kind_classification() {
     assert_eq!(
-        ToolError::Timeout {
-            tool: "t".into()
-        }
-        .kind(),
+        ToolError::Timeout { tool: "t".into() }.kind(),
         ToolErrorKind::Timeout
     );
     assert_eq!(
@@ -292,9 +289,7 @@ fn default_retry_config_retries_timeout_and_network() {
     let cfg = ToolRetryConfig::default();
     assert_eq!(cfg.max_retries, 3);
 
-    let timeout_err = ToolError::Timeout {
-        tool: "t".into(),
-    };
+    let timeout_err = ToolError::Timeout { tool: "t".into() };
     assert!(cfg.should_retry(&timeout_err, 0));
     assert!(cfg.should_retry(&timeout_err, 2));
     assert!(!cfg.should_retry(&timeout_err, 3)); // at max

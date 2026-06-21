@@ -477,12 +477,12 @@ impl ToolCallManager {
             stack.push(idx);
             let mut max_dep = 0u32;
             for dep_id in &calls[idx].depends_on {
-                let dep_idx = ids.get(dep_id.as_str()).ok_or_else(|| {
-                    ToolError::InvalidArguments {
-                        tool: calls[idx].name.clone(),
-                        reason: format!("depends on unknown call '{dep_id}'"),
-                    }
-                })?;
+                let dep_idx =
+                    ids.get(dep_id.as_str())
+                        .ok_or_else(|| ToolError::InvalidArguments {
+                            tool: calls[idx].name.clone(),
+                            reason: format!("depends on unknown call '{dep_id}'"),
+                        })?;
                 let dep_depth = resolve_depth(*dep_idx, calls, ids, depths, stack)?;
                 max_dep = max_dep.max(dep_depth + 1);
             }
@@ -495,7 +495,11 @@ impl ToolCallManager {
             return Ok(ToolCallWorkflow { stages: vec![] });
         }
 
-        let ids: HashMap<&str, usize> = calls.iter().enumerate().map(|(i, c)| (c.id.as_str(), i)).collect();
+        let ids: HashMap<&str, usize> = calls
+            .iter()
+            .enumerate()
+            .map(|(i, c)| (c.id.as_str(), i))
+            .collect();
 
         // Compute depth for each call.
         let mut depths: Vec<Option<u32>> = vec![None; calls.len()];
@@ -522,7 +526,9 @@ impl ToolCallManager {
             }
 
             // If any call in the stage requests Sequential, the whole stage is sequential.
-            let any_sequential = stage_calls.iter().any(|c| c.execution_hint == ExecutionHint::Sequential);
+            let any_sequential = stage_calls
+                .iter()
+                .any(|c| c.execution_hint == ExecutionHint::Sequential);
 
             if any_sequential || stage_calls.len() == 1 {
                 stages.push(ToolCallStage::Sequential {
@@ -567,7 +573,11 @@ impl ToolCallManager {
 
     /// Set per-tool retry config override.
     pub fn set_retry_config(&self, tool_name: &str, config: ToolRetryConfig) {
-        self.inner.retry_configs.write().unwrap().insert(tool_name.to_string(), config);
+        self.inner
+            .retry_configs
+            .write()
+            .unwrap()
+            .insert(tool_name.to_string(), config);
     }
 
     /// Get retry config for a tool (per-tool override or default).

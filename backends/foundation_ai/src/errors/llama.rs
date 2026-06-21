@@ -41,85 +41,135 @@ impl core::fmt::Display for LlamaError {
 impl std::error::Error for LlamaError {}
 
 impl From<LlamaCppError> for LlamaError {
-    fn from(e: LlamaCppError) -> Self { Self::Cpp(e) }
+    fn from(e: LlamaCppError) -> Self {
+        Self::Cpp(e)
+    }
 }
 impl From<StringToTokenError> for LlamaError {
-    fn from(e: StringToTokenError) -> Self { Self::Tokenization(e) }
+    fn from(e: StringToTokenError) -> Self {
+        Self::Tokenization(e)
+    }
 }
 impl From<TokenToStringError> for LlamaError {
-    fn from(e: TokenToStringError) -> Self { Self::TokenToString(e) }
+    fn from(e: TokenToStringError) -> Self {
+        Self::TokenToString(e)
+    }
 }
 impl From<DecodeError> for LlamaError {
-    fn from(e: DecodeError) -> Self { Self::Decode(e) }
+    fn from(e: DecodeError) -> Self {
+        Self::Decode(e)
+    }
 }
 impl From<EncodeError> for LlamaError {
-    fn from(e: EncodeError) -> Self { Self::Encode(e) }
+    fn from(e: EncodeError) -> Self {
+        Self::Encode(e)
+    }
 }
 impl From<EmbeddingsError> for LlamaError {
-    fn from(e: EmbeddingsError) -> Self { Self::Embeddings(e) }
+    fn from(e: EmbeddingsError) -> Self {
+        Self::Embeddings(e)
+    }
 }
 impl From<ChatTemplateError> for LlamaError {
-    fn from(e: ChatTemplateError) -> Self { Self::ChatTemplate(e) }
+    fn from(e: ChatTemplateError) -> Self {
+        Self::ChatTemplate(e)
+    }
 }
 impl From<ApplyChatTemplateError> for LlamaError {
-    fn from(e: ApplyChatTemplateError) -> Self { Self::ApplyChatTemplate(e) }
+    fn from(e: ApplyChatTemplateError) -> Self {
+        Self::ApplyChatTemplate(e)
+    }
 }
 impl From<LlamaModelLoadError> for LlamaError {
-    fn from(e: LlamaModelLoadError) -> Self { Self::ModelLoad(e) }
+    fn from(e: LlamaModelLoadError) -> Self {
+        Self::ModelLoad(e)
+    }
 }
 impl From<LlamaContextLoadError> for LlamaError {
-    fn from(e: LlamaContextLoadError) -> Self { Self::ContextLoad(e) }
+    fn from(e: LlamaContextLoadError) -> Self {
+        Self::ContextLoad(e)
+    }
 }
 
 // Convenience: LlamaError → GenerationError
 impl From<LlamaError> for super::GenerationError {
-    fn from(e: LlamaError) -> Self { Self::Llama(e) }
+    fn from(e: LlamaError) -> Self {
+        Self::Llama(e)
+    }
 }
 
 // Convenience: LlamaError → ModelErrors
 impl From<LlamaError> for super::ModelErrors {
-    fn from(e: LlamaError) -> Self { Self::Llama(e) }
+    fn from(e: LlamaError) -> Self {
+        Self::Llama(e)
+    }
 }
 
 // Convenience: individual llama errors → GenerationError (through LlamaError)
 impl From<LlamaCppError> for super::GenerationError {
-    fn from(e: LlamaCppError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: LlamaCppError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<StringToTokenError> for super::GenerationError {
-    fn from(e: StringToTokenError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: StringToTokenError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<TokenToStringError> for super::GenerationError {
-    fn from(e: TokenToStringError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: TokenToStringError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<DecodeError> for super::GenerationError {
-    fn from(e: DecodeError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: DecodeError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<EncodeError> for super::GenerationError {
-    fn from(e: EncodeError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: EncodeError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<EmbeddingsError> for super::GenerationError {
-    fn from(e: EmbeddingsError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: EmbeddingsError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<ChatTemplateError> for super::GenerationError {
-    fn from(e: ChatTemplateError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: ChatTemplateError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<ApplyChatTemplateError> for super::GenerationError {
-    fn from(e: ApplyChatTemplateError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: ApplyChatTemplateError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<LlamaModelLoadError> for super::GenerationError {
-    fn from(e: LlamaModelLoadError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: LlamaModelLoadError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<LlamaContextLoadError> for super::GenerationError {
-    fn from(e: LlamaContextLoadError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: LlamaContextLoadError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 
 // Convenience: individual llama errors → ModelErrors (through LlamaError)
 impl From<LlamaModelLoadError> for super::ModelErrors {
-    fn from(e: LlamaModelLoadError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: LlamaModelLoadError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<LlamaContextLoadError> for super::ModelErrors {
-    fn from(e: LlamaContextLoadError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: LlamaContextLoadError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }
 impl From<EmbeddingsError> for super::ModelErrors {
-    fn from(e: EmbeddingsError) -> Self { Self::Llama(LlamaError::from(e)) }
+    fn from(e: EmbeddingsError) -> Self {
+        Self::Llama(LlamaError::from(e))
+    }
 }

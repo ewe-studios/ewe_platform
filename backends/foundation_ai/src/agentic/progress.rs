@@ -93,9 +93,7 @@ impl From<&ModelState> for AgentProgress {
                 model: ModelId::Name(String::new(), None),
                 // Token counts are non-negative and within u64 range.
                 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
-                tokens_so_far: usage
-                    .as_ref()
-                    .map(|u| (u.input + u.output) as u64),
+                tokens_so_far: usage.as_ref().map(|u| (u.input + u.output) as u64),
             },
             ModelState::GeneratingEmbeddings => AgentProgress::Initializing {
                 step: Cow::Borrowed("generating_embeddings"),
@@ -220,10 +218,7 @@ mod tests {
     #[test]
     fn lift_model_error_becomes_failed_action_record() {
         let model = ModelId::Name("m".into(), None);
-        let lifted = lift_model_item(
-            Stream::Pending(ModelState::Error("boom".into())),
-            &model,
-        );
+        let lifted = lift_model_item(Stream::Pending(ModelState::Error("boom".into())), &model);
         match lifted {
             Stream::Next(SessionRecord::FailedAction { error, trace }) => {
                 assert_eq!(error, AgenticError::Unexpected("boom".into()));

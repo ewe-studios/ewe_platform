@@ -18,11 +18,7 @@ struct TestProvider {
 }
 
 impl TestProvider {
-    fn new(
-        name: &'static str,
-        provider_id: ModelProviders,
-        model_names: &[&str],
-    ) -> Self {
+    fn new(name: &'static str, provider_id: ModelProviders, model_names: &[&str]) -> Self {
         let supported_models = model_names
             .iter()
             .map(|n| ModelSpec {
@@ -71,10 +67,7 @@ impl RoutableProvider for TestProvider {
         self.supported_models.clone()
     }
 
-    fn get_model(
-        &self,
-        _model_id: &ModelId,
-    ) -> Option<foundation_ai::types::BoxModel> {
+    fn get_model(&self, _model_id: &ModelId) -> Option<foundation_ai::types::BoxModel> {
         // No real model to return — tests that need a BoxModel would use a
         // full mock Model impl. F12 tests focus on routing, not generation.
         None
@@ -257,7 +250,10 @@ fn unresolved_model_returns_error() {
 
     let id = ModelId::Name("nonexistent-model".into(), None);
     match router.resolve(&id) {
-        Err(e) => assert_eq!(e, RouterError::NoProviderForModel("nonexistent-model".into())),
+        Err(e) => assert_eq!(
+            e,
+            RouterError::NoProviderForModel("nonexistent-model".into())
+        ),
         Ok(_) => panic!("expected error, got Ok"),
     }
 }
@@ -302,7 +298,10 @@ fn memory_model_falls_back_to_first_provider() {
 fn memory_model_on_empty_router_returns_error() {
     let router = ProviderRouter::default();
     match router.memory_model(None) {
-        Err(e) => assert_eq!(e, RouterError::NoProviderForModel("(memory default)".into())),
+        Err(e) => assert_eq!(
+            e,
+            RouterError::NoProviderForModel("(memory default)".into())
+        ),
         Ok(_) => panic!("expected error, got Ok"),
     }
 }
@@ -320,7 +319,10 @@ fn get_model_routes_then_returns_none_from_test_provider() {
     // so get_model returns NoProviderForModel after resolving.
     let id = ModelId::Name("claude-sonnet-4-6".into(), None);
     match router.get_model(&id) {
-        Err(e) => assert_eq!(e, RouterError::NoProviderForModel("claude-sonnet-4-6".into())),
+        Err(e) => assert_eq!(
+            e,
+            RouterError::NoProviderForModel("claude-sonnet-4-6".into())
+        ),
         Ok(_) => panic!("expected error, got Ok"),
     }
 }

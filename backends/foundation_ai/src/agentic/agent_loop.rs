@@ -452,8 +452,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             Stream::Spread(items) => {
                 use foundation_core::valtron::StreamSpread;
                 for s in &items {
-                    if let StreamSpread::Done(SessionRecord::Conversation { ref message }) = s
-                    {
+                    if let StreamSpread::Done(SessionRecord::Conversation { ref message }) = s {
                         collected.push(message.clone());
                         self.message_count += 1;
                     }
@@ -822,9 +821,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             results,
             idx: idx + 1,
         };
-        TaskStatus::Ready(SessionRecord::Conversation {
-            message: msg,
-        })
+        TaskStatus::Ready(SessionRecord::Conversation { message: msg })
     }
 
     fn transition_output_processing(

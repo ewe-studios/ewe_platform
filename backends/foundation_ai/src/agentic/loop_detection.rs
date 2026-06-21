@@ -455,10 +455,7 @@ mod tests {
         let result = det.check(&tc);
         assert!(matches!(
             result,
-            LoopDetection::ToolCallLoop {
-                repetitions: 3,
-                ..
-            }
+            LoopDetection::ToolCallLoop { repetitions: 3, .. }
         ));
     }
 
@@ -487,7 +484,10 @@ mod tests {
         // Near-identical texts should have high SimHash similarity.
         match result {
             LoopDetection::FuzzyLoop { similarity } => {
-                assert!(similarity >= 0.8, "similarity {similarity} should be >= 0.8");
+                assert!(
+                    similarity >= 0.8,
+                    "similarity {similarity} should be >= 0.8"
+                );
             }
             LoopDetection::NoLoop => {
                 // This is acceptable if the texts are different enough for SimHash.

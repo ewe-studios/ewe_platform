@@ -1,15 +1,14 @@
 use std::sync::Arc;
 
+use foundation_ai::agentic::tool_impl::ToolCallManager;
 use foundation_ai::agentic::{
-    AgentConfig, AgentLoop, AgentProgress, ContextConfig, ContextProvider,
-    KvMemoryStore, MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi,
-    SteeringQueues, TokenLedger,
+    AgentConfig, AgentLoop, AgentProgress, ContextConfig, ContextProvider, KvMemoryStore,
+    MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi, SteeringQueues, TokenLedger,
 };
 use foundation_ai::types::{
-    Messages, MessageRole, ModelId, ProviderRouter, SessionId, SessionRecord,
-    TextContent, UserModelContent,
+    MessageRole, Messages, ModelId, ProviderRouter, SessionId, SessionRecord, TextContent,
+    UserModelContent,
 };
-use foundation_ai::agentic::tool_impl::ToolCallManager;
 use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_db::{MemoryDocumentStore, MemoryStorage};
 
@@ -141,12 +140,18 @@ fn full_lifecycle_no_messages() {
 
     // OuterBoundary — empty queues → Ending
     let s2 = h.agent.next_status();
-    assert!(matches!(s2, Some(TaskStatus::Pending(AgentProgress::SessionEnding))));
+    assert!(matches!(
+        s2,
+        Some(TaskStatus::Pending(AgentProgress::SessionEnding))
+    ));
     assert_eq!(h.agent.state_label(), "ending");
 
     // Ending → Summary
     let s3 = h.agent.next_status();
-    assert!(matches!(s3, Some(TaskStatus::Ready(SessionRecord::Summary { .. }))));
+    assert!(matches!(
+        s3,
+        Some(TaskStatus::Ready(SessionRecord::Summary { .. }))
+    ));
     assert_eq!(h.agent.state_label(), "done");
 
     // Done → None
@@ -241,7 +246,10 @@ fn max_outer_iterations_ends_session() {
             }
         }
     }
-    assert!(reached_done, "agent should reach Done within bounded iterations");
+    assert!(
+        reached_done,
+        "agent should reach Done within bounded iterations"
+    );
 }
 
 // ---------------------------------------------------------------------------
@@ -342,7 +350,10 @@ fn second_follow_up_triggers_second_outer_iteration() {
     // First follow-up → inner loop
     inject_follow_up(&h, make_user_msg("first"));
     let s = h.agent.next_status();
-    assert!(matches!(s, Some(TaskStatus::Pending(AgentProgress::Steering { .. }))));
+    assert!(matches!(
+        s,
+        Some(TaskStatus::Pending(AgentProgress::Steering { .. }))
+    ));
     assert_eq!(h.agent.state_label(), "inner_assemble");
 
     // Inner assemble will fail (no provider) → error → ending path.
@@ -358,8 +369,14 @@ fn done_is_terminal() {
 
     // Drive to Done.
     assert!(matches!(h.agent.next_status(), Some(TaskStatus::Init)));
-    assert!(matches!(h.agent.next_status(), Some(TaskStatus::Pending(AgentProgress::SessionEnding))));
-    assert!(matches!(h.agent.next_status(), Some(TaskStatus::Ready(SessionRecord::Summary { .. }))));
+    assert!(matches!(
+        h.agent.next_status(),
+        Some(TaskStatus::Pending(AgentProgress::SessionEnding))
+    ));
+    assert!(matches!(
+        h.agent.next_status(),
+        Some(TaskStatus::Ready(SessionRecord::Summary { .. }))
+    ));
 
     // Multiple calls to Done all return None.
     assert!(h.agent.next_status().is_none());

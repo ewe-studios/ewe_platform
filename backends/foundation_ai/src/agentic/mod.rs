@@ -22,22 +22,22 @@ pub mod tool_impl;
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
 pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState};
 pub use context::{AgentContext, ContextConfig, ContextProvider, SearchMode};
-pub use memory::{MemoryAction, MemoryConfig, MemoryHierarchy, MemoryParseStrategy};
-pub use loop_detection::{
-    Escalation, LoopDetector, LoopDetectorConfig, ToolCallSignature,
-    LoopDetection as InlineLoopDetection,
-};
 pub use errors::{
     AgentAction, AgenticError, AuthError, CircuitBreaker, ErrorPolicy, GenKind, GenerationFailure,
     LoopDetection, UserId,
 };
+pub use loop_detection::{
+    Escalation, LoopDetection as InlineLoopDetection, LoopDetector, LoopDetectorConfig,
+    ToolCallSignature,
+};
+pub use memory::{MemoryAction, MemoryConfig, MemoryHierarchy, MemoryParseStrategy};
 pub use memory_coordinator::MemoryCoordinator;
 pub use memory_store::{KvMemoryStore, MemoryStore, MemoryTier, SessionMemory};
 pub use message_api::{MessageApi, MessageEvent, Receiver as MessageReceiver};
 pub use progress::{lift_model_item, AgentProgress, AgentStream, MemoryKind};
 pub use serialization::{from_record_batch, to_record_batch, SerError, SessionRecordRow};
-pub use token_ledger::{TokenLedger, TokenSnapshot};
 pub use steering::{CancelCode, SteeringQueues};
+pub use token_ledger::{TokenLedger, TokenSnapshot};
 pub use tool_impl::{
     FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolCallWorkflow,
     ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig, WorkflowResult,

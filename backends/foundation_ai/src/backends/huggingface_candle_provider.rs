@@ -10,11 +10,11 @@ use crate::backends::candle::{
 };
 use crate::errors::{ModelErrors, ModelProviderErrors, ModelProviderResult};
 use crate::types::{ModelId, ModelProvider, ModelSpec};
+use foundation_core::valtron::Stream;
+use foundation_deployment_huggingface::repository;
 use foundation_deployment_huggingface::{
     HFClient, RepoDownloadFileParams, RepoListTreeParams, RepoTreeEntry,
 };
-use foundation_deployment_huggingface::repository;
-use foundation_core::valtron::Stream;
 
 /// HuggingFace provider for safetensors models via the Candle inference backend.
 ///
@@ -206,8 +206,7 @@ impl HuggingFaceCandleProvider {
             .cache_dir(&config.cache_dir)
             .build();
 
-        let backend = CandleBackend::cpu()
-            .create(Some(backend_config))?;
+        let backend = CandleBackend::cpu().create(Some(backend_config))?;
 
         Ok(Self {
             hf_client,
@@ -254,7 +253,11 @@ impl HuggingFaceCandleProvider {
             )))
         })?;
 
-        tracing::info!("Downloading safetensors model {} to {:?}", repo_id, dest_dir);
+        tracing::info!(
+            "Downloading safetensors model {} to {:?}",
+            repo_id,
+            dest_dir
+        );
 
         let repo = self.hf_client.model(
             repo_id.split('/').next().unwrap_or("").to_string(),
@@ -306,12 +309,11 @@ impl HuggingFaceCandleProvider {
                     "Failed to read index: {e}"
                 )))
             })?;
-            let index: serde_json::Value =
-                serde_json::from_str(&index_content).map_err(|e| {
-                    ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
-                        "Failed to parse index: {e}"
-                    )))
-                })?;
+            let index: serde_json::Value = serde_json::from_str(&index_content).map_err(|e| {
+                ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
+                    "Failed to parse index: {e}"
+                )))
+            })?;
 
             if let Some(weight_map) = index.get("weight_map").and_then(|w| w.as_object()) {
                 let mut filenames: Vec<String> = weight_map
@@ -395,10 +397,7 @@ impl ModelProvider for HuggingFaceCandleProvider {
     type Config = HuggingFaceCandleConfig;
     type Model = CandleModels;
 
-    fn create(
-        self,
-        config: Option<Self::Config>,
-    ) -> ModelProviderResult<Self>
+    fn create(self, config: Option<Self::Config>) -> ModelProviderResult<Self>
     where
         Self: Sized,
     {
@@ -486,13 +485,11 @@ impl ModelProvider for HuggingFaceCandleProvider {
 fn has_safetensors(dir: &std::path::Path) -> bool {
     std::fs::read_dir(dir)
         .map(|entries| {
-            entries
-                .filter_map(|e| e.ok())
-                .any(|e| {
-                    e.path()
-                        .extension()
-                        .map_or(false, |ext| ext == "safetensors")
-                })
+            entries.filter_map(|e| e.ok()).any(|e| {
+                e.path()
+                    .extension()
+                    .map_or(false, |ext| ext == "safetensors")
+            })
         })
         .unwrap_or(false)
 }

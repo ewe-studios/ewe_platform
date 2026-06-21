@@ -55,7 +55,12 @@ where
     #[must_use]
     pub fn new(provider: P) -> Self {
         let (name, provider_id) = provider.describe().ok().map_or_else(
-            || ("unknown".to_owned(), ModelProviders::Custom("unknown".into())),
+            || {
+                (
+                    "unknown".to_owned(),
+                    ModelProviders::Custom("unknown".into()),
+                )
+            },
             |d| (d.name.to_owned(), d.provider.clone()),
         );
         Self {

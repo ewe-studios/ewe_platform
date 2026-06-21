@@ -68,7 +68,10 @@ fn set_overwrites_with_latest_per_tier() {
     block_on(async {
         let coord = new_coordinator();
         let session = SessionId::new();
-        coord.record_async(&session, &observation("first")).await.unwrap();
+        coord
+            .record_async(&session, &observation("first"))
+            .await
+            .unwrap();
         let latest = observation("second");
         coord.record_async(&session, &latest).await.unwrap();
 
@@ -88,7 +91,11 @@ fn hydrate_falls_back_to_audit_and_repopulates_cache() {
         // Simulate a cache loss (crash before the cache write / eviction).
         coord.memory().clear_async(&session).await.unwrap();
         assert_eq!(
-            coord.memory().get_async(&session, MemoryTier::Observation).await.unwrap(),
+            coord
+                .memory()
+                .get_async(&session, MemoryTier::Observation)
+                .await
+                .unwrap(),
             None,
             "cache is empty after clear"
         );
@@ -99,7 +106,11 @@ fn hydrate_falls_back_to_audit_and_repopulates_cache() {
 
         // ...and re-populate the cache so the next resume is O(1).
         assert_eq!(
-            coord.memory().get_async(&session, MemoryTier::Observation).await.unwrap(),
+            coord
+                .memory()
+                .get_async(&session, MemoryTier::Observation)
+                .await
+                .unwrap(),
             Some(obs),
             "fallback re-populated the cache"
         );

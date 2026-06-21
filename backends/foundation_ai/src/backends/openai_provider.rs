@@ -29,8 +29,8 @@ use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, Mode
 use crate::types::base_types::{
     AuthProvider, CostStatus, ExtractResult, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
-    ModelState, ModelStreamBox, ModelUsageCosting, StopReason, TextContent, Tool,
-    ToolCallingError, ToolFormatter, ToolShed, UsageCosting, UsageReport,
+    ModelState, ModelStreamBox, ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError,
+    ToolFormatter, ToolShed, UsageCosting, UsageReport,
 };
 
 // ============================================================================

@@ -6,8 +6,8 @@
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
     CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviders, StopReason, TextContent, UsageCosting, UsageReport,
-    UserModelContent, ToolShed,
+    ModelProvider, ModelProviders, StopReason, TextContent, ToolShed, UsageCosting, UsageReport,
+    UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
@@ -20,8 +20,7 @@ use serial_test::serial;
 use std::net::SocketAddr;
 use std::sync::{Arc, LazyLock};
 
-static POOL: LazyLock<valtron::PoolGuard> =
-    LazyLock::new(|| valtron::initialize_pool(42, Some(4)));
+static POOL: LazyLock<valtron::PoolGuard> = LazyLock::new(|| valtron::initialize_pool(42, Some(4)));
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server

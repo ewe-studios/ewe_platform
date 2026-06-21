@@ -47,8 +47,7 @@ impl MemoryTier {
 // SessionMemory
 
 /// The three latest memory records per session — one struct, one KV value.
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
-#[derive(Default)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize, Default)]
 pub struct SessionMemory {
     /// Latest `WorkingMemory` record, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -88,7 +87,6 @@ impl SessionMemory {
     }
 }
 
-
 // ---------------------------------------------------------------------------
 // MemoryStore trait
 
@@ -110,11 +108,7 @@ pub trait MemoryStore: Send + Sync {
     /// Overwrite the latest record for that session+tier. `record` MUST be a
     /// memory variant (WorkingMemory/Observation/Reflection); non-memory
     /// variants are rejected.
-    async fn set_async(
-        &self,
-        session: &SessionId,
-        record: &SessionRecord,
-    ) -> StorageResult<()>;
+    async fn set_async(&self, session: &SessionId, record: &SessionRecord) -> StorageResult<()>;
 
     /// Load all tiers at once (resume fast-path) — one get on the KV backend.
     async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory>;
@@ -159,11 +153,7 @@ impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
         Ok(mem.and_then(|m| m.get(tier).cloned()))
     }
 
-    async fn set_async(
-        &self,
-        session: &SessionId,
-        record: &SessionRecord,
-    ) -> StorageResult<()> {
+    async fn set_async(&self, session: &SessionId, record: &SessionRecord) -> StorageResult<()> {
         let tier = MemoryTier::of(record).ok_or_else(|| {
             StorageError::Backend(
                 "set_async: record is not a memory variant (Working/Observation/Reflection)".into(),
@@ -176,7 +166,9 @@ impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
 
     async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let key = SessionMemory::key(session);
-        self.kv.get(&key).map(std::option::Option::unwrap_or_default)
+        self.kv
+            .get(&key)
+            .map(std::option::Option::unwrap_or_default)
     }
 
     async fn clear_async(&self, session: &SessionId) -> StorageResult<()> {
@@ -185,7 +177,9 @@ impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
 
     fn hydrate_sync(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let key = SessionMemory::key(session);
-        self.kv.get(&key).map(std::option::Option::unwrap_or_default)
+        self.kv
+            .get(&key)
+            .map(std::option::Option::unwrap_or_default)
     }
 }
 
@@ -195,7 +189,10 @@ impl<K: KeyValueStore> MemoryStore for KvMemoryStore<K> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::types::{MemoryFact, ObservationEntry, ObservationKind, ReflectionEntry, TextContent, UserModelContent};
+    use crate::types::{
+        MemoryFact, ObservationEntry, ObservationKind, ReflectionEntry, TextContent,
+        UserModelContent,
+    };
     use foundation_compact::SystemTime;
     use foundation_db::MemoryStorage;
 
@@ -246,9 +243,18 @@ mod tests {
 
     #[test]
     fn memory_tier_of_detects_memory_variants() {
-        assert_eq!(MemoryTier::of(&working_record("x")), Some(MemoryTier::Working));
-        assert_eq!(MemoryTier::of(&observation_record("x")), Some(MemoryTier::Observation));
-        assert_eq!(MemoryTier::of(&reflection_record("x")), Some(MemoryTier::Reflection));
+        assert_eq!(
+            MemoryTier::of(&working_record("x")),
+            Some(MemoryTier::Working)
+        );
+        assert_eq!(
+            MemoryTier::of(&observation_record("x")),
+            Some(MemoryTier::Observation)
+        );
+        assert_eq!(
+            MemoryTier::of(&reflection_record("x")),
+            Some(MemoryTier::Reflection)
+        );
         // non-memory variants return None
         let conv = crate::types::Messages::User {
             id: foundation_compact::ids::new_scru128(),
@@ -266,8 +272,14 @@ mod tests {
     fn session_memory_round_trips() {
         let mut mem = SessionMemory::default();
         mem = mem.set(MemoryTier::Working, working_record("user likes rust"));
-        mem = mem.set(MemoryTier::Observation, observation_record("observed preference"));
-        assert_eq!(mem.working.as_ref().unwrap(), &working_record("user likes rust"));
+        mem = mem.set(
+            MemoryTier::Observation,
+            observation_record("observed preference"),
+        );
+        assert_eq!(
+            mem.working.as_ref().unwrap(),
+            &working_record("user likes rust")
+        );
         assert!(mem.reflection.is_none());
     }
 
@@ -275,48 +287,69 @@ mod tests {
     fn kv_memory_store_set_get_hydrate_clear() {
         use futures_lite::future::block_on;
         block_on(async {
-        let store = KvMemoryStore::new(MemoryStorage::new());
-        let sid = session_id();
+            let store = KvMemoryStore::new(MemoryStorage::new());
+            let sid = session_id();
 
-        // Empty store returns None.
-        assert!(store.get_async(&sid, MemoryTier::Working).await.unwrap().is_none());
-        assert!(store.hydrate_async(&sid).await.unwrap().working.is_none());
+            // Empty store returns None.
+            assert!(store
+                .get_async(&sid, MemoryTier::Working)
+                .await
+                .unwrap()
+                .is_none());
+            assert!(store.hydrate_async(&sid).await.unwrap().working.is_none());
 
-        // Set working memory.
-        store.set_async(&sid, &working_record("test fact")).await.unwrap();
+            // Set working memory.
+            store
+                .set_async(&sid, &working_record("test fact"))
+                .await
+                .unwrap();
 
-        // Get single tier.
-        let got = store.get_async(&sid, MemoryTier::Working).await.unwrap().unwrap();
-        assert_eq!(got, working_record("test fact"));
+            // Get single tier.
+            let got = store
+                .get_async(&sid, MemoryTier::Working)
+                .await
+                .unwrap()
+                .unwrap();
+            assert_eq!(got, working_record("test fact"));
 
-        // Non-memory record is rejected.
-        let conv = crate::types::Messages::User {
-            id: foundation_compact::ids::new_scru128(),
-            role: crate::types::MessageRole::User,
-            content: UserModelContent::Text(TextContent {
-                content: "hi".into(),
+            // Non-memory record is rejected.
+            let conv = crate::types::Messages::User {
+                id: foundation_compact::ids::new_scru128(),
+                role: crate::types::MessageRole::User,
+                content: UserModelContent::Text(TextContent {
+                    content: "hi".into(),
+                    signature: None,
+                }),
                 signature: None,
-            }),
-            signature: None,
-        };
-        let non_mem = SessionRecord::Conversation { message: conv };
-        assert!(store.set_async(&sid, &non_mem).await.is_err());
+            };
+            let non_mem = SessionRecord::Conversation { message: conv };
+            assert!(store.set_async(&sid, &non_mem).await.is_err());
 
-        // Hydrate returns all tiers.
-        store.set_async(&sid, &observation_record("obs")).await.unwrap();
-        let mem = store.hydrate_async(&sid).await.unwrap();
-        assert!(mem.working.is_some());
-        assert!(mem.observation.is_some());
-        assert!(mem.reflection.is_none());
+            // Hydrate returns all tiers.
+            store
+                .set_async(&sid, &observation_record("obs"))
+                .await
+                .unwrap();
+            let mem = store.hydrate_async(&sid).await.unwrap();
+            assert!(mem.working.is_some());
+            assert!(mem.observation.is_some());
+            assert!(mem.reflection.is_none());
 
-        // Overwrite updates the tier.
-        store.set_async(&sid, &working_record("updated")).await.unwrap();
-        let got = store.get_async(&sid, MemoryTier::Working).await.unwrap().unwrap();
-        assert_eq!(got, working_record("updated"));
+            // Overwrite updates the tier.
+            store
+                .set_async(&sid, &working_record("updated"))
+                .await
+                .unwrap();
+            let got = store
+                .get_async(&sid, MemoryTier::Working)
+                .await
+                .unwrap()
+                .unwrap();
+            assert_eq!(got, working_record("updated"));
 
-        // Clear removes all.
-        store.clear_async(&sid).await.unwrap();
-        assert!(store.hydrate_async(&sid).await.unwrap().working.is_none());
+            // Clear removes all.
+            store.clear_async(&sid).await.unwrap();
+            assert!(store.hydrate_async(&sid).await.unwrap().working.is_none());
         })
     }
 

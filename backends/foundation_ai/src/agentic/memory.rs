@@ -175,9 +175,7 @@ impl<M: MemoryStore, D: DocumentStore> MemoryHierarchy<M, D> {
         if self.inner.is_generating.load(Ordering::Relaxed) {
             return MemoryAction::None;
         }
-        if self.inner.ledger.rolling()
-            >= self.inner.config.observation_trigger_tokens
-        {
+        if self.inner.ledger.rolling() >= self.inner.config.observation_trigger_tokens {
             return MemoryAction::GenerateObservation;
         }
         if self.inner.observation_tokens.load(Ordering::Relaxed)

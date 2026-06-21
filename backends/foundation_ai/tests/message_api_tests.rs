@@ -6,8 +6,8 @@
 
 use foundation_ai::agentic::{MessageApi, MessageEvent};
 use foundation_ai::types::{
-    MemoryFact, MessageRole, Messages, ObservationEntry, ObservationKind, SessionId,
-    SessionRecord, TextContent, UserModelContent,
+    MemoryFact, MessageRole, Messages, ObservationEntry, ObservationKind, SessionId, SessionRecord,
+    TextContent, UserModelContent,
 };
 use foundation_compact::ids::new_scru128;
 use foundation_compact::SystemTime;

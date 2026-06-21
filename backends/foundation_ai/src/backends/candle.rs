@@ -4,10 +4,10 @@
 //! and [`CandleModels`] implementing [`Model`] for safetensors models via
 //! HuggingFace's Candle framework.
 
+use foundation_compact::SystemTime;
 use std::collections::HashMap;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
-use foundation_compact::SystemTime;
 
 use candle_core::{DType, Device, Tensor};
 use candle_nn::VarBuilder;
@@ -16,10 +16,10 @@ use tokenizers::Tokenizer;
 
 use foundation_core::valtron::Stream;
 
+use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{
     GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult,
 };
-use crate::costing::{calculate_cost, CostAccumulator};
 use crate::types::{
     CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProvider, ModelProviders, ModelSpec, ModelState, ModelStreamBox, ModelUsageCosting,
@@ -241,10 +241,7 @@ impl ModelProvider for CandleBackend {
     type Config = CandleBackendConfig;
     type Model = CandleModels;
 
-    fn create(
-        self,
-        config: Option<Self::Config>,
-    ) -> ModelProviderResult<Self>
+    fn create(self, config: Option<Self::Config>) -> ModelProviderResult<Self>
     where
         Self: Sized,
     {
@@ -253,13 +250,17 @@ impl ModelProvider for CandleBackend {
             match self {
                 CandleBackend::Cpu { .. } => Ok(CandleBackend::Cpu { config, cache }),
                 #[cfg(feature = "candle-cuda")]
-                CandleBackend::Cuda { device_id, .. } => {
-                    Ok(CandleBackend::Cuda { config, device_id, cache })
-                }
+                CandleBackend::Cuda { device_id, .. } => Ok(CandleBackend::Cuda {
+                    config,
+                    device_id,
+                    cache,
+                }),
                 #[cfg(all(target_vendor = "apple", feature = "candle"))]
-                CandleBackend::Metal { device_id, .. } => {
-                    Ok(CandleBackend::Metal { config, device_id, cache })
-                }
+                CandleBackend::Metal { device_id, .. } => Ok(CandleBackend::Metal {
+                    config,
+                    device_id,
+                    cache,
+                }),
             }
         } else {
             Ok(self)
@@ -309,7 +310,8 @@ impl ModelProvider for CandleBackend {
 
         let path = model_spec.model_location.as_deref().ok_or_else(|| {
             ModelProviderErrors::NotFound(
-                "CandleBackend requires model_location (local path to safetensors directory)".to_string(),
+                "CandleBackend requires model_location (local path to safetensors directory)"
+                    .to_string(),
             )
         })?;
 
@@ -371,10 +373,7 @@ fn load_from_local(
             })?
             .filter_map(|e| e.ok())
             .map(|e| e.path())
-            .filter(|p| {
-                p.extension()
-                    .map_or(false, |ext| ext == "safetensors")
-            })
+            .filter(|p| p.extension().map_or(false, |ext| ext == "safetensors"))
             .collect();
         files.sort();
         files
@@ -451,13 +450,12 @@ fn build_llama_model(
     })?;
 
     let file_refs: Vec<&std::path::Path> = weights_files.iter().map(|p| p.as_path()).collect();
-    let vb = unsafe { VarBuilder::from_mmaped_safetensors(&file_refs, dtype, device) }.map_err(
-        |e| {
+    let vb =
+        unsafe { VarBuilder::from_mmaped_safetensors(&file_refs, dtype, device) }.map_err(|e| {
             ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
                 "Failed to load weights: {e}"
             )))
-        },
-    )?;
+        })?;
 
     let model = candle_llama::Llama::load(vb, &llama_config).map_err(|e| {
         ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
@@ -627,15 +625,12 @@ impl Model for CandleModels {
         for index in 0..params.max_tokens {
             let input_tensor =
                 Tensor::new(&next_tokens[..], &device).map_err(GenerationError::Candle)?;
-            let input_tensor = input_tensor
-                .unsqueeze(0)
-                .map_err(GenerationError::Candle)?;
+            let input_tensor = input_tensor.unsqueeze(0).map_err(GenerationError::Candle)?;
 
             let seq_start = if index == 0 { 0 } else { all_tokens.len() - 1 };
             let logits = forward(&mut inner, &input_tensor, seq_start)?;
 
-            let next_token =
-                sample_token(&logits, &params).map_err(GenerationError::Candle)?;
+            let next_token = sample_token(&logits, &params).map_err(GenerationError::Candle)?;
 
             if inner.eos_token_id.map_or(false, |eos| next_token == eos) {
                 break;
@@ -677,7 +672,7 @@ impl Model for CandleModels {
                 cache_read: 0.0,
                 cache_write: 0.0,
                 total_tokens: 0.0,
-            status: CostStatus::Actual,
+                status: CostStatus::Actual,
             },
         };
 
@@ -751,8 +746,9 @@ impl CandleStream {
         // Reset cache
         {
             let mut inner = model.inner.lock().unwrap();
-            inner.cache = candle_llama::Cache::new(false, inner.dtype, &inner.config, &inner.device)
-                .map_err(GenerationError::Candle)?;
+            inner.cache =
+                candle_llama::Cache::new(false, inner.dtype, &inner.config, &inner.device)
+                    .map_err(GenerationError::Candle)?;
         }
 
         Ok(Self {
@@ -881,7 +877,7 @@ impl Iterator for CandleStream {
                     cache_read: 0.0,
                     cache_write: 0.0,
                     total_tokens: 0.0,
-                status: CostStatus::Actual,
+                    status: CostStatus::Actual,
                 },
             },
             content: ModelOutput::Text(TextContent {
@@ -900,7 +896,11 @@ impl Iterator for CandleStream {
 // Helpers
 // ==================================
 
-fn forward(state: &mut CandleModelsState, input: &Tensor, seq_start: usize) -> GenerationResult<Tensor> {
+fn forward(
+    state: &mut CandleModelsState,
+    input: &Tensor,
+    seq_start: usize,
+) -> GenerationResult<Tensor> {
     match &state.model {
         CandleModelInner::Llama(m) => m
             .forward(input, seq_start, &mut state.cache)
@@ -944,9 +944,7 @@ fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> Strin
                         .as_ref()
                         .and_then(|a| a.schema.get("properties"))
                         .and_then(|p| p.as_object())
-                        .map(|props| {
-                            props.keys().cloned().collect::<Vec<_>>().join(", ")
-                        })
+                        .map(|props| props.keys().cloned().collect::<Vec<_>>().join(", "))
                         .unwrap_or_default();
                     format!("- {}({})", t.name, args)
                 })

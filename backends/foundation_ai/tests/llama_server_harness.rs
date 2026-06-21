@@ -74,9 +74,9 @@ impl Default for LlamaServerConfig {
             api_key: "test-api-key-123".into(),
             model_name: std::env::var("LLAMA_TEST_MODEL_NAME")
                 .unwrap_or_else(|_| "qwen2.5-0.5b-instruct".into()),
-            model_file: std::env::var("LLAMA_TEST_MODEL_FILE").map(PathBuf::from).unwrap_or_else(
-                |_| root.join("artefact/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"),
-            ),
+            model_file: std::env::var("LLAMA_TEST_MODEL_FILE")
+                .map(PathBuf::from)
+                .unwrap_or_else(|_| root.join("artefact/models/qwen2.5-0.5b-instruct-q4_k_m.gguf")),
             server_bin: root.join("support/bin/llama-server"),
             threads: 4,
             ctx_size: 2048,
@@ -199,7 +199,10 @@ pub fn start_llama_server_with(config: LlamaServerConfig) -> LlamaServerGuard {
         );
     }
 
-    eprintln!("[llama-harness] llama-server is ready (pid={pid}, port={})", config.port);
+    eprintln!(
+        "[llama-harness] llama-server is ready (pid={pid}, port={})",
+        config.port
+    );
 
     LlamaServerGuard {
         child: Some(child),

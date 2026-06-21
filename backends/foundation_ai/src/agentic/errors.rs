@@ -151,9 +151,7 @@ impl AgenticError {
         last: Option<&Messages>,
         context_window: u64,
     ) -> Self {
-        let kind = if last
-            .is_some_and(|m| m.is_context_overflow(context_window))
-        {
+        let kind = if last.is_some_and(|m| m.is_context_overflow(context_window)) {
             GenKind::ContextOverflow
         } else if detect_rate_limit(error) {
             GenKind::RateLimit
@@ -300,9 +298,7 @@ impl ErrorPolicy {
             // the recoverable path is a ToolResult to the LLM (F11), surfaced before
             // this point. We keep going and let the LLM react.
             // F17 owns loop redirect/escalation; the loop also continues.
-            AgenticError::ToolCall { .. } | AgenticError::LoopDetected(_) => {
-                AgentAction::Continue
-            }
+            AgenticError::ToolCall { .. } | AgenticError::LoopDetected(_) => AgentAction::Continue,
             // Hard stops + all other generation/infrastructure failures terminate.
             _ => AgentAction::Terminate(error),
         }
@@ -489,10 +485,16 @@ mod tests {
         // First failure: below threshold → no switch.
         assert_eq!(cb.on_failure(), None);
         // Second failure: threshold hit → first fallback.
-        assert_eq!(cb.on_failure(), Some(ModelId::Name("backup-1".into(), None)));
+        assert_eq!(
+            cb.on_failure(),
+            Some(ModelId::Name("backup-1".into(), None))
+        );
         // Counter reset; two more failures → second fallback.
         assert_eq!(cb.on_failure(), None);
-        assert_eq!(cb.on_failure(), Some(ModelId::Name("backup-2".into(), None)));
+        assert_eq!(
+            cb.on_failure(),
+            Some(ModelId::Name("backup-2".into(), None))
+        );
         // Now exhausted; further trips yield None → caller terminates.
         assert!(cb.is_exhausted());
         assert_eq!(cb.on_failure(), None);

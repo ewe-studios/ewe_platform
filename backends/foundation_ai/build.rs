@@ -37,9 +37,7 @@ fn main() {
             "cargo:warning=llama.cpp source not found at {}",
             llama_dir.display()
         );
-        println!(
-            "cargo:warning=Run: git submodule update --init tools/llama.cpp"
-        );
+        println!("cargo:warning=Run: git submodule update --init tools/llama.cpp");
         return;
     }
 
@@ -49,7 +47,10 @@ fn main() {
 
     // Copy existing binary if already built and nothing needs cmake.
     if src_bin.exists() && output_bin.exists() && cmake_cache.exists() {
-        println!("cargo:warning=llama-server already built at {}", output_bin.display());
+        println!(
+            "cargo:warning=llama-server already built at {}",
+            output_bin.display()
+        );
         println!(
             "cargo:rustc-env=LLAMA_SERVER_BIN_PATH={}",
             output_bin.display()
@@ -76,8 +77,8 @@ fn main() {
     assert!(status.success(), "cmake configure failed for llama-server");
 
     // Build only the server target.
-    let nproc = std::thread::available_parallelism()
-        .map_or_else(|_| "4".into(), |n| n.get().to_string());
+    let nproc =
+        std::thread::available_parallelism().map_or_else(|_| "4".into(), |n| n.get().to_string());
 
     let status = Command::new("make")
         .current_dir(&build_dir)
@@ -97,7 +98,10 @@ fn main() {
     fs::create_dir_all(&output_dir).unwrap();
     fs::copy(&src_bin, &output_bin).unwrap();
 
-    println!("cargo:warning=llama-server built at {}", output_bin.display());
+    println!(
+        "cargo:warning=llama-server built at {}",
+        output_bin.display()
+    );
     println!(
         "cargo:rustc-env=LLAMA_SERVER_BIN_PATH={}",
         output_bin.display()
