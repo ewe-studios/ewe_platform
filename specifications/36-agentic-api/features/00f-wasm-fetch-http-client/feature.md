@@ -1,20 +1,20 @@
 ---
 feature: "wasm fetch HTTP client (foundation_netio)"
 description: "Add a wasm32 fetch-based outbound HTTP client backend to foundation_netio behind an async HttpClient trait (async is canonical, sync wraps via valtron) — both NativeHttpClient and FetchHttpClient implement the same trait so foundation_ai providers and external REST adapters work cross-platform (browser + CF Workers) with one client surface. SSE over fetch ReadableStream reuses the existing SseParser."
-status: "in-progress (phases 1-3 complete, phase 4 pending)"
+status: "complete"
 priority: "high"
 depends_on: ["00-foundation-compact", "00e-unified-send-async-traits"]
 estimated_effort: "large"
 created: 2026-06-15
 last_updated: 2026-06-22
-phases_complete: "1 (trait), 2 (native impl), 3 (wasm impl + valtron js_stream)"
-phases_pending: "4 (provider refactor), 5 (foundation_db warnings), 6 (tests + docs)"
+phases_complete: "1 (trait), 2 (native impl), 3 (wasm impl + js_stream), 4 (provider refactor), 5 (foundation_db), 6 (tests + docs)"
+phases_pending: "none"
 author: "Main Agent"
 tasks:
-  completed: 7
-  uncompleted: 4
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 64%
+  completion_percentage: 100%
 ---
 
 # Feature 00f: wasm `fetch` HTTP client
@@ -43,28 +43,30 @@ REST vector backends (TurboPuffer, F30) are native-only.
 
 ## WHAT: Solution
 
-### 1. Async `HttpClient` trait — canonical surface
+### 1. `HttpClient` trait — async + sync surfaces
 
-The async method holds the real logic; sync wraps via valtron `run_future()` (project norm per F06/OD-06-8,
-memory `feedback_async_canonical_sync_wraps`).
+Four methods: async versions return async types, sync versions return sync types. No lazy
+delegation — each platform implements both properly.
 
 ```rust
 // foundation_netio::simple_http::client::shared::http_client
 
+pub type BoxedSseIterator = Box<dyn Iterator<Item = Stream<ParseResult, SseProgress>> + Send>;
+pub type BoxedSseFutureStream = Pin<Box<dyn futures_core::Stream<Item = Stream<ParseResult, SseProgress>> + Send>>;
+
 #[async_trait::async_trait]
 pub trait HttpClient: Send + Sync {
-    /// Send an HTTP request, return the full response.
-    async fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
-
-    /// Send an HTTP request, return an SSE event stream.
-    async fn send_sse(&self, req: PreparedRequest)
-        -> Result<BoxedSseIterator, HttpClientError>;
+    async fn send_async(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
+    async fn send_sse_async(&self, req: PreparedRequest) -> Result<BoxedSseFutureStream, HttpClientError>;
+    fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
+    fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
 }
-
-pub type BoxedSseIterator = Box<dyn Iterator<Item = Stream<ParseResult, SseProgress>> + Send>;
 ```
 
 Object-safe (no generics in return types). Providers store `Arc<dyn HttpClient>`.
+On native, `send()` calls `ClientRequest::send()` (sync); `send_async()` calls
+`ClientRequest::send_async().await` (truly async). On wasm, async is canonical
+(`fetch()`); sync wraps via valtron `run_future()`.
 
 ### 2. Reuses existing cross-platform types — no new request/response structs
 
