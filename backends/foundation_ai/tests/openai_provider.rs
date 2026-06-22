@@ -3,6 +3,9 @@
 //! - `TestHttpServer` (request-response) — verifies non-streaming and SSE response parsing
 //! - `SseTestServer` (streaming) — verifies reconnection behavior with controlled close
 
+use std::net::SocketAddr;
+use std::sync::{Arc, LazyLock};
+
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
     CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
@@ -12,13 +15,13 @@ use foundation_ai::types::{
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
 use foundation_core::valtron::Stream;
+use foundation_netio::simple_http::client::native::NativeHttpClient;
+use foundation_netio::simple_http::client::shared::http_client::HttpClient;
 use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_testing::http::{
     HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
 };
 use serial_test::serial;
-use std::net::SocketAddr;
-use std::sync::{Arc, LazyLock};
 
 static POOL: LazyLock<valtron::PoolGuard> = LazyLock::new(|| valtron::initialize_pool(42, Some(4)));
 
@@ -79,13 +82,14 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
     let addr = server_addr(server);
     let resolver = StaticSocketAddr::new(addr);
+    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_resolver_and_config(resolver, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
         .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
 
@@ -254,7 +258,7 @@ data: [DONE]\n\n";
 
 /// WHY: Verify that the OpenAI provider's SSE stream correctly sends
 /// POST with body and headers, and parses streaming responses. Reconnection
-/// behavior is tested at the `ReconnectingEventSourceTask` level in
+/// behavior is tested at the SSE event source level in
 /// foundation_core's integration tests (which use the same SseTestServer
 /// with abrupt_drop — the EOF-from-RST timing doesn't survive the valtron
 /// executor's scheduling, so we use clean_close here).
@@ -339,6 +343,7 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
         .parse()
         .unwrap();
     let resolver = StaticSocketAddr::new(addr);
+    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
 
     let config = OpenAIConfig::new()
         .with_base_url(server.base_url())
@@ -346,7 +351,7 @@ fn test_provider_streaming_sends_post_with_body_and_parses_events() {
             "test-key".to_string(),
         )));
 
-    let provider = OpenAIProvider::with_resolver_and_config(resolver, config)
+    let provider = OpenAIProvider::with_http_client_and_config(http_client, config)
         .create(Some(OpenAIConfig::new().with_base_url(server.base_url())))
         .unwrap();
 

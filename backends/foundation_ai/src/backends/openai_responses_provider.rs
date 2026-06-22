@@ -10,13 +10,15 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamSpread};
-use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
+use foundation_core::url::Uri;
+use foundation_core::valtron::{Stream, StreamSpread};
+use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::simple_http::client::shared::{
-    body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
+    body_reader::collect_strings_from_send_safe,
+    http_client::{BoxedSseIterator, HttpClient},
+    request::PreparedRequest,
 };
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
@@ -324,29 +326,27 @@ pub enum ResponseEvent {
 // ============================================================================
 
 /// `OpenAI` Responses API provider implementing [`ModelProvider`].
-pub struct ResponsesProvider<R: DnsResolver = SystemDnsResolver> {
+pub struct ResponsesProvider {
     config: ResponsesConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     models_cache:
         Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
 }
 
-impl Default for ResponsesProvider<SystemDnsResolver> {
+impl Default for ResponsesProvider {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl ResponsesProvider<SystemDnsResolver> {
+impl ResponsesProvider {
     #[must_use]
     pub fn new() -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -357,31 +357,51 @@ impl ResponsesProvider<SystemDnsResolver> {
             config,
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
-}
 
-impl<R: DnsResolver + 'static> ResponsesProvider<R> {
     #[must_use]
-    pub fn with_resolver(resolver: R) -> Self {
+    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
         Self {
             config: ResponsesConfig::default(),
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
-    fn auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
-        if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::AUTHORIZATION, format!("Bearer {}", key.get())));
+    #[must_use]
+    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: ResponsesConfig) -> Self {
+        Self {
+            config,
+            api_key: None,
+            http_client: Some(client),
+            models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+    }
+
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
+        if let Some(key) = &self.api_key {
+            headers.insert(SimpleHeader::AUTHORIZATION, vec![format!("Bearer {}", key.get())]);
+        }
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
         headers
+    }
+
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Default::default(),
+        })
     }
 
     fn build_url(&self, endpoint: &str) -> String {
@@ -418,29 +438,14 @@ impl<R: DnsResolver + 'static> ResponsesProvider<R> {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client.send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -457,9 +462,9 @@ impl<R: DnsResolver + 'static> ResponsesProvider<R> {
     }
 }
 
-impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> {
+impl ModelProvider for ResponsesProvider {
     type Config = ResponsesConfig;
-    type Model = ResponsesModel<R>;
+    type Model = ResponsesModel;
 
     fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
@@ -486,15 +491,9 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
             self.config = cfg;
         }
 
-        let mut client = self.http_client.take().unwrap_or_default();
-        if let Some(proxy) = &self.config.proxy_url {
-            client = client
-                .proxy(proxy)
-                .map_err(|e| ModelProviderErrors::NotFound(format!("Invalid proxy URL: {e}")))?;
+        if self.http_client.is_none() {
+            self.http_client = Some(foundation_netio::simple_http::client::default_http_client());
         }
-        client = client.read_timeout(std::time::Duration::from_secs(self.config.timeout_secs));
-        client = client.connect_timeout(std::time::Duration::from_secs(10));
-        self.http_client = Some(client);
 
         Ok(self)
     }
@@ -530,7 +529,6 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
                 model_name: model_name.clone(),
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
-                resolver: self.resolver.clone(),
                 info: info.clone(),
             });
         }
@@ -564,7 +562,6 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            resolver: self.resolver.clone(),
             info,
         })
     }
@@ -616,29 +613,56 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for ResponsesProvider<R> 
 // Model
 // ============================================================================
 
-pub struct ResponsesModel<R: DnsResolver = SystemDnsResolver> {
+pub struct ResponsesModel {
     config: ResponsesConfig,
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     #[allow(dead_code)]
     info: crate::backends::openai_provider::OpenAIModelInfo,
 }
 
-impl<R: DnsResolver + 'static> ResponsesModel<R> {
+impl ResponsesModel {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
 
-    fn build_auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::AUTHORIZATION, format!("Bearer {}", key.get())));
+            headers.insert(SimpleHeader::AUTHORIZATION, vec![format!("Bearer {}", key.get())]);
         }
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
         headers
+    }
+
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Default::default(),
+        })
+    }
+
+    fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Default::default(),
+        })
     }
 
     fn build_request(
@@ -737,29 +761,14 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.build_auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client.send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, _headers, body, _pool, _conn) = response.into_parts();
+        let (status, _headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -775,7 +784,7 @@ impl<R: DnsResolver + 'static> ResponsesModel<R> {
     }
 }
 
-impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
+impl Model for ResponsesModel {
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
@@ -829,33 +838,15 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
 
         let url = self.build_url("responses");
 
-        let resolver = self
-            .resolver
-            .as_ref()
-            .ok_or_else(|| GenerationError::Generic("DNS resolver not initialized".into()))?
-            .clone();
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let task = ReconnectingEventSourceTask::connect(resolver, &url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create SSE task: {e}")))?
-            .with_header(
-                SimpleHeader::AUTHORIZATION,
-                format!(
-                    "Bearer {}",
-                    self.api_key
-                        .as_ref()
-                        .map(ConfidentialText::get)
-                        .unwrap_or_default()
-                ),
-            )
-            .with_header(SimpleHeader::ACCEPT, String::from("text/event-stream"))
-            .with_header(SimpleHeader::CONTENT_TYPE, String::from("application/json"))
-            .with_body(SendSafeBody::Text(body));
-
-        let driven = execute(task, None)
-            .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
+        let req = self.build_sse_request(&url, &body)?;
+        let sse_iter = client.send_sse(req)
+            .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
         Ok(Box::new(ResponsesStream {
-            inner: driven,
+            inner: sse_iter,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
             response: None,
@@ -868,15 +859,15 @@ impl<R: DnsResolver + 'static> Model for ResponsesModel<R> {
 // Streaming Parser
 // ============================================================================
 
-struct ResponsesStream<R: DnsResolver + 'static> {
-    inner: foundation_core::valtron::DrivenStreamIterator<ReconnectingEventSourceTask<R>>,
+struct ResponsesStream {
+    inner: BoxedSseIterator,
     model_id: ModelId,
     accumulated_text: String,
     response: Option<Response>,
     done: bool,
 }
 
-impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
+impl Iterator for ResponsesStream {
     type Item = Stream<Messages, ModelState>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -886,47 +877,44 @@ impl<R: DnsResolver + Send + 'static> Iterator for ResponsesStream<R> {
 
         let item = self.inner.next()?;
 
-        if let Stream::Next(ref parse_result) = item {
-            return Some(self.process_parse_result(parse_result));
-        }
-
-        if let Stream::Wait = item {
-            return Some(Stream::Wait);
-        }
-
-        if let Stream::Delayed(val) = item {
-            return Some(Stream::Delayed(val));
-        }
-
-        if let Stream::Spread(items) = item {
-            let mapped: Vec<StreamSpread<Messages, ModelState>> = items
-                .into_iter()
-                .map(|item| match item {
-                    StreamSpread::Done(ref inner) => match self.process_parse_result(inner) {
-                        Stream::Next(msg) => StreamSpread::Done(msg),
-                        Stream::Pending(msg) => StreamSpread::Pending(msg),
-                        Stream::Delayed(_)
-                        | Stream::Spread(_)
-                        | Stream::Init
-                        | Stream::Wait
-                        | Stream::Ignore => {
-                            StreamSpread::Pending(ModelState::GeneratingTokens(None))
+        match item {
+            Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
+            Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
+            Stream::Delayed(d) => Some(Stream::Delayed(d)),
+            Stream::Init => Some(Stream::Init),
+            Stream::Ignore => Some(Stream::Ignore),
+            Stream::Wait => Some(Stream::Wait),
+            Stream::Spread(items) => {
+                let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
+                for item in items {
+                    match item {
+                        StreamSpread::Done(ref inner) => {
+                            match self.process_parse_result(inner) {
+                                Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
+                                Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
+                                Stream::Delayed(_)
+                                | Stream::Spread(_)
+                                | Stream::Init
+                                | Stream::Wait
+                                | Stream::Ignore => {}
+                            }
                         }
-                    },
-                    StreamSpread::Pending(_) => {
-                        StreamSpread::Pending(ModelState::GeneratingTokens(None))
+                        StreamSpread::Pending(_) => {
+                            mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
+                        }
                     }
-                })
-                .collect();
-
-            return Some(Stream::Spread(mapped));
+                }
+                if mapped.is_empty() {
+                    Some(Stream::Ignore)
+                } else {
+                    Some(Stream::Spread(mapped))
+                }
+            }
         }
-
-        Some(Stream::Pending(ModelState::GeneratingTokens(None)))
     }
 }
 
-impl<R: DnsResolver + 'static> ResponsesStream<R> {
+impl ResponsesStream {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
     fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message { data, .. } = &parse_result.event else {

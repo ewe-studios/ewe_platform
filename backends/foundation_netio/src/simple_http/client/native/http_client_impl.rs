@@ -1,9 +1,11 @@
 use std::sync::Arc;
 
-use foundation_core::valtron::{execute, Stream, StreamSpread};
+use foundation_core::valtron::{execute, StreamIteratorExt};
 
 use crate::event_source::{ReconnectingEventSourceTask, ReconnectingProgress};
-use crate::simple_http::client::shared::http_client::{BoxedSseIterator, HttpClient, SseProgress};
+use crate::simple_http::client::shared::http_client::{
+    BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
+};
 use crate::simple_http::client::shared::request::PreparedRequest;
 use crate::simple_http::client::shared::{DnsResolver, SystemDnsResolver};
 use crate::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
@@ -115,10 +117,19 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
     async fn send_sse_async(
         &self,
         req: PreparedRequest,
-    ) -> Result<BoxedSseIterator, HttpClientError> {
-        // SSE uses valtron execute() which is already sync-driven,
-        // so the async version delegates to the sync implementation.
-        self.send_sse(req)
+    ) -> Result<BoxedSseFutureStream, HttpClientError> {
+        let mut task = self.build_sse_task(&req)?;
+
+        if !matches!(req.body, SendSafeBody::None) {
+            task = task.with_body(req.body);
+        }
+
+        let driven = execute(task, None)
+            .map_err(|e| HttpClientError::Reason(format!("SSE executor error: {e}")))?;
+
+        let mapped = driven.map_pending(map_progress);
+        let future_stream = mapped.into_future_stream();
+        Ok(Box::pin(future_stream))
     }
 
     fn send(
@@ -148,24 +159,7 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         let driven = execute(task, None)
             .map_err(|e| HttpClientError::Reason(format!("SSE executor error: {e}")))?;
 
-        let mapped = driven.map(|item| match item {
-            Stream::Init => Stream::Init,
-            Stream::Ignore => Stream::Ignore,
-            Stream::Wait => Stream::Wait,
-            Stream::Delayed(d) => Stream::Delayed(d),
-            Stream::Next(pr) => Stream::Next(pr),
-            Stream::Pending(p) => Stream::Pending(map_progress(p)),
-            Stream::Spread(items) => Stream::Spread(
-                items
-                    .into_iter()
-                    .map(|s| match s {
-                        StreamSpread::Done(pr) => StreamSpread::Done(pr),
-                        StreamSpread::Pending(p) => StreamSpread::Pending(map_progress(p)),
-                    })
-                    .collect(),
-            ),
-        });
-
+        let mapped = driven.map_pending(map_progress);
         Ok(Box::new(mapped))
     }
 }

@@ -5,13 +5,17 @@
 //! By coding against `dyn HttpClient`, callers become platform-agnostic.
 //!
 //! WHAT: Defines the `HttpClient` trait with four methods:
-//! - `send_async()` / `send_sse_async()` — async (canonical, holds real logic)
-//! - `send()` / `send_sse()` — sync (wraps async via valtron, providers call these)
+//! - `send_async()` — returns a future (async callers `.await` it)
+//! - `send_sse_async()` — returns a future stream (async callers `.next().await`)
+//! - `send()` — returns a result directly (sync callers)
+//! - `send_sse()` — returns a sync iterator (sync callers `for item in iter`)
 //!
 //! HOW: Trait is `#[async_trait]` and object-safe (`Arc<dyn HttpClient>`).
-//! Native impl overrides sync methods with direct sync calls (no async overhead).
-//! Wasm impl relies on the default sync→async bridge via `valtron::run_future()`.
-//! The outside world doesn't need to know about the async/sync bridging.
+//! Native sync methods call `SimpleHttpClient` directly.
+//! Native async methods use `ClientRequest::send_async()` and `into_future_stream()`.
+//! Wasm async methods use `fetch()`. Wasm sync wraps async via `run_future()`.
+
+use std::pin::Pin;
 
 use foundation_core::valtron::Stream;
 
@@ -20,9 +24,6 @@ use crate::event_source::ParseResult;
 use crate::simple_http::shared::{HttpClientError, SendSafeBody, SimpleResponse};
 
 /// Progress indicator for SSE streams.
-///
-/// Maps from the native `ReconnectingProgress` to a platform-neutral enum
-/// so consumers don't depend on native reconnection internals.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum SseProgress {
     Connecting,
@@ -30,49 +31,41 @@ pub enum SseProgress {
     Reconnecting,
 }
 
-/// Boxed iterator yielding SSE events with progress updates.
-///
-/// Each item is a `Stream<ParseResult, SseProgress>` — either a parsed SSE
-/// event (`Stream::Next`), a progress signal (`Stream::Pending`), or a
-/// flow-control variant (`Stream::Wait`, `Stream::Init`, etc.) driven by
-/// valtron's executor model.
+/// Boxed sync iterator yielding SSE events — for sync callers.
 pub type BoxedSseIterator = Box<dyn Iterator<Item = Stream<ParseResult, SseProgress>> + Send>;
+
+/// Boxed async stream yielding SSE events — for async callers.
+pub type BoxedSseFutureStream = Pin<
+    Box<dyn futures_core::Stream<Item = Stream<ParseResult, SseProgress>> + Send>,
+>;
 
 /// Platform-agnostic HTTP client with both async and sync surfaces.
 ///
-/// Async methods (`send_async`, `send_sse_async`) hold the canonical logic.
-/// Sync methods (`send`, `send_sse`) wrap async via `valtron::run_future()`
-/// by default — native overrides them with direct sync implementations so
-/// providers and other callers just call `client.send(req)` without knowing
-/// about async internals.
+/// Async methods return async types (futures, future streams).
+/// Sync methods return sync types (results, iterators).
+/// Each platform implements both properly — no lazy delegation.
 ///
 /// Store as `Arc<dyn HttpClient>` for dynamic dispatch.
 #[async_trait::async_trait]
 pub trait HttpClient: Send + Sync {
-    /// Send an HTTP request asynchronously — canonical implementation.
+    /// Send an HTTP request asynchronously.
     async fn send_async(
         &self,
         req: PreparedRequest,
     ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
 
-    /// Send an SSE request asynchronously — canonical implementation.
+    /// Send an SSE request asynchronously — returns a future stream.
     async fn send_sse_async(
         &self,
         req: PreparedRequest,
-    ) -> Result<BoxedSseIterator, HttpClientError>;
+    ) -> Result<BoxedSseFutureStream, HttpClientError>;
 
     /// Send an HTTP request synchronously.
-    ///
-    /// Default bridges to `send_async` via `valtron::run_future()`.
-    /// Native overrides this with a direct sync path (no async overhead).
     fn send(
         &self,
         req: PreparedRequest,
     ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
 
-    /// Send an SSE request synchronously.
-    ///
-    /// Default bridges to `send_sse_async` via `valtron::run_future()`.
-    /// Native overrides this with a direct sync path.
+    /// Send an SSE request synchronously — returns a sync iterator.
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
 }

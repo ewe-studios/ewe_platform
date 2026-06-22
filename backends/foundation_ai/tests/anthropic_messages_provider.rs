@@ -14,9 +14,12 @@ use foundation_ai::types::{
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
+use foundation_netio::simple_http::client::native::NativeHttpClient;
+use foundation_netio::simple_http::client::shared::http_client::HttpClient;
 use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
+use std::sync::Arc;
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -75,13 +78,14 @@ fn make_interaction(prompt: &str) -> ModelInteraction {
 fn setup_provider_and_model(server: &TestHttpServer) -> impl Model + use<'_> {
     let addr = server_addr(server);
     let resolver = StaticSocketAddr::new(addr);
+    let http_client: Arc<dyn HttpClient> = Arc::new(NativeHttpClient::new(resolver));
     let config = AnthropicConfig::new()
         .with_base_url(server.base_url())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(
             "test-key".to_string(),
         )));
 
-    let provider = AnthropicMessagesProvider::with_resolver_and_config(resolver, config.clone())
+    let provider = AnthropicMessagesProvider::with_http_client_and_config(http_client, config.clone())
         .create(Some(config))
         .unwrap();
 

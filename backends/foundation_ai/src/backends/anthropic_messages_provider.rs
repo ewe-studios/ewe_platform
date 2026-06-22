@@ -10,13 +10,15 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamSpread};
-use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
+use foundation_core::url::Uri;
+use foundation_core::valtron::{Stream, StreamSpread};
+use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::simple_http::client::shared::{
-    body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
+    body_reader::collect_strings_from_send_safe,
+    http_client::{BoxedSseIterator, HttpClient},
+    request::PreparedRequest,
 };
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
+use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 use foundation_errstacks::ErrorTrace;
@@ -367,29 +369,27 @@ pub struct MessageDeltaDelta {
 // ============================================================================
 
 /// Anthropic Messages API provider implementing [`ModelProvider`].
-pub struct AnthropicMessagesProvider<R: DnsResolver = SystemDnsResolver> {
+pub struct AnthropicMessagesProvider {
     config: AnthropicConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     models_cache:
         Arc<std::sync::Mutex<HashMap<String, crate::backends::openai_provider::OpenAIModelInfo>>>,
 }
 
-impl Default for AnthropicMessagesProvider<SystemDnsResolver> {
+impl Default for AnthropicMessagesProvider {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl AnthropicMessagesProvider<SystemDnsResolver> {
+impl AnthropicMessagesProvider {
     #[must_use]
     pub fn new() -> Self {
         Self {
             config: AnthropicConfig::default(),
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -400,39 +400,34 @@ impl AnthropicMessagesProvider<SystemDnsResolver> {
             config,
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
-}
 
-impl<R: DnsResolver + 'static> AnthropicMessagesProvider<R> {
     #[must_use]
-    pub fn with_resolver(resolver: R) -> Self {
+    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
         Self {
             config: AnthropicConfig::default(),
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
     #[must_use]
-    pub fn with_resolver_and_config(resolver: R, config: AnthropicConfig) -> Self {
+    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: AnthropicConfig) -> Self {
         Self {
             config,
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 }
 
-impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProvider<R> {
+impl ModelProvider for AnthropicMessagesProvider {
     type Config = AnthropicConfig;
-    type Model = AnthropicModel<R>;
+    type Model = AnthropicModel;
 
     fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
@@ -459,15 +454,9 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
             self.config = cfg;
         }
 
-        let mut client = self.http_client.take().unwrap_or_default();
-        if let Some(proxy) = &self.config.proxy_url {
-            client = client
-                .proxy(proxy)
-                .map_err(|e| ModelProviderErrors::NotFound(format!("Invalid proxy URL: {e}")))?;
+        if self.http_client.is_none() {
+            self.http_client = Some(foundation_netio::simple_http::client::default_http_client());
         }
-        client = client.read_timeout(std::time::Duration::from_secs(self.config.timeout_secs));
-        client = client.connect_timeout(std::time::Duration::from_secs(10));
-        self.http_client = Some(client);
 
         Ok(self)
     }
@@ -503,7 +492,6 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
                 model_name: model_name.clone(),
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
-                resolver: self.resolver.clone(),
                 info: info.clone(),
                 pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
                 cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
@@ -529,7 +517,6 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            resolver: self.resolver.clone(),
             info,
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
             cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
@@ -566,38 +553,65 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for AnthropicMessagesProv
 // Model
 // ============================================================================
 
-pub struct AnthropicModel<R: DnsResolver = SystemDnsResolver> {
+pub struct AnthropicModel {
     config: AnthropicConfig,
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     #[allow(dead_code)]
     info: crate::backends::openai_provider::OpenAIModelInfo,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
-impl<R: DnsResolver + 'static> AnthropicModel<R> {
+impl AnthropicModel {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
 
-    fn build_auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.push((
+            headers.insert(
                 SimpleHeader::from("x-api-key".to_string()),
-                key.get().clone(),
-            ));
+                vec![key.get().clone()],
+            );
         }
-        headers.push((
+        headers.insert(
             SimpleHeader::from("anthropic-version".to_string()),
-            self.config.api_version.clone(),
-        ));
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+            vec![self.config.api_version.clone()],
+        );
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
         headers
+    }
+
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Default::default(),
+        })
+    }
+
+    fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Default::default(),
+        })
     }
 
     fn execute_request<T: for<'de> Deserialize<'de> + Send>(
@@ -630,30 +644,14 @@ impl<R: DnsResolver + 'static> AnthropicModel<R> {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.build_auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.header(SimpleHeader::ACCEPT, String::from("application/json"));
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client.send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, _headers, body, _pool, _conn) = response.into_parts();
+        let (status, _headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -818,7 +816,7 @@ impl ToolFormatter for AnthropicFormatter {
     }
 }
 
-impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
+impl Model for AnthropicModel {
     fn spec(&self) -> ModelSpec {
         ModelSpec {
             name: self.model_name.clone(),
@@ -888,34 +886,15 @@ impl<R: DnsResolver + 'static> Model for AnthropicModel<R> {
 
         let url = self.build_url("messages");
 
-        let resolver = self
-            .resolver
-            .as_ref()
-            .ok_or_else(|| GenerationError::Generic("DNS resolver not initialized".into()))?
-            .clone();
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let task = ReconnectingEventSourceTask::connect(resolver, &url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create SSE task: {e}")))?
-            .with_header(
-                SimpleHeader::from("x-api-key".to_string()),
-                self.api_key
-                    .as_ref()
-                    .map(|k| k.get().clone())
-                    .unwrap_or_default(),
-            )
-            .with_header(
-                SimpleHeader::from("anthropic-version".to_string()),
-                self.config.api_version.clone(),
-            )
-            .with_header(SimpleHeader::ACCEPT, String::from("text/event-stream"))
-            .with_header(SimpleHeader::CONTENT_TYPE, String::from("application/json"))
-            .with_body(SendSafeBody::Text(body));
-
-        let driven = execute(task, None)
-            .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
+        let req = self.build_sse_request(&url, &body)?;
+        let sse_iter = client.send_sse(req)
+            .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
         Ok(Box::new(AnthropicStream {
-            inner: driven,
+            inner: sse_iter,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
             accumulated_thinking: String::new(),
@@ -945,8 +924,8 @@ struct AccumulatedToolCall {
     arguments: String,
 }
 
-struct AnthropicStream<R: DnsResolver + 'static> {
-    inner: foundation_core::valtron::DrivenStreamIterator<ReconnectingEventSourceTask<R>>,
+struct AnthropicStream {
+    inner: BoxedSseIterator,
     model_id: ModelId,
     accumulated_text: String,
     accumulated_thinking: String,
@@ -960,7 +939,7 @@ struct AnthropicStream<R: DnsResolver + 'static> {
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
-impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
+impl Iterator for AnthropicStream {
     type Item = Stream<Messages, ModelState>;
 
     #[allow(clippy::too_many_lines)]
@@ -1022,7 +1001,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for AnthropicStream<R> {
     }
 }
 
-impl<R: DnsResolver + 'static> AnthropicStream<R> {
+impl AnthropicStream {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
     fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message {

@@ -12,16 +12,16 @@ use std::time::Duration;
 
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron::{execute, Stream, StreamSpread};
+use foundation_core::url::Uri;
+use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::event_source::{
-    Event, ParseResult, ReconnectingEventSourceTask, ReconnectingProgress,
-};
+use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::simple_http::client::shared::{
-    body_reader::collect_strings_from_send_safe, DnsResolver, SystemDnsResolver,
+    body_reader::collect_strings_from_send_safe,
+    http_client::{BoxedSseIterator, HttpClient},
+    request::PreparedRequest,
 };
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders};
+use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 use serde::{Deserialize, Serialize};
 
 use crate::costing::{calculate_cost, CostAccumulator};
@@ -143,7 +143,7 @@ impl crate::types::base_types::AuthProvider for OpenAIConfig {
     }
 }
 
-impl<R: DnsResolver> OpenAIProvider<R> {
+impl OpenAIProvider {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
@@ -154,28 +154,26 @@ impl<R: DnsResolver> OpenAIProvider<R> {
 // ============================================================================
 
 /// OpenAI-compatible HTTP provider implementing [`ModelProvider`].
-pub struct OpenAIProvider<R: DnsResolver = SystemDnsResolver> {
+pub struct OpenAIProvider {
     config: OpenAIConfig,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
+    http_client: Option<Arc<dyn HttpClient>>,
     models_cache: Arc<std::sync::Mutex<HashMap<String, OpenAIModelInfo>>>,
 }
 
-impl Default for OpenAIProvider<SystemDnsResolver> {
+impl Default for OpenAIProvider {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl OpenAIProvider<SystemDnsResolver> {
+impl OpenAIProvider {
     #[must_use]
     pub fn new() -> Self {
         Self {
             config: OpenAIConfig::default(),
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
@@ -186,44 +184,51 @@ impl OpenAIProvider<SystemDnsResolver> {
             config,
             api_key: None,
             http_client: None,
-            resolver: Some(SystemDnsResolver),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
-}
 
-impl<R: DnsResolver + 'static> OpenAIProvider<R> {
-    /// Creates an `OpenAIProvider` with a custom DNS resolver.
     #[must_use]
-    pub fn with_resolver(resolver: R) -> Self {
+    pub fn with_http_client(client: Arc<dyn HttpClient>) -> Self {
         Self {
             config: OpenAIConfig::default(),
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
-    /// Creates an `OpenAIProvider` with a custom DNS resolver and config.
     #[must_use]
-    pub fn with_resolver_and_config(resolver: R, config: OpenAIConfig) -> Self {
+    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: OpenAIConfig) -> Self {
         Self {
             config,
             api_key: None,
-            http_client: Some(SimpleHttpClient::with_resolver(resolver.clone())),
-            resolver: Some(resolver),
+            http_client: Some(client),
             models_cache: Arc::new(std::sync::Mutex::new(HashMap::new())),
         }
     }
 
-    fn auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::AUTHORIZATION, format!("Bearer {}", key.get())));
+            headers.insert(SimpleHeader::AUTHORIZATION, vec![format!("Bearer {}", key.get())]);
         }
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
         headers
+    }
+
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Default::default(),
+        })
     }
 
     /// Execute a non-streaming HTTP request with retry on 429/5xx errors.
@@ -259,30 +264,14 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.header(SimpleHeader::ACCEPT, String::from("application/json"));
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client.send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -300,9 +289,9 @@ impl<R: DnsResolver + 'static> OpenAIProvider<R> {
     }
 }
 
-impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
+impl ModelProvider for OpenAIProvider {
     type Config = OpenAIConfig;
-    type Model = OpenAIModel<R>;
+    type Model = OpenAIModel;
 
     fn create(mut self, config: Option<Self::Config>) -> ModelProviderResult<Self> {
         if let Some(cfg) = config {
@@ -332,19 +321,9 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             self.config = cfg;
         }
 
-        // Apply proxy and timeout configuration to the HTTP client.
-        let mut client = self.http_client.take().unwrap_or_default();
-
-        if let Some(proxy) = &self.config.proxy_url {
-            client = client
-                .proxy(proxy)
-                .map_err(|e| ModelProviderErrors::NotFound(format!("Invalid proxy URL: {e}")))?;
+        if self.http_client.is_none() {
+            self.http_client = Some(foundation_netio::simple_http::client::default_http_client());
         }
-
-        client = client.read_timeout(std::time::Duration::from_secs(self.config.timeout_secs));
-        client = client.connect_timeout(std::time::Duration::from_secs(10));
-
-        self.http_client = Some(client);
 
         Ok(self)
     }
@@ -380,7 +359,6 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
                 model_name: model_name.clone(),
                 api_key: self.api_key.clone(),
                 http_client: self.http_client.clone(),
-                resolver: self.resolver.clone(),
                 info: info.clone(),
                 pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
                 cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
@@ -415,7 +393,6 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
             model_name,
             api_key: self.api_key.clone(),
             http_client: self.http_client.clone(),
-            resolver: self.resolver.clone(),
             info,
             pricing: self.describe().ok().map(|d| d.cost).unwrap_or_default(),
             cumulative_cost: Arc::new(Mutex::new(CostAccumulator::new())),
@@ -472,32 +449,58 @@ impl<R: DnsResolver + Default + 'static> ModelProvider for OpenAIProvider<R> {
 /// The `F` type parameter allows customizing the tool formatter. When used
 /// natively with `OpenAI` it defaults to `OpenAIFormatter`; when used as a
 /// proxy to other endpoints the caller can supply a different formatter.
-pub struct OpenAIModel<R: DnsResolver = SystemDnsResolver> {
+pub struct OpenAIModel {
     config: OpenAIConfig,
     model_id: ModelId,
     model_name: String,
     api_key: Option<ConfidentialText>,
-    http_client: Option<SimpleHttpClient<R>>,
-    resolver: Option<R>,
-    /// Cached model metadata from the provider (used in model identity).
+    http_client: Option<Arc<dyn HttpClient>>,
     #[allow(dead_code)]
     info: OpenAIModelInfo,
     pricing: ModelUsageCosting,
     cumulative_cost: Arc<Mutex<CostAccumulator>>,
 }
 
-impl<R: DnsResolver + 'static> OpenAIModel<R> {
+impl OpenAIModel {
     fn build_url(&self, endpoint: &str) -> String {
         self.config.build_url(endpoint)
     }
 
-    fn build_auth_headers(&self) -> Vec<(SimpleHeader, String)> {
-        let mut headers = Vec::new();
+    fn auth_headers(&self) -> SimpleHeaders {
+        let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.push((SimpleHeader::AUTHORIZATION, format!("Bearer {}", key.get())));
+            headers.insert(SimpleHeader::AUTHORIZATION, vec![format!("Bearer {}", key.get())]);
         }
-        headers.push((SimpleHeader::CONTENT_TYPE, String::from("application/json")));
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
         headers
+    }
+
+    fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Default::default(),
+        })
+    }
+
+    fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
+        let uri = Uri::parse(url)
+            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let mut headers = self.auth_headers();
+        headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
+        Ok(PreparedRequest {
+            method: SimpleMethod::POST,
+            url: uri,
+            headers,
+            body: SendSafeBody::Text(body.to_string()),
+            extensions: Default::default(),
+        })
     }
 
     /// Execute a non-streaming HTTP request with retry on 429/5xx errors.
@@ -525,37 +528,20 @@ impl<R: DnsResolver + 'static> OpenAIModel<R> {
         }
     }
 
-    /// Perform a single HTTP request attempt and parse the JSON response.
     #[allow(clippy::type_complexity, clippy::cast_possible_truncation)]
     fn do_request<T: for<'de> Deserialize<'de> + Send>(
         &self,
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let Some(client) = &self.http_client else {
-            return Err(GenerationError::Generic(
-                "HTTP client not initialized".into(),
-            ));
-        };
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let mut builder = client
-            .post(url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create request: {e}")))?;
-        for (k, v) in &self.build_auth_headers() {
-            builder = builder.header(k.clone(), v.clone());
-        }
-        builder = builder.header(SimpleHeader::ACCEPT, String::from("application/json"));
-        builder = builder.body_text(body.to_string());
-
-        let request = client
-            .request(builder)
-            .map_err(|e| GenerationError::Backend(format!("Failed to build request: {e}")))?;
-
-        let response = request
-            .send()
+        let req = self.build_prepared_request(url, body)?;
+        let response = client.send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
-        let (status, headers, body, _pool, _conn) = response.into_parts();
+        let (status, headers, body) = response.into_parts();
         let status_code: usize = status.into();
         let body_text = collect_strings_from_send_safe(body)
             .map_err(|e| GenerationError::Generic(format!("Parse error: {e}")))?;
@@ -808,7 +794,7 @@ impl ToolFormatter for OpenAIFormatter {
     }
 }
 
-impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
+impl Model for OpenAIModel {
     fn tool_formatter(&self) -> Box<dyn ToolFormatter> {
         Box::new(OpenAIFormatter)
     }
@@ -887,34 +873,15 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
             .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
 
         let url = self.build_url("chat/completions");
+        let client = self.http_client.as_ref()
+            .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
-        let resolver = self
-            .resolver
-            .as_ref()
-            .ok_or_else(|| GenerationError::Generic("DNS resolver not initialized".into()))?
-            .clone();
-
-        let task = ReconnectingEventSourceTask::connect(resolver, &url)
-            .map_err(|e| GenerationError::Backend(format!("Failed to create SSE task: {e}")))?
-            .with_header(
-                SimpleHeader::AUTHORIZATION,
-                format!(
-                    "Bearer {}",
-                    self.api_key
-                        .as_ref()
-                        .map(ConfidentialText::get)
-                        .unwrap_or_default()
-                ),
-            )
-            .with_header(SimpleHeader::ACCEPT, String::from("text/event-stream"))
-            .with_header(SimpleHeader::CONTENT_TYPE, String::from("application/json"))
-            .with_body(SendSafeBody::Text(body));
-
-        let driven = execute(task, None)
-            .map_err(|e| GenerationError::Backend(format!("Executor error: {e}")))?;
+        let req = self.build_sse_request(&url, &body)?;
+        let sse_iter = client.send_sse(req)
+            .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
         Ok(Box::new(OpenAIStream {
-            inner: driven,
+            inner: sse_iter,
             model_id: self.model_id.clone(),
             accumulated_text: String::new(),
             tool_calls: Vec::new(),
@@ -933,11 +900,11 @@ impl<R: DnsResolver + 'static> Model for OpenAIModel<R> {
 
 /// Streaming iterator that yields incremental `Messages` from an `OpenAI` SSE stream.
 ///
-/// Wraps a `ReconnectingEventSourceTask` driven iterator. For each `Event::Message`
+/// Wraps a `BoxedSseIterator` from the `HttpClient`. For each `Event::Message`
 /// containing a `ChatCompletionChunk`, yields incremental text as `Stream::Next`.
 /// On stream completion (`[DONE]`), yields the final accumulated message.
-struct OpenAIStream<R: DnsResolver + 'static> {
-    inner: foundation_core::valtron::DrivenStreamIterator<ReconnectingEventSourceTask<R>>,
+struct OpenAIStream {
+    inner: BoxedSseIterator,
     model_id: ModelId,
     accumulated_text: String,
     tool_calls: Vec<AccumulatedToolCall>,
@@ -954,7 +921,7 @@ struct AccumulatedToolCall {
     arguments: String,
 }
 
-impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
+impl Iterator for OpenAIStream {
     type Item = Stream<Messages, ModelState>;
 
     fn next(&mut self) -> Option<Self::Item> {
@@ -966,12 +933,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
 
         match item {
             Stream::Next(ref parse_result) => Some(self.process_parse_result(parse_result)),
-            Stream::Pending(p) => Some(Stream::Pending(match p {
-                ReconnectingProgress::Connecting | ReconnectingProgress::Reading => {
-                    ModelState::GeneratingTokens(None)
-                }
-                ReconnectingProgress::Reconnecting => ModelState::GeneratingTokens(None),
-            })),
+            Stream::Pending(_) => Some(Stream::Pending(ModelState::GeneratingTokens(None))),
             Stream::Delayed(d) => Some(Stream::Delayed(d)),
             Stream::Init => Some(Stream::Init),
             Stream::Ignore => Some(Stream::Ignore),
@@ -985,7 +947,6 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
                                 Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
                                 Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
                                 Stream::Delayed(_) => {
-                                    // Delayed from parse: convert to Done with final message
                                     self.done = true;
                                     let (msg, _) = self.build_final_message();
                                     mapped.push(StreamSpread::Done(msg));
@@ -1011,7 +972,7 @@ impl<R: DnsResolver + Send + 'static> Iterator for OpenAIStream<R> {
     }
 }
 
-impl<R: DnsResolver + 'static> OpenAIStream<R> {
+impl OpenAIStream {
     /// Parse a single `ParseResult` from the SSE stream into a `Stream<Messages, ModelState>`.
     fn process_parse_result(&mut self, parse_result: &ParseResult) -> Stream<Messages, ModelState> {
         let Event::Message { data, .. } = &parse_result.event else {

@@ -23,11 +23,14 @@ use foundation_compact::SendWrapper;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::js_stream;
 use foundation_core::valtron::run_future;
+use foundation_core::valtron::StreamIteratorExt;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
 
-use crate::simple_http::client::shared::http_client::{BoxedSseIterator, HttpClient};
+use crate::simple_http::client::shared::http_client::{
+    BoxedSseFutureStream, BoxedSseIterator, HttpClient,
+};
 use crate::simple_http::client::shared::request::PreparedRequest;
 use crate::simple_http::shared::{
     HttpClientError, LineFeed, SendSafeBody, SimpleMethod, SimpleResponse, Status,
@@ -81,7 +84,7 @@ impl HttpClient for FetchHttpClient {
     async fn send_sse_async(
         &self,
         req: PreparedRequest,
-    ) -> Result<BoxedSseIterator, HttpClientError> {
+    ) -> Result<BoxedSseFutureStream, HttpClientError> {
         SendWrapper::new(async move {
             let ws_req = build_web_request(req)?;
             let resp = do_fetch(&ws_req).await?;
@@ -98,7 +101,8 @@ impl HttpClient for FetchHttpClient {
                 .ok_or_else(|| HttpClientError::Reason("SSE response has no body".into()))?;
 
             let iter = WasmSseIterator::new(body);
-            Ok(Box::new(iter) as BoxedSseIterator)
+            let future_stream = iter.into_future_stream();
+            Ok(Box::pin(future_stream) as BoxedSseFutureStream)
         })
         .await
     }
@@ -119,7 +123,24 @@ impl HttpClient for FetchHttpClient {
     }
 
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
-        let fut = FetchHttpClient.send_sse_async(req);
+        let fut = SendWrapper::new(async move {
+            let ws_req = build_web_request(req)?;
+            let resp = do_fetch(&ws_req).await?;
+
+            let status_code = resp.status();
+            if !(200..=299).contains(&status_code) {
+                return Err(HttpClientError::Reason(format!(
+                    "SSE request failed with status {status_code}"
+                )));
+            }
+
+            let body = resp
+                .body()
+                .ok_or_else(|| HttpClientError::Reason("SSE response has no body".into()))?;
+
+            let iter = WasmSseIterator::new(body);
+            Ok(Box::new(iter) as BoxedSseIterator)
+        });
         let results = run_future(fut)
             .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
         results

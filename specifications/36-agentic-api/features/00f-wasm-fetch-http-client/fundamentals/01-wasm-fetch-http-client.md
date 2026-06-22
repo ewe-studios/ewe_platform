@@ -24,16 +24,24 @@ care which platform they're on.
 ## 2. The `HttpClient` trait: async, object-safe, platform-agnostic
 
 ```rust
+pub type BoxedSseIterator = Box<dyn Iterator<Item = Stream<ParseResult, SseProgress>> + Send>;
+pub type BoxedSseFutureStream = Pin<Box<dyn futures_core::Stream<Item = Stream<ParseResult, SseProgress>> + Send>>;
+
 #[async_trait::async_trait]
 pub trait HttpClient: Send + Sync {
-    async fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
-    async fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
+    async fn send_async(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
+    async fn send_sse_async(&self, req: PreparedRequest) -> Result<BoxedSseFutureStream, HttpClientError>;
+    fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
+    fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
 }
 ```
 
-**Why async?** The project norm (F06/OD-06-8): async holds the real logic, sync wraps
-via valtron `run_future()`. On wasm, `fetch()` is inherently async (Promise-based).
-On native, the existing client is sync internally but wrapping it in async is trivial.
+The trait has four methods — async and sync surfaces for both regular and SSE requests.
+Async methods return async types (`Future`, `futures_core::Stream`); sync methods return
+sync types (`Result`, `Iterator`). Each platform implements both properly — no lazy
+delegation. On native, `send()` calls `ClientRequest::send()` (sync) and `send_async()`
+calls `ClientRequest::send_async().await` (truly async). On wasm, async methods are
+canonical (using `fetch()`); sync methods wrap via `valtron::run_future()`.
 
 **Why `PreparedRequest` and `SimpleResponse<SendSafeBody>`?** These already exist as
 cross-platform types. `PreparedRequest` carries a proper `Uri` (RFC 3986 parsing from
@@ -59,12 +67,14 @@ pub struct NativeHttpClient<R: DnsResolver + Clone + Send + 'static = SystemDnsR
 }
 ```
 
-`NativeHttpClient` is a thin adapter:
-- `send()` converts `PreparedRequest` → `ClientRequestBuilder` → sends via
-  `SimpleHttpClient` → converts `FinalizedResponse.into_parts()` back to
+`NativeHttpClient` is a thin adapter with four methods:
+- `send()` / `send_async()` convert `PreparedRequest` → `ClientRequestBuilder` → send
+  via `SimpleHttpClient` → convert `FinalizedResponse.into_parts()` back to
   `SimpleResponse<SendSafeBody>`, dropping the connection pool handle.
-- `send_sse()` builds a `ReconnectingEventSourceTask`, executes it to get a
-  `DrivenStreamIterator`, and maps `ReconnectingProgress` → `SseProgress`.
+- `send_sse()` / `send_sse_async()` build a `ReconnectingEventSourceTask`, execute it
+  to get a `DrivenStreamIterator`, then use valtron's `map_pending(map_progress)` to
+  convert `ReconnectingProgress` → `SseProgress`. The async variant additionally calls
+  `into_future_stream()` to wrap the iterator as a `futures_core::Stream`.
 
 All `SendSafeBody` variants pass through via `ClientRequestBuilder::body(SendSafeBody)`.
 No body variants are rejected.
