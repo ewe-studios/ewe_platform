@@ -143,7 +143,7 @@ mod sync {
     /// Futex syscall with `FUTEX_WAIT` op puts the current thread to sleep
     /// until futex syscall with `FUTEX_WAKE` op gets executed for `FD`.
     ///
-    /// For more information read: https://www.man7.org/linux/man-pages/man2/futex.2.html
+    /// For more information read: <https://www.man7.org/linux/man-pages/man2/futex.2.html>
     pub(super) fn wait() {
         let op = libc::FUTEX_WAIT | libc::FUTEX_PRIVATE_FLAG;
         let timeout_ptr = core::ptr::null::<libc::timespec>();
@@ -203,7 +203,7 @@ mod sync {
 
         let res = loop {
             // A negative timeout means an infinite timeout.
-            let res = unsafe { libc::poll(&mut pfd, 1, -1) };
+            let res = unsafe { libc::poll(&raw mut pfd, 1, -1) };
             if res >= 0 {
                 // We only used one fd, and cannot timeout.
                 debug_assert_eq!(res, 1);
@@ -213,7 +213,7 @@ mod sync {
             // Assuming that `poll` is called correctly,
             // on Linux it can return only EINTR and ENOMEM errors.
             match errno {
-                libc::EINTR => continue,
+                libc::EINTR => {},
                 _ => break Err(Error::from_errno(errno)),
             }
         };

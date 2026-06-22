@@ -48,26 +48,31 @@ pub struct Id([u8; 16]);
 
 impl Id {
     /// Creates an object from a 128-bit unsigned integer.
+    #[must_use]
     pub const fn from_u128(int_value: u128) -> Self {
         Self(int_value.to_be_bytes())
     }
 
     /// Returns the 128-bit unsigned integer representation.
+    #[must_use]
     pub const fn to_u128(self) -> u128 {
         u128::from_be_bytes(self.0)
     }
 
     /// Creates an object from a 16-byte big-endian byte array.
+    #[must_use]
     pub const fn from_bytes(array_value: [u8; 16]) -> Self {
         Self(array_value)
     }
 
     /// Returns the big-endian byte array representation.
+    #[must_use]
     pub const fn to_bytes(self) -> [u8; 16] {
         self.0
     }
 
     /// Returns a reference to the big-endian byte array representation.
+    #[must_use]
     pub const fn as_bytes(&self) -> &[u8; 16] {
         &self.0
     }
@@ -96,26 +101,38 @@ impl Id {
     }
 
     /// Returns the 48-bit `timestamp` field value.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn timestamp(&self) -> u64 {
         (self.to_u128() >> 80) as u64
     }
 
     /// Returns the 24-bit `counter_hi` field value.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn counter_hi(&self) -> u32 {
         (self.to_u128() >> 56) as u32 & MAX_COUNTER_HI
     }
 
     /// Returns the 24-bit `counter_lo` field value.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn counter_lo(&self) -> u32 {
         (self.to_u128() >> 32) as u32 & MAX_COUNTER_LO
     }
 
     /// Returns the 32-bit `entropy` field value.
+    #[must_use]
+    #[allow(clippy::cast_possible_truncation)]
     pub const fn entropy(&self) -> u32 {
         self.to_u128() as u32
     }
 
     /// Creates an object from a 25-digit string representation.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`ParseError`] if the string is not a valid 25-digit Base36 SCRU128 ID.
     pub const fn try_from_str(str_value: &str) -> Result<Self, ParseError> {
         if str_value.len() != 25 {
             return Err(ParseError::invalid_length(str_value.len()));
@@ -142,6 +159,7 @@ impl Id {
 
     /// Returns the 25-digit string representation stored in a stack-allocated string-like type
     /// that can be handled like [`String`] through common traits.
+    #[must_use]
     pub const fn encode(&self) -> FStr<25> {
         // implement Base36 using usize chunks because Div<u128> is slow
         const N_CHUNK_DIGITS: u32 = usize::MAX.ilog(36);
@@ -240,7 +258,7 @@ impl ParseError {
         const fn is_char_boundary(utf8_bytes: &[u8], index: usize) -> bool {
             match index {
                 0 => true,
-                i if i < utf8_bytes.len() => (utf8_bytes[i] as i8) >= -64,
+                i if i < utf8_bytes.len() => utf8_bytes[i].cast_signed() >= -64,
                 _ => index == utf8_bytes.len(),
             }
         }
@@ -275,7 +293,7 @@ impl fmt::Display for ParseError {
         write!(f, "could not parse string as SCRU128 ID: ")?;
         match self.kind {
             ParseErrorKind::InvalidLength { n_bytes } => {
-                write!(f, "invalid length: {} bytes (expected 25)", n_bytes)
+                write!(f, "invalid length: {n_bytes} bytes (expected 25)")
             }
             ParseErrorKind::InvalidDigit {
                 utf8_char,

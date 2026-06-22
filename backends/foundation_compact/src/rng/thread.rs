@@ -26,7 +26,7 @@ struct ReseedingCore {
 impl Generator for ReseedingCore {
     type Output = Results;
 
-    #[inline(always)]
+    #[inline]
     fn generate(&mut self, results: &mut Results) {
         self.blocks_generated += 1;
         if self.blocks_generated >= RESEED_BLOCK_THRESHOLD {
@@ -55,7 +55,7 @@ impl ReseedingCore {
 
 /// A reference to the thread-local CSPRNG.
 ///
-/// Obtained via [`super::rng()`]. Uses ChaCha12 internally, automatically
+/// Obtained via [`super::rng()`]. Uses `ChaCha12` internally, automatically
 /// reseeded from [`SysRng`] (our vendored OS entropy) every 64 KiB of output.
 /// Works on all targets including `wasm32-unknown-unknown`.
 ///
@@ -67,6 +67,10 @@ pub struct ThreadRng {
 
 impl ThreadRng {
     /// Immediately reseed the generator.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`SysError`] if the platform entropy source is unavailable.
     pub fn reseed(&mut self) -> Result<(), SysError> {
         let rng = unsafe { &mut *self.rng.get() };
         rng.reset_and_skip(0);
@@ -84,7 +88,7 @@ thread_local!(
     static THREAD_RNG_KEY: Rc<UnsafeCell<BlockRng<ReseedingCore>>> = {
         Rc::new(UnsafeCell::new(BlockRng::new(ReseedingCore {
             inner: Core::try_from_rng(&mut SysRng).unwrap_or_else(|err| {
-                panic!("could not initialize ThreadRng: {}", err)
+                panic!("could not initialize ThreadRng: {err}")
             }),
             blocks_generated: 0,
         })))
@@ -96,7 +100,7 @@ thread_local!(
 /// Returns a handle to the thread-local [`ThreadRng`], seeded from
 /// our vendored OS entropy. Works on all targets including wasm.
 pub fn rng() -> ThreadRng {
-    let rng = THREAD_RNG_KEY.with(|t| t.clone());
+    let rng = THREAD_RNG_KEY.with(std::clone::Clone::clone);
     ThreadRng { rng }
 }
 
@@ -109,19 +113,19 @@ impl Default for ThreadRng {
 impl TryRng for ThreadRng {
     type Error = Infallible;
 
-    #[inline(always)]
+    #[inline]
     fn try_next_u32(&mut self) -> Result<u32, Infallible> {
         let rng = unsafe { &mut *self.rng.get() };
         Ok(rng.next_word())
     }
 
-    #[inline(always)]
+    #[inline]
     fn try_next_u64(&mut self) -> Result<u64, Infallible> {
         let rng = unsafe { &mut *self.rng.get() };
         Ok(rng.next_u64_from_u32())
     }
 
-    #[inline(always)]
+    #[inline]
     fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), Infallible> {
         let rng = unsafe { &mut *self.rng.get() };
         rng.fill_bytes(dest);

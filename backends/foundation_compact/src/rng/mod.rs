@@ -31,6 +31,7 @@ pub use thread::ThreadRng;
 ///
 /// Shorthand for [`ThreadRng::default()`]. Works on all targets including wasm.
 #[cfg(feature = "std")]
+#[must_use]
 pub fn rng() -> ThreadRng {
     thread::rng()
 }

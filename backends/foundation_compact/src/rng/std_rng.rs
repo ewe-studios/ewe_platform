@@ -8,7 +8,7 @@ use rand_chacha::ChaCha12Rng as Rng;
 
 /// A strong, fast (amortized), non-portable CSPRNG.
 ///
-/// Uses ChaCha12 internally. Non-portable: the algorithm may change in future
+/// Uses `ChaCha12` internally. Non-portable: the algorithm may change in future
 /// versions. For a portable generator, use [`rand_chacha`] directly.
 ///
 /// # Seeding
@@ -24,17 +24,17 @@ pub struct StdRng(pub(crate) Rng);
 impl TryRng for StdRng {
     type Error = Infallible;
 
-    #[inline(always)]
+    #[inline]
     fn try_next_u32(&mut self) -> Result<u32, Infallible> {
         self.0.try_next_u32()
     }
 
-    #[inline(always)]
+    #[inline]
     fn try_next_u64(&mut self) -> Result<u64, Infallible> {
         self.0.try_next_u64()
     }
 
-    #[inline(always)]
+    #[inline]
     fn try_fill_bytes(&mut self, dst: &mut [u8]) -> Result<(), Infallible> {
         self.0.try_fill_bytes(dst)
     }
@@ -43,7 +43,7 @@ impl TryRng for StdRng {
 impl SeedableRng for StdRng {
     type Seed = [u8; 32];
 
-    #[inline(always)]
+    #[inline]
     fn from_seed(seed: Self::Seed) -> Self {
         StdRng(Rng::from_seed(seed))
     }

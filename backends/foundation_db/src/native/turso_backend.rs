@@ -204,9 +204,11 @@ impl TursoStorage {
                     .decode(stored_value)
                     .map_err(|e| StorageError::Encryption(format!("Base64 decode failed: {e}")))?;
                 let decrypted = decrypt(key, &encrypted)?;
-                String::from_utf8(decrypted).map_err(|e| {
-                    StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
-                })
+                core::str::from_utf8(&decrypted)
+                    .map(String::from)
+                    .map_err(|e| {
+                        StorageError::Encryption(format!("Invalid UTF-8 in decrypted data: {e}"))
+                    })
             }
             None => Ok(stored_value.to_string()),
         }

@@ -18,6 +18,10 @@ pub mod implementation {
 }
 
 /// Fill `dest` with random bytes from the system's preferred random number source.
+///
+/// # Errors
+///
+/// Returns [`Error`] if the platform entropy source is unavailable.
 #[inline]
 pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
     fill_uninit(unsafe { util::slice_as_uninit_mut(dest) })?;
@@ -27,6 +31,10 @@ pub fn fill(dest: &mut [u8]) -> Result<(), Error> {
 /// Fill potentially uninitialized buffer `dest` with random bytes from
 /// the system's preferred random number source and return a mutable
 /// reference to those bytes.
+///
+/// # Errors
+///
+/// Returns [`Error`] if the platform entropy source is unavailable.
 #[inline]
 pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
     if !dest.is_empty() {
@@ -36,12 +44,20 @@ pub fn fill_uninit(dest: &mut [MaybeUninit<u8>]) -> Result<&mut [u8], Error> {
 }
 
 /// Get random `u32` from the system's preferred random number source.
+///
+/// # Errors
+///
+/// Returns [`Error`] if the platform entropy source is unavailable.
 #[inline]
 pub fn u32() -> Result<u32, Error> {
     backends::inner_u32()
 }
 
 /// Get random `u64` from the system's preferred random number source.
+///
+/// # Errors
+///
+/// Returns [`Error`] if the platform entropy source is unavailable.
 #[inline]
 pub fn u64() -> Result<u64, Error> {
     backends::inner_u64()

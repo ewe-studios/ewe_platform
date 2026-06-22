@@ -37,7 +37,7 @@ pub trait TimeSource {
 /// if the one provided is smaller than the immediately preceding ID's. However, when such a clock
 /// rollback is considered significant (by default, more than ten seconds):
 ///
-/// 1.  `generate` (or_reset) methods reset the generator and return a new ID based on the given
+/// 1.  `generate` (`or_reset`) methods reset the generator and return a new ID based on the given
 ///     `timestamp`, breaking the increasing order of IDs.
 /// 2.  `or_abort` variants abort and return `None` immediately.
 ///
@@ -67,11 +67,11 @@ pub struct Generator<R, T = StdSystemTime> {
     /// field. `machine_id_bits == 0` (the default) means "no machine id" — the
     /// entropy field is fully random, exactly as upstream scru128.
     ///
-    /// WHY: scru128 is 128 bits, fully allocated (timestamp 48 + counter_hi 24 +
-    /// counter_lo 24 + entropy 32). To make ids machine-attributable WITHOUT
+    /// WHY: scru128 is 128 bits, fully allocated (timestamp 48 + `counter_hi` 24 +
+    /// `counter_lo` 24 + entropy 32). To make ids machine-attributable WITHOUT
     /// growing past 128 bits or disturbing monotonic ordering, we carve the
     /// machine id out of the `entropy` field's high bits — entropy is the least
-    /// significant field, so ordering (timestamp → counter_hi → counter_lo →
+    /// significant field, so ordering (timestamp → `counter_hi` → `counter_lo` →
     /// entropy) is still established by the timestamp+counter before entropy is
     /// ever compared, and per-id uniqueness is preserved by the remaining random
     /// low bits.
@@ -100,10 +100,15 @@ impl<R, T> Generator<R, T> {
     ///
     /// The `rollback_allowance` parameter specifies the amount of `timestamp` rollback that is
     /// considered significant. The default value is `10_000` (milliseconds).
+    ///
+    /// # Panics
+    ///
+    /// Panics if `rollback_allowance` exceeds the 48-bit timestamp range.
     pub fn set_rollback_allowance(&mut self, rollback_allowance: u64) {
-        if rollback_allowance > MAX_TIMESTAMP {
-            panic!("`rollback_allowance` out of reasonable range");
-        }
+        assert!(
+            rollback_allowance <= MAX_TIMESTAMP,
+            "`rollback_allowance` out of reasonable range"
+        );
         self.rollback_allowance = rollback_allowance;
     }
 
@@ -213,9 +218,10 @@ impl<R: RandSource, T> Generator<R, T> {
     ///
     /// Panics if `timestamp` is not a 48-bit positive integer.
     pub fn generate_or_abort_with_ts(&mut self, timestamp: u64) -> Option<Id> {
-        if timestamp == 0 || timestamp > MAX_TIMESTAMP {
-            panic!("`timestamp` must be a 48-bit positive integer");
-        }
+        assert!(
+            timestamp != 0 && timestamp <= MAX_TIMESTAMP,
+            "`timestamp` must be a 48-bit positive integer"
+        );
 
         if timestamp > self.timestamp {
             self.timestamp = timestamp;
@@ -286,6 +292,7 @@ pub struct StdSystemTime;
 
 #[cfg(feature = "std")]
 impl TimeSource for StdSystemTime {
+    #[allow(clippy::cast_possible_truncation)]
     fn unix_ts_ms(&mut self) -> u64 {
         crate::SystemTime::now()
             .duration_since(crate::UNIX_EPOCH)

@@ -5,7 +5,7 @@ use core::{mem::MaybeUninit, ptr, slice};
 /// Polyfill for `maybe_uninit_slice` feature's
 /// `MaybeUninit::slice_assume_init_mut`. Every element of `slice` must have
 /// been initialized.
-#[inline(always)]
+#[inline]
 pub unsafe fn slice_assume_init_mut<T>(slice: &mut [MaybeUninit<T>]) -> &mut [T] {
     let ptr = ptr::from_mut(slice) as *mut [T];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
@@ -18,7 +18,7 @@ pub fn uninit_slice_fill_zero(slice: &mut [MaybeUninit<u8>]) -> &mut [u8] {
     unsafe { slice_assume_init_mut(slice) }
 }
 
-#[inline(always)]
+#[inline]
 pub fn slice_as_uninit<T>(slice: &[T]) -> &[MaybeUninit<T>] {
     let ptr = ptr::from_ref(slice) as *const [MaybeUninit<T>];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.
@@ -29,7 +29,7 @@ pub fn slice_as_uninit<T>(slice: &[T]) -> &[MaybeUninit<T>] {
 ///
 /// This is unsafe because it allows assigning uninitialized values into
 /// `slice`, which would be undefined behavior.
-#[inline(always)]
+#[inline]
 pub unsafe fn slice_as_uninit_mut<T>(slice: &mut [T]) -> &mut [MaybeUninit<T>] {
     let ptr = ptr::from_mut(slice) as *mut [MaybeUninit<T>];
     // SAFETY: `MaybeUninit<T>` is guaranteed to be layout-compatible with `T`.

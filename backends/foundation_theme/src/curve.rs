@@ -38,10 +38,13 @@ impl Point {
 #[must_use]
 pub fn cubic_bezier(p0: Point, p1: Point, p2: Point, p3: Point, t: f32) -> Point {
     let u = 1.0 - t;
-    let (a, b, c, d) = (u * u * u, 3.0 * u * u * t, 3.0 * u * t * t, t * t * t);
+    let w0 = u * u * u;
+    let w1 = 3.0 * u * u * t;
+    let w2 = 3.0 * u * t * t;
+    let w3 = t * t * t;
     Point {
-        x: a * p0.x + b * p1.x + c * p2.x + d * p3.x,
-        y: a * p0.y + b * p1.y + c * p2.y + d * p3.y,
+        x: w0 * p0.x + w1 * p1.x + w2 * p2.x + w3 * p3.x,
+        y: w0 * p0.y + w1 * p1.y + w2 * p2.y + w3 * p3.y,
     }
 }
 
@@ -65,9 +68,14 @@ pub fn sample(p0: Point, p1: Point, p2: Point, p3: Point, n: usize) -> Vec<Point
     if n == 1 {
         return alloc::vec![p0];
     }
+    #[allow(clippy::cast_precision_loss)]
     let last = (n - 1) as f32;
     (0..n)
-        .map(|i| cubic_bezier(p0, p1, p2, p3, i as f32 / last))
+        .map(|i| {
+            #[allow(clippy::cast_precision_loss)]
+            let t = i as f32 / last;
+            cubic_bezier(p0, p1, p2, p3, t)
+        })
         .collect()
 }
 

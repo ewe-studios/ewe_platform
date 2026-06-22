@@ -61,7 +61,7 @@ impl WasmSessionManager {
 
     /// Create a new session: store in D1 and return a signed cookie string.
     pub async fn create_session(&self, user_id: &str) -> Result<String, String> {
-        let id = uuid::Uuid::new_v4().to_string();
+        let id = foundation_compact::ids::new_scru128_string();
         let exp = chrono::Utc::now().timestamp() + Self::DEFAULT_SESSION_DURATION_SECS;
         let now_ms = chrono::Utc::now().timestamp_millis();
 

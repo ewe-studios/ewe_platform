@@ -29,9 +29,10 @@ const MAX_COUNTER_LO: u32 = 0xff_ffff;
 
 /// Generate a new SCRU128 ID using a thread-local generator.
 ///
-/// Uses our vendored entropy + ChaCha12 RNG + cross-platform SystemTime.
+/// Uses our vendored entropy + `ChaCha12` RNG + cross-platform `SystemTime`.
 /// Works on all targets including `wasm32-unknown-unknown`.
 #[cfg(feature = "std")]
+#[must_use]
 pub fn new_scru128() -> Id {
     use std::cell::RefCell;
 
@@ -44,13 +45,14 @@ pub fn new_scru128() -> Id {
             )
         );
     }
-    GEN.with_borrow_mut(|g| g.generate())
+    GEN.with_borrow_mut(Generator::generate)
 }
 
 /// Generate a new SCRU128 ID as a 25-digit canonical string.
 ///
 /// Works on all targets including `wasm32-unknown-unknown`.
 #[cfg(feature = "std")]
+#[must_use]
 pub fn new_scru128_string() -> String {
     new_scru128().to_string()
 }
@@ -70,7 +72,12 @@ pub const DEFAULT_MACHINE_ID_BITS: u8 = 12;
 /// The generator is thread-local and keyed by `machine_id`, so repeated calls
 /// with the same `machine_id` share one monotonic counter (ordering preserved);
 /// the machine id is masked to [`DEFAULT_MACHINE_ID_BITS`].
+///
+/// # Panics
+///
+/// Panics if the thread-local generator slot is in an inconsistent state (should not happen).
 #[cfg(feature = "std")]
+#[must_use]
 pub fn new_scru128_with_machine_id(machine_id: u32) -> Id {
     use std::cell::RefCell;
 
@@ -99,10 +106,10 @@ pub fn new_scru128_with_machine_id(machine_id: u32) -> Id {
 /// Current unix time in milliseconds via the cross-platform `SystemTime`.
 #[cfg(feature = "std")]
 fn now_unix_ms() -> u64 {
+    #[allow(clippy::cast_possible_truncation)]
     crate::SystemTime::now()
         .duration_since(crate::SystemTime::UNIX_EPOCH)
-        .map(|d| d.as_millis() as u64)
-        .unwrap_or(0)
+        .map_or(0, |d| d.as_millis() as u64)
 }
 
 /// A stable 64-bit hash (FNV-1a) — small, dependency-free, stable across runs.
@@ -130,6 +137,10 @@ pub fn stable_hash(bytes: &[u8]) -> u64 {
 /// `counter_hi | counter_lo` plus the low entropy bits.
 ///
 /// Pass `machine_id = 0` for a machine-agnostic derived id.
+///
+/// # Panics
+///
+/// Panics if the masked field values overflow their ranges (should not happen).
 #[cfg(feature = "std")]
 #[must_use]
 pub fn scru128_from_name_with_machine_id(name: &str, machine_id: u32) -> Id {
@@ -138,9 +149,11 @@ pub fn scru128_from_name_with_machine_id(name: &str, machine_id: u32) -> Id {
     let mid = if bits == 0 { 0 } else { machine_id & ((1u32 << bits) - 1) };
     let h = stable_hash(name.as_bytes());
 
+    #[allow(clippy::cast_possible_truncation)]
     let counter_hi = ((h >> 40) as u32) & MAX_COUNTER_HI;
+    #[allow(clippy::cast_possible_truncation)]
     let counter_lo = ((h >> 16) as u32) & MAX_COUNTER_LO;
-    // entropy: machine id in the high `bits`, hash in the low `32 - bits`.
+    #[allow(clippy::cast_possible_truncation)]
     let entropy = if bits == 0 {
         h as u32
     } else if bits == 32 {

@@ -45,10 +45,9 @@ impl Hsl {
 
     /// Convert to 8-bit RGB.
     #[must_use]
+    #[allow(clippy::many_single_char_names)]
     pub fn to_rgb(self) -> (u8, u8, u8) {
-        let h = norm_deg(self.h);
-        let s = clamp01(self.s);
-        let l = clamp01(self.l);
+        let (h, s, l) = (norm_deg(self.h), clamp01(self.s), clamp01(self.l));
         let c = (1.0 - abs(2.0 * l - 1.0)) * s;
         let hp = h / 60.0;
         let x = c * (1.0 - abs(hp % 2.0 - 1.0));
@@ -88,9 +87,11 @@ pub fn gaming(start_hue: f32, count: usize) -> Vec<String> {
 /// `1.0` for a soft ease-out). Great for `50…900`-style scales.
 #[must_use]
 pub fn ramp(hue: f32, sat: f32, count: usize, ease_c1: f32, ease_c2: f32) -> Vec<String> {
+    #[allow(clippy::cast_precision_loss)]
     let denom = count.saturating_sub(1).max(1) as f32;
     (0..count)
         .map(|i| {
+            #[allow(clippy::cast_precision_loss)]
             let t = i as f32 / denom;
             let e = ease(t, ease_c1, ease_c2); // 0..1
             // Light (0.95) → dark (0.12).
@@ -106,10 +107,12 @@ pub fn ramp(hue: f32, sat: f32, count: usize, ease_c1: f32, ease_c2: f32) -> Vec
 /// counterparts. Returns `(light, dark)`, each `count` long.
 #[must_use]
 pub fn dual_theme(hue: f32, sat: f32, count: usize) -> (Vec<String>, Vec<String>) {
+    #[allow(clippy::cast_precision_loss)]
     let denom = count.saturating_sub(1).max(1) as f32;
     let mut light = Vec::with_capacity(count);
     let mut dark = Vec::with_capacity(count);
     for i in 0..count {
+        #[allow(clippy::cast_precision_loss)]
         let t = i as f32 / denom;
         let e = ease(t, 0.42, 1.0);
         // Light theme: bright → mid.   Dark theme: the mirror (dim → bright).
@@ -124,9 +127,14 @@ fn even_hues(start_hue: f32, count: usize, s: f32, l: f32) -> Vec<String> {
     if count == 0 {
         return Vec::new();
     }
+    #[allow(clippy::cast_precision_loss)]
     let step = 360.0 / count as f32;
     (0..count)
-        .map(|i| Hsl::new(start_hue + step * i as f32, s, l).to_hex())
+        .map(|i| {
+            #[allow(clippy::cast_precision_loss)]
+            let hue = start_hue + step * i as f32;
+            Hsl::new(hue, s, l).to_hex()
+        })
         .collect()
 }
 
@@ -141,13 +149,7 @@ fn abs(x: f32) -> f32 {
 
 #[inline]
 fn clamp01(x: f32) -> f32 {
-    if x < 0.0 {
-        0.0
-    } else if x > 1.0 {
-        1.0
-    } else {
-        x
-    }
+    x.clamp(0.0, 1.0)
 }
 
 /// Normalize degrees into `[0, 360)`.
@@ -164,12 +166,7 @@ fn norm_deg(h: f32) -> f32 {
 /// Scale a `0..=1` channel to a rounded `u8`.
 #[inline]
 fn to_u8(v: f32) -> u8 {
-    let scaled = v * 255.0 + 0.5;
-    if scaled <= 0.0 {
-        0
-    } else if scaled >= 255.0 {
-        255
-    } else {
-        scaled as u8
-    }
+    let scaled = (v * 255.0 + 0.5).clamp(0.0, 255.0);
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+    { scaled as u8 }
 }

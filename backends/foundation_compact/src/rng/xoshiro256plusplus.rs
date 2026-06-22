@@ -43,16 +43,16 @@ impl SeedableRng for Xoshiro256PlusPlus {
 
     /// Create a new `Xoshiro256PlusPlus` from a `u64` seed.
     ///
-    /// This uses the SplitMix64 generator internally.
+    /// This uses the `SplitMix64` generator internally.
     #[inline]
     fn seed_from_u64(mut state: u64) -> Self {
-        const PHI: u64 = 0x9e3779b97f4a7c15;
+        const PHI: u64 = 0x9e37_79b9_7f4a_7c15;
         let mut s = [0; 4];
-        for i in s.iter_mut() {
+        for i in &mut s {
             state = state.wrapping_add(PHI);
             let mut z = state;
-            z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
-            z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
+            z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+            z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
             z = z ^ (z >> 31);
             *i = z;
         }
@@ -114,16 +114,16 @@ mod tests {
         // These values were produced with the reference implementation:
         // http://xoshiro.di.unimi.it/xoshiro256plusplus.c
         let expected = [
-            41943041,
-            58720359,
-            3588806011781223,
-            3591011842654386,
-            9228616714210784205,
-            9973669472204895162,
-            14011001112246962877,
-            12406186145184390807,
-            15849039046786891736,
-            10450023813501588000,
+            41_943_041,
+            58_720_359,
+            3_588_806_011_781_223,
+            3_591_011_842_654_386,
+            9_228_616_714_210_784_205,
+            9_973_669_472_204_895_162,
+            14_011_001_112_246_962_877,
+            12_406_186_145_184_390_807,
+            15_849_039_046_786_891_736,
+            10_450_023_813_501_588_000,
         ];
         for &e in &expected {
             assert_eq!(rng.next_u64(), e);
@@ -138,16 +138,16 @@ mod tests {
         // from_seed([0; 32]) should produce the same state as seed_from_u64(0).
         let mut rng_from_seed_0 = Xoshiro256PlusPlus::from_seed([0; 32]);
         let expected = [
-            5987356902031041503,
-            7051070477665621255,
-            6633766593972829180,
-            211316841551650330,
-            9136120204379184874,
-            379361710973160858,
-            15813423377499357806,
-            15596884590815070553,
-            5439680534584881407,
-            1369371744833522710,
+            5_987_356_902_031_041_503,
+            7_051_070_477_665_621_255,
+            6_633_766_593_972_829_180,
+            211_316_841_551_650_330,
+            9_136_120_204_379_184_874,
+            379_361_710_973_160_858,
+            15_813_423_377_499_357_806,
+            15_596_884_590_815_070_553,
+            5_439_680_534_584_881_407,
+            1_369_371_744_833_522_710,
         ];
         for &e in &expected {
             assert_eq!(rng.next_u64(), e);

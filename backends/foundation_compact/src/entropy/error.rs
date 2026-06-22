@@ -101,6 +101,7 @@ impl Error {
     /// [1]: https://doc.rust-lang.org/std/io/struct.Error.html#method.raw_os_error
     /// [`RawOsError`]: https://doc.rust-lang.org/std/io/type.RawOsError.html
     #[inline]
+    #[must_use]
     pub fn raw_os_error(self) -> Option<RawOsError> {
         let code = self.0.get();
 
@@ -126,6 +127,7 @@ impl Error {
     }
 
     /// Creates a new instance of an `Error` from a particular custom error code.
+    #[must_use]
     pub const fn new_custom(n: u16) -> Error {
         // SAFETY: code > 0 as CUSTOM_START > 0 and adding `n` won't overflow `RawOsError`.
         let code = Error::CUSTOM_START + (n as RawOsError);
@@ -139,8 +141,8 @@ impl Error {
         Error(unsafe { NonZeroRawOsError::new_unchecked(code) })
     }
 
-    fn internal_desc(&self) -> Option<&'static str> {
-        let desc = match *self {
+    fn internal_desc(self) -> Option<&'static str> {
+        let desc = match self {
             Error::UNSUPPORTED => "entropy: this target is not supported",
             Error::ERRNO_NOT_POSITIVE => "errno: did not return a positive value",
             Error::UNEXPECTED => "unexpected situation",

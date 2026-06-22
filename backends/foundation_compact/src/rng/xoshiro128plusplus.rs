@@ -43,18 +43,21 @@ impl SeedableRng for Xoshiro128PlusPlus {
 
     /// Create a new `Xoshiro128PlusPlus` from a `u64` seed.
     ///
-    /// This uses the SplitMix64 generator internally.
+    /// This uses the `SplitMix64` generator internally.
     #[inline]
     fn seed_from_u64(mut state: u64) -> Self {
-        const PHI: u64 = 0x9e3779b97f4a7c15;
+        const PHI: u64 = 0x9e37_79b9_7f4a_7c15;
         let mut s = [0; 4];
         for i in s.chunks_exact_mut(2) {
             state = state.wrapping_add(PHI);
             let mut z = state;
-            z = (z ^ (z >> 30)).wrapping_mul(0xbf58476d1ce4e5b9);
-            z = (z ^ (z >> 27)).wrapping_mul(0x94d049bb133111eb);
+            z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
+            z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
             z = z ^ (z >> 31);
-            i[0] = z as u32;
+            #[allow(clippy::cast_possible_truncation)]
+            {
+                i[0] = z as u32;
+            }
             i[1] = (z >> 32) as u32;
         }
         // By using a non-zero PHI we are guaranteed to generate a non-zero state
@@ -111,8 +114,16 @@ mod tests {
         // These values were produced with the reference implementation:
         // http://xoshiro.di.unimi.it/xoshiro128plusplus.c
         let expected = [
-            641, 1573767, 3222811527, 3517856514, 836907274, 4247214768, 3867114732, 1355841295,
-            495546011, 621204420,
+            641,
+            1_573_767,
+            3_222_811_527,
+            3_517_856_514,
+            836_907_274,
+            4_247_214_768,
+            3_867_114_732,
+            1_355_841_295,
+            495_546_011,
+            621_204_420,
         ];
         for &e in &expected {
             assert_eq!(rng.next_u32(), e);
@@ -127,8 +138,16 @@ mod tests {
         // from_seed([0; 16]) should produce the same state as seed_from_u64(0).
         let mut rng_from_seed_0 = Xoshiro128PlusPlus::from_seed([0; 16]);
         let expected = [
-            1179900579, 1938959192, 3089844957, 3657088315, 1015453891, 479942911, 3433842246,
-            669252886, 3985671746, 2737205563,
+            1_179_900_579,
+            1_938_959_192,
+            3_089_844_957,
+            3_657_088_315,
+            1_015_453_891,
+            479_942_911,
+            3_433_842_246,
+            669_252_886,
+            3_985_671_746,
+            2_737_205_563,
         ];
         for &e in &expected {
             assert_eq!(rng.next_u32(), e);
