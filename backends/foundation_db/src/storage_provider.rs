@@ -815,12 +815,12 @@ impl AsyncKeyValueStore for StorageProvider {
 
 #[async_trait::async_trait]
 impl AsyncQueryStore for StorageProvider {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+    async fn query_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
-            StorageProviderInner::Turso(storage) => storage.query_async(sql, params).await,
+            StorageProviderInner::Turso(storage) => storage.query_async(_sql, _params).await,
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
-            StorageProviderInner::Libsql(storage) => storage.query_async(sql, params).await,
+            StorageProviderInner::Libsql(storage) => storage.query_async(_sql, _params).await,
             #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
@@ -832,13 +832,13 @@ impl AsyncQueryStore for StorageProvider {
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
-            StorageProviderInner::D1(storage) => storage.query_async(sql, params).await,
+            StorageProviderInner::D1(storage) => storage.query_async(_sql, _params).await,
             #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
             #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::D1Wasm(storage) => storage.query_async(sql, params).await,
+            StorageProviderInner::D1Wasm(storage) => storage.query_async(_sql, _params).await,
             #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
@@ -850,12 +850,12 @@ impl AsyncQueryStore for StorageProvider {
         }
     }
 
-    async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
+    async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
-            StorageProviderInner::Turso(storage) => storage.execute_async(sql, params).await,
+            StorageProviderInner::Turso(storage) => storage.execute_async(_sql, _params).await,
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
-            StorageProviderInner::Libsql(storage) => storage.execute_async(sql, params).await,
+            StorageProviderInner::Libsql(storage) => storage.execute_async(_sql, _params).await,
             #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
@@ -867,13 +867,13 @@ impl AsyncQueryStore for StorageProvider {
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
-            StorageProviderInner::D1(storage) => storage.execute_async(sql, params).await,
+            StorageProviderInner::D1(storage) => storage.execute_async(_sql, _params).await,
             #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
             #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::D1Wasm(storage) => storage.execute_async(sql, params).await,
+            StorageProviderInner::D1Wasm(storage) => storage.execute_async(_sql, _params).await,
             #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
@@ -885,12 +885,12 @@ impl AsyncQueryStore for StorageProvider {
         }
     }
 
-    async fn execute_batch_async(&self, sql: &str) -> StorageResult<()> {
+    async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
         match &self.inner {
             #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
-            StorageProviderInner::Turso(storage) => storage.execute_batch_async(sql).await,
+            StorageProviderInner::Turso(storage) => storage.execute_batch_async(_sql).await,
             #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
-            StorageProviderInner::Libsql(storage) => storage.execute_batch_async(sql).await,
+            StorageProviderInner::Libsql(storage) => storage.execute_batch_async(_sql).await,
             #[cfg(not(target_arch = "wasm32"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
@@ -902,13 +902,13 @@ impl AsyncQueryStore for StorageProvider {
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
             #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
-            StorageProviderInner::D1(storage) => storage.execute_batch_async(sql).await,
+            StorageProviderInner::D1(storage) => storage.execute_batch_async(_sql).await,
             #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
             #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::D1Wasm(storage) => storage.execute_batch_async(sql).await,
+            StorageProviderInner::D1Wasm(storage) => storage.execute_batch_async(_sql).await,
             #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
