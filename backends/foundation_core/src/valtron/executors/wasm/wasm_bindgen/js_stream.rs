@@ -14,15 +14,17 @@
 //!
 //! HOW: Both use `ConcurrentQueue` as the sync/async bridge.
 //! - Reading: `spawn_local` runs an async loop that awaits `reader.read()`
-//!   promises and pushes `Vec<u8>` chunks into the queue. The sync iterator
-//!   pops from the queue, returning `JsStreamValue::Waiting` when empty
-//!   (valtron's JS yielder schedules a setTimeout and resumes).
+//!   promises and pushes `JsStreamValue` items into the queue. The sync
+//!   iterator pops from the queue, returning `JsStreamValue::Waiting` when
+//!   empty (valtron's JS yielder schedules a setTimeout and resumes).
+//!   Errors are pushed as `JsStreamValue::Error` so they flow through the
+//!   same channel — no separate error storage needed.
 //! - Writing: A `pull(controller)` JS closure pops from a queue that a
 //!   background `spawn_local` task feeds from the Rust iterator, calling
 //!   `controller.enqueue(chunk)` or `controller.close()`.
 
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
 use wasm_bindgen::prelude::*;
@@ -35,10 +37,13 @@ use wasm_bindgen_futures::JsFuture;
 /// - `Chunk(Vec<u8>)` — a batch of bytes from the stream
 /// - `Waiting` — stream has more data but none is available yet;
 ///   the valtron executor yields to the JS event loop and retries
+/// - `Error(String)` — the stream errored (closed unexpectedly,
+///   read failure, etc.). The iterator will return `None` after this.
 #[derive(Debug)]
 pub enum JsStreamValue {
     Chunk(Vec<u8>),
     Waiting,
+    Error(String),
 }
 
 /// Sync iterator over a JS `ReadableStream`.
@@ -49,18 +54,25 @@ pub enum JsStreamValue {
 /// `spawn_local` + `ConcurrentQueue` instead.
 ///
 /// WHAT: Spawns an async task that reads chunks from the
-/// `ReadableStreamDefaultReader` and pushes them into a queue.
+/// `ReadableStreamDefaultReader` and pushes them as `JsStreamValue`
+/// items into a queue. Errors are pushed as `JsStreamValue::Error`
+/// through the same queue — the consumer drains all queued chunks
+/// before seeing the error.
+///
 /// `Iterator::next()` pops from the queue:
 /// - `Some(Chunk(bytes))` when data is available
+/// - `Some(Error(msg))` when the stream errored
 /// - `Some(Waiting)` when the queue is empty but the stream isn't done
 /// - `None` when the stream is fully consumed
 ///
 /// HOW: The async reader loop calls `reader.read()` (returns a Promise),
 /// awaits it via `JsFuture`, extracts the `Uint8Array` value, and
-/// pushes bytes into the `ConcurrentQueue`. Sets `done` flag on
-/// stream end or error.
+/// pushes `JsStreamValue::Chunk` into the `ConcurrentQueue`. On error
+/// it pushes `JsStreamValue::Error`. If the queue is full, the rejected
+/// item is held locally and retried before the next JS read. If the
+/// queue is closed (consumer gone), the reader task stops.
 pub struct JsReadableStreamIterator {
-    queue: Arc<ConcurrentQueue<Vec<u8>>>,
+    queue: Arc<ConcurrentQueue<JsStreamValue>>,
     done: Arc<AtomicBool>,
 }
 
@@ -69,9 +81,28 @@ impl JsReadableStreamIterator {
     ///
     /// Immediately spawns an async task (via `wasm_bindgen_futures::spawn_local`)
     /// to begin reading chunks into the internal queue.
+    /// Bounded queue (default 64 slots) — applies backpressure to the JS
+    /// reader when the consumer can't keep up, preventing OOM.
     #[must_use]
     pub fn new(stream: web_sys::ReadableStream) -> Self {
-        let queue = Arc::new(ConcurrentQueue::unbounded());
+        Self::with_capacity(stream, 512)
+    }
+
+    /// Unbounded queue — no backpressure, use only when you know the
+    /// stream is short-lived or the consumer drains faster than production.
+    #[must_use]
+    pub fn unbounded(stream: web_sys::ReadableStream) -> Self {
+        Self::create(stream, ConcurrentQueue::unbounded())
+    }
+
+    /// Bounded queue with a caller-chosen capacity.
+    #[must_use]
+    pub fn with_capacity(stream: web_sys::ReadableStream, capacity: usize) -> Self {
+        Self::create(stream, ConcurrentQueue::bounded(capacity))
+    }
+
+    fn create(stream: web_sys::ReadableStream, queue: ConcurrentQueue<JsStreamValue>) -> Self {
+        let queue = Arc::new(queue);
         let done = Arc::new(AtomicBool::new(false));
 
         let q = queue.clone();
@@ -82,10 +113,29 @@ impl JsReadableStreamIterator {
                 .get_reader()
                 .unchecked_into::<web_sys::ReadableStreamDefaultReader>();
 
+            let mut pending: Option<JsStreamValue> = None;
+
             loop {
+                // Drain any cached item from a previous full-queue push before
+                // reading the next chunk from JS.
+                if let Some(item) = pending.take() {
+                    match q.push(item) {
+                        Ok(()) => {}
+                        Err(concurrent_queue::PushError::Closed(_)) => {
+                            d.store(true, Ordering::Release);
+                            break;
+                        }
+                        Err(concurrent_queue::PushError::Full(rejected)) => {
+                            pending = Some(rejected);
+                            continue;
+                        }
+                    }
+                }
+
                 let result = match JsFuture::from(reader.read()).await {
                     Ok(val) => val,
-                    Err(_) => {
+                    Err(js_err) => {
+                        let _ = q.push(JsStreamValue::Error(format!("{js_err:?}")));
                         d.store(true, Ordering::Release);
                         break;
                     }
@@ -105,7 +155,16 @@ impl JsReadableStreamIterator {
                     let array = js_sys::Uint8Array::new(&value);
                     let bytes = array.to_vec();
                     if !bytes.is_empty() {
-                        let _ = q.push(bytes);
+                        match q.push(JsStreamValue::Chunk(bytes)) {
+                            Ok(()) => {}
+                            Err(concurrent_queue::PushError::Closed(_)) => {
+                                d.store(true, Ordering::Release);
+                                break;
+                            }
+                            Err(concurrent_queue::PushError::Full(rejected)) => {
+                                pending = Some(rejected);
+                            }
+                        }
                     }
                 }
             }
@@ -131,7 +190,7 @@ impl Iterator for JsReadableStreamIterator {
 
     fn next(&mut self) -> Option<Self::Item> {
         match self.queue.pop() {
-            Ok(chunk) => Some(JsStreamValue::Chunk(chunk)),
+            Ok(item) => Some(item),
             Err(_) => {
                 if self.done.load(Ordering::Acquire) {
                     None
@@ -173,8 +232,7 @@ pub fn iterator_to_readable_stream(
 
     let pull_iter = iter.clone();
     let pull = Closure::wrap(Box::new(move |controller: JsValue| -> js_sys::Promise {
-        let controller: web_sys::ReadableStreamDefaultController =
-            controller.unchecked_into();
+        let controller: web_sys::ReadableStreamDefaultController = controller.unchecked_into();
 
         let mut iter_ref = pull_iter.borrow_mut();
         match iter_ref.next() {

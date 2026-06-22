@@ -90,7 +90,8 @@ fn spawn_stream_reader(
         loop {
             let result = match JsFuture::from(reader.read()).await {
                 Ok(val) => val,
-                Err(_) => {
+                Err(e) => {
+                    tracing::error!("SSE ReadableStream read error: {e:?}");
                     done.store(true, Ordering::Release);
                     break;
                 }
@@ -110,7 +111,10 @@ fn spawn_stream_reader(
                 let array = js_sys::Uint8Array::new(&value);
                 let bytes = array.to_vec();
                 if !bytes.is_empty() {
-                    let _ = queue.push(bytes);
+                    if queue.push(bytes).is_err() {
+                        done.store(true, Ordering::Release);
+                        break;
+                    }
                 }
             }
         }
