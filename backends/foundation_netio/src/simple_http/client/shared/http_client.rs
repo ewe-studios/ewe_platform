@@ -4,14 +4,14 @@
 //! on both native (TCP sockets) and wasm32 (browser `fetch` / CF Workers).
 //! By coding against `dyn HttpClient`, callers become platform-agnostic.
 //!
-//! WHAT: Defines the async `HttpClient` trait with two methods:
-//! - `send()` — full request/response cycle returning `SimpleResponse<SendSafeBody>`
-//! - `send_sse()` — SSE streaming returning a boxed iterator of parsed events
+//! WHAT: Defines the `HttpClient` trait with four methods:
+//! - `send_async()` / `send_sse_async()` — async (canonical, holds real logic)
+//! - `send()` / `send_sse()` — sync (wraps async via valtron, providers call these)
 //!
 //! HOW: Trait is `#[async_trait]` and object-safe (`Arc<dyn HttpClient>`).
-//! Native impl wraps `SimpleHttpClient` + `ReconnectingEventSourceTask`.
-//! Wasm impl wraps `web_sys::fetch` + `ReadableStream` → `SseParser` bridge.
-//! Sync callers drive async methods through `valtron::run_future()`.
+//! Native impl overrides sync methods with direct sync calls (no async overhead).
+//! Wasm impl relies on the default sync→async bridge via `valtron::run_future()`.
+//! The outside world doesn't need to know about the async/sync bridging.
 
 use foundation_core::valtron::Stream;
 
@@ -38,36 +38,41 @@ pub enum SseProgress {
 /// valtron's executor model.
 pub type BoxedSseIterator = Box<dyn Iterator<Item = Stream<ParseResult, SseProgress>> + Send>;
 
-/// Platform-agnostic async HTTP client.
+/// Platform-agnostic HTTP client with both async and sync surfaces.
 ///
-/// Implementations exist for native (`NativeHttpClient`) and wasm32
-/// (`FetchHttpClient`). Store as `Arc<dyn HttpClient>` for dynamic dispatch.
+/// Async methods (`send_async`, `send_sse_async`) hold the canonical logic.
+/// Sync methods (`send`, `send_sse`) wrap async via `valtron::run_future()`
+/// by default — native overrides them with direct sync implementations so
+/// providers and other callers just call `client.send(req)` without knowing
+/// about async internals.
 ///
-/// Uses `PreparedRequest` (shared, cross-platform) for input and
-/// `SimpleResponse<SendSafeBody>` for output — both types support the full
-/// range of body variants including streaming (`SendSafeBody::Stream`,
-/// `SseStream`, `ChunkedStream`, etc.).
+/// Store as `Arc<dyn HttpClient>` for dynamic dispatch.
 #[async_trait::async_trait]
 pub trait HttpClient: Send + Sync {
-    /// Send an HTTP request and return the full response.
-    ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if the request fails (DNS, connection,
-    /// timeout, protocol error, etc.).
-    async fn send(
+    /// Send an HTTP request asynchronously — canonical implementation.
+    async fn send_async(
         &self,
         req: PreparedRequest,
     ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
 
-    /// Send an HTTP request expecting an SSE (`text/event-stream`) response.
+    /// Send an SSE request asynchronously — canonical implementation.
+    async fn send_sse_async(
+        &self,
+        req: PreparedRequest,
+    ) -> Result<BoxedSseIterator, HttpClientError>;
+
+    /// Send an HTTP request synchronously.
     ///
-    /// Returns a boxed iterator that yields parsed SSE events. On native this
-    /// wraps `ReconnectingEventSourceTask`; on wasm it reads `ReadableStream`
-    /// chunks through `SseParser`.
+    /// Default bridges to `send_async` via `valtron::run_future()`.
+    /// Native overrides this with a direct sync path (no async overhead).
+    fn send(
+        &self,
+        req: PreparedRequest,
+    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
+
+    /// Send an SSE request synchronously.
     ///
-    /// # Errors
-    ///
-    /// Returns `HttpClientError` if the connection or initial handshake fails.
-    async fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
+    /// Default bridges to `send_sse_async` via `valtron::run_future()`.
+    /// Native overrides this with a direct sync path.
+    fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
 }

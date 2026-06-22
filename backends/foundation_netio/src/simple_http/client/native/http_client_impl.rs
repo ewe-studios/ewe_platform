@@ -38,23 +38,11 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
     pub fn with_client(client: SimpleHttpClient<R>, resolver: R) -> Self {
         Self { client, resolver }
     }
-}
 
-impl<R: DnsResolver + Clone + Send + 'static> Clone for NativeHttpClient<R> {
-    fn clone(&self) -> Self {
-        Self {
-            client: self.client.clone(),
-            resolver: self.resolver.clone(),
-        }
-    }
-}
-
-#[async_trait::async_trait]
-impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for NativeHttpClient<R> {
-    async fn send(
+    fn build_request(
         &self,
-        req: PreparedRequest,
-    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+        req: &PreparedRequest,
+    ) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         let url_str = req.url.to_string();
         let method_fn = match req.method {
             SimpleMethod::GET => SimpleHttpClient::get,
@@ -75,6 +63,70 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
             }
         }
 
+        Ok(builder)
+    }
+
+    fn build_sse_task(
+        &self,
+        req: &PreparedRequest,
+    ) -> Result<ReconnectingEventSourceTask<R>, HttpClientError> {
+        let url_str = req.url.to_string();
+        let mut task = ReconnectingEventSourceTask::connect(self.resolver.clone(), &url_str)
+            .map_err(|e| HttpClientError::Reason(format!("SSE connection failed: {e}")))?;
+
+        for (key, values) in &req.headers {
+            for value in values {
+                task = task.with_header(key.clone(), value.clone());
+            }
+        }
+
+        Ok(task)
+    }
+}
+
+impl<R: DnsResolver + Clone + Send + 'static> Clone for NativeHttpClient<R> {
+    fn clone(&self) -> Self {
+        Self {
+            client: self.client.clone(),
+            resolver: self.resolver.clone(),
+        }
+    }
+}
+
+#[async_trait::async_trait]
+impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for NativeHttpClient<R> {
+    async fn send_async(
+        &self,
+        req: PreparedRequest,
+    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+        let mut builder = self.build_request(&req)?;
+
+        if !matches!(req.body, SendSafeBody::None) {
+            builder = builder.body(req.body);
+        }
+
+        let request = self.client.request(builder)?;
+        let response = request.send_async().await?;
+        let (status, headers, body, _pool, _conn) = response.into_parts();
+
+        Ok(SimpleResponse::new(status, headers, body))
+    }
+
+    async fn send_sse_async(
+        &self,
+        req: PreparedRequest,
+    ) -> Result<BoxedSseIterator, HttpClientError> {
+        // SSE uses valtron execute() which is already sync-driven,
+        // so the async version delegates to the sync implementation.
+        self.send_sse(req)
+    }
+
+    fn send(
+        &self,
+        req: PreparedRequest,
+    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+        let mut builder = self.build_request(&req)?;
+
         if !matches!(req.body, SendSafeBody::None) {
             builder = builder.body(req.body);
         }
@@ -86,17 +138,8 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         Ok(SimpleResponse::new(status, headers, body))
     }
 
-    async fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
-        let url_str = req.url.to_string();
-        let task = ReconnectingEventSourceTask::connect(self.resolver.clone(), &url_str)
-            .map_err(|e| HttpClientError::Reason(format!("SSE connection failed: {e}")))?;
-
-        let mut task = task;
-        for (key, values) in &req.headers {
-            for value in values {
-                task = task.with_header(key.clone(), value.clone());
-            }
-        }
+    fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
+        let mut task = self.build_sse_task(&req)?;
 
         if !matches!(req.body, SendSafeBody::None) {
             task = task.with_body(req.body);

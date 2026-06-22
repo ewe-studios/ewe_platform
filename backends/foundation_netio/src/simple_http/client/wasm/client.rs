@@ -15,12 +15,14 @@
 //! SSE responses use `WasmSseIterator` from the `stream` module.
 //! Streaming request bodies are bridged to JS `ReadableStream` via
 //! valtron's `iterator_to_readable_stream`.
+//! Async methods are canonical; sync methods wrap via `valtron::run_future()`.
 
 use std::sync::Arc;
 
 use foundation_compact::SendWrapper;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::js_stream;
+use foundation_core::valtron::run_future;
 use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
@@ -47,7 +49,7 @@ unsafe impl Sync for FetchHttpClient {}
 
 #[async_trait::async_trait]
 impl HttpClient for FetchHttpClient {
-    async fn send(
+    async fn send_async(
         &self,
         req: PreparedRequest,
     ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
@@ -76,7 +78,10 @@ impl HttpClient for FetchHttpClient {
         .await
     }
 
-    async fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
+    async fn send_sse_async(
+        &self,
+        req: PreparedRequest,
+    ) -> Result<BoxedSseIterator, HttpClientError> {
         SendWrapper::new(async move {
             let ws_req = build_web_request(req)?;
             let resp = do_fetch(&ws_req).await?;
@@ -96,6 +101,33 @@ impl HttpClient for FetchHttpClient {
             Ok(Box::new(iter) as BoxedSseIterator)
         })
         .await
+    }
+
+    fn send(
+        &self,
+        req: PreparedRequest,
+    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+        let fut = FetchHttpClient.send_async(req);
+        let results = run_future(fut)
+            .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
+        results
+            .into_iter()
+            .next()
+            .unwrap_or(Err(HttpClientError::Reason(
+                "run_future returned no result".into(),
+            )))
+    }
+
+    fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
+        let fut = FetchHttpClient.send_sse_async(req);
+        let results = run_future(fut)
+            .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
+        results
+            .into_iter()
+            .next()
+            .unwrap_or(Err(HttpClientError::Reason(
+                "run_future returned no result".into(),
+            )))
     }
 }
 
