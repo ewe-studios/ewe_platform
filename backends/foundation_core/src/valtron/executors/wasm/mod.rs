@@ -24,6 +24,12 @@ mod wasm_bindgen;
     not(feature = "js-foundation-wasm")
 ))]
 pub use wasm_bindgen::{JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
+#[cfg(all(
+    any(target_arch = "wasm32", target_arch = "wasm64"),
+    feature = "js-wasmbindgen",
+    not(feature = "js-foundation-wasm")
+))]
+pub use wasm_bindgen::js_stream;
 
 #[cfg(all(
     any(target_arch = "wasm32", target_arch = "wasm64"),

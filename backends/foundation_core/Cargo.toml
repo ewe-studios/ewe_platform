@@ -41,7 +41,11 @@ bytes = "1.5"
 # JS event loop yield (wasm-bindgen backend)
 wasm-bindgen = { version = "0.2", optional = true }
 js-sys = { version = "0.3", optional = true }
-web-sys = { version = "0.3", optional = true, features = ["Window", "DedicatedWorkerGlobalScope", "console"] }
+wasm-bindgen-futures = { version = "0.4", optional = true }
+web-sys = { version = "0.3", optional = true, features = [
+    "Window", "DedicatedWorkerGlobalScope", "console",
+    "ReadableStream", "ReadableStreamDefaultReader", "ReadableStreamDefaultController",
+] }
 
 [dev-dependencies]
 wasm-bindgen-test = "0.3"
@@ -72,7 +76,7 @@ std = ["futures-core/std", "foundation_nostd/std", "foundation_compact/std"]
 multi = ["std", "alloc"]  # Multi-threaded executor requires std
 
 # JS event loop yield backends (mutually exclusive — pick one for wasm32)
-js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "foundation_nostd/js-event-loop"]
+js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bindgen-futures", "foundation_nostd/js-event-loop"]
 js-foundation-wasm = ["foundation_wasm/web"]
 
 # default flags

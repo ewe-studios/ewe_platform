@@ -3815,6 +3815,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-test",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "wasm-bindgen-test",
  "web-sys",
 ]
@@ -4145,6 +4146,7 @@ dependencies = [
  "tracing-subscriber",
  "tracing-test",
  "wasm-bindgen",
+ "wasm-bindgen-futures",
  "web-sys",
  "webpki-roots 0.26.11",
  "zeroize",

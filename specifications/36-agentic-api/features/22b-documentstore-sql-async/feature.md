@@ -1,18 +1,18 @@
 ---
 feature: "DocumentStore: SQL async backend (Turso/Libsql/D1)"
 description: "AsyncSqlDocumentStore<Q: AsyncQueryStore> — the canonical async AsyncDocumentStore over any SQL backend (Turso, Libsql, native D1, wasm D1), mirroring F06's sync SqlDocumentStore SQL (scru128 doc_id ordering, scan_from, promoted columns 020/021) but returning AsyncStorageItemStream (no Vec/OOM). Plus native sync+async conformance for Turso & Libsql. Reused by F23 for the CF D1 path."
-status: "in-progress"
+status: "complete"
 priority: "high"
 depends_on: ["06-documentstore-trait-sql-memory"]
 estimated_effort: "medium"
 created: 2026-06-17
-last_updated: 2026-06-17
+last_updated: 2026-06-22
 author: "Main Agent"
 tasks:
-  completed: 7
-  uncompleted: 1
+  completed: 8
+  uncompleted: 0
   total: 8
-  completion_percentage: 88%
+  completion_percentage: 100%
 ---
 
 # Feature 22b: DocumentStore — SQL async backend (Turso/Libsql/D1)

@@ -49,6 +49,13 @@ pub use sendables::*;
 #[cfg(any(feature = "js-wasmbindgen", feature = "js-foundation-wasm"))]
 pub mod wasm;
 
+#[cfg(all(
+    any(target_arch = "wasm32", target_arch = "wasm64"),
+    feature = "js-wasmbindgen",
+    not(feature = "js-foundation-wasm")
+))]
+pub use wasm::js_stream;
+
 #[cfg(feature = "multi")]
 pub mod multi;
 

@@ -273,6 +273,18 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         self
     }
 
+    /// Set the request body to any `SendSafeBody` variant.
+    ///
+    /// Unlike `body_text` / `body_bytes` / `body_json`, this does not
+    /// auto-set `Content-Type` or `Content-Length` — the caller is
+    /// responsible for headers when using raw body variants (streams,
+    /// chunked, SSE, etc.).
+    #[must_use]
+    pub fn body(mut self, body: SendSafeBody) -> Self {
+        self.body = Some(body);
+        self
+    }
+
     pub fn get(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::GET, url)
     }

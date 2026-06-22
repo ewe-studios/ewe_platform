@@ -1,8 +1,11 @@
 //! Native client types — gated behind `not(target_arch = "wasm32")`.
 
+//! Native client types — gated behind `not(target_arch = "wasm32")`.
+
 mod api;
 mod client;
 mod connection;
+mod http_client_impl;
 mod pool;
 mod proxy;
 mod request;
@@ -12,6 +15,7 @@ mod tls_task;
 pub use api::*;
 pub use client::*;
 pub use connection::*;
+pub use http_client_impl::*;
 pub use pool::*;
 pub use proxy::*;
 pub use request::*;

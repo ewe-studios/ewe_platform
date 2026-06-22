@@ -1,6 +1,8 @@
-//! wasm-bindgen + web-sys backend for JS event loop yielding.
+//! wasm-bindgen + web-sys backend for JS event loop yielding and JS stream bridging.
 //!
 //! Uses `window.setTimeout` directly for timer scheduling.
+
+pub mod js_stream;
 
 use crate::valtron::{ProgressIndicator, State};
 use foundation_nostd::primitives::cooperative_spin_waiter::{
