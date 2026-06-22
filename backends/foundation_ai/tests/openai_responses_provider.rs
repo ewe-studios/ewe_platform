@@ -4,6 +4,9 @@
 //!   1. llama-server built and running: `mise run llama:server:start`
 //!   2. Environment: `LLAMA_SERVER_TEST=1`
 
+use std::sync::Arc;
+use std::time::Duration;
+
 use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, StopReason,
@@ -12,6 +15,8 @@ use foundation_ai::types::{
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron;
 use foundation_core::valtron::Stream;
+use foundation_netio::simple_http::client::native::NativeHttpClient;
+use foundation_netio::simple_http::client::shared::http_client::HttpClient;
 use tracing_test::traced_test;
 
 fn setup_responses_provider() -> impl Model {
@@ -19,11 +24,18 @@ fn setup_responses_provider() -> impl Model {
         std::env::var("LLAMA_SERVER_URL").unwrap_or_else(|_| "http://127.0.0.1:8999".into());
     let api_key = std::env::var("LLAMA_SERVER_API_KEY").unwrap_or_default();
 
+    let resolver = foundation_netio::simple_http::client::shared::SystemDnsResolver;
+    let http_client: Arc<dyn HttpClient> = Arc::new(
+        NativeHttpClient::with_expect_continue_timeout(resolver, Duration::from_secs(30)),
+    );
+
     let config = ResponsesConfig::new()
         .with_base_url(base_url)
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key)));
 
-    let provider = ResponsesProvider::new().create(Some(config)).unwrap();
+    let provider = ResponsesProvider::with_http_client(http_client)
+        .create(Some(config))
+        .unwrap();
 
     provider
         .get_model(ModelId::Name("qwen2.5-0.5b-instruct".into(), None))

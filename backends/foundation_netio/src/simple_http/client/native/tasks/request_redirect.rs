@@ -384,32 +384,6 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         )));
                     }
 
-                    // Extract Content-Length and calculate dynamic timeout for body reading
-                    let content_length = headers_result.as_ref().and_then(|h| {
-                        h.as_ref().ok().and_then(|parts| {
-                            if let IncomingResponseParts::Headers(hdrs) = parts {
-                                hdrs.get(&SimpleHeader::CONTENT_LENGTH)
-                                    .and_then(|v| v.first())
-                                    .and_then(|s| s.parse::<usize>().ok())
-                            } else {
-                                None
-                            }
-                        })
-                    });
-
-                    // Calculate dynamic timeout based on expected body size
-                    let body_read_timeout = config.calculate_read_timeout(content_length, false);
-                    tracing::debug!("Setting body read timeout to {:?} for Content-Length {:?}",
-                        body_read_timeout, content_length);
-
-                    // Set the calculated timeout for body reading
-                    if let Err(err) = connection
-                        .stream_mut()
-                        .set_read_timeout_as(body_read_timeout)
-                    {
-                        tracing::error!("Failed to set body read timeout: {}", err);
-                    }
-
                     tracing::debug!("Received request response intro: {:?}", &intro_result);
 
                     // Both intro and headers are present
@@ -442,6 +416,31 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         )))));
 
                         return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                    }
+
+                    // Extract Content-Length and calculate dynamic timeout for body reading.
+                    // Only applied for non-100-Continue responses (actual response with body).
+                    let content_length = headers_result.as_ref().and_then(|h| {
+                        h.as_ref().ok().and_then(|parts| {
+                            if let IncomingResponseParts::Headers(hdrs) = parts {
+                                hdrs.get(&SimpleHeader::CONTENT_LENGTH)
+                                    .and_then(|v| v.first())
+                                    .and_then(|s| s.parse::<usize>().ok())
+                            } else {
+                                None
+                            }
+                        })
+                    });
+
+                    let body_read_timeout = config.calculate_read_timeout(content_length, false);
+                    tracing::debug!("Setting body read timeout to {:?} for Content-Length {:?}",
+                        body_read_timeout, content_length);
+
+                    if let Err(err) = connection
+                        .stream_mut()
+                        .set_read_timeout_as(body_read_timeout)
+                    {
+                        tracing::error!("Failed to set body read timeout: {}", err);
                     }
 
                     tracing::trace!("No 100-continue, checking if redirect: {}", is_100_continue);

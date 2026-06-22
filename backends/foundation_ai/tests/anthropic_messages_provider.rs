@@ -20,6 +20,7 @@ use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::Arc;
+use std::time::Duration;
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server
@@ -360,6 +361,11 @@ fn setup_llama_server_provider() -> impl Model {
     // Matches the llama-server --api-key flag in mise configuration.
     let api_key = "test-api-key-123";
 
+    let resolver = foundation_netio::simple_http::client::shared::SystemDnsResolver;
+    let http_client: Arc<dyn HttpClient> = Arc::new(
+        NativeHttpClient::with_expect_continue_timeout(resolver, Duration::from_secs(30)),
+    );
+
     let config = AnthropicConfig::new()
         .with_base_url(base_url)
         .with_messages_endpoint("/v1/messages")
@@ -367,7 +373,7 @@ fn setup_llama_server_provider() -> impl Model {
             api_key.to_string(),
         )));
 
-    let provider = AnthropicMessagesProvider::new()
+    let provider = AnthropicMessagesProvider::with_http_client(http_client)
         .create(Some(config))
         .unwrap();
 

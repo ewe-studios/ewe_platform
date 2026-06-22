@@ -5,6 +5,7 @@
 
 use std::net::SocketAddr;
 use std::sync::{Arc, LazyLock};
+use std::time::Duration;
 
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::types::{
@@ -416,11 +417,18 @@ fn setup_llama_server_provider() -> impl Model {
     let model_name =
         std::env::var("LLAMA_SERVER_MODEL").unwrap_or_else(|_| "qwen2.5-0.5b-instruct".into());
 
+    let resolver = foundation_netio::simple_http::client::shared::SystemDnsResolver;
+    let http_client: Arc<dyn HttpClient> = Arc::new(
+        NativeHttpClient::with_expect_continue_timeout(resolver, Duration::from_secs(30)),
+    );
+
     let config = OpenAIConfig::new()
         .with_base_url(base_url.clone())
         .with_auth(AuthCredential::SecretOnly(ConfidentialText::new(api_key)));
 
-    let provider = OpenAIProvider::new().create(Some(config)).unwrap();
+    let provider = OpenAIProvider::with_http_client(http_client)
+        .create(Some(config))
+        .unwrap();
 
     provider.get_model(ModelId::Name(model_name, None)).unwrap()
 }

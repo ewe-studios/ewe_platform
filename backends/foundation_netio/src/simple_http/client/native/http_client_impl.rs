@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::time::Duration;
 
 use foundation_core::valtron::{execute, StreamIteratorExt};
 
@@ -7,7 +8,7 @@ use crate::simple_http::client::shared::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
 use crate::simple_http::client::shared::request::PreparedRequest;
-use crate::simple_http::client::shared::{DnsResolver, SystemDnsResolver};
+use crate::simple_http::client::shared::{ClientConfig, DnsResolver, SystemDnsResolver};
 use crate::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use crate::simple_http::shared::{
     HttpClientError, SendSafeBody, SimpleMethod, SimpleResponse,
@@ -38,6 +39,16 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
 
     #[must_use]
     pub fn with_client(client: SimpleHttpClient<R>, resolver: R) -> Self {
+        Self { client, resolver }
+    }
+
+    #[must_use]
+    pub fn with_expect_continue_timeout(resolver: R, timeout: Duration) -> Self {
+        let config = ClientConfig {
+            expect_continue_read_timeout: timeout,
+            ..ClientConfig::default()
+        };
+        let client = SimpleHttpClient::with_resolver(resolver.clone()).config(config);
         Self { client, resolver }
     }
 
