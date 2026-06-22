@@ -7,6 +7,7 @@
 pub mod access;
 pub mod agent_loop;
 pub mod context;
+pub mod embedding;
 pub mod errors;
 pub mod loop_detection;
 pub mod memory;
@@ -26,6 +27,10 @@ pub mod tools;
 pub use access::{AllowAllAccess, SessionAccessProvider, TokenBudget};
 pub use agent_loop::{AgentConfig, AgentLoop, AgentLoopState};
 pub use context::{AgentContext, ContextConfig, ContextProvider, KnowledgeHit, SearchMode};
+pub use embedding::{
+    CacheStats, CachedEmbeddingProvider, ColdCache, EmbeddingError, EmbeddingProvider,
+    EmbeddingVector, NoopColdCache, SentenceChunker, TextChunker, WholeTextChunker,
+};
 pub use errors::{
     AgentAction, AgenticError, AuthError, CircuitBreaker, ErrorPolicy, GenKind, GenerationFailure,
     LoopDetection, UserId,
@@ -50,4 +55,5 @@ pub use tool_impl::{
 pub use tools::search::{
     FileMatch, FileSearch, FileSearchKind, SearchContextTool, SearchFileTool, VfsSearchBackend,
 };
+pub use tools::shed::{ShedQuery, ShedResult, ShedTool, ToolDiscovery, ToolSummary};
 pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};

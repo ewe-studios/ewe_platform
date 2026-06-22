@@ -17,21 +17,21 @@ io-uring = { version = "0.7", optional = true }
 concurrent-queue = { workspace = true }
 serde = { workspace = true }
 serde_bytes = { version = "0.11", optional = true }
-foundation_macros = { workspace = true, optional = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4", optional = true }
 cfg-if = "1"
 once_cell = { version = "1", optional = true }
 bincode = { version = "2", features = ["serde"], optional = true }
 uuid = { version = "1", features = ["v4"], optional = true }
 tracing = { workspace = true }
 thiserror = { workspace = true }
-foundation_core = { workspace = true }
-foundation_nostd = { workspace = true, optional = true }
-foundation_errstacks = { workspace = true }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4", optional = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 derive_more = { workspace = true }
 serde_json = { version = "1", optional = true }
-foundation_compact = { workspace = true, optional = true }
-foundation_db = { workspace = true, optional = true }
-foundation_netio = { workspace = true, optional = true }
+foundation_compact = { path = "../foundation_compact", version = "0.2.0", optional = true }
+foundation_db = { path = "../foundation_db", version = "0.0.1", optional = true, default-features = false }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", optional = true }
 libsql = { version = "0.9", optional = true }
 turso = { version = "0.5.3", optional = true }
 fjall = { version = "2", optional = true }
@@ -40,7 +40,8 @@ hex = { version = "0.4", optional = true }
 blake3 = { version = "1", optional = true }
 async-trait = "0.1"
 regex = { version = "1.10", optional = true }
-foundation_arrow = { workspace = true, optional = true }
+fff-search = { path = "../../../../@formulas/src.rust/src.FileSystemAPIs/src.Search/fff/crates/fff-core", optional = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
 
 # Unix-only: libc for epoll/kqueue/eventfd syscalls
 [target.'cfg(unix)'.dependencies]
@@ -65,11 +66,11 @@ windows-sys = { version = "0.59", features = [
 
 # Enable multi-threaded executor only on supported platforms.
 [target.'cfg(any(target_os = "linux", target_os = "windows", target_os = "macos", target_os = "ios"))'.dependencies]
-foundation_core = { workspace = true, features = ["multi"] }
+foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["multi"] }
 
 [dev-dependencies]
-foundation_arrow = { workspace = true }
-foundation_macros = { workspace = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 tracing-test.workspace = true
 tracing-subscriber.workspace = true
 serial_test = "3.3"
@@ -271,6 +272,7 @@ vfs = []
 
 # VFS search — grep/find over any VfsFileSystem with CLI fallback cascade
 vfs-search = ["vfs", "dep:regex"]
+vfs-search-fff = ["vfs-search", "dep:fff-search"]
 
 # VFS native filesystem passthrough + directory delta
 vfs-native = ["vfs", "dep:foundation_macros", "dep:foundation_nostd"]

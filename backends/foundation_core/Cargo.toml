@@ -15,11 +15,11 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
 # foundation_core::valtron) — compile-time only.
-foundation_macros = { workspace = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
 # -- Workspace dependencies
-foundation_wasm = { workspace = true }
-foundation_nostd = {workspace = true }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.3" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
@@ -34,7 +34,7 @@ fastrand = "2.3.0"
 # foundation_compact's vendored entropy — NOT upstream rand/getrandom — so wasm
 # builds never drag getrandom's wasm-bindgen backend into the OWNED path
 # (decision 031 / feature 14). std is followed from this crate's `std` feature.
-foundation_compact = { workspace = true, default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.0", default-features = false }
 tracing = { version = "0.1.41" }
 bytes = "1.5"
 

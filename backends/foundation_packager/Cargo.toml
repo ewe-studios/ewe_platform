@@ -10,12 +10,12 @@ repository.workspace = true
 keywords = ["templating", "code-generation", "project-scaffolding"]
 
 [dependencies]
-foundation_core = { workspace = true }
-foundation_nostd = { workspace = true }
-foundation_macros = { workspace = true }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 derive_more = { workspace = true }
-foundation_conditional = { workspace = true }
-foundation_errstacks = { workspace = true }
+foundation_conditional = { path = "../foundation_conditional", version = "0.1.0" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 cargo_toml = { version = "0.20.5" }
 toml = { version = "0.8.19" }
 rand = { version = "0.9.2" }

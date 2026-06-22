@@ -10,8 +10,8 @@ description = "Central crate for all runtime assets accessible as embedded files
 keywords = ["runtimes", "embedded_runtimes"]
 
 [dependencies]
-foundation_nostd = { workspace = true }
-foundation_macros = { workspace = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
 # brotli 
 brotli = "8.0.2"

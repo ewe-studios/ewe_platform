@@ -1,18 +1,26 @@
 ---
 feature: "foundation_vectors: IVF + HNSW approximate nearest-neighbor indexes"
 description: "Two ANN indexes on top of F24's metrics — IVF (inverted-file, cluster-based) for 1k-100k vectors and HNSW (graph-based) for >100k — with the same higher-is-better top-k contract as flat scan, plus serialize/deserialize for persistence"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["24-foundation-vectors-core"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-22
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 11
+  completed: 11
+  uncompleted: 0
   total: 11
-  completion_percentage: 0%
+  completion_percentage: 100%
+notes: |
+  Delivered: VectorIndex trait (insert/remove/search/len/to_bytes + load_index), FlatIndex
+  (wraps flat_top_k), IvfIndex (k-means++ clustering, nprobe search, auto-rebuild at 2x growth),
+  HnswIndex (multi-layer graph, M/ef params, soft-delete, entry-point fix on overwrite).
+  Binary serialization (VIDX magic, version, kind tag, metric, dimension, self-describing).
+  Seeded deterministic RNG (SplitMix64). 31 tests (10 index + 9 IVF + 12 HNSW).
+  Recall benchmark: HNSW >= 0.8 vs flat ground truth at 200 vectors.
+  Clippy clean with -D warnings.
 ---
 
 # Feature 25: foundation_vectors — IVF + HNSW

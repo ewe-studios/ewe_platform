@@ -16,14 +16,14 @@ path = "src/bin/ewe_wasm_bins.rs"
 # the build tooling never belongs in the artifact.
 
 [dependencies]
-foundation_nostd = { workspace = true }
-foundation_macros = { workspace = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
 # Build tooling (feature 20): scanning #[wasm_entrypoint] fns and generating
 # bin/ sources — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
-foundation_codegen = { workspace = true }
+foundation_codegen = { path = "../foundation_codegen", version = "0.1.0" }
 toml = { workspace = true }
 toml_edit = { workspace = true }
 clap = { version = "4", features = ["derive"] }

@@ -12,10 +12,10 @@ categories = ["development-tools::testing"]
 
 [dependencies]
 # Foundation primitives being tested
-foundation_nostd = { workspace = true, features = ["std"] }
-foundation_core = { workspace = true }
-foundation_netio = { workspace = true }
-foundation_deployment_huggingface = { workspace = true, optional = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4", features = ["std"] }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.0", optional = true }
 tracing = { workspace = true }
 derive_more = { workspace = true }
 

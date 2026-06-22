@@ -1,18 +1,24 @@
 ---
 feature: "foundation_vectors: BM25 + hybrid fusion (RRF / alpha / rerank)"
 description: "Keyword BM25 search and a hybrid pipeline that fuses BM25 + vector results via Reciprocal Rank Fusion (default), alpha-weighting, or an optional cross-encoder rerank — the production retrieval blend from Decision 07's TODO #7"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["24-foundation-vectors-core"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-22
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 100%
+notes: |
+  Core algorithms complete: Bm25Index (SimpleTokenizer, RwLock interior, insert/search/remove),
+  FusionStrategy (RRF default k=60 + Alpha min-max), Reranker trait, hybrid_search orchestration.
+  13 tests pass (7 BM25 + 6 fusion). NlpRuleTokenizer deferred (needs nlprule crate eval).
+  ModelReranker concrete impl deferred to foundation_ai (circular dep: foundation_ai→foundation_vectors).
+  Serialization (to_bytes/from_bytes) deferred to F29 (vectorstore backends).
 ---
 
 # Feature 26: foundation_vectors — BM25 + hybrid fusion

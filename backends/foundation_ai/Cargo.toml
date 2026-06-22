@@ -13,22 +13,23 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 
 # -- Workspace dependencies
 
-foundation_nostd = { workspace = true }
-foundation_auth = { workspace = true, features = ["turso"] }
-foundation_macros = { workspace = true }
-foundation_core = { workspace = true }
-foundation_netio = { workspace = true }
-foundation_deployment_huggingface = { workspace = true }
-foundation_errstacks = { workspace = true, features = ["to_structured"] }
-foundation_jsonschema = { workspace = true }
-foundation_compact = { workspace = true, features = ["serde"] }
-foundation_arrow = { workspace = true }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["turso"], default-features = false }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.0" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
+foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.1" }
+foundation_compact = { path = "../foundation_compact", version = "0.2.0", features = ["serde"] }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
 # DocumentStore / KeyValueStore traits + StorageResult for the agentic memory
 # stores (F07). default-features=false → just the core traits + in-memory backends
 # (no turso/d1/r2 pulled into foundation_ai).
-foundation_db = { workspace = true, default-features = false }
+foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false }
 # VFS abstraction for file search tools (F32). vfs + vfs-search — no native/turso/etc.
-foundation_nativeapis = { workspace = true, features = ["vfs", "vfs-search"] }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["vfs", "vfs-search"] }
+foundation_vectors = { path = "../foundation_vectors", version = "0.0.1" }
 concurrent-queue = "2.5.0"
 
 # -- Other dependencies
@@ -67,10 +68,11 @@ optional = true
 candle-core = { version = "0.10", features = ["metal"] }
 
 [dev-dependencies]
-foundation_testing = { workspace = true, features = ["huggingface"] }
+foundation_testing = { path = "../foundation_testing", version = "0.0.1", features = ["huggingface"] }
 serial_test = { workspace = true }
 tracing-test = { version = "0.2.5", features = ["no-env-filter"] }
 futures-lite = "2"
+tokio = { version = "1", features = ["macros", "rt"] }
 
 [[test]]
 name = "foundation_ai_tests"
@@ -80,6 +82,16 @@ required-features = ["agentic", "llamacpp"]
 [[test]]
 name = "agentic_tests"
 path = "tests/agentic_tests.rs"
+required-features = ["agentic"]
+
+[[test]]
+name = "embedding_provider_tests"
+path = "tests/embedding_provider_tests.rs"
+required-features = ["agentic"]
+
+[[test]]
+name = "shed_tool_tests"
+path = "tests/shed_tool_tests.rs"
 required-features = ["agentic"]
 
 [[test]]

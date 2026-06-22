@@ -19,7 +19,7 @@ fancy-regex = ["dep:fancy-regex"]
 serde = { workspace = true }
 serde_json = { workspace = true }
 regex = { workspace = true }
-foundation_errstacks = { workspace = true }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 derive_more = { workspace = true }
 percent-encoding = "2.3"
 itoa = "1.0"

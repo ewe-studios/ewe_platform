@@ -9,7 +9,7 @@ repository.workspace = true
 description = "Standalone reactive signal system: R3-style height-ordered graph, bucket-queue stabilize, version-based stale detection. No DOM, no WASM coupling."
 
 [dependencies]
-foundation_ui_traits = { workspace = true }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.1" }
 serde = { version = "1", features = ["derive"] }
 serde_json = { workspace = true }
 tracing = { version = "0.1" }

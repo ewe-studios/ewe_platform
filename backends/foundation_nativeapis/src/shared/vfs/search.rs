@@ -392,6 +392,132 @@ impl VfsSearcher for CascadingVfsSearcher {
 }
 
 // ---------------------------------------------------------------------------
+// FffSearcher — native-only, wraps fff-search engine (feature-gated)
+// ---------------------------------------------------------------------------
+
+#[cfg(all(not(target_family = "wasm"), feature = "vfs-search-fff"))]
+pub struct FffSearcher {
+    picker: fff_search::SharedFilePicker,
+    base_path: String,
+}
+
+#[cfg(all(not(target_family = "wasm"), feature = "vfs-search-fff"))]
+impl FffSearcher {
+    pub fn new(root: &str) -> Result<Self, VfsError> {
+        let picker = fff_search::SharedFilePicker::default();
+
+        fff_search::file_picker::FilePicker::new_with_shared_state(
+            picker.clone(),
+            fff_search::SharedFrecency::default(),
+            fff_search::FilePickerOptions {
+                base_path: root.into(),
+                mode: fff_search::FFFMode::Ai,
+                watch: false,
+                ..Default::default()
+            },
+        )
+        .map_err(|e| VfsError::Backend {
+            message: format!("fff init failed: {e}"),
+        })?;
+
+        picker.wait_for_scan(std::time::Duration::from_secs(30));
+
+        Ok(Self {
+            picker,
+            base_path: root.into(),
+        })
+    }
+}
+
+#[cfg(all(not(target_family = "wasm"), feature = "vfs-search-fff"))]
+impl VfsSearcher for FffSearcher {
+    fn search(
+        &self,
+        query: &str,
+        kind: VfsSearchKind,
+        _roots: &[String],
+    ) -> VfsResult<Vec<VfsSearchMatch>> {
+        let guard = self.picker.read().map_err(|e| VfsError::Backend {
+            message: format!("fff picker lock failed: {e}"),
+        })?;
+        let picker = guard.as_ref().ok_or_else(|| VfsError::Backend {
+            message: "fff picker not initialized".into(),
+        })?;
+
+        let parser = fff_search::QueryParser::default();
+        let parsed = parser.parse(query);
+
+        match kind {
+            VfsSearchKind::Grep | VfsSearchKind::MultiGrep => {
+                let options = fff_search::grep::GrepSearchOptions {
+                    max_file_size: fff_search::grep::MAX_FFFILE_SIZE,
+                    max_matches_per_file: 50,
+                    smart_case: true,
+                    file_offset: 0,
+                    page_limit: 200,
+                    mode: fff_search::grep::GrepMode::PlainText,
+                    time_budget_ms: 5000,
+                    before_context: 0,
+                    after_context: 0,
+                    classify_definitions: false,
+                    trim_whitespace: true,
+                    abort_signal: None,
+                };
+
+                let result = picker.grep(&parsed, &options);
+                let base = std::path::Path::new(&self.base_path);
+                let matches = result
+                    .matches
+                    .iter()
+                    .map(|m| {
+                        let file = &result.files[m.file_index];
+                        let path = file.absolute_path(picker, base);
+                        #[allow(clippy::cast_possible_truncation)]
+                        VfsSearchMatch {
+                            path: path.to_string_lossy().to_string(),
+                            line_number: m.line_number as u32,
+                            content: m.line_content.clone(),
+                            score: m.fuzzy_score.map_or(1.0, |s| s as f32 / 1000.0),
+                        }
+                    })
+                    .collect();
+
+                Ok(matches)
+            }
+            VfsSearchKind::Find => {
+                let options = fff_search::FuzzySearchOptions {
+                    max_threads: 0,
+                    current_file: None,
+                    pagination: fff_search::PaginationArgs {
+                        offset: 0,
+                        limit: 200,
+                    },
+                    ..Default::default()
+                };
+
+                let result = picker.fuzzy_search(&parsed, None, options);
+                let base = std::path::Path::new(&self.base_path);
+                let matches = result
+                    .items
+                    .iter()
+                    .map(|item| {
+                        let path = item.absolute_path(picker, base);
+                        VfsSearchMatch {
+                            path: path.to_string_lossy().to_string(),
+                            line_number: 0,
+                            content: String::new(),
+                            score: 1.0,
+                        }
+                    })
+                    .collect();
+
+                Ok(matches)
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Factory functions
 // ---------------------------------------------------------------------------
 
@@ -403,11 +529,18 @@ pub fn vfs_searcher<F: VfsFileSystem + 'static>(fs: Arc<F>) -> Box<dyn VfsSearch
 #[must_use]
 #[cfg(not(target_family = "wasm"))]
 pub fn native_vfs_searcher<F: VfsFileSystem + 'static>(fs: Arc<F>) -> Box<dyn VfsSearcher> {
-    match CliSearcher::detect() {
-        Some(cli) => Box::new(CascadingVfsSearcher::new(vec![
-            Box::new(cli),
-            Box::new(InCodeVfsSearcher::new(fs)),
-        ])),
-        None => Box::new(InCodeVfsSearcher::new(fs)),
+    let mut backends: Vec<Box<dyn VfsSearcher>> = Vec::new();
+
+    #[cfg(feature = "vfs-search-fff")]
+    if let Ok(fff) = FffSearcher::new(".") {
+        backends.push(Box::new(fff));
     }
+
+    if let Some(cli) = CliSearcher::detect() {
+        backends.push(Box::new(cli));
+    }
+
+    backends.push(Box::new(InCodeVfsSearcher::new(fs)));
+
+    Box::new(CascadingVfsSearcher::new(backends))
 }

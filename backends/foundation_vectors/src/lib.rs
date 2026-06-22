@@ -10,13 +10,41 @@
 //! HOW: Pure `f32` arithmetic, `libm::sqrtf` for portability, bounded
 //! min-heap for top-k, higher-is-better score convention throughout.
 
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::missing_panics_doc
+)]
+pub mod bm25;
 pub mod flat;
+#[allow(clippy::cast_precision_loss)]
+pub mod fusion;
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::cast_sign_loss
+)]
+pub mod hnsw;
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_precision_loss,
+    clippy::missing_errors_doc,
+    clippy::missing_panics_doc
+)]
+pub mod index;
+#[allow(clippy::cast_possible_truncation, clippy::cast_precision_loss)]
+pub mod ivf;
 pub mod metric;
 pub mod sqrt;
 pub mod store;
 pub mod vector;
 
+pub use bm25::{Bm25Index, SimpleTokenizer, Tokenizer};
 pub use flat::{flat_top_k, flat_top_k_owned};
+pub use fusion::{FusionStrategy, Reranker, fuse, hybrid_search};
+pub use hnsw::HnswIndex;
+pub use index::{FlatIndex, VectorError, VectorIndex, load_index};
+pub use ivf::IvfIndex;
 pub use metric::{DistanceMetric, OrderedScore};
 pub use sqrt::SqrtStrategy;
 pub use store::{InMemoryVectorStore, VectorEntry, VectorMatch, VectorStore, VectorStoreConfig, VectorStoreError};

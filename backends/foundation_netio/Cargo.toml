@@ -16,9 +16,9 @@ workspace = true
 [dependencies]
 # -- Workspace dependencies
 
-foundation_core = { workspace = true }
-foundation_wasm = { workspace = true }
-foundation_nostd = {workspace = true }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.3" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
 
 # -- Other dependencies
 futures-core = { version = "0.3", default-features = false }
@@ -33,7 +33,7 @@ fastrand = "2.3.0"
 chrono = { version = "0.4", default-features = false, features = ["alloc"] }
 # RNG/entropy from foundation_compact's vendored path (no upstream rand/getrandom
 # → wasm-clean). std is followed from this crate's `std` feature.
-foundation_compact = { workspace = true, default-features = false }
+foundation_compact = { path = "../foundation_compact", version = "0.2.0", default-features = false }
 
 async-trait = { version = "0.1.88" }
 memchr = "2.7.4"
@@ -71,7 +71,7 @@ tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 tracing-subscriber = "0.3"
 reqwest = { version = "0.12.15", features = ["blocking"] }
 foundation_testing = { path = "../foundation_testing" }
-foundation_macros = { workspace = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 futures-lite = "2"
 ntest = { workspace = true }
 tokio = { version = "1", features = ["macros", "rt"] }

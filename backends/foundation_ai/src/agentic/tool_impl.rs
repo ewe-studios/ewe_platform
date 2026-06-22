@@ -442,6 +442,20 @@ impl ToolCallManager {
         })
     }
 
+    /// Register the default tool set + the shed discovery tool.
+    /// `shed` is registered first and is always present.
+    #[must_use]
+    pub fn with_defaults(
+        session_id: crate::types::SessionId,
+        discovery: Arc<crate::agentic::tools::shed::ToolDiscovery>,
+    ) -> Self {
+        let mgr = Self::new(session_id);
+        mgr.register(Arc::new(crate::agentic::tools::shed::ShedTool::new(
+            discovery,
+        )));
+        mgr
+    }
+
     /// Access the session id (for logging / persist).
     #[must_use]
     pub fn session_id(&self) -> &crate::types::SessionId {

@@ -1,18 +1,24 @@
 ---
 feature: "Workspace hygiene — path+version deps, external test layout, inline-test audit"
 description: "Switch every crate's Cargo.toml from workspace = true dependency inheritance to direct path + version deps (forcing explicit version bumps), move all non-internal-detail tests from inline #[cfg(test)] modules to {crate}/tests/ directories, and audit remaining inline tests to determine if they test internals or should also be extracted"
-status: "pending"
+status: "in-progress"
 priority: "medium"
 depends_on: []
 estimated_effort: "large"
 created: 2026-06-21
-last_updated: 2026-06-21
+last_updated: 2026-06-22
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 8
+  completed: 3
+  uncompleted: 5
   total: 8
-  completion_percentage: 0%
+  completion_percentage: 38%
+notes: |
+  Part A complete: 29 Cargo.tomls migrated (28 via script + 1 manual dotted-key fix).
+  All foundation_* inter-crate deps now use path+version instead of workspace=true.
+  Third-party deps and metadata (edition, license, etc.) retained workspace=true.
+  cargo check --workspace passes (only pre-existing foundation_deployment_aws chrono failure).
+  Part B (inline test extraction) not yet started.
 ---
 
 # Feature 34: Workspace hygiene — path+version deps, external test layout

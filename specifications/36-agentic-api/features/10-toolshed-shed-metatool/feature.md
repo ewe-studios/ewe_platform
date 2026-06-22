@@ -1,18 +1,18 @@
 ---
 feature: "ToolShed & the `shed` meta-tool — explicit shed, defaults, vector-backed discovery"
 description: "The explicit ToolShed (with `others` removed), a ToolShed::default()/ToolCallManager default-wiring helper for the built-in tools, and the always-present `shed` meta-tool that searches the registry's tool-description vectors so the LLM can discover tools without all definitions in context"
-status: "pending"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model", "09-toolimpl-registry", "28-vectorstore-trait-inmemory", "31-embedding-provider"]
 estimated_effort: "medium"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-22
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 10
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 10: ToolShed & the `shed` meta-tool

@@ -17,28 +17,28 @@ path = "src/bin/ewe_wasm_bundle.rs"
 
 [dependencies]
 # foundation_wasm_ui is the JS/web host layer, so it always needs the web ABI.
-foundation_wasm = { workspace = true, features = ["web"] }
-foundation_ui_traits = { workspace = true }
+foundation_wasm = { path = "../foundation_wasm", version = "0.0.3", features = ["web"] }
+foundation_ui_traits = { path = "../foundation_ui_traits", version = "0.0.1" }
 # The reactive layer this runtime bridges to the DOM (decision 012 diagram:
 # foundation_wasm_ui depends on BOTH signals and wasm).
-foundation_signals = { workspace = true }
+foundation_signals = { path = "../foundation_signals", version = "0.0.1" }
 # Re-exports the html! proc macro (feature 03); macros live in
 # foundation_macros per project rule.
-foundation_macros = { workspace = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 # Theme token model + shared CSS generator (the theme!{} macro, ThemeTokens
 # derive, and runtime Theme builder all route through it).
-foundation_theme = { workspace = true }
-foundation_nostd = { workspace = true }
+foundation_theme = { path = "../foundation_theme", version = "0.0.1" }
+foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
 tracing = { version = "0.1", default-features = false }
 # Arrow IPC v2 over the loop (the `arrow` feature).
-foundation_arrow = { workspace = true, optional = true }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
 
 # Build tooling (feature 20): JS wrappers + bundles over foundation_wasm's
 # build_tools — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 clap = { version = "4", features = ["derive"] }
-foundation_codegen = { workspace = true }
+foundation_codegen = { path = "../foundation_codegen", version = "0.1.0" }
 tracing-subscriber = { version = "0.3.18", features = ["fmt"] }
 
 [features]

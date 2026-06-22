@@ -19,7 +19,7 @@ serde = { version = "1", features = ["derive"] }
 derive_more = { workspace = true }
 
 # wasm module (ported from wasmbin v0.9.2, Apache-2.0 — see NOTICE)
-foundation_macros = { workspace = true }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 leb128 = "0.2.5"
 thiserror = "2"
 custom_debug = "0.6.2"

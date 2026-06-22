@@ -10,8 +10,8 @@ repository.workspace = true
 keywords = ["foundation_shell", "foundation_nushell"]
 
 [dependencies]
-foundation_core = { workspace = true }
-foundation_errstacks = { workspace = true }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -24,7 +24,7 @@ tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
 
 [dev-dependencies]
-foundation_testing = { workspace=true }
+foundation_testing = { path = "../foundation_testing", version = "0.0.1" }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
 

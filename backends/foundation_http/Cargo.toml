@@ -10,9 +10,9 @@ description = "Connection-owned, worker-pooled HTTP serving framework built on f
 keywords = ["http", "server", "foundation", "sync"]
 
 [dependencies]
-foundation_core = { workspace = true }
-foundation_netio = { workspace = true }
-foundation_errstacks = { workspace = true }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 
 serde = { workspace = true }
 serde_json = { workspace = true }
@@ -46,10 +46,10 @@ web-sys = { version = "0.3", features = [
     "ReadableStreamDefaultReader",
     "ReadableStreamReadResult",
 ], optional = true }
-foundation_db = { workspace = true, default-features = false, features = ["wasm", "wasm-bindgen-storage"], optional = true }
+foundation_db = { path = "../foundation_db", version = "0.0.1", optional = true, features = ["wasm", "wasm-bindgen-storage"], default-features = false }
 
 [dev-dependencies]
-foundation_testing = { workspace=true }
+foundation_testing = { path = "../foundation_testing", version = "0.0.1" }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
 serial_test = { version = "3" }
 ntest = { version = "0.9" }
