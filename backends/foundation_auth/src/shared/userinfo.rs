@@ -138,26 +138,41 @@ impl core::fmt::Display for UserInfoError {
 impl std::error::Error for UserInfoError {}
 
 // ===========================================================================
-// Platform-specific fetch
+// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
 // ===========================================================================
 
-#[cfg(not(target_arch = "wasm32"))]
 async fn fetch_userinfo(
     url: &str,
     access_token: &str,
 ) -> Result<String, UserInfoError> {
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::shared::SimpleHeader;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::default_http_client;
+    use foundation_netio::simple_http::client::shared::request::PreparedRequest;
+    use foundation_netio::simple_http::shared::{
+        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    };
 
-    let client = SimpleHttpClient::from_system();
+    let client = default_http_client();
+    let uri = Uri::parse(url)
+        .map_err(|e| UserInfoError::FetchFailed(format!("invalid URL: {e}")))?;
+
+    let mut headers = SimpleHeaders::new();
+    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
+    headers.insert(
+        SimpleHeader::AUTHORIZATION,
+        vec![format!("Bearer {access_token}")],
+    );
+
+    let req = PreparedRequest {
+        method: SimpleMethod::GET,
+        url: uri,
+        headers,
+        body: SendSafeBody::None,
+        extensions: Default::default(),
+    };
+
     let resp = client
-        .get(url)
-        .map_err(|e| UserInfoError::FetchFailed(e.to_string()))?
-        .header(SimpleHeader::ACCEPT, "application/json")
-        .bearer_auth(access_token)
-        .build_client()
-        .map_err(|e| UserInfoError::FetchFailed(e.to_string()))?
-        .send_async()
+        .send_async(req)
         .await
         .map_err(|e| UserInfoError::FetchFailed(e.to_string()))?;
 
@@ -165,21 +180,17 @@ async fn fetch_userinfo(
 
     if status == 401 {
         let body = match resp.get_body_ref() {
-            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                String::from_utf8_lossy(b).to_string()
-            }
+            SendSafeBody::Text(t) => t.clone(),
+            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
             _ => String::new(),
         };
         return Err(UserInfoError::Unauthorized(body));
     }
 
-    if !resp.is_success() {
+    if !(200..300).contains(&status) {
         let body = match resp.get_body_ref() {
-            foundation_netio::simple_http::shared::SendSafeBody::Text(t) => t.clone(),
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-                String::from_utf8_lossy(b).to_string()
-            }
+            SendSafeBody::Text(t) => t.clone(),
+            SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
             _ => String::new(),
         };
         return Err(UserInfoError::FetchFailed(format!(
@@ -188,60 +199,9 @@ async fn fetch_userinfo(
     }
 
     match resp.get_body_ref() {
-        foundation_netio::simple_http::shared::SendSafeBody::Text(t) => Ok(t.clone()),
-        foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => {
-            String::from_utf8(b.clone())
-                .map_err(|e| UserInfoError::FetchFailed(e.to_string()))
-        }
+        SendSafeBody::Text(t) => Ok(t.clone()),
+        SendSafeBody::Bytes(b) => String::from_utf8(b.clone())
+            .map_err(|e| UserInfoError::FetchFailed(e.to_string())),
         _ => Ok(String::new()),
     }
 }
-
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
-async fn fetch_userinfo(
-    url: &str,
-    access_token: &str,
-) -> Result<String, UserInfoError> {
-    use wasm_bindgen::JsCast;
-    use wasm_bindgen_futures::JsFuture;
-    use web_sys::{Request, RequestInit, RequestMode};
-
-    let opts = RequestInit::new();
-    opts.set_method("GET");
-    opts.set_mode(RequestMode::Cors);
-
-    let request = Request::new_with_str_and_init(url, &opts)
-        .map_err(|e| UserInfoError::FetchFailed(format!("request failed: {e:?}")))?;
-    let auth_header = format!("Bearer {access_token}");
-    request
-        .headers()
-        .set("Accept", "application/json")
-        .map_err(|e| UserInfoError::FetchFailed(format!("header failed: {e:?}")))?;
-    request
-        .headers()
-        .set("Authorization", &auth_header)
-        .map_err(|e| UserInfoError::FetchFailed(format!("auth header failed: {e:?}")))?;
-
-    let window = web_sys::window()
-        .ok_or_else(|| UserInfoError::FetchFailed("no window available".into()))?;
-    let resp_value = JsFuture::from(
-        window
-            .fetch_with_request(request)
-            .map_err(|e| UserInfoError::FetchFailed(format!("fetch failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| UserInfoError::FetchFailed(format!("await failed: {e:?}")))?;
-
-    let resp: web_sys::Response = resp_value.dyn_into().map_err(|_| {
-        UserInfoError::FetchFailed("failed to parse response".into())
-    })?;
-    let text = JsFuture::from(
-        resp.text()
-            .map_err(|e| UserInfoError::FetchFailed(format!("text failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| UserInfoError::FetchFailed(format!("await text failed: {e:?}")))?;
-
-    Ok(text.as_string().unwrap_or_default())
-}
-

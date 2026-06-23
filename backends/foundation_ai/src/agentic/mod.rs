@@ -52,8 +52,10 @@ pub use tool_impl::{
     FailMode, ToolCallManager, ToolCallRequest, ToolCallResult, ToolCallStage, ToolCallWorkflow,
     ToolDefinition, ToolError, ToolErrorKind, ToolImpl, ToolRetryConfig, WorkflowResult,
 };
+#[cfg(not(target_family = "wasm"))]
 pub use tools::search::{
     FileMatch, FileSearch, FileSearchKind, SearchContextTool, SearchFileTool, VfsSearchBackend,
 };
 pub use tools::shed::{ShedQuery, ShedResult, ShedTool, ToolDiscovery, ToolSummary};
+#[cfg(not(target_family = "wasm"))]
 pub use foundation_nativeapis::{VfsSearchKind, VfsSearchMatch, VfsSearcher};

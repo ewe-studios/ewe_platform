@@ -454,6 +454,7 @@ impl ModelProvider for AnthropicMessagesProvider {
             self.config = cfg;
         }
 
+        #[cfg(not(target_family = "wasm"))]
         if self.http_client.is_none() {
             self.http_client = Some(foundation_netio::simple_http::client::default_http_client());
         }

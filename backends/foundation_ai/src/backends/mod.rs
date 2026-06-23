@@ -1,18 +1,18 @@
 //! Backend modules implement `ModelBackend` for different implementations.
 
-#[cfg(feature = "llamacpp")]
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub mod huggingface_gguf_provider;
-#[cfg(feature = "llamacpp")]
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub mod llamacpp;
-#[cfg(feature = "llamacpp")]
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub mod llamacpp_helpers;
 
 pub mod anthropic_messages_provider;
 pub mod openai_provider;
 pub mod openai_responses_provider;
 
-#[cfg(feature = "candle")]
+#[cfg(all(feature = "candle", not(target_family = "wasm")))]
 pub mod candle;
 
-#[cfg(feature = "candle")]
+#[cfg(all(feature = "candle", not(target_family = "wasm")))]
 pub mod huggingface_candle_provider;

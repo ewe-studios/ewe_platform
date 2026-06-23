@@ -14,11 +14,12 @@ keywords = ["foundations_ai", "ewe-platform-ai"]
 # -- Workspace dependencies
 
 foundation_nostd = { path = "../foundation_nostd", version = "0.0.4" }
-foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["turso"], default-features = false }
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", default-features = false }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
-foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.0" }
+# foundation_deployment_huggingface is native-only (uses reqwest/std networking)
+# pulled in by llamacpp/candle features via the native target gate below
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
 foundation_jsonschema = { path = "../foundation_jsonschema", version = "0.0.1" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.0", features = ["serde"] }
@@ -28,7 +29,6 @@ foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
 # (no turso/d1/r2 pulled into foundation_ai).
 foundation_db = { path = "../foundation_db", version = "0.0.1", default-features = false }
 # VFS abstraction for file search tools (F32). vfs + vfs-search — no native/turso/etc.
-foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["vfs", "vfs-search"] }
 foundation_vectors = { path = "../foundation_vectors", version = "0.0.1" }
 concurrent-queue = "2.5.0"
 
@@ -41,6 +41,15 @@ derive_more = { version = "2.1", features = ["from", "debug", "display", "error"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
 ahash = "0.8"
+
+# native-only deps
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["turso"], default-features = false }
+foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["vfs", "vfs-search"] }
+foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.0", optional = true }
+
+[target.'cfg(target_family = "wasm")'.dependencies]
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["wasm"], default-features = false }
 
 # llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
 [target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
@@ -107,7 +116,7 @@ required-features = ["candle", "candle-gpu", "cuda", "cuda_static"]
 
 [features]
 default = ["llamacpp", "agentic"]
-llamacpp = ["dep:infrastructure_llama_cpp"]
+llamacpp = ["dep:infrastructure_llama_cpp", "dep:foundation_deployment_huggingface"]
 agentic = []
 
 # vulkan + Apple Metal (route through llamacpp)
@@ -128,12 +137,12 @@ openmp = ["llamacpp", "infrastructure_llama_cpp/openmp"]
 mtmd = ["llamacpp", "infrastructure_llama_cpp/mtmd"]
 
 # Candle inference backend
-candle = ["candle-nn", "candle-transformers", "tokenizers", "fastrand"]
+candle = ["candle-nn", "candle-transformers", "tokenizers", "fastrand", "dep:foundation_deployment_huggingface"]
 candle-cuda = ["candle", "candle-core/cuda"]
 candle-gpu = ["candle-cuda"]
 
 # Multi-threaded executor
-multi = ["foundation_deployment_huggingface/multi", "foundation_core/multi"]
+multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi"]
 
 # Test substrate (F21): MockModelProvider, MockTool, message builders
 testing = []

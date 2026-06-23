@@ -279,27 +279,38 @@ impl core::fmt::Display for DiscoveryError {
 impl std::error::Error for DiscoveryError {}
 
 // ===========================================================================
-// Platform-specific fetch
+// HTTP fetch — uses the cross-platform HttpClient trait (native + wasm).
 // ===========================================================================
 
-#[cfg(not(target_arch = "wasm32"))]
 async fn fetch_discovery(url: &str) -> Result<String, DiscoveryError> {
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::default_http_client;
+    use foundation_netio::simple_http::client::shared::request::PreparedRequest;
+    use foundation_netio::simple_http::shared::{
+        SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+    };
 
-    let client = SimpleHttpClient::from_system();
+    let client = default_http_client();
+    let uri = Uri::parse(url)
+        .map_err(|e| DiscoveryError::FetchFailed(format!("invalid URL: {e}")))?;
+    let mut headers = SimpleHeaders::new();
+    headers.insert(SimpleHeader::ACCEPT, vec!["application/json".into()]);
+
+    let req = PreparedRequest {
+        method: SimpleMethod::GET,
+        url: uri,
+        headers,
+        body: SendSafeBody::None,
+        extensions: Default::default(),
+    };
+
     let resp = client
-        .get(url)
-        .map_err(|e| DiscoveryError::FetchFailed(e.to_string()))?
-        .header(SimpleHeader::ACCEPT, "application/json")
-        .build_client()
-        .map_err(|e| DiscoveryError::FetchFailed(e.to_string()))?
-        .send_async()
+        .send_async(req)
         .await
         .map_err(|e| DiscoveryError::FetchFailed(e.to_string()))?;
 
-    if !resp.is_success() {
-        let status: usize = resp.get_status().into();
+    let status: usize = resp.get_status().into();
+    if !(200..300).contains(&status) {
         let body = match resp.get_body_ref() {
             SendSafeBody::Text(t) => t.clone(),
             SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
@@ -317,44 +328,3 @@ async fn fetch_discovery(url: &str) -> Result<String, DiscoveryError> {
         _ => Ok(String::new()),
     }
 }
-
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
-async fn fetch_discovery(url: &str) -> Result<String, DiscoveryError> {
-    use wasm_bindgen::JsCast;
-    use wasm_bindgen_futures::JsFuture;
-    use web_sys::{Request, RequestInit, RequestMode};
-
-    let opts = RequestInit::new();
-    opts.set_method("GET");
-    opts.set_mode(RequestMode::Cors);
-
-    let request = Request::new_with_str_and_init(url, &opts)
-        .map_err(|e| DiscoveryError::FetchFailed(format!("request failed: {e:?}")))?;
-    request
-        .headers()
-        .set("Accept", "application/json")
-        .map_err(|e| DiscoveryError::FetchFailed(format!("header failed: {e:?}")))?;
-
-    let window = web_sys::window()
-        .ok_or_else(|| DiscoveryError::FetchFailed("no window available".into()))?;
-    let resp_value = JsFuture::from(
-        window
-            .fetch_with_request(request)
-            .map_err(|e| DiscoveryError::FetchFailed(format!("fetch failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| DiscoveryError::FetchFailed(format!("await failed: {e:?}")))?;
-
-    let resp: web_sys::Response = resp_value.dyn_into().map_err(|_| {
-        DiscoveryError::FetchFailed("failed to parse response".into())
-    })?;
-    let text = JsFuture::from(
-        resp.text()
-            .map_err(|e| DiscoveryError::FetchFailed(format!("text failed: {e:?}")))?,
-    )
-    .await
-    .map_err(|e| DiscoveryError::FetchFailed(format!("await text failed: {e:?}")))?;
-
-    Ok(text.as_string().unwrap_or_default())
-}
-

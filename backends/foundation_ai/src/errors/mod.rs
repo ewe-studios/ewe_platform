@@ -6,9 +6,9 @@
 
 use foundation_core::extensions::result_ext::BoxedError;
 
-#[cfg(feature = "llamacpp")]
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub mod llama;
-#[cfg(feature = "llamacpp")]
+#[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
 pub use llama::LlamaError;
 
 // ==================================
@@ -22,7 +22,7 @@ pub enum GenerationError {
     Failed(BoxedError),
 
     /// Consolidated llama.cpp errors (all 10 kinds).
-    #[cfg(feature = "llamacpp")]
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
     Llama(LlamaError),
 
     /// Candle tensor/compute errors.
@@ -62,7 +62,7 @@ impl core::fmt::Display for GenerationError {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         match self {
             GenerationError::Failed(e) => write!(f, "Generation failed: {e}"),
-            #[cfg(feature = "llamacpp")]
+            #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
             GenerationError::Llama(e) => write!(f, "llama.cpp: {e}"),
             #[cfg(feature = "candle")]
             GenerationError::Candle(e) => write!(f, "Candle error: {e}"),
@@ -92,7 +92,7 @@ pub enum ModelErrors {
     FailedLoading(BoxedError),
 
     /// Consolidated llama.cpp model/context/embedding errors.
-    #[cfg(feature = "llamacpp")]
+    #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
     Llama(LlamaError),
 
     /// Candle model loading/weight initialization failures.
@@ -107,7 +107,7 @@ impl core::fmt::Display for ModelErrors {
         match self {
             ModelErrors::NotFound(name) => write!(f, "Model not found: {name}"),
             ModelErrors::FailedLoading(e) => write!(f, "Model failed to load: {e}"),
-            #[cfg(feature = "llamacpp")]
+            #[cfg(all(feature = "llamacpp", not(target_family = "wasm")))]
             ModelErrors::Llama(e) => write!(f, "llama.cpp: {e}"),
             ModelErrors::CandleModelLoad(msg) => write!(f, "Candle model load error: {msg}"),
             ModelErrors::UnsupportedArchitecture(arch) => {

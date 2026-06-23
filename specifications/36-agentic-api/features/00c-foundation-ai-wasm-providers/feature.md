@@ -1,18 +1,18 @@
 ---
 feature: "foundation_ai: wasm-buildable agentic surface (providers native-gated)"
 description: "Make the foundation_ai agentic surface build on wasm32 by cfg-gating the native-only HTTP providers + transport off wasm, removing dead deps, and target-gating foundation_auth — while flagging that wasm HTTP providers require a future fetch-based client"
-status: "pending"
+status: "done"
 priority: "high"
 depends_on: ["00b-foundation-ai-llama-optional"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-23
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 12
+  uncompleted: 0
   total: 12
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 00c: foundation_ai — wasm-buildable agentic surface
