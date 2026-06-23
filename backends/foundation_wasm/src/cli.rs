@@ -120,9 +120,7 @@ fn run_generate(args: &ArgMatches) -> Result<(), BoxedError> {
         "updated Cargo.toml ({} [[bin]] sections added)",
         plan.bin_sections.len()
     );
-    tracing::info!(
-        "build with: cargo build --target wasm32-unknown-unknown [--release]"
-    );
+    tracing::info!("build with: cargo build --target wasm32-unknown-unknown [--release]");
 
     Ok(())
 }

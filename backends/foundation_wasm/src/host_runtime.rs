@@ -15,12 +15,12 @@ use crate::{
 
 // Imports only the `web` ABI module needs (gated to keep non-web builds warning-free).
 #[cfg(feature = "web")]
-use foundation_nostd::raw_parts::RawParts;
-#[cfg(feature = "web")]
 use crate::{
-    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, JSEncoding, Params,
-    ReturnValueError, ReturnValues, ToBinary,
+    BinaryReadError, BinaryReaderResult, CompletedInstructions, ExternalPointer, JSEncoding,
+    Params, ReturnValueError, ReturnValues, ToBinary,
 };
+#[cfg(feature = "web")]
+use foundation_nostd::raw_parts::RawParts;
 
 // Allocations for the memory management.
 // `pub(crate)` so the relocated return-value parser in `protocol.rs` can read/free
@@ -605,11 +605,11 @@ pub mod exposed_runtime {
 #[allow(unused)]
 pub mod abi {
     use super::{
-        abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
-        DoTask, ExternalPointer, FrameCallback, FromBinary, InternalCallback,
-        InternalPointer, IntervalCallback, JSEncoding, MemoryAllocationError, MemoryId, Params,
-        RawParts, ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValues, Returns, String,
-        ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
+        abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions, DoTask,
+        ExternalPointer, FrameCallback, FromBinary, InternalCallback, InternalPointer,
+        IntervalCallback, JSEncoding, MemoryAllocationError, MemoryId, Params, RawParts,
+        ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValues, Returns, String, ThreeState,
+        TickState, ToBinary, Vec, ALLOCATIONS,
     };
     // GroupReturnTypeHints now lives in `protocol.rs` (feature 00 Layer 2).
     use crate::GroupReturnTypeHints;
@@ -622,11 +622,11 @@ pub mod abi {
         use crate::{CachedText, MemoryAllocationResult, MemoryReaderError, WasmRequestResult};
 
         use super::{
-            abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions,
-            DoTask, ExternalPointer, FrameCallback, FromBinary,
-            InternalCallback, InternalPointer, IntervalCallback, JSEncoding, MemoryAllocationError,
-            MemoryId, Params, RawParts, ReturnTypeHints, ReturnTypeId, ReturnValueError,
-            ReturnValues, Returns, String, ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
+            abi, internal_api, BinaryReadError, BinaryReaderResult, CompletedInstructions, DoTask,
+            ExternalPointer, FrameCallback, FromBinary, InternalCallback, InternalPointer,
+            IntervalCallback, JSEncoding, MemoryAllocationError, MemoryId, Params, RawParts,
+            ReturnTypeHints, ReturnTypeId, ReturnValueError, ReturnValues, Returns, String,
+            ThreeState, TickState, ToBinary, Vec, ALLOCATIONS,
         };
         // GroupReturnTypeHints now lives in `protocol.rs` (feature 00 Layer 2).
         use crate::GroupReturnTypeHints;
@@ -1078,17 +1078,13 @@ pub mod abi {
         /// [`allocate_function_reference`] requests the host runtime to pre-allocate
         /// a target external reference for usage by the caller for a function.
         pub fn allocate_function_reference() -> ExternalPointer {
-            unsafe {
-                ExternalPointer::pointer(abi::web::function_allocate_external_pointer())
-            }
+            unsafe { ExternalPointer::pointer(abi::web::function_allocate_external_pointer()) }
         }
 
         /// [`allocate_object_reference`] requests the host runtime to pre-allocate
         /// a target external reference for usage by the caller for an object.
         pub fn allocate_object_reference() -> ExternalPointer {
-            unsafe {
-                ExternalPointer::pointer(abi::web::object_allocate_external_pointer())
-            }
+            unsafe { ExternalPointer::pointer(abi::web::object_allocate_external_pointer()) }
         }
 
         /// [`batch`] sends a [`CompletedInstructions`] batch over to the host runtime
@@ -1444,11 +1440,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_f64(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_f64(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1461,11 +1453,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_f32(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_f32(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1478,11 +1466,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_i64(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_i64(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1495,11 +1479,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_i32(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_i32(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1512,11 +1492,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_i16(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_i16(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1529,11 +1505,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_i8(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_i8(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1546,11 +1518,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_u64(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_u64(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1563,11 +1531,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             ExternalPointer::pointer(unsafe {
-                abi::web::host_invoke_function_as_object(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_object(handler, param_raw.ptr, param_raw.length)
             })
         }
 
@@ -1592,11 +1556,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_u32(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_u32(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1609,11 +1569,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_u16(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_u16(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1626,11 +1582,7 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_u8(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                )
+                abi::web::host_invoke_function_as_u8(handler, param_raw.ptr, param_raw.length)
             }
         }
 
@@ -1642,11 +1594,8 @@ pub mod abi {
             let param_raw = RawParts::from_vec(param_bytes);
 
             unsafe {
-                abi::web::host_invoke_function_as_bool(
-                    handler,
-                    param_raw.ptr,
-                    param_raw.length,
-                ) == 1
+                abi::web::host_invoke_function_as_bool(handler, param_raw.ptr, param_raw.length)
+                    == 1
             }
         }
 
@@ -1934,4 +1883,3 @@ pub mod abi {
         }
     }
 }
-

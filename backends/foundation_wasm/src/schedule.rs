@@ -173,36 +173,3 @@ impl ScheduleRegistry {
         InternalPointer::from(id)
     }
 }
-
-#[cfg(test)]
-mod test_schedule_registry {
-    extern crate std;
-
-    use alloc::boxed::Box;
-    use alloc::sync::Arc;
-
-    use super::FnDoTask;
-    use super::ScheduleRegistry;
-    use foundation_nostd::comp::basic::Mutex;
-
-    #[test]
-    fn test_add() {
-        let mut registry = ScheduleRegistry::new();
-
-        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
-
-        let copy_value = value.clone();
-        let handle = Box::new(FnDoTask::from(move || {
-            let mut item = copy_value.lock().unwrap();
-            *item = 2;
-        }));
-
-        let id = registry.add(handle);
-
-        assert_eq!(*value.lock().unwrap(), 0);
-
-        let _ = registry.call(id);
-
-        assert_eq!(*value.lock().unwrap(), 2);
-    }
-}

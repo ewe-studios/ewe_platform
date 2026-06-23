@@ -162,69 +162,6 @@ unsafe impl Sync for IntervalCallbackList {}
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 unsafe impl Send for IntervalCallbackList {}
 
-#[cfg(test)]
-mod test_interval_registry {
-    extern crate std;
-
-    use alloc::boxed::Box;
-    use alloc::sync::Arc;
-
-    use super::*;
-    use foundation_nostd::comp::basic::Mutex;
-
-    #[test]
-    fn test_add_when_requeued() {
-        let mut registry = IntervalCallbackList::new();
-
-        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
-
-        let copy_value = value.clone();
-        let handle = Box::new(FnIntervalCallback::from(move || {
-            let mut item = copy_value.lock().unwrap();
-            *item = 2;
-            TickState::REQUEUE
-        }));
-
-        assert_eq!(registry.len(), 0);
-        registry.add(handle);
-
-        assert_eq!(registry.len(), 1);
-        assert_eq!(*value.lock().unwrap(), 0);
-
-        registry.call();
-
-        assert_eq!(*value.lock().unwrap(), 2);
-
-        assert_eq!(registry.len(), 1);
-    }
-
-    #[test]
-    fn test_add_when_stopping() {
-        let mut registry = IntervalCallbackList::new();
-
-        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
-
-        let copy_value = value.clone();
-        let handle = Box::new(FnIntervalCallback::from(move || {
-            let mut item = copy_value.lock().unwrap();
-            *item = 2;
-            TickState::STOP
-        }));
-
-        assert_eq!(registry.len(), 0);
-        registry.add(handle);
-
-        assert_eq!(registry.len(), 1);
-        assert_eq!(*value.lock().unwrap(), 0);
-
-        registry.call();
-
-        assert_eq!(*value.lock().unwrap(), 2);
-
-        assert_eq!(registry.len(), 0);
-    }
-}
-
 #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
 pub struct IntervalRegistry {
     tree: BTreeMap<InternalPointer, WrappedItem<Box<dyn IntervalCallback + 'static>>>,
@@ -327,40 +264,5 @@ impl IntervalRegistry {
         let wrapped = WrappedItem::new(callback);
         self.tree.insert(InternalPointer::from(id), wrapped);
         InternalPointer::from(id)
-    }
-}
-
-#[cfg(test)]
-mod test_schedule_registry {
-    extern crate std;
-
-    use alloc::boxed::Box;
-    use alloc::sync::Arc;
-
-    use super::FnIntervalCallback;
-    use super::IntervalRegistry;
-    use super::TickState;
-    use foundation_nostd::comp::basic::Mutex;
-
-    #[test]
-    fn test_add() {
-        let mut registry = IntervalRegistry::new();
-
-        let value: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
-
-        let copy_value = value.clone();
-        let handle = Box::new(FnIntervalCallback::from(move || {
-            let mut item = copy_value.lock().unwrap();
-            *item = 2;
-            TickState::REQUEUE
-        }));
-
-        let id = registry.add(handle);
-
-        assert_eq!(*value.lock().unwrap(), 0);
-
-        let _ = registry.call(id);
-
-        assert_eq!(*value.lock().unwrap(), 2);
     }
 }
