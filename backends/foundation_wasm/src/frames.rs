@@ -30,26 +30,26 @@ impl From<u8> for TickState {
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub trait FrameCallback {
     fn tick(&self, value: f64) -> TickState;
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub trait FrameCallback: Send + Sync {
     fn tick(&self, value: f64) -> TickState;
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub struct FnFrameCallback(Box<dyn Fn(f64) -> TickState>);
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub struct FnFrameCallback(
     foundation_nostd::comp::basic::Mutex<Box<dyn Fn(f64) -> TickState + Send + 'static>>,
 );
 
 impl FnFrameCallback {
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn from<F>(elem: F) -> Self
     where
         F: Fn(f64) -> TickState + Send + 'static,
@@ -57,7 +57,7 @@ impl FnFrameCallback {
         Self::new(Box::new(elem))
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn from<F>(elem: F) -> Self
     where
         F: Fn(f64) -> TickState + 'static,
@@ -65,27 +65,27 @@ impl FnFrameCallback {
         Self::new(Box::new(elem))
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     #[must_use]
     pub fn new(elem: Box<dyn Fn(f64) -> TickState + Send + 'static>) -> Self {
         Self(foundation_nostd::comp::basic::Mutex::new(elem))
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn new(elem: Box<dyn Fn(f64) -> TickState>) -> Self {
         Self(elem)
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Sync for FnFrameCallback {}
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Send for FnFrameCallback {}
 
 impl FrameCallback for FnFrameCallback {
     fn tick(&self, value: f64) -> TickState {
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         {
             (self
                 .0
@@ -95,7 +95,7 @@ impl FrameCallback for FnFrameCallback {
             )
         }
 
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         {
             (self.0)(value)
         }
@@ -103,10 +103,10 @@ impl FrameCallback for FnFrameCallback {
 }
 
 pub struct FrameCallbackList {
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     items: Vec<Option<Box<dyn FrameCallback + Send + Sync + 'static>>>,
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     items: Vec<Option<Box<dyn FrameCallback + 'static>>>,
 }
 
@@ -146,12 +146,12 @@ impl FrameCallbackList {
         self.items.is_empty()
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn add(&mut self, handler: Box<dyn FrameCallback + 'static>) {
         self.items.push(Some(handler));
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn add(&mut self, handler: Box<dyn FrameCallback + Send + Sync + 'static>) {
         self.items.push(Some(handler));
     }
@@ -186,8 +186,8 @@ impl FrameCallbackList {
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Sync for FrameCallbackList {}
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Send for FrameCallbackList {}

@@ -22,7 +22,7 @@ foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 # Build tooling (feature 20): scanning #[wasm_entrypoint] fns and generating
 # bin/ sources — a std, native-only concern, so target-gated rather than
 # feature-gated: every native build gets the CLI, wasm builds never see it.
-[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+[target.'cfg(not(target_family = "wasm"))'.dependencies]
 foundation_codegen = { path = "../foundation_codegen", version = "0.1.0" }
 toml = { workspace = true }
 toml_edit = { workspace = true }
@@ -37,7 +37,14 @@ f128 = []
 # timers, and the uniform `host_apply` transport. Off by default so non-web hosts
 # (WASI, native, custom WASM hosts) aren't forced to supply those imports. Consumers
 # that talk to a JS host (e.g. `foundation_wasm_ui`) enable it.
+# Targets: wasm32-unknown-unknown, wasm32-unknown-emscripten (in-browser).
 web = []
+# WASI preview1 host backend — scheduling via WASI clocks, entropy via WASI random.
+# Target: wasm32-wasip1.
+wasi = []
+# WASI preview2 (component model) host backend — wasi:clocks, wasi:random, wasi:http.
+# Target: wasm32-wasip2.
+wasip2 = ["wasi"]
 # Embeds the single-file JS runtime (runtime/foundation-wasm.js) into the binary so
 # servers/bundler-less deployments can serve it without an asset pipeline.
 embedded-js = []

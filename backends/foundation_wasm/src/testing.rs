@@ -133,7 +133,7 @@ where
             Poll::Pending => {
                 // Re-enter on the next host timer tick (the owned yield loop). The
                 // schedule registry takes `Fn`, so the closure re-arms by cloning.
-                #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+                #[cfg(target_family = "wasm")]
                 {
                     let again = future.clone();
                     let case = name.clone();

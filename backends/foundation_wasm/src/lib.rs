@@ -18,14 +18,19 @@
 #![allow(clippy::must_use_candidate)]
 #![no_std]
 
-// Build tooling is a STD, native-only concern (feature 20) — target-gated so
-// every native build carries the CLI while wasm builds stay no_std-clean.
-#[cfg(not(target_arch = "wasm32"))]
+// std is available on native, emscripten (partial libc), and WASI (full).
+// Only wasm32-unknown-unknown is truly no_std (no libc, no OS).
+#[cfg(any(
+    not(target_family = "wasm"),
+    target_os = "emscripten",
+    target_os = "wasi"
+))]
 extern crate std;
 
-#[cfg(not(target_arch = "wasm32"))]
+// Build tooling is a native-only concern — the CLI scanner + codegen.
+#[cfg(not(target_family = "wasm"))]
 pub mod build_tools;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod cli;
 
 extern crate alloc;

@@ -1,18 +1,18 @@
 ---
 feature: "wasm target matrix — prepare foundation_wasm + foundation_testbed for emscripten + WASI (p1/p2)"
 description: "Make the agentic-relevant wasm-capable crates compile + run across the full wasm matrix — wasm32-unknown-unknown (CF Workers/wasm-bindgen), wasm32-unknown-emscripten (browser/WebGPU/llama), wasm32-wasip1, wasm32-wasip2 — by replacing blanket target_arch gating with target_os-aware gating, adding WASI/emscripten host backends to foundation_wasm, and extending the foundation_testbed harness to run them"
-status: "pending"
+status: "in-progress"
 priority: "medium"
 depends_on: ["00-foundation-compact"]
 estimated_effort: "large"
 created: 2026-06-15
-last_updated: 2026-06-15
+last_updated: 2026-06-24
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 14
+  completed: 4
+  uncompleted: 10
   total: 14
-  completion_percentage: 0%
+  completion_percentage: 29%
 ---
 
 # Feature 00d: wasm target matrix (emscripten + WASI p1/p2)

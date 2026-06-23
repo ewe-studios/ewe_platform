@@ -168,7 +168,7 @@ pub mod internal_api {
 
     /// [`register_animation_hook`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_animation_hook<F>(f: F)
     where
         F: Fn(f64) -> TickState + Send + Sync + 'static,
@@ -181,7 +181,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_animation_hook<F>(f: F)
     where
         F: Fn(f64) -> TickState + 'static,
@@ -194,7 +194,7 @@ pub mod internal_api {
 
     /// [`register_animation_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`FrameCallback`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_animation_interval_callback<F>(f: F)
     where
         F: FrameCallback + 'static,
@@ -207,7 +207,7 @@ pub mod internal_api {
 
     /// [`register_animation_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`FrameCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_animation_interval_callback<F>(f: F)
     where
         F: FrameCallback + Send + Sync + 'static,
@@ -247,7 +247,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_schedule<F>(f: F) -> InternalPointer
     where
         F: Fn() + Send + Sync + 'static,
@@ -260,7 +260,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_schedule<F>(f: F) -> InternalPointer
     where
         F: Fn() + 'static,
@@ -273,7 +273,7 @@ pub mod internal_api {
 
     /// [`register_schedule_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_schedule_callback<F>(f: F) -> InternalPointer
     where
         F: DoTask + 'static,
@@ -286,7 +286,7 @@ pub mod internal_api {
 
     /// [`register_schedule_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_schedule_callback<F>(f: F) -> InternalPointer
     where
         F: DoTask + Send + Sync + 'static,
@@ -316,7 +316,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_interval<F>(f: F) -> InternalPointer
     where
         F: Fn() -> TickState + Send + Sync + 'static,
@@ -339,7 +339,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_interval<F>(f: F) -> InternalPointer
     where
         F: Fn() -> TickState + 'static,
@@ -352,7 +352,7 @@ pub mod internal_api {
 
     /// [`register_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_interval_callback<F>(f: F) -> InternalPointer
     where
         F: IntervalCallback + 'static,
@@ -365,7 +365,7 @@ pub mod internal_api {
 
     /// [`register_interval_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_interval_callback<F>(f: F) -> InternalPointer
     where
         F: IntervalCallback + Send + Sync + 'static,
@@ -380,7 +380,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: Fn(TaskResult<Returns>) + Send + Sync + 'static,
@@ -393,7 +393,7 @@ pub mod internal_api {
 
     /// [`register_callback`] provides a method that will automatically
     /// convert any type that implements the [`Fn`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: Fn(TaskResult<Returns>) + 'static,
@@ -406,7 +406,7 @@ pub mod internal_api {
 
     /// [`register_internal_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn register_internal_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + Send + Sync + 'static,
@@ -419,7 +419,7 @@ pub mod internal_api {
 
     /// [`register_internal_callback`] provides a more direct method for
     /// registering a type that implements the [`InternalCallback`] trait.
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn register_internal_callback<F>(returns: ReturnTypeHints, f: F) -> InternalPointer
     where
         F: InternalCallback + 'static,
@@ -631,7 +631,7 @@ pub mod abi {
         // GroupReturnTypeHints now lives in `protocol.rs` (feature 00 Layer 2).
         use crate::GroupReturnTypeHints;
 
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         #[link(wasm_import_module = "abi")]
         extern "C" {
 
@@ -923,7 +923,7 @@ pub mod abi {
             ) -> u64;
         }
 
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         mod stubs {
             pub fn hook_up_animation_frames() {}
             pub fn schedule_timeout(_timing: f64, _callback: u64) {}
@@ -1069,7 +1069,7 @@ pub mod abi {
         }
 
         // Re-export stubs with same names as extern functions for non-wasm targets
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub use stubs::*;
 
         // `allocate_dom_reference` moved to `foundation_wasm_ui::wasm::dom::element`
@@ -1174,7 +1174,7 @@ pub mod abi {
 
         /// [`register_animation_hook`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_animation_hook<F>(f: F)
         where
             F: Fn(f64) -> TickState + Send + Sync + 'static,
@@ -1190,7 +1190,7 @@ pub mod abi {
 
         /// [`register_animation_hook`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_animation_hook<F>(f: F)
         where
             F: Fn(f64) -> TickState + 'static,
@@ -1206,7 +1206,7 @@ pub mod abi {
 
         /// [`register_animation_hook_callback`] provides a more direct method for
         /// registering a type that implements the [`FrameCallback`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_animation_hook_callback<F>(f: F)
         where
             F: FrameCallback + Send + Sync + 'static,
@@ -1222,7 +1222,7 @@ pub mod abi {
 
         /// [`register_animation_hook_callback`] provides a more direct method for
         /// registering a type that implements the [`FrameCallback`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_animation_hook_callback<F>(f: F)
         where
             F: FrameCallback + Send + Sync + 'static,
@@ -1247,7 +1247,7 @@ pub mod abi {
 
         /// [`register_callback`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_schedule<F>(timing: f64, f: F) -> InternalPointer
         where
             F: Fn() + Send + Sync + 'static,
@@ -1261,7 +1261,7 @@ pub mod abi {
 
         /// [`register_callback`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_schedule<F>(timing: f64, f: F) -> InternalPointer
         where
             F: Fn() + 'static,
@@ -1275,7 +1275,7 @@ pub mod abi {
 
         /// [`register_schedule_callback`] provides a more direct method for
         /// registering a type that implements the [`InternalCallback`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_schedule_callback<F>(timing: f64, f: F) -> InternalPointer
         where
             F: DoTask + 'static,
@@ -1289,7 +1289,7 @@ pub mod abi {
 
         /// [`register_schedule_callback`] provides a more direct method for
         /// registering a type that implements the [`InternalCallback`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_schedule_callback<F>(timing: f64, f: F) -> InternalPointer
         where
             F: DoTask + Send + Sync + 'static,
@@ -1312,7 +1312,7 @@ pub mod abi {
 
         /// [`register_callback`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
         where
             F: Fn() -> TickState + Send + Sync + 'static,
@@ -1326,7 +1326,7 @@ pub mod abi {
 
         /// [`register_callback`] provides a method that will automatically
         /// convert any type that implements the [`Fn`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_interval<F>(timing: f64, f: F) -> InternalPointer
         where
             F: Fn() -> TickState + 'static,
@@ -1340,7 +1340,7 @@ pub mod abi {
 
         /// [`register_interval_callback`] provides a more direct method for
         /// registering a type that implements the [`InternalCallback`] trait.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
         where
             F: IntervalCallback + Send + Sync + 'static,
@@ -1354,7 +1354,7 @@ pub mod abi {
 
         /// [`register_interval_callback`] provides a more direct method for
         /// registering a type that implements the [`InternalCallback`] trait.
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         pub fn register_interval_callback<F>(timing: f64, f: F) -> InternalPointer
         where
             F: IntervalCallback + Send + Sync + 'static,

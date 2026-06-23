@@ -3,24 +3,24 @@ use alloc::{boxed::Box, collections::btree_map::BTreeMap};
 use crate::{InternalPointer, WrappedItem};
 use foundation_nostd::comp::basic::Mutex;
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub trait DoTask {
     fn perform(&self);
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub trait DoTask: Send + Sync {
     fn perform(&self);
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub struct FnDoTask(Box<dyn Fn()>);
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub struct FnDoTask(Mutex<Box<dyn Fn() + Send + 'static>>);
 
 impl FnDoTask {
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn from<F>(elem: F) -> Self
     where
         F: Fn() + Send + 'static,
@@ -28,7 +28,7 @@ impl FnDoTask {
         Self::new(Box::new(elem))
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn from<F>(elem: F) -> Self
     where
         F: Fn() + 'static,
@@ -36,27 +36,27 @@ impl FnDoTask {
         Self::new(Box::new(elem))
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     #[must_use]
     pub fn new(elem: Box<dyn Fn() + Send + 'static>) -> Self {
         Self(Mutex::new(elem))
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn new(elem: Box<dyn Fn()>) -> Self {
         Self(elem)
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Sync for FnDoTask {}
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Send for FnDoTask {}
 
 impl DoTask for FnDoTask {
     fn perform(&self) {
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         {
             (self
                 .0
@@ -65,20 +65,20 @@ impl DoTask for FnDoTask {
             );
         }
 
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         {
             (self.0)()
         }
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub struct ScheduleRegistry {
     tree: BTreeMap<InternalPointer, WrappedItem<Box<dyn DoTask + 'static>>>,
     id: u64,
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub struct ScheduleRegistry {
     tree: BTreeMap<InternalPointer, WrappedItem<Box<dyn DoTask + Sync + Send + 'static>>>,
     id: u64,
@@ -121,7 +121,7 @@ impl ScheduleRegistry {
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 impl ScheduleRegistry {
     pub fn call(&self, id: InternalPointer) -> Option<()> {
         if let Some(callback) = self.tree.get(&id) {
@@ -140,7 +140,7 @@ impl ScheduleRegistry {
     }
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 impl ScheduleRegistry {
     #[must_use]
     pub fn len(&self) -> usize {

@@ -3,24 +3,24 @@ use alloc::{boxed::Box, collections::btree_map::BTreeMap, vec::Vec};
 use crate::{InternalPointer, TickState, WrappedItem};
 use foundation_nostd::comp::basic::Mutex;
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub trait IntervalCallback {
     fn perform(&self) -> TickState;
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub trait IntervalCallback: Send + Sync {
     fn perform(&self) -> TickState;
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub struct FnIntervalCallback(Box<dyn Fn() -> TickState>);
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub struct FnIntervalCallback(Mutex<Box<dyn Fn() -> TickState + Send + 'static>>);
 
 impl FnIntervalCallback {
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn from<F>(elem: F) -> Self
     where
         F: Fn() -> TickState + Send + 'static,
@@ -28,7 +28,7 @@ impl FnIntervalCallback {
         Self::new(Box::new(elem))
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn from<F>(elem: F) -> Self
     where
         F: Fn() -> TickState + 'static,
@@ -36,27 +36,27 @@ impl FnIntervalCallback {
         Self::new(Box::new(elem))
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     #[must_use]
     pub fn new(elem: Box<dyn Fn() -> TickState + Send + 'static>) -> Self {
         Self(Mutex::new(elem))
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn new(elem: Box<dyn Fn() -> TickState>) -> Self {
         Self(elem)
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Sync for FnIntervalCallback {}
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Send for FnIntervalCallback {}
 
 impl IntervalCallback for FnIntervalCallback {
     fn perform(&self) -> TickState {
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         {
             (self
                 .0
@@ -65,7 +65,7 @@ impl IntervalCallback for FnIntervalCallback {
             )
         }
 
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         {
             (self.0)()
         }
@@ -73,10 +73,10 @@ impl IntervalCallback for FnIntervalCallback {
 }
 
 pub struct IntervalCallbackList {
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     items: Vec<Option<Box<dyn IntervalCallback + Send + Sync + 'static>>>,
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     items: Vec<Option<Box<dyn IntervalCallback + 'static>>>,
 }
 
@@ -116,12 +116,12 @@ impl IntervalCallbackList {
         self.items.is_empty()
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn add(&mut self, handler: Box<dyn IntervalCallback + 'static>) {
         self.items.push(Some(handler));
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn add(&mut self, handler: Box<dyn IntervalCallback + Send + Sync + 'static>) {
         self.items.push(Some(handler));
     }
@@ -156,19 +156,19 @@ impl IntervalCallbackList {
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Sync for IntervalCallbackList {}
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Send for IntervalCallbackList {}
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub struct IntervalRegistry {
     tree: BTreeMap<InternalPointer, WrappedItem<Box<dyn IntervalCallback + 'static>>>,
     id: u64,
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub struct IntervalRegistry {
     tree: BTreeMap<InternalPointer, WrappedItem<Box<dyn IntervalCallback + Sync + Send + 'static>>>,
     id: u64,
@@ -211,7 +211,7 @@ impl IntervalRegistry {
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 impl IntervalRegistry {
     pub fn call(&self, id: InternalPointer) -> Option<TickState> {
         if let Some(callback) = self.tree.get(&id) {
@@ -229,7 +229,7 @@ impl IntervalRegistry {
     }
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 impl IntervalRegistry {
     #[must_use]
     pub fn len(&self) -> usize {

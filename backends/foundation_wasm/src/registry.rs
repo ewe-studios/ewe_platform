@@ -4,24 +4,24 @@ use foundation_nostd::comp::basic::Mutex;
 
 use crate::{InternalPointer, ReturnTypeHints, Returns, TaskResult, WrappedItem};
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub trait InternalCallback {
     fn receive(&self, value: TaskResult<Returns>);
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub trait InternalCallback: Send + Sync {
     fn receive(&self, value: TaskResult<Returns>);
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub struct FnCallback(Box<dyn Fn(TaskResult<Returns>)>);
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub struct FnCallback(Mutex<Box<dyn Fn(TaskResult<Returns>) + Send + 'static>>);
 
 impl FnCallback {
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn from<F>(elem: F) -> Self
     where
         F: Fn(TaskResult<Returns>) + Send + 'static,
@@ -29,7 +29,7 @@ impl FnCallback {
         Self::new(Box::new(elem))
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn from<F>(elem: F) -> Self
     where
         F: Fn(TaskResult<Returns>) + 'static,
@@ -37,27 +37,27 @@ impl FnCallback {
         Self::new(Box::new(elem))
     }
 
-    #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+    #[cfg(not(target_family = "wasm"))]
     #[must_use]
     pub fn new(elem: Box<dyn Fn(TaskResult<Returns>) + Send + 'static>) -> Self {
         Self(Mutex::new(elem))
     }
 
-    #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+    #[cfg(target_family = "wasm")]
     pub fn new(elem: Box<dyn Fn(TaskResult<Returns>)>) -> Self {
         Self(elem)
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Sync for FnCallback {}
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 unsafe impl Send for FnCallback {}
 
 impl InternalCallback for FnCallback {
     fn receive(&self, value: TaskResult<Returns>) {
-        #[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+        #[cfg(not(target_family = "wasm"))]
         {
             (self
                 .0
@@ -67,14 +67,14 @@ impl InternalCallback for FnCallback {
             );
         }
 
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         {
             (self.0)(value);
         }
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub struct InternalReferenceRegistry {
     tree: BTreeMap<
         InternalPointer,
@@ -86,7 +86,7 @@ pub struct InternalReferenceRegistry {
     id: u64,
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub struct InternalReferenceRegistry {
     tree: BTreeMap<
         InternalPointer,
@@ -140,7 +140,7 @@ impl InternalReferenceRegistry {
     }
 }
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 impl InternalReferenceRegistry {
     pub fn call(&self, id: InternalPointer, values: TaskResult<Returns>) -> Option<()> {
         if let Some((_, callback)) = self.tree.get(&id) {
@@ -164,7 +164,7 @@ impl InternalReferenceRegistry {
     }
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 impl InternalReferenceRegistry {
     #[must_use]
     pub fn call(&self, id: InternalPointer, values: TaskResult<Returns>) -> Option<()> {
