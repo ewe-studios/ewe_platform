@@ -64,6 +64,7 @@
 
 pub mod basic;
 pub mod condvar_comp;
+pub mod fair_gate;
 
 #[cfg(test)]
 mod tests {

@@ -47,6 +47,10 @@ pub fn serde_json_path() -> proc_macro2::TokenStream {
     resolve_crate("serde_json")
 }
 
+pub fn foundation_nostd_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_nostd")
+}
+
 pub fn foundation_theme_path() -> proc_macro2::TokenStream {
     resolve_crate("foundation_theme")
 }

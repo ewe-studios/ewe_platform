@@ -16,6 +16,7 @@ mod html_macro;
 mod theme_macro;
 mod theme_tokens;
 mod wasm_modes;
+mod serial_test;
 mod valtron_entry;
 mod wasm_test;
 mod wasm_ui_server_entry;
@@ -546,6 +547,26 @@ pub fn valtron(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn valtron_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     valtron_entry::valtron_test(attr.into(), item.into()).into()
+}
+
+/// `#[serial_test]` — serialize tests that share process-global state.
+///
+/// Replaces `#[test]` (like `#[valtron_test]` — do not stack with `#[test]`).
+/// All `#[serial_test]` functions in the same test binary share a single
+/// `FairGate` (ticket-based FIFO mutex), so they run one at a time in
+/// arrival order without starvation.
+///
+/// ```ignore
+/// use foundation_macros::serial_test;
+///
+/// #[serial_test]
+/// fn test_global_timer_state() {
+///     // safe to assert on process-global statics here
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn serial_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    serial_test::serial_test(attr.into(), item.into()).into()
 }
 
 /// `#[timeout(ms)]` — kills the test if it exceeds the given millisecond limit.
