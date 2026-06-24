@@ -9,10 +9,10 @@ created: 2026-06-15
 last_updated: 2026-06-24
 author: "Main Agent"
 tasks:
-  completed: 4
-  uncompleted: 10
+  completed: 5
+  uncompleted: 9
   total: 14
-  completion_percentage: 29%
+  completion_percentage: 36%
 ---
 
 # Feature 00d: wasm target matrix (emscripten + WASI p1/p2)

@@ -50,6 +50,9 @@ mod wrapped;
 #[cfg(feature = "web")]
 pub mod testing;
 
+#[cfg(feature = "wasi")]
+pub mod wasi_host;
+
 #[cfg(feature = "embedded-js")]
 pub mod embedded;
 

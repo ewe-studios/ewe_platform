@@ -591,6 +591,32 @@ pub mod exposed_runtime {
             MemoryId::from_u64(allocation_id),
         );
     }
+
+    #[cfg(feature = "wasi")]
+    #[no_mangle]
+    pub extern "C" fn wasi_tick() -> u8 {
+        crate::wasi_host::tick().into_u8()
+    }
+
+    #[cfg(feature = "wasi")]
+    #[no_mangle]
+    pub extern "C" fn wasi_poll_blocking() -> u8 {
+        crate::wasi_host::poll_blocking().into_u8()
+    }
+
+    #[cfg(feature = "wasi")]
+    #[no_mangle]
+    pub extern "C" fn wasi_time_until_next_event_ms() -> u64 {
+        crate::wasi_host::time_until_next_event()
+            .map(|d| d.as_millis() as u64)
+            .unwrap_or(u64::MAX)
+    }
+
+    #[cfg(feature = "wasi")]
+    #[no_mangle]
+    pub extern "C" fn wasi_has_pending_work() -> u8 {
+        u8::from(crate::wasi_host::has_pending_work())
+    }
 }
 
 /// [`abi`] is the expected interface which the JS/Host
