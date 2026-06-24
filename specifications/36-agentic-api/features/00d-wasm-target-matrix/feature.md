@@ -6,13 +6,13 @@ priority: "medium"
 depends_on: ["00-foundation-compact"]
 estimated_effort: "large"
 created: 2026-06-15
-last_updated: 2026-06-24
+last_updated: 2026-06-25
 author: "Main Agent"
 tasks:
-  completed: 5
-  uncompleted: 9
+  completed: 8
+  uncompleted: 6
   total: 14
-  completion_percentage: 36%
+  completion_percentage: 57%
 ---
 
 # Feature 00d: wasm target matrix (emscripten + WASI p1/p2)
