@@ -57,7 +57,12 @@ pub struct RunOutcome {
 /// # Errors
 /// Fails when the build, discovery, template read, or any staging write fails.
 pub fn stage(crate_path: &Path, args: &OwnedRunArgs, stage_dir: &Path) -> Result<Vec<FwtCase>> {
-    let built = build::run(crate_path, args.release, args.features.as_deref())?;
+    let built = build::run_for_target(
+        crate_path,
+        args.release,
+        args.features.as_deref(),
+        args.target.triple(),
+    )?;
     let mut cases = fwt::discover_cases(&built.wasm_path)?;
     if let Some(filter) = &args.filter {
         cases.retain(|case| case.name.contains(filter.as_str()));

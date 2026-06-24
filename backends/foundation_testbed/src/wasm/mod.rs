@@ -1,8 +1,10 @@
-//! wasm testbed — a CLI-driven test harness for `wasm32-unknown-unknown`.
+//! wasm testbed — a CLI-driven test harness for the wasm target matrix.
 //!
 //! Supports browser (pure-Rust CDP/BiDi driver), Deno, and Cloudflare Workers
 //! (wrangler) execution, with both the custom harness and auto-generated
-//! wasm-bindgen test modes. Gated behind the crate's `wasm` feature.
+//! wasm-bindgen test modes. The `--target` flag selects the compilation target
+//! (unknown-unknown, emscripten, wasip1, wasip2). Gated behind the crate's
+//! `wasm` feature.
 
 pub mod browser;
 pub mod build;

@@ -69,7 +69,7 @@ fn find_workspace_root(crate_path: &Path) -> Option<PathBuf> {
     None
 }
 
-/// Run `cargo build --target wasm32-unknown-unknown` and return the wasm output.
+/// Run `cargo build --target <triple>` and return the wasm output.
 ///
 /// Expects the crate to have `crate-type = ["cdylib"]` in its `[lib]` section
 /// to produce a `.wasm` binary. Detects workspace membership to locate the
@@ -87,7 +87,21 @@ pub fn run(
     release: bool,
     features: Option<&str>,
 ) -> Result<BuildOutput> {
-    run_impl(crate_path, release, features, false)
+    run_for_target(crate_path, release, features, "wasm32-unknown-unknown")
+}
+
+/// Build for a specific wasm target triple.
+///
+/// # Errors
+/// Returns an error when cargo fails, the package name can't be read, or the
+/// built wasm artifact can't be located.
+pub fn run_for_target(
+    crate_path: &Path,
+    release: bool,
+    features: Option<&str>,
+    target_triple: &str,
+) -> Result<BuildOutput> {
+    run_impl(crate_path, release, features, false, target_triple)
 }
 
 /// Run `cargo build --target wasm32-unknown-unknown --tests` and return the wasm output.
@@ -103,7 +117,7 @@ pub fn run_with_tests(
     release: bool,
     features: Option<&str>,
 ) -> Result<BuildOutput> {
-    run_impl(crate_path, release, features, true)
+    run_impl(crate_path, release, features, true, "wasm32-unknown-unknown")
 }
 
 fn run_impl(
@@ -111,6 +125,7 @@ fn run_impl(
     release: bool,
     features: Option<&str>,
     include_tests: bool,
+    target_triple: &str,
 ) -> Result<BuildOutput> {
     let cargo_toml = crate_path.join("Cargo.toml");
     let package_name = read_package_name(&cargo_toml)?;
@@ -119,7 +134,7 @@ fn run_impl(
 
     which::which("cargo").map_err(|_| WasmTestbedError::CargoNotFound.trace())?;
 
-    info!("Running cargo build --target wasm32-unknown-unknown...");
+    info!("Running cargo build --target {target_triple}...");
 
     // Determine target directory: workspace members use workspace root's target.
     let target_dir = find_workspace_root(crate_path)
@@ -128,7 +143,7 @@ fn run_impl(
     let mut cmd = Command::new("cargo");
     cmd.arg("build")
         .arg("--target")
-        .arg("wasm32-unknown-unknown")
+        .arg(target_triple)
         .arg("--target-dir")
         .arg(&target_dir);
 
@@ -163,7 +178,7 @@ fn run_impl(
     }
 
     let deps_dir = target_dir
-        .join("wasm32-unknown-unknown")
+        .join(target_triple)
         .join(profile)
         .join("deps");
 
@@ -200,7 +215,7 @@ fn run_impl(
 
     // Try top-level path first, then deps/ fallback for library wasm
     let wasm_path = target_dir
-        .join("wasm32-unknown-unknown")
+        .join(target_triple)
         .join(profile)
         .join(format!("{package_name}.wasm"));
 

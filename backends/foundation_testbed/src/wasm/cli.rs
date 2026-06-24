@@ -4,6 +4,33 @@ use std::path::PathBuf;
 
 use clap::{Parser, Subcommand, ValueEnum};
 
+/// Wasm compilation target for the testbed.
+#[derive(Clone, Copy, Debug, Default, ValueEnum)]
+pub enum WasmTarget {
+    /// `wasm32-unknown-unknown` — browser/CF Workers via JS host
+    #[default]
+    UnknownUnknown,
+    /// `wasm32-unknown-emscripten` — browser with emscripten libc + pthreads
+    Emscripten,
+    /// `wasm32-wasip1` — WASI preview1 (wasmtime/wasmer/Deno)
+    Wasip1,
+    /// `wasm32-wasip2` — WASI preview2 component model
+    Wasip2,
+}
+
+impl WasmTarget {
+    /// The Rust `--target` triple for `cargo build`.
+    #[must_use]
+    pub fn triple(self) -> &'static str {
+        match self {
+            Self::UnknownUnknown => "wasm32-unknown-unknown",
+            Self::Emscripten => "wasm32-unknown-emscripten",
+            Self::Wasip1 => "wasm32-wasip1",
+            Self::Wasip2 => "wasm32-wasip2",
+        }
+    }
+}
+
 /// WASM Testbed — CLI-driven test harness for wasm32-unknown-unknown.
 #[derive(Parser)]
 #[command(name = "wasm-testbed", version, about)]
@@ -31,6 +58,10 @@ pub enum Command {
 pub struct OwnedRunArgs {
     /// Path to the Cargo crate containing `#[wasm_test]` cases
     pub crate_path: PathBuf,
+
+    /// Wasm compilation target (default: unknown-unknown)
+    #[arg(long, value_enum, default_value_t)]
+    pub target: WasmTarget,
 
     /// Build in release mode (default: debug)
     #[arg(long)]
