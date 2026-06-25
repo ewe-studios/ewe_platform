@@ -37,6 +37,8 @@ pub mod ivf;
 pub mod metric;
 pub mod sqrt;
 pub mod store;
+#[cfg(any(feature = "code-graph", feature = "code-graph-query"))]
+pub mod code_graph;
 pub mod vector;
 
 pub use bm25::{Bm25Index, SimpleTokenizer, Tokenizer};

@@ -11,10 +11,26 @@ keywords = ["vectors", "embeddings", "search", "ewe-platform"]
 
 [dependencies]
 serde = { workspace = true }
+serde_json = { version = "1", optional = true }
 libm = "0.2"
 async-trait = "0.1"
+petgraph = { version = "0.8", optional = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+tree-sitter = { version = "0.26", optional = true }
+tree-sitter-rust = { version = "0.24", optional = true }
 
 [dev-dependencies]
+serde_json = "1"
+
+[features]
+code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust"]
+code-graph-query = ["dep:petgraph", "dep:serde_json"]
+
+[[test]]
+name = "code_graph_tests"
+path = "tests/code_graph_tests.rs"
+required-features = ["code-graph"]
 
 [lints]
 workspace = true
