@@ -1,11 +1,10 @@
 //! llama-server subprocess harness.
 //!
 //! `LlamaServer` starts a llama-server child process, waits for its `/health`
-//! endpoint, and kills it on drop. Use in integration tests or dev tooling
-//! instead of the external mise tasks.
+//! endpoint, and kills it on drop.
 //!
 //! ```rust,no_run
-//! use foundation_ai::tools::LlamaServer;
+//! use foundation_toolings::harness::LlamaServer;
 //!
 //! let server = LlamaServer::builder()
 //!     .model_file("path/to/model.gguf")
@@ -26,16 +25,12 @@ fn project_root() -> PathBuf {
     let manifest_dir =
         std::env::var("CARGO_MANIFEST_DIR").expect("CARGO_MANIFEST_DIR should be set by cargo");
     Path::new(&manifest_dir)
-        .parent()
-        .and_then(|p| p.parent())
-        .expect("foundation_ai should be two levels below project root")
+        .ancestors()
+        .find(|p| p.join("Cargo.toml").exists() && p.join("backends").exists())
+        .expect("could not find workspace root")
         .to_path_buf()
 }
 
-/// A running llama-server process.
-///
-/// Kills the child process on drop. Access connection details via the
-/// public fields and [`base_url()`](Self::base_url).
 pub struct LlamaServer {
     child: Option<Child>,
     pub port: u16,
@@ -44,23 +39,10 @@ pub struct LlamaServer {
 }
 
 impl LlamaServer {
-    /// Start with the default configuration (reads env vars, falls back to
-    /// well-known paths).
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the server binary or model file is missing, or if
-    /// the server doesn't become healthy within the timeout.
     pub fn start() -> Result<Self, LlamaServerError> {
         Self::start_with(LlamaServerConfig::default())
     }
 
-    /// Start with explicit configuration.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the server binary or model file is missing, or if
-    /// the server doesn't become healthy within the timeout.
     pub fn start_with(config: LlamaServerConfig) -> Result<Self, LlamaServerError> {
         if !config.server_bin.exists() {
             return Err(LlamaServerError::BinaryNotFound(
@@ -74,7 +56,7 @@ impl LlamaServer {
         }
 
         let port = config.port.unwrap_or_else(|| {
-            portpicker::pick_unused_port().expect("no free port available")
+            super::pick_unused_port().expect("no free port available")
         });
 
         kill_existing(port);
@@ -137,7 +119,6 @@ impl LlamaServer {
         })
     }
 
-    /// Return a builder for fine-grained configuration.
     #[must_use]
     pub fn builder() -> LlamaServerConfig {
         LlamaServerConfig::default()
@@ -148,7 +129,6 @@ impl LlamaServer {
         format!("http://127.0.0.1:{}", self.port)
     }
 
-    /// Gracefully stop the server without waiting for drop.
     pub fn stop(&mut self) {
         if let Some(mut child) = self.child.take() {
             tracing::info!(pid = child.id(), "stopping llama-server");
@@ -164,10 +144,6 @@ impl Drop for LlamaServer {
     }
 }
 
-/// Configuration for a llama-server instance.
-///
-/// Use [`LlamaServer::builder()`] to get a default config, then chain
-/// setters: `.port(8080).model_file("...").build()`.
 pub struct LlamaServerConfig {
     pub port: Option<u16>,
     pub api_key: String,
@@ -207,7 +183,6 @@ impl Default for LlamaServerConfig {
 }
 
 impl LlamaServerConfig {
-    /// Fixed port (default: auto-pick a free port).
     #[must_use]
     pub fn port(mut self, port: u16) -> Self {
         self.port = Some(port);
@@ -256,25 +231,18 @@ impl LlamaServerConfig {
         self
     }
 
-    /// Build and start the server.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the binary/model is missing or if the server
-    /// doesn't start within the timeout.
     pub fn build(self) -> Result<LlamaServer, LlamaServerError> {
         LlamaServer::start_with(self)
     }
 }
 
-/// Errors from the llama-server harness.
 #[derive(Debug, derive_more::Display, derive_more::Error)]
 pub enum LlamaServerError {
-    #[display("llama-server binary not found at {_0}. Run: mise run llama:server:build")]
+    #[display("llama-server binary not found at {_0}")]
     #[error(ignore)]
     BinaryNotFound(String),
 
-    #[display("model file not found at {_0}. Run: mise run llama:test-model:download")]
+    #[display("model file not found at {_0}")]
     #[error(ignore)]
     ModelNotFound(String),
 

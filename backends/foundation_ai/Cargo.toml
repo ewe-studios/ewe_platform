@@ -47,8 +47,6 @@ ahash = "0.8"
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["turso"], default-features = false }
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["vfs", "vfs-search"] }
 foundation_deployment_huggingface = { path = "../foundation_deployment_huggingface", version = "0.1.0", optional = true }
-portpicker = { workspace = true, optional = true }
-which = { version = "7", optional = true }
 
 [target.'cfg(target_family = "wasm")'.dependencies]
 foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = ["wasm"], default-features = false }
@@ -148,10 +146,6 @@ multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi"]
 
 # Test substrate (F21): MockModelProvider, MockTool, message builders
 testing = []
-
-# Dev tools — subprocess harnesses (llama-server) for integration testing.
-# Not for production use.
-tools = ["dep:portpicker", "dep:which"]
 
 [lints]
 workspace = true

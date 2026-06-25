@@ -22,6 +22,7 @@ mod error;
 pub mod types;
 mod vec_ext;
 pub mod builder;
+pub mod harness;
 pub mod proxy;
 pub mod runner;
 pub mod service;

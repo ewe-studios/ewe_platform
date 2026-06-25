@@ -63,7 +63,3 @@ pub use wasm::bindgen::{D1Database, D1PreparedStatement, KVNamespace, R2Bucket, 
 
 // State store module
 pub use core::state;
-
-// Dev tools — subprocess harnesses (miniflare/wrangler) for integration testing
-#[cfg(all(feature = "tools", not(target_family = "wasm")))]
-pub mod tools;
