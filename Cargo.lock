@@ -3707,6 +3707,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_buildtools"
+version = "0.0.1"
+
+[[package]]
 name = "foundation_cedar"
 version = "0.0.1"
 dependencies = [
@@ -3795,6 +3799,7 @@ dependencies = [
  "concurrent-queue",
  "derive_more",
  "fastrand",
+ "foundation_buildtools",
  "foundation_compact",
  "foundation_macros",
  "foundation_nostd",

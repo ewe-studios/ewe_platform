@@ -82,5 +82,8 @@ js-foundation-wasm = ["foundation_wasm/web"]
 # default flags
 default = ["standard", "std"]
 
+[build-dependencies]
+foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.1" }
+
 [lints]
 workspace = true
