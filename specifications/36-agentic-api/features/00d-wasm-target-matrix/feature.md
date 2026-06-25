@@ -1,7 +1,7 @@
 ---
 feature: "wasm target matrix — prepare foundation_wasm + foundation_testbed for emscripten + WASI (p1/p2)"
 description: "Make the agentic-relevant wasm-capable crates compile + run across the full wasm matrix — wasm32-unknown-unknown (CF Workers/wasm-bindgen), wasm32-unknown-emscripten (browser/WebGPU/llama), wasm32-wasip1, wasm32-wasip2 — by replacing blanket target_arch gating with target_os-aware gating, adding WASI/emscripten host backends to foundation_wasm, and extending the foundation_testbed harness to run them"
-status: "in-progress"
+status: "done"
 priority: "medium"
 depends_on: ["00-foundation-compact"]
 estimated_effort: "large"
@@ -9,10 +9,10 @@ created: 2026-06-15
 last_updated: 2026-06-25
 author: "Main Agent"
 tasks:
-  completed: 11
-  uncompleted: 3
+  completed: 14
+  uncompleted: 0
   total: 14
-  completion_percentage: 79%
+  completion_percentage: 100%
 ---
 
 # Feature 00d: wasm target matrix (emscripten + WASI p1/p2)
@@ -135,6 +135,23 @@ discriminators); **emscripten** (the SDK, libc, pthreads, WebGPU, why llama buil
 wasmer); the **JS host ABI** (`wasm_import_module`, `getRandomValues`, event-loop yield) vs WASI host;
 how to write **target-OS-aware cfg** (not blanket `target_arch`); building/running each target in CI.
 (Task — see list.)
+
+## Task Checklist
+
+- [x] 1. Define canonical cfg discriminators (`target_family = "wasm"` + `target_os` for emscripten/wasi)
+- [x] 2. `foundation_wasm`: add `wasi` + `wasip2` Cargo features + WASI host backend (timer-based scheduling)
+- [x] 3. `foundation_wasm`: make host gating `target_os`-aware (web vs wasi paths)
+- [x] 4. Document per-host scheduling (host-driven JS event loop vs guest-driven WASI timer polling)
+- [x] 5. `foundation_testbed`: add `WasmTarget` enum (UnknownUnknown/Emscripten/Wasip1/Wasip2) + `--target` CLI flag
+- [x] 6. `foundation_testbed`: make `build::run_for_target()` accept target triple, use LLVM backend override
+- [x] 7. Verify full wasm target matrix builds (uu, emscripten, wasip1, wasip2) with `CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm`
+- [x] 8. `foundation_macros`: implement `#[serial_test]` proc macro (FairGate-based test serialization)
+- [x] 9. `foundation_wasm` WASI host tests: migrate to `#[serial_test]`, restore timing assertions
+- [x] 10. Spec-wide cfg audit: migrate `target_arch = "wasm32"` → `target_family = "wasm"` across 59 files / 14 crates
+- [x] 11. Author `fundamentals/wasm-target-matrix.md` zero-to-expert documentation
+- [x] 12. `foundation_buildtools` crate (OD-00b-8): target detection, EMSDK wiring, cranelift detection, wasm classification
+- [x] 13. `foundation_testbed`: emscripten runner (subprocess: build → node) + WASI runner (subprocess: build → wasmtime)
+- [x] 14. CI matrix: add `wasm32-wasip2` + emscripten targets to `mise.toml` setup + verification tasks
 
 ## HOW: Implementation Steps
 

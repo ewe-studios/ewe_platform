@@ -51,6 +51,10 @@ pub enum Command {
     Deno(OwnedRunArgs),
     /// OWNED: same loop served + run under Playwright on our runtime
     Web(OwnedRunArgs),
+    /// Build for wasm32-unknown-emscripten and run via node
+    Emscripten(EmscriptenArgs),
+    /// Build for wasm32-wasip1/wasip2 and run via wasmtime
+    Wasi(WasiArgs),
 }
 
 /// Arguments shared by the owned `deno`/`web` runners (features 12/13).
@@ -193,6 +197,40 @@ impl Mode {
     pub fn needs_wrangler(&self) -> bool {
         matches!(self, Mode::Wrangler | Mode::BindgenWrangler)
     }
+}
+
+/// Arguments for the `emscripten` subcommand.
+#[derive(Parser)]
+pub struct EmscriptenArgs {
+    /// Path to the Cargo crate to build and run
+    pub crate_path: PathBuf,
+
+    /// Build in release mode
+    #[arg(long)]
+    pub release: bool,
+
+    /// Cargo features to enable during build
+    #[arg(long)]
+    pub features: Option<String>,
+}
+
+/// Arguments for the `wasi` subcommand.
+#[derive(Parser)]
+pub struct WasiArgs {
+    /// Path to the Cargo crate to build and run
+    pub crate_path: PathBuf,
+
+    /// WASI target: wasip1 (default) or wasip2
+    #[arg(long, value_enum, default_value_t = WasmTarget::Wasip1)]
+    pub target: WasmTarget,
+
+    /// Build in release mode
+    #[arg(long)]
+    pub release: bool,
+
+    /// Cargo features to enable during build
+    #[arg(long)]
+    pub features: Option<String>,
 }
 
 /// Browser selection for web test modes.

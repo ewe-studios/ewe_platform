@@ -10,7 +10,8 @@ use foundation_errstacks::ErrorTrace;
 use tracing::error;
 
 use foundation_testbed::wasm::{
-    browser, build, cli, deno, error, fwt_runner, init, server, wasm, wasm_test, wrangler,
+    browser, build, cli, deno, emscripten_runner, error, fwt_runner, init, server, wasi_runner,
+    wasm, wasm_test, wrangler,
 };
 
 use cli::{Cli, Command};
@@ -31,12 +32,22 @@ fn main() {
         Command::Test(args) => run_test(&args),
         Command::Deno(args) => run_owned(fwt_runner::run_deno(&args)),
         Command::Web(args) => run_owned(fwt_runner::run_web(&args)),
+        Command::Emscripten(args) => run_subprocess(emscripten_runner::run(&args)),
+        Command::Wasi(args) => run_subprocess(wasi_runner::run(&args)),
     };
 
     if let Err(e) = result {
         error!("{:?}", e);
         std::process::exit(1);
     }
+}
+
+/// Surface a subprocess runner (emscripten/wasi) outcome as the process verdict.
+fn run_subprocess<T>(
+    outcome: foundation_testbed::wasm::error::Result<T>,
+) -> Result<(), ErrorTrace<WasmTestbedError>> {
+    outcome?;
+    Ok(())
 }
 
 /// Surface an owned-harness outcome as the process verdict.

@@ -75,12 +75,14 @@ echo "✓ Tools installed (cargo-nextest and cargo-audit managed by mise)"
 """
 
 [tasks."setup:wasm"]
-description = "Install WASM compilation targets"
+description = "Install WASM compilation targets (full matrix: uu, emscripten, wasip1, wasip2)"
 run = """
 echo "Installing WASM targets..."
 rustup target add wasm32-unknown-unknown
+rustup target add wasm32-unknown-emscripten
 rustup target add wasm32-wasip1
-echo "✓ WASM targets installed"
+rustup target add wasm32-wasip2
+echo "✓ WASM targets installed (unknown-unknown, emscripten, wasip1, wasip2)"
 """
 
 [tasks."setup:playwright"]
@@ -260,7 +262,9 @@ echo "Checking installed tools..."
 rustup --version
 cargo --version
 node --version
+echo "WASM targets:"
 rustup target list --installed | grep wasm32 || echo "⚠ No WASM targets installed"
+wasmtime --version 2>/dev/null || echo "⚠ wasmtime not installed (needed for WASI runner)"
 cargo nextest --version 2>/dev/null || echo "⚠ cargo-nextest not installed"
 cargo audit --version 2>/dev/null || echo "⚠ cargo-audit not installed"
 bacon --version 2>/dev/null || echo "⚠ bacon not installed"
@@ -305,11 +309,17 @@ echo "✓ Release build complete"
 
 [tasks."build:wasm"]
 alias = "build-wasm"
-description = "Build foundation_nostd for WASM"
+description = "Build foundation_nostd across the full wasm target matrix"
 run = """
-echo "Building for WASM..."
-cargo build --package foundation_nostd --target wasm32-unknown-unknown
-echo "✓ WASM build complete"
+#!/usr/bin/env bash
+set -euo pipefail
+echo "Building for WASM target matrix..."
+export CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm
+for target in wasm32-unknown-unknown wasm32-unknown-emscripten wasm32-wasip1 wasm32-wasip2; do
+  echo "  → $target"
+  cargo build --package foundation_nostd --target "$target"
+done
+echo "✓ WASM matrix build complete (4 targets)"
 """
 
 [tasks."build:demos"]
@@ -1057,6 +1067,24 @@ echo "Verifying WASM artifacts..."
 ls -lh target/wasm32-unknown-unknown/debug/deps/libfoundation_nostd*.rlib | head -1
 ls -lh target/wasm32-unknown-unknown/release/deps/libfoundation_nostd*.rlib | head -1
 echo "✓ WASM artifacts verified"
+"""
+
+[tasks."test:wasm:matrix"]
+description = "Build agentic crates across the full wasm target matrix (uu, emscripten, wasip1, wasip2)"
+run = """
+#!/usr/bin/env bash
+set -euo pipefail
+export CARGO_PROFILE_DEV_CODEGEN_BACKEND=llvm
+echo "Verifying wasm target matrix..."
+for target in wasm32-unknown-unknown wasm32-unknown-emscripten wasm32-wasip1 wasm32-wasip2; do
+  echo "  → foundation_compact ($target)"
+  cargo check --package foundation_compact --target "$target"
+done
+echo "  → foundation_wasm --features wasi (wasm32-wasip1)"
+cargo check --package foundation_wasm --features wasi --target wasm32-wasip1
+echo "  → foundation_ai (wasm32-wasip1)"
+cargo check --package foundation_ai --target wasm32-wasip1
+echo "✓ Wasm target matrix verified (4 targets)"
 """
 
 [tasks."test:wasm:node"]
