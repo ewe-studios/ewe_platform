@@ -55,7 +55,7 @@ pub use native::*;
 
 // Wasm-bindgen storage re-exports (wasm32 only)
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-pub use wasm::{D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore};
+pub use wasm::{D1R2DocumentStore, D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore};
 
 // Wasm-bindgen CF types re-exports (wasm32 only)
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
@@ -63,3 +63,7 @@ pub use wasm::bindgen::{D1Database, D1PreparedStatement, KVNamespace, R2Bucket, 
 
 // State store module
 pub use core::state;
+
+// Dev tools — subprocess harnesses (miniflare/wrangler) for integration testing
+#[cfg(all(feature = "tools", not(target_family = "wasm")))]
+pub mod tools;

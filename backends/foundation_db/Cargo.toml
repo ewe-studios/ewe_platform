@@ -52,6 +52,8 @@ worker = { version = "0.8.3", optional = true, default-features = false, feature
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 turso = { version = "0.5.3", optional = true, default-features = false }
 libsql = { version = "0.6", optional = true }
+portpicker = { workspace = true, optional = true }
+which = { version = "7", optional = true }
 
 [dev-dependencies]
 tracing-test = { version = "0.2", features = ["no-env-filter"] }
@@ -80,6 +82,10 @@ wasm-bindgen-storage = ["wasm-bindgen-bindings", "wasm", "dep:wasm-bindgen-futur
 
 # workers-rs interop: From<worker::D1Database> for foundation_db::D1Database
 workers-rs = ["dep:worker"]
+
+# Dev tools — subprocess harnesses (miniflare/wrangler) for integration testing.
+# Not for production use. Native-only.
+tools = ["dep:portpicker", "dep:which"]
 
 [lints]
 workspace = true

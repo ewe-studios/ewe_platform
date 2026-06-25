@@ -3606,6 +3606,7 @@ dependencies = [
  "futures-lite",
  "infrastructure_llama_cpp",
  "lazy-regex",
+ "portpicker",
  "regex",
  "serde",
  "serde_json",
@@ -3614,6 +3615,7 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-test",
+ "which 7.0.3",
 ]
 
 [[package]]
@@ -3843,6 +3845,7 @@ dependencies = [
  "js-sys",
  "libsql 0.6.0",
  "ntest",
+ "portpicker",
  "serde",
  "serde_json",
  "serial_test",
@@ -3853,6 +3856,7 @@ dependencies = [
  "turso",
  "wasm-bindgen",
  "wasm-bindgen-futures",
+ "which 7.0.3",
  "worker",
  "zeroize",
 ]

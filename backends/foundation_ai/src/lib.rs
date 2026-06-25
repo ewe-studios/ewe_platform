@@ -9,3 +9,6 @@ pub mod costing;
 pub mod errors;
 pub mod models;
 pub mod types;
+
+#[cfg(all(feature = "tools", not(target_family = "wasm")))]
+pub mod tools;

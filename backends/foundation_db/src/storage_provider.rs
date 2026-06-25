@@ -802,13 +802,19 @@ impl AsyncKeyValueStore for StorageProvider {
                 "R2 does not support KeyValueStore".to_string(),
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::D1Wasm(storage) => storage.list_keys_async(prefix).await,
+            StorageProviderInner::D1Wasm(storage) => {
+                let keys = storage.list_keys_async(prefix).await?;
+                Ok(AsyncListStream::new(futures_lite::stream::iter(keys.into_iter().map(Ok))))
+            }
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::KVWasm(storage) => storage.list_keys_async(prefix).await,
+            StorageProviderInner::KVWasm(storage) => {
+                let keys = storage.list_keys_async(prefix).await?;
+                Ok(AsyncListStream::new(futures_lite::stream::iter(keys.into_iter().map(Ok))))
+            }
         }
     }
 }
@@ -838,7 +844,10 @@ impl AsyncQueryStore for StorageProvider {
                 "R2 does not support QueryStore".to_string(),
             )),
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-            StorageProviderInner::D1Wasm(storage) => storage.query_async(_sql, _params).await,
+            StorageProviderInner::D1Wasm(storage) => {
+                let rows = storage.query_async(_sql, _params).await?;
+                Ok(AsyncQueryStream::new(futures_lite::stream::iter(rows.into_iter().map(Ok))))
+            }
             #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),

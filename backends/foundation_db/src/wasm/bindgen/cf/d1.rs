@@ -13,6 +13,9 @@ extern "C" {
 
     #[wasm_bindgen(method, js_name = prepare)]
     pub fn prepare(this: &D1Database, query: &str) -> D1PreparedStatement;
+
+    #[wasm_bindgen(method, js_name = exec)]
+    pub fn exec(this: &D1Database, query: &str) -> Promise;
 }
 
 impl D1Database {

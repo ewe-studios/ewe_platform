@@ -121,6 +121,11 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Add promoted searchable columns to documents",
         sql: include_str!("sql/021_promote_document_columns.sql"),
     },
+    Migration {
+        id: "022_add_documents_r2_key",
+        name: "Add r2_key column for R2 blob offload",
+        sql: include_str!("sql/022_add_documents_r2_key.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.

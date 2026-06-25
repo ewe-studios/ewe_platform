@@ -6,8 +6,8 @@
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncRateLimiterStore,
-    BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncRateLimiterStore, BlobStore,
+    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use crate::wasm::bindgen::KVNamespace;
 use foundation_core::valtron::{collect_one, execute, from_future, Stream, StreamIteratorExt};
@@ -261,8 +261,13 @@ impl AsyncKeyValueStore for KVWasmStorage {
         foundation_compact::SendWrapper::new(async move { self.exists_async(key).await }).await
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
-        foundation_compact::SendWrapper::new(async move { self.list_keys_async(prefix).await }).await
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+        let keys = foundation_compact::SendWrapper::new(async move {
+            self.list_keys_async(prefix).await
+        }).await?;
+        Ok(AsyncListStream::new(futures_lite::stream::iter(
+            keys.into_iter().map(Ok),
+        )))
     }
 }
 

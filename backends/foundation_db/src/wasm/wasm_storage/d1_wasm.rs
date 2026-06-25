@@ -9,8 +9,9 @@ use std::sync::Arc;
 use foundation_core::valtron::{collect_one, execute, from_future, Stream, StreamIteratorExt, StreamReadyFuture};
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{
-    AsyncBlobStore, AsyncKeyValueStore, AsyncQueryStore, AsyncRateLimiterStore, BlobStore,
-    DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
+    AsyncBlobStore, AsyncKeyValueStore, AsyncListStream, AsyncQueryStore, AsyncQueryStream,
+    AsyncRateLimiterStore, BlobStore, DataValue, KeyValueStore, QueryStore, RateLimiterStore,
+    SqlRow, StorageItemStream,
 };
 use crate::wasm::bindgen::D1Database;
 use base64::{engine::general_purpose::STANDARD, Engine};
@@ -459,8 +460,13 @@ impl AsyncKeyValueStore for D1WasmStorage {
         foundation_compact::SendWrapper::new(async move { self.exists_async(key).await }).await
     }
 
-    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<Vec<String>> {
-        foundation_compact::SendWrapper::new(async move { self.list_keys_async(prefix).await }).await
+    async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
+        let keys = foundation_compact::SendWrapper::new(async move {
+            self.list_keys_async(prefix).await
+        }).await?;
+        Ok(AsyncListStream::new(futures_lite::stream::iter(
+            keys.into_iter().map(Ok),
+        )))
     }
 }
 
@@ -598,14 +604,23 @@ impl D1WasmStorage {
     }
 
     async fn do_execute_batch_async(db: &Arc<D1Database>, sql: &str) -> Result<(), StorageError> {
-        do_execute_sql(db, sql, &[]).await
+        let promise = db.exec(sql);
+        JsFuture::from(promise)
+            .await
+            .map_err(|e| StorageError::Backend(format!("D1 exec failed: {e:?}")))?;
+        Ok(())
     }
 }
 
 #[async_trait::async_trait]
 impl AsyncQueryStore for D1WasmStorage {
-    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<Vec<SqlRow>> {
-        foundation_compact::SendWrapper::new(async move { self.query_async(sql, params).await }).await
+    async fn query_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
+        let rows = foundation_compact::SendWrapper::new(async move {
+            self.query_async(sql, params).await
+        }).await?;
+        Ok(AsyncQueryStream::new(futures_lite::stream::iter(
+            rows.into_iter().map(Ok),
+        )))
     }
 
     async fn execute_async(&self, sql: &str, params: &[DataValue]) -> StorageResult<u64> {
