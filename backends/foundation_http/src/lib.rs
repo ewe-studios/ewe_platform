@@ -15,11 +15,11 @@
 pub mod shared;
 
 // Native modules — TCP server, reader, upgrades
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod native;
 
 // Wasm modules — dispatch, WasmStream
-#[cfg(any(target_arch = "wasm32", feature = "wasm-test"))]
+#[cfg(any(target_family = "wasm", feature = "wasm-test"))]
 pub mod wasm;
 
 // Re-exported from foundation_core for convenience
@@ -29,7 +29,7 @@ pub use foundation_netio::simple_http::shared::{
 };
 pub use foundation_core::io::ioutils::SharedByteBufferStream;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use foundation_netio::netcap::RawStream;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use foundation_core::synca::OnSignal;

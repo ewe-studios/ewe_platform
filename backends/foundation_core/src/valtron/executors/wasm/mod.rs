@@ -13,31 +13,31 @@
 // build with one of these features doesn't try to compile wasm-only code (the
 // native default is `NoThreadController` — see `single/mod.rs`).
 #[cfg(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_family = "wasm",
     feature = "js-wasmbindgen",
     not(feature = "js-foundation-wasm")
 ))]
 mod wasm_bindgen;
 #[cfg(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_family = "wasm",
     feature = "js-wasmbindgen",
     not(feature = "js-foundation-wasm")
 ))]
 pub use wasm_bindgen::{JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
 #[cfg(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_family = "wasm",
     feature = "js-wasmbindgen",
     not(feature = "js-foundation-wasm")
 ))]
 pub use wasm_bindgen::js_stream;
 
 #[cfg(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_family = "wasm",
     feature = "js-foundation-wasm"
 ))]
 mod foundation_wasm;
 #[cfg(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_family = "wasm",
     feature = "js-foundation-wasm"
 ))]
 pub use foundation_wasm::{JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
@@ -47,7 +47,7 @@ pub use foundation_wasm::{JSThreadYielder, JS_WAIT_CHECK_INTERVAL};
 // The wasm-only backends above own the constant on wasm targets; provide the same
 // value for native+feature builds so the shared path compiles.
 #[cfg(all(
-    not(any(target_arch = "wasm32", target_arch = "wasm64")),
+    not(target_family = "wasm"),
     any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
 ))]
 pub const JS_WAIT_CHECK_INTERVAL: std::time::Duration = std::time::Duration::from_millis(4);

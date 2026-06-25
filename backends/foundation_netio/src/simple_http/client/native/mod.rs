@@ -1,6 +1,6 @@
-//! Native client types — gated behind `not(target_arch = "wasm32")`.
+//! Native client types — gated behind `not(target_family = "wasm")`.
 
-//! Native client types — gated behind `not(target_arch = "wasm32")`.
+//! Native client types — gated behind `not(target_family = "wasm")`.
 
 mod api;
 mod client;

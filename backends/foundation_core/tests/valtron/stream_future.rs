@@ -43,7 +43,7 @@ fn poll_stream_next<S: FuturesStream + Unpin>(s: &mut S) -> Poll<Option<S::Item>
 // Sync tests — StreamCollectFuture (native only — uses tracing-test)
 // ============================================================================
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 mod sync_tests {
     use super::*;
     use tracing_test::traced_test;
@@ -281,7 +281,7 @@ mod sync_tests {
 // Extension trait tests — smol runtime (native only — smol doesn't support wasm32)
 // ============================================================================
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 mod smol_ext_tests {
     use super::*;
     
@@ -345,7 +345,7 @@ mod smol_ext_tests {
 // Async tests — tokio runtime (native only — not available on wasm32)
 // ============================================================================
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 mod tokio_tests {
     use super::*;
     

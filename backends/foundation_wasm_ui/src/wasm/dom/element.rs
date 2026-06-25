@@ -17,7 +17,7 @@ use foundation_wasm::{ExternalPointer, Params, ToBinary};
 
 // ─── DOM-specific host FFI ─────────────────────────────────────────────────────
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 #[link(wasm_import_module = "abi")]
 extern "C" {
     /// Host import: pre-allocate an external-pointer slot earmarked for a DOM node.
@@ -38,15 +38,15 @@ extern "C" {
 }
 
 /// Non-WASM stubs so native builds (tests, tooling) link.
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 unsafe fn dom_allocate_external_pointer() -> u64 {
     0
 }
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 unsafe fn host_dom_drop_external_pointer(_handle: u64) {}
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 unsafe fn host_invoke_function_as_dom(
     _handler: u64,
     _parameters_start: *const u8,

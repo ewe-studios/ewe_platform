@@ -844,7 +844,7 @@ fn test_concurrent_queue_stream_iterator_passes_through_stream_variants() {
     assert!(matches!(iter.next(), Some(Stream::Next(42))));
 }
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 #[test]
 fn test_concurrent_queue_stream_iterator_concurrent_push() {
     use std::thread;

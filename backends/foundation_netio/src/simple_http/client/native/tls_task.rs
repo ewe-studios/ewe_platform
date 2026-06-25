@@ -11,7 +11,7 @@
 //! states. Uses netcap connectors to perform actual TLS handshake. Sends result
 //! via channel on completion.
 //!
-//! NOTE: This entire module is `#[cfg(not(target_arch = "wasm32"))]` at the module level,
+//! NOTE: This entire module is `#[cfg(not(target_family = "wasm"))]` at the module level,
 //! so no additional WASM guards are needed within.
 
 use crate::netcap::{Connection, RawStream};

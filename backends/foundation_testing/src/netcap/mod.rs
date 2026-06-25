@@ -1,5 +1,5 @@
 #![allow(clippy::type_complexity)]
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(target_family = "wasm"))]
 
 use derive_more::From;
 use foundation_core::extensions::result_ext::{SendableBoxedError, SendableBoxedResult};

@@ -30,11 +30,11 @@ pub const DEFAULT_WAIT_CYCLE: std::time::Duration = std::time::Duration::from_mi
 
 /// `DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT` is the default timeout for `NotifyQueue::wait_for_item()`.
 /// This is how long a consumer will wait on the CondVar before returning `None`.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub const DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT: std::time::Duration =
     std::time::Duration::from_millis(10);
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 pub const DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT: std::time::Duration =
     std::time::Duration::from_millis(10);
 
@@ -42,10 +42,10 @@ pub const DEFAULT_NOTIFY_QUEUE_WAIT_TIMEOUT: std::time::Duration =
 /// yielding back to the executor. On wasm32/JS this is 1 so we yield immediately to the
 /// event loop. On native we use a higher value (100) to mimic the previous blocking behaviour
 /// with CondVar-based waiting.
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 pub const DEFAULT_NOTIFY_QUEUE_MAX_SPINS: usize = 1;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub const DEFAULT_NOTIFY_QUEUE_MAX_SPINS: usize = 100;
 
 /// `DEFAULT_KILL_SIGNAL_CHECK_INTERVAL` is how often to check kill signal in `block_on()` inner loop.

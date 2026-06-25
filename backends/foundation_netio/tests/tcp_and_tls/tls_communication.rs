@@ -3,7 +3,7 @@
 //! These tests use actual generated certificates to test full TLS handshake
 //! and data transmission between client and server.
 
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(target_family = "wasm"))]
 #![cfg(feature = "ssl-rustls")]
 
 use foundation_netio::netcap::connection::Connection;

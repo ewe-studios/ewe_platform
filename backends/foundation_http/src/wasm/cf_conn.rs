@@ -60,7 +60,7 @@ impl CfConn {
     }
 
     /// Convert collected fields into a `web_sys::Response`.
-    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-http"))]
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-http"))]
     pub fn into_response(self) -> Result<web_sys::Response, wasm_bindgen::JsError> {
         let init = web_sys::ResponseInit::new();
         init.set_status(self.status);

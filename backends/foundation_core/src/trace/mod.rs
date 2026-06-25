@@ -57,7 +57,7 @@ macro_rules! error {
     };
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_family = "wasm")))]
 mod tests {
     use tracing_test::traced_test;
 

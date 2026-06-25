@@ -2975,7 +2975,7 @@ where
     ExecutionTaskIteratorBuilder::new(engine)
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_family = "wasm")))]
 mod test_local_thread_executor {
     use std::{
         sync::atomic::{AtomicUsize, Ordering},

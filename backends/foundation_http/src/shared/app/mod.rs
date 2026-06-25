@@ -14,7 +14,7 @@ use foundation_netio::simple_http::shared::SimpleMethod;
 use crate::shared::context::ContextBag;
 use crate::shared::middleware::RequestMiddleware;
 use crate::shared::router::Router;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 use crate::shared::serve::ServeFactory;
 use crate::shared::serve::ServeWriterFactory;
 
@@ -65,7 +65,7 @@ impl<S> HttpApp<S> {
 // ---------------------------------------------------------------------------
 // Native Serve handlers (cfg-gated, non-wasm only)
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 impl HttpApp<Arc<dyn crate::shared::serve::Serve>> {
     /// Create a new empty `HttpApp` for native Serve handlers.
     #[must_use]

@@ -5,7 +5,7 @@
 //! WHAT: `ewe-wasm-bundle` — the `foundation_wasm_ui::cli` surface
 //! (`build`, `plan`) as its own binary.
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 fn main() {
     tracing_subscriber::fmt().with_target(false).init();
     let matches = foundation_wasm_ui::cli::command().get_matches();
@@ -17,5 +17,5 @@ fn main() {
 
 // Cargo builds every target on `--target wasm32-*` too; the CLI is native
 // tooling, so the wasm build degrades to a stub.
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 fn main() {}

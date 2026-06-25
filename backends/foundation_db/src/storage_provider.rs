@@ -10,24 +10,24 @@ use serde::{de::DeserializeOwned, Serialize};
 use crate::core::backends::memory::MemoryStorage;
 use crate::core::backends::memory_json::MemoryJsonStore;
 
-#[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "d1", not(target_family = "wasm")))]
 use crate::native::d1_kvstore::D1Store;
 
-#[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "r2", not(target_family = "wasm")))]
 use crate::native::r2_blobstore::R2Store;
 
 // Native-only backends
-#[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "turso", not(target_family = "wasm")))]
 use crate::native::turso_backend::TursoStorage;
 
-#[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+#[cfg(all(feature = "libsql", not(target_family = "wasm")))]
 use crate::native::libsql_store::LibsqlStore;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 use crate::native::json_file::JsonFileStorage;
 
 // Wasm-bindgen storage backends (wasm32 only)
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
 use crate::wasm::wasm_storage::{D1WasmStorage, KVWasmStorage, R2WasmStorage};
 
 use crate::core::errors::StorageResult;
@@ -43,37 +43,37 @@ use crate::core::storage_provider::{
 #[derive(Debug, Clone)]
 pub enum StorageBackend {
     /// Turso backend with database URL (native only).
-    #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "turso", not(target_family = "wasm")))]
     Turso { url: String },
     /// libsql backend with database URL (native only).
-    #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
     Libsql { url: String },
-    #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "d1", not(target_family = "wasm")))]
     D1,
     /// Cloudflare R2 backend with bucket configuration (native only).
-    #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "r2", not(target_family = "wasm")))]
     R2 { bucket: String },
     /// JSON file backend with file path (native only).
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     JsonFile { path: String },
     /// In-memory byte-buffer backend (both targets).
     Memory,
     /// In-memory JSON backend — values as JSON strings, inspectable (both targets).
     MemoryJson,
     /// D1 via wasm-bindgen — calls Cloudflare D1 JS API directly (wasm32 only).
-    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
     D1Wasm {
         db: std::sync::Arc<crate::wasm::bindgen::D1Database>,
         table_prefix: String,
     },
     /// R2 via wasm-bindgen — calls Cloudflare R2 JS API directly (wasm32 only).
-    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
     R2Wasm {
         bucket: crate::wasm::bindgen::R2Bucket,
         prefix: String,
     },
     /// KV via wasm-bindgen — calls Cloudflare Workers KV JS API directly (wasm32 only).
-    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
     KVWasm {
         kv: crate::wasm::bindgen::KVNamespace,
         prefix: String,
@@ -86,23 +86,23 @@ pub struct StorageProvider {
 }
 
 enum StorageProviderInner {
-    #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "turso", not(target_family = "wasm")))]
     Turso(Box<TursoStorage>),
-    #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
     Libsql(Box<LibsqlStore>),
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     JsonFile(JsonFileStorage),
     Memory(MemoryStorage),
     MemoryJson(MemoryJsonStore),
-    #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "d1", not(target_family = "wasm")))]
     D1(D1Store),
-    #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+    #[cfg(all(feature = "r2", not(target_family = "wasm")))]
     R2(R2Store),
-    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
     D1Wasm(D1WasmStorage),
-    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
     R2Wasm(R2WasmStorage),
-    #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+    #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
     KVWasm(KVWasmStorage),
 }
 
@@ -114,7 +114,7 @@ impl StorageProvider {
     /// Returns an error if the backend initialization fails.
     pub fn new(backend: StorageBackend) -> StorageResult<Self> {
         match backend {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageBackend::Turso { url } => {
                 let storage = TursoStorage::new(&url)?;
                 storage.init_schema()?;
@@ -122,7 +122,7 @@ impl StorageProvider {
                     inner: StorageProviderInner::Turso(Box::new(storage)),
                 })
             }
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageBackend::Libsql { url } => {
                 let storage = LibsqlStore::new_kv(&url, None)?;
                 storage.init_kv()?;
@@ -130,14 +130,14 @@ impl StorageProvider {
                     inner: StorageProviderInner::Libsql(Box::new(storage)),
                 })
             }
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageBackend::D1 => {
                 let storage = D1Store::from_env()?;
                 Ok(Self {
                     inner: StorageProviderInner::D1(storage),
                 })
             }
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageBackend::R2 { bucket } => {
                 let storage = if bucket.is_empty() {
                     R2Store::from_env()?
@@ -153,7 +153,7 @@ impl StorageProvider {
                     inner: StorageProviderInner::R2(storage),
                 })
             }
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageBackend::JsonFile { path } => {
                 let storage = JsonFileStorage::new(&path)?;
                 Ok(Self {
@@ -172,7 +172,7 @@ impl StorageProvider {
                     inner: StorageProviderInner::MemoryJson(storage),
                 })
             }
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageBackend::D1Wasm { db, table_prefix } => {
                 let storage = D1WasmStorage::new(db, &table_prefix);
                 // Init schema via valtron single-threaded executor.
@@ -192,14 +192,14 @@ impl StorageProvider {
                     inner: StorageProviderInner::D1Wasm(storage),
                 })
             }
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageBackend::R2Wasm { bucket, prefix } => {
                 let storage = R2WasmStorage::new(bucket, &prefix);
                 Ok(Self {
                     inner: StorageProviderInner::R2Wasm(storage),
                 })
             }
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageBackend::KVWasm { kv, prefix } => {
                 let storage = KVWasmStorage::new(kv, &prefix);
                 Ok(Self {
@@ -230,7 +230,7 @@ impl StorageProvider {
     /// # Errors
     ///
     /// Returns an error if the file cannot be read or parsed.
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     pub fn json_file<P: AsRef<std::path::Path>>(path: P) -> StorageResult<Self> {
         let storage = JsonFileStorage::new(path)?;
         Ok(Self {
@@ -242,135 +242,135 @@ impl StorageProvider {
 impl KeyValueStore for StorageProvider {
     fn get<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.get(key),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.get(key),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.get(key),
             StorageProviderInner::Memory(storage) => storage.get(key),
             StorageProviderInner::MemoryJson(storage) => storage.get(key),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.get(key),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.get(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.get(key),
         }
     }
 
     fn set<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.set(key, value),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.set(key, value),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.set(key, value),
             StorageProviderInner::Memory(storage) => storage.set(key, value),
             StorageProviderInner::MemoryJson(storage) => storage.set(key, value),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.set(key, value),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.set(key, value),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.set(key, value),
         }
     }
 
     fn delete(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.delete(key),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.delete(key),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.delete(key),
             StorageProviderInner::Memory(storage) => storage.delete(key),
             StorageProviderInner::MemoryJson(storage) => storage.delete(key),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.delete(key),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.delete(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.delete(key),
         }
     }
 
     fn exists(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.exists(key),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.exists(key),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.exists(key),
             StorageProviderInner::Memory(storage) => storage.exists(key),
             StorageProviderInner::MemoryJson(storage) => storage.exists(key),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.exists(key),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.exists(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.exists(key),
         }
     }
 
     fn list_keys(&self, prefix: Option<&str>) -> StorageResult<StorageItemStream<'_, String>> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.list_keys(prefix),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.list_keys(prefix),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.list_keys(prefix),
             StorageProviderInner::Memory(storage) => storage.list_keys(prefix),
             StorageProviderInner::MemoryJson(storage) => storage.list_keys(prefix),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.list_keys(prefix),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.list_keys(prefix),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore - use BlobStore instead".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.list_keys(prefix),
         }
     }
@@ -383,27 +383,27 @@ impl QueryStore for StorageProvider {
         params: &[DataValue],
     ) -> StorageResult<StorageItemStream<'_, SqlRow>> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.query(sql, params),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.query(sql, params),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.query(sql, params),
             StorageProviderInner::Memory(storage) => storage.query(sql, params),
             StorageProviderInner::MemoryJson(storage) => storage.query(sql, params),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.query(sql, params),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.query(sql, params),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
                 "KV does not support QueryStore - KV is not SQL".to_string(),
             )),
@@ -416,27 +416,27 @@ impl QueryStore for StorageProvider {
         params: &[DataValue],
     ) -> StorageResult<u64> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.execute(sql, params),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.execute(sql, params),
             StorageProviderInner::Memory(storage) => storage.execute(sql, params),
             StorageProviderInner::MemoryJson(storage) => storage.execute(sql, params),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.execute(sql, params),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.execute(sql, params),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.execute(sql, params),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
                 "KV does not support QueryStore - KV is not SQL".to_string(),
             )),
@@ -445,27 +445,27 @@ impl QueryStore for StorageProvider {
 
     fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.execute_batch(sql),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.execute_batch(sql),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.execute_batch(sql),
             StorageProviderInner::Memory(storage) => storage.execute_batch(sql),
             StorageProviderInner::MemoryJson(storage) => storage.execute_batch(sql),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.execute_batch(sql),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.execute_batch(sql),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore - object storage is not SQL".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
                 "KV does not support QueryStore - KV is not SQL".to_string(),
             )),
@@ -481,15 +481,15 @@ impl RateLimiterStore for StorageProvider {
         window_seconds: u64,
     ) -> StorageResult<bool> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
@@ -499,23 +499,23 @@ impl RateLimiterStore for StorageProvider {
             StorageProviderInner::MemoryJson(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             }
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => {
                 storage.check_rate_limit(key, max_count, window_seconds)
             },
@@ -524,54 +524,54 @@ impl RateLimiterStore for StorageProvider {
 
     fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.record_rate_limit(key),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.record_rate_limit(key),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.record_rate_limit(key),
             StorageProviderInner::Memory(storage) => storage.record_rate_limit(key),
             StorageProviderInner::MemoryJson(storage) => storage.record_rate_limit(key),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.record_rate_limit(key),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.record_rate_limit(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.record_rate_limit(key),
         }
     }
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.reset_rate_limit(key),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.reset_rate_limit(key),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.reset_rate_limit(key),
             StorageProviderInner::Memory(storage) => storage.reset_rate_limit(key),
             StorageProviderInner::MemoryJson(storage) => storage.reset_rate_limit(key),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.reset_rate_limit(key),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.reset_rate_limit(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore - object storage is not suitable for rate limiting".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.reset_rate_limit(key),
         }
     }
@@ -580,92 +580,92 @@ impl RateLimiterStore for StorageProvider {
 impl BlobStore for StorageProvider {
     fn put_blob(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.put_blob(key, data),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.put_blob(key, data),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.put_blob(key, data),
             StorageProviderInner::Memory(storage) => storage.put_blob(key, data),
             StorageProviderInner::MemoryJson(storage) => storage.put_blob(key, data),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.put_blob(key, data),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(storage) => storage.put_blob(key, data),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.put_blob(key, data),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(storage) => storage.put_blob(key, data),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.put_blob(key, data),
         }
     }
 
     fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.get_blob(key),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.get_blob(key),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.get_blob(key),
             StorageProviderInner::Memory(storage) => storage.get_blob(key),
             StorageProviderInner::MemoryJson(storage) => storage.get_blob(key),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.get_blob(key),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(storage) => storage.get_blob(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.get_blob(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(storage) => storage.get_blob(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.get_blob(key),
         }
     }
 
     fn delete_blob(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.delete_blob(key),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.delete_blob(key),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.delete_blob(key),
             StorageProviderInner::Memory(storage) => storage.delete_blob(key),
             StorageProviderInner::MemoryJson(storage) => storage.delete_blob(key),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.delete_blob(key),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(storage) => storage.delete_blob(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.delete_blob(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(storage) => storage.delete_blob(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.delete_blob(key),
         }
     }
 
     fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.blob_exists(key),
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.blob_exists(key),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.blob_exists(key),
             StorageProviderInner::Memory(storage) => storage.blob_exists(key),
             StorageProviderInner::MemoryJson(storage) => storage.blob_exists(key),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.blob_exists(key),
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(storage) => storage.blob_exists(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.blob_exists(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(storage) => storage.blob_exists(key),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.blob_exists(key),
         }
     }
@@ -679,135 +679,135 @@ impl BlobStore for StorageProvider {
 impl AsyncKeyValueStore for StorageProvider {
     async fn get_async<V: DeserializeOwned + Send + 'static>(&self, key: &str) -> StorageResult<Option<V>> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.get_async(key).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.get_async(key).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.get_async(key).await,
             StorageProviderInner::Memory(storage) => storage.get_async(key).await,
             StorageProviderInner::MemoryJson(storage) => storage.get_async(key).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.get_async(key).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.get_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.get_async(key).await,
         }
     }
 
     async fn set_async<V: Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.set_async(key, value).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.set_async(key, value).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.set_async(key, value).await,
             StorageProviderInner::Memory(storage) => storage.set_async(key, value).await,
             StorageProviderInner::MemoryJson(storage) => storage.set_async(key, value).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.set_async(key, value).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.set_async(key, value).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.set_async(key, value).await,
         }
     }
 
     async fn delete_async(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.delete_async(key).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.delete_async(key).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.delete_async(key).await,
             StorageProviderInner::Memory(storage) => storage.delete_async(key).await,
             StorageProviderInner::MemoryJson(storage) => storage.delete_async(key).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.delete_async(key).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.delete_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.delete_async(key).await,
         }
     }
 
     async fn exists_async(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.exists_async(key).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.exists_async(key).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.exists_async(key).await,
             StorageProviderInner::Memory(storage) => storage.exists_async(key).await,
             StorageProviderInner::MemoryJson(storage) => storage.exists_async(key).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.exists_async(key).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.exists_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.exists_async(key).await,
         }
     }
 
     async fn list_keys_async(&self, prefix: Option<&str>) -> StorageResult<AsyncListStream> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.list_keys_async(prefix).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.list_keys_async(prefix).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.list_keys_async(prefix).await,
             StorageProviderInner::Memory(storage) => storage.list_keys_async(prefix).await,
             StorageProviderInner::MemoryJson(storage) => storage.list_keys_async(prefix).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.list_keys_async(prefix).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.list_keys_async(prefix).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support KeyValueStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.list_keys_async(prefix).await,
         }
     }
@@ -817,11 +817,11 @@ impl AsyncKeyValueStore for StorageProvider {
 impl AsyncQueryStore for StorageProvider {
     async fn query_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<AsyncQueryStream> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.query_async(_sql, _params).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.query_async(_sql, _params).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
             )),
@@ -831,19 +831,19 @@ impl AsyncQueryStore for StorageProvider {
             StorageProviderInner::MemoryJson(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.query_async(_sql, _params).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.query_async(_sql, _params).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
                 "KV does not support QueryStore".to_string(),
             )),
@@ -852,11 +852,11 @@ impl AsyncQueryStore for StorageProvider {
 
     async fn execute_async(&self, _sql: &str, _params: &[DataValue]) -> StorageResult<u64> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.execute_async(_sql, _params).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.execute_async(_sql, _params).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
             )),
@@ -866,19 +866,19 @@ impl AsyncQueryStore for StorageProvider {
             StorageProviderInner::MemoryJson(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.execute_async(_sql, _params).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.execute_async(_sql, _params).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
                 "KV does not support QueryStore".to_string(),
             )),
@@ -887,11 +887,11 @@ impl AsyncQueryStore for StorageProvider {
 
     async fn execute_batch_async(&self, _sql: &str) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.execute_batch_async(_sql).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.execute_batch_async(_sql).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "QueryStore not supported for JsonFileStorage".to_string(),
             )),
@@ -901,19 +901,19 @@ impl AsyncQueryStore for StorageProvider {
             StorageProviderInner::MemoryJson(_) => Err(StorageError::Generic(
                 "QueryStore not supported for MemoryJsonStore".to_string(),
             )),
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.execute_batch_async(_sql).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.execute_batch_async(_sql).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support QueryStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(_) => Err(StorageError::Generic(
                 "KV does not support QueryStore".to_string(),
             )),
@@ -930,15 +930,15 @@ impl AsyncRateLimiterStore for StorageProvider {
         window_seconds: u64,
     ) -> StorageResult<bool> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => {
                 storage.check_rate_limit_async(key, max_count, window_seconds).await
             }
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => {
                 storage.check_rate_limit_async(key, max_count, window_seconds).await
             }
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
@@ -948,23 +948,23 @@ impl AsyncRateLimiterStore for StorageProvider {
             StorageProviderInner::MemoryJson(storage) => {
                 storage.check_rate_limit_async(key, max_count, window_seconds).await
             }
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => {
                 storage.check_rate_limit_async(key, max_count, window_seconds).await
             }
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => {
                 storage.check_rate_limit_async(key, max_count, window_seconds).await
             }
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => {
                 storage.check_rate_limit_async(key, max_count, window_seconds).await
             }
@@ -973,58 +973,58 @@ impl AsyncRateLimiterStore for StorageProvider {
 
     async fn record_rate_limit_async(&self, key: &str) -> StorageResult<u32> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.record_rate_limit_async(key).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.record_rate_limit_async(key).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
             StorageProviderInner::Memory(storage) => storage.record_rate_limit_async(key).await,
             StorageProviderInner::MemoryJson(storage) => storage.record_rate_limit_async(key).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.record_rate_limit_async(key).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.record_rate_limit_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.record_rate_limit_async(key).await,
         }
     }
 
     async fn reset_rate_limit_async(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.reset_rate_limit_async(key).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.reset_rate_limit_async(key).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(_) => Err(StorageError::Generic(
                 "RateLimiterStore not supported for JsonFileStorage".to_string(),
             )),
             StorageProviderInner::Memory(storage) => storage.reset_rate_limit_async(key).await,
             StorageProviderInner::MemoryJson(storage) => storage.reset_rate_limit_async(key).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.reset_rate_limit_async(key).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.reset_rate_limit_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(_) => Err(StorageError::Generic(
                 "R2 does not support RateLimiterStore".to_string(),
             )),
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.reset_rate_limit_async(key).await,
         }
     }
@@ -1034,92 +1034,92 @@ impl AsyncRateLimiterStore for StorageProvider {
 impl AsyncBlobStore for StorageProvider {
     async fn put_blob_async(&self, key: &str, data: &[u8]) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.put_blob_async(key, data).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.put_blob_async(key, data).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.put_blob_async(key, data).await,
             StorageProviderInner::Memory(storage) => storage.put_blob_async(key, data).await,
             StorageProviderInner::MemoryJson(storage) => storage.put_blob_async(key, data).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.put_blob_async(key, data).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(storage) => storage.put_blob_async(key, data).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.put_blob_async(key, data).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(storage) => storage.put_blob_async(key, data).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.put_blob_async(key, data).await,
         }
     }
 
     async fn get_blob_async(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.get_blob_async(key).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.get_blob_async(key).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.get_blob_async(key).await,
             StorageProviderInner::Memory(storage) => storage.get_blob_async(key).await,
             StorageProviderInner::MemoryJson(storage) => storage.get_blob_async(key).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.get_blob_async(key).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(storage) => storage.get_blob_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.get_blob_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(storage) => storage.get_blob_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.get_blob_async(key).await,
         }
     }
 
     async fn delete_blob_async(&self, key: &str) -> StorageResult<()> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.delete_blob_async(key).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.delete_blob_async(key).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.delete_blob_async(key).await,
             StorageProviderInner::Memory(storage) => storage.delete_blob_async(key).await,
             StorageProviderInner::MemoryJson(storage) => storage.delete_blob_async(key).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.delete_blob_async(key).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(storage) => storage.delete_blob_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.delete_blob_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(storage) => storage.delete_blob_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.delete_blob_async(key).await,
         }
     }
 
     async fn blob_exists_async(&self, key: &str) -> StorageResult<bool> {
         match &self.inner {
-            #[cfg(all(feature = "turso", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "turso", not(target_family = "wasm")))]
             StorageProviderInner::Turso(storage) => storage.blob_exists_async(key).await,
-            #[cfg(all(feature = "libsql", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "libsql", not(target_family = "wasm")))]
             StorageProviderInner::Libsql(storage) => storage.blob_exists_async(key).await,
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             StorageProviderInner::JsonFile(storage) => storage.blob_exists_async(key).await,
             StorageProviderInner::Memory(storage) => storage.blob_exists_async(key).await,
             StorageProviderInner::MemoryJson(storage) => storage.blob_exists_async(key).await,
-            #[cfg(all(feature = "d1", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "d1", not(target_family = "wasm")))]
             StorageProviderInner::D1(storage) => storage.blob_exists_async(key).await,
-            #[cfg(all(feature = "r2", not(target_arch = "wasm32")))]
+            #[cfg(all(feature = "r2", not(target_family = "wasm")))]
             StorageProviderInner::R2(storage) => storage.blob_exists_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::D1Wasm(storage) => storage.blob_exists_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::R2Wasm(storage) => storage.blob_exists_async(key).await,
-            #[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+            #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
             StorageProviderInner::KVWasm(storage) => storage.blob_exists_async(key).await,
         }
     }

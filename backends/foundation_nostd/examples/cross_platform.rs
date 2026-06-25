@@ -15,7 +15,7 @@
 
 use foundation_nostd::comp::basic::{Mutex, Once, OnceLock, RwLock};
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 use std::thread;
 
 // Global shared state using OnceLock
@@ -81,10 +81,10 @@ fn main() {
     #[cfg(not(feature = "std"))]
     println!("🔧 Mode: Using foundation_nostd spin locks (no_std)");
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(target_family = "wasm")]
     println!("🌐 Target: WebAssembly");
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     println!("💻 Target: Native");
 
     println!();
@@ -122,7 +122,7 @@ fn main() {
     println!();
 
     // Demonstrate multi-threaded access (native only)
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     {
         use std::sync::Arc;
 
@@ -197,7 +197,7 @@ fn main() {
     #[cfg(not(feature = "std"))]
     println!("ℹ️  Performance: Using spin locks (optimal for short critical sections)");
 
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(target_family = "wasm")]
     println!("ℹ️  WASM Note: Single-threaded environment, locks are essentially no-ops");
 
     println!("\n=== Demo Complete ===");
@@ -270,7 +270,7 @@ mod tests {
         assert_eq!(*read, 100);
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     #[test]
     fn test_concurrent_access() {
         use std::sync::Arc;

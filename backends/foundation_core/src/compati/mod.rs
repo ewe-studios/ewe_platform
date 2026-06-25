@@ -1,15 +1,15 @@
 //! Sub module to provide compatibility layer for specific types to use in specific platforms.
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub use foundation_nostd::primitives::Mutex;
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub use std::sync::Mutex;
 
-#[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+#[cfg(target_family = "wasm")]
 pub use foundation_nostd::primitives::RwLock;
 
-#[cfg(all(not(target_arch = "wasm32"), not(target_arch = "wasm64")))]
+#[cfg(not(target_family = "wasm"))]
 pub use std::sync::RwLock;
 
 // Properly-paired condvar + mutex for park/wake. The plain `Mutex` above is a

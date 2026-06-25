@@ -89,7 +89,7 @@ fn test_service_action_match_url_only() {
 // // TlsUpgradeAction Tests
 // // ========================================================================
 
-// #[cfg(not(target_arch = "wasm32"))]
+// #[cfg(not(target_family = "wasm"))]
 // mod tls_upgrade_tests {
 //     use super::*;
 
@@ -151,7 +151,7 @@ fn test_service_action_match_url_only() {
 // /// WHY: Verify HttpClientAction::TlsUpgrade variant delegates correctly
 // /// WHAT: Tests that TlsUpgrade variant type compiles (compile-time check)
 // #[test]
-// #[cfg(not(target_arch = "wasm32"))]
+// #[cfg(not(target_family = "wasm"))]
 // fn test_http_client_action_tls_upgrade() {
 //     // Compile-time type check: verify HttpClientAction can hold TlsUpgradeAction
 //     fn _assert_tls_upgrade_variant_exists() {

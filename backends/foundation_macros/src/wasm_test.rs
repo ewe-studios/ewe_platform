@@ -30,7 +30,7 @@
 //! // 2. The RUNNABLE form: a C-ABI export the JS runner can call by name.
 //! //    Only exists on wasm targets — native builds of the same crate get
 //! //    neither the export nor the manifest entry.
-//! #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+//! #[cfg(target_family = "wasm")]
 //! #[no_mangle]
 //! pub extern "C" fn __fwt_adds_up() -> u32 {
 //!     foundation_wasm::testing::enter_case("adds_up");  // who's running (for the hook)
@@ -41,7 +41,7 @@
 //! }
 //!
 //! // 3. The DISCOVERABLE form: one manifest line in a custom section.
-//! #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+//! #[cfg(target_family = "wasm")]
 //! #[used]
 //! #[link_section = "__fwt_manifest"]
 //! static __FWT_META_ADDS_UP: [u8; 9] = *b"adds_up|\n";
@@ -286,7 +286,7 @@ pub(crate) fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
 
         // (2) The runnable export. wasm-only: native builds of the test crate
         // must not grow C exports or depend on the host ABI.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         #[no_mangle]
         pub extern "C" fn #export() -> u32 {
             // Record the running case FIRST — the panic hook reads it to
@@ -326,7 +326,7 @@ pub(crate) fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
         // otherwise-unreferenced static from being stripped (which would
         // silently delete the manifest). wasm-only: ELF/Mach-O section
         // semantics differ and nothing reads the manifest natively.
-        #[cfg(any(target_arch = "wasm32", target_arch = "wasm64"))]
+        #[cfg(target_family = "wasm")]
         #[used]
         #[link_section = "__fwt_manifest"]
         static #meta_ident: [u8; #manifest_len] = *#manifest_bytes;

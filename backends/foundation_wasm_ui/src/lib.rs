@@ -19,17 +19,17 @@ extern crate alloc;
 
 // Build tooling is a STD, native-only concern (feature 20) — target-gated so
 // every native build carries the CLI while wasm builds stay no_std-clean.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 extern crate std;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod build_tools;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod cli;
 // Server-driven UI fan-out (broadcaster + App sink). Native (std), like the CLI.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod server;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use server::{Broadcaster, BroadcastSink, BroadcastTx, FrameTransport};
 
 pub mod app;

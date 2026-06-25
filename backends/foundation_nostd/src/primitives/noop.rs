@@ -12,14 +12,14 @@
 //! # Examples
 //!
 //! ```ignore
-//! # #[cfg(all(target_arch = "wasm32", not(target_feature = "atomics")))]
+//! # #[cfg(all(target_family = "wasm", not(target_feature = "atomics")))]
 //! use foundation_nostd::primitives::noop::{NoopMutex, NoopRwLock};
 //!
-//! # #[cfg(all(target_arch = "wasm32", not(target_feature = "atomics")))]
+//! # #[cfg(all(target_family = "wasm", not(target_feature = "atomics")))]
 //! let mutex = NoopMutex::new(42);
-//! # #[cfg(all(target_arch = "wasm32", not(target_feature = "atomics")))]
+//! # #[cfg(all(target_family = "wasm", not(target_feature = "atomics")))]
 //! let mut guard = mutex.lock();
-//! # #[cfg(all(target_arch = "wasm32", not(target_feature = "atomics")))]
+//! # #[cfg(all(target_family = "wasm", not(target_feature = "atomics")))]
 //! *guard = 100;
 //! ```ignore
 

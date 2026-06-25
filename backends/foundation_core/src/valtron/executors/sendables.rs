@@ -52,12 +52,12 @@ pub fn initialize_pool(
 /// Returns an error if the job cannot be submitted (pool not initialized or shut down),
 /// or if the closure panics in single-threaded mode.
 pub fn run_background_job(job: impl FnOnce() + Send + 'static) -> GenericResult<()> {
-    #[cfg(target_arch = "wasm32")]
+    #[cfg(target_family = "wasm")]
     {
         super::single::run_background_job(job)
     }
 
-    #[cfg(not(target_arch = "wasm32"))]
+    #[cfg(not(target_family = "wasm"))]
     {
         super::multi::run_background_job(job)
     }

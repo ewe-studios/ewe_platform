@@ -3,7 +3,7 @@
 //! `Serve` (native-only): takes `SharedByteBufferStream<RawStream>` for TCP connections.
 //! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any writable stream.
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;
 
 use foundation_netio::simple_http::shared::{
@@ -65,7 +65,7 @@ pub enum ConnectionResult {
 // Serve (native-only — uses RawStream)
 
 /// Core handler trait — executed at request time (native TCP connections).
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub trait Serve: Send + Sync + 'static {
     /// Handle an incoming request.
     fn serve(
@@ -77,7 +77,7 @@ pub trait Serve: Send + Sync + 'static {
 }
 
 /// Factory trait for creating handler instances.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub trait ServeFactory: Serve + Sized {
     /// Create a new instance of this handler.
     fn create(bag: &ContextBag) -> Self;

@@ -707,7 +707,7 @@ fn test_future_stream_empty_spread() {
 // Tokio async tests (native only — not available on wasm32)
 // ============================================================================
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 mod tokio_tests {
     use super::*;
     

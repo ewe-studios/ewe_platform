@@ -5,7 +5,7 @@
 
 pub mod shared;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod native;
 
 #[cfg(feature = "server")]
@@ -57,22 +57,22 @@ pub use shared::session::{Session, SessionConfig, SessionError, SessionManager};
 pub use shared::two_factor::{BackupCodeSet, TOTPSecret, TwoFactorChallenge, TwoFactorError};
 
 // Re-export platform-specific OAuth wrappers.
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use native::oauth::NativeOAuth;
 
 // Feature 05: Password Auth (native only)
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use native::password_auth::{
     LoginResult, LoginRequest, MfaType, PasswordAuthClient, PasswordAuthError,
 };
 
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-oauth"))]
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-oauth"))]
 pub use wasm_bindgen::oauth::WasmOAuth;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 #[cfg(feature = "wasm-bindgen-session")]
 pub use wasm_bindgen::d1_credential_store::D1CredentialStore;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 #[cfg(feature = "wasm-bindgen-session")]
 pub use wasm_bindgen::session::{SessionPayload, WasmSessionManager};

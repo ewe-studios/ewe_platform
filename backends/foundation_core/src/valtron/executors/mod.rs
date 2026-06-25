@@ -50,7 +50,7 @@ pub use sendables::*;
 pub mod wasm;
 
 #[cfg(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_family = "wasm",
     feature = "js-wasmbindgen",
     not(feature = "js-foundation-wasm")
 ))]
@@ -70,7 +70,7 @@ pub use multi::PoolGuard;
 // Only available when multi feature is off AND compiling for wasm32/wasm64.
 #[cfg(all(
     not(feature = "multi"),
-    any(target_arch = "wasm32", target_arch = "wasm64")
+    target_family = "wasm"
 ))]
 pub use single::SingleExecutorSingleton;
 

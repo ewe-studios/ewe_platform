@@ -23,11 +23,11 @@ pub mod core;
 pub mod storage_provider;
 
 // Native — TCP/DB backends, rows streaming
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod native;
 
 // Wasm — optional wasm-bindgen bridge for Cloudflare Workers (D1/R2/KV)
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-bindings"))]
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-bindings"))]
 pub mod wasm;
 
 // Public re-exports (shared — always available)
@@ -50,15 +50,15 @@ pub use core::storage_provider::{
 };
 
 // Native-only re-exports
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use native::*;
 
 // Wasm-bindgen storage re-exports (wasm32 only)
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
 pub use wasm::{D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore};
 
 // Wasm-bindgen CF types re-exports (wasm32 only)
-#[cfg(all(target_arch = "wasm32", feature = "wasm-bindgen-storage"))]
+#[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
 pub use wasm::bindgen::{D1Database, D1PreparedStatement, KVNamespace, R2Bucket, R2Object, R2Objects};
 
 // State store module

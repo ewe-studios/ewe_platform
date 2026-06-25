@@ -6,7 +6,7 @@
 //! (`std::thread` — the valtron-pool e2e additionally runs under the `valtron`
 //! feature via the `TaskIterator` impls).
 
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(target_family = "wasm"))]
 
 use std::rc::Rc;
 use std::sync::atomic::{AtomicBool, Ordering};

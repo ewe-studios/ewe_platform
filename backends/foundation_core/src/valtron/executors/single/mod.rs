@@ -41,9 +41,9 @@ impl NoThreadController {
     #[must_use]
     pub fn new() -> Self {
         Self {
-            #[cfg(target_arch = "wasm32")]
+            #[cfg(target_family = "wasm")]
             waiter: SpinWaiter::wasm(),
-            #[cfg(not(target_arch = "wasm32"))]
+            #[cfg(not(target_family = "wasm"))]
             waiter: SpinWaiter::embedded(),
         }
     }
@@ -71,14 +71,14 @@ impl ProcessController for NoThreadController {
 // wasm-only, so the selection is gated on the target too — a native build with a
 // `js-*` feature still uses NoThreadController.
 #[cfg(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_family = "wasm",
     any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
 ))]
 use crate::valtron::wasm::JSThreadYielder as DefaultController;
 
 // NoThreadController is defined in this same file below — no import needed for native.
 #[cfg(not(all(
-    any(target_arch = "wasm32", target_arch = "wasm64"),
+    target_family = "wasm",
     any(feature = "js-wasmbindgen", feature = "js-foundation-wasm")
 )))]
 type DefaultController = NoThreadController;
@@ -325,7 +325,7 @@ pub fn run_background_job(job: impl FnOnce() + 'static) -> crate::valtron::Gener
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_family = "wasm")))]
 mod single_threaded_tests {
     use std::{cell::RefCell, rc::Rc};
 

@@ -3,7 +3,7 @@
 //! These tests verify that `CondVar` works correctly in WASM environments,
 //! which typically have limited or no threading support.
 
-#![cfg(target_arch = "wasm32")]
+#![cfg(target_family = "wasm")]
 
 use foundation_nostd::primitives::{CondVar, CondVarMutex, CondVarNonPoisoning, RawCondVarMutex};
 use std::time::Duration;

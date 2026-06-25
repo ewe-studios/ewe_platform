@@ -115,7 +115,7 @@ cfg_if::cfg_if! {
     ))] {
         mod apple_other;
         pub use apple_other::*;
-    } else if #[cfg(all(target_arch = "wasm32", target_os = "wasi"))] {
+    } else if #[cfg(all(target_family = "wasm", target_os = "wasi"))] {
         cfg_if::cfg_if! {
             if #[cfg(target_env = "p1")] {
                 mod wasi_p1;

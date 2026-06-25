@@ -2,7 +2,7 @@
 //!
 //! These tests verify TLS server functionality with controlled certificate scenarios.
 
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(target_family = "wasm"))]
 #![cfg(feature = "ssl-rustls")]
 
 use foundation_netio::netcap::ssl::rustls::RustlsAcceptor;

@@ -1,9 +1,9 @@
 use std::sync::Arc;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 use foundation_nostd::comp::basic::RwLock;
 
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 pub use foundation_nostd::primitives::RwLock;
 
 /// Entry based list using generation markers to identify
@@ -577,7 +577,7 @@ impl<T> ThreadSafeEntry<T> {
     }
 }
 
-#[cfg(all(test, not(target_arch = "wasm32")))]
+#[cfg(all(test, not(target_family = "wasm")))]
 mod test_entry_list {
     use tracing_test::traced_test;
 

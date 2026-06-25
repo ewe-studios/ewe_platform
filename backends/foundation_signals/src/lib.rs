@@ -36,7 +36,7 @@ mod callback;
 mod computed;
 mod context;
 mod effect;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub mod hub;
 mod node;
 mod notification;
@@ -48,9 +48,9 @@ pub use callback::{Callback, EventData, Modifiers};
 pub use computed::ComputedGetter;
 pub use context::Context;
 pub use effect::Effect;
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub use hub::{HubGone, HubHandle, PumpReport, RemoteGetter, RemoteSetter, SignalHub, SignalStream};
-#[cfg(all(not(target_arch = "wasm32"), feature = "valtron"))]
+#[cfg(all(not(target_family = "wasm"), feature = "valtron"))]
 pub use hub::HubDriver;
 pub use node::ThreeState;
 pub use notification::NotificationManager;

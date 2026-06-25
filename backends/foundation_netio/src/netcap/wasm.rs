@@ -1,3 +1,3 @@
-#![cfg(target_arch = "wasm32")]
+#![cfg(target_family = "wasm")]
 
 pub struct Stream {}

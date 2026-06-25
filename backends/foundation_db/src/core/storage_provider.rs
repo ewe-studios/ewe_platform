@@ -24,11 +24,11 @@ type AsyncStream<T> = Pin<Box<dyn futures_core::Stream<Item = T> + Send>>;
 /// This is a Valtron Stream-based lazy iterator that yields items one at a time.
 /// Errors are yielded in the stream as `Stream::Next(Err(e))` - callers can use
 /// `.flatten()` to extract only successful values or collect into `Result` to propagate errors.
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 pub type StorageItemStream<'a, T> =
     Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + 'a>;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub type StorageItemStream<'a, T> =
     Box<dyn Iterator<Item = Stream<Result<T, StorageError>, ()>> + Send + 'a>;
 
@@ -42,11 +42,11 @@ pub type StorageItemStream<'a, T> =
 /// `*_async` methods are the real implementation, and the sync `DocumentStore`
 /// bridges this stream to a sync iterator via valtron (`run_future_iter`),
 /// exactly as `QueryStore::query` wraps `query_async`.
-#[cfg(target_arch = "wasm32")]
+#[cfg(target_family = "wasm")]
 pub type AsyncStorageItemStream<'a, T> =
     Pin<Box<dyn futures_core::Stream<Item = StorageResult<T>> + 'a>>;
 
-#[cfg(not(target_arch = "wasm32"))]
+#[cfg(not(target_family = "wasm"))]
 pub type AsyncStorageItemStream<'a, T> =
     Pin<Box<dyn futures_core::Stream<Item = StorageResult<T>> + Send + 'a>>;
 

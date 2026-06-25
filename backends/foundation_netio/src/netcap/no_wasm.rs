@@ -1,4 +1,4 @@
-#![cfg(not(target_arch = "wasm32"))]
+#![cfg(not(target_family = "wasm"))]
 #![allow(clippy::missing_errors_doc)]
 
 use std::sync::Arc;

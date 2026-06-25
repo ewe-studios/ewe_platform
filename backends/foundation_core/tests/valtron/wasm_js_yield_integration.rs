@@ -11,7 +11,7 @@
 //!
 //! Run with: wasm-testbed test bindgen-deno ./foundation_core --features js-wasmbindgen
 
-#![cfg(target_arch = "wasm32")]
+#![cfg(target_family = "wasm")]
 #![cfg(feature = "js-wasmbindgen")]
 
 use std::sync::atomic::{AtomicBool, AtomicUsize, Ordering};
