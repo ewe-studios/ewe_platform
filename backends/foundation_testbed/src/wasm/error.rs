@@ -105,22 +105,6 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     OwnedRunFailed(i32),
 
-    // --- emscripten_runner.rs ---
-    #[display("emscripten JS glue not found at {_0}\nExpected emscripten linker to produce this file alongside the .wasm")]
-    #[error(ignore)]
-    EmscriptenJsNotFound(String),
-
-    #[display("failed to execute node for emscripten module: {_0}")]
-    EmscriptenExecFailed(std::io::Error),
-
-    #[display(
-        "emscripten run failed (exit code {_0})\n\
-        stdout:\n{_1}\n\
-        stderr:\n{_2}"
-    )]
-    #[error(ignore)]
-    EmscriptenRunFailed(i32, String, String),
-
     // --- wasi_runner.rs ---
     #[display("WASI runner requires --target wasip1 or wasip2, got {_0}")]
     #[error(ignore)]

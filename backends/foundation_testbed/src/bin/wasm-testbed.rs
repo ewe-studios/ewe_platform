@@ -32,7 +32,7 @@ fn main() {
         Command::Test(args) => run_test(&args),
         Command::Deno(args) => run_owned(fwt_runner::run_deno(&args)),
         Command::Web(args) => run_owned(fwt_runner::run_web(&args)),
-        Command::Emscripten(args) => run_subprocess(emscripten_runner::run(&args)),
+        Command::Emscripten(args) => run_owned(emscripten_runner::run(&args)),
         Command::Wasi(args) => run_subprocess(wasi_runner::run(&args)),
     };
 
