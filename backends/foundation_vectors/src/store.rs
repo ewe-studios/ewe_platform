@@ -101,6 +101,38 @@ pub trait VectorStore: Send + Sync {
 // ---------------------------------------------------------------------------
 // InMemoryVectorStore
 
+#[async_trait::async_trait]
+pub trait AsyncVectorStore: Send + Sync {
+    async fn insert_async(
+        &self,
+        namespace: &str,
+        entry: VectorEntry,
+    ) -> Result<(), VectorStoreError>;
+
+    async fn delete_async(
+        &self,
+        namespace: &str,
+        id: &str,
+    ) -> Result<(), VectorStoreError>;
+
+    async fn search_async(
+        &self,
+        namespace: &str,
+        query: &[f32],
+        k: usize,
+    ) -> Result<Vec<VectorMatch>, VectorStoreError>;
+
+    async fn get_async(
+        &self,
+        namespace: &str,
+        id: &str,
+    ) -> Result<Option<VectorEntry>, VectorStoreError>;
+
+    async fn len_async(&self, namespace: &str) -> usize;
+
+    fn config(&self) -> &VectorStoreConfig;
+}
+
 pub struct InMemoryVectorStore {
     config: VectorStoreConfig,
     namespaces: RwLock<HashMap<String, HashMap<String, VectorEntry>>>,

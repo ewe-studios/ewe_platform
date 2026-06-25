@@ -4359,6 +4359,7 @@ version = "0.0.1"
 name = "foundation_vectors"
 version = "0.0.1"
 dependencies = [
+ "async-trait",
  "libm",
  "serde",
 ]

@@ -26,11 +26,9 @@ pub use r2_blobstore::R2Store;
 
 pub mod json_file;
 pub mod rows_stream;
-pub mod sql_vector_store;
 
 pub use json_file::*;
 pub use rows_stream::*;
-pub use sql_vector_store::SqlVectorStore;
 
 use crate::core::state::traits::StateStore;
 use crate::core::state::file::FileStateStore;

@@ -20,7 +20,7 @@ pub struct SqlVectorStore<Q: QueryStore> {
 impl<Q: QueryStore> SqlVectorStore<Q> {
     pub fn new(backend: Arc<Q>, config: VectorStoreConfig) -> Result<Self, VectorStoreError> {
         backend
-            .execute_batch(include_str!("../core/schema/sql/023_create_vectors.sql"))
+            .execute_batch(include_str!("../schema/sql/023_create_vectors.sql"))
             .map_err(|e| VectorStoreError::Backend(format!("failed to create vectors table: {e}")))?;
         Ok(Self { backend, config })
     }

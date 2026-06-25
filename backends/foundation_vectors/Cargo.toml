@@ -12,6 +12,7 @@ keywords = ["vectors", "embeddings", "search", "ewe-platform"]
 [dependencies]
 serde = { workspace = true }
 libm = "0.2"
+async-trait = "0.1"
 
 [dev-dependencies]
 

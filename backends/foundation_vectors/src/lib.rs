@@ -47,5 +47,8 @@ pub use index::{FlatIndex, VectorError, VectorIndex, load_index};
 pub use ivf::IvfIndex;
 pub use metric::{DistanceMetric, OrderedScore};
 pub use sqrt::SqrtStrategy;
-pub use store::{InMemoryVectorStore, VectorEntry, VectorMatch, VectorStore, VectorStoreConfig, VectorStoreError};
+pub use store::{
+    AsyncVectorStore, InMemoryVectorStore, VectorEntry, VectorMatch, VectorStore,
+    VectorStoreConfig, VectorStoreError,
+};
 pub use vector::Vector;
