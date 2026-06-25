@@ -126,6 +126,11 @@ pub static MIGRATIONS: &[Migration] = &[
         name: "Add r2_key column for R2 blob offload",
         sql: include_str!("sql/022_add_documents_r2_key.sql"),
     },
+    Migration {
+        id: "023_create_vectors",
+        name: "Create vectors table for VectorStore",
+        sql: include_str!("sql/023_create_vectors.sql"),
+    },
 ];
 
 /// Migration runner that applies pending migrations.

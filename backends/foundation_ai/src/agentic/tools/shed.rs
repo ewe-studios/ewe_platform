@@ -62,7 +62,7 @@ impl ToolDiscovery {
         };
 
         self.vector_store
-            .insert(entry)
+            .insert("tools", entry)
             .map_err(|e| ToolError::Execution {
                 tool: "shed".into(),
                 reason: format!("vector insert failed: {e}"),
@@ -96,7 +96,7 @@ impl ToolDiscovery {
 
         let matches = self
             .vector_store
-            .search(&embedding.data, k)
+            .search("tools", &embedding.data, k)
             .map_err(|e| ToolError::Execution {
                 tool: "shed".into(),
                 reason: format!("vector search failed: {e}"),

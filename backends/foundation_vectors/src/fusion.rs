@@ -126,6 +126,7 @@ pub trait Reranker: Send + Sync {
 pub fn hybrid_search(
     query_text: &str,
     query_vector: &[f32],
+    namespace: &str,
     vector_store: &dyn crate::store::VectorStore,
     bm25: &crate::bm25::Bm25Index,
     k: usize,
@@ -135,7 +136,7 @@ pub fn hybrid_search(
     let fetch_n = k * 2;
 
     let vector_results = vector_store
-        .search(query_vector, fetch_n)
+        .search(namespace, query_vector, fetch_n)
         .unwrap_or_default();
     let keyword_results = bm25.search(query_text, fetch_n);
 

@@ -3837,6 +3837,7 @@ dependencies = [
  "foundation_compact",
  "foundation_core",
  "foundation_netio",
+ "foundation_vectors",
  "futures-core",
  "futures-lite",
  "hex",

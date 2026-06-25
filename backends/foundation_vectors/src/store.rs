@@ -76,34 +76,23 @@ impl core::fmt::Display for VectorStoreError {
 // VectorStore trait
 
 pub trait VectorStore: Send + Sync {
-    /// Insert or overwrite a vector entry.
-    ///
-    /// # Errors
-    /// Returns `DimensionMismatch` or `ZeroVector` on invalid input.
-    fn insert(&self, entry: VectorEntry) -> Result<(), VectorStoreError>;
+    fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError>;
 
-    /// Delete a vector by id.
-    ///
-    /// # Errors
-    /// Returns `NotFound` if the id does not exist.
-    fn delete(&self, id: &str) -> Result<(), VectorStoreError>;
+    fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError>;
 
-    /// Top-k nearest neighbors to `query`.
-    ///
-    /// # Errors
-    /// Returns `DimensionMismatch` if query dimension is wrong.
-    fn search(&self, query: &[f32], k: usize) -> Result<Vec<VectorMatch>, VectorStoreError>;
+    fn search(
+        &self,
+        namespace: &str,
+        query: &[f32],
+        k: usize,
+    ) -> Result<Vec<VectorMatch>, VectorStoreError>;
 
-    /// Retrieve a single entry by id.
-    ///
-    /// # Errors
-    /// Returns `Backend` on internal errors.
-    fn get(&self, id: &str) -> Result<Option<VectorEntry>, VectorStoreError>;
+    fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError>;
 
-    fn len(&self) -> usize;
+    fn len(&self, namespace: &str) -> usize;
 
-    fn is_empty(&self) -> bool {
-        self.len() == 0
+    fn is_empty(&self, namespace: &str) -> bool {
+        self.len(namespace) == 0
     }
 
     fn config(&self) -> &VectorStoreConfig;
@@ -114,7 +103,7 @@ pub trait VectorStore: Send + Sync {
 
 pub struct InMemoryVectorStore {
     config: VectorStoreConfig,
-    entries: RwLock<HashMap<String, VectorEntry>>,
+    namespaces: RwLock<HashMap<String, HashMap<String, VectorEntry>>>,
 }
 
 impl InMemoryVectorStore {
@@ -122,7 +111,7 @@ impl InMemoryVectorStore {
     pub fn new(config: VectorStoreConfig) -> Self {
         Self {
             config,
-            entries: RwLock::new(HashMap::new()),
+            namespaces: RwLock::new(HashMap::new()),
         }
     }
 
@@ -144,38 +133,58 @@ impl InMemoryVectorStore {
 }
 
 impl VectorStore for InMemoryVectorStore {
-    fn insert(&self, entry: VectorEntry) -> Result<(), VectorStoreError> {
+    fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         let entry = self.validate_and_prepare(entry)?;
-        let mut entries = self.entries.write().unwrap();
-        entries.insert(entry.id.clone(), entry);
+        let mut ns_map = self.namespaces.write().unwrap();
+        ns_map
+            .entry(namespace.to_string())
+            .or_default()
+            .insert(entry.id.clone(), entry);
         Ok(())
     }
 
-    fn delete(&self, id: &str) -> Result<(), VectorStoreError> {
-        let mut entries = self.entries.write().unwrap();
-        entries.remove(id).ok_or_else(|| VectorStoreError::NotFound { id: id.to_string() })?;
+    fn delete(&self, namespace: &str, id: &str) -> Result<(), VectorStoreError> {
+        let mut ns_map = self.namespaces.write().unwrap();
+        let entries = ns_map
+            .get_mut(namespace)
+            .ok_or_else(|| VectorStoreError::NotFound { id: id.to_string() })?;
+        entries
+            .remove(id)
+            .ok_or_else(|| VectorStoreError::NotFound { id: id.to_string() })?;
         Ok(())
     }
 
-    fn search(&self, query: &[f32], k: usize) -> Result<Vec<VectorMatch>, VectorStoreError> {
+    fn search(
+        &self,
+        namespace: &str,
+        query: &[f32],
+        k: usize,
+    ) -> Result<Vec<VectorMatch>, VectorStoreError> {
         if query.len() != self.config.dimension {
             return Err(VectorStoreError::DimensionMismatch {
                 expected: self.config.dimension,
                 got: query.len(),
             });
         }
-        let entries = self.entries.read().unwrap();
+        let ns_map = self.namespaces.read().unwrap();
+        let Some(entries) = ns_map.get(namespace) else {
+            return Ok(Vec::new());
+        };
         let iter = entries.values().map(|e| (e.id.as_str(), e.vector.as_slice()));
         Ok(flat_top_k(query, iter, k, self.config.metric))
     }
 
-    fn get(&self, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
-        let entries = self.entries.read().unwrap();
+    fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
+        let ns_map = self.namespaces.read().unwrap();
+        let Some(entries) = ns_map.get(namespace) else {
+            return Ok(None);
+        };
         Ok(entries.get(id).cloned())
     }
 
-    fn len(&self) -> usize {
-        self.entries.read().unwrap().len()
+    fn len(&self, namespace: &str) -> usize {
+        let ns_map = self.namespaces.read().unwrap();
+        ns_map.get(namespace).map_or(0, HashMap::len)
     }
 
     fn config(&self) -> &VectorStoreConfig {
@@ -186,6 +195,8 @@ impl VectorStore for InMemoryVectorStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const NS: &str = "test";
 
     fn make_store() -> InMemoryVectorStore {
         InMemoryVectorStore::new(VectorStoreConfig::new(3, DistanceMetric::Cosine))
@@ -202,8 +213,8 @@ mod tests {
     #[test]
     fn insert_and_get() {
         let store = make_store();
-        store.insert(entry("a", vec![1.0, 0.0, 0.0])).unwrap();
-        let got = store.get("a").unwrap().unwrap();
+        store.insert(NS, entry("a", vec![1.0, 0.0, 0.0])).unwrap();
+        let got = store.get(NS, "a").unwrap().unwrap();
         assert_eq!(got.id, "a");
         assert_eq!(got.vector.data, vec![1.0, 0.0, 0.0]);
     }
@@ -211,25 +222,25 @@ mod tests {
     #[test]
     fn dimension_mismatch_rejected() {
         let store = make_store();
-        let err = store.insert(entry("bad", vec![1.0, 0.0])).unwrap_err();
+        let err = store.insert(NS, entry("bad", vec![1.0, 0.0])).unwrap_err();
         assert!(matches!(err, VectorStoreError::DimensionMismatch { expected: 3, got: 2 }));
     }
 
     #[test]
     fn zero_vector_rejected() {
         let store = make_store();
-        let err = store.insert(entry("zero", vec![0.0, 0.0, 0.0])).unwrap_err();
+        let err = store.insert(NS, entry("zero", vec![0.0, 0.0, 0.0])).unwrap_err();
         assert!(matches!(err, VectorStoreError::ZeroVector));
     }
 
     #[test]
     fn search_top_k() {
         let store = make_store();
-        store.insert(entry("x", vec![1.0, 0.0, 0.0])).unwrap();
-        store.insert(entry("y", vec![0.0, 1.0, 0.0])).unwrap();
-        store.insert(entry("z", vec![0.9, 0.1, 0.0])).unwrap();
+        store.insert(NS, entry("x", vec![1.0, 0.0, 0.0])).unwrap();
+        store.insert(NS, entry("y", vec![0.0, 1.0, 0.0])).unwrap();
+        store.insert(NS, entry("z", vec![0.9, 0.1, 0.0])).unwrap();
 
-        let results = store.search(&[1.0, 0.0, 0.0], 2).unwrap();
+        let results = store.search(NS, &[1.0, 0.0, 0.0], 2).unwrap();
         assert_eq!(results.len(), 2);
         assert_eq!(results[0].id, "x");
         assert_eq!(results[1].id, "z");
@@ -238,44 +249,61 @@ mod tests {
     #[test]
     fn search_dimension_mismatch() {
         let store = make_store();
-        store.insert(entry("a", vec![1.0, 0.0, 0.0])).unwrap();
-        let err = store.search(&[1.0, 0.0], 1).unwrap_err();
+        store.insert(NS, entry("a", vec![1.0, 0.0, 0.0])).unwrap();
+        let err = store.search(NS, &[1.0, 0.0], 1).unwrap_err();
         assert!(matches!(err, VectorStoreError::DimensionMismatch { .. }));
     }
 
     #[test]
     fn delete_entry() {
         let store = make_store();
-        store.insert(entry("a", vec![1.0, 0.0, 0.0])).unwrap();
-        assert_eq!(store.len(), 1);
-        store.delete("a").unwrap();
-        assert_eq!(store.len(), 0);
-        assert!(store.get("a").unwrap().is_none());
+        store.insert(NS, entry("a", vec![1.0, 0.0, 0.0])).unwrap();
+        assert_eq!(store.len(NS), 1);
+        store.delete(NS, "a").unwrap();
+        assert_eq!(store.len(NS), 0);
+        assert!(store.get(NS, "a").unwrap().is_none());
     }
 
     #[test]
     fn delete_not_found() {
         let store = make_store();
-        let err = store.delete("nope").unwrap_err();
+        let err = store.delete(NS, "nope").unwrap_err();
         assert!(matches!(err, VectorStoreError::NotFound { .. }));
     }
 
     #[test]
     fn overwrite_on_insert() {
         let store = make_store();
-        store.insert(entry("a", vec![1.0, 0.0, 0.0])).unwrap();
-        store.insert(entry("a", vec![0.0, 1.0, 0.0])).unwrap();
-        let got = store.get("a").unwrap().unwrap();
+        store.insert(NS, entry("a", vec![1.0, 0.0, 0.0])).unwrap();
+        store.insert(NS, entry("a", vec![0.0, 1.0, 0.0])).unwrap();
+        let got = store.get(NS, "a").unwrap().unwrap();
         assert_eq!(got.vector.data, vec![0.0, 1.0, 0.0]);
-        assert_eq!(store.len(), 1);
+        assert_eq!(store.len(NS), 1);
     }
 
     #[test]
     fn empty_store() {
         let store = make_store();
-        assert!(store.is_empty());
-        let results = store.search(&[1.0, 0.0, 0.0], 5).unwrap();
+        assert!(store.is_empty(NS));
+        let results = store.search(NS, &[1.0, 0.0, 0.0], 5).unwrap();
         assert!(results.is_empty());
+    }
+
+    #[test]
+    fn namespace_isolation() {
+        let store = make_store();
+        store.insert("ns_a", entry("v1", vec![1.0, 0.0, 0.0])).unwrap();
+        store.insert("ns_b", entry("v2", vec![0.0, 1.0, 0.0])).unwrap();
+
+        assert_eq!(store.len("ns_a"), 1);
+        assert_eq!(store.len("ns_b"), 1);
+
+        let results = store.search("ns_a", &[1.0, 0.0, 0.0], 10).unwrap();
+        assert_eq!(results.len(), 1);
+        assert_eq!(results[0].id, "v1");
+
+        assert!(store.get("ns_a", "v2").unwrap().is_none());
+        assert!(store.get("ns_b", "v1").unwrap().is_none());
     }
 
     #[test]
@@ -286,8 +314,8 @@ mod tests {
             sqrt_strategy: SqrtStrategy::NormalizedVectors,
         };
         let store = InMemoryVectorStore::new(config);
-        store.insert(entry("a", vec![3.0, 4.0])).unwrap();
-        let got = store.get("a").unwrap().unwrap();
+        store.insert(NS, entry("a", vec![3.0, 4.0])).unwrap();
+        let got = store.get(NS, "a").unwrap().unwrap();
         let mag = got.vector.magnitude();
         assert!((mag - 1.0).abs() < 1e-5, "stored vector should be normalized, mag={mag}");
     }
@@ -296,9 +324,9 @@ mod tests {
     fn l2_search() {
         let config = VectorStoreConfig::new(2, DistanceMetric::L2);
         let store = InMemoryVectorStore::new(config);
-        store.insert(entry("near", vec![0.1, 0.0])).unwrap();
-        store.insert(entry("far", vec![10.0, 10.0])).unwrap();
-        let results = store.search(&[0.0, 0.0], 1).unwrap();
+        store.insert(NS, entry("near", vec![0.1, 0.0])).unwrap();
+        store.insert(NS, entry("far", vec![10.0, 10.0])).unwrap();
+        let results = store.search(NS, &[0.0, 0.0], 1).unwrap();
         assert_eq!(results[0].id, "near");
     }
 
@@ -306,9 +334,9 @@ mod tests {
     fn dot_search() {
         let config = VectorStoreConfig::new(2, DistanceMetric::Dot);
         let store = InMemoryVectorStore::new(config);
-        store.insert(entry("high", vec![10.0, 10.0])).unwrap();
-        store.insert(entry("low", vec![0.1, 0.1])).unwrap();
-        let results = store.search(&[1.0, 1.0], 1).unwrap();
+        store.insert(NS, entry("high", vec![10.0, 10.0])).unwrap();
+        store.insert(NS, entry("low", vec![0.1, 0.1])).unwrap();
+        let results = store.search(NS, &[1.0, 1.0], 1).unwrap();
         assert_eq!(results[0].id, "high");
     }
 }
