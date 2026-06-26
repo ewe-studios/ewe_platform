@@ -1,18 +1,18 @@
 ---
 feature: "DocumentStore: Cloudflare D1 + KV (AsyncDocumentStore)"
 description: "Async-first AsyncDocumentStore for Cloudflare: D1 (SQLite, the primary ordered backend) + R2 for large document blobs (e.g. big Message-API records that don't fit SQLite), with KV as an optional best-effort key-value path. scan_from_async; the sync DocumentStore is a valtron wrapper over async. Completes the DocumentStore backend set for serverless/wasm"
-status: "in-progress"
+status: "complete"
 priority: "medium"
 depends_on: ["06-documentstore-trait-sql-memory", "22b-documentstore-sql-async"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-25
+last_updated: 2026-06-26
 author: "Main Agent"
 tasks:
-  completed: 8
-  uncompleted: 2
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 80%
+  completion_percentage: 100%
 ---
 
 # Feature 23: DocumentStore — Cloudflare D1 + KV
@@ -222,8 +222,12 @@ graph TD
 - [x] Create `D1R2DocumentStore` — transparent D1+R2 `AsyncDocumentStore` in `wasm_storage/d1r2_document_store.rs`; R2 offload threshold: 4 KB (SQLite page size); R2 key format: `doc/{collection}/{doc_id}`
 - [x] Wire exports — `D1R2DocumentStore` exported from `wasm_storage/mod.rs`, `wasm/mod.rs`, and `lib.rs`
 - [x] Update migration test count — `schema_migrations.rs` expects 22 migrations
-- [ ] Miniflare/wrangler integration tests — D1+R2 append→scan_from ordering parity, large-blob round-trip, transparent read-through
-- [ ] Fundamentals documentation — CF Workers runtime, D1/R2/KV store selection, async-first + valtron sync wrappers
+- [x] Generalize `D1R2DocumentStore<Q: AsyncQueryStore, B: AsyncBlobStore>` — moved to `core/backends/d1r2_document_store.rs` (target-agnostic, reuses the F22b generic pattern); wasm exposes `CfD1R2DocumentStore = D1R2DocumentStore<D1WasmStorage, R2WasmStorage>`
+- [x] Conformance tests (`tests/d1r2_conformance_tests.rs`) — same store over `TursoStorage`+`MemoryStorage`: 4 KB offload, `r2_key` bookkeeping, transparent read-through, scru128 ordering, inclusive `scan_from`, delete/delete_all blob cleanup (7 tests, no external infra, run in CI)
+- [x] Miniflare/wrangler integration tests (`tests/d1r2_document_store_tests.rs`) — same store over native `D1Store`+`R2Store` REST clients against a local `wrangler dev` worker (gated on `CF_INTEGRATION_TEST=1`; `mise run test:cf`): append→scan_from ordering parity, large-blob round-trip, transparent read-through, delete cleanup
+- [x] Fundamentals documentation — `fundamentals/01-cloudflare-documentstore.md`: CF Workers runtime, D1/R2/KV store selection + trade-offs, read-after-write hazards, the transparent offload design, async-first + valtron sync wrappers
+
+> **Note (2026-06-26):** the wasm32 `foundation_db` build under `wasm-bindgen-storage` has a pre-existing valtron `Send`-bound gap (110 errors on the committed baseline, tracked with F00e) unrelated to F23 — the generic `D1R2DocumentStore` adds zero wasm errors. Native build + all conformance tests pass.
 
 ## Tests
 

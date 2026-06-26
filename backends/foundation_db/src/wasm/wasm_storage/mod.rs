@@ -22,4 +22,4 @@ pub use r2_wasm::R2WasmStorage;
 pub use kv_wasm::KVWasmStorage;
 
 #[cfg(feature = "wasm-bindgen-storage")]
-pub use d1r2_document_store::D1R2DocumentStore;
+pub use d1r2_document_store::CfD1R2DocumentStore;

@@ -55,7 +55,7 @@ pub use native::*;
 
 // Wasm-bindgen storage re-exports (wasm32 only)
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
-pub use wasm::{D1R2DocumentStore, D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore};
+pub use wasm::{CfD1R2DocumentStore, D1WasmStorage, KVWasmStorage, R2WasmStorage, WasmCredentialStore};
 
 // Wasm-bindgen CF types re-exports (wasm32 only)
 #[cfg(all(target_family = "wasm", feature = "wasm-bindgen-storage"))]
