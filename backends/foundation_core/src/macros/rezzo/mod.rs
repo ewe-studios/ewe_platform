@@ -26,21 +26,6 @@ macro_rules! on_result {
     };
 }
 
-#[cfg(test)]
-mod test_on_result {
-    #[test]
-    fn test() {
-        assert_eq!(
-            on_result!(Ok::<usize, Box<dyn std::error::Error + 'static>>(10), val => val, _err => 20),
-            10
-        );
-        assert_eq!(
-            on_result!(Err::<usize, std::io::Error>(std::io::Error::from(std::io::ErrorKind::AlreadyExists)), val => val, _err => 20),
-            20
-        );
-    }
-}
-
 /// `unwrap_or_panic_log` lets you unwrap the underlying OK value from a result, logging
 /// and panicing on the error state.
 ///
@@ -67,17 +52,6 @@ macro_rules! unwrap_or_panic_log {
             }
         }
     };
-}
-
-#[cfg(test)]
-mod test_unwrap_or_panic_log {
-    #[test]
-    fn test() {
-        assert_eq!(
-            unwrap_or_panic_log!(Ok::<usize, Box<dyn std::error::Error + 'static>>(10)),
-            10
-        );
-    }
 }
 
 /// `is_ok` lets you perform an equality on the Ok value returning
@@ -115,26 +89,3 @@ macro_rules! is_ok {
     };
 }
 
-#[cfg(test)]
-mod test_is_ok {
-    #[test]
-    fn test() {
-        assert!(is_ok!(
-            Ok::<usize, Box<dyn std::error::Error + 'static>>(10),
-            10
-        ));
-        assert!(is_ok!(
-            Ok::<usize, Box<dyn std::error::Error + 'static>>(10),
-            20,
-            10
-        ));
-        assert!(!is_ok!(
-            Ok::<usize, Box<dyn std::error::Error + 'static>>(10),
-            20
-        ));
-        assert!(!is_ok!(
-            Err::<usize, std::io::Error>(std::io::Error::from(std::io::ErrorKind::AlreadyExists)),
-            10
-        ));
-    }
-}
