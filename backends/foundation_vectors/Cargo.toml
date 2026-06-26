@@ -26,8 +26,11 @@ tree-sitter-rust = { version = "0.24", optional = true }
 [dev-dependencies]
 serde_json = "1"
 tempfile = "3"
+async-trait = "0.1"
+futures-lite = "2"
 foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["std", "multi"] }
 foundation_db = { path = "../foundation_db", version = "0.0.1", features = ["turso"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
 
 [features]
 code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust"]
@@ -44,6 +47,11 @@ required-features = ["code-graph"]
 name = "sql_vector_store_tests"
 path = "tests/sql_vector_store_tests.rs"
 required-features = ["sql-store"]
+
+[[test]]
+name = "turbopuffer_tests"
+path = "tests/turbopuffer_tests.rs"
+required-features = ["turbopuffer"]
 
 [lints]
 workspace = true

@@ -1,18 +1,33 @@
 ---
 feature: "VectorStore: Cloudflare (D1/KV/Vectorize) + external (Pinecone/Chroma/TurboPuffer)"
 description: "AsyncVectorStore backends for serverless + managed vector DBs — Cloudflare D1/KV fetch-then-search (and Vectorize if available), plus native HTTP clients for Pinecone/Chroma/TurboPuffer behind the same trait"
-status: "pending"
+status: "complete"
 priority: "low"
 depends_on: ["28-vectorstore-trait-inmemory"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-26
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 11
-  total: 11
-  completion_percentage: 0%
+  completed: 7
+  uncompleted: 0
+  total: 7
+  completion_percentage: 100%
+notes: |
+  Scope per resolved decisions: TurboPuffer REQUIRED (shipped); CF D1
+  fetch-then-search covered by F29 SqlVectorStore<Q>; CF Vectorize absent (no
+  runtime binding, OD-30-1); CF KV best-effort/documented only; Pinecone + Chroma
+  deferred (trait-ready).
+  Done: AsyncVectorStore trait (store.rs); TurboPufferVectorStore over
+  Arc<dyn HttpClient> (F00f) implementing VectorStore + AsyncVectorStore, builds
+  native AND wasm32 (OD-30-4); turbopuffer_tests.rs (7 mock-HTTP tests: upsert
+  shape, dim/zero guards, query dist→score, delete, Bearer auth, async surface);
+  sql_vector_store_tests (11) cover the CF D1 fetch-then-search path; 4
+  fundamentals docs (00 overview, 01 managed DB models, 02 fetch-then-search vs
+  native ANN, 03 HTTP transport/platform/credentials).
+  Deferred (trait-ready follow-ons): Pinecone + Chroma adapters; CF Vectorize if a
+  runtime binding ever ships; KV-vector beyond best-effort (needs the F23 KV
+  pagination binding fix).
 ---
 
 # Feature 30: VectorStore — Cloudflare + external backends
@@ -170,9 +185,17 @@ cargo clippy -p foundation_db --all-features -- -D warnings
 cargo test  -p foundation_db -- vector_store
 ```
 
-## Done When
+## Done When — DONE (2026-06-26)
 
-- CF (Vectorize and/or D1) + **TurboPuffer (REST adapter, all platforms via HttpClient)** implement
-  `AsyncVectorStore` with dimension + namespace; CF builds wasm; TurboPuffer builds **native + wasm**
-  (via F00f `HttpClient` trait); parity tests (mock) pass.
-- Best-effort caveats documented; fundamentals authored. OD-30-1..5 resolved.
+- [x] **TurboPuffer (REST adapter, all platforms via `HttpClient`)** implements
+  `VectorStore` + `AsyncVectorStore` with dimension + namespace; builds **native + wasm32** (F00f
+  `HttpClient` trait); 7 mock-HTTP parity tests pass (`turbopuffer_tests.rs`).
+- [x] **CF D1 fetch-then-search** is provided by F29's `SqlVectorStore<Q: QueryStore>` (D1 is SQLite →
+  the same generic; `flat_top_k` client-side re-rank); 11 tests (`sql_vector_store_tests.rs`).
+- [x] CF Vectorize: **absent** — no runtime Worker binding exists (OD-30-1); not forced. CF KV:
+  best-effort only, documented (eventual consistency + 1000-key `list` cap, inherits F23).
+- [x] Best-effort caveats + the fetch-then-search cost documented; 4 fundamentals docs authored.
+  OD-30-1..5 resolved.
+
+**Deferred (trait-ready follow-ons):** Pinecone + Chroma adapters; CF Vectorize (if a binding ships);
+KV-vector beyond best-effort (needs the F23 KV pagination binding fix).
