@@ -116,8 +116,13 @@ required-features = ["candle", "candle-gpu", "cuda", "cuda_static"]
 
 [[test]]
 name = "model_tests"
-path = "tests/models.rs"
+path = "tests/models/mod.rs"
 required-features = ["testing"]
+
+[[test]]
+name = "memory_tests"
+path = "tests/memory/mod.rs"
+required-features = ["agentic"]
 
 [features]
 default = ["llamacpp", "agentic"]
