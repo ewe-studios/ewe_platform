@@ -43,6 +43,8 @@ pub mod code_graph;
 pub mod schema;
 #[cfg(feature = "sql-store")]
 pub mod sql_store;
+#[cfg(all(feature = "fjall-store", not(target_arch = "wasm32")))]
+pub mod fjall_store;
 #[cfg(feature = "turbopuffer")]
 pub mod turbopuffer;
 pub mod vector;
@@ -61,6 +63,8 @@ pub use store::{
 };
 #[cfg(feature = "sql-store")]
 pub use sql_store::SqlVectorStore;
+#[cfg(all(feature = "fjall-store", not(target_arch = "wasm32")))]
+pub use fjall_store::{FjallVectorStore, SharedFjallVectorStore};
 #[cfg(feature = "turbopuffer")]
 pub use turbopuffer::TurboPufferVectorStore;
 pub use vector::Vector;
