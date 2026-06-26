@@ -3843,7 +3843,6 @@ dependencies = [
  "foundation_compact",
  "foundation_core",
  "foundation_netio",
- "foundation_vectors",
  "futures-core",
  "futures-lite",
  "hex",
@@ -4366,10 +4365,14 @@ name = "foundation_vectors"
 version = "0.0.1"
 dependencies = [
  "async-trait",
+ "foundation_core",
+ "foundation_db",
+ "foundation_netio",
  "libm",
  "petgraph 0.8.3",
  "serde",
  "serde_json",
+ "tempfile",
  "tree-sitter",
  "tree-sitter-rust",
 ]

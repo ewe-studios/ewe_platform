@@ -1,16 +1,14 @@
-//! SQL-backed `VectorStore` — stores vectors as BLOBs, queries with
-//! `foundation_vectors::flat_top_k`. Works with any `QueryStore` backend
-//! (Turso, libSQL, or any future SQL storage).
-
 use std::sync::Arc;
 
 use foundation_core::valtron::Stream;
-use foundation_vectors::store::{
+use foundation_db::traits::{DataValue, QueryStore, SqlRow};
+
+use crate::flat::flat_top_k;
+use crate::schema;
+use crate::store::{
     VectorEntry, VectorMatch, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };
-use foundation_vectors::vector::Vector;
-
-use crate::core::storage_provider::{DataValue, QueryStore, SqlRow};
+use crate::vector::Vector;
 
 pub struct SqlVectorStore<Q: QueryStore> {
     backend: Arc<Q>,
@@ -19,9 +17,7 @@ pub struct SqlVectorStore<Q: QueryStore> {
 
 impl<Q: QueryStore> SqlVectorStore<Q> {
     pub fn new(backend: Arc<Q>, config: VectorStoreConfig) -> Result<Self, VectorStoreError> {
-        backend
-            .execute_batch(include_str!("../schema/sql/023_create_vectors.sql"))
-            .map_err(|e| VectorStoreError::Backend(format!("failed to create vectors table: {e}")))?;
+        schema::run_migrations(backend.as_ref())?;
         Ok(Self { backend, config })
     }
 
@@ -65,14 +61,14 @@ fn json_to_metadata(s: &str) -> VectorMetadata {
 }
 
 fn collect_rows(
-    stream: crate::core::storage_provider::StorageItemStream<'_, SqlRow>,
+    stream: foundation_db::traits::StorageItemStream<'_, SqlRow>,
 ) -> Result<Vec<SqlRow>, VectorStoreError> {
     let mut rows = Vec::new();
     for item in stream {
         match item {
             Stream::Next(Ok(row)) => rows.push(row),
             Stream::Next(Err(e)) => {
-                return Err(VectorStoreError::Backend(format!("row error: {e}")))
+                return Err(VectorStoreError::Backend(format!("row error: {e}")));
             }
             _ => {}
         }
@@ -83,12 +79,10 @@ fn collect_rows(
 impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
     fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         self.validate(&entry)?;
-
         let blob = vector_to_blob(&entry.vector);
         let meta_json = metadata_to_json(&entry.metadata);
         #[allow(clippy::cast_possible_wrap)]
         let dim = entry.vector.dimension() as i64;
-
         self.backend
             .execute(
                 "INSERT OR REPLACE INTO vectors (id, namespace, dimension, vector, metadata) \
@@ -102,7 +96,6 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
                 ],
             )
             .map_err(|e| VectorStoreError::Backend(format!("insert failed: {e}")))?;
-
         Ok(())
     }
 
@@ -117,7 +110,6 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
                 ],
             )
             .map_err(|e| VectorStoreError::Backend(format!("delete failed: {e}")))?;
-
         if affected == 0 {
             return Err(VectorStoreError::NotFound { id: id.to_string() });
         }
@@ -136,7 +128,6 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
                 got: query.len(),
             });
         }
-
         let stream = self
             .backend
             .query(
@@ -144,7 +135,6 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
                 &[DataValue::Text(namespace.to_string())],
             )
             .map_err(|e| VectorStoreError::Backend(format!("query failed: {e}")))?;
-
         let rows = collect_rows(stream)?;
         let mut entries: Vec<(String, Vec<f32>)> = Vec::with_capacity(rows.len());
         for row in &rows {
@@ -154,19 +144,12 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
             let blob: Vec<u8> = row
                 .get(1)
                 .map_err(|e| VectorStoreError::Backend(format!("read vector: {e}")))?;
-            let vec = blob_to_vector(&blob);
-            entries.push((id, vec.data));
+            entries.push((id, blob_to_vector(&blob).data));
         }
-
         let iter = entries
             .iter()
             .map(|(id, data)| (id.as_str(), data.as_slice()));
-        Ok(foundation_vectors::flat_top_k(
-            query,
-            iter,
-            k,
-            self.config.metric,
-        ))
+        Ok(flat_top_k(query, iter, k, self.config.metric))
     }
 
     fn get(&self, namespace: &str, id: &str) -> Result<Option<VectorEntry>, VectorStoreError> {
@@ -180,12 +163,10 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
                 ],
             )
             .map_err(|e| VectorStoreError::Backend(format!("get failed: {e}")))?;
-
         let rows = collect_rows(stream)?;
         let Some(row) = rows.first() else {
             return Ok(None);
         };
-
         let id: String = row
             .get(0)
             .map_err(|e| VectorStoreError::Backend(format!("read id: {e}")))?;
@@ -195,7 +176,6 @@ impl<Q: QueryStore> VectorStore for SqlVectorStore<Q> {
         let meta_json: String = row
             .get(2)
             .map_err(|e| VectorStoreError::Backend(format!("read metadata: {e}")))?;
-
         Ok(Some(VectorEntry {
             id,
             vector: blob_to_vector(&blob),

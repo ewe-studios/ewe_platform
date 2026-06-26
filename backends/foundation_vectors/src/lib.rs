@@ -39,6 +39,12 @@ pub mod sqrt;
 pub mod store;
 #[cfg(any(feature = "code-graph", feature = "code-graph-query"))]
 pub mod code_graph;
+#[cfg(feature = "sql-store")]
+pub mod schema;
+#[cfg(feature = "sql-store")]
+pub mod sql_store;
+#[cfg(feature = "turbopuffer")]
+pub mod turbopuffer;
 pub mod vector;
 
 pub use bm25::{Bm25Index, SimpleTokenizer, Tokenizer};
@@ -53,4 +59,8 @@ pub use store::{
     AsyncVectorStore, InMemoryVectorStore, VectorEntry, VectorMatch, VectorStore,
     VectorStoreConfig, VectorStoreError,
 };
+#[cfg(feature = "sql-store")]
+pub use sql_store::SqlVectorStore;
+#[cfg(feature = "turbopuffer")]
+pub use turbopuffer::TurboPufferVectorStore;
 pub use vector::Vector;

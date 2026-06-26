@@ -5,10 +5,12 @@ use foundation_netio::simple_http::client::shared::body_reader::collect_strings_
 use foundation_netio::simple_http::client::shared::http_client::HttpClient;
 use foundation_netio::simple_http::client::shared::request::{Extensions, PreparedRequest};
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
-use foundation_vectors::store::{
+
+use crate::store::{
     AsyncVectorStore, VectorEntry, VectorMatch, VectorStore, VectorStoreConfig, VectorStoreError,
 };
-use foundation_vectors::vector::Vector;
+use crate::metric::DistanceMetric;
+use crate::vector::Vector;
 use serde::{Deserialize, Serialize};
 
 pub struct TurboPufferVectorStore {
@@ -87,14 +89,12 @@ impl TurboPufferVectorStore {
 
     fn distance_metric_name(&self) -> &'static str {
         match self.config.metric {
-            foundation_vectors::metric::DistanceMetric::Cosine => "cosine_distance",
-            foundation_vectors::metric::DistanceMetric::L2 => "euclidean_squared",
-            foundation_vectors::metric::DistanceMetric::Dot => "cosine_distance",
+            DistanceMetric::Cosine => "cosine_distance",
+            DistanceMetric::L2 => "euclidean_squared",
+            DistanceMetric::Dot => "cosine_distance",
         }
     }
 }
-
-// -- Request / response types ------------------------------------------------
 
 #[derive(Serialize)]
 struct UpsertRequest {
@@ -139,9 +139,7 @@ struct QueryAttributes {
     metadata: Option<String>,
 }
 
-// -- VectorStore (sync) -------------------------------------------------------
-
-impl foundation_vectors::store::VectorStore for TurboPufferVectorStore {
+impl VectorStore for TurboPufferVectorStore {
     fn insert(&self, namespace: &str, entry: VectorEntry) -> Result<(), VectorStoreError> {
         if entry.vector.dimension() != self.config.dimension {
             return Err(VectorStoreError::DimensionMismatch {
@@ -255,8 +253,6 @@ impl foundation_vectors::store::VectorStore for TurboPufferVectorStore {
         &self.config
     }
 }
-
-// -- AsyncVectorStore ---------------------------------------------------------
 
 #[async_trait::async_trait]
 impl AsyncVectorStore for TurboPufferVectorStore {

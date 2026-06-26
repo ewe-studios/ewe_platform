@@ -3,7 +3,7 @@ use foundation_db::MIGRATIONS;
 #[test]
 fn test_migrations_defined() {
     assert!(!MIGRATIONS.is_empty());
-    assert_eq!(MIGRATIONS.len(), 23);
+    assert_eq!(MIGRATIONS.len(), 22);
 }
 
 #[test]

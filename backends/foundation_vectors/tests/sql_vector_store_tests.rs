@@ -1,6 +1,7 @@
 use std::sync::{Arc, Mutex};
 
-use foundation_db::{SqlVectorStore, TursoStorage};
+use foundation_db::TursoStorage;
+use foundation_vectors::SqlVectorStore;
 use foundation_vectors::store::{
     VectorEntry, VectorMetadata, VectorStore, VectorStoreConfig, VectorStoreError,
 };

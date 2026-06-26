@@ -15,7 +15,6 @@ keywords = ["database", "storage", "turso", "foundation"]
 foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["std"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
 foundation_compact = { path = "../foundation_compact", version = "0.2.0", features = ["crypto-chacha"] }
-foundation_vectors = { path = "../foundation_vectors", version = "0.0.1" }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -60,12 +59,6 @@ tempfile = "3"
 serial_test = { workspace = true }
 ntest = { workspace = true }
 foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["std", "multi"] }
-foundation_vectors = { path = "../foundation_vectors", version = "0.0.1" }
-
-[[test]]
-name = "sql_vector_store_tests"
-path = "tests/sql_vector_store_tests.rs"
-required-features = ["turso"]
 
 [features]
 default = ["turso", "d1", "r2"]
