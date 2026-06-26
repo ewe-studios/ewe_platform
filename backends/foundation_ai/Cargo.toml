@@ -114,6 +114,11 @@ name = "gpu_tests"
 path = "tests/gpu/mod.rs"
 required-features = ["candle", "candle-gpu", "cuda", "cuda_static"]
 
+[[test]]
+name = "testing_tests"
+path = "tests/testing_tests.rs"
+required-features = ["testing"]
+
 [features]
 default = ["llamacpp", "agentic"]
 llamacpp = ["dep:infrastructure_llama_cpp", "dep:foundation_deployment_huggingface"]
