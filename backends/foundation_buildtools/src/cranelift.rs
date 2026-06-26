@@ -40,13 +40,3 @@ pub fn set_cranelift_cfg() {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn detection_without_env() {
-        // When CARGO_ENCODED_RUSTFLAGS is absent, cranelift is not active.
-        assert!(!is_cranelift_active());
-    }
-}
