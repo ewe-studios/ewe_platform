@@ -4366,12 +4366,15 @@ version = "0.0.1"
 dependencies = [
  "async-trait",
  "fjall",
+ "foundation_compact",
  "foundation_core",
  "foundation_db",
  "foundation_netio",
  "futures-lite",
  "libm",
+ "libsql 0.6.0",
  "petgraph 0.8.3",
+ "pollster",
  "serde",
  "serde_json",
  "tempfile",
@@ -7868,6 +7871,12 @@ dependencies = [
  "rustix 1.1.2",
  "windows-sys 0.61.2",
 ]
+
+[[package]]
+name = "pollster"
+version = "0.4.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2f3a9f18d041e6d0e102a0a46750538147e5e8992d3b4873aaafee2520b00ce3"
 
 [[package]]
 name = "poly1305"

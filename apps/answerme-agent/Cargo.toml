@@ -1,0 +1,19 @@
+[package]
+name = "answerme-agent"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+foundation_ai = {
+    path="../../backends/foundation_ai",
+    version="0.0.1",
+    features=["multi"],
+}
+
+[lints]
+workspace = true

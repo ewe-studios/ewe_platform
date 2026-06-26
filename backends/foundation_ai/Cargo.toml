@@ -86,21 +86,21 @@ tokio = { version = "1", features = ["macros", "rt"] }
 [[test]]
 name = "foundation_ai_tests"
 path = "tests/mod.rs"
-required-features = ["agentic", "llamacpp"]
+required-features = ["agentic", "llamacpp", "candle"]
 
 [[test]]
 name = "agentic_tests"
-path = "tests/agentic_tests.rs"
+path = "tests/agentic/mod.rs"
 required-features = ["agentic"]
 
 [[test]]
-name = "embedding_provider_tests"
-path = "tests/embedding_provider_tests.rs"
-required-features = ["agentic"]
+name = "provider_tests"
+path = "tests/providers/mod.rs"
+required-features = ["agentic", "llamacpp"]
 
 [[test]]
-name = "shed_tool_tests"
-path = "tests/shed_tool_tests.rs"
+name = "tool_tests"
+path = "tests/tools/mod.rs"
 required-features = ["agentic"]
 
 [[test]]
@@ -115,8 +115,8 @@ path = "tests/gpu/mod.rs"
 required-features = ["candle", "candle-gpu", "cuda", "cuda_static"]
 
 [[test]]
-name = "testing_tests"
-path = "tests/testing_tests.rs"
+name = "model_tests"
+path = "tests/models.rs"
 required-features = ["testing"]
 
 [features]
