@@ -109,16 +109,3 @@ fn ensure_qemu_img() -> Result<()> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_size_ratio_calculation() {
-        // Just verify the math works with dummy values
-        let orig = 4_000_000_000u64;
-        let comp = 800_000_000u64;
-        let expected_ratio = (comp as f64 / orig as f64) * 100.0;
-        assert!((expected_ratio - 20.0).abs() < 0.1);
-    }
-}

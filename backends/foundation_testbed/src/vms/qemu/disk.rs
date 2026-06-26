@@ -85,7 +85,7 @@ pub struct DiskInfo {
     pub actual_size_bytes: u64,
 }
 
-fn parse_disk_info(json: &str) -> Result<DiskInfo> {
+pub fn parse_disk_info(json: &str) -> Result<DiskInfo> {
     let parsed: serde_json::Value = serde_json::from_str(json).map_err(|e| {
         TestbedError::Qcow2Error {
             message: format!("parsing qemu-img info JSON: {e}"),
@@ -128,7 +128,7 @@ impl DiskInfo {
 }
 
 /// Find `qemu-img` on PATH.
-fn find_qemu_img() -> Result<std::path::PathBuf> {
+pub fn find_qemu_img() -> Result<std::path::PathBuf> {
     if let Ok(p) = which::which("qemu-img") {
         return Ok(p);
     }
@@ -148,31 +148,3 @@ fn find_qemu_img() -> Result<std::path::PathBuf> {
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_disk_info() {
-        let json = r#"{
-            "virtual-size": 85899345920,
-            "actual-size": 1234567890,
-            "format": "qcow2"
-        }"#;
-        let info = parse_disk_info(json).unwrap();
-        assert_eq!(info.format, "qcow2");
-        assert_eq!(info.virtual_size_bytes, 85_899_345_920);
-        assert!((info.virtual_size_gb() - 80.0).abs() < 0.01);
-    }
-
-    #[test]
-    fn test_qemu_img_not_found_error() {
-        let err = find_qemu_img();
-        // Should either find qemu-img or return the right error type
-        match err {
-            Ok(_) => {} // qemu-img is installed, fine
-            Err(TestbedError::QemuImgNotFound { .. }) => {} // expected error
-            Err(e) => panic!("unexpected error variant: {e}"),
-        }
-    }
-}

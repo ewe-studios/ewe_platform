@@ -3,9 +3,9 @@
 //! Supports local export, shrink/optimization, and upload to R2/S3/Local/HTTP stores.
 //! Post-factum compression (gzip/xz) is available for maximum file size reduction.
 
-mod compress;
-mod manifest;
-mod shrink;
+pub mod compress;
+pub mod manifest;
+pub mod shrink;
 mod store_upload;
 
 pub use compress::{Compression, compress_qcow2_with, decompress, ensure_decompressed, is_compressed};

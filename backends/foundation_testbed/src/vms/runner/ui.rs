@@ -74,23 +74,3 @@ Add-Type -AssemblyName System.Windows.Forms
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_linux_type_escape() {
-        let text = "hello 'world'";
-        let escaped = text.replace("\\", "\\\\").replace("'", "\\'");
-        assert_eq!(escaped, "hello \\'world\\'");
-    }
-
-    #[test]
-    fn test_windows_type_escape() {
-        let text = "hello+world^test%foo";
-        let escaped = text
-            .replace("+", "{{+}}")
-            .replace("^", "{{^}}")
-            .replace("%", "{{%}}")
-            .replace("~", "{{~}}");
-        assert_eq!(escaped, "hello{{+}}world{{^}}test{{%}}foo");
-    }
-}

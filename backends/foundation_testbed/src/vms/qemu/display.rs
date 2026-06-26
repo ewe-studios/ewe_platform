@@ -126,20 +126,3 @@ pub fn connection_info(mode: DisplayMode, backend: DisplayBackend, vnc_port: u16
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_vnc_args() {
-        let backend = DisplayBackend::Vnc;
-        let args = backend.qemu_args(0);
-        assert_eq!(args, vec!["-display", "vnc=:0"]);
-    }
-
-    #[test]
-    fn test_connection_info_has_port() {
-        let info = connection_info(DisplayMode::Headless, DisplayBackend::Vnc, 5900);
-        assert!(info.contains("5900"));
-    }
-}

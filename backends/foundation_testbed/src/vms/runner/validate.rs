@@ -105,26 +105,3 @@ pub fn validate(
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_validation_result_structure() {
-        let result = ValidationResult {
-            match_pct: 95.0,
-            passed: true,
-            diff_path: None,
-        };
-        assert!(result.passed);
-        assert!((result.match_pct - 95.0).abs() < 0.01);
-    }
-
-    #[test]
-    fn test_default_tolerance_95_percent() {
-        // Common tolerance for UI testing
-        let tolerance = 95.0;
-        assert!(96.0 >= tolerance);
-        assert!(94.0 < tolerance);
-    }
-}

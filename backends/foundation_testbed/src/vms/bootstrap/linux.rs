@@ -253,13 +253,3 @@ pub fn bootstrap_linux(_profile: &VmProfile, session: &mut VmSession, logger: &B
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_bootstrap_mise_toml_has_required_tools() {
-        let toml = crate::vms::bootstrap::BOOTSTRAP_MISE_TOML;
-        assert!(toml.contains("rust"));
-        assert!(toml.contains("nushell"));
-        assert!(toml.contains("tauri-cli"));
-    }
-}

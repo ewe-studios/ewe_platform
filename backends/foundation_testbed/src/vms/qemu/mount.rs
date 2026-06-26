@@ -114,38 +114,3 @@ pub fn verify_mount_command(guest_path: &str) -> String {
     format!("mount | grep -q {guest_path} && echo OK || echo MISSING")
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_mount_args_readable() {
-        let args = mount_args(Path::new("/home/user/project"), "project", false);
-        assert_eq!(args.len(), 2);
-        assert_eq!(args[0], "-virtfs");
-        assert!(args[1].contains("path=/home/user/project"));
-        assert!(args[1].contains("mount_tag=project"));
-        assert!(args[1].contains("security_model=mapped"));
-        assert!(args[1].contains("id=project"));
-    }
-
-    #[test]
-    fn test_mount_args_readonly() {
-        let args = mount_args(Path::new("/home/user/project"), "project", true);
-        assert!(args[1].contains("readonly"));
-    }
-
-    #[test]
-    fn test_guest_mount_command() {
-        let cmd = guest_mount_command("project", "/mnt/project");
-        assert!(cmd.contains("sudo mkdir -p /mnt/project"));
-        assert!(cmd.contains("sudo mount -t 9p"));
-    }
-
-    #[test]
-    fn test_fstab_entry() {
-        let entry = fstab_entry("project", "/mnt/project");
-        assert!(entry.contains("9p"));
-        assert!(entry.contains("trans=virtio"));
-    }
-}

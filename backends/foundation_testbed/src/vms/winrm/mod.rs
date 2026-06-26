@@ -258,7 +258,7 @@ impl WinRM {
     }
 
     /// Base64-encoded Basic auth value.
-    fn auth_header_value(&self) -> String {
+    pub fn auth_header_value(&self) -> String {
         let creds = format!("{}:{}", self.user, self.pass);
         base64::Engine::encode(&base64::engine::general_purpose::STANDARD, creds.as_bytes())
     }
@@ -267,7 +267,7 @@ impl WinRM {
 // ── Response parsing ─────────────────────────────────────────────────────────
 
 /// Extract ShellId from a SOAP response.
-fn parse_shell_id(response: &str) -> Option<String> {
+pub fn parse_shell_id(response: &str) -> Option<String> {
     // Look for <Selector Name="ShellId">VALUE</Selector>
     let start = response.find(r#"Name="ShellId">"#)?;
     let rest = &response[start + r#"Name="ShellId">"#.len()..];
@@ -276,7 +276,7 @@ fn parse_shell_id(response: &str) -> Option<String> {
 }
 
 /// Extract CommandId from a SOAP response.
-fn parse_command_id(response: &str) -> Option<String> {
+pub fn parse_command_id(response: &str) -> Option<String> {
     // Look for <rsp:CommandId>VALUE</rsp:CommandId>
     let start = response.find("<rsp:CommandId>")?;
     let rest = &response[start + "<rsp:CommandId>".len()..];
@@ -285,7 +285,7 @@ fn parse_command_id(response: &str) -> Option<String> {
 }
 
 /// Parse a WinRM Receive response for stdout, stderr, completion, and exit code.
-fn parse_receive_response(response: &str) -> (String, String, bool, i32) {
+pub fn parse_receive_response(response: &str) -> (String, String, bool, i32) {
     let mut stdout = String::new();
     let mut stderr = String::new();
     let mut done = false;
@@ -350,7 +350,7 @@ fn extract_streams(response: &str) -> Vec<(String, bool)> {
 
 /// Generate a unique message ID for WinRM request correlation.
 #[allow(dead_code)]
-fn generate_message_id() -> String {
+pub fn generate_message_id() -> String {
     let uuid = uuid_simple();
     format!("uuid:{}", uuid)
 }
@@ -366,44 +366,3 @@ fn uuid_simple() -> String {
     format!("{:016x}{:016x}", now, now.wrapping_mul(0x6C62272E07BB0142))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_shell_id() {
-        let response = r#"<SelectorSet><w:Selector Name="ShellId">ABC123-DEF456</w:Selector></SelectorSet>"#;
-        assert_eq!(parse_shell_id(response).as_deref(), Some("ABC123-DEF456"));
-    }
-
-    #[test]
-    fn test_parse_command_id() {
-        let response = r#"<rsp:CommandResponse><rsp:CommandId>cmd-789</rsp:CommandId></rsp:CommandResponse>"#;
-        assert_eq!(parse_command_id(response).as_deref(), Some("cmd-789"));
-    }
-
-    #[test]
-    fn test_generate_message_id_starts_with_uuid() {
-        let id = generate_message_id();
-        assert!(id.starts_with("uuid:"));
-        assert!(id.len() > 30);
-    }
-
-    #[test]
-    fn test_auth_header_value() {
-        let client = WinRM::new("127.0.0.1", 5985, "vagrant", "vagrant");
-        let auth = client.auth_header_value();
-        // "vagrant:vagrant" base64 = "dmFncmFudDp2YWdyYW50"
-        assert_eq!(auth, "dmFncmFudDp2YWdyYW50");
-    }
-
-    #[test]
-    fn test_parse_receive_response_empty() {
-        let response = "<rsp:ReceiveResponse></rsp:ReceiveResponse>";
-        let (stdout, stderr, done, code) = parse_receive_response(response);
-        assert!(stdout.is_empty());
-        assert!(stderr.is_empty());
-        assert!(!done);
-        assert_eq!(code, 0);
-    }
-}

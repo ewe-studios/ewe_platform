@@ -159,13 +159,3 @@ fn auto_detect_bin(session: &mut VmSession, profile: &VmProfile) -> Result<Strin
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_auto_detect_search_paths() {
-        let target = crate::vms::build::target_triple(GuestOs::Linux);
-        assert!(target.contains("aarch64"));
-    }
-}

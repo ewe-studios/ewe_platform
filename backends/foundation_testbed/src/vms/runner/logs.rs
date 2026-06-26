@@ -45,7 +45,7 @@ pub struct LogOpts {
 }
 
 /// Get the log file path on the VM.
-fn log_path(profile: &VmProfile, kind: LogKind) -> String {
+pub fn log_path(profile: &VmProfile, kind: LogKind) -> String {
     match (profile.os, kind) {
         (GuestOs::Linux, LogKind::Build) => "/home/vagrant/.testbed-build/build.log".to_string(),
         (GuestOs::Linux, LogKind::Run) => "/home/vagrant/.testbed-run/run.log".to_string(),
@@ -97,30 +97,3 @@ fn tail_log(session: &mut VmSession, path: &str, n: u32) -> Result<String> {
     crate::vms::ssh::exec(session, &format!("tail -n {n} {path}"))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_log_kind_from_str() {
-        assert!("build".parse::<LogKind>().is_ok());
-        assert!("run".parse::<LogKind>().is_ok());
-        assert!("invalid".parse::<LogKind>().is_err());
-    }
-
-    #[test]
-    fn test_log_path_linux() {
-        let profile = crate::vms::config::get_profile("linux-build").unwrap().clone();
-        assert_eq!(
-            log_path(&profile, LogKind::Build),
-            "/home/vagrant/.testbed-build/build.log"
-        );
-    }
-
-    #[test]
-    fn test_log_path_windows() {
-        let profile = crate::vms::config::get_profile("windows-build").unwrap().clone();
-        assert!(log_path(&profile, LogKind::Build).contains("Users"));
-        assert!(log_path(&profile, LogKind::Build).contains("build.log"));
-    }
-}

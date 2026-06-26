@@ -148,14 +148,3 @@ fn bootstrap_macos(profile: &crate::vms::config::VmProfile, session: &mut VmSess
 /// Installed during initial VM setup to provide the dev toolchain.
 pub const BOOTSTRAP_MISE_TOML: &str = include_str!("../../../scripts/bootstrap_mise.toml");
 
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn test_bootstrap_mise_toml_is_valid() {
-        let toml = super::BOOTSTRAP_MISE_TOML;
-        assert!(toml.contains("[tools]"));
-        assert!(toml.contains("rust"));
-        assert!(toml.contains("nushell"));
-        assert!(toml.contains("tauri-cli"));
-    }
-}

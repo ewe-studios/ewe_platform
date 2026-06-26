@@ -126,7 +126,7 @@ pub fn ensure_decompressed(image_path: &Path) -> Result<PathBuf> {
 
 // ── Gzip compression (Rust-native via flate2) ────────────────────────────────
 
-fn compress_gzip(src: &Path, dest: &Path) -> Result<()> {
+pub fn compress_gzip(src: &Path, dest: &Path) -> Result<()> {
     let src_file = File::open(src).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening source: {e}"),
     })?;
@@ -158,7 +158,7 @@ fn compress_gzip(src: &Path, dest: &Path) -> Result<()> {
     Ok(())
 }
 
-fn decompress_gzip(src: &Path, dest: &Path) -> Result<()> {
+pub fn decompress_gzip(src: &Path, dest: &Path) -> Result<()> {
     let src_file = File::open(src).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening source: {e}"),
     })?;
@@ -189,7 +189,7 @@ fn decompress_gzip(src: &Path, dest: &Path) -> Result<()> {
 
 // ── XZ compression (Rust-native via xz2) ─────────────────────────────────────
 
-fn compress_xz(src: &Path, dest: &Path) -> Result<()> {
+pub fn compress_xz(src: &Path, dest: &Path) -> Result<()> {
     let src_file = File::open(src).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening source: {e}"),
     })?;
@@ -222,7 +222,7 @@ fn compress_xz(src: &Path, dest: &Path) -> Result<()> {
     Ok(())
 }
 
-fn decompress_xz(src: &Path, dest: &Path) -> Result<()> {
+pub fn decompress_xz(src: &Path, dest: &Path) -> Result<()> {
     let src_file = File::open(src).map_err(|e| TestbedError::Qcow2Error {
         message: format!("opening source: {e}"),
     })?;
@@ -287,67 +287,3 @@ pub fn compress_system(src: &Path, dest: &Path, algo: Compression) -> Result<()>
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_compression_extension() {
-        assert_eq!(Compression::Gzip.extension(), ".gz");
-        assert_eq!(Compression::Xz.extension(), ".xz");
-        assert_eq!(Compression::None.extension(), "");
-        assert_eq!(Compression::default(), Compression::Gzip);
-    }
-
-    #[test]
-    fn test_is_compressed() {
-        assert!(is_compressed(Path::new("image.qcow2.gz")));
-        assert!(is_compressed(Path::new("image.qcow2.xz")));
-        assert!(!is_compressed(Path::new("image.qcow2")));
-        assert!(!is_compressed(Path::new("image.tar.gz")));
-    }
-
-    #[test]
-    fn test_gzip_roundtrip() {
-        let dir = std::env::temp_dir().join("testbed_compress_test");
-        let _ = std::fs::create_dir_all(&dir);
-
-        let src = dir.join("test.qcow2");
-        let compressed = dir.join("test.qcow2.gz");
-        let decompressed = dir.join("test_restored.qcow2");
-
-        // Create a small test file
-        std::fs::write(&src, b"test qcow2 data that should compress and decompress correctly").unwrap();
-
-        compress_gzip(&src, &compressed).unwrap();
-        assert!(compressed.exists());
-        // Tiny files may grow due to gzip header overhead — just verify roundtrip works
-
-        decompress_gzip(&compressed, &decompressed).unwrap();
-        assert!(decompressed.exists());
-        assert_eq!(std::fs::read(&src).unwrap(), std::fs::read(&decompressed).unwrap());
-
-        let _ = std::fs::remove_dir_all(&dir);
-    }
-
-    #[test]
-    fn test_xz_roundtrip() {
-        let dir = std::env::temp_dir().join("testbed_xz_test");
-        let _ = std::fs::create_dir_all(&dir);
-
-        let src = dir.join("test.qcow2");
-        let compressed = dir.join("test.qcow2.xz");
-        let decompressed = dir.join("test_restored.qcow2");
-
-        std::fs::write(&src, b"test qcow2 data that should compress and decompress correctly with xz").unwrap();
-
-        compress_xz(&src, &compressed).unwrap();
-        assert!(compressed.exists());
-
-        decompress_xz(&compressed, &decompressed).unwrap();
-        assert!(decompressed.exists());
-        assert_eq!(std::fs::read(&src).unwrap(), std::fs::read(&decompressed).unwrap());
-
-        let _ = std::fs::remove_dir_all(&dir);
-    }
-}

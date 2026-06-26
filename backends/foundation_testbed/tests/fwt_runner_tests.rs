@@ -13,7 +13,7 @@
 
 use std::path::PathBuf;
 
-use foundation_testbed::wasm::cli::{Browser, OwnedRunArgs};
+use foundation_testbed::wasm::cli::{Browser, OwnedRunArgs, WasmTarget};
 use foundation_testbed::wasm::fwt_runner::stage;
 
 fn sample_crate() -> PathBuf {
@@ -28,6 +28,7 @@ fn args(filter: Option<&str>) -> OwnedRunArgs {
         filter: filter.map(String::from),
         browser: Browser::Chrome,
         headless: true,
+        target: WasmTarget::default(),
     }
 }
 

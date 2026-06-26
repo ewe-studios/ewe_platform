@@ -147,15 +147,3 @@ fn write_bootstrap_marker(session: &mut VmSession) -> Result<()> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_bootstrap_mise_toml_has_required_tools() {
-        let toml = crate::vms::bootstrap::BOOTSTRAP_MISE_TOML;
-        assert!(toml.contains("rust"));
-        assert!(toml.contains("nushell"));
-        assert!(toml.contains("tauri-cli"));
-    }
-}

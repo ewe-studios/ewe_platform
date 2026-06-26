@@ -128,15 +128,3 @@ where
     result
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_logger_creates_directory() {
-        let logger = BootstrapLogger::new("test-logger-tmp").unwrap();
-        assert!(PathBuf::from(".testbed/test-logger-tmp").exists());
-        assert!(logger.log_path().exists());
-        let _ = fs::remove_dir_all(".testbed/test-logger-tmp");
-    }
-}

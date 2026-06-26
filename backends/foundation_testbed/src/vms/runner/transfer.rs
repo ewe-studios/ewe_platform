@@ -61,24 +61,3 @@ fn push_dir(session: &mut VmSession, dir: &Path, _remote: &str) -> Result<()> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use std::path::PathBuf;
-
-    #[test]
-    fn test_push_identifies_directory() {
-        let temp = std::env::temp_dir().join("test_push_dir");
-        let _ = std::fs::create_dir_all(&temp);
-        assert!(temp.is_dir());
-        let _ = std::fs::remove_dir_all(&temp);
-    }
-
-    #[test]
-    fn test_push_uses_upload_for_files() {
-        // Verify the path resolution logic
-        let local = PathBuf::from("/tmp/test.txt");
-        let remote = "/tmp/test.txt";
-        assert_eq!(local.is_file(), false); // doesn't exist
-        assert_eq!(remote, "/tmp/test.txt");
-    }
-}

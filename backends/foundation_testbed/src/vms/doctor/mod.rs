@@ -277,7 +277,7 @@ pub fn kvm_available() -> bool {
 }
 
 /// Find the user's SSH public key (ed25519 preferred).
-fn find_ssh_key() -> Option<std::path::PathBuf> {
+pub fn find_ssh_key() -> Option<std::path::PathBuf> {
     let home = dirs::home_dir()?;
     let ssh_dir = home.join(".ssh");
 
@@ -295,27 +295,3 @@ fn is_port_free(port: u16) -> bool {
     std::net::TcpListener::bind(("127.0.0.1", port)).is_ok()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_host_health_returns_checks() {
-        let health = check_host();
-        assert!(!health.checks.is_empty());
-        // Should have at least kvm, qemu, qemu-img, ssh_key, disk_space
-        assert!(health.checks.len() >= 5);
-    }
-
-    #[test]
-    fn test_kvm_available() {
-        // Just verify it doesn't panic
-        let _ = kvm_available();
-    }
-
-    #[test]
-    fn test_find_ssh_key() {
-        // Just verify it doesn't panic
-        let _ = find_ssh_key();
-    }
-}

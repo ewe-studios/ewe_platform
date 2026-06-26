@@ -370,7 +370,7 @@ pub fn shell(profile: &VmProfile) -> Result<()> {
 ///
 /// Linux: `bash -c "..."`
 /// Windows: `cmd /c "..."`
-fn wrap_command(cmd: &str, os: GuestOs) -> String {
+pub fn wrap_command(cmd: &str, os: GuestOs) -> String {
     match os {
         GuestOs::Linux | GuestOs::MacOS => wrap_command_bash(cmd),
         GuestOs::Windows => wrap_command_cmd(cmd),
@@ -387,31 +387,3 @@ pub fn wrap_command_bash(cmd: &str) -> String {
     format!("bash -c {cmd:?}")
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_wrap_command_linux() {
-        let wrapped = wrap_command("echo hello", GuestOs::Linux);
-        assert!(wrapped.starts_with("bash -c"));
-    }
-
-    #[test]
-    fn test_wrap_command_windows() {
-        let wrapped = wrap_command("echo hello", GuestOs::Windows);
-        assert!(wrapped.starts_with("cmd /c"));
-    }
-
-    #[test]
-    fn test_wrap_command_cmd() {
-        let wrapped = wrap_command_cmd("echo hello");
-        assert!(wrapped.starts_with("cmd /c"));
-    }
-
-    #[test]
-    fn test_wrap_command_bash() {
-        let wrapped = wrap_command_bash("echo hello");
-        assert!(wrapped.starts_with("bash -c"));
-    }
-}

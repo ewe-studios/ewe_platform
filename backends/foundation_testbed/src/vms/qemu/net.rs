@@ -37,30 +37,7 @@ pub fn allocate_port(start: u16) -> Result<u16> {
 }
 
 /// Check if a TCP port is free on 127.0.0.1.
-fn is_port_free(port: u16) -> bool {
+pub fn is_port_free(port: u16) -> bool {
     TcpListener::bind(("127.0.0.1", port)).is_ok()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_allocate_port_returns_free_port() {
-        // Port 0 is always free (OS picks one), but let's use a high port
-        let port = allocate_port(30000).unwrap();
-        assert!(port >= 30000);
-        // The returned port should be free (we just allocated it, so it was free at check time)
-        assert!(is_port_free(port));
-    }
-
-    #[test]
-    fn test_is_port_free() {
-        // Bind a port, verify it shows as in-use
-        let listener = TcpListener::bind(("127.0.0.1", 0)).unwrap();
-        let port = listener.local_addr().unwrap().port();
-        assert!(!is_port_free(port), "bound port should not be free");
-        drop(listener);
-        assert!(is_port_free(port), "port should be free after drop");
-    }
-}

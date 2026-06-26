@@ -526,7 +526,7 @@ pub fn refresh_network(
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
 /// Build the full QEMU command-line argument list.
-fn build_qemu_args(
+pub fn build_qemu_args(
     profile: &VmProfile,
     disk_path: &std::path::Path,
     ports: &ResolvedPorts,
@@ -806,104 +806,3 @@ pub fn stop_virtiofsd(socket_path: &std::path::Path) {
     let _ = std::fs::remove_file(socket_path);
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use crate::vms::config::get_profile;
-
-    #[test]
-    fn test_build_qemu_args_headless() {
-        let profile = get_profile("windows-build").unwrap();
-        let ports = ResolvedPorts {
-            ssh_port: 2222,
-            winrm_port: Some(5985),
-            rdp_port: Some(3389),
-            vnc_port: 5900,
-        };
-        let monitor = std::path::PathBuf::from("/tmp/test.monitor");
-        let disk = std::path::PathBuf::from("/tmp/test.qcow2");
-        let display_args = display::DisplayBackend::Vnc.qemu_args(0);
-
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
-
-        assert!(args.contains(&"-enable-kvm".to_string()) || args.iter().any(|a| a.contains("kvm")));
-        assert!(args.iter().any(|a| a.contains("12288"))); // RAM
-        assert!(args.iter().any(|a| a.contains("virtio-net-pci,netdev=net")));
-        assert!(args.iter().any(|a| a.contains("vnc=:0")));
-        assert!(args.iter().any(|a| a.contains("hostfwd=tcp:127.0.0.1:2222-:22")));
-        assert!(args.iter().any(|a| a.contains("usb-tablet"))); // mouse tracking fix
-    }
-
-    #[test]
-    fn test_build_qemu_args_headful() {
-        let profile = get_profile("linux-build").unwrap();
-        let ports = ResolvedPorts {
-            ssh_port: 2422,
-            winrm_port: None,
-            rdp_port: None,
-            vnc_port: 5902,
-        };
-        let monitor = std::path::PathBuf::from("/tmp/test.monitor");
-        let disk = std::path::PathBuf::from("/tmp/test.qcow2");
-        let display_args = display::DisplayBackend::Vnc.qemu_args(2);
-
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, None, None);
-
-        assert!(args.iter().any(|a| a.contains("vnc=:2")));
-        assert!(args.iter().any(|a| a.contains("usb-tablet")));
-    }
-
-    #[test]
-    fn test_build_qemu_args_with_mount() {
-        let profile = get_profile("linux-build").unwrap();
-        let ports = ResolvedPorts {
-            ssh_port: 2422,
-            winrm_port: None,
-            rdp_port: None,
-            vnc_port: 5902,
-        };
-        let monitor = std::path::PathBuf::from("/tmp/test.monitor");
-        let disk = std::path::PathBuf::from("/tmp/test.qcow2");
-        let display_args = display::DisplayBackend::Vnc.qemu_args(2);
-        let project_mount = std::path::PathBuf::from("/home/user/project");
-
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, Some(&project_mount), false, None, None);
-
-        assert!(args.iter().any(|a| a.contains("-virtfs")));
-        assert!(args.iter().any(|a| a.contains("path=/home/user/project")));
-        assert!(args.iter().any(|a| a.contains("mount_tag=project")));
-    }
-
-    #[test]
-    fn test_build_qemu_args_with_cdrom() {
-        let profile = get_profile("windows-build").unwrap();
-        let ports = ResolvedPorts {
-            ssh_port: 2222,
-            winrm_port: Some(5985),
-            rdp_port: Some(3389),
-            vnc_port: 5900,
-        };
-        let monitor = std::path::PathBuf::from("/tmp/test.monitor");
-        let disk = std::path::PathBuf::from("/tmp/test.qcow2");
-        let display_args = display::DisplayBackend::Vnc.qemu_args(0);
-        let cdrom = std::path::PathBuf::from("/tmp/virtio-win.iso");
-
-        let args = build_qemu_args(&profile, &disk, &ports, &monitor, display_args, false, None, false, Some(&cdrom), None);
-
-        assert!(args.iter().any(|a| a.contains("media=cdrom")));
-        assert!(args.iter().any(|a| a.contains("/tmp/virtio-win.iso")));
-    }
-
-    #[test]
-    fn test_all_profiles_parseable() {
-        use crate::vms::config::list_profiles;
-        let profiles = list_profiles();
-        assert!(!profiles.is_empty());
-        for p in profiles {
-            assert!(!p.name.is_empty());
-            assert!(p.memory_mib > 0);
-            assert!(p.cpu_cores > 0);
-            assert!(p.disk_gb > 0);
-        }
-    }
-}

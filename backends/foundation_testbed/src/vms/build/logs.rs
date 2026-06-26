@@ -7,7 +7,7 @@ use crate::vms::config::Result;
 use crate::vms::ssh::VmSession;
 
 /// Error patterns to search for in build logs.
-const ERROR_PATTERNS: &[&str] = &[
+pub const ERROR_PATTERNS: &[&str] = &[
     "error[E",       // Rust compiler errors
     "error:",        // Generic errors
     "FAILED",        // Build failure markers
@@ -72,37 +72,3 @@ pub fn extract_errors(log: &str) -> Result<String> {
     Ok(format!("Build errors ({} found):\n---\n{}", errors.len(), output))
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_extract_errors_finds_rust_error() {
-        let log = r#"Compiling my-app v0.1.0
-   Compiling dependency v1.0.0
-error[E0308]: mismatched types
-   --> src/main.rs:10:5
-    |
-10  |     let x: String = 42;
-    |         ^   ------ expected due to this
-    |         |
-    |         expected `String`, found integer
-"#;
-        let result = extract_errors(log).unwrap();
-        assert!(result.contains("E0308"));
-        assert!(result.contains("mismatched types"));
-    }
-
-    #[test]
-    fn test_extract_errors_empty_log() {
-        let result = extract_errors("Build completed successfully\n").unwrap();
-        assert!(result.contains("No error patterns"));
-    }
-
-    #[test]
-    fn test_error_patterns_contains_expected_values() {
-        assert!(ERROR_PATTERNS.iter().any(|p| p.contains("error")));
-        assert!(ERROR_PATTERNS.iter().any(|p| p.contains("FAILED")));
-        assert!(ERROR_PATTERNS.iter().any(|p| p.contains("linker")));
-    }
-}

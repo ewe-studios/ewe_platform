@@ -36,14 +36,3 @@ pub fn save_from_runtime(
     state::save(&vm_state)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_save_from_runtime_creates_valid_state() {
-        let _ = save_from_runtime("test-utm", "/tmp/test.utm", "test-uuid", 2222, false);
-        assert!(exists("test-utm"));
-        let _ = delete("test-utm");
-    }
-}

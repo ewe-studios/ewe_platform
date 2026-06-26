@@ -75,18 +75,3 @@ pub fn wait_for_vm(profile: &VmProfile, timeout_secs: u64) -> Result<()> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_wait_for_ssh_times_out_on_unreachable_port() {
-        // Port 65000 is very unlikely to be in use
-        let profile = crate::vms::config::get_profile("linux-test").unwrap();
-        // Use a different port for this test
-        let mut test_profile = profile.clone();
-        test_profile.ssh_port = 64000;
-        let result = wait_for_ssh(&test_profile, 1);
-        assert!(result.is_err());
-    }
-}

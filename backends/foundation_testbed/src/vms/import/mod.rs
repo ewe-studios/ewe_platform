@@ -13,7 +13,7 @@ use crate::vms::qemu::download;
 pub mod macos;
 
 /// Minimum image size to consider a download valid (100 MB).
-const MIN_IMAGE_SIZE: u64 = 100 * 1_048_576;
+pub const MIN_IMAGE_SIZE: u64 = 100 * 1_048_576;
 
 /// Known compressed image extensions we can auto-decompress.
 const COMPRESSED_EXTENSIONS: &[&str] = &["qcow2.gz", "qcow2.xz"];
@@ -541,7 +541,7 @@ fn query_vagrant_cloud(profile: &VmProfile) -> Option<String> {
 // ── Validation ──────────────────────────────────────────────────────────────
 
 /// Validate that a downloaded image looks legitimate.
-fn validate_image(path: &Path) -> Result<()> {
+pub fn validate_image(path: &Path) -> Result<()> {
     let metadata = std::fs::metadata(path).map_err(|e| TestbedError::Qcow2Error {
         message: format!("stat {path:?}: {e}"),
     })?;
@@ -615,21 +615,3 @@ pub fn ensure_virtio_iso() -> Result<PathBuf> {
     Ok(cache_path)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_min_image_size_constant() {
-        assert_eq!(MIN_IMAGE_SIZE, 100 * 1_048_576);
-    }
-
-    #[test]
-    fn test_validate_image_rejects_small_file() {
-        let path = std::path::PathBuf::from("/tmp/test_small_image.qcow2");
-        std::fs::write(&path, b"tiny").unwrap();
-        let err = validate_image(&path).unwrap_err();
-        assert!(err.to_string().contains("failed download"));
-        let _ = std::fs::remove_file(&path);
-    }
-}

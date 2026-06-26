@@ -133,15 +133,3 @@ fn find_ssh_key() -> Option<String> {
     None
 }
 
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_streaming_wraps_in_nushell() {
-        // Verify the command would be wrapped correctly
-        let cmd = "cargo build";
-        let wrapped = format!("nu -c {cmd:?}");
-        assert!(wrapped.contains("cargo build"));
-        assert!(wrapped.starts_with("nu -c"));
-    }
-}

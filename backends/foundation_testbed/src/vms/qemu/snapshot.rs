@@ -118,7 +118,7 @@ pub fn list(vm: &mut QemuVm) -> Result<Vec<SnapshotInfo>> {
 }
 
 /// Parse a human-readable size string like "432MB" or "1.2GB" into bytes.
-fn parse_size_string(s: &str) -> u64 {
+pub fn parse_size_string(s: &str) -> u64 {
     let s = s.to_uppercase();
     if let Some(num) = s.strip_suffix("MB") {
         (num.parse::<f64>().unwrap_or(0.0) * 1_048_576.0) as u64
@@ -131,24 +131,3 @@ fn parse_size_string(s: &str) -> u64 {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_size_string() {
-        assert_eq!(parse_size_string("432MB"), 432 * 1_048_576);
-        assert_eq!(parse_size_string("1GB"), 1_073_741_824);
-        assert_eq!(parse_size_string("512KB"), 512 * 1_024);
-        assert_eq!(parse_size_string("100"), 100);
-        assert_eq!(parse_size_string("invalid"), 0);
-    }
-
-    #[test]
-    fn test_list_parses_empty() {
-        // Simulates QEMU output when no snapshots exist
-        let output = "No snapshots available.";
-        assert!(output.contains("No snapshots"));
-        // Would return empty vec in the real function
-    }
-}

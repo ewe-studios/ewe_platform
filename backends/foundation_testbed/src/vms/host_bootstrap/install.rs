@@ -99,7 +99,7 @@ fn install_pitchfork_cargo() -> Result<()> {
 }
 
 /// Find the mise binary on PATH or in its default install location.
-fn find_mise_bin() -> Result<std::path::PathBuf> {
+pub fn find_mise_bin() -> Result<std::path::PathBuf> {
     if let Ok(p) = which::which("mise") {
         return Ok(p);
     }
@@ -115,15 +115,3 @@ fn find_mise_bin() -> Result<std::path::PathBuf> {
     })
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_find_mise_bin_not_found() {
-        // This will fail gracefully — just verify it doesn't panic
-        let result = find_mise_bin();
-        // May or may not be present depending on the host
-        let _ = result.is_ok() || result.is_err();
-    }
-}

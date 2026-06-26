@@ -65,14 +65,3 @@ $bmp.Dispose()
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-
-    #[test]
-    fn test_capture_uses_correct_paths() {
-        // Verify the function would use the right VM path
-        let path = "/tmp/testbed-screenshot.png";
-        assert!(path.starts_with("/tmp/"));
-        assert!(path.ends_with(".png"));
-    }
-}

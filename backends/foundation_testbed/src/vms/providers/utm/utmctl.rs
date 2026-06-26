@@ -304,7 +304,7 @@ pub fn wait_for_vm(uuid: &str, timeout_secs: u64) -> Result<bool> {
 }
 
 /// Compare two semantic versions. Returns true if `actual` < `min`.
-fn version_is_older(actual: &str, min: &str) -> bool {
+pub fn version_is_older(actual: &str, min: &str) -> bool {
     let parse = |v: &str| -> (u32, u32, u32) {
         let mut parts = v.split('.').map(|s| s.parse::<u32>().unwrap_or(0));
         (
@@ -318,18 +318,3 @@ fn version_is_older(actual: &str, min: &str) -> bool {
     (a1, a2, a3) < (m1, m2, m3)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_version_is_older() {
-        assert!(version_is_older("4.6.4", "4.6.5"));
-        assert!(version_is_older("4.5.0", "4.6.5"));
-        assert!(version_is_older("3.9.9", "4.6.5"));
-        assert!(!version_is_older("4.6.5", "4.6.5"));
-        assert!(!version_is_older("4.6.6", "4.6.5"));
-        assert!(!version_is_older("4.7.0", "4.6.5"));
-        assert!(!version_is_older("5.0.0", "4.6.5"));
-    }
-}

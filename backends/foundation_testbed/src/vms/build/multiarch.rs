@@ -7,7 +7,7 @@ use crate::vms::config::Result;
 use crate::vms::ssh::VmSession;
 
 /// Debian/Ubuntu packages needed for x86_64 cross-compilation.
-const CROSS_DEPS: &[&str] = &[
+pub const CROSS_DEPS: &[&str] = &[
     "gcc-x86-64-linux-gnu",
     "g++-x86-64-linux-gnu",
 ];
@@ -40,20 +40,3 @@ pub fn cross_compile_env() -> &'static str {
      export PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_cross_compile_env_contains_expected_vars() {
-        let env = cross_compile_env();
-        assert!(env.contains("CARGO_TARGET_X86_64_UNKNOWN_LINUX_GNU_LINKER"));
-        assert!(env.contains("PKG_CONFIG_ALLOW_CROSS"));
-        assert!(env.contains("PKG_CONFIG_PATH"));
-    }
-
-    #[test]
-    fn test_cross_deps_not_empty() {
-        assert!(!CROSS_DEPS.is_empty());
-    }
-}

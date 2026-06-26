@@ -131,34 +131,3 @@ fn get_git_commit() -> String {
         .unwrap_or_else(|| "unknown".to_string())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_manifest_tools_summary() {
-        let mut tools = std::collections::HashMap::new();
-        tools.insert("rust".to_string(), "1.78.0".to_string());
-        tools.insert("node".to_string(), "22.1.0".to_string());
-
-        let manifest = ExportManifest {
-            name: "test".to_string(),
-            version: "1.0.0".to_string(),
-            os: "linux".to_string(),
-            arch: "x86_64".to_string(),
-            image_file: "test.qcow2".to_string(),
-            image_size_bytes: 1_000_000,
-            image_sha256: "abc123".to_string(),
-            bootstrap_version: 3,
-            installed_tools: tools,
-            created_at: "2026-05-03T00:00:00Z".to_string(),
-            created_by: "testhost".to_string(),
-            git_commit: "abc1234".to_string(),
-            notes: "".to_string(),
-        };
-
-        let summary = manifest.tools_summary();
-        assert!(summary.contains("node 22.1.0"));
-        assert!(summary.contains("rust 1.78.0"));
-    }
-}

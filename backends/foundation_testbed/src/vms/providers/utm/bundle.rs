@@ -107,7 +107,7 @@ pub fn set_memory_mb(bundle_path: &Path, mb: u32) -> Result<()> {
 /// Quote a string value for PlistBuddy Set command.
 ///
 /// PlistBuddy expects string values in the format `"value"` (with quotes).
-fn quoted_plist_string(s: &str) -> String {
+pub fn quoted_plist_string(s: &str) -> String {
     let escaped = s.replace('\\', "\\\\").replace('"', "\\\"");
     format!("\"{escaped}\"")
 }
@@ -129,31 +129,3 @@ pub fn apply_profile(bundle_path: &Path, profile: &VmProfile) -> Result<()> {
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_quoted_plist_string_simple() {
-        assert_eq!(quoted_plist_string("hello"), "\"hello\"");
-    }
-
-    #[test]
-    fn test_quoted_plist_string_with_backslash() {
-        assert_eq!(quoted_plist_string("path\\to"), "\"path\\\\to\"");
-    }
-
-    #[test]
-    fn test_quoted_plist_string_with_quotes() {
-        assert_eq!(quoted_plist_string("say \"hi\""), "\"say \\\"hi\\\"\"");
-    }
-
-    #[test]
-    fn test_is_utm_bundle_false_for_regular_dir() {
-        // A regular directory without config.plist should not be a bundle
-        let dir = std::env::temp_dir().join("test_not_bundle");
-        let _ = std::fs::create_dir_all(&dir);
-        assert!(!is_utm_bundle(&dir));
-        let _ = std::fs::remove_dir_all(&dir);
-    }
-}

@@ -22,7 +22,7 @@ pub fn target_triple(os: GuestOs) -> &'static str {
 }
 
 /// Get the guest mount path for the project directory.
-fn guest_project_path(os: GuestOs) -> &'static str {
+pub fn guest_project_path(os: GuestOs) -> &'static str {
     match os {
         GuestOs::Windows => "C:\\Users\\vagrant\\project",
         GuestOs::Linux => "/mnt/project",
@@ -299,20 +299,3 @@ fn retrieve_artifacts(session: &mut VmSession, profile: &VmProfile) -> Result<Pa
     Ok(host_artifact_dir)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_target_triple() {
-        assert_eq!(target_triple(GuestOs::Windows), "x86_64-pc-windows-msvc");
-        assert_eq!(target_triple(GuestOs::Linux), "aarch64-unknown-linux-gnu");
-    }
-
-    #[test]
-    fn test_guest_project_path() {
-        assert_eq!(guest_project_path(GuestOs::Linux), "/mnt/project");
-        assert_eq!(guest_project_path(GuestOs::Windows), "C:\\Users\\vagrant\\project");
-        assert_eq!(guest_project_path(GuestOs::MacOS), "/Volumes/project");
-    }
-}

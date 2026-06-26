@@ -213,18 +213,3 @@ pub fn configure_shared_directory(uuid: &str, host_path: &str, mount_tag: &str, 
     Ok(())
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_import_script_format() {
-        // Verify the import script uses the correct AppleSyntax
-        let bundle = "/tmp/test.utm";
-        let script = format!(
-            r#"tell application "UTM" to import new virtual machine from POSIX file "{}""#,
-            bundle
-        );
-        assert!(script.contains("import new virtual machine from POSIX file"));
-    }
-}

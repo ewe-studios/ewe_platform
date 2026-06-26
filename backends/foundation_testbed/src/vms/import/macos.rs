@@ -592,7 +592,7 @@ fn populate_fat_image(fat_img: &Path, efi_dir: &Path) -> Result<()> {
 /// Generate an OpenCore config.plist for QEMU macOS boot.
 ///
 /// Uses MacPro7,1 SMBIOS, standard boot args for QEMU compatibility.
-fn generate_config_plist() -> String {
+pub fn generate_config_plist() -> String {
     r#"<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
@@ -1053,26 +1053,3 @@ fn generate_config_plist() -> String {
         .to_string()
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_config_plist_is_valid_xml() {
-        let config = generate_config_plist();
-        assert!(config.contains("<?xml"));
-        assert!(config.contains("iMacPro1,1"));
-        assert!(config.contains("boot-args"));
-    }
-
-    #[test]
-    fn test_config_plist_has_required_sections() {
-        let config = generate_config_plist();
-        assert!(config.contains("<key>PlatformInfo</key>"));
-        assert!(config.contains("<key>SystemProductName</key>"));
-        assert!(config.contains("<key>NVRAM</key>"));
-        assert!(config.contains("<key>UEFI</key>"));
-        assert!(config.contains("<key>Misc</key>"));
-        assert!(config.contains("<key>Kernel</key>"));
-    }
-}

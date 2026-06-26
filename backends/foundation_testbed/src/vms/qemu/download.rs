@@ -131,20 +131,3 @@ pub fn is_cached(dest: &Path) -> bool {
             .unwrap_or(false)
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_is_cached_false_for_missing_or_empty() {
-        // Non-existent path
-        assert!(!is_cached(Path::new("/tmp/nonexistent_file_12345.qcow2")));
-
-        // Empty file
-        let path = Path::new("/tmp/test_empty_cache.qcow2");
-        let _ = std::fs::remove_file(path);
-        std::fs::File::create(path).unwrap();
-        assert!(!is_cached(path));
-        let _ = std::fs::remove_file(path);
-    }
-}

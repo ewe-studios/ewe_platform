@@ -178,7 +178,7 @@ fn write_host_mise_config() -> Result<()> {
 }
 
 /// Path to the user's global mise config: `~/.config/mise/config.toml`.
-fn host_mise_config_path() -> PathBuf {
+pub fn host_mise_config_path() -> PathBuf {
     if let Some(home) = dirs::home_dir() {
         return home.join(".config").join("mise").join("config.toml");
     }
@@ -209,30 +209,3 @@ pub fn check_host_prerequisites() -> HostPrerequisites {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_tool_status_is_available() {
-        let present = ToolStatus::AlreadyPresent { version: "1.0".into() };
-        assert!(present.is_available());
-        let missing = ToolStatus::Missing { error: "not found".into() };
-        assert!(!missing.is_available());
-    }
-
-    #[test]
-    fn test_tool_status_version() {
-        let present = ToolStatus::AlreadyPresent { version: "2.0.0".into() };
-        assert_eq!(present.version(), Some("2.0.0"));
-        let missing = ToolStatus::Missing { error: "nope".into() };
-        assert_eq!(missing.version(), None);
-    }
-
-    #[test]
-    fn test_host_mise_config_path_is_absolute() {
-        let path = host_mise_config_path();
-        assert!(path.is_absolute());
-        assert!(path.ends_with("config.toml"));
-    }
-}
