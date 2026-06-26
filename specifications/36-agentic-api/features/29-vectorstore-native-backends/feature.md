@@ -1,18 +1,18 @@
 ---
 feature: "VectorStore native backends: Turso/libSQL, SQLite (sqlite-vec), fjall (IVF)"
 description: "Persistent native VectorStore backends — Turso/libSQL native vectors (DiskANN), SQLite via sqlite-vec with foundation_vectors fallback, and fjall storing serialized vectors + a persisted IVF index — all behind the F28 trait"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["28-vectorstore-trait-inmemory", "25-foundation-vectors-ivf-hnsw"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-26
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 12
+  completed: 12
+  uncompleted: 0
   total: 12
-  completion_percentage: 0%
+  completion_percentage: 100%
 ---
 
 # Feature 29: VectorStore — native persistent backends
@@ -188,7 +188,18 @@ cargo test  -p foundation_db -- vector_store
 
 ## Done When
 
-- Turso/libSQL, SQLite, fjall backends implement `VectorStore` (native or fallback), persist across
-  restart, enforce dimension + namespace, pass parity tests vs in-memory.
-- Research findings documented in this feature before implementation.
-- Native-only/target-gated; fundamentals authored. OD-29-1..5 resolved.
+**DONE (2026-06-26):**
+
+- [x] **LibsqlVectorStore** — libSQL DiskANN via `vector_top_k`, over-fetch namespace strategy,
+  exact re-rank with `flat_top_k`. 5 tests.
+- [x] **SqliteVecVectorStore** — sqlite-vec vec0 virtual tables, bundled `.so` loaded at init
+  (`load_extension_enable`/`load_extension` + `SendWrapper`/`pollster` bridge). 4 tests.
+- [x] **FjallVectorStore** — fjall LSM + persisted F25 IVF index, rebuild-from-vectors on open.
+  7 tests.
+- [x] **SqlVectorStore** (shipped earlier) — SQL BLOB + `flat_top_k` fallback for backends without
+  native vector support. 11 tests.
+- [x] All backends: dimension + namespace enforcement, persist across restart, pass parity tests
+  vs in-memory ground truth.
+- [x] Native-only/target-gated off wasm; fundamentals authored (`fundamentals/00-overview.md`).
+- [x] OD-29-1..5 resolved (libsql vector_top_k confirmed, sqlite-vec optionality, fjall index
+  persistence cadence, namespace+native KNN over-fetch, reuse libsql connection layer).

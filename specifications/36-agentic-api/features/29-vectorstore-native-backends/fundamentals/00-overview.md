@@ -19,6 +19,7 @@ the same F28 `VectorStore` trait so the agent never knows which one it's using:
 | `LibsqlVectorStore` | libSQL `FLOAT32` column + DiskANN index | **native ANN** (`vector_top_k`) |
 | `SqlVectorStore<Q>` | SQL BLOB column (any `QueryStore`) | **fallback** (`flat_top_k` over a namespace scan) |
 | `FjallVectorStore` | fjall LSM + persisted F25 IVF index | **native ANN** (IVF), rebuildable from vectors |
+| `SqliteVecVectorStore` | SQLite + sqlite-vec vec0 virtual tables | **native ANN** (vec0 KNN), bundled `.so` |
 
 `SqlVectorStore` doubles as the **SQLite backend's fallback** (Doc 03 §1): a
 SQLite/libSQL file with vectors stored as BLOBs, searched by fetching the
