@@ -31,7 +31,7 @@ tempfile = "3"
 async-trait = "0.1"
 futures-lite = "2"
 foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["std", "multi"] }
-foundation_db = { path = "../foundation_db", version = "0.0.1", features = ["turso"] }
+foundation_db = { path = "../foundation_db", version = "0.0.1", features = ["turso", "libsql"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
 
 [features]
@@ -61,6 +61,11 @@ required-features = ["turbopuffer"]
 name = "fjall_vector_store_tests"
 path = "tests/fjall_vector_store_tests.rs"
 required-features = ["fjall-store"]
+
+[[test]]
+name = "libsql_vector_store_tests"
+path = "tests/libsql_vector_store_tests.rs"
+required-features = ["sql-store"]
 
 [lints]
 workspace = true
