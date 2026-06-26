@@ -14,11 +14,12 @@ keywords = ["database", "storage", "turso", "foundation"]
 # Multi-threaded support is optional - enable with `multi` feature
 foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["std"] }
 foundation_compact = { path = "../foundation_compact", version = "0.2.0", features = ["crypto-chacha"] }
-# foundation_netio is native-only here (used solely by the native D1/R2 REST
-# clients in src/native/, which are `#[cfg(not(target_family = "wasm"))]`).
-# Declaring it target-gated keeps its default `multi` feature — and the
-# `foundation_core/multi` it pulls — OUT of the wasm build, so the wasm CF
-# storage layer compiles against valtron's single-threaded (non-Send) path.
+# foundation_netio stays available on every target (it has a wasm `fetch`
+# client), but only with the wasm-safe base here. Its default `multi` feature —
+# and the `foundation_core/multi` it pulls — would force the single-threaded CF
+# wasm storage code onto valtron's Send-required path, so `multi` (plus the
+# native-only TLS/socket HTTP features) is added only on native, below.
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", default-features = false, features = ["standard", "std"] }
 
 # Serialization
 serde = { version = "1", features = ["derive"] }
@@ -51,11 +52,12 @@ wasm-bindgen-futures = { version = "0.4", optional = true }
 # workers-rs interop
 worker = { version = "0.8.3", optional = true, default-features = false, features = ["d1"] }
 
-# Native-only: the D1/R2 REST clients in src/native/ use foundation_netio's HTTP
-# client. Kept off wasm so foundation_netio's default `multi` feature doesn't
-# force foundation_core/multi into the single-threaded wasm build.
+# Native adds foundation_netio's full default feature set — `multi` (threaded
+# valtron) plus the TLS/socket HTTP modules (`ssl`, `compression`, `wire-native`)
+# the D1/R2 REST clients in src/native/ use. Unioned with the wasm-safe base
+# above; on wasm only the base applies, so `multi` never reaches the wasm build.
 [target.'cfg(not(target_family = "wasm"))'.dependencies]
-foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "compression", "wire-native", "multi"] }
 
 # Native-only storage backends — excluded on wasm32 to avoid
 # transitive deps (e.g. tracing-appender → symlink) that don't compile.
