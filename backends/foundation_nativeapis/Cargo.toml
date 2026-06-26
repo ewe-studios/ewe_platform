@@ -132,6 +132,31 @@ name = "ptrace_vfs"
 path = "tests/ptrace_vfs/mod.rs"
 required-features = ["vfs-ptrace-nix", "vfs-native"]
 
+[[test]]
+name = "ipc_errors_tests"
+path = "tests/ipc_errors_tests.rs"
+required-features = ["ipc"]
+
+[[test]]
+name = "ipc_label_tests"
+path = "tests/ipc_label_tests.rs"
+required-features = ["ipc"]
+
+[[test]]
+name = "ipc_options_tests"
+path = "tests/ipc_options_tests.rs"
+required-features = ["ipc"]
+
+[[test]]
+name = "ipc_selector_tests"
+path = "tests/ipc_selector_tests.rs"
+required-features = ["ipc"]
+
+[[test]]
+name = "ipc_util_tests"
+path = "tests/ipc_util_tests.rs"
+required-features = ["ipc"]
+
 # Examples (directory-based)
 [[example]]
 name = "memory_fs"
