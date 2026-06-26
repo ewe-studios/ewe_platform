@@ -227,7 +227,7 @@ graph TD
 - [x] Miniflare/wrangler integration tests (`tests/d1r2_document_store_tests.rs`) — same store over native `D1Store`+`R2Store` REST clients against a local `wrangler dev` worker (gated on `CF_INTEGRATION_TEST=1`; `mise run test:cf`): append→scan_from ordering parity, large-blob round-trip, transparent read-through, delete cleanup
 - [x] Fundamentals documentation — `fundamentals/01-cloudflare-documentstore.md`: CF Workers runtime, D1/R2/KV store selection + trade-offs, read-after-write hazards, the transparent offload design, async-first + valtron sync wrappers
 
-> **Note (2026-06-26):** the wasm32 `foundation_db` build under `wasm-bindgen-storage` has a pre-existing valtron `Send`-bound gap (110 errors on the committed baseline, tracked with F00e) unrelated to F23 — the generic `D1R2DocumentStore` adds zero wasm errors. Native build + all conformance tests pass.
+> **Note (2026-06-26):** the wasm32 `foundation_db` build under `wasm-bindgen-storage` is now **clean** (was 110 errors). Root cause was a feature leak — `foundation_netio` (native-only here, used solely by `src/native/` REST clients) was pulled with its default `multi` feature on every target, forcing `foundation_core/multi` and routing the single-threaded CF storage code to valtron's `Send`-required path. Fixed by target-gating the `foundation_netio` dependency to non-wasm, fixing structural bugs in `wasm_storage/{d1,r2,kv}_wasm.rs` (scalar methods used the stream helper; `stream_once` returned its value raw), and wrapping the `!Send` `JsFuture` awaits in `SendWrapper` for the unified-`Send` async traits (F00e/§A1). `CfD1R2DocumentStore` and the full CF storage layer build for `wasm32` with the real Worker feature set; native build + all conformance tests pass.
 
 ## Tests
 

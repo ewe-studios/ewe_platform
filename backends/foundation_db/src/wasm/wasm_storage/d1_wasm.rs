@@ -18,6 +18,7 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use js_sys::{Array, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
+use foundation_compact::SendWrapper;
 
 // ===========================================================================
 // Inline valtron helpers (no async_utils — use valtron directly)
@@ -92,7 +93,7 @@ impl D1WasmStorage {
 
     #[allow(dead_code)]
     fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        val
+        Box::new(std::iter::once(Stream::Next(Ok(val))))
     }
 
     #[allow(dead_code)]
@@ -119,14 +120,14 @@ impl D1WasmStorage {
         let stmt = self.db.prepare(sql);
         if params.is_empty() {
             let promise = stmt.run();
-            JsFuture::from(promise)
+            SendWrapper::new(JsFuture::from(promise))
                 .await
                 .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
         } else {
             let array = data_values_to_js_array(params);
             let bound = stmt.bind(array);
             let promise = bound.run();
-            JsFuture::from(promise)
+            SendWrapper::new(JsFuture::from(promise))
                 .await
                 .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
         }
@@ -148,7 +149,7 @@ impl D1WasmStorage {
             let bound = stmt.bind(array);
             bound.first(None)
         };
-        let result = JsFuture::from(first_result)
+        let result = SendWrapper::new(JsFuture::from(first_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
 
@@ -177,7 +178,7 @@ impl D1WasmStorage {
             let bound = stmt.bind(array);
             bound.all()
         };
-        let result = JsFuture::from(all_result)
+        let result = SendWrapper::new(JsFuture::from(all_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
 
@@ -218,7 +219,7 @@ impl D1WasmStorage {
             let bound = stmt.bind(array);
             bound.run()
         };
-        let result = JsFuture::from(run_result)
+        let result = SendWrapper::new(JsFuture::from(run_result))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
 
@@ -265,7 +266,7 @@ impl KeyValueStore for D1WasmStorage {
     ) -> StorageResult<Option<V>> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move { Self::do_get_async(&this.db, &this.table_prefix, &key).await })
+        exec_future(async move { Self::do_get_async(&this.db, &this.table_prefix, &key).await })
     }
 
     fn set<V: serde::Serialize + Send + 'static>(
@@ -275,7 +276,7 @@ impl KeyValueStore for D1WasmStorage {
     ) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_set_async(&this.db, &this.table_prefix, &key, value).await
         })
     }
@@ -283,7 +284,7 @@ impl KeyValueStore for D1WasmStorage {
     fn delete(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(
+        exec_future(
             async move { Self::do_delete_async(&this.db, &this.table_prefix, &key).await },
         )
     }
@@ -291,7 +292,7 @@ impl KeyValueStore for D1WasmStorage {
     fn exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(
+        exec_future(
             async move { Self::do_exists_async(&this.db, &this.table_prefix, &key).await },
         )
     }
@@ -543,13 +544,13 @@ impl QueryStore for D1WasmStorage {
         let this = self.clone();
         let sql = sql.to_string();
         let params = params.to_vec();
-        schedule_future(async move { Self::do_execute_async(&this.db, &sql, &params).await })
+        exec_future(async move { Self::do_execute_async(&this.db, &sql, &params).await })
     }
 
     fn execute_batch(&self, sql: &str) -> StorageResult<()> {
         let this = self.clone();
         let sql = sql.to_string();
-        schedule_future(async move { Self::do_execute_batch_async(&this.db, &sql).await })
+        exec_future(async move { Self::do_execute_batch_async(&this.db, &sql).await })
     }
 }
 
@@ -605,7 +606,7 @@ impl D1WasmStorage {
 
     async fn do_execute_batch_async(db: &Arc<D1Database>, sql: &str) -> Result<(), StorageError> {
         let promise = db.exec(sql);
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 exec failed: {e:?}")))?;
         Ok(())
@@ -645,7 +646,7 @@ impl RateLimiterStore for D1WasmStorage {
     ) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_check_rate_limit_async(&this.db, &key, max_count, window_seconds).await
         })
     }
@@ -653,13 +654,13 @@ impl RateLimiterStore for D1WasmStorage {
     fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move { Self::do_record_rate_limit_async(&this.db, &key).await })
+        exec_future(async move { Self::do_record_rate_limit_async(&this.db, &key).await })
     }
 
     fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move { Self::do_reset_rate_limit_async(&this.db, &key).await })
+        exec_future(async move { Self::do_reset_rate_limit_async(&this.db, &key).await })
     }
 }
 
@@ -799,7 +800,7 @@ impl BlobStore for D1WasmStorage {
         let this = self.clone();
         let key = key.to_string();
         let data = data.to_vec();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_put_blob_async(&this.db, &this.table_prefix, &key, &data).await
         })
     }
@@ -807,7 +808,7 @@ impl BlobStore for D1WasmStorage {
     fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(
+        exec_future(
             async move { Self::do_get_blob_async(&this.db, &this.table_prefix, &key).await },
         )
     }
@@ -815,7 +816,7 @@ impl BlobStore for D1WasmStorage {
     fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_delete_blob_async(&this.db, &this.table_prefix, &key).await
         })
     }
@@ -823,7 +824,7 @@ impl BlobStore for D1WasmStorage {
     fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             Self::do_blob_exists_async(&this.db, &this.table_prefix, &key).await
         })
     }
@@ -1042,14 +1043,14 @@ async fn do_execute_sql(
     let stmt = db.prepare(sql);
     if params.is_empty() {
         let promise = stmt.run();
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
     } else {
         let array = data_values_to_js_array(params);
         let bound = stmt.bind(array);
         let promise = bound.run();
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
     }
@@ -1069,7 +1070,7 @@ async fn do_query_first(
         let bound = stmt.bind(array);
         bound.first(None)
     };
-    let result = JsFuture::from(first_result)
+    let result = SendWrapper::new(JsFuture::from(first_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 first failed: {e:?}")))?;
 
@@ -1096,7 +1097,7 @@ async fn do_query_all(
         let bound = stmt.bind(array);
         bound.all()
     };
-    let result = JsFuture::from(all_result)
+    let result = SendWrapper::new(JsFuture::from(all_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 all failed: {e:?}")))?;
 
@@ -1135,7 +1136,7 @@ async fn do_execute_with_changes(
         let bound = stmt.bind(array);
         bound.run()
     };
-    let result = JsFuture::from(run_result)
+    let result = SendWrapper::new(JsFuture::from(run_result))
         .await
         .map_err(|e| StorageError::Backend(format!("D1 run failed: {e:?}")))?;
 

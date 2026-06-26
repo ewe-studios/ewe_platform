@@ -7,26 +7,24 @@
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::storage_provider::{AsyncBlobStore, BlobStore, StorageItemStream};
 use crate::wasm::bindgen::{R2Bucket, R2Object};
-use foundation_core::valtron::{execute, from_future, Stream, StreamIteratorExt};
+use foundation_core::valtron::{collect_one, execute, from_future, Stream};
 use js_sys::{ArrayBuffer, Uint8Array};
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
+use foundation_compact::SendWrapper;
 
-/// Schedule a future, returning a boxed stream.
-fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
-    future: F,
-) -> StorageResult<StorageItemStream<'static, T>>
+/// Drive a future to completion and return its single value.
+fn exec_future<T: 'static, E: Into<StorageError> + 'static, F>(future: F) -> StorageResult<T>
 where
     F: std::future::Future<Output = Result<T, E>> + 'static,
 {
     let task = from_future(future);
     let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-    Ok(Box::new(
-        stream
-            .map_done(|r: Result<T, E>| r.map_err(Into::into))
-            .map_pending(|_| ()),
-    ))
+        .map_err(|e| StorageError::Backend(format!("Valtron execution failed: {e}")))?;
+    let result: Result<Option<T>, StorageError> = collect_one(stream)
+        .map(|r| r.map_err(Into::into))
+        .transpose();
+    result?.ok_or_else(|| StorageError::Generic("No result from future execution".into()))
 }
 
 // ===========================================================================
@@ -57,7 +55,7 @@ impl R2WasmStorage {
 
     #[allow(dead_code)]
     fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        val
+        Box::new(std::iter::once(Stream::Next(Ok(val))))
     }
 }
 
@@ -70,7 +68,7 @@ impl BlobStore for R2WasmStorage {
         let this = self.clone();
         let key = key.to_string();
         let data = data.to_vec();
-        schedule_future(async move {
+        exec_future(async move {
             this.put_blob_async(&key, &data).await
         })
     }
@@ -78,7 +76,7 @@ impl BlobStore for R2WasmStorage {
     fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.get_blob_async(&key).await
         })
     }
@@ -86,7 +84,7 @@ impl BlobStore for R2WasmStorage {
     fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.delete_blob_async(&key).await
         })
     }
@@ -94,7 +92,7 @@ impl BlobStore for R2WasmStorage {
     fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.blob_exists_async(&key).await
         })
     }
@@ -110,7 +108,7 @@ impl R2WasmStorage {
         u8.copy_from(data);
 
         let promise = self.bucket.put(&object_key, &u8.into());
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("R2 put failed: {e:?}")))?;
 
@@ -122,7 +120,7 @@ impl R2WasmStorage {
         let object_key = self.object_key(key);
 
         let promise = self.bucket.get(&object_key);
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("R2 get failed: {e:?}")))?;
 
@@ -136,7 +134,7 @@ impl R2WasmStorage {
         })?;
 
         let buf_promise = obj.array_buffer();
-        let buf = JsFuture::from(buf_promise)
+        let buf = SendWrapper::new(JsFuture::from(buf_promise))
             .await
             .map_err(|e| StorageError::Backend(format!("R2 arrayBuffer failed: {e:?}")))?;
 
@@ -153,7 +151,7 @@ impl R2WasmStorage {
         let object_key = self.object_key(key);
 
         let promise = self.bucket.delete(&object_key);
-        let _result = JsFuture::from(promise)
+        let _result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("R2 delete failed: {e:?}")))?;
 
@@ -165,7 +163,7 @@ impl R2WasmStorage {
         let object_key = self.object_key(key);
 
         let promise = self.bucket.head(&object_key);
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("R2 head failed: {e:?}")))?;
 

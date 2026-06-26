@@ -10,27 +10,12 @@ use crate::core::storage_provider::{
     DataValue, KeyValueStore, QueryStore, RateLimiterStore, SqlRow, StorageItemStream,
 };
 use crate::wasm::bindgen::KVNamespace;
-use foundation_core::valtron::{collect_one, execute, from_future, Stream, StreamIteratorExt};
+use foundation_core::valtron::{collect_one, execute, from_future, Stream};
 use js_sys::Object;
 use wasm_bindgen::JsCast;
 use wasm_bindgen_futures::JsFuture;
+use foundation_compact::SendWrapper;
 
-/// Schedule a future, returning a boxed stream.
-fn schedule_future<T: 'static, E: Into<StorageError> + 'static, F>(
-    future: F,
-) -> StorageResult<StorageItemStream<'static, T>>
-where
-    F: std::future::Future<Output = Result<T, E>> + 'static,
-{
-    let task = from_future(future);
-    let stream = execute(task, None)
-        .map_err(|e| StorageError::Backend(format!("Valtron scheduling failed: {e}")))?;
-    Ok(Box::new(
-        stream
-            .map_done(|r: Result<T, E>| r.map_err(Into::into))
-            .map_pending(|_| ()),
-    ))
-}
 
 /// One-shot blocking bridge for init/migrations.
 fn exec_future<T: 'static, E: Into<StorageError> + 'static, F>(future: F) -> StorageResult<T>
@@ -73,7 +58,7 @@ impl KVWasmStorage {
 
     #[allow(dead_code)]
     fn stream_once<T: Send + 'static>(val: T) -> StorageItemStream<'static, T> {
-        val
+        Box::new(std::iter::once(Stream::Next(Ok(val))))
     }
 
     fn stream_many<T: Send + 'static>(vals: Vec<T>) -> StorageItemStream<'static, T> {
@@ -92,7 +77,7 @@ impl KeyValueStore for KVWasmStorage {
     ) -> StorageResult<Option<V>> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.get_async::<V>(&key).await
         })
     }
@@ -100,7 +85,7 @@ impl KeyValueStore for KVWasmStorage {
     fn set<V: serde::Serialize + Send + 'static>(&self, key: &str, value: V) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.set_async(&key, value).await
         })
     }
@@ -108,7 +93,7 @@ impl KeyValueStore for KVWasmStorage {
     fn delete(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.delete_async(&key).await
         })
     }
@@ -116,7 +101,7 @@ impl KeyValueStore for KVWasmStorage {
     fn exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.exists_async(&key).await
         })
     }
@@ -139,7 +124,7 @@ impl KVWasmStorage {
     ) -> Result<Option<V>, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
 
@@ -169,7 +154,7 @@ impl KVWasmStorage {
 
         let value_js = wasm_bindgen::JsValue::from_str(&json);
         let promise = self.kv.put(&prefixed, &value_js);
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV put failed: {e:?}")))?;
 
@@ -180,7 +165,7 @@ impl KVWasmStorage {
     pub async fn delete_async(&self, key: &str) -> Result<(), StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.delete(&prefixed);
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV delete failed: {e:?}")))?;
 
@@ -191,7 +176,7 @@ impl KVWasmStorage {
     pub async fn exists_async(&self, key: &str) -> Result<bool, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
 
@@ -209,7 +194,7 @@ impl KVWasmStorage {
         }
 
         let promise = self.kv.list(&opts.into());
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV list failed: {e:?}")))?;
 
@@ -316,7 +301,7 @@ impl RateLimiterStore for KVWasmStorage {
     ) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.check_rate_limit_async(&key, max_count, window_seconds).await
         })
     }
@@ -324,7 +309,7 @@ impl RateLimiterStore for KVWasmStorage {
     fn record_rate_limit(&self, key: &str) -> StorageResult<u32> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.record_rate_limit_async(&key).await
         })
     }
@@ -332,7 +317,7 @@ impl RateLimiterStore for KVWasmStorage {
     fn reset_rate_limit(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.reset_rate_limit_async(&key).await
         })
     }
@@ -349,7 +334,7 @@ impl KVWasmStorage {
         let rate_key = format!("_rate_limit:{key}");
 
         let promise = self.kv.get(&self.prefixed_key(&rate_key));
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
 
@@ -394,7 +379,7 @@ impl KVWasmStorage {
 
         // Get current entry
         let promise = self.kv.get(&self.prefixed_key(&rate_key));
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
 
@@ -421,7 +406,7 @@ impl KVWasmStorage {
                 .map_err(|e| StorageError::Serialization(e.to_string()))?;
             let value_js = wasm_bindgen::JsValue::from_str(&new_json);
             let put_promise = self.kv.put(&self.prefixed_key(&rate_key), &value_js);
-            JsFuture::from(put_promise)
+            SendWrapper::new(JsFuture::from(put_promise))
                 .await
                 .map_err(|e| StorageError::Backend(format!("KV put failed: {e:?}")))?;
 
@@ -433,7 +418,7 @@ impl KVWasmStorage {
             let entry = serde_json::json!({ "count": 1, "window_start": now }).to_string();
             let value_js = wasm_bindgen::JsValue::from_str(&entry);
             let put_promise = self.kv.put(&self.prefixed_key(&rate_key), &value_js);
-            JsFuture::from(put_promise)
+            SendWrapper::new(JsFuture::from(put_promise))
                 .await
                 .map_err(|e| StorageError::Backend(format!("KV put failed: {e:?}")))?;
         }
@@ -445,7 +430,7 @@ impl KVWasmStorage {
     pub async fn reset_rate_limit_async(&self, key: &str) -> Result<(), StorageError> {
         let rate_key = format!("_rate_limit:{key}");
         let promise = self.kv.delete(&self.prefixed_key(&rate_key));
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV delete failed: {e:?}")))?;
 
@@ -484,7 +469,7 @@ impl BlobStore for KVWasmStorage {
         let this = self.clone();
         let key = key.to_string();
         let data = data.to_vec();
-        schedule_future(async move {
+        exec_future(async move {
             this.put_blob_async(&key, &data).await
         })
     }
@@ -492,7 +477,7 @@ impl BlobStore for KVWasmStorage {
     fn get_blob(&self, key: &str) -> StorageResult<Option<Vec<u8>>> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.get_blob_async(&key).await
         })
     }
@@ -500,7 +485,7 @@ impl BlobStore for KVWasmStorage {
     fn delete_blob(&self, key: &str) -> StorageResult<()> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.delete_blob_async(&key).await
         })
     }
@@ -508,7 +493,7 @@ impl BlobStore for KVWasmStorage {
     fn blob_exists(&self, key: &str) -> StorageResult<bool> {
         let this = self.clone();
         let key = key.to_string();
-        schedule_future(async move {
+        exec_future(async move {
             this.blob_exists_async(&key).await
         })
     }
@@ -522,7 +507,7 @@ impl KVWasmStorage {
         let prefixed = self.prefixed_key(key);
         let value_js = wasm_bindgen::JsValue::from_str(&json);
         let promise = self.kv.put(&prefixed, &value_js);
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV put failed: {e:?}")))?;
         Ok(())
@@ -532,7 +517,7 @@ impl KVWasmStorage {
     pub async fn get_blob_async(&self, key: &str) -> Result<Option<Vec<u8>>, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
 
@@ -567,7 +552,7 @@ impl KVWasmStorage {
     pub async fn delete_blob_async(&self, key: &str) -> Result<(), StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.delete(&prefixed);
-        JsFuture::from(promise)
+        SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV delete failed: {e:?}")))?;
         Ok(())
@@ -577,7 +562,7 @@ impl KVWasmStorage {
     pub async fn blob_exists_async(&self, key: &str) -> Result<bool, StorageError> {
         let prefixed = self.prefixed_key(key);
         let promise = self.kv.get(&prefixed);
-        let result = JsFuture::from(promise)
+        let result = SendWrapper::new(JsFuture::from(promise))
             .await
             .map_err(|e| StorageError::Backend(format!("KV get failed: {e:?}")))?;
         Ok(!result.is_null() && !result.is_undefined())
