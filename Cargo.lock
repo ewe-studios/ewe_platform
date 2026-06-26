@@ -4365,6 +4365,7 @@ name = "foundation_vectors"
 version = "0.0.1"
 dependencies = [
  "async-trait",
+ "fjall",
  "foundation_core",
  "foundation_db",
  "foundation_netio",
