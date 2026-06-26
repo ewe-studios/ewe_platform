@@ -18,12 +18,16 @@ petgraph = { version = "0.8", optional = true }
 foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["std"], optional = true }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", optional = true }
 foundation_db = { path = "../foundation_db", version = "0.0.1", optional = true }
+foundation_compact = { path = "../foundation_compact", version = "0.2.0", optional = true }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tree-sitter = { version = "0.26", optional = true }
 tree-sitter-rust = { version = "0.24", optional = true }
 # fjall (on-disk LSM) backs the persistent fjall-IVF VectorStore — native only.
 fjall = { version = "2", optional = true }
+libsql = { version = "0.6", optional = true }
+pollster = { version = "0.4", optional = true }
+tempfile = { version = "3", optional = true }
 
 [dev-dependencies]
 serde_json = "1"
@@ -41,6 +45,8 @@ sql-store = ["dep:serde_json", "dep:foundation_db", "dep:foundation_core"]
 turbopuffer = ["dep:serde_json", "dep:foundation_core", "dep:foundation_netio"]
 # Persistent native VectorStore over fjall + a persisted F25 IVF index (F29).
 fjall-store = ["dep:fjall", "dep:serde_json"]
+# SQLite vec0 KNN via bundled sqlite-vec .so (F29). Native only.
+sqlite-vec = ["dep:serde_json", "dep:foundation_compact", "dep:libsql", "dep:pollster", "dep:tempfile"]
 
 [[test]]
 name = "code_graph_tests"
@@ -69,3 +75,7 @@ required-features = ["sql-store"]
 
 [lints]
 workspace = true
+[[test]]
+name = "sqlite_vec_store_tests"
+path = "tests/sqlite_vec_store_tests.rs"
+required-features = ["sqlite-vec"]

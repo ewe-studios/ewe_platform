@@ -47,6 +47,8 @@ pub mod sql_store;
 pub mod libsql_vector_store;
 #[cfg(all(feature = "fjall-store", not(target_arch = "wasm32")))]
 pub mod fjall_store;
+#[cfg(all(feature = "sqlite-vec", not(target_arch = "wasm32")))]
+pub mod sqlite_vec_store;
 #[cfg(feature = "turbopuffer")]
 pub mod turbopuffer;
 pub mod vector;
@@ -69,6 +71,8 @@ pub use sql_store::SqlVectorStore;
 pub use libsql_vector_store::{LibsqlVectorStore, NamespaceStrategy};
 #[cfg(all(feature = "fjall-store", not(target_arch = "wasm32")))]
 pub use fjall_store::{FjallVectorStore, SharedFjallVectorStore};
+#[cfg(all(feature = "sqlite-vec", not(target_arch = "wasm32")))]
+pub use sqlite_vec_store::SqliteVecVectorStore;
 #[cfg(feature = "turbopuffer")]
 pub use turbopuffer::TurboPufferVectorStore;
 pub use vector::Vector;
