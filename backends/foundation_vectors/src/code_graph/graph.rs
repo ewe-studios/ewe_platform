@@ -37,6 +37,11 @@ pub struct CodeGraph {
     pub(crate) graph: DiGraph<GraphNode, GraphEdge>,
     pub(crate) id_to_index: HashMap<String, NodeIndex>,
     pub(crate) label_index: HashMap<String, Vec<NodeIndex>>,
+    /// Per-file extractions retained so `update` can re-resolve cross-file edges
+    /// globally (graphify re-resolves the whole graph on incremental update —
+    /// OD-27-7). Keyed by `FileExtraction::file_path`. Empty for graphs loaded
+    /// via `from_json`/`from_bytes` (those are query-only, per OD-27-5).
+    pub(crate) extractions: HashMap<String, FileExtraction>,
 }
 
 impl CodeGraph {
@@ -46,30 +51,62 @@ impl CodeGraph {
             graph: DiGraph::new(),
             id_to_index: HashMap::new(),
             label_index: HashMap::new(),
+            extractions: HashMap::new(),
         }
     }
 
+    /// Build a graph from per-file extractions: add nodes/edges, resolve
+    /// cross-file `calls` against the global label index, then label-dedup.
     pub fn build(extractions: Vec<FileExtraction>) -> Self {
         let mut cg = Self::new();
+        for extraction in extractions {
+            cg.extractions.insert(extraction.file_path.clone(), extraction);
+        }
+        cg.rebuild();
+        cg
+    }
 
+    /// Incrementally re-extract: replace the changed files' extractions and
+    /// rebuild. Cross-file `calls`/`uses` resolution spans unchanged files, so we
+    /// re-resolve globally (graphify's behavior — OD-27-7). No LLM pass.
+    ///
+    /// Requires a graph that retains its extractions (one built via `build`/
+    /// `update`); a graph loaded via `from_json`/`from_bytes` is query-only and
+    /// has no extractions to rebuild from.
+    pub fn update(&mut self, changed: Vec<FileExtraction>) {
+        for extraction in changed {
+            self.extractions.insert(extraction.file_path.clone(), extraction);
+        }
+        self.rebuild();
+    }
+
+    /// Drop a file from the graph (e.g. deleted source) and re-resolve globally.
+    pub fn remove_file(&mut self, file_path: &str) {
+        self.extractions.remove(file_path);
+        self.rebuild();
+    }
+
+    /// Recompute the in-memory `DiGraph` + indices from `self.extractions`.
+    fn rebuild(&mut self) {
+        self.graph = DiGraph::new();
+        self.id_to_index.clear();
+        self.label_index.clear();
+
+        let extractions: Vec<FileExtraction> = self.extractions.values().cloned().collect();
         for extraction in &extractions {
             for node in &extraction.nodes {
-                cg.add_node(node.clone());
+                self.add_node(node.clone());
             }
             for (src, tgt, edge) in &extraction.edges {
-                cg.add_edge(src, tgt, edge.clone());
+                self.add_edge(src, tgt, edge.clone());
             }
         }
 
-        let all_raw_calls: Vec<RawCall> = extractions
-            .into_iter()
-            .flat_map(|e| e.raw_calls)
-            .collect();
-        cg.resolve_cross_file_calls(&all_raw_calls);
+        let all_raw_calls: Vec<RawCall> =
+            extractions.iter().flat_map(|e| e.raw_calls.clone()).collect();
+        self.resolve_cross_file_calls(&all_raw_calls);
 
-        cg.deduplicate_by_label();
-
-        cg
+        self.deduplicate_by_label();
     }
 
     pub fn add_node(&mut self, node: GraphNode) {

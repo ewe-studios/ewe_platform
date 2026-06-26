@@ -1,18 +1,32 @@
 ---
 feature: "foundation_vectors: code-graph (graphify-derived, Rust-native)"
 description: "A Rust-native code knowledge-graph in foundation_vectors — deterministic tree-sitter AST extraction (file/class/function nodes; imports/contains/inherits/calls/uses edges with EXTRACTED/INFERRED/AMBIGUOUS confidence), raw_calls cross-file resolution, rationale extraction, Leiden clustering, god-node analysis, and BFS/DFS query — powering the agentic search() tool"
-status: "pending"
+status: "complete"
 priority: "medium"
 depends_on: ["24-foundation-vectors-core"]
 estimated_effort: "large"
 created: 2026-06-14
-last_updated: 2026-06-14
+last_updated: 2026-06-26
 author: "Main Agent"
 tasks:
-  completed: 0
-  uncompleted: 16
-  total: 16
-  completion_percentage: 0%
+  completed: 12
+  uncompleted: 0
+  total: 12
+  completion_percentage: 100%
+notes: |
+  Scope = F27a per the OD-27-1 split: extraction core + Rust bespoke walker +
+  graph build + 3-layer dedup + cross-file call/uses resolution (member-call
+  exclusion) + the query surface (find_entity / callers_of / callees_of /
+  budgeted neighborhood / shortest_path / nodes_by_file) + persistence
+  (to_json/from_json, to_bytes/from_bytes, GraphStore trait + InMemoryGraphStore)
+  + incremental update/remove_file (global re-resolution, OD-27-7). 31 tests pass
+  (`code_graph_tests`). Native builds extract; the query/serde path builds for
+  wasm32 (tree-sitter walker target-gated off wasm — OD-27-5). 12 fundamentals
+  docs authored (00–10 incl. 02b).
+  Deferred to follow-on features (per OD-27-1): F27b = JS/TS + Python walkers
+  (generic LanguageConfig); F27c = Leiden clustering + god-node/surprising-
+  connection analysis + the optional LLM semantic pass. Fundamentals docs 06/07/09
+  cover those F27c concepts as primers.
 ---
 
 # Feature 27: foundation_vectors — code-graph (graphify-derived)
@@ -334,9 +348,23 @@ cargo test  -p foundation_vectors -- code_graph
 
 ## Done When
 
-- Deterministic AST extraction reproduces graphify's node/edge/relation/confidence model for the
-  priority languages (verified against fixtures), incl. member-call exclusion + cross-file INFERRED `uses`.
-- `build`/`update`/`cluster`/`god_nodes` + the query surface (`find_entity`/`callers_of`/budgeted
-  `neighborhood`/`shortest_path`) work; `graph.json` round-trips.
-- Native build extracts; wasm builds the query path over a prebuilt graph.
-- OD-27-1..7 resolved (incl. the likely 11a/b/c split).
+**F27a (this feature) — DONE (2026-06-26):**
+
+- [x] Deterministic AST extraction reproduces graphify's node/edge/relation/confidence model for
+  **Rust** (verified against `code_graph_tests` fixtures), incl. member-call exclusion + cross-file
+  INFERRED `calls`/`uses`. (`rust_walker.rs`)
+- [x] `build` (3-layer dedup) + incremental `update`/`remove_file` (global re-resolution, OD-27-7) +
+  the query surface (`find_entity` / `callers_of` / `callees_of` / budgeted `neighborhood` /
+  `shortest_path` / `nodes_by_file`). (`graph.rs`)
+- [x] Persistence: `to_json`/`from_json` round-trip, `to_bytes`/`from_bytes`, and a `GraphStore` trait
+  (OD-27-6) with `InMemoryGraphStore`. (`serial.rs`)
+- [x] Native build extracts (tree-sitter); the query/serde path builds for `wasm32-unknown-unknown`
+  (walker target-gated off wasm — OD-27-5). 31 tests pass.
+- [x] 12 fundamentals docs (`fundamentals/00–10` incl. `02b`).
+- [x] OD-27-1..7 resolved (the 11a/b/c — here F27a/b/c — split is realized).
+
+**Deferred to follow-on features (per OD-27-1):**
+
+- [ ] **F27b** — JS/TS + Python walkers via the generic `LanguageConfig` (fundamentals 03).
+- [ ] **F27c** — Leiden clustering + god-node/surprising-connection analysis + optional LLM semantic
+  pass (fundamentals 06/07/09 are the concept primers).

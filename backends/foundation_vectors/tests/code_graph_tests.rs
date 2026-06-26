@@ -324,3 +324,70 @@ fn caller() {
     let callee_labels: Vec<&str> = callees.iter().map(|n| n.label.as_str()).collect();
     assert!(callee_labels.contains(&"helper"));
 }
+
+#[test]
+fn update_replaces_changed_file_and_reresolves_cross_file() {
+    // a.rs defines helper(); b.rs calls it → cross-file INFERRED edge.
+    let a_v1 = "pub fn helper() -> i32 { 42 }\n";
+    let b = "pub fn caller() { helper(); }\n";
+    let ext_a = rust_walker::extract_rust_file("src/a.rs", a_v1).unwrap();
+    let ext_b = rust_walker::extract_rust_file("src/b.rs", b).unwrap();
+    let mut graph = CodeGraph::build(vec![ext_a, ext_b]);
+
+    let helper = graph.find_entity("helper");
+    assert!(!helper.is_empty());
+    assert!(!graph.callers_of(&helper[0].id).is_empty());
+
+    // a.rs changes: helper() renamed to assist(). The stale helper edge must go,
+    // and b.rs's call must now resolve to nothing (re-resolved globally).
+    let a_v2 = "pub fn assist() -> i32 { 42 }\n";
+    let ext_a2 = rust_walker::extract_rust_file("src/a.rs", a_v2).unwrap();
+    graph.update(vec![ext_a2]);
+
+    assert!(graph.find_entity("helper").is_empty(), "renamed entity gone");
+    assert!(!graph.find_entity("assist").is_empty(), "new entity present");
+    // b.rs (unchanged) is still in the graph.
+    assert!(!graph.find_entity("caller").is_empty(), "unchanged file retained");
+}
+
+#[test]
+fn remove_file_drops_its_nodes() {
+    let a = "pub fn helper() -> i32 { 42 }\n";
+    let b = "pub fn caller() { helper(); }\n";
+    let ext_a = rust_walker::extract_rust_file("src/a.rs", a).unwrap();
+    let ext_b = rust_walker::extract_rust_file("src/b.rs", b).unwrap();
+    let mut graph = CodeGraph::build(vec![ext_a, ext_b]);
+    assert!(!graph.find_entity("helper").is_empty());
+
+    graph.remove_file("src/a.rs");
+    assert!(graph.find_entity("helper").is_empty(), "removed file's entity gone");
+    assert!(!graph.find_entity("caller").is_empty(), "other file retained");
+}
+
+#[test]
+fn graph_store_round_trip() {
+    let ext = rust_walker::extract_rust_file("src/parser.rs", SAMPLE_RUST).unwrap();
+    let graph = CodeGraph::build(vec![ext]);
+    let (nc, ec) = (graph.node_count(), graph.edge_count());
+
+    let mut store = InMemoryGraphStore::new();
+    store.save_graph("repo", &graph).unwrap();
+
+    let loaded = store.load_graph("repo").unwrap().expect("graph present");
+    assert_eq!(loaded.node_count(), nc);
+    assert_eq!(loaded.edge_count(), ec);
+    // The reloaded (query-only) graph answers structural queries.
+    assert!(!loaded.find_entity("Parser").is_empty());
+
+    assert!(store.load_graph("missing").unwrap().is_none());
+}
+
+#[test]
+fn to_bytes_from_bytes_round_trip() {
+    let ext = rust_walker::extract_rust_file("src/parser.rs", SAMPLE_RUST).unwrap();
+    let graph = CodeGraph::build(vec![ext]);
+    let bytes = graph.to_bytes().unwrap();
+    let back = CodeGraph::from_bytes(&bytes).unwrap();
+    assert_eq!(back.node_count(), graph.node_count());
+    assert_eq!(back.edge_count(), graph.edge_count());
+}
