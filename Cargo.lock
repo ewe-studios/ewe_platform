@@ -4368,6 +4368,7 @@ dependencies = [
  "foundation_core",
  "foundation_db",
  "foundation_netio",
+ "futures-lite",
  "libm",
  "petgraph 0.8.3",
  "serde",
