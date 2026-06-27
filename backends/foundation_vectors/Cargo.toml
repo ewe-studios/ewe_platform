@@ -23,6 +23,9 @@ foundation_compact = { path = "../foundation_compact", version = "0.2.0", option
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]
 tree-sitter = { version = "0.26", optional = true }
 tree-sitter-rust = { version = "0.24", optional = true }
+tree-sitter-javascript = { version = "0.23", optional = true }
+tree-sitter-typescript = { version = "0.23", optional = true }
+tree-sitter-python = { version = "0.23", optional = true }
 # fjall (on-disk LSM) backs the persistent fjall-IVF VectorStore — native only.
 fjall = { version = "2", optional = true }
 libsql = { version = "0.6", optional = true }
@@ -39,7 +42,7 @@ foundation_db = { path = "../foundation_db", version = "0.0.1", features = ["tur
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
 
 [features]
-code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust"]
+code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust", "dep:tree-sitter-javascript", "dep:tree-sitter-typescript", "dep:tree-sitter-python"]
 code-graph-query = ["dep:petgraph", "dep:serde_json"]
 sql-store = ["dep:serde_json", "dep:foundation_db", "dep:foundation_core"]
 turbopuffer = ["dep:serde_json", "dep:foundation_core", "dep:foundation_netio"]
@@ -51,6 +54,11 @@ sqlite-vec = ["dep:serde_json", "dep:foundation_compact", "dep:libsql", "dep:pol
 [[test]]
 name = "code_graph_tests"
 path = "tests/code_graph_tests.rs"
+required-features = ["code-graph"]
+
+[[test]]
+name = "lang_config_tests"
+path = "tests/lang_config_tests.rs"
 required-features = ["code-graph"]
 
 [[test]]
