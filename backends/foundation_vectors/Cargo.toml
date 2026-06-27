@@ -26,6 +26,7 @@ tree-sitter-rust = { version = "0.24", optional = true }
 tree-sitter-javascript = { version = "0.23", optional = true }
 tree-sitter-typescript = { version = "0.23", optional = true }
 tree-sitter-python = { version = "0.23", optional = true }
+tree-sitter-go = { version = "0.23", optional = true }
 # fjall (on-disk LSM) backs the persistent fjall-IVF VectorStore — native only.
 fjall = { version = "2", optional = true }
 libsql = { version = "0.6", optional = true }
@@ -42,7 +43,7 @@ foundation_db = { path = "../foundation_db", version = "0.0.1", features = ["tur
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
 
 [features]
-code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust", "dep:tree-sitter-javascript", "dep:tree-sitter-typescript", "dep:tree-sitter-python"]
+code-graph = ["dep:petgraph", "dep:serde_json", "dep:tree-sitter", "dep:tree-sitter-rust", "dep:tree-sitter-javascript", "dep:tree-sitter-typescript", "dep:tree-sitter-python", "dep:tree-sitter-go"]
 code-graph-query = ["dep:petgraph", "dep:serde_json"]
 sql-store = ["dep:serde_json", "dep:foundation_db", "dep:foundation_core"]
 turbopuffer = ["dep:serde_json", "dep:foundation_core", "dep:foundation_netio"]
