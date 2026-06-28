@@ -13,8 +13,8 @@ use foundation_ai::backends::huggingface_candle_provider::{
     HuggingFaceCandleConfig, HuggingFaceCandleProvider,
 };
 use foundation_ai::types::{
-    Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, TextContent, ToolShed,
-    UserModelContent,
+    CacheRetention, MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput,
+    ModelParams, ModelProvider, TextContent, ThinkingLevels, ToolShed, UserModelContent,
 };
 use foundation_core::valtron;
 use tracing_test::traced_test;
@@ -85,10 +85,7 @@ fn test_candle_provider_describe() {
         descriptor.provider,
         foundation_ai::types::ModelProviders::HUGGINGFACE
     );
-    assert_eq!(
-        descriptor.base_url,
-        Some("https://huggingface.co".to_string())
-    );
+    assert_eq!(descriptor.base_url, Some("https://huggingface.co".into()));
     assert_eq!(descriptor.context_window, 4096);
     assert_eq!(descriptor.max_tokens, 2048);
     assert!(!descriptor.reasoning);
@@ -186,7 +183,7 @@ fn test_candle_provider_smollm_inference() {
         soul: None,
         messages: vec![Messages::User {
             id: foundation_compact::ids::new_scru128(),
-            role: "user".to_string(),
+            role: MessageRole::User,
             content: UserModelContent::Text(TextContent {
                 content: "Hello! How are you?".to_string(),
                 signature: None,
@@ -198,18 +195,8 @@ fn test_candle_provider_smollm_inference() {
         tool_choice: None,
     };
 
-    let params = foundation_ai::types::ModelParams {
-        max_tokens: 32,
-        temperature: 0.7,
-        top_p: 0.9,
-        top_k: 40.0,
-        repeat_penalty: 1.1,
-        seed: Some(42),
-        stop_tokens: vec![],
-        thinking_level: foundation_ai::types::ThinkingLevels::default(),
-        cache_retention: foundation_ai::types::CacheRetention::default(),
-        thinking_budget: None,
-    };
+    let mut params = ModelParams::default();
+    params.max_tokens = 32;
 
     let result = model.generate(interaction, Some(params));
     assert!(

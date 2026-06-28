@@ -237,9 +237,6 @@ fn test_huggingface_candle_provider_describe() {
         descriptor.provider,
         foundation_ai::types::ModelProviders::HUGGINGFACE
     );
-    assert_eq!(
-        descriptor.base_url,
-        Some("https://huggingface.co".to_string())
-    );
+    assert_eq!(descriptor.base_url, Some("https://huggingface.co".into()));
     assert!(!descriptor.reasoning);
 }
