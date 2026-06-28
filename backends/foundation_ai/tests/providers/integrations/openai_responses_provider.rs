@@ -46,6 +46,7 @@ fn setup_responses_provider() -> impl Model {
 #[valtron_test]
 #[traced_test]
 fn test_llama_server_responses_generate() {
+    let llama_server_guard = start_llama_server();
     let model = setup_responses_provider();
 
     let interaction = ModelInteraction {
@@ -90,6 +91,7 @@ fn test_llama_server_responses_generate() {
 #[valtron_test]
 #[traced_test]
 fn test_llama_server_responses_stream() {
+    let llama_server_guard = start_llama_server();
     let model = setup_responses_provider();
 
     let interaction = ModelInteraction {

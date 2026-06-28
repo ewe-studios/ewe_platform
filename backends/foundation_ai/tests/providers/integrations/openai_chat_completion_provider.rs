@@ -51,7 +51,7 @@ fn setup_llama_server_provider() -> impl Model {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_generate() {
-    let _guard = &*POOL;
+    let llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -98,7 +98,7 @@ fn test_llama_server_generate() {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_streaming() {
-    let _guard = &*POOL;
+    let llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -157,7 +157,7 @@ fn test_llama_server_streaming() {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_multi_turn() {
-    let _guard = &*POOL;
+    let llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -238,7 +238,7 @@ fn test_llama_server_multi_turn() {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_max_tokens() {
-    let _guard = &*POOL;
+    let llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -277,7 +277,7 @@ fn test_llama_server_max_tokens() {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_resolve_model() {
-    let _guard = &*POOL;
+    let llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     // If we got a model handle, the provider connected successfully.

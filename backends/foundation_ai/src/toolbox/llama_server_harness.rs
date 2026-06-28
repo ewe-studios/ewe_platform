@@ -34,6 +34,7 @@ pub struct LlamaServerGuard {
 }
 
 impl LlamaServerGuard {
+    #[must_use]
     pub fn base_url(&self) -> String {
         format!("http://127.0.0.1:{}", self.port)
     }
@@ -74,9 +75,7 @@ impl Default for LlamaServerConfig {
             api_key: "test-api-key-123".into(),
             model_name: std::env::var("LLAMA_TEST_MODEL_NAME")
                 .unwrap_or_else(|_| "qwen2.5-0.5b-instruct".into()),
-            model_file: std::env::var("LLAMA_TEST_MODEL_FILE")
-                .map(PathBuf::from)
-                .unwrap_or_else(|_| root.join("artefact/models/qwen2.5-0.5b-instruct-q4_k_m.gguf")),
+            model_file: std::env::var("LLAMA_TEST_MODEL_FILE").map_or_else(|_| root.join("artefact/models/qwen2.5-0.5b-instruct-q4_k_m.gguf"), PathBuf::from),
             server_bin: root.join("support/bin/llama-server"),
             threads: 4,
             ctx_size: 2048,
@@ -128,11 +127,13 @@ fn wait_for_health(port: u16, timeout: Duration) -> bool {
 /// doesn't become healthy within the timeout.
 ///
 /// Returns a `LlamaServerGuard` that kills the server on drop.
+#[must_use]
 pub fn start_llama_server() -> LlamaServerGuard {
     start_llama_server_with(LlamaServerConfig::default())
 }
 
 /// Start a llama-server with the given configuration.
+#[must_use]
 pub fn start_llama_server_with(config: LlamaServerConfig) -> LlamaServerGuard {
     assert!(
         config.server_bin.exists(),

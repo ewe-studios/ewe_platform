@@ -2,7 +2,7 @@
 //!
 //! Provides [`CandleBackend`] (CPU/CUDA/Metal) implementing [`ModelProvider`],
 //! and [`CandleModels`] implementing [`Model`] for safetensors models via
-//! HuggingFace's Candle framework.
+//! `HuggingFace`'s Candle framework.
 
 use foundation_compact::SystemTime;
 use std::collections::HashMap;
@@ -41,7 +41,7 @@ pub struct CandleBackendConfig {
     pub dtype: CandleDType,
     /// Model architecture to load.
     pub architecture: CandleArchitecture,
-    /// Authentication credential (e.g. HuggingFace token).
+    /// Authentication credential (e.g. `HuggingFace` token).
     pub auth: Option<foundation_auth::AuthCredential>,
     /// Local cache directory for downloaded models.
     pub cache_dir: Option<PathBuf>,
@@ -372,9 +372,9 @@ fn load_from_local(
                     "Failed to read model dir: {e}"
                 )))
             })?
-            .filter_map(|e| e.ok())
+            .filter_map(std::result::Result::ok)
             .map(|e| e.path())
-            .filter(|p| p.extension().map_or(false, |ext| ext == "safetensors"))
+            .filter(|p| p.extension().is_some_and(|ext| ext == "safetensors"))
             .collect();
         files.sort();
         files
@@ -450,7 +450,7 @@ fn build_llama_model(
         )))
     })?;
 
-    let file_refs: Vec<&std::path::Path> = weights_files.iter().map(|p| p.as_path()).collect();
+    let file_refs: Vec<&std::path::Path> = weights_files.iter().map(std::path::PathBuf::as_path).collect();
     let vb =
         unsafe { VarBuilder::from_mmaped_safetensors(&file_refs, dtype, device) }.map_err(|e| {
             ModelProviderErrors::ModelErrors(ModelErrors::CandleModelLoad(format!(
@@ -563,7 +563,7 @@ impl CandleModels {
 
 impl Model for CandleModels {
     fn tool_formatter(&self) -> Box<dyn crate::types::ToolFormatter> {
-        Box::new(TextBasedFormatter::default())
+        Box::new(TextBasedFormatter)
     }
 
     fn spec(&self) -> ModelSpec {
@@ -593,7 +593,7 @@ impl Model for CandleModels {
             provider: ModelProviders::CANDLE,
             base_url: None,
             inputs: crate::types::MessageType::TextAndImages,
-            cost: inner.pricing.clone(),
+            cost: inner.pricing,
             context_window: 0,
             max_tokens: 0,
         })
@@ -636,7 +636,7 @@ impl Model for CandleModels {
 
             let next_token = sample_token(&logits, &params).map_err(GenerationError::Candle)?;
 
-            if inner.eos_token_id.map_or(false, |eos| next_token == eos) {
+            if inner.eos_token_id == Some(next_token) {
                 break;
             }
 
@@ -812,40 +812,27 @@ impl Iterator for CandleStream {
 
             let device = model_inner.device.clone();
 
-            let input_tensor = match Tensor::new(&next_input[..], &device) {
-                Ok(t) => t,
-                Err(_) => {
-                    state.finished = true;
-                    return Some(Stream::Pending(ModelState::Finished));
-                }
+            let input_tensor = if let Ok(t) = Tensor::new(&next_input[..], &device) { t } else {
+                state.finished = true;
+                return Some(Stream::Pending(ModelState::Finished));
             };
-            let input_tensor = match input_tensor.unsqueeze(0) {
-                Ok(t) => t,
-                Err(_) => {
-                    state.finished = true;
-                    return Some(Stream::Pending(ModelState::Finished));
-                }
+            let input_tensor = if let Ok(t) = input_tensor.unsqueeze(0) { t } else {
+                state.finished = true;
+                return Some(Stream::Pending(ModelState::Finished));
             };
 
-            let logits = match forward(&mut model_inner, &input_tensor, seq_start) {
-                Ok(l) => l,
-                Err(_) => {
-                    state.finished = true;
-                    return Some(Stream::Pending(ModelState::Finished));
-                }
+            let logits = if let Ok(l) = forward(&mut model_inner, &input_tensor, seq_start) { l } else {
+                state.finished = true;
+                return Some(Stream::Pending(ModelState::Finished));
             };
 
-            let next_token = match sample_token(&logits, &params) {
-                Ok(t) => t,
-                Err(_) => {
-                    state.finished = true;
-                    return Some(Stream::Pending(ModelState::Finished));
-                }
+            let next_token = if let Ok(t) = sample_token(&logits, &params) { t } else {
+                state.finished = true;
+                return Some(Stream::Pending(ModelState::Finished));
             };
 
             let eos_hit = model_inner
-                .eos_token_id
-                .map_or(false, |eos| next_token == eos);
+                .eos_token_id == Some(next_token);
 
             let token_str = model_inner
                 .tokenizer
@@ -1019,7 +1006,7 @@ fn sample_token(logits: &Tensor, params: &ModelParams) -> Result<u32, candle_cor
         return argmax(&last_logits);
     }
 
-    let scaled = (&last_logits / params.temperature as f64)?;
+    let scaled = (&last_logits / f64::from(params.temperature))?;
 
     let top_k = params.top_k.round() as usize;
     if top_k > 0 {

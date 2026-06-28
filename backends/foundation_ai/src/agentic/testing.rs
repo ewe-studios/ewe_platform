@@ -255,6 +255,7 @@ pub struct MockStreamIterator {
 }
 
 impl MockStreamIterator {
+    #[must_use]
     pub fn new(items: Vec<Messages>) -> Self {
         Self {
             items,

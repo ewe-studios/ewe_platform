@@ -1,7 +1,7 @@
-//! HuggingFace Candle Provider — safetensors model downloading + Candle inference.
+//! `HuggingFace` Candle Provider — safetensors model downloading + Candle inference.
 //!
 //! Wraps [`CandleBackend`] with automatic safetensors model downloading from
-//! HuggingFace Hub, mirroring the [`HuggingFaceGGUFProvider`] pattern for GGUF models.
+//! `HuggingFace` Hub, mirroring the [`HuggingFaceGGUFProvider`] pattern for GGUF models.
 
 use std::path::PathBuf;
 
@@ -16,9 +16,9 @@ use foundation_deployment_huggingface::{
     HFClient, RepoDownloadFileParams, RepoListTreeParams, RepoTreeEntry,
 };
 
-/// HuggingFace provider for safetensors models via the Candle inference backend.
+/// `HuggingFace` provider for safetensors models via the Candle inference backend.
 ///
-/// Downloads models from HuggingFace Hub and loads them using [`CandleBackend`].
+/// Downloads models from `HuggingFace` Hub and loads them using [`CandleBackend`].
 pub struct HuggingFaceCandleProvider {
     hf_client: HFClient,
     backend: CandleBackend,
@@ -186,8 +186,7 @@ impl HuggingFaceCandleProvider {
             )
             .build()
             .map_err(|e| {
-                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                     format!("Failed to create HFClient: {e}"),
                 )))
             })?;
@@ -216,7 +215,7 @@ impl HuggingFaceCandleProvider {
         })
     }
 
-    /// Parse a [`ModelId`] into a HuggingFace repository id.
+    /// Parse a [`ModelId`] into a `HuggingFace` repository id.
     ///
     /// Expects `ModelId::Name("owner/repo", _)`.
     #[must_use]
@@ -235,7 +234,7 @@ impl HuggingFaceCandleProvider {
     }
 
     /// Download model files (config.json, tokenizer.json, safetensors) from
-    /// HuggingFace Hub into the local cache directory.
+    /// `HuggingFace` Hub into the local cache directory.
     ///
     /// Returns the local directory path containing the downloaded files.
     pub fn download_model(&self, repo_id: &str) -> ModelProviderResult<PathBuf> {
@@ -272,8 +271,7 @@ impl HuggingFaceCandleProvider {
                 directory: dest_dir.clone(),
             };
             repository::repo_download_file(&repo, &params).map_err(|e| {
-                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
-                    std::io::ErrorKind::Other,
+                ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                     format!("Failed to download {filename}: {e}"),
                 )))
             })?;
@@ -330,8 +328,7 @@ impl HuggingFaceCandleProvider {
                         directory: dest_dir.clone(),
                     };
                     repository::repo_download_file(&repo, &params).map_err(|e| {
-                        ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
-                            std::io::ErrorKind::Other,
+                        ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                             format!("Failed to download shard {filename}: {e}"),
                         )))
                     })?;
@@ -343,7 +340,7 @@ impl HuggingFaceCandleProvider {
         Ok(dest_dir)
     }
 
-    /// List available safetensors files in a HuggingFace repository.
+    /// List available safetensors files in a `HuggingFace` repository.
     ///
     /// Useful for discovering what models/shards are available before downloading.
     pub fn list_model_files(&self, repo_id: &str) -> ModelProviderResult<Vec<String>> {
@@ -359,8 +356,7 @@ impl HuggingFaceCandleProvider {
         };
 
         let tree = repository::repo_list_tree(&repo, &params).map_err(|e| {
-            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
+            ModelProviderErrors::FailedFetching(Box::new(std::io::Error::other(
                 format!("Failed to list repository files: {e}"),
             )))
         })?;
@@ -484,12 +480,11 @@ impl ModelProvider for HuggingFaceCandleProvider {
 
 fn has_safetensors(dir: &std::path::Path) -> bool {
     std::fs::read_dir(dir)
-        .map(|entries| {
-            entries.filter_map(|e| e.ok()).any(|e| {
+        .is_ok_and(|entries| {
+            entries.filter_map(std::result::Result::ok).any(|e| {
                 e.path()
                     .extension()
-                    .map_or(false, |ext| ext == "safetensors")
+                    .is_some_and(|ext| ext == "safetensors")
             })
         })
-        .unwrap_or(false)
 }
