@@ -66,7 +66,7 @@ pub trait FileSearch: Send + Sync {
 // ---------------------------------------------------------------------------
 
 /// File search backend delegating to a `VfsSearcher` from `foundation_nativeapis`.
-/// The VfsSearcher handles the cascade: CLI tools (rg/grep) → in-code VFS walk.
+/// The `VfsSearcher` handles the cascade: CLI tools (rg/grep) → in-code VFS walk.
 pub struct VfsSearchBackend {
     searcher: Box<dyn VfsSearcher>,
     root: String,

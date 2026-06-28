@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
-use crate::backends::openai_utils::{
+use crate::backends::backend_utils::{
     empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
 };
 use derive_more::From;
@@ -35,7 +35,7 @@ use crate::types::base_types::{
     AuthProvider, CostStatus, ExtractResult, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
     ModelState, ModelStreamBox, ModelUsageCosting, StopReason, TextContent, Tool, ToolCallingError,
-    ToolFormatter, ToolShed, UsageCosting, UsageReport,
+    ToolFormatter, UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -1483,10 +1483,12 @@ fn is_embedding_request(messages: &[Messages]) -> bool {
     })
 }
 
+#[must_use]
 pub fn is_retryable_status(status: u16) -> bool {
     status == 429 || (500..=503).contains(&status)
 }
 
+#[must_use]
 pub fn exponential_backoff(attempt: u32) -> u64 {
     let base_secs: u64 = 1 << attempt.min(5); // 1, 2, 4, 8, 16, 32
     base_secs.min(30) // cap at 30s
@@ -1500,12 +1502,14 @@ fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
         .and_then(|v| v.parse::<u64>().ok())
 }
 
+#[must_use]
 pub fn parse_openai_error(body: &str) -> Option<String> {
     serde_json::from_str::<OpenAIErrorResponse>(body)
         .ok()
         .map(|e| e.error.message)
 }
 
+#[must_use]
 pub fn format_http_error(status_code: usize, detail: &str) -> String {
     match status_code {
         401 => format!("Authentication failed: {detail}"),
@@ -1627,6 +1631,7 @@ impl std::error::Error for OpenAIError {}
 
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
+#[must_use]
 pub fn build_chat_request(
     model_name: &str,
     interaction: &ModelInteraction,

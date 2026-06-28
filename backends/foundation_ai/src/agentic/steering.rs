@@ -84,7 +84,7 @@ impl SteeringQueues {
     }
 
     /// Wrap existing shared handles — used when the session holds Arc handles
-    /// and the AgentLoop needs its own SteeringQueues view.
+    /// and the `AgentLoop` needs its own `SteeringQueues` view.
     #[must_use]
     pub fn from_shared(
         priority: Arc<ConcurrentQueue<Messages>>,

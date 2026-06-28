@@ -5,7 +5,7 @@
 //! then terminate.
 //!
 //! WHAT: `LoopDetector` with a sliding window of `ModelOutput`. Cheap inline
-//! checks (exact, SimHash, tool-call pattern) run synchronously every turn in
+//! checks (exact, `SimHash`, tool-call pattern) run synchronously every turn in
 //! F19's tight loop. Background semantic detection deferred to F31.
 
 use crate::types::{ArgType, ModelOutput};
@@ -22,7 +22,7 @@ use std::hash::{Hash, Hasher};
 /// agent. Externalising the thresholds lets callers tune detection
 /// sensitivity without touching detection logic.
 ///
-/// WHAT: Sliding-window size, SimHash similarity cutoff, tool-call repeat
+/// WHAT: Sliding-window size, `SimHash` similarity cutoff, tool-call repeat
 /// limit, max redirect attempts, whether to try a model/temperature switch,
 /// and the temperature delta to apply on switch.
 ///
@@ -118,7 +118,7 @@ impl ToolCallSignature {
 /// offending signature for diagnostics.
 ///
 /// WHAT: Four variants — `NoLoop` (clean), `ExactLoop` (verbatim text
-/// match with repetition count), `FuzzyLoop` (SimHash similarity above
+/// match with repetition count), `FuzzyLoop` (`SimHash` similarity above
 /// threshold), `ToolCallLoop` (repeated tool-call signature pattern).
 ///
 /// HOW: Returned by `LoopDetector::check`; the agent loop feeds it into
@@ -188,6 +188,7 @@ fn simhash_text(text: &str) -> u64 {
     hash
 }
 
+#[must_use]
 pub fn hamming_similarity(a: u64, b: u64) -> f32 {
     let diff = (a ^ b).count_ones();
     // diff is at most 64 — fits in f32 without precision loss.
@@ -224,14 +225,14 @@ fn extract_tool_signatures(output: &ModelOutput) -> Option<ToolCallSignature> {
 /// detection lets the agent loop break out early.
 ///
 /// WHAT: Maintains two sliding windows — one of raw `ModelOutput` for
-/// text-level checks (exact match + SimHash fuzzy), one of
+/// text-level checks (exact match + `SimHash` fuzzy), one of
 /// `ToolCallSignature` for tool-call pattern checks. Returns a
 /// `LoopDetection` on each `check` and an `Escalation` via `escalate`.
 ///
 /// HOW: `check` pushes the latest output into the windows, runs three
-/// detectors in order (exact → SimHash → tool-call pattern), and returns
+/// detectors in order (exact → `SimHash` → tool-call pattern), and returns
 /// the first match. `escalate` counts cumulative redirects and escalates
-/// through Redirect → SwitchModel → Terminate.
+/// through Redirect → `SwitchModel` → Terminate.
 pub struct LoopDetector {
     window: VecDeque<ModelOutput>,
     tool_signatures: VecDeque<ToolCallSignature>,

@@ -6,12 +6,12 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
+use foundation_ai::backends::backend_utils::{
+    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
+};
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::backends::openai_responses_provider::{
     ResponseEvent, ResponseInput, ResponseRequest, ResponsesConfig,
-};
-use foundation_ai::backends::openai_utils::{
-    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
 };
 
 use foundation_ai::types::{

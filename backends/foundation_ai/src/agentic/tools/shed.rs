@@ -200,8 +200,8 @@ impl ToolImpl for ShedTool {
 
         let limit = match arguments.get("limit") {
             Some(ArgType::Usize(n)) => *n,
-            Some(ArgType::U64(n)) => *n as usize,
-            Some(ArgType::I64(n)) => *n as usize,
+            Some(ArgType::U64(n)) => usize::try_from(*n).unwrap_or(default_limit()),
+            Some(ArgType::I64(n)) => usize::try_from(*n).unwrap_or(default_limit()),
             _ => default_limit(),
         };
 

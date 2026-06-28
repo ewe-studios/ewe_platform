@@ -23,7 +23,7 @@ use foundation_netio::simple_http::shared::{
 };
 use serde::{Deserialize, Serialize};
 
-use crate::backends::openai_utils::{
+use crate::backends::backend_utils::{
     empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
 };
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
@@ -1068,6 +1068,7 @@ impl ResponsesStream {
 // Helpers
 // ============================================================================
 
+#[must_use]
 pub fn build_response_input(interaction: &ModelInteraction) -> ResponseInput {
     let items: Vec<ResponseInputItem> = interaction
         .messages
@@ -1266,10 +1267,12 @@ fn parse_response(response: &Response, model_id: &ModelId) -> Messages {
     }
 }
 
+#[must_use]
 pub fn is_retryable_status(status: u16) -> bool {
     status == 429 || (500..=503).contains(&status)
 }
 
+#[must_use]
 pub fn exponential_backoff(attempt: u32) -> u64 {
     let base_secs: u64 = 1 << attempt.min(5);
     base_secs.min(30)

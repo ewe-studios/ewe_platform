@@ -31,7 +31,7 @@ use crate::types::{Messages, ModelOutput, SessionRecord};
 /// distinguishable so callers can log which codec broke and whether
 /// the data is still readable via the other format.
 ///
-/// WHAT: Two variants — `Json` (serde_json failure) and `Arrow`
+/// WHAT: Two variants — `Json` (`serde_json` failure) and `Arrow`
 /// (arrow-rs batch conversion failure), each carrying a diagnostic string.
 ///
 /// HOW: Returned by `to_record_batch` / `from_record_batch` and the JSON

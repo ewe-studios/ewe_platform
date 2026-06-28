@@ -1,4 +1,7 @@
 #![allow(clippy::too_many_lines)]
+#![allow(clippy::missing_errors_doc)]
+#![allow(clippy::missing_panics_doc)]
+#![allow(clippy::cast_precision_loss)]
 
 extern crate lazy_regex;
 // extern crate lazy_static;

@@ -11,6 +11,7 @@ pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
     shed.all_tools()
 }
 
+#[must_use]
 pub fn empty_usage_report() -> UsageReport {
     UsageReport {
         input: 0.0,
@@ -30,6 +31,7 @@ pub fn empty_usage_report() -> UsageReport {
     }
 }
 
+#[must_use]
 pub fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
     match v {
         serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
@@ -46,6 +48,7 @@ pub fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types
     }
 }
 
+#[must_use]
 pub fn model_id_to_string(id: &ModelId) -> String {
     match id {
         ModelId::Name(name, _) => name.clone(),

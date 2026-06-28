@@ -10,7 +10,7 @@
 //! entries, and pushes to both F08 (audit) and F07 (fast latest).
 //!
 //! HOW: Triggers are cheap counter reads. Generation is a background
-//! valtron task (F19 schedules it). Reset_rolling fires only after
+//! valtron task (F19 schedules it). `Reset_rolling` fires only after
 //! durable append.
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};

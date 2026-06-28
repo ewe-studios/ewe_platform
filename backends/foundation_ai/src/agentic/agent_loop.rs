@@ -117,9 +117,9 @@ type ToolDrivenIterator = DrivenTaskIterator<
 /// variant, does one quantum of work, and replaces `self` with the next
 /// variant.
 pub enum AgentLoopState {
-    /// Initial setup — emit Init, transition to OuterBoundary.
+    /// Initial setup — emit Init, transition to `OuterBoundary`.
     Initializing,
-    /// Check FollowUpQueue for continuation; if empty, go to Ending.
+    /// Check `FollowUpQueue` for continuation; if empty, go to Ending.
     OuterBoundary,
     /// Run input processors, assemble context, generate.
     InnerAssemble,
@@ -138,7 +138,7 @@ pub enum AgentLoopState {
         active: Option<ToolDrivenIterator>,
         cancel_signals: Vec<Arc<AtomicBool>>,
     },
-    /// Emit tool results back as records and loop back to InnerAssemble.
+    /// Emit tool results back as records and loop back to `InnerAssemble`.
     InnerEmitResults { results: Vec<Messages>, idx: usize },
     /// Output processing — fire memory triggers, persist.
     OutputProcessing,

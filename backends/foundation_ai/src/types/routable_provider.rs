@@ -125,7 +125,7 @@ where
 // RoutingRule — explicit model→provider override
 
 /// An explicit routing override: "always route `model` to the provider whose
-/// name() matches `provider_name`."
+/// `name()` matches `provider_name`."
 #[derive(Debug, Clone)]
 pub struct RoutingRule {
     pub model: ModelId,

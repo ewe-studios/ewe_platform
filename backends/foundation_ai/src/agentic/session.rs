@@ -13,7 +13,7 @@
 //! HOW: `AgentSessionBuilder` collects required + optional deps, `build()`
 //! wires `SessionInner`, runs preflight, returns `AgentSession`.
 //! `run_turn_stream` pushes the prompt, constructs an `AgentLoop`, calls
-//! `execute()` (which cfg-selects sendables vs non_sendables based on the
+//! `execute()` (which cfg-selects sendables vs `non_sendables` based on the
 //! `multi` feature), and returns the `DrivenStreamIterator`.
 
 use std::sync::Arc;
@@ -56,7 +56,7 @@ use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord, 
 /// `ToolShed`). `build()` wires `SessionInner`, runs preflight (tools
 /// registered, access, budget), returns `AgentSession`. `run_turn_stream`
 /// pushes the user's prompt, constructs an `AgentLoop`, and schedules it
-/// via `execute()` — which cfg-selects the sendables or non_sendables
+/// via `execute()` — which cfg-selects the sendables or `non_sendables`
 /// executor based on the `multi` feature.
 pub struct AgentSession<D, M> {
     inner: Arc<SessionInner<D, M>>,
@@ -225,8 +225,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 
     /// Wire components, run preflight, return the session.
     ///
-    /// Preflight checks (OD-20-2): (1) every ToolShed tool is registered with
-    /// the ToolCallManager, (2) access provider permits session + model,
+    /// Preflight checks (OD-20-2): (1) every `ToolShed` tool is registered with
+    /// the `ToolCallManager`, (2) access provider permits session + model,
     /// (3) budget is retrieved and applied to the ledger. If any check fails,
     /// no valtron task is scheduled.
     pub fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>>
@@ -392,7 +392,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// Stream each `SessionRecord` as produced — the primary API.
     ///
     /// Pushes the prompt into the follow-up queue, builds a fresh `AgentLoop`,
-    /// schedules it via `execute()` (cfg-selects sendables vs non_sendables
+    /// schedules it via `execute()` (cfg-selects sendables vs `non_sendables`
     /// based on the `multi` feature), and returns the driven stream iterator.
     pub fn run_turn_stream(
         &self,
@@ -500,13 +500,13 @@ impl<D: DocumentStore + Default + 'static, M: MemoryStore + Default + 'static> A
     /// Rehydrate a session by `SessionId` — deterministic Decision 01 order.
     ///
     /// Resume protocol:
-    /// 1. Load WorkingMemory (F15/F07)
+    /// 1. Load `WorkingMemory` (F15/F07)
     /// 2. Load Observation + Reflection (F15/F07; obs if no reflection)
     /// 3. `message_api.recent(10)` (F08; Decision 01 fixes 10)
     /// 4. Semantic recall (deferred — F31/F32)
     /// 5. Context assembled by F16 (system -> working -> reflection -> recent -> recalled)
     /// 6. Queues start EMPTY (were drained+persisted on prior end)
-    /// 7. ToolCallManager fresh
+    /// 7. `ToolCallManager` fresh
     pub fn resume(
         session_id: SessionId,
         router: ProviderRouter,

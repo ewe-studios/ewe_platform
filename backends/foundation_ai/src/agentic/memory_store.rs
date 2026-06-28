@@ -71,6 +71,7 @@ impl SessionMemory {
     }
 
     /// Set a tier and return the updated `SessionMemory`.
+    #[must_use]
     pub fn set(mut self, tier: MemoryTier, record: SessionRecord) -> Self {
         match tier {
             MemoryTier::Working => self.working = Some(record),
