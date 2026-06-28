@@ -143,43 +143,44 @@ let toolshed = if model.is_tool_capable() {
 };
 ```
 
-### Tool timeout configuration
+### Tool retry configuration
+
+Tools can be retried via the `ToolRetryConfig` in `ToolCallRequest`:
 
 ```rust
-// Tools can be configured with timeouts
-let tool_config = ToolConfig {
-    timeout: Duration::from_secs(30),  // 30 second max per tool
-    max_retries: 3,
-    ..ToolConfig::default()
+// Tools have retry configuration
+let request = ToolCallRequest {
+    id: "call-1".into(),
+    name: "read_file".into(),
+    arguments: /* ... */,
+    depends_on: vec![],
+    execution_hint: ExecutionHint::default(),
 };
 ```
+
+Retry behavior is controlled by the `ToolCallManager` and the error policy.
+For custom retry logic, wrap tool execution in the manager or use the
+circuit breaker's fallback model chain.
 
 ## 8. Error handling customization
 
 The agent's error policy maps errors to actions:
 
-| Error | Default Action | Customization |
-|---|---|---|
-| Context overflow | Retry with reduced context | Increase context window |
-| Rate limit | Switch model | Retry with backoff |
-| Tool error | Continue (report to agent) | Retry tool, abort session |
-| Budget exceeded | Terminate | Alert user, continue |
-| Provider error | Terminate | Switch provider, retry |
+| Error | Default Action |
+|---|---|
+| Context overflow | `AgentAction::RetryWithReducedContext` |
+| Rate limit | `AgentAction::SwitchModel` |
+| Tool error | `AgentAction::Continue` |
+| Budget exceeded | `AgentAction::Terminate` |
+| Provider error | `AgentAction::Terminate` |
 
-To customize, implement a custom `ErrorPolicy`:
+`ErrorPolicy` is a struct (not a trait) with a `classify()` method:
 
 ```rust
-struct MyErrorPolicy;
-
-impl ErrorPolicy for MyErrorPolicy {
-    fn classify(&self, error: &AgenticError) -> AgentAction {
-        match error {
-            AgenticError::Generation(f) if f.kind == GenKind::RateLimit => {
-                AgentAction::RetryWithBackoff(Duration::from_secs(5))
-            }
-            // ... custom logic
-            _ => AgentAction::default_classify(error),
-        }
-    }
-}
+let policy = ErrorPolicy::new();
+let action = policy.classify(error);
 ```
+
+To customize error handling, wrap the session and intercept errors before
+they reach the policy, or configure the `AgentConfig` circuit breaker
+threshold and fallback models to control automatic failover behavior.

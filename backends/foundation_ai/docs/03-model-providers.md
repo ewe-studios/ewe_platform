@@ -5,34 +5,50 @@ Llama.cpp, Candle, and 12+ other providers.
 
 ---
 
-## 1. ModelProvider trait
+## 1. Two-layer provider architecture
 
-Every model backend implements this:
+foundation_ai uses a two-layer design:
+
+### Layer 1: `ModelProvider` (concrete, generic)
+
+The trait that actual providers implement. It is **not object-safe** (has
+associated types `Config` and `Model`), so you can't have `Arc<dyn ModelProvider>`:
 
 ```rust
-#[async_trait]
-pub trait ModelProvider: Send + Sync {
-    fn name(&self) -> &str;
-    fn supports(&self, model: &ModelId) -> bool;
-    fn costing(&self, model: &ModelId) -> Option<ModelUsageCosting>;
+pub trait ModelProvider {
+    type Config: AuthProvider;
+    type Model: Model;
 
-    async fn generate(
-        &self, interaction: ModelInteraction,
-    ) -> GenerationResult<Vec<Messages>>;
-
-    async fn generate_stream(
-        &self, interaction: ModelInteraction,
-    ) -> GenerationResult<ModelStreamBox>;
+    fn create(self, config: Option<Self::Config>) -> ModelProviderResult<Self>
+        where Self: Sized;
+    fn describe(&self) -> ModelProviderResult<ModelProviderDescriptor>;
+    fn get_model(&self, model_id: ModelId) -> ModelProviderResult<Self::Model>;
+    fn get_model_by_spec(&self, spec: ModelSpec) -> ModelProviderResult<Self::Model>;
 }
 ```
 
-**`ModelInteraction`** — the full generation request:
-- `system_prompt` — optional system instructions
-- `soul` — optional personality/role definition
-- `tools_shed` — available tools for the model
-- `messages` — conversation history
-- `chat_template` — optional template override (for local models)
-- `tool_choice` — force/none/auto tool selection
+Key methods:
+- **`create()`** — initialize the provider with credentials/config (consumes self)
+- **`describe()`** — return provider metadata (name, supported models, etc.)
+- **`get_model()`** — create a model interaction type for a given model ID
+
+### Layer 2: `RoutableProvider` (object-safe, for routing)
+
+Because `ModelProvider` is not object-safe, the router uses an erased wrapper:
+
+```rust
+pub trait RoutableProvider: Send + Sync {
+    fn name(&self) -> &str;
+    fn provider_id(&self) -> ModelProviders;
+    fn describe(&self) -> Option<ModelProviderDescriptor>;
+    fn serves(&self, model_id: &ModelId) -> bool;
+    fn get_one(&self, model_id: &ModelId) -> Option<ModelSpec>;
+    fn get_all(&self, model_id: &ModelId) -> Vec<ModelSpec>;
+    fn get_model(&self, model_id: &ModelId) -> Option<BoxModel>;
+}
+```
+
+`RoutableProviderBox<P>` wraps any `P: ModelProvider` into a `RoutableProvider`.
 
 ## 2. ModelId — how models are identified
 
@@ -48,37 +64,80 @@ pub enum ModelId {
 The router resolves `ModelId` → concrete provider + model name. Aliases and
 groups let the user specify intent rather than exact model names.
 
-## 3. RoutableProvider — the routing interface
+## 3. ProviderRouter — model → provider resolution
 
 ```rust
-pub trait RoutableProvider: ModelProvider {
-    fn serves(&self, model: &ModelId) -> bool;
-    fn fallbacks(&self) -> Vec<ModelId>;
-}
-```
+let router = ProviderRouter::single(Box::new(openai_provider));
 
-Each provider declares which models it serves and what to try if it fails.
-The router uses this to build a fallback chain.
+// Or with multiple providers:
+let router = ProviderRouter::builder()
+    .add_provider(Box::new(openai_provider))
+    .add_provider(Box::new(anthropic_provider))
+    .rule(RoutingRule {
+        model: ModelId::Name("gpt-4".into(), None),
+        provider_name: "openai".into(),
+    })
+    .build();
 
-## 4. ProviderRouter — model → provider resolution
-
-```rust
-let router = ProviderRouter::new()
-    .register(openai_provider)
-    .register(anthropic_provider)
-    .register(llamacpp_provider);
-
-let provider = router.resolve(&ModelId::Name("claude-sonnet-4-6".into(), None))?;
+// Resolve a model:
+let provider = router.resolve(&ModelId::Name("gpt-4".into(), None))?;
 ```
 
 Resolution order:
-1. Exact match (model name + provider)
-2. Name-only match (any provider with this model)
-3. Alias resolution (alias → concrete model)
-4. Group resolution (group → best available model)
-5. Fallback chain (if primary fails)
+1. **Explicit rule** — `RoutingRule` override wins
+2. **Cached route** — previously resolved model→provider
+3. **Declared support** — first provider where `serves(model_id)` is true
+4. **Single-provider mode** — index 0
+5. **Unresolved** → `RouterError::NoProviderForModel`
 
-## 5. Provider implementations
+## 4. RoutingRule — explicit overrides
+
+```rust
+pub struct RoutingRule {
+    pub model: ModelId,
+    pub provider_name: String,  // match by provider.name()
+}
+```
+
+Routes a specific model to a named provider, bypassing the normal resolution.
+
+## 5. RoutableProviderBox — wrapping providers
+
+```rust
+use foundation_ai::types::{RoutableProviderBox, ModelProviders};
+
+// If provider.describe() works (most built-in providers):
+let routed = RoutableProviderBox::new(openai_provider);
+
+// If provider has no descriptor, set explicitly:
+let routed = RoutableProviderBox::with_identity(
+    my_custom_provider,
+    "my-provider",
+    ModelProviders::Custom("my-provider".into()),
+);
+```
+
+**Note:** `RoutableProviderBox::new()` **panics** if the provider cannot describe
+itself. Every provider must have a name and identity.
+
+## 6. Model — the interaction type
+
+`ModelProvider::get_model()` returns a `Model` that handles actual generation:
+
+```rust
+pub trait Model: Send + Sync {
+    fn name(&self) -> &str;
+    fn supports(&self, model_id: &ModelId) -> bool;
+    fn costing(&self) -> GenerationResult<UsageReport>;
+    fn generate(&self, messages: Vec<Messages>) -> GenerationResult<Vec<Messages>>;
+    fn generate_stream(&self, messages: Vec<Messages>) -> GenerationResult<ModelStreamBox>;
+}
+```
+
+The `Model` trait is where `supports()`, `costing()`, `generate()`, and
+`generate_stream()` live — not on `ModelProvider` itself.
+
+## 7. Provider implementations
 
 ### OpenAI (`openai_provider.rs`)
 - Chat completions API (`/v1/chat/completions`)
@@ -108,10 +167,6 @@ Resolution order:
 - safetensors model loading
 - GPU acceleration (CUDA, Metal)
 
-### HuggingFace providers
-- **GGUF** — downloads GGUF models from HF Hub, runs via llama.cpp
-- **Candle** — downloads safetensors from HF Hub, runs via Candle
-
 ### Cloud providers
 - **Amazon Bedrock** — AWS hosted models
 - **Google Vertex** — GCP hosted models
@@ -124,7 +179,7 @@ Resolution order:
 - **Vercel AI Gateway** — Vercel's model proxy
 - **xAI** — Grok models
 
-## 6. Error classification
+## 8. Error classification
 
 Each provider maps HTTP errors to `AgenticError`:
 
@@ -136,7 +191,7 @@ Each provider maps HTTP errors to `AgenticError`:
 | 401 | `GenKind::Auth` → fail (bad key) |
 | 524 | `GenKind::Timeout` → retry |
 
-## 7. Streaming architecture
+## 9. Streaming architecture
 
 Providers that support streaming return a `ModelStreamBox`:
 

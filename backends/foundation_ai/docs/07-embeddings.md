@@ -8,52 +8,81 @@ stored and queried.
 ## 1. The embedding pipeline
 
 ```
-Text → EmbeddingProvider.embed() → Vec<f32> → VectorStore.insert()
-                                                  ↓
-Query text → EmbeddingProvider.embed() → Vec<f32> → VectorStore.search() → matches
+Text → EmbeddingProvider.embed(text, model_id) → EmbeddingVector → VectorStore.insert()
+                                                                          ↓
+Query text → EmbeddingProvider.embed(query, model_id) → EmbeddingVector → VectorStore.search() → matches
 ```
 
 ## 2. EmbeddingProvider trait
 
 ```rust
-#[async_trait]
 pub trait EmbeddingProvider: Send + Sync {
-    fn name(&self) -> &str;
-    async fn embed(&self, texts: Vec<String>) -> EmbeddingResult<Vec<Vec<f32>>>;
-    fn dimension(&self) -> usize;
+    fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError>;
+    fn embed_batch(&self, texts: &[String], model_id: &str) -> Result<Vec<EmbeddingVector>, EmbeddingError>;
+    fn register_model(&self, model_id: &str, dimensions: u16);
+    fn cache_stats(&self) -> CacheStats;
+    fn clear_cache(&self);
 }
 ```
 
-Returns vectors normalized to unit length (cosine similarity = dot product).
+Key methods:
+- **`embed()`** — embed a single text string for a given model
+- **`embed_batch()`** — embed multiple texts efficiently
+- **`register_model()`** — register a model's dimension count
+- **`cache_stats()`** — cache hit/miss statistics
 
-## 3. EmbeddingRouter
+`EmbeddingVector` is `Vec<f32>` — vectors are typically normalized for
+cosine similarity (dot product = cosine when normalized).
 
-Routes embedding requests to the right provider based on model ID:
+## 3. TextChunker — splitting text before embedding
 
 ```rust
-let router = EmbeddingRouter::new()
-    .register(openai_embeddings, "text-embedding-3-small")
-    .register(local_embeddings, "all-MiniLM-L6-v2");
+pub trait TextChunker: Send + Sync {
+    fn chunk(&self, text: &str) -> Vec<String>;
+}
 ```
 
-Fallback chain: if primary provider fails, try the next one.
+Built-in chunkers:
+- **`WholeTextChunker`** — returns the entire text as one chunk
+- **`SentenceChunker`** — splits on sentence boundaries
 
-## 4. Integration with VectorStore
+The `EmbeddingProvider` implementation uses a chunker internally:
 
-The `VectorStore` trait stores vectors with metadata:
+```rust
+let provider = EmbeddingProviderImpl::new(router, SentenceChunker, NoopColdCache, 1000);
+```
+
+## 4. Caching
+
+The embedding provider includes an LRU cache:
+
+```rust
+pub struct CacheStats {
+    pub hits: u64,
+    pub misses: u64,
+    pub evictions: u64,
+}
+```
+
+Cache key is `(text_hash, model_id, epoch)` — same text + same model = cache
+hit. Useful for repeated queries on the same corpus.
+
+## 5. Integration with VectorStore
+
+The `VectorStore` trait (in foundation_vectors) stores vectors with metadata:
 
 ```rust
 store.insert("namespace", VectorEntry {
     id: "doc-123".into(),
     vector: Vector::new(embedding),
     metadata: VectorMetadata { tags },
-}).await?;
+})?;
 
-let matches = store.search("namespace", &query_embedding, 10).await?;
+let matches = store.search("namespace", &query_embedding, 10)?;
 // matches: Vec<VectorMatch { id, score }>
 ```
 
-## 5. Supported embedding models
+## 6. Supported embedding models
 
 | Provider | Model | Dimension |
 |---|---|---|
@@ -62,16 +91,19 @@ let matches = store.search("namespace", &query_embedding, 10).await?;
 | Local | all-MiniLM-L6-v2 | 384 |
 | Local | bge-small-en-v1.5 | 384 |
 
-## 6. Chunking
+## 7. Chunking strategy
 
 Long texts are split into chunks before embedding:
 
 ```rust
-let chunks = chunk_text(&text, max_tokens: 500, overlap: 50);
-// Each chunk gets its own vector, linked by metadata
+// Using SentenceChunker (built-in)
+let provider = EmbeddingProviderImpl::new(router, SentenceChunker, cache, max_entries);
+
+// Each sentence gets its own vector
+let embedding = provider.embed("Long text with multiple sentences.", "model-id")?;
 ```
 
 Chunk size trades off:
 - **Smaller chunks** → more precise matches, more vectors
 - **Larger chunks** → broader context, fewer vectors
-- **Overlap** → prevents information loss at boundaries
+- **Sentence boundaries** → natural semantic units
