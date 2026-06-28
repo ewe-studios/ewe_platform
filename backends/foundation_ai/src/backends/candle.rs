@@ -213,6 +213,7 @@ impl CandleBackend {
         }
     }
 
+    #[allow(clippy::unnecessary_wraps)]
     fn device(&self) -> Result<Device, candle_core::Error> {
         match self {
             CandleBackend::Cpu { .. } => Ok(Device::Cpu),
@@ -729,6 +730,7 @@ struct CandleStreamState {
 }
 
 impl CandleStream {
+    #[allow(clippy::needless_pass_by_value)]
     fn new(
         model: CandleModels,
         interaction: ModelInteraction,
@@ -812,20 +814,24 @@ impl Iterator for CandleStream {
 
             let device = model_inner.device.clone();
 
+        #[allow(clippy::manual_let_else)]
             let input_tensor = if let Ok(t) = Tensor::new(&next_input[..], &device) { t } else {
                 state.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
             };
+        #[allow(clippy::manual_let_else)]
             let input_tensor = if let Ok(t) = input_tensor.unsqueeze(0) { t } else {
                 state.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
             };
 
+        #[allow(clippy::manual_let_else)]
             let logits = if let Ok(l) = forward(&mut model_inner, &input_tensor, seq_start) { l } else {
                 state.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
             };
 
+        #[allow(clippy::manual_let_else)]
             let next_token = if let Ok(t) = sample_token(&logits, &params) { t } else {
                 state.finished = true;
                 return Some(Stream::Pending(ModelState::Finished));
