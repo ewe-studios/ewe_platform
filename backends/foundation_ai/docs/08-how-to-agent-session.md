@@ -75,17 +75,38 @@ let router = ProviderRouter::builder()
     .add_provider(Box::new(llamacpp_provider))
     .rule(RoutingRule {
         model: ModelId::Name("gpt-4".into(), None),
-        provider_idx: 0, // use openai_provider
+        provider_name: "openai".into(),  // match by provider name()
     })
     .rule(RoutingRule {
         model: ModelId::Name("claude-sonnet-4-6".into(), None),
-        provider_idx: 1, // use anthropic_provider
+        provider_name: "anthropic".into(),
     })
     .rule(RoutingRule {
         model: ModelId::Name("local-llama".into(), None),
-        provider_idx: 2, // use llamacpp_provider
+        provider_name: "llama-cpp".into(),
     })
     .build();
+```
+
+### Adding providers with custom names
+
+Providers get their name from `provider.describe()`. If a provider returns
+`None` from `describe()`, construction **panics** — every provider must have
+a name and identity. Use `with_identity()` to set them explicitly:
+
+```rust
+use foundation_ai::types::{RoutableProviderBox, ModelProviders};
+
+// If provider.describe() works (most built-in providers):
+let routed = RoutableProviderBox::new(openai_provider);
+// → name: "openai", provider_id: ModelProviders::OpenAI
+
+// If provider has no descriptor, set explicitly:
+let routed = RoutableProviderBox::with_identity(
+    my_custom_provider,
+    "my-provider",                  // custom name for routing
+    ModelProviders::Custom("my-provider".into()),
+);
 ```
 
 ### Model identification

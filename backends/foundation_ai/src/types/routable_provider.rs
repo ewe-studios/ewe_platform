@@ -52,21 +52,21 @@ where
     P::Model: Send + Sync,
 {
     /// Wrap a provider, deriving name/id from its descriptor.
+    ///
+    /// # Panics
+    /// Panics if the provider cannot describe itself — every provider must have
+    /// a name and identity to be registered in a router. Use
+    /// `with_identity()` to set them explicitly when `describe()` is unavailable.
     #[must_use]
     pub fn new(provider: P) -> Self {
-        let (name, provider_id) = provider.describe().ok().map_or_else(
-            || {
-                (
-                    "unknown".to_owned(),
-                    ModelProviders::Custom("unknown".into()),
-                )
-            },
-            |d| (d.name.to_owned(), d.provider.clone()),
+        let desc = provider.describe().expect(
+            "provider must return a descriptor with name/provider_id — \
+             use RoutableProviderBox::with_identity() to set explicitly",
         );
         Self {
             provider,
-            name,
-            provider_id,
+            name: desc.name.to_owned(),
+            provider_id: desc.provider.clone(),
         }
     }
 
@@ -125,11 +125,11 @@ where
 // RoutingRule — explicit model→provider override
 
 /// An explicit routing override: "always route `model` to the provider whose
-/// `provider_id()` matches `provider`."
+/// name() matches `provider_name`."
 #[derive(Debug, Clone)]
 pub struct RoutingRule {
     pub model: ModelId,
-    pub provider: ModelProviders,
+    pub provider_name: String,
 }
 
 // ---------------------------------------------------------------------------
@@ -227,13 +227,13 @@ impl ProviderRouter {
         for rule in &self.inner.rules {
             if rule.model.name() == model_id.name() {
                 for (idx, p) in self.inner.providers.iter().enumerate() {
-                    if p.provider_id() == rule.provider {
+                    if p.name() == rule.provider_name {
                         return Ok(idx);
                     }
                 }
                 return Err(RouterError::RuleMismatch {
                     model: key,
-                    provider: format!("{:?}", rule.provider),
+                    provider: rule.provider_name.clone(),
                 });
             }
         }
