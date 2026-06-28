@@ -43,11 +43,9 @@ fn setup_responses_provider() -> impl Model {
 }
 
 /// Test: generate a response via the Responses API.
-#[test]
+#[valtron_test]
 #[traced_test]
-#[ignore]
 fn test_llama_server_responses_generate() {
-    let _guard = valtron::initialize_pool(42, Some(4));
     let model = setup_responses_provider();
 
     let interaction = ModelInteraction {
@@ -89,11 +87,9 @@ fn test_llama_server_responses_generate() {
 }
 
 /// Test: streaming via the Responses API.
-#[test]
+#[valtron_test]
 #[traced_test]
-#[ignore]
 fn test_llama_server_responses_stream() {
-    let _guard = valtron::initialize_pool(42, Some(4));
     let model = setup_responses_provider();
 
     let interaction = ModelInteraction {

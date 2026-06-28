@@ -210,7 +210,7 @@ fn explicit_rule_overrides_declared_support() {
         .add_provider(openai_with_shared)
         .rule(RoutingRule {
             model: ModelId::Name("shared-model".into(), None),
-            provider: ModelProviders::OPENAI,
+            provider_name: "openai".into(),
         })
         .build();
 
@@ -226,7 +226,7 @@ fn rule_referencing_missing_provider_returns_rule_mismatch() {
         .rule(RoutingRule {
             model: ModelId::Name("some-model".into(), None),
             // XAI isn't registered — the rule can't resolve.
-            provider: ModelProviders::XAI,
+            provider_name: "xai".into(),
         })
         .build();
 

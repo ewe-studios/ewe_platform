@@ -16,6 +16,7 @@ use tokenizers::Tokenizer;
 
 use foundation_core::valtron::Stream;
 
+use crate::backends::backend_utils::flatten_tools;
 use crate::costing::{calculate_cost, CostAccumulator};
 use crate::errors::{
     GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult,
@@ -906,10 +907,6 @@ fn forward(
             .forward(input, seq_start, &mut state.cache)
             .map_err(GenerationError::Candle),
     }
-}
-
-fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::Tool> {
-    shed.all_tools()
 }
 
 fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> String {

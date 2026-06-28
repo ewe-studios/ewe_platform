@@ -2,8 +2,9 @@ use std::sync::Arc;
 
 use foundation_ai::agentic::tool_impl::ToolCallManager;
 use foundation_ai::agentic::{
-    AgentConfig, AgentLoop, AgentProgress, ContextConfig, ContextProvider, KvMemoryStore,
-    MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi, SteeringQueues, TokenLedger,
+    AgentConfig, AgentLoop, AgentProgress, ContextConfig, ContextProvider, ErrorPolicy,
+    KvMemoryStore, MemoryConfig, MemoryCoordinator, MemoryHierarchy, MessageApi, SteeringQueues,
+    TokenLedger,
 };
 use foundation_ai::types::{
     MessageRole, Messages, ModelId, ProviderRouter, SessionId, SessionRecord, TextContent,

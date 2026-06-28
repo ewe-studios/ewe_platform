@@ -129,6 +129,9 @@ default = ["llamacpp", "agentic"]
 llamacpp = ["dep:infrastructure_llama_cpp", "dep:foundation_deployment_huggingface"]
 agentic = []
 
+# Toolbox utilities to make testing and execution easier.
+toolbox = []
+
 # vulkan + Apple Metal (route through llamacpp)
 metal = ["llamacpp", "infrastructure_llama_cpp/metal"]
 vulkan = ["llamacpp", "infrastructure_llama_cpp/vulkan"]
@@ -155,7 +158,10 @@ candle-gpu = ["candle-cuda"]
 multi = ["foundation_deployment_huggingface?/multi", "foundation_core/multi"]
 
 # Test substrate (F21): MockModelProvider, MockTool, message builders
-testing = []
+testing = ["toolbox"]
+
+# Integration tests: E2E integration tests for providers and others
+integration_tests = ["testing", "llamacpp", "candle"]
 
 [lints]
 workspace = true

@@ -1,10 +1,10 @@
 mod anthropic_messages_provider;
 mod embedding_provider_tests;
 mod huggingface_gguf_provider;
-mod llama_server_harness;
-mod llamacpp_helpers_tests;
-mod llamacpp_integration;
 mod openai_provider;
-mod openai_provider_tests;
-mod openai_responses_provider;
-mod openai_responses_provider_tests;
+
+#[cfg(feature = "llamacpp")]
+mod llamacpp_provider;
+
+#[cfg(feature = "integration_tests")]
+mod integrations;

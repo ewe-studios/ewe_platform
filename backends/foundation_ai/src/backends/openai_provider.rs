@@ -10,6 +10,9 @@ use std::sync::{Arc, Mutex};
 use std::thread;
 use std::time::Duration;
 
+use crate::backends::openai_utils::{
+    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
+};
 use derive_more::From;
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::url::Uri;
@@ -21,7 +24,9 @@ use foundation_netio::simple_http::client::shared::{
     http_client::{BoxedSseIterator, HttpClient},
     request::PreparedRequest,
 };
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::simple_http::shared::{
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+};
 use serde::{Deserialize, Serialize};
 
 use crate::costing::{calculate_cost, CostAccumulator};
@@ -211,15 +216,21 @@ impl OpenAIProvider {
     fn auth_headers(&self) -> SimpleHeaders {
         let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.insert(SimpleHeader::AUTHORIZATION, vec![format!("Bearer {}", key.get())]);
+            headers.insert(
+                SimpleHeader::AUTHORIZATION,
+                vec![format!("Bearer {}", key.get())],
+            );
         }
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
     }
 
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
         Ok(PreparedRequest {
@@ -264,11 +275,14 @@ impl OpenAIProvider {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_prepared_request(url, body)?;
-        let response = client.send(req)
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let (status, headers, body) = response.into_parts();
@@ -470,15 +484,21 @@ impl OpenAIModel {
     fn auth_headers(&self) -> SimpleHeaders {
         let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.insert(SimpleHeader::AUTHORIZATION, vec![format!("Bearer {}", key.get())]);
+            headers.insert(
+                SimpleHeader::AUTHORIZATION,
+                vec![format!("Bearer {}", key.get())],
+            );
         }
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
     }
 
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
         Ok(PreparedRequest {
@@ -491,10 +511,13 @@ impl OpenAIModel {
     }
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
-        headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
+        headers.insert(
+            SimpleHeader::ACCEPT,
+            vec![String::from("text/event-stream")],
+        );
         Ok(PreparedRequest {
             method: SimpleMethod::POST,
             url: uri,
@@ -535,11 +558,14 @@ impl OpenAIModel {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_prepared_request(url, body)?;
-        let response = client.send(req)
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let (status, headers, body) = response.into_parts();
@@ -874,11 +900,14 @@ impl Model for OpenAIModel {
             .map_err(|e| GenerationError::Generic(format!("Failed to serialize request: {e}")))?;
 
         let url = self.build_url("chat/completions");
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_sse_request(&url, &body)?;
-        let sse_iter = client.send_sse(req)
+        let sse_iter = client
+            .send_sse(req)
             .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
         Ok(Box::new(OpenAIStream {
@@ -1596,56 +1625,6 @@ impl std::error::Error for OpenAIError {}
 // Helper Functions
 // ============================================================================
 
-/// Flatten a `ToolShed` into a flat Vec<Tool> for provider APIs.
-#[must_use]
-pub fn flatten_tools(shed: &ToolShed) -> Vec<Tool> {
-    shed.all_tools()
-}
-
-fn empty_usage_report() -> UsageReport {
-    UsageReport {
-        input: 0.0,
-        output: 0.0,
-        cache_read: 0.0,
-        cache_write: 0.0,
-        total_tokens: 0.0,
-        cost: UsageCosting {
-            currency: String::from("USD"),
-            input: 0.0,
-            output: 0.0,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: 0.0,
-            status: CostStatus::Actual,
-        },
-    }
-}
-
-pub fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
-    match v {
-        serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
-        serde_json::Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                crate::types::base_types::ArgType::I64(i)
-            } else if let Some(f) = n.as_f64() {
-                crate::types::base_types::ArgType::Float64(f)
-            } else {
-                crate::types::base_types::ArgType::Text(n.to_string())
-            }
-        }
-        other => crate::types::base_types::ArgType::JSON(other.to_string()),
-    }
-}
-
-pub fn model_id_to_string(id: &ModelId) -> String {
-    match id {
-        ModelId::Name(name, _) => name.clone(),
-        ModelId::Alias(alias, _) => alias.clone(),
-        ModelId::Group(group, _) => group.clone(),
-        ModelId::Architecture(arch, _) => arch.clone(),
-    }
-}
-
 #[allow(clippy::too_many_lines)]
 #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
 pub fn build_chat_request(
@@ -2084,4 +2063,3 @@ fn build_metadata(
         Some(metadata)
     }
 }
-

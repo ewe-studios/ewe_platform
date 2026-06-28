@@ -14,7 +14,6 @@ use tracing_test::traced_test;
 
 #[valtron_test]
 #[traced_test]
-#[ignore = "requires a local GGUF model file"]
 fn test_llama_backend_creation() {
     let backend = LlamaBackends::LLamaCPU;
     let config = LlamaBackendConfig::builder()
@@ -34,7 +33,6 @@ fn test_llama_backend_creation() {
 /// the backend can load it.
 #[valtron_test]
 #[traced_test]
-#[ignore = "downloads a ~150MB model from HuggingFace"]
 fn test_llama_model_loading() {
     // Get the project root
     let manifest_dir =
@@ -82,7 +80,6 @@ fn test_llama_model_loading() {
 /// The model is cached in the `.artifacts` directory.
 #[valtron_test]
 #[traced_test]
-#[ignore = "downloads a ~150MB model from HuggingFace"]
 fn test_download_smollm_model() {
     // Get the project root (workspace directory)
     let manifest_dir =
@@ -112,7 +109,6 @@ fn test_download_smollm_model() {
 /// the backend can load and use it for generation.
 #[valtron_test]
 #[traced_test]
-#[ignore = "downloads a ~150MB model and performs generation"]
 fn test_llama_with_smollm_model() {
     // Get the project root
     let manifest_dir =
@@ -181,43 +177,4 @@ fn test_llama_with_smollm_model() {
     let response = result.unwrap();
     assert!(!response.is_empty(), "Response should not be empty");
     println!("Generated: {response:?}");
-}
-
-#[test]
-fn test_backend_config_builder() {
-    let config = LlamaBackendConfig::builder()
-        .n_gpu_layers(32)
-        .context_length(4096)
-        .batch_size(512)
-        .n_threads(8)
-        .use_mmap(true)
-        .use_mlock(false)
-        .build();
-
-    assert_eq!(config.n_gpu_layers, 32);
-    assert_eq!(config.context_length, 4096);
-    assert_eq!(config.batch_size, 512);
-    assert_eq!(config.n_threads, 8);
-    assert!(config.use_mmap);
-    assert!(!config.use_mlock);
-}
-
-#[test]
-fn test_backend_config_default() {
-    let config = LlamaBackendConfig::default();
-
-    assert_eq!(config.n_gpu_layers, 0);
-    assert_eq!(config.context_length, 4096);
-    assert_eq!(config.batch_size, 512);
-    assert!(config.n_threads > 0);
-}
-
-#[test]
-fn test_backend_describe() {
-    let backend = LlamaBackends::LLamaCPU;
-    let descriptor = backend.describe().unwrap();
-
-    assert_eq!(descriptor.id, "llamacpp");
-    assert!(descriptor.name.contains("llama.cpp"));
-    assert_eq!(descriptor.context_window, 4096);
 }

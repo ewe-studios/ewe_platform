@@ -8,6 +8,7 @@ pub mod llamacpp;
 pub mod llamacpp_helpers;
 
 pub mod anthropic_messages_provider;
+pub mod backend_utils;
 pub mod openai_provider;
 pub mod openai_responses_provider;
 

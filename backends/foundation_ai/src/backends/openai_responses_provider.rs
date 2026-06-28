@@ -18,15 +18,20 @@ use foundation_netio::simple_http::client::shared::{
     http_client::{BoxedSseIterator, HttpClient},
     request::PreparedRequest,
 };
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::simple_http::shared::{
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
+};
 use serde::{Deserialize, Serialize};
 
+use crate::backends::openai_utils::{
+    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
+};
 use crate::errors::{GenerationError, GenerationResult, ModelProviderErrors, ModelProviderResult};
 use crate::types::base_types::{
     AuthProvider, CostStatus, GenerationMetadata, Messages, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec,
     ModelState, ModelStreamBox, StopReason, TextBasedFormatter, TextContent, ToolFormatter,
-    ToolShed, UsageCosting, UsageReport,
+    UsageCosting, UsageReport,
 };
 
 // ============================================================================
@@ -372,7 +377,10 @@ impl ResponsesProvider {
     }
 
     #[must_use]
-    pub fn with_http_client_and_config(client: Arc<dyn HttpClient>, config: ResponsesConfig) -> Self {
+    pub fn with_http_client_and_config(
+        client: Arc<dyn HttpClient>,
+        config: ResponsesConfig,
+    ) -> Self {
         Self {
             config,
             api_key: None,
@@ -384,15 +392,21 @@ impl ResponsesProvider {
     fn auth_headers(&self) -> SimpleHeaders {
         let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.insert(SimpleHeader::AUTHORIZATION, vec![format!("Bearer {}", key.get())]);
+            headers.insert(
+                SimpleHeader::AUTHORIZATION,
+                vec![format!("Bearer {}", key.get())],
+            );
         }
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
     }
 
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
         Ok(PreparedRequest {
@@ -438,11 +452,14 @@ impl ResponsesProvider {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_prepared_request(url, body)?;
-        let response = client.send(req)
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let (status, headers, body) = response.into_parts();
@@ -632,15 +649,21 @@ impl ResponsesModel {
     fn auth_headers(&self) -> SimpleHeaders {
         let mut headers = SimpleHeaders::new();
         if let Some(key) = &self.api_key {
-            headers.insert(SimpleHeader::AUTHORIZATION, vec![format!("Bearer {}", key.get())]);
+            headers.insert(
+                SimpleHeader::AUTHORIZATION,
+                vec![format!("Bearer {}", key.get())],
+            );
         }
-        headers.insert(SimpleHeader::CONTENT_TYPE, vec![String::from("application/json")]);
+        headers.insert(
+            SimpleHeader::CONTENT_TYPE,
+            vec![String::from("application/json")],
+        );
         headers
     }
 
     fn build_prepared_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
         headers.insert(SimpleHeader::ACCEPT, vec![String::from("application/json")]);
         Ok(PreparedRequest {
@@ -653,10 +676,13 @@ impl ResponsesModel {
     }
 
     fn build_sse_request(&self, url: &str, body: &str) -> GenerationResult<PreparedRequest> {
-        let uri = Uri::parse(url)
-            .map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
+        let uri =
+            Uri::parse(url).map_err(|e| GenerationError::Backend(format!("Invalid URL: {e}")))?;
         let mut headers = self.auth_headers();
-        headers.insert(SimpleHeader::ACCEPT, vec![String::from("text/event-stream")]);
+        headers.insert(
+            SimpleHeader::ACCEPT,
+            vec![String::from("text/event-stream")],
+        );
         Ok(PreparedRequest {
             method: SimpleMethod::POST,
             url: uri,
@@ -762,11 +788,14 @@ impl ResponsesModel {
         url: &str,
         body: &str,
     ) -> GenerationResult<Result<T, (u16, Option<u64>, String)>> {
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_prepared_request(url, body)?;
-        let response = client.send(req)
+        let response = client
+            .send(req)
             .map_err(|e| GenerationError::Backend(format!("Request failed: {e}")))?;
 
         let (status, _headers, body) = response.into_parts();
@@ -839,11 +868,14 @@ impl Model for ResponsesModel {
 
         let url = self.build_url("responses");
 
-        let client = self.http_client.as_ref()
+        let client = self
+            .http_client
+            .as_ref()
             .ok_or_else(|| GenerationError::Generic("HTTP client not initialized".into()))?;
 
         let req = self.build_sse_request(&url, &body)?;
-        let sse_iter = client.send_sse(req)
+        let sse_iter = client
+            .send_sse(req)
             .map_err(|e| GenerationError::Backend(format!("SSE request failed: {e}")))?;
 
         Ok(Box::new(ResponsesStream {
@@ -889,17 +921,15 @@ impl Iterator for ResponsesStream {
                 let mut mapped: Vec<StreamSpread<Messages, ModelState>> = Vec::new();
                 for item in items {
                     match item {
-                        StreamSpread::Done(ref inner) => {
-                            match self.process_parse_result(inner) {
-                                Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
-                                Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
-                                Stream::Delayed(_)
-                                | Stream::Spread(_)
-                                | Stream::Init
-                                | Stream::Wait
-                                | Stream::Ignore => {}
-                            }
-                        }
+                        StreamSpread::Done(ref inner) => match self.process_parse_result(inner) {
+                            Stream::Next(msg) => mapped.push(StreamSpread::Done(msg)),
+                            Stream::Pending(p) => mapped.push(StreamSpread::Pending(p)),
+                            Stream::Delayed(_)
+                            | Stream::Spread(_)
+                            | Stream::Init
+                            | Stream::Wait
+                            | Stream::Ignore => {}
+                        },
                         StreamSpread::Pending(_) => {
                             mapped.push(StreamSpread::Pending(ModelState::GeneratingTokens(None)));
                         }
@@ -1236,50 +1266,6 @@ fn parse_response(response: &Response, model_id: &ModelId) -> Messages {
     }
 }
 
-fn empty_usage_report() -> UsageReport {
-    UsageReport {
-        input: 0.0,
-        output: 0.0,
-        cache_read: 0.0,
-        cache_write: 0.0,
-        total_tokens: 0.0,
-        cost: UsageCosting {
-            currency: String::from("USD"),
-            input: 0.0,
-            output: 0.0,
-            cache_read: 0.0,
-            cache_write: 0.0,
-            total_tokens: 0.0,
-            status: CostStatus::Actual,
-        },
-    }
-}
-
-pub fn json_value_to_arg_type(v: &serde_json::Value) -> crate::types::base_types::ArgType {
-    match v {
-        serde_json::Value::String(s) => crate::types::base_types::ArgType::Text(s.clone()),
-        serde_json::Value::Number(n) => {
-            if let Some(i) = n.as_i64() {
-                crate::types::base_types::ArgType::I64(i)
-            } else if let Some(f) = n.as_f64() {
-                crate::types::base_types::ArgType::Float64(f)
-            } else {
-                crate::types::base_types::ArgType::Text(n.to_string())
-            }
-        }
-        other => crate::types::base_types::ArgType::JSON(other.to_string()),
-    }
-}
-
-pub fn model_id_to_string(id: &ModelId) -> String {
-    match id {
-        ModelId::Name(name, _) => name.clone(),
-        ModelId::Alias(alias, _) => alias.clone(),
-        ModelId::Group(group, _) => group.clone(),
-        ModelId::Architecture(arch, _) => arch.clone(),
-    }
-}
-
 pub fn is_retryable_status(status: u16) -> bool {
     status == 429 || (500..=503).contains(&status)
 }
@@ -1301,12 +1287,6 @@ fn extract_retry_after(headers: &SimpleHeaders) -> Option<u64> {
 // Helpers
 // ============================================================================
 
-/// Flatten a `ToolShed` into a Vec<Tool> for formatting.
-#[must_use]
-pub fn flatten_tools(shed: &ToolShed) -> Vec<crate::types::base_types::Tool> {
-    shed.all_tools()
-}
-
 fn convert_tool_choice(choice: &crate::types::base_types::ToolChoice) -> ResponseToolChoice {
     match choice {
         crate::types::base_types::ToolChoice::Auto => {
@@ -1326,8 +1306,3 @@ fn convert_tool_choice(choice: &crate::types::base_types::ToolChoice) -> Respons
         },
     }
 }
-
-// ============================================================================
-// Tests
-// ============================================================================
-
