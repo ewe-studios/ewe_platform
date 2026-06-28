@@ -142,6 +142,7 @@ let session = AgentSession::builder(SessionId::new(), router).build()?;
 ```rust
 use foundation_ai::agentic::session::AgentSession;
 use foundation_ai::agentic::access::AllowAllAccess;
+use foundation_ai::agentic::errors::{AgenticError, ErrorPolicy, AgentAction, GenKind};
 use foundation_ai::types::UserId;
 
 let session = AgentSession::builder(SessionId::new(), router)
@@ -166,6 +167,14 @@ let session = AgentSession::builder(SessionId::new(), router)
     
     // Prompt and behavior
     .with_system_prompt("You are a helpful coding assistant.")
+    .with_error_policy(ErrorPolicy::customize(|error| {
+        match error {
+            AgenticError::Generation(f) if f.kind == GenKind::RateLimit => {
+                AgentAction::RetryWithReducedContext
+            }
+            _ => ErrorPolicy::new().classify(error),
+        }
+    }))
     .with_config(AgentConfig {
         primary_model: ModelId::Name("claude-sonnet-4-6".into(), None),
         max_inner_iterations: 10,    // max tool call rounds per turn

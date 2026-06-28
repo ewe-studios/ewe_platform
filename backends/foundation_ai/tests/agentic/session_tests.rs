@@ -190,9 +190,13 @@ fn end_is_idempotent() {
 fn resume_creates_session_with_given_id() {
     let original_id = SessionId::from_name("resume-test");
 
-    let resumed: TestSession =
-        AgentSession::resume(original_id.clone(), empty_router(), AgentConfig::default())
-            .expect("resume should succeed");
+    let resumed: TestSession = AgentSession::resume(
+        original_id.clone(),
+        empty_router(),
+        AgentConfig::default(),
+        None,
+    )
+    .expect("resume should succeed");
 
     assert_eq!(*resumed.session_id(), original_id);
 }
@@ -203,6 +207,7 @@ fn resumed_session_has_empty_queues() {
         SessionId::from_name("resume-empty"),
         empty_router(),
         AgentConfig::default(),
+        None,
     )
     .expect("resume should succeed");
 
@@ -257,5 +262,8 @@ fn message_api_subscribe_receives_events() {
     session.end().expect("end should succeed");
 
     let events: Vec<_> = rx.try_iter().collect();
-    assert!(!events.is_empty(), "subscriber should have received at least one event");
+    assert!(
+        !events.is_empty(),
+        "subscriber should have received at least one event"
+    );
 }

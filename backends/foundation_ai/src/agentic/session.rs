@@ -33,6 +33,7 @@ use crate::agentic::message_api::MessageApi;
 use crate::agentic::steering::SteeringQueues;
 use crate::agentic::token_ledger::TokenLedger;
 use crate::agentic::tool_impl::ToolCallManager;
+use crate::agentic::ErrorPolicy;
 use crate::types::{Messages, ModelId, ProviderRouter, SessionId, SessionRecord, ToolShed};
 
 // ---------------------------------------------------------------------------
@@ -77,6 +78,7 @@ struct SessionInner<D, M> {
     queues: SteeringQueues,
     memory: MemoryHierarchy<M, D>,
     message_api: MessageApi<D>,
+    policy: ErrorPolicy,
     ledger: TokenLedger,
     context_provider: ContextProvider<D, M>,
     access: Arc<dyn SessionAccessProvider>,
@@ -107,6 +109,7 @@ pub struct AgentSessionBuilder<D, M> {
     toolshed: ToolShed,
     access: Arc<dyn SessionAccessProvider>,
     user: UserId,
+    policy: Option<ErrorPolicy>,
     model: Option<ModelId>,
     fallback_models: Vec<ModelId>,
     memory_model: Option<ModelId>,
@@ -133,6 +136,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
             doc_store: None,
             memory_store: None,
             system_prompt: None,
+            policy: Some(ErrorPolicy::new()),
             config: AgentConfig::default(),
             context_config: ContextConfig::default(),
             memory_config: MemoryConfig::default(),
@@ -174,6 +178,12 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
     #[must_use]
     pub fn with_memory_model(mut self, model: ModelId) -> Self {
         self.memory_model = Some(model);
+        self
+    }
+
+    #[must_use]
+    pub fn with_error_policy(mut self, policy: ErrorPolicy) -> Self {
+        self.policy = Some(policy);
         self
     }
 
@@ -262,6 +272,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
 
         let inner = SessionInner {
             session_id,
+            policy: self.policy.unwrap_or_default(),
             router: self.router,
             toolshed: self.toolshed,
             tool_manager,
@@ -401,6 +412,7 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
             self.inner.memory.clone(),
             self.inner.message_api.clone(),
             self.inner.ledger.clone(),
+            self.inner.policy.clone(),
             self.inner.router.clone(),
             self.inner.config.clone(),
         );
@@ -499,6 +511,7 @@ impl<D: DocumentStore + Default + 'static, M: MemoryStore + Default + 'static> A
         session_id: SessionId,
         router: ProviderRouter,
         config: AgentConfig,
+        policy: Option<ErrorPolicy>,
     ) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>> {
         let toolshed = ToolShed::default();
         let doc_store = D::default();
@@ -538,6 +551,7 @@ impl<D: DocumentStore + Default + 'static, M: MemoryStore + Default + 'static> A
             message_api,
             ledger,
             context_provider,
+            policy: policy.unwrap_or_default(),
             access: Arc::new(AllowAllAccess),
             user: UserId("local".into()),
             config,

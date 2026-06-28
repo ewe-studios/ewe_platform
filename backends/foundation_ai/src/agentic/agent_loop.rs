@@ -198,6 +198,7 @@ pub struct AgentLoop<D, M> {
 }
 
 impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
+    #[allow(clippy::too_many_arguments)]
     #[must_use]
     pub fn new(
         session_id: SessionId,
@@ -207,6 +208,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
         memory: MemoryHierarchy<M, D>,
         message_api: MessageApi<D>,
         ledger: TokenLedger,
+        policy: ErrorPolicy,
         router: crate::types::ProviderRouter,
         config: AgentConfig,
     ) -> Self {
@@ -224,7 +226,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             message_api,
             ledger,
             detector: LoopDetector::new(LoopDetectorConfig::default()),
-            policy: ErrorPolicy::new(),
+            policy,
             breaker,
             router,
             state: AgentLoopState::Initializing,

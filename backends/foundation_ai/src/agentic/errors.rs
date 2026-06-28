@@ -21,6 +21,9 @@
 //! detected by string match on the formatted error (providers already format
 //! and retry 429s internally). See OD-02-1 / OD-02-2.
 
+use core::fmt::Debug;
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use crate::errors::GenerationError;
@@ -266,13 +269,48 @@ pub enum AgentAction {
     Terminate(AgenticError),
 }
 
+pub trait ErrorPolicyDeriver: Sync + Send {
+    fn derive_action(&self, error: AgenticError) -> AgentAction;
+}
+
+pub struct FnErrorPolicyDeriver<F> {
+    f: F,
+}
+
+impl<F> FnErrorPolicyDeriver<F>
+where
+    F: Fn(AgenticError) -> AgentAction + Sync + Send + 'static,
+{
+    pub fn new(f: F) -> Self {
+        Self { f }
+    }
+}
+
+impl<F> ErrorPolicyDeriver for FnErrorPolicyDeriver<F>
+where
+    F: Fn(AgenticError) -> AgentAction + Sync + Send + 'static,
+{
+    fn derive_action(&self, error: AgenticError) -> AgentAction {
+        (self.f)(error)
+    }
+}
+
 /// Maps `AgenticError`s to `AgentAction`s (Decision 16, line 170).
 ///
 /// Retry/backoff is owned by model + tool tasks (OD-02-4); this policy only
 /// flow-controls the loop.
-#[derive(Debug, Clone, Default)]
+#[derive(Clone, Default)]
 pub struct ErrorPolicy {
     _private: (),
+    custom_classifier: Option<Arc<Box<dyn ErrorPolicyDeriver>>>,
+}
+
+impl Debug for ErrorPolicy {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        f.debug_struct("ErrorPolicy")
+            .field("custom_classifier", &self.custom_classifier.is_some())
+            .finish_non_exhaustive()
+    }
 }
 
 impl ErrorPolicy {
@@ -282,9 +320,25 @@ impl ErrorPolicy {
         Self::default()
     }
 
+    /// customize a default policy.
+    #[must_use]
+    pub fn customize<F>(f: F) -> Self
+    where
+        F: Fn(AgenticError) -> AgentAction + Sync + Send + 'static,
+    {
+        Self {
+            _private: (),
+            custom_classifier: Some(Arc::new(Box::new(FnErrorPolicyDeriver::new(f)))),
+        }
+    }
+
     /// Classify an error into the loop action to take.
     #[must_use]
     pub fn classify(&self, error: AgenticError) -> AgentAction {
+        if let Some(classifier) = &self.custom_classifier {
+            return classifier.derive_action(error);
+        }
+
         match error {
             AgenticError::Generation(GenerationFailure {
                 kind: GenKind::ContextOverflow,
@@ -361,4 +415,3 @@ impl CircuitBreaker {
         self.idx >= self.fallbacks.len()
     }
 }
-

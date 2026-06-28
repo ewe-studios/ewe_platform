@@ -72,6 +72,7 @@ fn build_harness(config: AgentConfig) -> TestHarness {
         memory,
         message_api,
         ledger.clone(),
+        ErrorPolicy::new(),
         router,
         config,
     );
