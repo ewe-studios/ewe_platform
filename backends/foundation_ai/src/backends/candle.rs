@@ -17,15 +17,15 @@ use tokenizers::Tokenizer;
 use foundation_core::valtron::Stream;
 
 use crate::backends::backend_utils::flatten_tools;
-use crate::costing::{calculate_cost, CostAccumulator};
+use crate::costing::CostAccumulator;
 use crate::errors::{
     GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult,
 };
 use crate::types::{
     CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
-    ModelProvider, ModelProviders, ModelSpec, ModelState, ModelStreamBox, ModelUsageCosting,
-    StopReason, TextBasedFormatter, TextContent, ToolShed, UsageCosting, UsageReport,
-    UserModelContent,
+    ModelProvider, ModelProviderDescriptor, ModelProviders, ModelSpec, ModelState, ModelStreamBox,
+    ModelUsageCosting, StopReason, TextBasedFormatter, TextContent, ToolFormatter, UsageCosting,
+    UsageReport, UserModelContent,
 };
 
 // ==================================
@@ -562,7 +562,10 @@ impl CandleModels {
 }
 
 impl Model for CandleModels {
-    type Formatter = TextBasedFormatter;
+    fn tool_formatter(&self) -> Box<dyn crate::types::ToolFormatter> {
+        Box::new(TextBasedFormatter::default())
+    }
+
     fn spec(&self) -> ModelSpec {
         self.inner.lock().unwrap().spec.clone()
     }
@@ -586,7 +589,7 @@ impl Model for CandleModels {
             id: "candle",
             name: "Candle",
             reasoning: false,
-            api: crate::types::ModelAPI::Custom("candle".into()),
+            api: crate::types::ModelAPI::Candle,
             provider: ModelProviders::CANDLE,
             base_url: None,
             inputs: crate::types::MessageType::TextAndImages,
@@ -692,6 +695,7 @@ impl Model for CandleModels {
             provider: ModelProviders::Custom("candle".to_string()),
             error_detail: None,
             signature: None,
+            metadata: None,
         }])
     }
 
@@ -889,6 +893,7 @@ impl Iterator for CandleStream {
             provider: ModelProviders::Custom("candle".to_string()),
             error_detail: None,
             signature: None,
+            metadata: None,
         }))
     }
 }
@@ -945,6 +950,7 @@ fn build_prompt(_tokenizer: &Tokenizer, interaction: &ModelInteraction) -> Strin
                         .unwrap_or_default();
                     format!("- {}({})", t.name, args)
                 })
+                .collect::<Vec<_>>()
                 .join("\n");
             parts.push(format!("Tools:\n{tool_defs}"));
         }

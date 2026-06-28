@@ -112,6 +112,7 @@ impl From<&'static str> for ThinkingLevels {
 
 #[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub enum ModelProviders {
+    CANDLE,
     AMAZONBEDROCK,
     ANTHROPIC,
     GOOGLE,
@@ -142,6 +143,7 @@ pub enum ModelProviders {
 impl From<&'static str> for ModelProviders {
     fn from(value: &'static str) -> Self {
         match value {
+            "candle" => Self::CANDLE,
             "amazon-bedrock" => Self::AMAZONBEDROCK,
             "anthropic" => Self::ANTHROPIC,
             "google" => Self::GOOGLE,
@@ -172,6 +174,7 @@ impl From<&'static str> for ModelProviders {
 impl From<String> for ModelProviders {
     fn from(value: String) -> Self {
         match value.as_str() {
+            "candle" => Self::CANDLE,
             "amazon-bedrock" => Self::AMAZONBEDROCK,
             "anthropic" => Self::ANTHROPIC,
             "google" => Self::GOOGLE,
@@ -210,12 +213,14 @@ pub enum ModelAPI {
     GoogleGenerativeAi,
     GoogleGeminiCli,
     GoogleVertex,
+    Candle,
     Custom(String),
 }
 
 impl From<String> for ModelAPI {
     fn from(value: String) -> Self {
         match value.as_str() {
+            "candle" => Self::Candle,
             "openai-completions" => Self::OpenAICompletions,
             "openai-responses" => Self::OpenAIResponses,
             "azure-openai-responses" => Self::AzureOpenaiResponses,
@@ -233,6 +238,7 @@ impl From<String> for ModelAPI {
 impl From<&'static str> for ModelAPI {
     fn from(value: &'static str) -> Self {
         match value {
+            "candle" => Self::Candle,
             "openai-completions" => Self::OpenAICompletions,
             "openai-responses" => Self::OpenAIResponses,
             "azure-openai-responses" => Self::AzureOpenaiResponses,
@@ -1971,4 +1977,3 @@ impl LlamaConfig {
         self
     }
 }
-
