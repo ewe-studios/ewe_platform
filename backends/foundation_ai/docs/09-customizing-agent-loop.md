@@ -174,13 +174,21 @@ The agent's error policy maps errors to actions:
 | Budget exceeded | `AgentAction::Terminate` |
 | Provider error | `AgentAction::Terminate` |
 
-`ErrorPolicy` is a struct (not a trait) with a `classify()` method:
+Customize the policy with a closure:
 
 ```rust
-let policy = ErrorPolicy::new();
-let action = policy.classify(error);
+let policy = ErrorPolicy::customize(|error| {
+    match error {
+        AgenticError::Generation(f) if f.kind == GenKind::RateLimit => {
+            AgentAction::RetryWithReducedContext
+        }
+        AgenticError::ToolCall { ref tool_name, .. } if tool_name == "critical_tool" => {
+            AgentAction::Terminate(error)
+        }
+        _ => ErrorPolicy::new().classify(error), // fall through to defaults
+    }
+});
 ```
 
-To customize error handling, wrap the session and intercept errors before
-they reach the policy, or configure the `AgentConfig` circuit breaker
-threshold and fallback models to control automatic failover behavior.
+`ErrorPolicy::customize()` takes any `Fn(AgenticError) -> AgentAction + Send + Sync + 'static`.
+The custom classifier is checked first; if none is set, the default classification applies.
