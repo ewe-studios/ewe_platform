@@ -14,6 +14,7 @@ use foundation_core::url::Uri;
 use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_netio::event_source::{Event, ParseResult};
 use foundation_netio::simple_http::client::shared::{
+    request::Extensions,
     body_reader::collect_strings_from_send_safe,
     http_client::{BoxedSseIterator, HttpClient},
     request::PreparedRequest,
@@ -414,7 +415,7 @@ impl ResponsesProvider {
             url: uri,
             headers,
             body: SendSafeBody::Text(body.to_string()),
-            extensions: Default::default(),
+            extensions: Extensions::default(),
         })
     }
 
@@ -671,7 +672,7 @@ impl ResponsesModel {
             url: uri,
             headers,
             body: SendSafeBody::Text(body.to_string()),
-            extensions: Default::default(),
+            extensions: Extensions::default(),
         })
     }
 
@@ -688,7 +689,7 @@ impl ResponsesModel {
             url: uri,
             headers,
             body: SendSafeBody::Text(body.to_string()),
-            extensions: Default::default(),
+            extensions: Extensions::default(),
         })
     }
 

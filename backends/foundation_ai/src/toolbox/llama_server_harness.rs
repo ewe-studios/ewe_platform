@@ -9,7 +9,7 @@
 
 #![allow(dead_code)]
 
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::path::{Path, PathBuf};
 use std::process::{Child, Command, Stdio};
@@ -106,7 +106,7 @@ fn wait_for_health(port: u16, timeout: Duration) -> bool {
             let request = format!(
                 "GET /health HTTP/1.1\r\nHost: 127.0.0.1:{port}\r\nConnection: close\r\n\r\n"
             );
-            use std::io::Write;
+            
             let _ = (&stream).write_all(request.as_bytes());
             let _ = stream.set_read_timeout(Some(Duration::from_secs(5)));
             let reader = BufReader::new(&stream);

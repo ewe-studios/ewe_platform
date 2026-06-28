@@ -361,6 +361,7 @@ impl HuggingFaceCandleProvider {
             )))
         })?;
 
+        #[allow(clippy::match_same_arms)]
         let entries: Vec<_> = tree
             .filter_map(|s| match s {
                 Stream::Next(Ok(entry)) => Some(entry),

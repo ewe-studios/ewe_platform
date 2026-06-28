@@ -291,7 +291,7 @@ impl ModelProvider for CandleBackend {
                 cache_read: 0.0,
                 cache_write: 0.0,
             },
-            context_window: self.config().context_length as u32,
+            context_window: u32::try_from(self.config().context_length).unwrap_or(u32::MAX),
             max_tokens: 2048,
         })
     }
@@ -1014,6 +1014,7 @@ fn sample_token(logits: &Tensor, params: &ModelParams) -> Result<u32, candle_cor
 
     let scaled = (&last_logits / f64::from(params.temperature))?;
 
+    #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)]
     let top_k = params.top_k.round() as usize;
     if top_k > 0 {
         return sample_top_k(&scaled, top_k);
@@ -1022,6 +1023,7 @@ fn sample_token(logits: &Tensor, params: &ModelParams) -> Result<u32, candle_cor
     sample_from_logits(&scaled)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn argmax(logits: &Tensor) -> Result<u32, candle_core::Error> {
     let vec: Vec<f32> = logits.to_vec1()?;
     let (max_idx, _) = vec
@@ -1032,6 +1034,7 @@ fn argmax(logits: &Tensor) -> Result<u32, candle_core::Error> {
     Ok(max_idx as u32)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn sample_top_k(logits: &Tensor, k: usize) -> Result<u32, candle_core::Error> {
     let vec: Vec<f32> = logits.to_vec1()?;
     let mut indexed: Vec<(usize, f32)> = vec.into_iter().enumerate().collect();
@@ -1054,6 +1057,7 @@ fn sample_top_k(logits: &Tensor, k: usize) -> Result<u32, candle_core::Error> {
     Ok(indexed.last().unwrap().0 as u32)
 }
 
+#[allow(clippy::cast_possible_truncation)]
 fn sample_from_logits(logits: &Tensor) -> Result<u32, candle_core::Error> {
     let probs = candle_nn::ops::softmax(logits, 0)?;
     let vec: Vec<f32> = probs.to_vec1()?;
