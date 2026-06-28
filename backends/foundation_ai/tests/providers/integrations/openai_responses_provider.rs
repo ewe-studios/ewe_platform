@@ -8,6 +8,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_ai::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
+use foundation_ai::toolbox::llama_server_harness::start_llama_server;
 use foundation_ai::types::{
     Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelProvider, StopReason,
     TextContent, ToolShed, UserModelContent,

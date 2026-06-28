@@ -6,12 +6,18 @@
 use std::net::SocketAddr;
 use std::sync::Arc;
 
-use foundation_ai::backends::backend_utils::{
-    empty_usage_report, flatten_tools, json_value_to_arg_type, model_id_to_string,
+use foundation_ai::backends::anthropic_messages_provider::format_http_error;
+use foundation_ai::backends::backend_utils::{json_value_to_arg_type, model_id_to_string};
+use foundation_ai::backends::openai_provider::{
+    build_chat_request, exponential_backoff, is_retryable_status, parse_chat_response,
+    parse_openai_error, AccumulatedToolCall, ChatCompletionChunk, ChatCompletionRequest,
+    ChatCompletionResponse, OpenAIChoice, OpenAIConfig, OpenAIContentPart, OpenAIFunctionCall,
+    OpenAIImageUrlObject, OpenAIJsonSchema, OpenAIMessage, OpenAIMessageContent, OpenAIProvider,
+    OpenAIResponseFormat, OpenAIToolCall, OpenAIToolChoice, OpenAIToolChoiceFunction, OpenAIUsage,
 };
-use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use foundation_ai::backends::openai_responses_provider::{
-    ResponseEvent, ResponseInput, ResponseRequest, ResponsesConfig,
+    build_response_input, Response, ResponseEvent, ResponseInput, ResponseInputContent,
+    ResponseInputItem, ResponseOutputItem, ResponseRequest, ResponsesConfig,
 };
 
 use foundation_ai::types::{
@@ -640,8 +646,8 @@ fn test_parse_sse_chunks() {
         let chunk: ChatCompletionChunk = serde_json::from_str(raw).unwrap();
         for choice in &chunk.choices {
             if let Some(ref delta) = choice.delta {
-                if let Some(ref content) = delta.content {
-                    accumulated_text.push_str(content);
+                if let Some(content) = delta.content.clone() {
+                    accumulated_text.push_str(content.as_str());
                 }
             }
             if choice.finish_reason.is_some() {

@@ -4,6 +4,7 @@
 //! with real model loading and generation (when a model is available).
 
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
+use foundation_ai::toolbox::llama_server_harness::start_llama_server;
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelParams, ModelProvider, ModelSpec,
     TextContent, ToolShed, UserModelContent,

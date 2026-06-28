@@ -3,6 +3,7 @@ use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
+use foundation_ai::toolbox::llama_server_harness::start_llama_server;
 use foundation_ai::types::{
     CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
     ModelProvider, ModelProviders, StopReason, TextContent, ToolShed, UsageCosting, UsageReport,
