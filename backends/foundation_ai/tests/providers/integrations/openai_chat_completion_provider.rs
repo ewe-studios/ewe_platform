@@ -10,6 +10,7 @@ use foundation_ai::types::{
     UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
+use foundation_core::valtron::valtron_test;
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_netio::simple_http::client::native::NativeHttpClient;
 use foundation_netio::simple_http::client::shared::http_client::HttpClient;
