@@ -1,5 +1,10 @@
-use std::net::SocketAddr;
-use std::sync::{Arc, LazyLock};
+//! Integration tests for `OpenAIProvider` with real HTTP servers.
+//!
+//! - `TestHttpServer` (request-response) — verifies non-streaming and SSE response parsing
+//! - llama-server integration tests (#[ignore]-gated) — verifies against real llama-server
+//!   with Anthropic Messages API compatibility
+
+use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_ai::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
@@ -13,11 +18,7 @@ use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_netio::simple_http::client::native::NativeHttpClient;
 use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_netio::simple_http::client::shared::StaticSocketAddr;
-use foundation_netio::simple_http::shared::SimpleMethod;
-use foundation_testing::http::HttpRequest;
 use foundation_testing::http::{
-    HttpResponse, SseConnectionResult, SseStreamWriter, SseTestServer, TestHttpServer,
 };
 
 // ============================================================================

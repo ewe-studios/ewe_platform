@@ -4,6 +4,7 @@
 //!   1. llama-server built and running: `mise run llama:server:start`
 //!   2. Environment: `LLAMA_SERVER_TEST=1`
 
+use foundation_core::valtron::valtron_test;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -14,7 +15,6 @@ use foundation_ai::types::{
     TextContent, ToolShed, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
-use foundation_core::valtron;
 use foundation_core::valtron::Stream;
 use foundation_netio::simple_http::client::native::NativeHttpClient;
 use foundation_netio::simple_http::client::shared::http_client::HttpClient;
@@ -47,7 +47,7 @@ fn setup_responses_provider() -> impl Model {
 #[valtron_test]
 #[traced_test]
 fn test_llama_server_responses_generate() {
-    let _llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server();
     let model = setup_responses_provider();
 
     let interaction = ModelInteraction {
@@ -92,7 +92,7 @@ fn test_llama_server_responses_generate() {
 #[valtron_test]
 #[traced_test]
 fn test_llama_server_responses_stream() {
-    let _llama_server_guard = start_llama_server();
+    let llama_server_guard = start_llama_server();
     let model = setup_responses_provider();
 
     let interaction = ModelInteraction {

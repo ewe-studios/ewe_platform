@@ -4,22 +4,26 @@
 //! - llama-server integration tests (#[ignore]-gated) — verifies against real llama-server
 //!   with Anthropic Messages API compatibility
 
+//! Integration tests for `AnthropicMessagesProvider` with real HTTP servers.
+//!
+//! - `TestHttpServer` (request-response) — verifies non-streaming and SSE response parsing
+//! - llama-server integration tests (#[ignore]-gated) — verifies against real llama-server
+//!   with Anthropic Messages API compatibility
+
 use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::toolbox::llama_server_harness::start_llama_server;
 use foundation_ai::types::{
-    Args, CostStatus, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction,
-    ModelOutput, ModelParams, ModelProvider, ModelProviders, ModelUsageCosting, StopReason,
-    TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
+    CostStatus, Messages, Model, ModelId, ModelInteraction,
+    ModelOutput, ModelParams, ModelProvider, ModelProviders, StopReason,
+    TextContent, ToolShed, UsageCosting, UsageReport, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_netio::simple_http::client::native::NativeHttpClient;
 use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_netio::simple_http::client::shared::StaticSocketAddr;
-use foundation_testing::http::{HttpResponse, TestHttpServer};
-use std::net::SocketAddr;
+use foundation_testing::http::SseTestServer;
 use std::sync::Arc;
 use std::time::Duration;
 

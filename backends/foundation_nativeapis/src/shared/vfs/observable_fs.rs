@@ -431,6 +431,7 @@ impl<F: VfsFileSystem> VfsFileSystem for ObservableFs<F> {
 
 /// Wrapper around a `VfsFile` that intercepts read/write/seek operations
 /// and emits corresponding audit events.
+#[allow(dead_code)]
 pub struct ObservableFile<Inner: VfsFile> {
     inner: Inner,
     path: String,
@@ -481,6 +482,7 @@ impl<Inner: VfsFile> VfsFile for ObservableFile<Inner> {
 // ── ObservableSeekableFile ──
 
 /// Wrapper around a `SeekableVfsFile` that intercepts seek operations.
+#[allow(dead_code)]
 pub struct ObservableSeekableFile<Inner: SeekableVfsFile> {
     inner: Inner,
     path: String,
