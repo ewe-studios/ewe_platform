@@ -198,7 +198,7 @@ fn recent_messages_included() {
     let provider = make_provider();
     block_on(async {
         let msg = user_message("hello world");
-        provider
+        let _ = provider
             .message_api()
             .append(SessionRecord::Conversation { message: msg });
         let _ = provider.message_api().flush();
@@ -237,7 +237,7 @@ fn assembly_order_is_deterministic() {
             .unwrap();
 
         let msg = user_message("user message D");
-        provider
+        let _ = provider
             .message_api()
             .append(SessionRecord::Conversation { message: msg });
         let _ = provider.message_api().flush();

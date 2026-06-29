@@ -86,7 +86,7 @@ fn search_context_returns_empty_on_no_match() {
 fn search_context_finds_matching_messages() {
     futures_lite::future::block_on(async {
         let ctx = make_context_provider();
-        ctx.message_api().append(SessionRecord::Conversation {
+        let _ = ctx.message_api().append(SessionRecord::Conversation {
             message: user_msg("the authentication module handles JWT tokens"),
         });
         let _ = ctx.message_api().flush();
@@ -110,7 +110,7 @@ fn search_context_finds_matching_messages() {
 fn search_context_hybrid_searches_messages_and_memory() {
     futures_lite::future::block_on(async {
         let ctx = make_context_provider();
-        ctx.message_api().append(SessionRecord::Conversation {
+        let _ = ctx.message_api().append(SessionRecord::Conversation {
             message: user_msg("the database uses postgres"),
         });
         let _ = ctx.message_api().flush();

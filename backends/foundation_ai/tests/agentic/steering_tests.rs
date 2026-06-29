@@ -149,7 +149,7 @@ fn drain_priority_returns_all_and_empties() {
     q.push_priority(user_msg("2"));
     q.push_priority(user_msg("3"));
 
-    let drained = q.drain_priority();
+    let drained = let _ = q.drain_priority();
     assert_eq!(drained.len(), 3);
     assert!(!q.has_priority());
     assert!(q.drain_priority().is_empty());
@@ -202,7 +202,7 @@ fn priority_readiness_false_after_drain() {
     q.push_priority(user_msg("msg"));
     assert!(ready.is_ready(None));
 
-    q.drain_priority();
+    let _ = q.drain_priority();
     assert!(!ready.is_ready(None));
 }
 
@@ -243,7 +243,7 @@ fn multi_producer_priority() {
         h.join().unwrap();
     }
 
-    let drained = q.drain_priority();
+    let drained = let _ = q.drain_priority();
     assert_eq!(drained.len(), 4);
 }
 

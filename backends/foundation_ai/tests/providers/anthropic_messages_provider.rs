@@ -8,9 +8,9 @@ use foundation_ai::backends::anthropic_messages_provider::{
     AnthropicConfig, AnthropicMessagesProvider,
 };
 use foundation_ai::types::{
-    Args, CostStatus, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction,
+    Args, ImageContent, Messages, MimeType, Model, ModelId, ModelInteraction,
     ModelOutput, ModelParams, ModelProvider, ModelProviders, ModelUsageCosting, StopReason,
-    TextContent, Tool, ToolShed, UsageCosting, UsageReport, UserModelContent,
+    TextContent, Tool, ToolShed, UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
@@ -20,7 +20,6 @@ use foundation_netio::simple_http::client::shared::StaticSocketAddr;
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::Arc;
-use std::time::Duration;
 
 fn server_addr(server: &TestHttpServer) -> SocketAddr {
     server

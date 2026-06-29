@@ -1,6 +1,6 @@
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::backends::llamacpp_helpers::*;
-use foundation_ai::types::base_types::{Model, ModelParams, ModelProvider};
+use foundation_ai::types::base_types::{ModelParams, ModelProvider};
 
 #[test]
 fn test_build_sampler_chain_default() {

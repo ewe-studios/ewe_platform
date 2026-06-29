@@ -8,10 +8,8 @@ use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{EventReadiness, NoSpawner, QueueReadiness, TaskIterator, TaskStatus};
-use foundation_nativeapis::valtron::CompositeReadiness;
 
 use crate::types::ProjectDefinition;
-use crate::ToolingError;
 
 // -- DurationSleeper: EventReadiness for time-based waits
 
