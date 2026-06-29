@@ -107,12 +107,21 @@ pub fn build_followup_request_from_request_descriptor(
     // Clone headers and strip request-specific headers that must not be forwarded
     let mut headers = original.headers.clone();
 
-    // add Expect header for 100-continue
-    headers.insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
+    // The follow-up request is a GET with no body, so it must NOT carry an
+    // `Expect: 100-continue` header. Sending it on a bodyless GET causes some
+    // CDNs (e.g. HuggingFace's xet bridge) to emit an interim `100 Continue`
+    // that the response reader mistakes for the final response, aborting the
+    // download. Drop any inherited Expect header here.
+    headers.remove(&SimpleHeader::EXPECT);
 
     // Remove content headers since follow-up is GET/no-body
     headers.remove(&SimpleHeader::CONTENT_LENGTH);
     headers.remove(&SimpleHeader::CONTENT_TYPE);
+
+    // Rewrite the Host header to the redirect target. The cloned headers still
+    // reference the original host; leaving it stale sends the wrong Host to the
+    // new origin (e.g. `Host: huggingface.co` to `cas-bridge.xethub.hf.co`).
+    set_host_header(&mut headers, &new_url);
 
     // Strip sensitive headers if host differs (unless preserve flags are true)
     let original_host = original.request_uri.host_str().unwrap_or_default();
@@ -155,12 +164,16 @@ pub fn build_followup_request_from(
     // Clone headers and strip request-specific headers that must not be forwarded
     let mut headers = original.headers.clone();
 
-    // add Expect header for 100-continue
-    headers.insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
+    // Follow-up is a GET with no body — never carry `Expect: 100-continue`.
+    // See `build_followup_request_from_request_descriptor` for why.
+    headers.remove(&SimpleHeader::EXPECT);
 
     // Remove content headers since follow-up is GET/no-body
     headers.remove(&SimpleHeader::CONTENT_LENGTH);
     headers.remove(&SimpleHeader::CONTENT_TYPE);
+
+    // Rewrite the Host header to the redirect target.
+    set_host_header(&mut headers, &new_url);
 
     // Strip sensitive headers if host differs (unless preserve flags are true)
     let original_host = original.url.host_str().unwrap_or_default();
@@ -179,6 +192,22 @@ pub fn build_followup_request_from(
         headers,
         body: SendSafeBody::None,
         extensions: Extensions::new(),
+    }
+}
+
+/// Set (or overwrite) the `Host` header to match the given URL.
+///
+/// Includes the port only when the URL specifies a non-default one, mirroring
+/// the format used when the request is first built. If the URL has no host the
+/// header is left untouched.
+pub fn set_host_header(headers: &mut SimpleHeaders, url: &Uri) {
+    if let Some(host_str) = url.host_str() {
+        let host = if url.port().is_some() {
+            format!("{host_str}:{}", url.port_or_default())
+        } else {
+            host_str
+        };
+        headers.insert(SimpleHeader::HOST, vec![host]);
     }
 }
 
@@ -221,6 +250,53 @@ mod tests {
         headers.insert(SimpleHeader::COOKIE, vec!["session=abc123".into()]);
         headers.insert(SimpleHeader::CONTENT_TYPE, vec!["application/json".into()]);
         headers
+    }
+
+    fn descriptor_with_headers(url: &str, headers: SimpleHeaders) -> RequestDescriptor {
+        let uri = Uri::parse(url).expect("valid test url");
+        RequestDescriptor {
+            proto: crate::simple_http::shared::Proto::HTTP11,
+            request_url: SimpleUrl::url_with_query(uri.to_string()),
+            request_uri: uri,
+            headers,
+            method: SimpleMethod::GET,
+        }
+    }
+
+    #[test]
+    fn test_followup_strips_expect_header() {
+        let mut headers: SimpleHeaders = BTreeMap::new();
+        headers.insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
+        headers.insert(SimpleHeader::HOST, vec!["origin.example.com".into()]);
+        let original = descriptor_with_headers("https://origin.example.com/file", headers);
+
+        let new_url = Uri::parse("https://cdn.example.com/file").expect("valid url");
+        let followup =
+            build_followup_request_from_request_descriptor(&original, new_url, true, false)
+                .expect("followup builds");
+
+        assert!(
+            !followup.headers.contains_key(&SimpleHeader::EXPECT),
+            "Expect header must not be forwarded on a bodyless redirect follow-up"
+        );
+    }
+
+    #[test]
+    fn test_followup_rewrites_host_header() {
+        let mut headers: SimpleHeaders = BTreeMap::new();
+        headers.insert(SimpleHeader::HOST, vec!["origin.example.com".into()]);
+        let original = descriptor_with_headers("https://origin.example.com/file", headers);
+
+        let new_url = Uri::parse("https://cdn.example.com:8443/file").expect("valid url");
+        let followup =
+            build_followup_request_from_request_descriptor(&original, new_url, true, false)
+                .expect("followup builds");
+
+        assert_eq!(
+            followup.headers.get(&SimpleHeader::HOST),
+            Some(&vec!["cdn.example.com:8443".to_string()]),
+            "Host header must be rewritten to the redirect target (with non-default port)"
+        );
     }
 
     #[test]

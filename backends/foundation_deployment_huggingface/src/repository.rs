@@ -438,11 +438,9 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
     let builder = {
         if let Some(token) = repo.inner.client.token() {
             if HFClient::is_implicit_token_disabled() {
-                println!("HF_TOKEN was disabled and will not be added!");
                 tracing::debug!("HF_TOKEN was disabled and will not be added!");
                 builder
             } else {
-                println!("Adding HF_TOKEN with token having length={}", &token.len());
                 tracing::debug!("Adding HF_TOKEN with token having length={}", &token.len());
                 builder.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", &token))
             }
@@ -534,9 +532,23 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         pool.return_to_pool(conn);
     });
 
-    // Stream body directly to file
-    let mut file = std::fs::File::create(&destination).map_err(HuggingFaceError::Io)?;
-    collect_bytes_into(body, &mut file).map_err(|e| HuggingFaceError::Backend(e.to_string()))?;
+    // Stream the body to a temporary `.part` file and only rename it into place
+    // once the full download succeeds. This prevents a failed/partial download
+    // from leaving a truncated (e.g. 0-byte) file that later looks like a valid
+    // cached artifact.
+    let mut temp_os = destination.clone().into_os_string();
+    temp_os.push(".part");
+    let temp_destination = PathBuf::from(temp_os);
+
+    let mut file = std::fs::File::create(&temp_destination).map_err(HuggingFaceError::Io)?;
+    if let Err(e) = collect_bytes_into(body, &mut file) {
+        drop(file);
+        let _ = std::fs::remove_file(&temp_destination);
+        return Err(HuggingFaceError::Backend(e.to_string()));
+    }
+    drop(file);
+
+    std::fs::rename(&temp_destination, &destination).map_err(HuggingFaceError::Io)?;
 
     Ok(destination)
 }

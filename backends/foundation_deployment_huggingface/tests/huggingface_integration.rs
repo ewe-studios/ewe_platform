@@ -3,10 +3,10 @@
 //! These tests are ignored by default and require a valid `HuggingFace` token.
 //! Set the `HF_TOKEN` environment variable or ensure you have a valid token file.
 //!
-//! Run with: `cargo test --package foundation_deployment --features huggingface huggingface -- --ignored --nocapture`
+//! Run with: `cargo test --package foundation_deployment_huggingface -- --ignored --nocapture`
 
 use foundation_core::valtron;
-use foundation_deployment::providers::huggingface::{
+use foundation_deployment_huggingface::{
     client, repository, types, HFClientBuilder, HuggingFaceError,
 };
 use tracing_test::traced_test;
@@ -14,13 +14,10 @@ use tracing_test::traced_test;
 fn get_token() -> Option<String> {
     let token = std::env::var("HF_TOKEN").ok();
     if let Some(t) = &token {
-        eprintln!(
-            "HF_TOKEN found, length: {}, starts with: {}",
-            t.len(),
-            &t[..10.min(t.len())]
-        );
+        // Never log token contents — only its presence and length.
+        tracing::info!("HF_TOKEN found, length: {}", t.len());
     } else {
-        eprintln!("WARNING: HF_TOKEN not set in environment!");
+        tracing::warn!("HF_TOKEN not set in environment!");
     }
     token
 }

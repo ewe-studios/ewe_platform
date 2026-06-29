@@ -27,6 +27,12 @@ pub struct ClientConfig {
     pub max_retries: usize,
     pub preserve_auth_on_redirect: bool,
     pub preserve_cookies_on_redirect: bool,
+    /// When `true`, requests carrying a body negotiate with an
+    /// `Expect: 100-continue` header and wait for the server's interim
+    /// `100 Continue` response before streaming the body. When `false`, the
+    /// header is never sent and the body is written immediately. Bodyless
+    /// requests (e.g. GET) never use the handshake regardless of this flag.
+    pub expect_continue_enabled: bool,
     pub follow_other_redirects_response: bool,
     pub headers_to_pass_on_redirect: Option<Vec<SimpleHeader>>,
     pub headers_to_add: Option<SimpleHeaders>,
@@ -158,6 +164,12 @@ impl ClientConfig {
     }
 
     #[must_use]
+    pub fn with_expect_continue(mut self, enabled: bool) -> Self {
+        self.expect_continue_enabled = enabled;
+        self
+    }
+
+    #[must_use]
     pub fn with_preserve_auth_on_redirect(mut self, preserve: bool) -> Self {
         self.preserve_auth_on_redirect = preserve;
         self
@@ -186,6 +198,7 @@ impl Default for ClientConfig {
             max_retries: 5,
             preserve_auth_on_redirect: false,
             preserve_cookies_on_redirect: false,
+            expect_continue_enabled: true,
             follow_other_redirects_response: true,
             headers_to_pass_on_redirect: None,
             headers_to_add: None,

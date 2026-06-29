@@ -309,6 +309,16 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
         self
     }
 
+    /// Enable or disable the `Expect: 100-continue` handshake for requests with
+    /// a body. When disabled, the header is never sent and bodies are written
+    /// immediately, which avoids interim `100 Continue` responses from servers
+    /// that do not handle the handshake well. Bodyless requests never use it.
+    #[must_use]
+    pub fn expect_continue(mut self, enabled: bool) -> Self {
+        self.config.expect_continue_enabled = enabled;
+        self
+    }
+
     pub fn request(
         &self,
         builder: ClientRequestBuilder<R>,

@@ -3924,6 +3924,7 @@ dependencies = [
  "sha2",
  "toml 0.8.23",
  "tracing",
+ "tracing-test",
  "urlencoding",
  "walkdir",
 ]

@@ -29,6 +29,9 @@ foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
 
+[dev-dependencies]
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
+
 [features]
 default = ["multi"]
 multi = ["foundation_core/multi", "foundation_netio/multi", "foundation_netio/ssl"]

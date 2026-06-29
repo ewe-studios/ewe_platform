@@ -184,13 +184,22 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         )));
                     };
 
-                    // Only send Expect: 100-continue when the request has a body.
+                    // Only send Expect: 100-continue when the request has a body
+                    // AND the handshake is enabled in config. Bodyless requests
+                    // (e.g. GET) must never carry it — an interim `100 Continue`
+                    // from the server would otherwise be mistaken for the final
+                    // response. The toggle lets callers disable the handshake for
+                    // servers/CDNs that handle it poorly.
                     let has_body = Self::request_has_body(&descriptor.headers);
-                    if has_body {
+                    let use_expect = has_body && config.expect_continue_enabled;
+                    if use_expect {
                         tracing::debug!("Adding EXPECT: 100-continue header for request with body");
                         descriptor
                             .headers
                             .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
+                    } else {
+                        // Drop any inherited/stale Expect header when not negotiating.
+                        descriptor.headers.remove(&SimpleHeader::EXPECT);
                     }
 
                     // 2. Render and send request
@@ -246,11 +255,40 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         simple_http_body,
                     );
 
+                    // Body present but the Expect/100-continue handshake is disabled:
+                    // the server is waiting for the body before it responds, so write
+                    // it immediately without trying to read an interim response. The
+                    // real response is read by the caller after WriteBody completes.
+                    if has_body && !use_expect {
+                        tracing::trace!("Body present, expect/100-continue disabled — writing body without probe");
+                        self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
+                            None, data, pool, connection, reader,
+                        )))));
+                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                    }
+
                     // For requests without a body, skip the 100-continue probe but still
                     // read intro/headers to check for redirects before going to WriteBody.
                     if !has_body {
                         tracing::trace!("No body — skipping 100-continue probe, reading response directly");
-                        let intro_result = reader.next();
+                        let mut intro_result = reader.next();
+
+                        // Defensively skip any interim `100 Continue` the server may
+                        // emit unsolicited. Each interim is an Intro(Continue) followed
+                        // by an (empty) Headers part; consume both and read the next
+                        // intro so we land on the real final response.
+                        let mut interim_guard = 0;
+                        while matches!(
+                            &intro_result,
+                            Some(Ok(IncomingResponseParts::Intro(status, _, _))) if status == &Status::Continue
+                        ) && interim_guard < 8
+                        {
+                            tracing::trace!("Skipping interim 100 Continue on no-body request");
+                            let _ = reader.next(); // consume the interim headers
+                            intro_result = reader.next();
+                            interim_guard += 1;
+                        }
+
                         if !matches!(
                             &intro_result,
                             Some(Ok(IncomingResponseParts::Intro(_, _, _)))
