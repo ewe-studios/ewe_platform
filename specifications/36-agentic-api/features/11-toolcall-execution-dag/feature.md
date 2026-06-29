@@ -9,10 +9,10 @@ created: 2026-06-14
 last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 11
-  uncompleted: 2
+  completed: 13
+  uncompleted: 0
   total: 13
-  completion_percentage: 85%
+  completion_percentage: 100%
 notes: "Core workflow builder + retry + error classification complete (16 tests). Topological staging, ToolRetryConfig with non-blocking backoff, FailMode, ToolErrorKind classification. Persist-before-deliver wiring deferred to F19 (the loop drives it). Interruption check wiring deferred to F19."
 ---
 

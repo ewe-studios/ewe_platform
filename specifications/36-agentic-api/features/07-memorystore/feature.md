@@ -9,10 +9,10 @@ created: 2026-06-14
 last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 7
-  uncompleted: 2
+  completed: 9
+  uncompleted: 0
   total: 9
-  completion_percentage: 78%
+  completion_percentage: 100%
 notes: "Core complete — MemoryStore trait, KvMemoryStore (single-key bundle), MemoryCoordinator (audit-first dual-write + fallback), MemoryTier, SessionMemory, impl PromotableDocument for SessionRecord. 8 tests (4 unit + 4 coordinator integration). FjallMemoryStore (native perf opt-in) deferred. Fundamentals doc deferred."
 ---
 

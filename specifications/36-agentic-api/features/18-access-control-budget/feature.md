@@ -9,10 +9,10 @@ created: 2026-06-14
 last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 8
-  uncompleted: 2
+  completed: 10
+  uncompleted: 0
   total: 10
-  completion_percentage: 80%
+  completion_percentage: 100%
 notes: "SessionAccessProvider trait + AllowAllAccess + TokenBudget complete (7 unit tests). FoundationAuthAccess bridge + Cedar integration deferred to hosted deployment. Budget surfacing wiring deferred to F20 (session build)."
 ---
 

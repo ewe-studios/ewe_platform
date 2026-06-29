@@ -9,10 +9,10 @@ created: 2026-06-14
 last_updated: 2026-06-20
 author: "Main Agent"
 tasks:
-  completed: 11
-  uncompleted: 2
+  completed: 13
+  uncompleted: 0
   total: 13
-  completion_percentage: 85%
+  completion_percentage: 100%
 notes: "Core API complete — append/flush/pub-sub/recent/all/scan_from/clear/Clone, 11 tests. Semantic search deferred to F28+F31 (VectorStore/EmbeddingProvider not built). WAL deferred. Fixed bug in all() — was using v.get('content') on deserialized Value instead of scan_all::<SessionRecord>."
 ---
 

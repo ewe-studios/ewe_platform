@@ -1,7 +1,7 @@
 ---
 feature: "ModelProviderRouter — route model→provider behind the provider trait"
 description: "ProviderRouter + RoutableProvider (object-safe). Model trait made object-safe: type Formatter → fn tool_formatter()→Box<dyn ToolFormatter>, stream→Box<dyn StreamIterator>. BoxModel = Box<dyn Model> (replaces ErasedModel)"
-status: "completed"
+status: "complete"
 priority: "high"
 depends_on: ["00b-foundation-ai-llama-optional"]
 estimated_effort: "medium"

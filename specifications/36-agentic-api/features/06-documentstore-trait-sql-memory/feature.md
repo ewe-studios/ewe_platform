@@ -1,7 +1,7 @@
 ---
 feature: "DocumentStore: scan_from (temporal) + promoted columns"
 description: "EXTEND the existing foundation_db DocumentStore (trait + SQL + Memory already exist) with a scru128-temporal scan_from() and promoted searchable columns (id/title/summary/type) beside the content blob"
-status: "completed"
+status: "complete"
 priority: "high"
 depends_on: ["01-message-model"]
 estimated_effort: "medium"
