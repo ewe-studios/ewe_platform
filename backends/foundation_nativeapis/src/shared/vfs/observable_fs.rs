@@ -33,6 +33,7 @@ use super::types::{OpenMode, VfsCapabilities, VfsMetadata};
 
 /// Typed audit event emitted by [`ObservableFs`] for every filesystem operation.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub enum VfsEvent {
     // File operations
     FileOpened {
