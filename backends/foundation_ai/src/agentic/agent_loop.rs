@@ -644,7 +644,7 @@ impl<D: DocumentStore, M: MemoryStore> AgentLoop<D, M> {
             mut cancel_signals,
         } = std::mem::replace(&mut self.state, AgentLoopState::Done)
         else {
-            unreachable!()
+            unreachable!("Should never be in another state but AgentLoopState::InnerExecuting")
         };
 
         // Check for steering cancel — abort all in-flight tool futures.

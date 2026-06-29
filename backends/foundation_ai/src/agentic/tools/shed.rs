@@ -37,6 +37,8 @@ impl ToolDiscovery {
         }
     }
 
+    /// # Errors
+    /// Returns [`ToolError`] if arguments are invalid or search fails.
     pub fn index(&self, def: &ToolDefinition) -> Result<(), ToolError> {
         let text = format!("{}: {}", def.name, def.description);
         let embedding = self
@@ -85,6 +87,8 @@ impl ToolDiscovery {
         Ok(())
     }
 
+    /// # Errors
+    /// Returns [`ToolError`] if the query is empty.
     pub fn search(&self, query: &str, k: usize) -> Result<Vec<ToolSummary>, ToolError> {
         let embedding = self
             .embedder
@@ -125,6 +129,8 @@ pub struct ShedTool {
 
 impl ShedTool {
     #[must_use]
+    /// # Panics
+    /// Panics if the discovery service is not available.
     pub fn new(discovery: Arc<ToolDiscovery>) -> Self {
         Self { discovery }
     }

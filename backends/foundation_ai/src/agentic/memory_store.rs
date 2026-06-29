@@ -119,6 +119,8 @@ pub trait MemoryStore: Send + Sync {
 
     /// Synchronous hydrate for the `AgentLoop`'s `TaskIterator` (F19).
     /// Default returns empty — concrete stores override when sync is cheap.
+    /// # Errors
+    /// Returns [`StorageError`] if the record cannot be stored.
     fn hydrate_sync(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let _ = session;
         Ok(SessionMemory::default())

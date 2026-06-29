@@ -180,6 +180,8 @@ impl<D: DocumentStore> MessageApi<D> {
     /// The record is buffered (no disk I/O); a background flush task drains
     /// the buffer periodically or when it reaches `flush_threshold`.
     #[must_use]
+    /// # Errors
+    /// Returns [`StorageError`] if the record cannot be appended.
     pub fn append(&self, record: SessionRecord) -> String {
         let id = match &record {
             SessionRecord::Conversation { message } => message.id().to_string(),
@@ -205,11 +207,15 @@ impl<D: DocumentStore> MessageApi<D> {
     }
 
     /// Flush all buffered records to the `DocumentStore` immediately.
+    /// # Errors
+    /// Returns [`StorageError`] if the records cannot be scanned.
     pub fn flush(&self) -> StorageResult<usize> {
         self.inner.flush()
     }
 
     /// Return the last `n` session records (newest-first).
+    /// # Errors
+    /// Returns [`StorageError`] if the records cannot be scanned.
     pub fn recent(&self, n: usize) -> StorageResult<Vec<SessionRecord>> {
         // Flush first so buffered records are included.
         let _ = self.inner.flush();
@@ -224,6 +230,8 @@ impl<D: DocumentStore> MessageApi<D> {
     }
 
     /// Return all session records (oldest-first) as an iterator.
+    /// # Errors
+    /// Returns [`StorageError`] if the records cannot be scanned.
     pub fn all(&self) -> StorageResult<Vec<SessionRecord>> {
         let _ = self.inner.flush();
         let stream = self
@@ -240,6 +248,8 @@ impl<D: DocumentStore> MessageApi<D> {
     }
 
     /// Scan from a given id (inclusive), returning up to `n` records.
+    /// # Errors
+    /// Returns [`StorageError`] if the records cannot be counted.
     pub fn scan_from(&self, from_id: &str, n: usize) -> StorageResult<Vec<SessionRecord>> {
         let _ = self.inner.flush();
         let docs = self.inner.doc_store.scan_documents_from(
@@ -254,6 +264,8 @@ impl<D: DocumentStore> MessageApi<D> {
     }
 
     /// Clear all session records (for testing).
+    /// # Errors
+    /// Returns [`StorageError`] if the buffer cannot be flushed.
     pub fn clear(&self) -> StorageResult<u64> {
         let _ = self.inner.flush();
         self.inner

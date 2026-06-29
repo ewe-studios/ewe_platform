@@ -209,6 +209,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> ToolImpl for SearchCo
     }
 }
 
+/// # Errors
+/// Returns [`ToolError`] if the query is missing or invalid.
 pub fn parse_search_mode(s: &str) -> Result<SearchMode, ToolError> {
     match s {
         "Semantic" | "semantic" => Ok(SearchMode::Semantic),
@@ -325,6 +327,8 @@ impl ToolImpl for SearchFileTool {
     }
 }
 
+/// # Errors
+/// Returns [`ToolError`] if the query is missing or invalid.
 pub fn parse_file_search_kind(s: &str) -> Result<FileSearchKind, ToolError> {
     match s {
         "Grep" | "grep" => Ok(FileSearchKind::Grep),

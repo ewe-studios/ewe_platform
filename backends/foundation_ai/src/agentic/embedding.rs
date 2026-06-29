@@ -167,8 +167,12 @@ impl ColdCache for NoopColdCache {
 // ---------------------------------------------------------------------------
 
 pub trait EmbeddingProvider: Send + Sync {
+    /// # Errors
+    /// Returns [`EmbeddingError`] if the text cannot be embedded.
     fn embed(&self, text: &str, model_id: &str) -> Result<EmbeddingVector, EmbeddingError>;
 
+    /// # Errors
+    /// Returns [`EmbeddingError`] if any text cannot be embedded.
     fn embed_batch(
         &self,
         texts: &[String],

@@ -119,6 +119,8 @@ impl MockModelProvider {
         self.call_count.load(Ordering::Relaxed)
     }
 
+    /// # Errors
+    /// Returns [`ToolError`] if the tool execution fails.
     pub fn resolve(&self, mi: &ModelInteraction) -> GenerationResult<Vec<Messages>> {
         let n = self.call_count.fetch_add(1, Ordering::Relaxed);
 

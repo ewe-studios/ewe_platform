@@ -51,20 +51,32 @@ impl TokenBudget {
 /// `AllowAllAccess` is the local default; hosted impls bridge to
 /// `foundation_auth` (identity) + `foundation_cedar` (policies).
 pub trait SessionAccessProvider: Send + Sync {
+    /// # Errors
+    /// Returns [`AuthError`] if the user cannot access the session.
     fn can_access_session(&self, user: &UserId, session: &SessionId) -> Result<bool, AuthError>;
 
+    /// # Errors
+    /// Returns [`AuthError`] if the user cannot use the model.
     fn can_use_model(&self, user: &UserId, model: &str) -> Result<bool, AuthError>;
 
+    /// # Errors
+    /// Returns [`AuthError`] if the user cannot use the tool.
     fn can_use_tool(&self, _user: &UserId, _tool: &str) -> Result<bool, AuthError> {
         Ok(true)
     }
 
+    /// # Errors
+    /// Returns [`AuthError`] if the user cannot spend the tokens.
     fn can_spend(&self, _user: &UserId, _tokens: u64) -> Result<bool, AuthError> {
         Ok(true)
     }
 
+    /// # Errors
+    /// Returns [`AuthError`] if the budget cannot be retrieved.
     fn token_budget(&self, user: &UserId) -> Result<TokenBudget, AuthError>;
 
+    /// # Errors
+    /// Returns [`AuthError`] if the usage cannot be recorded.
     fn record_usage(&self, _user: &UserId, _tokens: u64) -> Result<(), AuthError> {
         Ok(())
     }

@@ -91,6 +91,8 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
     /// append fails the error propagates and the cache is left untouched; if the
     /// cache write fails afterwards it is logged and `Ok` is returned (the audit is
     /// the source of truth and the cache rebuilds on the next hydrate fallback).
+    /// # Errors
+    /// Returns [`StorageError`] if the record cannot be stored.
     pub async fn record_async(
         &self,
         session: &SessionId,
@@ -113,6 +115,8 @@ impl<M: MemoryStore, D: DocumentStore> MemoryCoordinator<M, D> {
 
     /// Hydrate all tiers for a session: the cache fast-path, with a `DocumentStore`
     /// fallback + re-populate for any missing tier.
+    /// # Errors
+    /// Returns [`StorageError`] if the record cannot be retrieved.
     pub async fn hydrate_async(&self, session: &SessionId) -> StorageResult<SessionMemory> {
         let mut memory = self.memory.hydrate_async(session).await?;
 

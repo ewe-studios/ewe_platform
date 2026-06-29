@@ -288,6 +288,8 @@ impl LlamaModels {
 
     /// Get the model spec.
     #[must_use]
+    /// # Errors
+    /// Returns [`GenerationError`] if generation fails.
     pub fn spec(&self) -> ModelSpec {
         self.inner.lock().unwrap().spec.clone()
     }

@@ -172,6 +172,8 @@ impl HuggingFaceCandleProvider {
     /// Create a new provider from configuration.
     ///
     /// Initialises the HF client and underlying [`CandleBackend`] (CPU).
+    /// # Errors
+    /// Returns [`GenerationError`] if the model cannot be loaded.
     pub fn new(config: HuggingFaceCandleConfig) -> ModelProviderResult<Self> {
         let hf_client = HFClient::builder()
             .token(
@@ -237,6 +239,8 @@ impl HuggingFaceCandleProvider {
     /// `HuggingFace` Hub into the local cache directory.
     ///
     /// Returns the local directory path containing the downloaded files.
+    /// # Errors
+    /// Returns [`GenerationError`] if generation fails.
     pub fn download_model(&self, repo_id: &str) -> ModelProviderResult<PathBuf> {
         let dest_dir = self.cache_dir.join(repo_id.replace('/', "--"));
 
@@ -343,6 +347,8 @@ impl HuggingFaceCandleProvider {
     /// List available safetensors files in a `HuggingFace` repository.
     ///
     /// Useful for discovering what models/shards are available before downloading.
+    /// # Errors
+    /// Returns [`GenerationError`] if streaming fails.
     pub fn list_model_files(&self, repo_id: &str) -> ModelProviderResult<Vec<String>> {
         let repo = self.hf_client.model(
             repo_id.split('/').next().unwrap_or("").to_string(),

@@ -267,6 +267,10 @@ impl ToolCallManager {
     }
 
     /// Register a tool (interior mutability — `&self`, no `Arc` mutation needed).
+    /// # Errors
+    /// Returns [`ToolError`] if the tool is not found.
+    /// # Panics
+    /// Panics if the tool cannot be registered.
     pub fn register(&self, tool: Arc<dyn ToolImpl>) {
         let def = tool.definition();
         let mut tools = self.inner.tools.write().unwrap();
@@ -278,6 +282,8 @@ impl ToolCallManager {
     }
 
     /// Deregister a tool by name.
+    /// # Errors
+    /// Returns [`ToolError`] if arguments are invalid.
     pub fn deregister(&self, name: &str) {
         self.inner.tools.write().unwrap().remove(name);
         self.inner.defs.write().unwrap().remove(name);
@@ -285,18 +291,24 @@ impl ToolCallManager {
 
     /// Look up a registered tool.
     #[must_use]
+    /// # Errors
+    /// Returns [`ToolError`] if execution fails.
     pub fn get(&self, name: &str) -> Option<Arc<dyn ToolImpl>> {
         self.inner.tools.read().unwrap().get(name).cloned()
     }
 
     /// Look up a tool's definition (fast — cached at register time).
     #[must_use]
+    /// # Errors
+    /// Returns [`ToolError`] if a dependency fails.
     pub fn get_def(&self, name: &str) -> Option<ToolDefinition> {
         self.inner.defs.read().unwrap().get(name).cloned()
     }
 
     /// List all registered tool names.
     #[must_use]
+    /// # Errors
+    /// Returns [`ToolError`] if execution fails.
     pub fn names(&self) -> Vec<String> {
         self.inner.tools.read().unwrap().keys().cloned().collect()
     }
@@ -321,6 +333,8 @@ impl ToolCallManager {
     }
 
     /// Validate arguments against the tool's JSON-Schema, then execute.
+    /// # Errors
+    /// Returns [`ToolError`] if validation fails.
     pub async fn execute_one(
         &self,
         request: &ToolCallRequest,
@@ -471,6 +485,8 @@ impl ToolCallManager {
     /// Stage 0 = calls with no deps (default: Parallel).
     /// Stage N = calls whose deps are all satisfied by stages < N.
     /// Cycles or missing deps → `ToolError::InvalidArguments`.
+    /// # Errors
+    /// Returns [`ToolError`] if the tool is not found.
     pub fn build_workflow(&self, calls: &[ToolCallRequest]) -> Result<ToolCallWorkflow, ToolError> {
         fn resolve_depth(
             idx: usize,
@@ -565,6 +581,8 @@ impl ToolCallManager {
     /// Returns `(result, backoff_durations_used)`. The caller is responsible for
     /// implementing the actual delay (via `TaskStatus::Delayed` in valtron context).
     /// In test / direct-call context, retries happen immediately.
+    /// # Errors
+    /// Returns [`ToolError`] if execution fails.
     pub async fn execute_with_retry(
         &self,
         request: &ToolCallRequest,
@@ -586,6 +604,8 @@ impl ToolCallManager {
     }
 
     /// Set per-tool retry config override.
+    /// # Errors
+    /// Returns [`ToolError`] if the tool is not found.
     pub fn set_retry_config(&self, tool_name: &str, config: ToolRetryConfig) {
         self.inner
             .retry_configs
@@ -596,6 +616,8 @@ impl ToolCallManager {
 
     /// Get retry config for a tool (per-tool override or default).
     #[must_use]
+    /// # Errors
+    /// Returns [`ToolError`] if a dependency fails.
     pub fn retry_config(&self, tool_name: &str) -> ToolRetryConfig {
         self.inner
             .retry_configs

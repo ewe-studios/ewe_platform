@@ -89,6 +89,8 @@ pub struct SessionRecordRow {
 
 impl SessionRecordRow {
     /// Project a `SessionRecord` into its flat promoted-column row.
+/// # Errors
+/// Returns [`serde_json::Error`] if the record cannot be serialized.
     pub fn from_record(record: &SessionRecord) -> Result<Self, SerError> {
         let content = serde_json::to_string(record).map_err(|e| SerError::Json(e.to_string()))?;
         let mut row = Self {
@@ -165,6 +167,8 @@ impl SessionRecordRow {
     }
 
     /// Reconstruct the exact `SessionRecord` from the JSON `content` blob.
+/// # Errors
+/// Returns [`serde_json::Error`] if the batch cannot be serialized.
     pub fn into_record(self) -> Result<SessionRecord, SerError> {
         serde_json::from_str(&self.content).map_err(|e| SerError::Json(e.to_string()))
     }

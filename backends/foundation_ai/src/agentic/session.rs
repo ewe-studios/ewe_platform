@@ -229,6 +229,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSessionBuilder<D
     /// the `ToolCallManager`, (2) access provider permits session + model,
     /// (3) budget is retrieved and applied to the ledger. If any check fails,
     /// no valtron task is scheduled.
+    /// # Errors
+    /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
     pub fn build(self) -> Result<AgentSession<D, M>, ErrorTrace<AgenticError>>
     where
         D: Default,
@@ -394,6 +396,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     /// Pushes the prompt into the follow-up queue, builds a fresh `AgentLoop`,
     /// schedules it via `execute()` (cfg-selects sendables vs `non_sendables`
     /// based on the `multi` feature), and returns the driven stream iterator.
+    /// # Errors
+    /// Returns [`ErrorTrace<AgenticError>`] if the loop cannot be scheduled.
     pub fn run_turn_stream(
         &self,
         prompt: Messages,
@@ -428,6 +432,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
     ///
     /// A terminal `FailedAction` surfaces as `Err`; otherwise returns all
     /// collected `SessionRecord`s. Prefer `run_turn_stream` for streaming.
+    /// # Errors
+    /// Returns [`ErrorTrace<AgenticError>`] if the loop fails.
     pub fn run_turn(
         &self,
         prompt: Messages,
@@ -474,6 +480,8 @@ impl<D: DocumentStore + 'static, M: MemoryStore + 'static> AgentSession<D, M> {
 
     /// Synchronous teardown (Decision 01): flush message buffer, drain queues,
     /// persist remaining messages, reset cancel signal.
+    /// # Errors
+    /// Returns [`ErrorTrace<AgenticError>`] if flushing fails.
     pub fn end(&self) -> Result<(), ErrorTrace<AgenticError>> {
         let _ = self.inner.message_api.flush();
 
@@ -507,6 +515,8 @@ impl<D: DocumentStore + Default + 'static, M: MemoryStore + Default + 'static> A
     /// 5. Context assembled by F16 (system -> working -> reflection -> recent -> recalled)
     /// 6. Queues start EMPTY (were drained+persisted on prior end)
     /// 7. `ToolCallManager` fresh
+    /// # Errors
+    /// Returns [`ErrorTrace<AgenticError>`] if preflight checks fail.
     pub fn resume(
         session_id: SessionId,
         router: ProviderRouter,
