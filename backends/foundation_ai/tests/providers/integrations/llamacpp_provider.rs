@@ -10,6 +10,7 @@ use foundation_ai::types::{
 };
 use foundation_core::valtron::valtron_test;
 use foundation_testing::huggingface::TestHarness;
+use std::os::unix::fs::MetadataExt;
 use tracing_test::traced_test;
 
 #[valtron_test]
@@ -99,6 +100,9 @@ fn test_download_smollm_model() {
         "Model file should exist after download"
     );
     assert!(model_path.ends_with("SmolLM2-360M-Instruct-Q2_K.gguf"));
+
+    let file_stats = std::fs::metadata(&model_path).unwrap();
+    assert!(file_stats.size() > 0);
 
     println!("Model downloaded to: {}", model_path.display());
 }

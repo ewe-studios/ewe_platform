@@ -202,7 +202,7 @@ fn priority_readiness_false_after_drain() {
     q.push_priority(user_msg("msg"));
     assert!(ready.is_ready(None));
 
-    let drained = q.drain_priority();
+    let _drained = q.drain_priority();
     assert!(!ready.is_ready(None));
 }
 

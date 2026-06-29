@@ -15,15 +15,14 @@ use foundation_ai::backends::anthropic_messages_provider::{
 };
 use foundation_ai::toolbox::llama_server_harness::start_llama_server;
 use foundation_ai::types::{
-    CostStatus, Messages, Model, ModelId, ModelInteraction,
-    ModelOutput, ModelParams, ModelProvider, ModelProviders, StopReason,
-    TextContent, ToolShed, UsageCosting, UsageReport, UserModelContent,
+    CostStatus, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams,
+    ModelProvider, ModelProviders, StopReason, TextContent, ToolShed, UsageCosting, UsageReport,
+    UserModelContent,
 };
 use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_netio::simple_http::client::native::NativeHttpClient;
 use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_testing::http::SseTestServer;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -67,10 +66,10 @@ fn setup_llama_server_provider() -> impl Model {
 }
 
 /// Test: generate a short response against the real llama-server.
-#[tracing_test::traced_test]
 #[valtron_test]
+#[tracing_test::traced_test]
 fn test_llama_server_anthropic_generate() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -93,7 +92,7 @@ fn test_llama_server_anthropic_generate() {
     let result = model.generate(interaction, None).unwrap();
     assert!(!result.is_empty());
 
-    drop(llama_server_guard);
+    drop(_llama_server_guard);
 
     if let Messages::Assistant {
         content,
@@ -123,7 +122,7 @@ fn test_llama_server_anthropic_generate() {
 #[tracing_test::traced_test]
 #[valtron_test]
 fn test_llama_server_anthropic_streaming() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -182,7 +181,7 @@ fn test_llama_server_anthropic_streaming() {
 #[tracing_test::traced_test]
 #[valtron_test]
 fn test_llama_server_anthropic_multi_turn() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -263,7 +262,7 @@ fn test_llama_server_anthropic_multi_turn() {
 #[tracing_test::traced_test]
 #[valtron_test]
 fn test_llama_server_anthropic_max_tokens() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -302,7 +301,7 @@ fn test_llama_server_anthropic_max_tokens() {
 #[tracing_test::traced_test]
 #[valtron_test]
 fn test_llama_server_anthropic_resolve_model() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {

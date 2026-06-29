@@ -18,8 +18,6 @@ use foundation_auth::{AuthCredential, ConfidentialText};
 use foundation_core::valtron::{valtron_test, Stream};
 use foundation_netio::simple_http::client::native::NativeHttpClient;
 use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_testing::http::{
-};
 
 // ============================================================================
 // llama-server integration tests (#[ignore]-gated)
@@ -53,7 +51,7 @@ fn setup_llama_server_provider() -> impl Model {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_generate() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -100,7 +98,7 @@ fn test_llama_server_generate() {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_streaming() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -159,7 +157,7 @@ fn test_llama_server_streaming() {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_multi_turn() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -240,7 +238,7 @@ fn test_llama_server_multi_turn() {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_max_tokens() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     let interaction = ModelInteraction {
@@ -279,7 +277,7 @@ fn test_llama_server_max_tokens() {
 #[valtron_test]
 #[tracing_test::traced_test]
 fn test_llama_server_resolve_model() {
-    let llama_server_guard = start_llama_server();
+    let _llama_server_guard = start_llama_server();
     let model = setup_llama_server_provider();
 
     // If we got a model handle, the provider connected successfully.
