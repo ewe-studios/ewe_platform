@@ -156,7 +156,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         follow_other_redirects_response: bool,
     ) -> Self {
         self.with_client_confg(|config| {
-            config.follow_other_redirects_response = follow_other_redirects_response;
+            config.redirect.follow_other_redirects_response = follow_other_redirects_response;
         })
     }
 

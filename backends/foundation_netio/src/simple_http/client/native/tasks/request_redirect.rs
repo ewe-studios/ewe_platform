@@ -310,15 +310,14 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         }
 
                         // Redirect check for no-body requests
-                        let (status, _proto, _text) = match &intro_result {
-                            Some(Ok(IncomingResponseParts::Intro(status, proto, text))) => {
-                                (status, proto, text)
-                            }
-                            _ => unreachable!(),
+                        let Some(Ok(IncomingResponseParts::Intro(status, _proto, _text))) =
+                            &intro_result
+                        else {
+                            unreachable!()
                         };
-                        let headers = match &headers_result {
-                            Some(Ok(IncomingResponseParts::Headers(ref h))) => h,
-                            _ => unreachable!(),
+                        let Some(Ok(IncomingResponseParts::Headers(headers))) = &headers_result
+                        else {
+                            unreachable!()
                         };
 
                         let is_redirect = (300..400).contains(&status.clone().into_usize());
@@ -356,8 +355,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                                 match redirects::build_followup_request_from_request_descriptor(
                                     &descriptor,
                                     new_url.clone(),
-                                    config.preserve_auth_on_redirect,
-                                    config.preserve_cookies_on_redirect,
+                                    config.redirect.preserve_auth_on_redirect,
+                                    config.redirect.preserve_cookies_on_redirect,
                                 ) {
                                     Ok(desc) => {
                                         tracing::info!("Redirected to new location: {:?}", &desc);
@@ -533,8 +532,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             match redirects::build_followup_request_from_request_descriptor(
                                 &descriptor,
                                 new_url.clone(),
-                                config.preserve_auth_on_redirect,
-                                config.preserve_cookies_on_redirect,
+                                config.redirect.preserve_auth_on_redirect,
+                                config.redirect.preserve_cookies_on_redirect,
                             ) {
                                 Ok(desc) => {
                                     tracing::info!("Redirected to new location: {:?}", &desc);

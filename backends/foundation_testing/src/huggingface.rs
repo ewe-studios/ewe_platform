@@ -13,7 +13,7 @@ use foundation_deployment_huggingface::{
 };
 use std::fs;
 use std::path::{Path, PathBuf};
-use tracing::{debug, info};
+use tracing::{debug, info, warn};
 
 /// Default artefacts directory name (relative to project root).
 pub const DEFAULT_ARTEFACTS_DIR: &str = "artefacts";
@@ -75,10 +75,24 @@ impl TestHarness {
     ) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
         let model_path = self.artefacts_dir.join(filename);
 
-        // Check if model already exists
+        // Treat an existing file as a valid cache only if it is non-empty. A
+        // 0-byte file is the fingerprint of a previously failed/partial
+        // download and must never be served as if it were the real model —
+        // remove it and re-download.
         if model_path.exists() {
-            info!("Model already exists at: {}", model_path.display());
-            return Ok(model_path);
+            let size = fs::metadata(&model_path)?.len();
+            if size > 0 {
+                info!(
+                    "Model already exists at: {} ({size} bytes)",
+                    model_path.display()
+                );
+                return Ok(model_path);
+            }
+            warn!(
+                "Found zero-byte cached model at {}; removing it before re-downloading",
+                model_path.display()
+            );
+            fs::remove_file(&model_path)?;
         }
 
         // Create artefacts directory if it doesn't exist
@@ -103,7 +117,23 @@ impl TestHarness {
             },
         )?;
 
-        info!("Model downloaded to: {}", model_path.display());
+        // Hard guard: a successful download must produce a non-empty file.
+        // If we ever end up with a 0-byte file, delete it and fail loudly
+        // rather than poisoning the cache for subsequent runs.
+        let size = fs::metadata(&model_path)?.len();
+        if size == 0 {
+            let _ = fs::remove_file(&model_path);
+            return Err(format!(
+                "Downloaded model {} is zero bytes — the download did not produce a valid file",
+                model_path.display()
+            )
+            .into());
+        }
+
+        info!(
+            "Model downloaded to: {} ({size} bytes)",
+            model_path.display()
+        );
         Ok(model_path)
     }
 

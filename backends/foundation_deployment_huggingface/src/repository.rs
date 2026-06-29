@@ -500,7 +500,7 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
             return Err(HuggingFaceError::Http {
                 status: status_num,
                 url: url.clone(),
-                body: format!("HTTP {} - Unable to get body", status_num),
+                body: format!("HTTP {status_num} - Unable to get body"),
             });
         };
 
@@ -510,7 +510,7 @@ pub fn repo_download_file(repo: &HFRepository, params: &RepoDownloadFileParams) 
         return Err(HuggingFaceError::Http {
             status: status_num,
             url: url.clone(),
-            body: format!("HTTP {} - {}", status_num, response_body),
+            body: format!("HTTP {status_num} - {response_body}"),
         });
     }
 

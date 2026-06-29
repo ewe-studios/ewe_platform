@@ -66,6 +66,11 @@ contributing/aggravating defects.
     `SimpleHttpClient::expect_continue(bool)` builder methods, so callers can
     disable the `Expect: 100-continue` flow per-client for endpoints that handle
     it poorly — without affecting other services.
+  - The three redirect-policy booleans (`preserve_auth_on_redirect`,
+    `preserve_cookies_on_redirect`, `follow_other_redirects_response`) were
+    grouped into a `RedirectConfig` sub-struct (`ClientConfig::redirect`) to keep
+    the struct's boolean count under the `clippy::struct_excessive_bools`
+    threshold. The public builder methods are unchanged.
 
 `foundation_deployment_huggingface`:
 
@@ -79,6 +84,11 @@ contributing/aggravating defects.
   added the `tracing-test` dev-dependency, and replaced the `eprintln!` that
   printed the first 10 characters of the token with a `tracing` call that logs
   only the token length.
+- `foundation_testing::huggingface::TestHarness::get_model` now hard-guards
+  against zero-byte files on both ends: an existing 0-byte cache entry is
+  deleted and re-downloaded rather than served, and a download that somehow
+  yields a 0-byte file is deleted and surfaced as an error instead of being
+  silently cached.
 
 ## Verification
 

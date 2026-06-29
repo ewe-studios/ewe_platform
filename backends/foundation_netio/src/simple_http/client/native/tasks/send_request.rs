@@ -557,7 +557,7 @@ where
                         }
 
                         // should we not follow body response redirect if so, yield here.
-                        if is_redirect && !self.1.follow_other_redirects_response {
+                        if is_redirect && !self.1.redirect.follow_other_redirects_response {
                             self.0 = Some(SendRequestState::Done);
                             return Some(TaskStatus::Ready(inner));
                         }

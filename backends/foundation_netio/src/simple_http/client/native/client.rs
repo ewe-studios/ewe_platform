@@ -299,13 +299,13 @@ impl<R: DnsResolver> SimpleHttpClient<R> {
 
     #[must_use]
     pub fn preserve_auth_on_redirect(mut self, preserve: bool) -> Self {
-        self.config.preserve_auth_on_redirect = preserve;
+        self.config.redirect.preserve_auth_on_redirect = preserve;
         self
     }
 
     #[must_use]
     pub fn preserve_cookies_on_redirect(mut self, preserve: bool) -> Self {
-        self.config.preserve_cookies_on_redirect = preserve;
+        self.config.redirect.preserve_cookies_on_redirect = preserve;
         self
     }
 

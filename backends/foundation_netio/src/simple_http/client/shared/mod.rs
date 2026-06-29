@@ -13,7 +13,7 @@ pub mod proxy;
 pub mod redirects;
 pub mod request;
 
-pub use config::ClientConfig;
+pub use config::{ClientConfig, RedirectConfig};
 pub use request::PreparedRequest;
 pub use body_reader::*;
 pub use compression::*;

@@ -8,6 +8,31 @@ use crate::simple_http::shared::{SimpleHeader, SimpleHeaders, SimpleHttpBody};
 
 use super::proxy;
 
+/// Redirect-handling policy.
+///
+/// Grouped into its own struct so the boolean toggles that govern redirect
+/// behaviour live in one cohesive place (and keep `ClientConfig`'s boolean
+/// field count manageable).
+#[derive(Debug, Clone)]
+pub struct RedirectConfig {
+    /// Preserve the `Authorization` header when following a cross-host redirect.
+    pub preserve_auth_on_redirect: bool,
+    /// Preserve the `Cookie` header when following a cross-host redirect.
+    pub preserve_cookies_on_redirect: bool,
+    /// Follow `3xx` responses other than the canonical redirect statuses.
+    pub follow_other_redirects_response: bool,
+}
+
+impl Default for RedirectConfig {
+    fn default() -> Self {
+        Self {
+            preserve_auth_on_redirect: false,
+            preserve_cookies_on_redirect: false,
+            follow_other_redirects_response: true,
+        }
+    }
+}
+
 /// Configuration for HTTP client.
 ///
 /// Centralizes all client configuration in one place. Makes it easy to
@@ -25,15 +50,14 @@ pub struct ClientConfig {
     pub full_body_threshold: u64,
     pub batch_size: usize,
     pub max_retries: usize,
-    pub preserve_auth_on_redirect: bool,
-    pub preserve_cookies_on_redirect: bool,
+    /// Redirect-following policy (auth/cookie preservation, etc.).
+    pub redirect: RedirectConfig,
     /// When `true`, requests carrying a body negotiate with an
     /// `Expect: 100-continue` header and wait for the server's interim
     /// `100 Continue` response before streaming the body. When `false`, the
     /// header is never sent and the body is written immediately. Bodyless
     /// requests (e.g. GET) never use the handshake regardless of this flag.
     pub expect_continue_enabled: bool,
-    pub follow_other_redirects_response: bool,
     pub headers_to_pass_on_redirect: Option<Vec<SimpleHeader>>,
     pub headers_to_add: Option<SimpleHeaders>,
 }
@@ -87,7 +111,7 @@ impl ClientConfig {
 
     #[must_use]
     pub fn with_follow_other_redirects_response(mut self, follow: bool) -> Self {
-        self.follow_other_redirects_response = follow;
+        self.redirect.follow_other_redirects_response = follow;
         self
     }
 
@@ -171,13 +195,13 @@ impl ClientConfig {
 
     #[must_use]
     pub fn with_preserve_auth_on_redirect(mut self, preserve: bool) -> Self {
-        self.preserve_auth_on_redirect = preserve;
+        self.redirect.preserve_auth_on_redirect = preserve;
         self
     }
 
     #[must_use]
     pub fn with_preserve_cookies_on_redirect(mut self, preserve: bool) -> Self {
-        self.preserve_cookies_on_redirect = preserve;
+        self.redirect.preserve_cookies_on_redirect = preserve;
         self
     }
 }
@@ -196,10 +220,8 @@ impl Default for ClientConfig {
             full_body_threshold: 512 * 1024,
             batch_size: 8192,
             max_retries: 5,
-            preserve_auth_on_redirect: false,
-            preserve_cookies_on_redirect: false,
+            redirect: RedirectConfig::default(),
             expect_continue_enabled: true,
-            follow_other_redirects_response: true,
             headers_to_pass_on_redirect: None,
             headers_to_add: None,
         }

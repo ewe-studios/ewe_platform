@@ -150,8 +150,8 @@ fn test_repository_info() -> Result<(), Box<dyn std::error::Error>> {
 
     let client = HFClientBuilder::new().token(token).build()?;
 
-    // Test with a well-known public model
-    let repo = client.model("bert-base-uncased".to_string(), "");
+    // Test with a well-known public model (namespaced owner/name).
+    let repo = client.model("google-bert".to_string(), "bert-base-uncased".to_string());
 
     // This should work even without auth for public repos
     match repository::repo_info(&repo, &types::RepoInfoParams::default()) {
