@@ -114,6 +114,7 @@ impl<T: std::fmt::Debug> std::fmt::Debug for PollResult<T> {
 /// 4. The guard's try_io() or clear_ready() resets readiness by re-polling
 ///
 /// This is the critical loop that prevents busy-wait on edge-triggered systems.
+#[allow(dead_code)]
 pub struct FdRegistration {
     registry: crate::native::poll::Registry,
     token: Token,

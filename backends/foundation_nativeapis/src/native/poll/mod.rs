@@ -203,6 +203,7 @@ impl Registry {
     }
 
     /// Access the internal selector (for platform-specific operations).
+#[allow(dead_code)]
     pub(crate) fn selector(&self) -> &sys::Selector {
         &self.selector
     }

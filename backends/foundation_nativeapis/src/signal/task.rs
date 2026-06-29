@@ -7,6 +7,7 @@ use foundation_core::valtron::{NoSpawner, QueueReadiness, TaskIterator, TaskStat
 
 use crate::signal::{SignalBus, SignalEvent, SignalHandle};
 
+#[allow(dead_code)]
 pub struct SignalTask {
     bus: Arc<SignalBus>,
     my_queue: Arc<ConcurrentQueue<SignalEvent>>,

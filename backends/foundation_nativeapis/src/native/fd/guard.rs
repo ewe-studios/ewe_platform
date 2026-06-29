@@ -32,6 +32,7 @@ impl<'a, T: AsRawFd + std::fmt::Debug> std::fmt::Debug for ReadyGuard<'a, T> {
 }
 
 impl<'a, T: AsRawFd> ReadyGuard<'a, T> {
+#[allow(dead_code)]
     pub(crate) fn new(fd: &'a RegisteredFd<T>, readiness: Ready) -> Self {
         Self { fd, readiness }
     }
@@ -148,6 +149,7 @@ pub struct MutReadyGuard<'a, T: AsRawFd> {
 }
 
 impl<'a, T: AsRawFd> MutReadyGuard<'a, T> {
+#[allow(dead_code)]
     pub(crate) fn new(fd: &'a mut RegisteredFd<T>, readiness: Ready) -> Self {
         Self { fd, readiness }
     }
