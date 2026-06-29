@@ -6,7 +6,7 @@ use async_trait::async_trait;
 use foundation_errstacks::ErrorTrace;
 
 use super::async_traits::{
-    AsyncDeltaStore, AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
+    AsyncSeekableVfsFile, AsyncVfsDirectory, AsyncVfsFile, AsyncVfsFileSystem,
 };
 use super::error::{VfsError, VfsResult};
 use super::path_utils::{file_name, normalize_vfs_path, parent_path};

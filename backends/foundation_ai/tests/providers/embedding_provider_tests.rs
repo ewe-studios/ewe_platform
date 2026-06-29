@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use foundation_ai::agentic::{
     CacheStats, CachedEmbeddingProvider, EmbeddingProvider, NoopColdCache, SentenceChunker,
     WholeTextChunker,

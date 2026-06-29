@@ -1,6 +1,3 @@
-/// Linux `Event` — wraps `libc::epoll_event`.
-
-use super::super::Token;
 
 /// A single readiness event from `epoll_wait()`.
 #[derive(Clone, Copy)]

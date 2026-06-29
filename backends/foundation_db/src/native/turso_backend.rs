@@ -564,6 +564,7 @@ impl TursoStorage {
     }
 
     /// Helper: wrap an async result into a `StorageItemStream` via `from_future`.
+#[allow(dead_code)]
     fn wrap_async<T: Send + 'static>(
         future: impl std::future::Future<Output = StorageResult<T>> + Send + 'static,
     ) -> StorageResult<StorageItemStream<'static, T>> {

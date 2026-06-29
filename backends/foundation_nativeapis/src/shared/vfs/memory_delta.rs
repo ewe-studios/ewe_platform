@@ -6,7 +6,6 @@ use async_trait::async_trait;
 use super::async_traits::{AsyncDeltaStore, AsyncVfsFileSystem};
 use super::error::VfsResult;
 use super::memory_fs::{MemoryFile, MemoryFs, SeekableMemoryFile};
-use super::async_traits::AsyncVfsDirectory;
 use super::traits::{DeltaStore, VfsDirectory, VfsFileSystem};
 use super::types::{OpenMode, VfsCapabilities, VfsMetadata};
 

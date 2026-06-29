@@ -5,7 +5,7 @@ use std::sync::Arc;
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{NoSpawner, QueueReadiness, TaskIterator, TaskStatus};
 
-use crate::signal::{SignalBus, SignalEvent, SignalHandle, SignalKind};
+use crate::signal::{SignalBus, SignalEvent, SignalHandle};
 
 pub struct SignalTask {
     bus: Arc<SignalBus>,

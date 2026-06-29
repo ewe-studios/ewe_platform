@@ -3,8 +3,6 @@
 
 use foundation_core::valtron::EventReadiness;
 
-use crate::signal::event::SignalEvent;
-use crate::signal::event::SignalKind;
 
 /// Platform-specific signal handle.
 ///

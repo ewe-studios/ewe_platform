@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 //! Integration tests for `HuggingFaceCandleProvider`.
 //!
 //! These tests verify safetensors model downloading from HuggingFace Hub

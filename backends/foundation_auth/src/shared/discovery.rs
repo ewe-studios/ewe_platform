@@ -231,6 +231,7 @@ async fn do_fetch(url: &str) -> Result<OidcDiscovery, DiscoveryError> {
 }
 
 /// Validate required fields.
+#[allow(dead_code)]
 fn validate_discovery(d: &OidcDiscovery) -> Result<(), DiscoveryError> {
     if d.issuer.is_empty() {
         return Err(DiscoveryError::MissingRequiredField(

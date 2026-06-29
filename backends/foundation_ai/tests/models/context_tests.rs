@@ -1,3 +1,4 @@
+#![allow(unused_imports)]
 use std::sync::Arc;
 
 use foundation_ai::agentic::context::ContextProvider;

@@ -23,11 +23,11 @@ use std::io::SeekFrom;
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::Mutex;
 
-use foundation_core::synca::mpp::{self, Broadcaster, Receiver};
+use foundation_core::synca::mpp::{Broadcaster, Receiver};
 
-use super::error::{VfsError, VfsResult};
+use super::error::VfsResult;
 use super::traits::{SeekableVfsFile, VfsFile, VfsFileSystem};
-use super::types::{OpenMode, VfsCapabilities, VfsDirEntry, VfsMetadata};
+use super::types::{OpenMode, VfsCapabilities, VfsMetadata};
 
 // ── VfsEvent ──
 

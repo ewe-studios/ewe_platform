@@ -17,11 +17,11 @@ pub mod error;
 pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
 
-use crate::native::poll::{Events, Interest, Registry, Token};
+use crate::native::poll::{Events, Interest, Token};
 use crate::native::poll::sys::RawFd;
 
 use std::io;
-use std::os::unix::io::{AsRawFd, FromRawFd, RawFd as StdRawFd};
+use std::os::unix::io::{AsRawFd, RawFd as StdRawFd};
 use std::sync::Mutex;
 use std::time::Duration;
 

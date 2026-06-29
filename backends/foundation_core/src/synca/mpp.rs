@@ -537,7 +537,7 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
                 Err(_) => {
                     slot.consecutive_failures += 1;
                     if slot.consecutive_failures >= max {
-                        slot.sender.close();
+                        let _ = slot.sender.close();
                         false
                     } else {
                         true
@@ -556,7 +556,7 @@ impl<T: Clone + Send + 'static> TrackedBroadcaster<T> {
     pub fn close(&self) {
         let mut inner = self.inner.lock().unwrap_or_else(|e| e.into_inner());
         for slot in &inner.slots {
-            slot.sender.close();
+            let _ = slot.sender.close();
         }
         inner.slots.clear();
     }

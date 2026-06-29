@@ -3,7 +3,7 @@
 #[cfg(target_os = "linux")]
 pub mod selector {
     pub mod epoll;
-    pub use epoll::{Selector, RawFd};
+    
 }
 
 #[cfg(any(
@@ -23,7 +23,7 @@ pub mod selector {
 pub mod waker {
     /// Linux waker using eventfd.
     mod eventfd;
-    pub use eventfd::WakerFd;
+    
 }
 
 /// SourceFd — register any raw file descriptor with the poll selector.
