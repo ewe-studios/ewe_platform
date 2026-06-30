@@ -207,10 +207,12 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
 - **`#[valtron(_test)] async fn`** lets us write/test handlers and the conformance harness in
   plain async.
 - **Native real-I/O parking needs a reactor** (L2 impl) — *not* shipped here. Our HTTP/1.1,
-  `http2/`, `http3/` transports block on sockets; to park (not spin) on native they need a
-  `ReadinessSource` reactor in `foundation_netio`. That reactor is its own platform feature;
-  this decision provides the seam it registers into. On wasm, the browser drives wakers, so
-  L1 alone suffices.
+  `http2/`, `http3/`, and **WebSocket** (Decision 13 E2) transports block on sockets; to park
+  (not spin) on native they need a `ReadinessSource` reactor in `foundation_netio`. That
+  reactor is its own platform feature; this decision provides the seam it registers into.
+  Until it lands, the WebSocket tasks use a timeout-poll + `Delayed` fallback (Decision 13),
+  so they work without it but do not truly park. On wasm, the browser drives wakers, so L1
+  alone suffices.
 
 ## Open Questions
 

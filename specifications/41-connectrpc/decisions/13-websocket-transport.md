@@ -22,20 +22,47 @@ stream and an outbound `ConcurrentQueue`. So this slots in as just another `Tran
 implementation — it validates the spec's central thesis that the Connect/gRPC protocols are
 abstracted from the transport and plug-and-play on top of any full-duplex carrier.
 
-We already own the WebSocket layer in `foundation_netio/src/websocket/`:
+We already own the WebSocket layer in `foundation_netio/src/websocket/`. A detailed read
+(2026) shows it is **strong but not turnkey** for our needs — what exists, and what must be
+enhanced, is recorded precisely below so the feature work is scoped honestly.
 
-- `shared::frame` — `WebSocketFrame`, `Opcode` (RFC 6455 framing + masking)
-- `shared::message` — `WebSocketMessage` (Text/Binary/Ping/Pong/Close)
-- `shared::handshake` — `compute_accept_key`, `generate_websocket_key`,
-  `build_upgrade_request`, `validate_upgrade_response`
-- `shared::assembler` — fragmented-frame reassembly
-- `native::connection` — `WebSocketConnection` (`send`/`recv`/`messages()`/`close`/`flush`),
-  `MessageDelivery` (whose `queue() -> &Arc<ConcurrentQueue<WebSocketMessage>>` **is already an
-  outbound seam queue**), `WebSocketClient`
-- `native::server` — server-side upgrade/accept
+**Ready and RFC-correct (reuse as-is):**
+- `shared::frame` — `WebSocketFrame`, `Opcode`, encode/decode, masking, extended lengths,
+  `validate`, `to_message`.
+- `shared::assembler` — `MessageAssembler`: full fragmentation with size limits and
+  *incremental* UTF-8 validation across fragments; tolerates interleaved control frames.
+- `shared::handshake` — `compute_accept_key`, `generate_websocket_key` (wasm-clean RNG via
+  `foundation_compact`, not `getrandom`), `build_upgrade_request`, `validate_upgrade_response`.
+- `native::task::WebSocketTask` (**client**) — a complete progress-driven `TaskIterator`:
+  drains an outbound `delivery_queue`, auto-Pongs, runs the assembler, handles Close,
+  zero-copy `decode_with_buffer`. `MessageDelivery::queue() -> &Arc<ConcurrentQueue<…>>` **is
+  already an outbound seam queue**. `ReconnectingWebSocketTask` forwards the full `TaskStatus`
+  set incl. `Depends`/`Wait`.
+- `native::server::WebSocketUpgrade` — `is_upgrade_request`/`extract_key`/
+  `extract_subprotocols`/`accept` (and `accept` **echoes the negotiated
+  `Sec-WebSocket-Protocol`**).
 
-So this decision is mostly *wiring* an existing carrier into the RPC stack, not building a
-WebSocket implementation from scratch.
+**Gaps that block a robust RPC server transport (enhanced by this decision):**
+
+1. **Read model is timeout-poll, not reactor-parking.** `WebSocketTask` sets a read timeout,
+   does a blocking `decode_with_buffer`, and on `WouldBlock`/`TimedOut` returns
+   `TaskStatus::Delayed(..)` — it never emits `Depends`/`QueueReadiness`. So a worker is tied
+   up for up to `read_timeout` per poll and the stack does **not** use Decision 00. *(Works
+   today; we enhance it to `Depends` where it pays off — see E2.)*
+2. **The frame decoder cannot resume a partial frame.** `decode`/`decode_with_buffer` tolerate
+   `WouldBlock`/`TimedOut` only on the **first header byte**; once consumed, any such error is
+   converted to `ProtocolError("stream corrupted")`. It assumes the whole frame arrives within
+   one read-timeout window (kernel-buffered). On a *true* non-blocking fd a large frame splits
+   across reads → false "corruption". A **resumable/buffered decoder** is required before WS
+   can ride the Decision 00 reactor path (E1).
+3. **Server side is blocking convenience only.** `WebSocketServerConnection::recv()` is
+   `recv_frame()? .to_message()` — **no assembler** (a `Continuation` frame errors by design in
+   `to_message`, so multi-frame messages fail; the "handles frame assembly" doc comment is
+   wrong), **no auto-Pong on read**, **no delivery-queue seam**, and only partial Close
+   handling. There is **no progress-driven server task** mirroring `WebSocketTask`. (E3.)
+
+So this decision is **wiring + three targeted enhancements** (E1–E3), not a from-scratch
+implementation. We own the code; we enhance the existing types and add a robust server task.
 
 ## Decision
 
@@ -53,16 +80,84 @@ streaming (including full-duplex bidi) over a WebSocket connection — implement
   - Open question OQ#13.1: whether to use one WS binary message per envelope (simplest) or
     let a single WS message contain a batch of envelopes. Default: **one envelope per WS
     binary message.**
-- **Direction.** Inbound RPC messages come from `WebSocketConnection::recv()` /
-  `messages()`; outbound go through `MessageDelivery` / its `ConcurrentQueue`. This is the
-  Decision 11 `MessageSource` / `MessageSink` pair with a WebSocket-shaped backing — no new
-  seam concept.
+- **Direction.** On the **client**, outbound goes through `MessageDelivery` / its
+  `ConcurrentQueue` and inbound arrives from the `WebSocketTask` stream. On the **server**,
+  the `WebSocketServerTask` (E3) exposes the `inbound`/`outbound` `ConcurrentQueue` pair
+  directly. Either way this is the Decision 11 `MessageSource` / `MessageSink` pair with a
+  WebSocket-shaped backing — no new seam concept. (The blocking `recv()`/`messages()` APIs are
+  *not* the RPC path.)
 - **Trailers / end-of-stream.** Connect streaming end-of-stream is an `EndStreamResponse`
   envelope (Decision 05), carried as a final binary message; the WebSocket `Close` frame is
   the transport-level teardown, mapped to/from cancellation (Decision 04, Option B).
 - **Control frames.** `Ping`/`Pong` are handled by the WebSocket layer for keepalive and are
   **not** surfaced to handlers. `Close` (with code/reason) maps to stream completion or
-  cancellation.
+  cancellation. Auto-Pong, the delivery-queue seam, and Close-handshake completion are
+  **config-gated** on the server (see E3 / `WsServerConfig`).
+
+### Foundation enhancements (E1–E3) — designed here, built as features
+
+These upgrade the existing `foundation_netio` WebSocket layer; we own it and enhance in place
+rather than vendoring or forking.
+
+**E1 — Resumable frame decoder (`WebSocketFrameDecoder`).**
+Replace the one-shot `decode`/`decode_with_buffer` assumption ("whole frame within one
+read-timeout window") with a **stateful decoder that holds partial-frame progress across
+polls**:
+
+```rust
+pub enum FrameStep { Pending, Complete(WebSocketFrame) }
+
+pub struct WebSocketFrameDecoder {
+    // phase: reading header / extended-len / mask-key / payload(remaining)
+    // carries a growable buffer of bytes received so far for the in-flight frame
+}
+impl WebSocketFrameDecoder {
+    /// Feed whatever bytes are currently available (may be empty). Never errors on a
+    /// short read — returns `Pending` and keeps state. Errors only on protocol violations.
+    pub fn step(&mut self, src: &mut impl Read) -> Result<FrameStep, WebSocketError>;
+}
+```
+
+- On a non-blocking fd, `WouldBlock` mid-frame is **normal**: the decoder saves what it has
+  and returns `Pending` (no "stream corrupted"). When more bytes arrive it resumes.
+- Backwards compatible: the existing blocking `decode` becomes a thin
+  `loop { step }`-until-`Complete` wrapper for callers that want the simple API.
+- Enforces the same size limits and control-frame rules as today.
+
+**E2 — `Depends(QueueReadiness)` read model (opt-in, enhances E1).**
+With a resumable decoder, both client and server tasks can stop timeout-polling and **park**:
+when `step` returns `Pending` because the socket has no bytes, the task registers the fd with
+the Decision 00 `ReadinessSource` (`Interest::Readable`) and returns
+`TaskStatus::Depends(QueueReadiness(wake_queue))`. The reactor wakes it when readable.
+- Gated by config / availability: if no `ReadinessSource` is registered (e.g. today, or
+  wasm), the task falls back to the **existing timeout-poll + `Delayed`** behavior — no
+  regression. This is the "enhance with `Depends` if it makes sense" path, explicitly tied to
+  **Decision 00** (its hard prerequisite for true parking on native).
+
+**E3 — Robust server task (`WebSocketServerTask`) + `WsServerConfig`.**
+Add a progress-driven server-side `TaskIterator` (mirroring `WebSocketTask`'s `Open` state,
+but with **server** semantics: don't mask outgoing, reject unmasked client data frames — that
+check already exists in `recv_frame`):
+
+```rust
+pub struct WsServerConfig {
+    pub auto_pong: bool,            // default true — answer client Ping with Pong
+    pub max_message_size: usize,    // assembler limit
+    pub graceful_close: bool,       // default true — complete the Close handshake
+    pub read_model: ReadModel,      // Depends (if reactor present) | TimeoutPoll
+    pub inbound: Arc<ConcurrentQueue<WebSocketMessage>>,   // seam in
+    pub outbound: Arc<ConcurrentQueue<WebSocketMessage>>,  // seam out
+}
+```
+
+- Uses `MessageAssembler` so multi-frame messages assemble (fixes the server gap).
+- Drains `outbound` to send, pushes assembled inbound messages to `inbound` — the dual
+  `ConcurrentQueue` pair *is* the Decision 11 seam on the server side.
+- Auto-Pong, delivery-queue seam, and full Close handshake are **enabled per
+  `WsServerConfig`** (you asked for config-gating). The existing blocking
+  `WebSocketServerConnection` stays as the simple convenience API; the new task is the robust
+  RPC path. We may also retrofit `WebSocketServerConnection::recv` to use the assembler for
+  correctness even in the blocking API.
 
 ### What it enables
 
@@ -93,7 +188,12 @@ protocol and is **not** adopted here). Consequences:
   dependency.
 - Sits cleanly behind the Decision 11 seam, so it does not perturb the protocol/codec/handler
   layers.
+- **E1 (resumable decoder) benefits more than WS:** any frame-oriented protocol on a
+  non-blocking fd needs partial-read resumption; the decoder is reusable.
+- **E2 ties WS to Decision 00:** true parking on native requires the `ReadinessSource`
+  reactor; until then WS uses the existing timeout-poll fallback with no regression.
 - **Sequencing:** implemented **last** among transports; nothing in Phases 1–3 depends on it.
+  Within this decision, order is **E1 → E3 → (E2 when Decision 00 reactor lands) → 13-F1**.
 
 ## Open Questions
 
@@ -105,10 +205,19 @@ protocol and is **not** adopted here). Consequences:
   motivating case.
 - **OQ#13.3** — subprotocol negotiation: advertise a `Sec-WebSocket-Protocol` token (e.g.
   `connect-rpc`) so peers can detect compatibility during the handshake.
+- **OQ#13.4** — should the blocking `WebSocketServerConnection::recv` be retrofitted with the
+  assembler (correctness for the simple API), or left blocking-convenience-only with the
+  robust path being `WebSocketServerTask`? *Tentative:* retrofit `recv` for correctness; steer
+  RPC users to the task.
 
 ## Features
 
-- **13-F1 — `WebSocketTransport` (server + client).** Wire the `foundation_netio` WebSocket
-  connection into the Decision 11 seam (`MessageSource`/`MessageSink`), perform the upgrade,
-  and carry Connect envelopes as binary WS messages. Full-duplex bidi end-to-end. *(Last
-  feature in the implementation order.)*
+| # | Feature | Depends on |
+|---|---|---|
+| 13-E1 | **Resumable frame decoder** `WebSocketFrameDecoder` — partial-frame state across reads; `WouldBlock` mid-frame → `Pending`, not "corrupted"; blocking `decode` becomes a `step`-loop wrapper | — |
+| 13-E3 | **`WebSocketServerTask` + `WsServerConfig`** — progress-driven server `TaskIterator`: assembler, dual `ConcurrentQueue` seam, config-gated auto-Pong / graceful Close; retrofit blocking `recv` to assemble (OQ#13.4) | 13-E1 |
+| 13-E2 | **`Depends(QueueReadiness)` read model** — client + server tasks park via Decision 00 `ReadinessSource` when no bytes; fall back to timeout-poll + `Delayed` when no reactor | 13-E1, **Decision 00** |
+| 13-F1 | **`WebSocketTransport` (server + client)** — wire the enhanced WS conn/task into the Decision 11 seam, perform the upgrade, carry Connect envelopes as binary WS messages; full-duplex bidi end-to-end | 13-E1, 13-E3 |
+
+*(Implementation order: 13-E1 → 13-E3 → 13-F1, with 13-E2 layered in once the Decision 00
+reactor exists. This whole decision is still scheduled last among transports.)*
