@@ -194,69 +194,54 @@ pub struct RequestContext {
 }
 
 impl RequestContext {
-    pub fn is_canceled(&self) -> bool;
-    pub fn cancel(&self);
+    pub fn is_canceled(&self) -> bool;        // sync poll (escape hatch)
+    pub fn cancel(&self);                      // transport calls this on RST/close/deadline
+    pub async fn cancelled(&self);             // awaitable — race against unrelated work in `select!`
     pub fn remaining_timeout(&self) -> Option<Duration>;
 }
 ```
 
 `Extensions` is a type-map (like `http::Extensions`) that middleware can insert typed data into. The auth middleware inserts the authenticated identity here.
 
-### Handler Traits
+### Handler API (async functions / streams)
 
-Unary handlers return a `Response`; streaming handlers use the **push model**: they
-receive a `MessageSource<Req>` (pull request messages) and/or a `MessageSink<Res>` (push
-response messages) and may interleave reads and writes freely. The signatures are
-identical on every transport (HTTP/1.1 / HTTP/2 / HTTP/3) — duplex is a scheduling
-property of the transport, not the API. `MessageSource` / `MessageSink` are bounded pipes
-over valtron's `ConcurrentQueueStreamIterator`; end-of-stream is `receive() -> Ok(None)`.
-They are defined in `11-transport-seam.md` (the transport seam), which this document
-builds on.
+Handlers are **plain async Rust** — `async fn`s and futures `Stream`s. None of the valtron
+machinery (`TaskStatus` tasks, the `ConcurrentQueue` seam, the `Stream<D,P>` boundary)
+appears in handler code: valtron's `from_future` / `from_stream` bridge turns the user's
+async into tasks, and each `.await` is the yield point — async/await *is* the state machine
+the executor drives. The internal wiring is in `11-transport-seam.md`.
 
 ```rust
-/// Unary RPC handler.
-pub trait UnaryHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, request: Request<Req>)
-        -> Result<Response<Res>, ConnectError>;
-}
+// unary
+async fn greet(&self, ctx: &Ctx, req: Request<GreetReq>)
+    -> Result<Response<GreetRes>, ConnectError>;
 
-/// Server streaming — handler pushes response messages, sets headers/trailers as it goes.
-pub trait ServerStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, request: Request<Req>, responses: MessageSink<Res>)
-        -> Result<(), ConnectError>;
-}
+// server streaming — return an async Stream of responses
+async fn list(&self, ctx: &Ctx, req: Request<ListReq>)
+    -> Result<impl Stream<Item = Result<File, ConnectError>>, ConnectError>;
 
-/// Client streaming — handler pulls request messages, returns one response.
-/// Request headers come from `requests.headers()` (not a separate parameter).
-pub trait ClientStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, requests: MessageSource<Req>)
-        -> Result<Response<Res>, ConnectError>;
-}
+// client streaming — consume an async Stream, return one response
+async fn upload(&self, ctx: &Ctx, reqs: impl Stream<Item = Result<Chunk, ConnectError>>)
+    -> Result<Response<UploadRes>, ConnectError>;
 
-/// Bidirectional streaming — handler holds both halves and may interleave reads/writes.
-pub trait BidiStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, requests: MessageSource<Req>, responses: MessageSink<Res>)
-        -> Result<(), ConnectError>;
-}
+// bidi — async Stream in, async Stream out (interleave with .await)
+async fn echo(&self, ctx: &Ctx, reqs: impl Stream<Item = Result<EchoReq, ConnectError>>)
+    -> Result<impl Stream<Item = Result<EchoRes, ConnectError>>, ConnectError>;
 ```
 
-### Closure-Based Handler Constructors
+The same signatures hold on every transport (HTTP/1.1 / HTTP/2 / HTTP/3); **duplex is a
+scheduling property** of how the framework drives the two internal seam queues, not the API.
 
-For ergonomics, provide `handler_fn` constructors like connect-go's `NewUnaryHandler`:
+**Threading:** futures crossing the multi-threaded pool are `Send + 'static` (standard for
+async-on-threadpool); valtron also exposes a non-`Send` / local executor path, and
+single-threaded / wasm code can wrap non-`Send` state in `SendWrapper` to satisfy the bound.
+So `!Send` handler state is never a blocker.
 
-```rust
-pub fn unary_handler_fn<Req, Res, F>(f: F) -> impl UnaryHandler<Req, Res>
-where
-    F: Fn(&RequestContext, Request<Req>) -> Result<Response<Res>, ConnectError> + Send + Sync + 'static;
-
-pub fn server_stream_handler_fn<Req, Res, F>(f: F) -> impl ServerStreamHandler<Req, Res>
-where
-    F: Fn(&RequestContext, Request<Req>, MessageSink<Res>) -> Result<(), ConnectError>
-        + Send + Sync + 'static;
-
-// client_stream_handler_fn: Fn(&RequestContext, MessageSource<Req>) -> Result<Response<Res>, _>
-// bidi_stream_handler_fn:   Fn(&RequestContext, MessageSource<Req>, MessageSink<Res>) -> Result<(), _>
-```
+There are **no** user-facing `MessageSink` / `MessageSource` / handler traits — those are
+internal adapters over the seam queues (Decision 11). Generated service traits (Decision 10)
+express each method as an `async fn` of exactly these shapes; the codec/seam are internal.
+`handler_fn`-style constructors, where used, simply take an `async` fn/closure of the
+matching shape.
 
 ### Interceptor System
 
@@ -370,17 +355,16 @@ Wraps handler execution in `std::panic::catch_unwind`. On panic, calls the user'
 
 ## Consequences
 
-- Handler traits use foundation types (`SimpleHeaders`, `RequestContext`) not HTTP types
-- Streaming uses `StreamIterator` compatible with valtron's progress model
-- Interceptors use type-erased `AnyRequest`/`AnyResponse` matching connect-go's pattern
-- `StreamingHandlerConn` provides the same concurrent read/write interface as connect-go
+- Handlers are async fns/`Stream`s; valtron drives them via `from_future`/`from_stream` — the `TaskStatus`/`Stream`/queue machinery is internal (Decision 11)
+- Interceptors are **seam-level over bytes + metadata**; per-procedure typed concerns are facade message-middleware — there is no `AnyRequest`/`AnyResponse` `dyn Any` boundary
+- The streaming interceptor conn is Decision 11's byte-level `HandlerConn` (passed by value), not a separate `StreamingHandlerConn`
 - Panic recovery via interceptor, not built into the framework
 - `Extensions` type-map enables middleware to pass typed data through the request pipeline
 
 ## Additional Decisions
 
-Smaller decided items (the streaming handler shape, push model, interceptor fn-types, and
-by-value conn are already in the body above):
+Smaller decided items (the async handler model, interceptor fn-types, and by-value conn are
+already in the body above):
 
 - **RS4 — panic recovery:** wrap handler invocation in `AssertUnwindSafe`; treat the
   connection as poisoned after a caught panic.
@@ -410,8 +394,20 @@ by-value conn are already in the body above):
 
 ## Open Questions
 
-1. **Sync vs async handlers**: The handler traits above are synchronous (return `Result` directly). Valtron's model is progress-driven, not async/await. Should handlers be allowed to return `Stream<D, P>` for deferred execution, or always block the worker thread? connect-go handlers block their goroutine.
-2. **StreamIterator EOF signaling**: Using `Stream::Init` to signal stream completion is unconventional. Should we use a separate `bool` flag or `Option<Result<T, ConnectError>>` return? Need to verify this matches foundation_core's iterator conventions.
+1. **Sync vs async handlers — resolved.** Handlers are **async fns / async `Stream`s** (the Handler API above). valtron drives them via `from_future`/`from_stream`; `.await` is the yield point and nothing blocks a worker (Decision 11).
+2. **StreamIterator EOF signaling — resolved.** EOF is `Iterator::next() == None` / `receive() -> Ok(None)`. `Stream::Init` means *initializing*, never completion (Decision 11). (Moot anyway — handlers are async, not raw `StreamIterator`s.)
 3. **Interceptor overhead for unary**: connect-go applies interceptors once at client/handler creation time (not per-call). We should do the same — wrap the handler function once during registration, not on every request.
-4. **Context cancellation propagation**: Go's `context.WithCancel` naturally propagates cancellation. Our `RequestContext.canceled` is a manual `AtomicBool`. How do long-running handlers check for cancellation? Should `StreamIterator::next` automatically return error if context is canceled?
-5. **Concurrent read/write for StreamingHandlerConn**: connect-go allows Receive and Send to be called from different goroutines. In our model, the handler runs on a single worker thread. For bidi streaming, do we need to split into separate reader/writer tasks on the valtron executor?
+4. **Context cancellation propagation — resolved (Option B + valtron poll-tree).** The
+   transport pushes cancellation (conn close / RST_STREAM / QUIC reset / deadline) into
+   `RequestContext.cancel()` (Decision 11). On cancel the request `Stream` terminates
+   (`next().await` → `None`/`Err(Canceled)`) and `send` returns `Err(Canceled)`, so the
+   idiomatic handler loop unwinds at its own `.await` points — no manual checks. Escape
+   hatches for awaits on *unrelated* work: `ctx.is_canceled()` (sync poll) and
+   `ctx.cancelled().await` (race via `select!`). The window is bounded several ways:
+   (a) once any unrelated await returns, the **next** stream `send`/`receive` fails with
+   `Canceled`; and (b) because valtron drives awaited work by **polling**, the wrapping task
+   can observe the cancel signal and simply **stop polling the inner future/stream** — so
+   cancellation propagates down the poll tree into nested awaited tasks too (the only
+   un-cancellable case is work already escaped onto a blocking background thread, as
+   everywhere). Unary = the framework drops the handler future (cancel-by-drop).
+5. **Concurrent read/write — resolved.** Bidi is reader-task → `request_q` → async handler → `response_q` → writer-task; reader and writer are independent valtron tasks (full-duplex on HTTP/2/3), so send and receive progress concurrently with no thread management in the handler (Decision 11).

@@ -113,14 +113,16 @@ impl Codec for JsonCodec {
     fn name(&self) -> &str { "json" }
 
     fn marshal(&self, message: &dyn MessageRef) -> Result<Vec<u8>, CodecError> {
-        // If message is a buffa type: use buffa's JSON serialization (protobuf canonical JSON)
-        // If message is serde::Serialize: use serde_json::to_vec
-        // This dual path handles both protobuf services and custom JSON services
+        // buffa messages → buffa's canonical protobuf-JSON (lowerCamelCase, string enums).
+        // NOTE: there is no "is it serde::Serialize?" branch — `dyn Any` can only downcast
+        // to a *concrete type*, not to a trait bound (S6). A non-protobuf serde-JSON
+        // service is a separate codec instantiated over its concrete type and registered
+        // under its OWN content-type (Q5), not smuggled through this proto-JSON codec.
     }
 
     fn unmarshal(&self, data: &[u8], target: &mut dyn MessageMut) -> Result<(), CodecError> {
-        // Corresponding dual-path deserialization
-        // For protobuf JSON: DiscardUnknown = true (forward compatibility)
+        // buffa canonical JSON, DiscardUnknown = true (forward compatibility).
+        // Reject zero-length payloads (P16).
     }
 }
 
@@ -152,6 +154,19 @@ impl Codec for ArrowCodec {
 ```
 
 Arrow codec is behind an `arrow` feature flag. This is a platform extension — not part of the ConnectRPC spec. Content-Type: `application/arrow` for unary, `application/connect+arrow` for streaming.
+
+**First-class zero-serialization codec (decided).** Arrow is the strongest zero-copy path:
+`foundation_arrow` wraps the split `arrow-*` crates, and Arrow `Buffer`/`RecordBatch` are
+**Arc-backed and columnar** — a batch is `'static + Send + Sync`, cheaply cloneable, and read
+column-wise with **no per-field decode**. The Arrow "message" type is a `RecordBatch` (or a
+`ToArrow`/`FromArrow` type), so it sidesteps the `MessageView<'a>` lifetime problem entirely.
+Two caveats: (1) Arrow is **columnar** — a message is a batch of N rows (great for bulk /
+analytical RPC, awkward for one-object-per-call; per-method choice), and (2) it is a
+**platform extension** under `application/(connect+)arrow` — only our clients speak it, not
+stock gRPC. **Enabler for *true* zero-copy:** wire `foundation_arrow`'s IPC reader to read
+from the Arc-backed frame `Bytes` (`arrow_buffer::Buffer`) rather than `&[u8]`+copy, and let
+write reuse the batch's buffers — otherwise the current `encode_ipc`/`decode_ipc(&[u8])`
+path still does an IPC framing copy.
 
 ### Codec Registry
 
@@ -209,13 +224,14 @@ Decided items folded in from the review (we own the code; implement directly):
   `Codec` for pooled-buffer reuse on hot paths.
 - **RS9 — Send/Sync:** per-call message construction resolves the `Send`-only vs
   `Send+Sync` distinction between `MessageRef`/`MessageMut`.
-- **RS2 — zero-copy views (now supported):** the original concern was that
-  `buffa::MessageView<'a>` is not `'static` and so can't cross a `dyn Any` boundary. With
-  the byte-seam revision (Decision 11), there **is no `dyn Any` at the seam** — the seam
-  carries encoded frame bytes and the typed `MessageSource`/`MessageSink` facade owns the
-  decode and the frame buffer. The facade can therefore hand a handler a **borrowed
-  `MessageView<'a>` decoded in place** from the frame buffer (lifetime tied to the next
-  `receive`). Zero-copy view handlers are a supported codegen variant, not a dead end.
+- **RS2 — zero-copy views (supported, via owning views):** a *naked* `buffa::MessageView<'a>`
+  can't work under async handlers (not `'static`; can't be held across `.await`). The
+  supported form is **`buffa::OwnedView<V>`** — a self-referential `Bytes`+view bundle that
+  is **`'static + Send + Sync`** ("suitable for async and RPC frameworks", buffa DESIGN.md),
+  so it survives `.await` and crosses the pool, with no per-field copy (only an `Arc`
+  refcount on the frame `Bytes`). For the **Arrow** codec the message is an Arc-backed
+  `RecordBatch`, inherently `'static`/`Send`/zero-copy. So zero-copy is a supported codegen
+  variant (owned-decode is the default); it just isn't a borrowed `MessageView<'a>`.
 - **Q5 — JSON semantics (decided):** protobuf messages serialize via canonical
   protobuf-JSON (lowerCamelCase, string enums, omit-zero). Arbitrary serde types are a
   documented **platform extension** that is *not* protobuf-JSON-canonical and is not
@@ -230,4 +246,4 @@ Decided items folded in from the review (we own the code; implement directly):
 1. **buffa JSON support**: Does buffa have built-in JSON serialization that follows the protobuf canonical JSON mapping? Or do we need to implement that ourselves? The connect-go implementation uses `protojson.Marshal`/`protojson.Unmarshal` from the official Go protobuf library. buffa has a `json` feature — need to verify it produces canonical protobuf JSON.
 2. **Type erasure cost**: `dyn MessageRef` requires heap allocation and virtual dispatch. For high-throughput services, is this acceptable? Alternative: make `Codec` generic over message type, but this prevents storing mixed codecs in a registry. connect-go pays the same cost with `any` interface.
 3. **Arrow batch semantics**: Arrow IPC naturally represents record batches (multiple rows). For unary RPCs, a single-row batch is sent. For streaming, each envelope could carry a multi-row batch. Should we define batch size policy, or leave it to the application?
-4. **Zero-copy deserialization**: buffa supports `MessageView<'a>` for zero-copy reads. Can we integrate this into the codec trait, or is it fundamentally incompatible with the `unmarshal(data, target)` pattern? connect-go doesn't have zero-copy — this would be a Rust advantage.
+4. **Zero-copy deserialization** — *resolved* (see RS2 above): supported via `buffa::OwnedView<V>` (`'static + Send + Sync`) for proto and Arc-backed `RecordBatch` for Arrow; owned-decode is the default. A naked borrowed `MessageView<'a>` is not usable under async handlers.

@@ -73,36 +73,27 @@ Generate:
 // ============================================================
 
 /// Server-side implementation trait for GreetService.
+/// Methods are **async fns / async Streams** (Decision 04); the seam/queues are internal
+/// (Decision 11). `Req`/`Res` are owned-decoded by default; a buffa `OwnedView<…>` (proto)
+/// or `RecordBatch` (Arrow) variant can be generated for the zero-copy path.
+// Native async-fn-in-traits / RPITIT (static dispatch). Codegen emits the desugared
+// `-> impl Future + Send` / `-> impl Stream + Send` form to pin the pool's Send bound.
 pub trait GreetService: Send + Sync + 'static {
-    /// Unary RPC: Greet
-    fn greet(
-        &self,
-        ctx: &connectrpc::RequestContext,
-        request: connectrpc::Request<GreetRequest>,
-    ) -> Result<connectrpc::Response<GreetResponse>, connectrpc::ConnectError>;
+    /// Unary
+    async fn greet(&self, ctx: &Ctx, request: Request<GreetRequest>)
+        -> Result<Response<GreetResponse>, ConnectError>;
 
-    /// Client streaming RPC: GreetGroup (pull requests; headers via `requests.headers()`)
-    fn greet_group(
-        &self,
-        ctx: &connectrpc::RequestContext,
-        requests: connectrpc::MessageSource<GreetRequest>,
-    ) -> Result<connectrpc::Response<GreetGroupResponse>, connectrpc::ConnectError>;
+    /// Client streaming — consume an async Stream of requests, return one response.
+    async fn greet_group(&self, ctx: &Ctx, requests: impl Stream<Item = Result<GreetRequest, ConnectError>>)
+        -> Result<Response<GreetGroupResponse>, ConnectError>;
 
-    /// Server streaming RPC: GreetIndividuals (push responses into the sink)
-    fn greet_individuals(
-        &self,
-        ctx: &connectrpc::RequestContext,
-        request: connectrpc::Request<GreetRequest>,
-        responses: connectrpc::MessageSink<GreetResponse>,
-    ) -> Result<(), connectrpc::ConnectError>;
+    /// Server streaming — return an async Stream of responses.
+    async fn greet_individuals(&self, ctx: &Ctx, request: Request<GreetRequest>)
+        -> Result<impl Stream<Item = Result<GreetResponse, ConnectError>>, ConnectError>;
 
-    /// Bidirectional streaming RPC: Converse (interleave receive/send freely)
-    fn converse(
-        &self,
-        ctx: &connectrpc::RequestContext,
-        requests: connectrpc::MessageSource<ConverseRequest>,
-        responses: connectrpc::MessageSink<ConverseResponse>,
-    ) -> Result<(), connectrpc::ConnectError>;
+    /// Bidi — async Stream in, async Stream out.
+    async fn converse(&self, ctx: &Ctx, requests: impl Stream<Item = Result<ConverseRequest, ConnectError>>)
+        -> Result<impl Stream<Item = Result<ConverseResponse, ConnectError>>, ConnectError>;
 }
 
 // ============================================================
@@ -133,32 +124,33 @@ pub fn register_greet_service<S: GreetService>(
         );
     }
 
-    // Client streaming: GreetGroup
+    // Client streaming: GreetGroup — closure forwards to the async method (2 args:
+    // ctx + the request Stream; headers ride on the Stream's context, not a param).
     {
         let svc = service.clone();
         router.client_stream(
             procedure::GREET_GROUP,
-            connectrpc::client_stream_handler_fn(move |ctx, headers, reqs| svc.greet_group(ctx, headers, reqs)),
+            move |ctx, reqs| svc.greet_group(ctx, reqs),   // async; framework from_stream-bridges
             connectrpc::HandlerOptions::new(),
         );
     }
 
-    // Server streaming: GreetIndividuals
+    // Server streaming: GreetIndividuals — returns an async Stream of responses.
     {
         let svc = service.clone();
         router.server_stream(
             procedure::GREET_INDIVIDUALS,
-            connectrpc::server_stream_handler_fn(move |ctx, req| svc.greet_individuals(ctx, req)),
+            move |ctx, req| svc.greet_individuals(ctx, req),
             connectrpc::HandlerOptions::new(),
         );
     }
 
-    // Bidi streaming: Converse
+    // Bidi streaming: Converse — async Stream in, async Stream out.
     {
         let svc = service.clone();
         router.bidi_stream(
             procedure::CONVERSE,
-            connectrpc::bidi_stream_handler_fn(move |ctx, headers, reqs| svc.converse(ctx, headers, reqs)),
+            move |ctx, reqs| svc.converse(ctx, reqs),
             connectrpc::HandlerOptions::new(),
         );
     }
@@ -206,38 +198,27 @@ impl GreetServiceClient {
         })
     }
 
-    /// Unary: Greet
-    pub fn greet(
-        &self,
-        ctx: &mut connectrpc::RequestContext,
-        request: connectrpc::Request<GreetRequest>,
-    ) -> Result<connectrpc::Response<GreetResponse>, connectrpc::ConnectError> {
-        self.greet.call_unary(ctx, request)
+    // Client methods are async, mirroring the server shapes (Decision 07's client types are
+    // realized over the streaming `Transport`; no valtron types leak).
+
+    /// Unary
+    pub async fn greet(&self, ctx: &Ctx, request: Request<GreetRequest>)
+        -> Result<Response<GreetResponse>, ConnectError> { self.greet.unary(ctx, request).await }
+
+    /// Client streaming — send an async Stream of requests, await one response.
+    pub async fn greet_group(&self, ctx: &Ctx, reqs: impl Stream<Item = GreetRequest>)
+        -> Result<Response<GreetGroupResponse>, ConnectError> { self.greet_group.client_stream(ctx, reqs).await }
+
+    /// Server streaming — await a response Stream.
+    pub async fn greet_individuals(&self, ctx: &Ctx, request: Request<GreetRequest>)
+        -> Result<impl Stream<Item = Result<GreetResponse, ConnectError>>, ConnectError> {
+        self.greet_individuals.server_stream(ctx, request).await
     }
 
-    /// Client streaming: GreetGroup
-    pub fn greet_group(
-        &self,
-        ctx: &mut connectrpc::RequestContext,
-    ) -> connectrpc::ClientStream<GreetRequest, GreetGroupResponse> {
-        self.greet_group.call_client_stream(ctx)
-    }
-
-    /// Server streaming: GreetIndividuals
-    pub fn greet_individuals(
-        &self,
-        ctx: &mut connectrpc::RequestContext,
-        request: connectrpc::Request<GreetRequest>,
-    ) -> Result<connectrpc::ServerStream<GreetResponse>, connectrpc::ConnectError> {
-        self.greet_individuals.call_server_stream(ctx, request)
-    }
-
-    /// Bidirectional streaming: Converse
-    pub fn converse(
-        &self,
-        ctx: &mut connectrpc::RequestContext,
-    ) -> connectrpc::BidiStream<ConverseRequest, ConverseResponse> {
-        self.converse.call_bidi_stream(ctx)
+    /// Bidi — async Stream in, async Stream out.
+    pub async fn converse(&self, ctx: &Ctx, reqs: impl Stream<Item = ConverseRequest>)
+        -> Result<impl Stream<Item = Result<ConverseResponse, ConnectError>>, ConnectError> {
+        self.converse.bidi_stream(ctx, reqs).await
     }
 }
 ```
@@ -316,10 +297,17 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
   client constructors.
 - **R14 — `ClientOptions: Clone`:** provide an explicit `Clone` impl (it holds
   `Vec<Arc<dyn Interceptor>>`), since generated constructors clone it.
-- **Handler shape (H1 / H2 / H3):** generated server-streaming and bidi traits use
-  Decision 11's push model (`MessageSink<Res>` and/or `MessageSource<Req>`), not returned
-  iterators; client-streaming headers come from `MessageSource::headers()`, not a separate
-  parameter.
+- **Handler shape (H1 / H2 / H3):** generated methods are **async fns / async `Stream`s**
+  (Decision 04): unary `async fn(Req) -> Res`; server-stream `async fn(Req) -> impl Stream`;
+  client-stream `async fn(impl Stream<Req>) -> Res`; bidi `async fn(impl Stream<Req>) -> impl
+  Stream`. The seam/queues are internal (Decision 11); no `MessageSink`/`MessageSource` in
+  generated signatures.
+- **Async-trait lowering (decided):** generate **native async-fn-in-traits / RPITIT**, with
+  the codegen emitting explicit `-> impl Future<…> + Send` / `-> impl Stream<…> + Send`
+  returns so the pool's `Send` bound is satisfied. No `#[async_trait]` boxing — the service
+  trait is static-dispatch (we don't need `dyn GreetService`; the generated `<Service>Client`
+  trait, R4, covers mocking). Fall back to `#[async_trait]` (boxed futures, object-safe) only
+  if a `dyn`-dispatch need appears.
 
 **Codegen scope (decided — include it, fully built and ready):**
 - **One unified generator, no split tooling, no separate codegen crate.** We learn from
@@ -338,10 +326,10 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 - **Object-safety:** the generated service *handler* trait stays statically dispatched
   (not object-safe — acceptable); the separately generated `<Service>Client` trait (R4)
   covers mocking/testing where a trait object is wanted.
-- **View handlers (supported):** the byte-seam revision (Decision 11) removed the `dyn Any`
-  boundary that previously blocked this (RS2), so the typed facade can decode a borrowed
-  `MessageView<'a>` in place. Generate optional zero-copy "view" handler variants for
-  read-heavy services (the owned-message variant remains the default).
+- **Zero-copy variants (supported):** owned-decode is the default. For read-heavy services,
+  generate a zero-copy variant whose request type is `buffa::OwnedView<…>` (proto;
+  `'static + Send + Sync`, survives `.await`) or an Arc-backed `RecordBatch` (Arrow). A naked
+  borrowed `MessageView<'a>` is **not** generated (can't cross `.await`).
 
 ## Open Questions
 

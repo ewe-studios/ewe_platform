@@ -50,11 +50,13 @@ all via the part composition:
 | gRPC-Web | in-body trailer frame (flag `0x80`) emitted as the final body chunk |
 | gRPC | real HTTP/2 trailing HEADERS, emitted by the `http2/` module's writer |
 
-### 4. Stop uppercasing header keys; add protocol headers as known variants (resolves B4)
+### 4. Fix uppercased header rendering; add protocol headers as known variants (resolves B4)
 
-`SimpleHeader::from(String)` no longer uppercases — header keys preserve canonical case
-(HTTP/2 mandates lowercase on the wire). Add the gRPC and Connect protocol headers as
-first-class `SimpleHeader` variants with their canonical lowercase wire form:
+The uppercase leak is in the **`Display`/wire-rendering of known `SimpleHeader` variants**
+(e.g. `CONTENT-ENCODING`), **not** in `SimpleHeader::from(String)` — `From` already
+preserves case for `Custom(..)` and only matches known names case-insensitively. So the fix
+targets the variant rendering: emit canonical **lowercase** on the wire (HTTP/2 mandates
+lowercase). Add the gRPC and Connect protocol headers as first-class lowercase variants:
 `grpc-status`, `grpc-message`, `grpc-encoding`, `grpc-accept-encoding`, `grpc-timeout`,
 `grpc-status-details-bin`, `te`, `connect-protocol-version`, `connect-timeout-ms`,
 `connect-content-encoding`, `connect-accept-encoding`. Audit existing header lookups so

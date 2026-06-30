@@ -79,7 +79,11 @@ pub struct EnvelopeReader {
 
 impl EnvelopeReader {
     /// Read the next message from the stream, decoding and decompressing.
-    pub fn read<T: MessageMut>(&mut self, source: &mut dyn Iterator<Item = Result<Vec<u8>, BoxedError>>) -> Result<Option<T>, ConnectError>;
+    // `T: MessageMut + Default` (a default is needed to unmarshal into). Source is stored
+    // at construction (C8), so `read` takes no source param. This is the low-level frame
+    // reader; the per-procedure facade decode (`MessageSource`, Decision 11) is the
+    // higher-level path that owns the codec.
+    pub fn read<T: MessageMut + Default>(&mut self) -> Result<Option<T>, ConnectError>;
 }
 
 /// Writes envelopes to a byte sink, handling compression.
@@ -343,10 +347,14 @@ pub(crate) trait ProtocolHandler: Send + Sync {
     /// Can this handler process the given request?
     fn can_handle(&self, request: &SimpleIncomingRequest) -> bool;
 
-    /// Create a handler connection for this request.
+    /// Create a handler connection, wired to the transport so the conn can `receive()` /
+    /// `send()` frames (Decision 11). The body source is fed by the reader task; the
+    /// responder is drained by the writer task.
     fn new_conn(
         &self,
         request: &SimpleIncomingRequest,
+        body: BodySource,          // de-enveloped/decompressed request frames in
+        responder: BodySink,       // response frames out (writer task drains)
         codecs: &CodecRegistry,
         compression: &CompressionRegistry,
     ) -> Result<Box<dyn HandlerConn>, ConnectError>;
@@ -362,11 +370,13 @@ pub(crate) trait ProtocolClient: Send + Sync {
         compression: Option<&str>,
     );
 
-    /// Create a client connection for sending/receiving.
+    /// Create a client connection over a live transport exchange (`Transport::open`,
+    /// Decision 11) — `stream` carries the request sink + response source.
     fn new_conn(
         &self,
         spec: &Spec,
         headers: SimpleHeaders,
+        stream: TransportStream,
     ) -> Box<dyn ClientConn>;
 }
 ```

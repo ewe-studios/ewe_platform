@@ -47,7 +47,7 @@ Port the connect-go architecture onto foundation types with the following mappin
 connect-go uses Go's `io.Pipe` to create a writer that feeds a reader concurrently. Foundation uses iterator-based streaming:
 
 - **Request body reading**: `SimpleBody::Stream` provides `Iterator<Item = Result<Vec<u8>, BoxedError>>`. The envelope decoder wraps this iterator, yielding decoded messages.
-- **Response body writing (streaming)**: Handler returns an iterator/stream of response messages. The envelope encoder wraps each message in the 5-byte framing header and yields chunks via `SendSafeBody::ChunkedStream`.
+- **Response body writing (streaming)**: the handler is an async `Stream` of responses (Decision 04); the writer task envelopes/compresses each message and flushes per frame via the per-part `Http11` writer (Decision 12). The valtron `TaskStatus`/`Stream`/queue machinery is internal (Decision 11) — the handler does not return a valtron iterator.
 - **Bidi streaming**: Requires concurrent read (from request body iterator) and write (to response body stream). Valtron executor manages both sides. On HTTP/1.1, this is half-duplex (request fully consumed before response begins). On HTTP/2, this is full-duplex.
 
 ### HTTP/2 Support
@@ -144,19 +144,100 @@ backends/foundation_netio/src/
 ```
 Produces `SimpleIncomingRequest` / consumes `SimpleOutgoingResponse` like the others;
 `ConnectionHandler` adds a third branch. `Proto::HTTP30` already exists. Scope ≈ 6–10
-features. Sub-item T9: the QUIC trait abstraction needs synchronous equivalents of h3's
-`Poll`-based `Connection`/`SendStream`/`RecvStream`.
+features.
+
+#### Our QUIC trait abstraction (valtron-native; h3 is a reference, not gospel)
+
+We take h3's `quic.rs` as the catalogue of operations a QUIC backend must expose, but
+**not** its `Poll`/`Context`/`Waker` shape — that exists only because h3 is driven by a
+tokio reactor. valtron's `Stream<D, P>` (`Next` / `Pending` / `Wait` / `Delayed`) *is* the
+readiness mechanism, and it also matches `quinn-proto` below (sans-IO: `streams().open` /
+`accept`, `recv_stream.read`, `send_stream.write/finish/reset/stop`, `Connection::poll() ->
+Event`). So we define our own trait set, synchronous + progress-returning, with no futures:
+
+```rust
+pub enum QuicConnError   { ApplicationClose { code: u64 }, Timeout, Internal(String), Other(BoxedError) }
+pub enum QuicStreamError { ConnClosed(QuicConnError), Terminated { code: u64 }, Other(BoxedError) }
+
+pub trait QuicConnection: Send {
+    type RecvStream: QuicRecvStream;
+    type SendStream: QuicSendStream;
+    type BidiStream: QuicBidiStream;
+
+    // Accept inbound streams: Next(stream) when one arrives, Pending/Wait when none yet,
+    // ends (None) when the connection closes.
+    fn accept_recv(&mut self) -> Stream<Result<Self::RecvStream, QuicConnError>, ()>;
+    fn accept_bidi(&mut self) -> Stream<Result<Self::BidiStream, QuicConnError>, ()>;
+
+    // Open outbound streams: Pending while blocked on the peer's stream-limit / flow control.
+    fn open_bidi(&mut self) -> Stream<Result<Self::BidiStream, QuicStreamError>, ()>;
+    fn open_send(&mut self) -> Stream<Result<Self::SendStream, QuicStreamError>, ()>;
+
+    fn close(&mut self, code: u64, reason: &[u8]);   // fire-and-forget
+}
+
+pub trait QuicSendStream: Send {
+    // h3's poll_ready + send_data folded into one progress-returning call:
+    // Next(written) on accept, Pending when the flow-control window is full.
+    fn send(&mut self, buf: &mut impl Buf) -> Stream<Result<usize, QuicStreamError>, ()>;
+    fn finish(&mut self)  -> Stream<Result<(), QuicStreamError>, ()>;
+    fn reset(&mut self, code: u64);                  // fire-and-forget
+    fn id(&self) -> StreamId;                        // sync
+}
+
+pub trait QuicRecvStream: Send {
+    // Next(Some(bytes)) per chunk, Next(None) at end-of-stream, Pending/Wait when nothing buffered.
+    fn read(&mut self) -> Stream<Result<Option<Bytes>, QuicStreamError>, ()>;
+    fn stop_sending(&mut self, code: u64);           // fire-and-forget
+    fn id(&self) -> StreamId;                        // sync
+}
+
+pub trait QuicBidiStream: QuicSendStream + QuicRecvStream {
+    fn split(self) -> (impl QuicSendStream, impl QuicRecvStream);
+}
+```
+
+**Deliberate deviations from h3:**
+- **No `Poll`/`Context`/`Waker`** — readiness is `Stream::Pending` / `Wait`, driven by the
+  http3 valtron task. This is the whole reason we don't use `h3` as-is. (T9 resolved here.)
+- **`poll_ready` folded into `send`** — back-pressure *is* `Stream::Pending`, so a separate
+  readiness method is redundant.
+- **`accept_*` / `read` are progress-yielding sequences**, not single-shot polls.
+- **`Is0rtt` is not a stream trait** — 0-RTT is connection/stream metadata, so it's a flag on
+  `ConnectionContext` (Decision 04 Q13), not an I/O method.
+- **`SendStreamUnframed` dropped** unless raw byte streaming (WebTransport-style) is needed
+  later — noted as a possible future add, not core.
+- **Error enums kept** (application-close / timeout / terminated / internal — protocol-
+  meaningful, not tokio-specific).
+
+Fire-and-forget ops (`reset` / `stop_sending` / `close` / `id`) stay plain sync methods.
+Backends: `quic/` implements these over `quinn-proto`; the optional `iroh/` backend (below)
+implements them over its quinn connection.
 
 ### iroh peer-to-peer (Phase 3+)
 Source: `/home/darkvoid/Boxxed/@formulas/src.rust/src.WebTransport/src.n0-computer/iroh/`.
-**Decided (both paths):** (1) **standalone P2P transport** — iroh `Endpoint` → bidi/uni QUIC
-streams used directly for custom protocols / data sync / messaging (no HTTP framing); and
-(2) **HTTP/3 backend** — an `iroh/` module implements the same QUIC trait abstraction
-`http3/` expects, so HTTP/3 (and ConnectRPC) run over a P2P connection. We keep iroh's own
-stack intact for the standalone path and also offer QUIC-based iroh over our `quic/`. The
-peer's Ed25519 public key flows into auth via netcap `Endpoint<I>` identity →
-`ConnectionContext` (Decision 04 Q13 / Decision 09 T10). Scope ≈ 2–3 features on top of
-HTTP/3.
+iroh = QUIC (built on quinn) + P2P (hole-punching, relay fallback, discovery) + public-key
+identity. **It is tokio-based.** Two possible paths, with different value:
+
+- **(a) Standalone P2P transport — first-class, the reason to integrate iroh.** iroh
+  `Endpoint` → bidi/uni QUIC streams used directly (custom protocols, data sync, P2P
+  messaging — no HTTP framing). Bridge iroh's streams into foundation_netio at the
+  connection boundary (wrap iroh's tokio futures with a Valtron adapter / `block_on` at that
+  seam). The peer's Ed25519 public key flows into auth via netcap `Endpoint<I>` identity →
+  `ConnectionContext` (Decision 04 Q13 / Decision 09 T10). This is "use iroh for what it is."
+
+- **(b) HTTP/3-over-iroh — optional / deferred, build only on demand.** Buys exactly one
+  thing: running the *same* ConnectRPC services (Connect/gRPC/gRPC-Web handlers, router,
+  codegen, interceptors) **unchanged** over a P2P link — because those protocols are
+  HTTP-framed, reaching them P2P needs HTTP/3 over QUIC. The cost: iroh drags tokio while
+  our `http3/` is tokio-free/valtron, so an iroh `QuicConnection` impl must bridge
+  tokio↔valtron at the connection boundary — the two-executor friction we built everything
+  to avoid. (And iroh already works with upstream tokio `h3` via `h3-quinn`, so a caller who
+  needs HTTP/3-RPC over iroh *and* accepts tokio could use stock `h3` rather than our
+  reimplementation.) **Decision: do not build (b) speculatively.** Justify it only if
+  "unmodified ConnectRPC stack reachable P2P" becomes a stated requirement; if so, our
+  backend-agnostic `QuicConnection` trait makes iroh just another backend impl (paying the
+  bridge). Scope ≈ 2–3 features on top of HTTP/3, *if* pursued.
 
 ### Phasing
 - **Phase 1:** HTTP/1.1 — Connect + gRPC-Web (no gRPC; half-duplex bidi).

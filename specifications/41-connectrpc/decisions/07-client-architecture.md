@@ -81,37 +81,24 @@ pub struct Client<Req, Res> {
 }
 
 impl<Req: MessageRef, Res: MessageMut + Default> Client<Req, Res> {
-    pub fn new(
-        transport: Arc<dyn Transport>,
-        url: &str,
-        options: ClientOptions,
-    ) -> Result<Self, ConnectError>;
+    pub fn new(transport: Arc<dyn Transport>, url: &str, options: ClientOptions)
+        -> Result<Self, ConnectError>;
 
-    /// Unary RPC call.
-    pub fn call_unary(
-        &self,
-        ctx: &mut RequestContext,
-        request: Request<Req>,
-    ) -> Result<Response<Res>, ConnectError>;
+    // Async surface (mirrors the generated client + the server handler shapes).
+    pub async fn unary(&self, ctx: &Ctx, request: Request<Req>)
+        -> Result<Response<Res>, ConnectError>;
 
-    /// Server streaming RPC call.
-    pub fn call_server_stream(
-        &self,
-        ctx: &mut RequestContext,
-        request: Request<Req>,
-    ) -> Result<ServerStream<Res>, ConnectError>;
+    /// Server streaming — await a response Stream.
+    pub async fn server_stream(&self, ctx: &Ctx, request: Request<Req>)
+        -> Result<impl Stream<Item = Result<Res, ConnectError>>, ConnectError>;
 
-    /// Client streaming RPC call.
-    pub fn call_client_stream(
-        &self,
-        ctx: &mut RequestContext,
-    ) -> ClientStream<Req, Res>;
+    /// Client streaming — send an async Stream of requests, await one response.
+    pub async fn client_stream(&self, ctx: &Ctx, reqs: impl Stream<Item = Req>)
+        -> Result<Response<Res>, ConnectError>;
 
-    /// Bidirectional streaming RPC call.
-    pub fn call_bidi_stream(
-        &self,
-        ctx: &mut RequestContext,
-    ) -> BidiStream<Req, Res>;
+    /// Bidi — async Stream in, async Stream out.
+    pub async fn bidi_stream(&self, ctx: &Ctx, reqs: impl Stream<Item = Req>)
+        -> Result<impl Stream<Item = Result<Res, ConnectError>>, ConnectError>;
 }
 ```
 
@@ -176,11 +163,12 @@ impl ClientOptions {
    - Non-200: parse error from body (Connect JSON error) or infer from HTTP status
 5. Return `Response<Res>` with headers and trailers
 
-### Streaming Client Types
+### Streaming Client Types (lower-level handles)
 
-Each is a thin typed facade over a `ClientConn` (Decision 11) obtained from
-`Transport::open`: outgoing messages go to the conn's `MessageSink<Req>`, incoming to its
-`MessageSource<Res>`. They do **not** embed `EnvelopeReader`/`EnvelopeWriter` directly, and
+These are the **lower-level** handles that the async `Client` methods above are built on —
+exposed for callers who want manual control (drop a level). Each is a thin typed facade over
+a `ClientConn` (Decision 11) obtained from `Transport::open`: outgoing messages go to the
+conn's `MessageSink<Req>`, incoming to its `MessageSource<Res>`. They do **not** embed `EnvelopeReader`/`EnvelopeWriter` directly, and
 the half-duplex (HTTP/1.1) vs full-duplex (HTTP/2/3) difference is handled by the transport
 scheduling the conn's pipes — the API is identical.
 
@@ -227,8 +215,7 @@ When `IdempotencyLevel::NoSideEffects` and `with_http_get()` is enabled:
 
 ```rust
 fn build_get_request(&self, request: &Request<Req>) -> Result<SimpleOutgoingRequest, ConnectError> {
-    let encoded = self.config.codec.marshal(request.msg.as_ref())?;
-
+    // GET encodes the message into the query via the stable codec below — no separate marshal.
     let mut query_params = vec![
         format!("encoding={}", self.config.codec.name()),
     ];
@@ -286,7 +273,7 @@ fn call_unary_with_get_fallback(
 
 - Client is generic over `Transport` — works with foundation_netio, WASM Fetch, or custom HTTP
 - Unary calls are straightforward: build request, send, parse response
-- Client streaming over HTTP/1.1: accumulate all messages in memory, then send as single request body
+- Client streaming over HTTP/1.1: the request body is streamed via chunked transfer-encoding using the pushable `SendSafeBody::Stream` (Decision 12 §7) — no full-stream in-memory buffering
 - Server streaming: read envelopes from response body iterator
 - Bidi streaming over HTTP/1.1: half-duplex (send all, then receive all)
 - Bidi streaming over HTTP/2: full-duplex (requires HTTP/2 transport — Phase 2)

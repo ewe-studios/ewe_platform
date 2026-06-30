@@ -228,7 +228,7 @@ When an HTTP request arrives at the ConnectRPC handler:
    │   │   ├── Read full request body (single message)
    │   │   ├── Decompress + unmarshal
    │   │   ├── Apply interceptor chain
-   │   │   ├── Call handler → get response stream
+   │   │   ├── Run handler (async); its response Stream is bridged to the writer queue
    │   │   ├── For each message in stream:
    │   │   │   ├── Marshal + compress
    │   │   │   └── Write envelope frame
@@ -244,7 +244,7 @@ When an HTTP request arrives at the ConnectRPC handler:
    │   └── BidiStream:
    │       ├── Create envelope reader from request body
    │       ├── Apply interceptor chain
-   │       ├── Call handler with input stream → get output stream
+   │       ├── Run handler (async): request Stream in, response Stream out (bridged via queues)
    │       ├── For each output message:
    │       │   └── Write envelope frame
    │       └── Write end-of-stream frame
@@ -282,12 +282,12 @@ pub struct ConnectRpcHandler {
 Code generation produces registration helpers:
 
 ```rust
-// Generated for each service (push model — Decision 11; default `unimplemented` bodies):
+// Generated per service — async fns / Streams (Decision 04/10; default `unimplemented` bodies):
 pub trait GreetServiceHandler: Send + Sync + 'static {
-    fn greet(&self, ctx: &RequestContext, req: Request<GreetRequest>)
+    async fn greet(&self, ctx: &Ctx, req: Request<GreetRequest>)
         -> Result<Response<GreetResponse>, ConnectError>;
-    // client-streaming: pull requests from the source (headers via `reqs.headers()`)
-    fn greet_group(&self, ctx: &RequestContext, reqs: MessageSource<GreetRequest>)
+    // client-streaming: an async Stream of requests in
+    async fn greet_group(&self, ctx: &Ctx, reqs: impl Stream<Item = Result<GreetRequest, ConnectError>>)
         -> Result<Response<GreetGroupResponse>, ConnectError>;
 }
 

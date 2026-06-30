@@ -58,116 +58,92 @@ Boundedness is mandatory — it is what provides backpressure (the analog of `io
 blocking a fast writer when the reader is slow), so a streaming RPC does not buffer an
 entire stream in memory.
 
-```rust
-/// Producer half of a message pipe. The handler pushes messages here; the
-/// transport-writer task drains the consumer half. Backed by a bounded queue:
-/// `send` blocks (or yields a valtron pending state) when the writer falls behind.
-pub struct MessageSink<T> { /* bounded ConcurrentQueueStreamIterator producer */ }
+`MessageSink`/`MessageSource` are **internal adapters** over the two queues — not
+user-facing (users write async fns/`Stream`s, Decision 04). They are the typed facade that
+holds the codec:
 
+```rust
+/// INTERNAL. Producer adapter over the response queue.
+struct MessageSink<T> { /* producer onto Arc<ConcurrentQueue<Stream<Frame, ()>>> */ }
 impl<T: Send + 'static> MessageSink<T> {
-    /// Set response headers. No-op once the first message has been sent.
-    pub fn set_headers(&self, headers: SimpleHeaders) -> Result<(), ConnectError>;
-
-    /// Push a message. Applies backpressure when the pipe is full.
-    pub fn send(&self, msg: T) -> Result<(), ConnectError>;
-
-    /// Close the send side with trailing metadata (success) — encodes the
-    /// protocol's end-of-stream representation downstream.
-    pub fn close(self, trailers: SimpleHeaders) -> Result<(), ConnectError>;
+    fn set_headers(&self, headers: SimpleHeaders) -> Result<(), ConnectError>;
+    /// Encode + push one frame. On a full bounded queue, returns progress (`Pending`/`Wait`)
+    /// — never blocks; valtron reschedules. (`ConcurrentQueue::push` → `Full` == `Pending`.)
+    fn send(&self, msg: T) -> Result<(), ConnectError>;
+    fn close(self, trailers: SimpleHeaders) -> Result<(), ConnectError>;
 }
 
-/// Consumer half of a message pipe. The handler pulls request messages here; the
-/// transport-reader task fills the producer half from the request body.
-pub struct MessageSource<T> { /* bounded ConcurrentQueueStreamIterator consumer */ }
-
+/// INTERNAL. Consumer adapter over the request queue (a `ConcurrentQueueStreamIterator`).
+struct MessageSource<T> { /* consumer of Arc<ConcurrentQueue<Stream<Frame, ()>>> */ }
 impl<T: Send + 'static> MessageSource<T> {
-    /// Pull the next request message. `Ok(None)` at end of stream.
-    /// Honors `RequestContext` deadline and cancellation.
-    pub fn receive(&mut self) -> Result<Option<T>, ConnectError>;
-
-    /// Request headers (available before the first `receive`).
-    pub fn headers(&self) -> &SimpleHeaders;
+    /// Next request message, owned-decoded (or an `OwnedView<T>` for the zero-copy variant —
+    /// see "Zero-copy" below). `Ok(None)` at end of stream.
+    fn receive(&mut self) -> Result<Option<T>, ConnectError>;
+    fn headers(&self) -> &SimpleHeaders;
 }
 ```
 
-> Note on types: these are concrete structs, **not** `Box<dyn StreamIterator<T>>`.
-> `foundation_core`'s `StreamIterator` is a supertrait of `Iterator` with associated
-> types `D`/`P` and cannot be parameterized as `StreamIterator<T>` (closes RS1).
-> End-of-stream is `receive() -> Ok(None)` / `Iterator::next() -> None`, never
-> `Stream::Init` (closes H9 — `Stream::Init` means "initializing", the opposite).
+> Types are concrete structs, **not** `Box<dyn StreamIterator<T>>` — the real
+> `StreamIterator` is a supertrait of `Iterator` with associated types `D`/`P` and can't be
+> `StreamIterator<T>` (closes RS1). End-of-stream is `Ok(None)` / `Iterator::next() == None`,
+> never `Stream::Init` (closes H9).
 
-### Push handler model (resolves Q8 in favor of push)
+### Handler model: async, bridged onto the seam (resolves Q8, H1, H2, C2)
 
-The handler **receives** pipe endpoints; it never returns an output iterator. This is the
-two-iterator shape: a pull `MessageSource` for input and a push `MessageSink` for output,
-with the sink's consumer end handed to the transport-writer task. Signatures are
-identical regardless of HTTP version.
-
-```rust
-/// Unary — unchanged from Decision 04.
-pub trait UnaryHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, req: Request<Req>)
-        -> Result<Response<Res>, ConnectError>;
-}
-
-/// Server streaming — handler pushes responses (was: returns an iterator).
-pub trait ServerStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, req: Request<Req>, responses: MessageSink<Res>)
-        -> Result<(), ConnectError>;
-}
-
-/// Client streaming — handler pulls requests, returns one response.
-pub trait ClientStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, requests: MessageSource<Req>)
-        -> Result<Response<Res>, ConnectError>;
-}
-
-/// Bidi — handler holds both halves and may interleave freely.
-pub trait BidiStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, requests: MessageSource<Req>, responses: MessageSink<Res>)
-        -> Result<(), ConnectError>;
-}
-```
-
-A bidi handler body can interleave reads and writes naturally — `send` is a bounded
-push, `receive` is a pull:
-
-```rust
-fn handle(&self, ctx: &RequestContext, mut reqs: MessageSource<Req>, resps: MessageSink<Res>)
-    -> Result<(), ConnectError>
-{
-    while let Some(req) = reqs.receive()? {
-        resps.send(self.process(req))?;     // interleaved I/O, transport-agnostic
-    }
-    resps.close(SimpleHeaders::new())
-}
-```
-
-This matches connect-go's `ServerStream` (a sink), `ClientStream` (a source), and
-`BidiStream` (both). Closes H1, H2, H3.
-
-### Concurrency = three valtron tasks; duplex = scheduling, not API
-
-Because valtron is multi-threaded, the framework dispatches a streaming RPC as up to
-three cooperating tasks bridged by the two pipes:
+Users write **async functions / futures `Stream`s** (the signatures in Decision 04); they
+never see `MessageSink`/`MessageSource`/`Stream<D,P>`/the queues. valtron's `from_future` /
+`from_stream` turn the user's async into a `TaskIterator` that returns `TaskStatus`; **each
+`.await` is the yield point** — async/await *is* the state machine the executor drives.
+There is **no blocking, no spin-loop, and no hand-written `Recv/Send` state machine** (that
+would be valtron Anti-Pattern 3). The wiring:
 
 ```
-request body ─▶ [reader task] ─▶ MessageSource ─▶ [handler task] ─▶ MessageSink ─▶ [writer task] ─▶ response body
+request body ─[reader task]→ request_q ──(exposed as a futures Stream)──▶ async handler
+async handler ──(returns async Stream<Res>, consumed via from_stream)──▶ response_q ─[writer task]→ wire
 ```
 
-The handler task may **block** on `send`/`receive` (ergonomic, goroutine-like) because
-it owns its own worker; the bounded pipes keep memory and backpressure in check.
+- A task pops the next request frame; empty → `TaskStatus::Wait` / `Depends(QueueReadiness)`
+  (the executor re-polls when the queue is non-empty — `task.rs::QueueReadiness`,
+  `is_ready = !queue.is_empty()`).
+- Outputs are pushed to the **bounded** response queue; full → the producing step returns
+  `Pending`/`Wait` and valtron reschedules. FIFO ordering is the queue's (delivers backlog
+  before the latest).
+- `Stream<D,P>` is only the **boundary** form (`From<TaskStatus>`), surfaced to sync
+  collectors (`collect_one`/`execute`); it never leaks to handler authors unless they
+  deliberately drop a level.
 
-Duplex behavior is decided entirely by how the transport schedules reader/writer, never
-by the handler API:
+**Duplex = transport scheduling of the two queues**, not the handler API: HTTP/2/3 run the
+reader and writer concurrently (full-duplex); HTTP/1.1 runs the writer after the request
+drains (half-duplex). **Bidi needs full-duplex, so it is rejected on HTTP/1.1 with `505`**;
+client- and server-streaming are half-duplex and allowed there (matches connect-go's
+`StreamType & Bidi` check). Enforced by capability matching (below).
 
-| Transport | Reader/Writer scheduling | Observed behavior |
+**Threading:** pool futures are `Send + 'static`; valtron's local/non-send path and
+`SendWrapper` (for single-threaded/wasm) cover `!Send` state — never a blocker.
+
+### Concurrency = cooperative valtron tasks; duplex = scheduling, not API
+
+A streaming RPC is up to three cooperating valtron tasks bridged by the two queues:
+
+```
+request body ─▶ [reader task] ─▶ request_q ─▶ [handler task (async, bridged)] ─▶ response_q ─▶ [writer task] ─▶ response body
+```
+
+None of them block: each does one step per poll and returns a `TaskStatus`
+(`Ready`/`Pending`/`Wait`/`Delayed`/`Depends`/`Ignore`); the executor schedules. The handler
+task is the user's async future driven by `from_future`/`from_stream` — its `.await` points
+are the yield points. Backpressure is the bounded queue returning `Full` (surfaced as
+`Pending`/`Wait`); ordering is the queue's FIFO.
+
+Duplex is decided entirely by how the transport schedules reader/writer, never by the
+handler API:
+
+| Transport | Reader/Writer scheduling | Streaming kinds |
 |---|---|---|
-| HTTP/1.1 | Reader drains request body fully, then writer flushes | Half-duplex (connect-go parity) |
-| HTTP/2, HTTP/3, QUIC, iroh | Reader and writer run concurrently | Full-duplex |
+| HTTP/1.1 | Reader drains request, then writer runs | unary / client-stream / server-stream (half-duplex); **bidi → 505** |
+| HTTP/2, HTTP/3, QUIC, iroh | Reader and writer run concurrently | all, incl. full-duplex bidi |
 
-Closes T5 (HTTP/2 full-duplex needs no handler change) and the bounded-channel open
-question.
+Closes T5 (full-duplex needs no handler change) and the bounded-channel question.
 
 ### The seam: `HandlerConn` (server) and `ClientConn` (client)
 
@@ -222,10 +198,15 @@ They own the `Arc<dyn Codec>` and are the only place the concrete `Req`/`Res` is
 - `MessageSource<Req>::receive()` → `HandlerConn::receive()? ` → run middleware → `let mut
   r = Req::default(); codec.unmarshal(&frame, &mut r)` → `Some(r)`.
 
-The seam (`HandlerConn`/`ClientConn`) carries **only encoded frames + metadata**, so there
-is **no `dyn Any` and no `'static` constraint at the seam** — which means the facade may
-hand the handler a **zero-copy borrowed view** decoded from the frame buffer it owns
-(re-enables `MessageView<'a>`; reverses the RS2 limitation in Decision 02).
+The seam (`HandlerConn`/`ClientConn`) carries **only encoded frames + metadata** (no
+`dyn Any`). **Zero-copy (decided, supported):** the facade can decode into an owned message
+*or* hand the handler a `buffa::OwnedView<V>` — a self-referential `Bytes`+view bundle that
+is **`'static + Send + Sync`** ("suitable for async and RPC frameworks", buffa DESIGN.md),
+so it survives `.await` and crosses the pool. For the **Arrow** codec the message *is* an
+Arc-backed `RecordBatch`, inherently `'static`/`Send`/zero-copy with no per-field decode.
+A *naked* borrowed `MessageView<'a>` is the only thing that does **not** work under async
+(can't be held across `.await`); `OwnedView`/`RecordBatch` are the supported forms. (Updates
+RS2 in Decision 02: zero-copy is supported via owning views, not impossible.)
 
 #### Facade message-middleware
 
@@ -344,15 +325,14 @@ transport (closes Decision 04 Q4).
 1. **Pipe depth default.** What bounded capacity for the request/response pipes (message
    count vs byte budget)? Likely tie to `read_max_bytes`/`send_max_bytes` plus a small
    message-count bound (e.g. 1–4) to keep latency low.
-2. **Half-duplex detection point.** Should the writer task refuse to start until the
-   reader signals request-complete on HTTP/1.1, or should `check_compatible` downgrade
-   bidi to "send-all-then-receive" with a documented behavior? Prefer the former
-   (explicit) to match connect-go.
-3. **Frame buffer reuse.** The seam carries encoded frame bytes (`Vec<u8>` / `&[u8]`); the
-   facade owns decode. Decide whether the facade reuses a scratch buffer / pooled `Vec`
-   across frames and whether the zero-copy view path borrows directly from the reader's
-   frame buffer (lifetime tied to the next `receive`). (`dyn Any` is no longer used at the
-   seam, so RS2's `'static` limitation no longer applies here.)
+2. **Half-duplex detection point.** On HTTP/1.1, the writer task starts only after the
+   reader signals request-complete (client/server-streaming); bidi is rejected up front via
+   capability matching (505). Confirm this is the exact gating point. (connect-go parity.)
+3. **Frame `Bytes` plumbing.** The seam carries codec-encoded frames; the transport already
+   hands them up as `Bytes` (`quinn-proto`/h2). For zero-copy the facade builds a
+   `buffa::OwnedView<V>` (Arc the frame `Bytes` + view) or, for Arrow, an Arc-backed
+   `RecordBatch`. Decide buffer-pool reuse for the **owned-decode** path; the zero-copy path
+   needs no reuse decision (each `OwnedView`/`RecordBatch` holds its own Arc'd bytes).
 4. **WASM Fetch capabilities.** Fetch cannot do request-body streaming or trailers;
    its `TransportCapabilities` should report `Duplex::None`/`TrailerSupport::None` so the
    client restricts WASM to unary + server-streaming over Connect/gRPC-Web. Confirm the
