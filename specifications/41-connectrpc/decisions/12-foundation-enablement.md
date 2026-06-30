@@ -98,7 +98,8 @@ copy.
 Replicate from h2: HPACK encoder/decoder; frame codec (9-byte headers, frame-type
 dispatch, CONTINUATION); flow-control arithmetic (per-stream + per-connection); stream
 state machine (idle → open → half-closed → closed); SETTINGS negotiation. Priority tree
-optional / deferred.
+optional / deferred. The 9-byte-header frame codec is built on the shared
+`IncrementalDecoder` primitive (§11) so partial reads on a non-blocking fd resume cleanly.
 
 Key substitutions: `tokio::io::AsyncRead`/`Write` → `std::io::Read`/`Write` on
 `SharedByteBufferStream<RawStream>`; `tokio::sync` channels →
@@ -210,6 +211,46 @@ graceful drain in three pieces:
 This keeps in-flight RPCs (including streaming) running to completion within the grace
 window — what ConnectRPC needs for clean shutdown. It is a foundation_http feature,
 sequenced with the other Decision 12 enablers.
+
+### 11. Resumable frame decoding — a shared foundation primitive (generalizes Decision 13 E1)
+
+Every frame-oriented protocol we run on a non-blocking fd hits the same wall: a frame can
+span multiple reads, so a decoder that consumes part of a header/payload and then sees
+`WouldBlock` must **save its progress and resume**, not error. The existing WebSocket
+`decode` tolerates a short read only on the first header byte and otherwise raises
+`ProtocolError("stream corrupted")` (Decision 13 gap E1). The owned `http2/` frame codec
+(9-byte headers + payload, §5) has the *identical* requirement, as will HTTP/3 framing and
+the Connect/gRPC **envelope reader** (5-byte prefix + body, Decision 05). So this is not a
+WebSocket concern — it is a foundation primitive.
+
+**Decision: define one generic incremental-decoder seam in foundation, and implement each
+wire codec on top of it.**
+
+```rust
+/// Drives a frame/record decoder one readable-chunk at a time. Holds partial state
+/// across calls; never errors on a short read.
+pub trait IncrementalDecoder {
+    type Frame;
+    /// Feed currently-available bytes (may be empty). `Pending` = need more bytes,
+    /// state retained. Errors are reserved for genuine protocol violations.
+    fn step(&mut self, src: &mut impl std::io::Read) -> Result<DecodeStep<Self::Frame>, DecodeError>;
+}
+pub enum DecodeStep<F> { Pending, Frame(F) }
+```
+
+- Lives in foundation (alongside the `SharedByteBufferStream` IO utilities) so
+  `simple_http`, `http2/`, the WebSocket layer, and the Connect envelope reader all share it.
+- A small **accumulating buffer** type (carry leftover bytes between `step`s, expose a
+  contiguous view) is the reusable core; each codec is a state machine over it.
+- Composes with Decision 00: when `step` returns `Pending` on an empty socket, the driving
+  task registers `Interest::Readable` and returns `Depends(QueueReadiness)`; otherwise it
+  uses the timeout-poll fallback. Same parking story for **all** wire codecs, not just WS.
+- **Backward compatible:** the existing blocking `decode` / envelope reads become
+  `loop { step }`-until-`Frame` wrappers, so today's callers are unaffected.
+
+Decision 13 E1 (`WebSocketFrameDecoder`) becomes *the WebSocket implementation of this
+trait*; the `http2/` frame codec and the Decision 05 envelope reader adopt it too. This
+removes three bespoke partial-read handlers in favor of one tested primitive.
 
 ## Open Questions
 

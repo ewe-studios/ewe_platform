@@ -83,6 +83,11 @@ impl EnvelopeReader {
     // at construction (C8), so `read` takes no source param. This is the low-level frame
     // reader; the per-procedure facade decode (`MessageSource`, Decision 11) is the
     // higher-level path that owns the codec.
+    //
+    // On a non-blocking fd the 5-byte prefix + body can span multiple reads, so the reader
+    // is implemented over the shared `IncrementalDecoder` primitive (Decision 12 §11) —
+    // partial state is retained and a short read yields `Pending`, not an error. The blocking
+    // `read` here is the `loop { step }`-until-frame wrapper over it.
     pub fn read<T: MessageMut + Default>(&mut self) -> Result<Option<T>, ConnectError>;
 }
 
