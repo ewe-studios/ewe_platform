@@ -38,6 +38,7 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 | [10](decisions/10-codegen.md) | Code Generation | draft |
 | [11](decisions/11-transport-seam.md) | Transport Seam & Streaming Handler Model | draft |
 | [12](decisions/12-foundation-enablement.md) | Foundation Enablement (Streaming, Trailers, HTTP/2) | draft |
+| [13](decisions/13-websocket-transport.md) | WebSocket Transport (Bidi over HTTP/1.1) — *deferred, implemented last* | draft |
 
 ## Reference Material
 

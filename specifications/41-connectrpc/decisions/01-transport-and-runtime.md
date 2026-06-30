@@ -246,6 +246,11 @@ identity. **It is tokio-based.** Two possible paths, with different value:
 - **Phase 3:** HTTP/3 (replicated from h3) + `quinn-proto` QUIC backend.
 - **Phase 3+:** iroh P2P + public-key auth.
 
+- **Phase 4 (last):** WebSocket transport — full-duplex bidi over an HTTP/1.1 `Upgrade`. The
+  505 above applies only to **plain HTTP/1.1 POST** bidi; a WebSocket channel *is* our
+  transport seam, so it can carry bidi on HTTP/1.1 deployments. Non-standard (our-stack-only)
+  and additive. See **[Decision 13](13-websocket-transport.md)** — deferred, implemented last.
+
 ## Open Questions
 
 1. **foundation_netio HTTP/2**: Does foundation_netio have any HTTP/2 frame-level support today, or is it purely HTTP/1.1? If none, we need to assess the `h2` crate integration effort.
