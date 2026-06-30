@@ -71,61 +71,52 @@ struct HandlerEntry {
 
 enum HandlerKind {
     Unary(Arc<dyn ErasedUnaryHandler>),
-    ServerStream(Arc<dyn ErasedServerStreamHandler>),
-    ClientStream(Arc<dyn ErasedClientStreamHandler>),
-    BidiStream(Arc<dyn ErasedBidiStreamHandler>),
+    // All three streaming kinds share the byte-level `ErasedStreamHandler` (Decision 11
+    // `HandlerConn`); the StreamType in `Spec` distinguishes them for dispatch/validation.
+    ServerStream(Arc<dyn ErasedStreamHandler>),
+    ClientStream(Arc<dyn ErasedStreamHandler>),
+    BidiStream(Arc<dyn ErasedStreamHandler>),
 }
 ```
 
 ### Type-Erased Handler Traits
 
-To store handlers of different `Req`/`Res` types in the same `HashMap`:
+To store handlers of different `Req`/`Res` types in one `HashMap`, the router holds them
+**type-erased** — in two styles:
+
+- **Unary** erases to a bytes closure `(ctx, &dyn Codec, &[u8]) -> Vec<u8>`. The generic
+  `router.unary::<Req, Res, H>` wrapper owns the concrete types, so it runs the codec
+  itself (`Req::default()` + `unmarshal`, call the handler, `marshal` the `Res`). Bytes are
+  fine here only because the wrapper already holds both the codec and the types.
+- **Streaming** erases to the `HandlerConn` seam (Decision 11), whose `send` / `receive`
+  carry **codec-encoded frame bytes** — not `dyn Any` messages. The **codec is confined to
+  the typed `MessageSource<Req>` / `MessageSink<Res>` facade** the handler holds; the seam
+  and its bounded queue carry only frames + metadata. Per-procedure content concerns
+  (validation, redaction, transforms) run as **message-middleware hosted by that facade**
+  (bytes + metadata, with optional one-time typed decode — Decision 11). Keeping `dyn Any`
+  out of the path re-enables zero-copy views and is uniform with the unary byte boundary
+  above. (Cross-cutting concerns — auth, logging, metrics — are seam interceptors over
+  bytes + metadata; see Decision 04.)
 
 ```rust
 pub(crate) trait ErasedUnaryHandler: Send + Sync {
-    fn handle(
-        &self,
-        ctx: &RequestContext,
-        codec: &dyn Codec,
-        body: &[u8],
-    ) -> Result<(Vec<u8>, SimpleHeaders, SimpleHeaders), ConnectError>;
-    // Returns (encoded_response_bytes, response_headers, response_trailers)
+    fn handle(&self, ctx: &RequestContext, codec: &dyn Codec, body: &[u8])
+        -> Result<(Vec<u8>, SimpleHeaders, SimpleHeaders), ConnectError>;
+    // -> (encoded_response_bytes, response_headers, response_trailers)
 }
 
-pub(crate) trait ErasedServerStreamHandler: Send + Sync {
-    fn handle(
-        &self,
-        ctx: &RequestContext,
-        codec: &dyn Codec,
-        body: &[u8],
-    ) -> Result<(SimpleHeaders, Box<dyn ErasedStreamIterator>), ConnectError>;
-    // Returns (response_headers, stream_of_encoded_messages)
-}
-
-pub(crate) trait ErasedClientStreamHandler: Send + Sync {
-    fn handle(
-        &self,
-        ctx: &RequestContext,
-        codec: &dyn Codec,
-        messages: Box<dyn ErasedStreamIterator>,
-    ) -> Result<(Vec<u8>, SimpleHeaders, SimpleHeaders), ConnectError>;
-}
-
-pub(crate) trait ErasedBidiStreamHandler: Send + Sync {
-    fn handle(
-        &self,
-        ctx: &RequestContext,
-        codec: &dyn Codec,
-        messages: Box<dyn ErasedStreamIterator>,
-    ) -> Result<(SimpleHeaders, Box<dyn ErasedStreamIterator>), ConnectError>;
-}
-
-pub(crate) trait ErasedStreamIterator: Send {
-    fn next(&mut self) -> Stream<Result<Vec<u8>, ConnectError>, ()>;
+/// Server / client / bidi streaming all drive the same byte-level `HandlerConn`
+/// (Decision 11): the erased handler is invoked with the conn and pushes/pulls
+/// codec-encoded message bytes through it.
+pub(crate) trait ErasedStreamHandler: Send + Sync {
+    fn handle(&self, ctx: &RequestContext, codec: &dyn Codec, conn: Box<dyn HandlerConn>)
+        -> Result<(), ConnectError>;
 }
 ```
 
-The type-erased boundary works at the byte level: handlers receive raw bytes and return raw bytes. The wrapper between the typed handler and the erased handler does codec marshal/unmarshal.
+This keeps the router generic-free; the dispatch flow additionally enforces capability
+matching (Decision 11) — bidi / gRPC require their transport capabilities, and bidi over
+HTTP/1.1 is rejected with `505` (H6).
 
 ### Handler Registration
 
@@ -291,10 +282,13 @@ pub struct ConnectRpcHandler {
 Code generation produces registration helpers:
 
 ```rust
-// Generated for each service:
+// Generated for each service (push model — Decision 11; default `unimplemented` bodies):
 pub trait GreetServiceHandler: Send + Sync + 'static {
-    fn greet(&self, ctx: &RequestContext, req: Request<GreetRequest>) -> Result<Response<GreetResponse>, ConnectError>;
-    fn greet_group(&self, ctx: &RequestContext, headers: &SimpleHeaders, reqs: Box<dyn StreamIterator<GreetRequest>>) -> Result<Response<GreetGroupResponse>, ConnectError>;
+    fn greet(&self, ctx: &RequestContext, req: Request<GreetRequest>)
+        -> Result<Response<GreetResponse>, ConnectError>;
+    // client-streaming: pull requests from the source (headers via `reqs.headers()`)
+    fn greet_group(&self, ctx: &RequestContext, reqs: MessageSource<GreetRequest>)
+        -> Result<Response<GreetGroupResponse>, ConnectError>;
 }
 
 // Registration function (generated):
@@ -321,9 +315,38 @@ pub fn register_greet_service<S: GreetServiceHandler>(router: &mut Router, servi
 - Generated code provides ergonomic service registration
 - Per-procedure options (interceptors, limits, idempotency) supported
 
+## Review-Gap Coverage
+
+- **R1 — leading slash (decided):** procedure paths and generated constants include the
+  leading slash (`/package.Service/Method`); the router matches the full path standard
+  clients send. Codegen emits constants with the slash (Decision 10).
+- **H5 / H7 — dispatch checks:** the dispatch flow enforces 405 (method not allowed),
+  415 (unsupported content-type, and GET-with-body), and 505 (bidi over HTTP/1.1) — the
+  last via Decision 11's capability matching.
+- **R2 — Unimplemented handler:** generate `Unimplemented<Service>Handler` returning
+  `unimplemented` for every method (Decision 10).
+- **R6 — conditional options:** support per-procedure option customization via a
+  callback that inspects each `Spec`.
+- **C7 — default codecs:** the router registers proto + JSON codecs by default.
+- **Q10 — consumption (decided):** `into_handler(self)` consumes and freezes the router;
+  no post-build mutation. Documented.
+
 ## Open Questions
 
-1. **Path prefix routing**: foundation_http's `Router<S>` does tree-based route matching. Should we register each procedure as a separate route, or register a single prefix route and do sub-routing internally? connect-go registers each procedure separately with Go's `ServeMux`.
-2. **Middleware ordering with foundation_http**: foundation_http has its own middleware chain (CORS, logging, auth, compression). How does this interact with ConnectRPC interceptors? Should ConnectRPC middleware run inside or outside foundation_http middleware?
-3. **Graceful shutdown**: connect-go doesn't handle this (Go's HTTP server does). Foundation_http's server model — does it support draining in-flight requests?
-4. **Multiple services on one router**: connect-go handles this via `http.ServeMux` path multiplexing. Our Router handles it natively via the HashMap. Confirm that procedure paths are globally unique across services (they should be, since they include the full package+service name).
+1. **Path prefix routing (decided):** register the `ConnectRpcHandler` as a **single prefix
+   route** in foundation_http and sub-route internally via the `HashMap` (keyed on
+   `package.Service/Method`). Avoids mutating foundation_http's route tree per procedure and
+   matches our native multiplexing.
+2. **Middleware ordering (decided):** foundation_http middleware (CORS, TLS, transport
+   logging) runs **outside** at the HTTP layer; ConnectRPC **seam interceptors** then
+   **facade message-middleware** run **inside** the `ConnectRpcHandler`, closest to the
+   handler. Order: `foundation_http mw → ConnectRpcHandler → seam interceptors → facade
+   middleware → handler`.
+3. **Graceful shutdown (resolved — Decision 12 §10):** verified that foundation_http stops
+   accepting on shutdown but does **not** drain (no active-connection tracking, no
+   per-connection shutdown check between keep-alive requests, no join after the accept
+   loop). Decision 12 §10 specifies the drain feature to add — active-connection
+   `WaitGroup`, per-connection shutdown awareness, and a bounded drain phase.
+4. **Multiple services on one router (decided):** resolved natively — procedure paths embed
+   the full `package.Service`, so they're globally unique across services in the one
+   `HashMap`.

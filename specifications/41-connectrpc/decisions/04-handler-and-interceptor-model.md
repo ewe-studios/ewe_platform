@@ -204,56 +204,39 @@ impl RequestContext {
 
 ### Handler Traits
 
+Unary handlers return a `Response`; streaming handlers use the **push model**: they
+receive a `MessageSource<Req>` (pull request messages) and/or a `MessageSink<Res>` (push
+response messages) and may interleave reads and writes freely. The signatures are
+identical on every transport (HTTP/1.1 / HTTP/2 / HTTP/3) — duplex is a scheduling
+property of the transport, not the API. `MessageSource` / `MessageSink` are bounded pipes
+over valtron's `ConcurrentQueueStreamIterator`; end-of-stream is `receive() -> Ok(None)`.
+They are defined in `11-transport-seam.md` (the transport seam), which this document
+builds on.
+
 ```rust
 /// Unary RPC handler.
 pub trait UnaryHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(&self, ctx: &RequestContext, request: Request<Req>) -> Result<Response<Res>, ConnectError>;
+    fn handle(&self, ctx: &RequestContext, request: Request<Req>)
+        -> Result<Response<Res>, ConnectError>;
 }
 
-/// Server streaming RPC handler.
-/// Returns an iterator of response messages.
+/// Server streaming — handler pushes response messages, sets headers/trailers as it goes.
 pub trait ServerStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(
-        &self,
-        ctx: &RequestContext,
-        request: Request<Req>,
-    ) -> Result<(SimpleHeaders, Box<dyn StreamIterator<Res>>), ConnectError>;
-    // Returns (response_headers, message_stream)
-    // Trailers are sent after the stream completes
+    fn handle(&self, ctx: &RequestContext, request: Request<Req>, responses: MessageSink<Res>)
+        -> Result<(), ConnectError>;
 }
 
-/// Client streaming RPC handler.
-/// Receives an iterator of request messages, returns a single response.
+/// Client streaming — handler pulls request messages, returns one response.
+/// Request headers come from `requests.headers()` (not a separate parameter).
 pub trait ClientStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(
-        &self,
-        ctx: &RequestContext,
-        headers: &SimpleHeaders,
-        requests: Box<dyn StreamIterator<Req>>,
-    ) -> Result<Response<Res>, ConnectError>;
+    fn handle(&self, ctx: &RequestContext, requests: MessageSource<Req>)
+        -> Result<Response<Res>, ConnectError>;
 }
 
-/// Bidirectional streaming RPC handler.
+/// Bidirectional streaming — handler holds both halves and may interleave reads/writes.
 pub trait BidiStreamHandler<Req, Res>: Send + Sync + 'static {
-    fn handle(
-        &self,
-        ctx: &RequestContext,
-        headers: &SimpleHeaders,
-        requests: Box<dyn StreamIterator<Req>>,
-    ) -> Result<(SimpleHeaders, Box<dyn StreamIterator<Res>>), ConnectError>;
-}
-```
-
-Where `StreamIterator` wraps foundation_core's progress-driven model:
-
-```rust
-/// Iterator over RPC messages, compatible with valtron execution.
-pub trait StreamIterator<T>: Send {
-    fn next(&mut self) -> Stream<Result<T, ConnectError>, ()>;
-    // Returns Stream::Next(Ok(msg)) for each message,
-    //         Stream::Next(Err(e)) on error,
-    //         Stream::Pending(()) when no data ready yet,
-    //         Stream::Init when stream is complete (EOF)
+    fn handle(&self, ctx: &RequestContext, requests: MessageSource<Req>, responses: MessageSink<Res>)
+        -> Result<(), ConnectError>;
 }
 ```
 
@@ -268,16 +251,31 @@ where
 
 pub fn server_stream_handler_fn<Req, Res, F>(f: F) -> impl ServerStreamHandler<Req, Res>
 where
-    F: Fn(&RequestContext, Request<Req>) -> Result<(SimpleHeaders, Box<dyn StreamIterator<Res>>), ConnectError>
+    F: Fn(&RequestContext, Request<Req>, MessageSink<Res>) -> Result<(), ConnectError>
         + Send + Sync + 'static;
 
-// ... etc for client_stream_handler_fn, bidi_stream_handler_fn
+// client_stream_handler_fn: Fn(&RequestContext, MessageSource<Req>) -> Result<Response<Res>, _>
+// bidi_stream_handler_fn:   Fn(&RequestContext, MessageSource<Req>, MessageSink<Res>) -> Result<(), _>
 ```
 
 ### Interceptor System
 
+Two extension points, split by where the concrete type is known:
+
+1. **Seam interceptors** — cross-cutting, generic, over **bytes + metadata** (`Spec`, `Peer`,
+   headers/trailers, frame sizes, status, timing — never the decoded message). Auth,
+   logging, metrics, tracing, rate-limit, timeouts. Registered once, applied to every
+   procedure. These are the `Interceptor` trait below.
+2. **Facade message-middleware** — per-procedure content concerns (validation, redaction,
+   defaulting, transforms), hosted by the typed `MessageSink`/`MessageSource` facade where
+   the codec + type are known (Decision 11). Operates on frame bytes + metadata with an
+   optional one-time typed decode. Replaces connect-go's `any`-message interceptor path,
+   which can't work generically in Rust (no message reflection).
+
+There is intentionally **no `dyn Any` boundary** — `AnyRequest`/`AnyResponse` are removed.
+
 ```rust
-/// Interceptor wraps RPC execution for cross-cutting concerns.
+/// Seam interceptor — wraps RPC execution for cross-cutting concerns (bytes + metadata).
 /// Mirrors connect-go's Interceptor interface.
 pub trait Interceptor: Send + Sync + 'static {
     /// Wrap a unary RPC function.
@@ -290,52 +288,38 @@ pub trait Interceptor: Send + Sync + 'static {
     fn wrap_streaming_handler(&self, next: StreamingHandlerFunc) -> StreamingHandlerFunc;
 }
 
-/// Type-erased unary RPC function for interceptor chaining.
-pub type UnaryFunc = Box<dyn Fn(&RequestContext, AnyRequest) -> Result<AnyResponse, ConnectError> + Send + Sync>;
+/// Unary interceptor function — metadata + encoded request/response **frames** (no typed
+/// message; interceptors needing the message register as facade middleware, Decision 11).
+pub type UnaryFunc =
+    Box<dyn Fn(&RequestContext, UnaryCall) -> Result<UnaryReply, ConnectError> + Send + Sync>;
 
-/// Type-erased streaming handler function.
-pub type StreamingHandlerFunc = Box<dyn Fn(&RequestContext, &mut dyn StreamingHandlerConn) -> Result<(), ConnectError> + Send + Sync>;
+pub struct UnaryCall  { pub headers: SimpleHeaders, pub frame: Vec<u8> }   // encoded request
+pub struct UnaryReply { pub headers: SimpleHeaders, pub trailers: SimpleHeaders, pub frame: Vec<u8> } // encoded response
 
-/// Type-erased streaming client function.
-pub type StreamingClientFunc = Box<dyn Fn(&RequestContext, &Spec) -> Box<dyn StreamingClientConn> + Send + Sync>;
+/// Streaming handler interceptor — wraps the byte-level `HandlerConn` **by value** so it
+/// can embed/wrap it (Decision 11; `&mut dyn` would block injecting a wrapper).
+pub type StreamingHandlerFunc =
+    Box<dyn Fn(&RequestContext, Box<dyn HandlerConn>) -> Result<(), ConnectError> + Send + Sync>;
+
+/// Streaming client interceptor — wraps the byte-level `ClientConn`.
+pub type StreamingClientFunc =
+    Box<dyn Fn(&RequestContext, &Spec) -> Box<dyn ClientConn> + Send + Sync>;
 ```
 
-### AnyRequest / AnyResponse (Type-Erased for Interceptors)
+No `AnyRequest` / `AnyResponse`: the seam is bytes + metadata. Per-procedure typed access is
+the facade message-middleware (Decision 11). This removes RS2's `dyn Any` `'static`
+constraint (zero-copy views become possible) and the RS5 / RS9 `Any` issues.
 
-```rust
-pub trait AnyRequest: Send {
-    fn any_ref(&self) -> &dyn Any;
-    fn spec(&self) -> &Spec;
-    fn peer(&self) -> &Peer;
-    fn headers(&self) -> &SimpleHeaders;
-    fn headers_mut(&mut self) -> &mut SimpleHeaders;
-}
+### Streaming interceptor conn
 
-pub trait AnyResponse: Send {
-    fn any_ref(&self) -> &dyn Any;
-    fn headers(&self) -> &SimpleHeaders;
-    fn headers_mut(&mut self) -> &mut SimpleHeaders;
-    fn trailers(&self) -> &SimpleHeaders;
-    fn trailers_mut(&mut self) -> &mut SimpleHeaders;
-}
-```
-
-### StreamingHandlerConn
-
-```rust
-/// Server's view of a streaming RPC, used by streaming interceptors.
-pub trait StreamingHandlerConn: Send {
-    fn spec(&self) -> &Spec;
-    fn peer(&self) -> &Peer;
-    fn request_headers(&self) -> &SimpleHeaders;
-    fn receive(&mut self) -> Result<Box<dyn Any + Send>, ConnectError>;
-    fn send(&mut self, msg: Box<dyn Any + Send>) -> Result<(), ConnectError>;
-    fn response_headers(&self) -> &SimpleHeaders;
-    fn response_headers_mut(&mut self) -> &mut SimpleHeaders;
-    fn response_trailers(&self) -> &SimpleHeaders;
-    fn response_trailers_mut(&mut self) -> &mut SimpleHeaders;
-}
-```
+The streaming interceptor's view of a connection **is** Decision 11's `HandlerConn`, which
+carries **encoded frames (bytes) + metadata** (`spec` / `peer` / `request_headers` /
+`receive` → `Vec<u8>` / `send` ← `&[u8]` / `send_headers` / `response_trailers` / `close`),
+not typed messages. It is passed **by value** (`Box<dyn HandlerConn>`, see
+`StreamingHandlerFunc` above) so an interceptor can wrap or embed it — `&mut dyn` would
+prevent injecting a wrapper. There is no separate `StreamingHandlerConn` type; it was
+unified into `HandlerConn`. Interceptors that need the typed message register as facade
+message-middleware (Decision 11) instead.
 
 ### Interceptor Chain
 
@@ -392,6 +376,37 @@ Wraps handler execution in `std::panic::catch_unwind`. On panic, calls the user'
 - `StreamingHandlerConn` provides the same concurrent read/write interface as connect-go
 - Panic recovery via interceptor, not built into the framework
 - `Extensions` type-map enables middleware to pass typed data through the request pipeline
+
+## Additional Decisions
+
+Smaller decided items (the streaming handler shape, push model, interceptor fn-types, and
+by-value conn are already in the body above):
+
+- **RS4 — panic recovery:** wrap handler invocation in `AssertUnwindSafe`; treat the
+  connection as poisoned after a caught panic.
+- **RS5 / RS9 — moot:** `AnyRequest` / `AnyResponse` are removed (byte+metadata seam), so
+  the sealed-`Any` and `Any` `Send`/`Sync` concerns no longer apply.
+- **H4 — unary cardinality:** receive exactly one message; zero or more than one →
+  `unimplemented`.
+- **H14 — `Spec.schema`:** add an optional schema/descriptor handle for interceptors and
+  dynamic message construction.
+- **H15 — `Peer.query`:** add a server-side query map (for GET RPCs).
+- **H16 — `Request::http_method()`:** expose GET vs POST.
+- **H18 / H19 — recover/thunk asymmetry:** `RecoverInterceptor` wraps unary +
+  streaming-handler only (never streaming-client); the thunk sentinel is client-side only.
+- **Q3 — moot:** there is no `AnyRequest`/`any_ref()` boundary anymore; the seam is bytes,
+  the typed message lives only in the facade. (Was: "does `any_ref` return `&T` or
+  `&Request<T>`" — no longer applicable.)
+- **Q13 — connection metadata (decided): typed `ConnectionContext`.** Introduce a typed
+  `ConnectionContext` for connection-scoped state — peer identity (incl. the iroh Ed25519
+  public key, carried via netcap `Endpoint<I>`), TLS/mTLS peer certificate, negotiated
+  ALPN / HTTP version, 0-RTT flag, and QUIC connection id. `SimpleIncomingRequest` carries
+  the `ConnectionContext`, and `RequestContext` references it (handlers reach
+  `ctx.connection.peer`, `ctx.connection.tls`, …) while keeping `extensions` for untyped
+  user/middleware data. Connection-scoped fields are shared across multiplexed HTTP/2 and
+  HTTP/3 requests on the same connection; the per-request HTTP/2/3 **stream id** stays
+  request-scoped. (Folds in T10 — iroh public key — and the netcap `Endpoint<I>` identity
+  generic from Decision 12 §9.)
 
 ## Open Questions
 

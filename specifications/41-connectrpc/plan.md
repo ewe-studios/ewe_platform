@@ -35,6 +35,8 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 | [08](decisions/08-router-and-dispatch.md) | Router & Multi-Protocol Dispatch | draft |
 | [09](decisions/09-auth-middleware.md) | Authentication Middleware | draft |
 | [10](decisions/10-codegen.md) | Code Generation | draft |
+| [11](decisions/11-transport-seam.md) | Transport Seam & Streaming Handler Model | draft |
+| [12](decisions/12-foundation-enablement.md) | Foundation Enablement (Streaming, Trailers, HTTP/2) | draft |
 
 ## Reference Material
 
@@ -47,8 +49,11 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 
 ```
 backends/foundation_connectrpc/          # Runtime library
-backends/foundation_connectrpc_codegen/  # Code generation library + protoc plugin
-backends/foundation_connectrpc_build/    # build.rs helper
+
+# Codegen is NOT a separate crate (see Decision 10):
+#   - one unified generator (messages + service traits + clients) — no split tooling
+#   - generation logic lives in  backends/foundation_macros/
+#   - a binary in              backends/foundation_netio/  exposes it (CLI / protoc plugin)
 ```
 
 ## Open Questions (Aggregated)

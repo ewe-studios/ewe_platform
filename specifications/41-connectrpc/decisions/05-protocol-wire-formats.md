@@ -398,6 +398,39 @@ pub fn negotiate_compression(
 - Connect + gRPC-Web work on HTTP/1.1; gRPC requires HTTP/2
 - Protocol detection is O(1) from Content-Type header parsing
 
+## Review-Gap Coverage
+
+Behaviours to implement (own the code; folded in from the review):
+
+- **P6 — content-type canonicalization:** strip parameters for matching but preserve
+  `charset`; `application/json; charset=utf-8` matches `application/json`. Applies to
+  every Content-Type comparison.
+- **P7 — `RequireConnectProtocolHeader`:** handler option requiring
+  `Connect-Protocol-Version: 1` on unary POST.
+- **P8 — gRPC-Web trailers-only:** when no body and no custom headers, send trailers as
+  HTTP headers; the client handles this case.
+- **P9 — status-details-bin preference:** prefer the `Grpc-Status-Details-Bin` protobuf
+  `Status` over `Grpc-Status` / `Grpc-Message` when both are present.
+- **P10 — streaming `Accept-Encoding: identity`:** set on streaming requests to disable
+  HTTP-level compression of already-per-message-compressed streams.
+- **P11 — `Vary: Accept-Encoding`** on cacheable GET responses.
+- **P12 — User-Agent:** set `User-Agent` (Connect) and both `User-Agent` + `X-User-Agent`
+  (gRPC-Web).
+- **P13 — gRPC timeout:** enforce max 8 digits on parse.
+- **P14 — GET idempotency:** stable-codec serialization, `get_url_max_bytes` (default
+  8 KiB), POST fallback, and 304 support.
+- **H8 — ProtocolHandler split:** expose `methods()`, `content_types()`, and
+  `can_handle_payload()` separately so the dispatcher can distinguish 405 (method) from
+  415 (content-type).
+- **C8 — `EnvelopeReader`:** store the source iterator at construction (aligns with
+  Decision 11's `MessageSource`).
+- **T4 — Phase-1 scope (decided):** Connect + gRPC-Web are fully supported on HTTP/1.1;
+  gRPC requires HTTP/2 and is therefore Phase 2. Enforced at runtime by Decision 11's
+  capability matching.
+- **T8 — pseudo-headers:** `:method`/`:path`/`:scheme`/`:authority`/`:status` are mapped
+  to request/response fields inside the `http2/` module (Decision 12 §6); handlers never
+  see them.
+
 ## Open Questions
 
 1. **gRPC-Web text mode**: Base64 encoding/decoding of the entire response body is non-trivial for streaming. Do we implement this in Phase 1 or defer? It's primarily for browser clients.

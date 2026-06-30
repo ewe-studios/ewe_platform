@@ -194,6 +194,37 @@ For gRPC/gRPC-Web protocols:
 - **Feature-gated**: `proto` (default), `json` (default), `arrow` (optional)
 - **Proto JSON uses protobuf canonical mapping**: lowerCamelCase field names, string enums, omitted zero values — matching connect-go's `protojson`
 
+## Review-Gap Coverage
+
+Decided items folded in from the review (we own the code; implement directly):
+
+- **P1 — dual JSON registration:** register the JSON codec under both `json` and
+  `json; charset=utf-8`, and canonicalize content-types (Decision 05 P6) so
+  `application/json; charset=utf-8` is accepted rather than 415'd.
+- **P16 — zero-length JSON:** reject zero-length JSON payloads with `invalid_argument`
+  ("zero-length payload is not a valid JSON object").
+- **RS7 — frozen registries:** `CodecRegistry` / `CompressionRegistry` are built then
+  frozen (builder → `Arc`); no `&mut register` after handlers hold references.
+- **RS8 — `MarshalAppend`:** add `marshal_append(&self, buf: &mut Vec<u8>, msg)` to
+  `Codec` for pooled-buffer reuse on hot paths.
+- **RS9 — Send/Sync:** per-call message construction resolves the `Send`-only vs
+  `Send+Sync` distinction between `MessageRef`/`MessageMut`.
+- **RS2 — zero-copy views (now supported):** the original concern was that
+  `buffa::MessageView<'a>` is not `'static` and so can't cross a `dyn Any` boundary. With
+  the byte-seam revision (Decision 11), there **is no `dyn Any` at the seam** — the seam
+  carries encoded frame bytes and the typed `MessageSource`/`MessageSink` facade owns the
+  decode and the frame buffer. The facade can therefore hand a handler a **borrowed
+  `MessageView<'a>` decoded in place** from the frame buffer (lifetime tied to the next
+  `receive`). Zero-copy view handlers are a supported codegen variant, not a dead end.
+- **Q5 — JSON semantics (decided):** protobuf messages serialize via canonical
+  protobuf-JSON (lowerCamelCase, string enums, omit-zero). Arbitrary serde types are a
+  documented **platform extension** that is *not* protobuf-JSON-canonical and is not
+  guaranteed cross-language-interoperable. **Decision: ship it**, but every
+  platform-extension codec registers under its **own** content-type / codec name (e.g.
+  `arrow` → `application/arrow` + `application/connect+arrow`; a non-canonical serde-JSON
+  extension under a distinct name) — never silently under `application/json` for protobuf
+  services. The codec name on the wire is what selects canonical vs extension behaviour.
+
 ## Open Questions
 
 1. **buffa JSON support**: Does buffa have built-in JSON serialization that follows the protobuf canonical JSON mapping? Or do we need to implement that ourselves? The connect-go implementation uses `protojson.Marshal`/`protojson.Unmarshal` from the official Go protobuf library. buffa has a `json` feature — need to verify it produces canonical protobuf JSON.

@@ -334,6 +334,28 @@ impl Interceptor for ScopeInterceptor {
 - Auth info flows through `RequestContext.extensions` — handlers access it via `get_auth_info::<T>()`
 - Scope/permission checks run as interceptors (after deserialization, per-RPC)
 
+## Review-Gap Coverage
+
+**Q9 decision:** fix the small mismatches **upstream in foundation_auth** and reuse them;
+bridge only where a sync/async boundary genuinely forces it (R13).
+
+- **R7 — bearer parsing:** make `extract_bearer_token` RFC 9110 case-insensitive in
+  foundation_auth and reuse it (don't duplicate an `eq_ignore_ascii_case` helper here).
+- **R8 — `has_scope`:** use the real signature `has_scope(&AuthContext, &[&str])`.
+- **R9 — `SessionManager` generic:** expose a type-erased session authenticator (or carry
+  the `CredentialStore` generic through the middleware) so it can be stored as `dyn`.
+- **R10 — `extract_session_token`:** real API is `(cookies: &[&str], cookie_name: &str)`;
+  adapt at the call site (pull cookies from `SimpleIncomingRequest`).
+- **R11 — protocol string:** use hyphenated `"grpc-web"` to match connect-go.
+- **R12 — dependency:** put the auth middleware behind a feature flag / in a separate
+  crate so `foundation_connectrpc` doesn't unconditionally pull `foundation_auth →
+  foundation_db`.
+- **R13 — JWKS (sync bridge):** `JwtVerifier::from_config` only; `JwksManager` is async.
+  The synchronous middleware uses a pre-fetched / cached JWK set refreshed out-of-band,
+  rather than fetching inside the request path.
+- **T10 — iroh identity:** add a `PublicKeyAuthenticator`; `Peer` carries the Ed25519
+  public key when the connection is iroh-based.
+
 ## Open Questions
 
 1. **mTLS identity**: connect-go's authn doesn't handle mTLS (that's transport-level). Foundation_netio supports TLS — can we extract client certificates and pass them through? This would be in `RequestContext.extensions` as `PeerCertificates`.

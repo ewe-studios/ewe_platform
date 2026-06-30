@@ -40,21 +40,35 @@ Client options select protocol:
 
 ### Transport Trait
 
+The client transport is **streaming-capable** and lives in `11-transport-seam.md`: it
+exposes `open(spec, headers) -> ClientConn` (a bidirectional exchange backed by bounded
+`MessageSink`/`MessageSource` pipes) plus `capabilities() -> TransportCapabilities` so the
+client can reject incompatible protocol+version combinations before sending. Unary is the
+degenerate case, available as a `round_trip` convenience built on `open`:
+
 ```rust
-/// HTTP transport abstraction for sending RPC requests.
-/// Implementations: foundation_netio HTTP client, WASM Fetch, custom.
 pub trait Transport: Send + Sync + 'static {
-    /// Send an HTTP request and return the response.
-    fn round_trip(
-        &self,
-        request: SimpleOutgoingRequest,
-    ) -> Result<SimpleIncomingResponse, TransportError>;
+    /// What this transport can do (duplex, trailers, HTTP versions, multiplexing) —
+    /// used for capability matching (Decision 11).
+    fn capabilities(&self) -> TransportCapabilities;
+
+    /// Open a streaming exchange; returns the request sink + response source.
+    fn open(&self, request: RequestHead) -> Result<TransportStream, TransportError>;
+}
+
+// Unary convenience over `open` (send one, close, read one):
+impl dyn Transport {
+    pub fn round_trip(&self, req: SimpleOutgoingRequest)
+        -> Result<SimpleIncomingResponse, TransportError> { /* open + send + close + read */ }
 }
 ```
 
-Note: `SimpleOutgoingRequest` and `SimpleIncomingResponse` are the client-side counterparts. We may need to define these if foundation_netio's HTTP client doesn't already provide them, or adapt the existing `SimpleIncomingRequest` / `SimpleOutgoingResponse` types.
-
-**Foundation_netio's HTTP client**: Check what client abstraction exists. If it provides `send(request) -> response`, we adapt it. If not, we define the transport interface and provide a default implementation using foundation_netio's TCP/TLS stack.
+Implementations: foundation_netio HTTP client (HTTP/1.1 today; HTTP/2/3 via the new
+modules), WASM Fetch (unary + server-streaming only — `Duplex::None`), custom.
+`SimpleOutgoingRequest` / `SimpleIncomingResponse` are the client-side counterparts to the
+server types; reuse or adapt the existing `netcap` types. The streaming client types below
+are realized over `MessageSource` / `MessageSink` (not embedded
+`EnvelopeReader`/`EnvelopeWriter`).
 
 ### Client[Req, Res]
 
@@ -164,64 +178,48 @@ impl ClientOptions {
 
 ### Streaming Client Types
 
+Each is a thin typed facade over a `ClientConn` (Decision 11) obtained from
+`Transport::open`: outgoing messages go to the conn's `MessageSink<Req>`, incoming to its
+`MessageSource<Res>`. They do **not** embed `EnvelopeReader`/`EnvelopeWriter` directly, and
+the half-duplex (HTTP/1.1) vs full-duplex (HTTP/2/3) difference is handled by the transport
+scheduling the conn's pipes — the API is identical.
+
 ```rust
-/// Client's view of a server streaming RPC.
-pub struct ServerStream<Res> {
-    response: SimpleIncomingResponse,
-    reader: EnvelopeReader,
-    response_headers: SimpleHeaders,
-    _phantom: PhantomData<Res>,
-}
-
+/// Client's view of a server streaming RPC (one request, many responses).
+pub struct ServerStream<Res> { conn: Box<dyn ClientConn>, _p: PhantomData<Res> }
 impl<Res: MessageMut + Default> ServerStream<Res> {
-    /// Read the next response message. Returns None at end of stream.
-    pub fn receive(&mut self) -> Result<Option<Res>, ConnectError>;
-
-    /// Response headers (available immediately).
-    pub fn response_headers(&self) -> &SimpleHeaders;
-
-    /// Response trailers (available after stream ends).
-    pub fn response_trailers(&self) -> Result<&SimpleHeaders, ConnectError>;
+    pub fn receive(&mut self) -> Result<Option<Res>, ConnectError>; // None at end of stream
+    pub fn response_headers(&self) -> &SimpleHeaders;               // available immediately
+    pub fn response_trailers(&self) -> Result<&SimpleHeaders, ConnectError>; // after end
+    /// Non-blocking close of the receive side (connection reuse).
+    pub fn close(self);
 }
 
-/// Client's view of a client streaming RPC.
-pub struct ClientStream<Req, Res> {
-    writer: EnvelopeWriter,
-    transport: Arc<dyn Transport>,
-    request_builder: SimpleOutgoingRequestBuilder,
-    body_parts: Vec<Vec<u8>>,  // accumulated envelope frames
-    _phantom: PhantomData<(Req, Res)>,
-}
-
+/// Client's view of a client streaming RPC (many requests, one response).
+pub struct ClientStream<Req, Res> { conn: Box<dyn ClientConn>, _p: PhantomData<(Req, Res)> }
 impl<Req: MessageRef, Res: MessageMut + Default> ClientStream<Req, Res> {
-    /// Request headers (writable before first send).
-    pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders;
-
-    /// Send a request message.
+    pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders; // before first send
     pub fn send(&mut self, msg: &Req) -> Result<(), ConnectError>;
-
-    /// Close the request side and receive the response.
     pub fn close_and_receive(self) -> Result<Response<Res>, ConnectError>;
 }
 
 /// Client's view of a bidirectional streaming RPC.
-pub struct BidiStream<Req, Res> {
-    writer: EnvelopeWriter,
-    reader: EnvelopeReader,
-    // For HTTP/1.1: accumulate request, then read response (half-duplex)
-    // For HTTP/2: concurrent read/write via separate transport channels
-    _phantom: PhantomData<(Req, Res)>,
-}
-
+pub struct BidiStream<Req, Res> { conn: Box<dyn ClientConn>, _p: PhantomData<(Req, Res)> }
 impl<Req: MessageRef, Res: MessageMut + Default> BidiStream<Req, Res> {
     pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders;
     pub fn send(&mut self, msg: &Req) -> Result<(), ConnectError>;
+    /// Header-only send (no body) is `send_headers` then proceed (C5).
+    pub fn send_headers(&mut self) -> Result<(), ConnectError>;
     pub fn close_request(&mut self) -> Result<(), ConnectError>;
     pub fn receive(&mut self) -> Result<Option<Res>, ConnectError>;
     pub fn response_headers(&self) -> &SimpleHeaders;
     pub fn response_trailers(&self) -> Result<&SimpleHeaders, ConnectError>;
 }
 ```
+
+Over HTTP/1.1 `send` buffers into the bounded request pipe and the response side becomes
+available after `close_request`/`close_and_receive` (half-duplex); over HTTP/2/3 the conn's
+reader and writer run concurrently (full-duplex). Same types, no API change.
 
 ### HTTP GET for Idempotent Unary RPCs
 
@@ -293,6 +291,26 @@ fn call_unary_with_get_fallback(
 - Bidi streaming over HTTP/1.1: half-duplex (send all, then receive all)
 - Bidi streaming over HTTP/2: full-duplex (requires HTTP/2 transport — Phase 2)
 - HTTP GET support for idempotent RPCs with automatic POST fallback
+
+## Review-Gap Coverage
+
+Transport + streaming client types are superseded by Decision 11. Remaining parity items,
+folded in:
+
+- **C1 — simple call variants:** add `call_client_stream_simple` / `call_bidi_stream_simple`
+  that send headers immediately and return unwrapped types (simple codegen mode).
+- **C2 — client context:** provide a client-context mechanism to set request headers and
+  read response headers/trailers without the `Request`/`Response` wrappers.
+- **C3 — Spec/Peer on streams:** expose `.spec()` / `.peer()` on all client stream types.
+- **C4 — `ServerStream::close`:** non-blocking close of the receive side (connection
+  reuse).
+- **C5 — header-only send:** allow sending headers with no body (Decision 11
+  `MessageSink::set_headers` + `close`).
+- **C6 — default gzip accept:** the client accepts gzip by default.
+- **C7 — default codecs:** proto + JSON registered by default (see Decisions 02 / 08).
+- **T12 — version selection (decided):** `ClientOptions::with_preferred_http_version()`;
+  Connect and gRPC-Web prefer the highest available version, gRPC requires ≥ HTTP/2 —
+  enforced by Decision 11's capability matching.
 
 ## Open Questions
 

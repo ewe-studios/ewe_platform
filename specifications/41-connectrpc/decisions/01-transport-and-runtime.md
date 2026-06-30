@@ -73,6 +73,97 @@ The core protocol logic (codec, compression, envelope framing, error types, inte
 - Valtron executor handles concurrent stream processing for bidi RPCs
 - WASM client support is possible because core protocol logic has no OS dependencies
 
+## Review-Gap Coverage
+
+- **T1 — multi-version mapping (decided):** the connect-go → foundation type mapping in
+  this doc is HTTP-version-agnostic. Every transport module (`simple_http/`, `http2/`,
+  `http3/`) produces `SimpleIncomingRequest` / consumes `SimpleOutgoingResponse`; the
+  unified seam is Decision 11 (`HandlerConn` / `ClientConn`, streaming `Transport`). The
+  mapping below applies per version unchanged.
+- **T2 — negotiation strategy (decided):** the server selects per connection — ALPN
+  (`h2`, `http/1.1`) over TLS; HTTP/2 connection-preface ("prior knowledge") detection
+  for cleartext h2c; `Alt-Svc: h3=...` advertises HTTP/3 for client upgrade on a later
+  connection. The `ConnectionHandler` branch lives in Decision 12.
+- **T3 — connection branching:** handled in Decision 12 (the `http2/` `ConnectionHandler`
+  branch); HTTP/3 adds a third branch.
+- **T6 — server push (decided):** ConnectRPC does not use HTTP/2 server push; the
+  `http2/` module rejects/ignores `PUSH_PROMISE` frames.
+- **T13 — reference sources:** record the local `h2` source path alongside the recorded
+  `h3` and `iroh` paths when available.
+- **T14 — QUIC backend (decided): use `quinn-proto`.** Research (sources at
+  `/home/darkvoid/Boxxed/@formulas/src.rust/src.Quinn/quinn/quinn-proto`) confirms
+  `quinn-proto` is a **pure sans-IO state machine with no tokio/runtime dependency** —
+  deps are `bytes`/`rustls`/`ring`/`rand`/`slab`/`thiserror`/`tracing`/`tinyvec`; all async
+  lives in the separate `quinn/` wrapper. Its API is the classic feed-bytes/poll-transmit
+  shape (`Endpoint::handle`/`accept`, `Connection::poll_transmit`/`poll_timeout`/
+  `handle_timeout`/`poll`, and `streams().open/accept` + `recv_stream.read` /
+  `send_stream.write/finish/reset/stop`). So the `quic/` module does **not** reimplement
+  QUIC. `quinn-proto` is a standalone crate (v0.12 on crates.io), so we **add it as a
+  normal Cargo dependency** (feature-gated) rather than vendoring — vendor only if we later
+  need to patch it. We write only the thin Valtron-driven event loop + UDP socket plumbing
+  in netcap (optionally using `quinn-udp` for cross-platform GSO/GRO) + the `http3/quic.rs`
+  trait impl over `quinn-proto`'s `Connection`/streams. It already uses rustls, matching
+  `netcap/ssl`. This significantly reduces the Phase-3 scope.
+- **Type sufficiency for HTTP/2 & HTTP/3 (decided): no new handler-facing types, no
+  per-version wrappers.** `SimpleIncomingRequest` / `SimpleOutgoingResponse` /
+  `SimpleHeaders` / `SendSafeBody` / `Proto` (already carries `HTTP20` / `HTTP30`), plus the
+  new `ConnectionContext` (Q13) and the trailers field (B3), fully represent HTTP/2 and
+  HTTP/3 at the handler boundary:
+  - pseudo-headers (`:method`/`:path`/`:scheme`/`:authority`/`:status`) are mapped to the
+    request/response fields *inside* the module (T8, Decision 12 §6);
+  - trailers are a response part (B3);
+  - the body is version-agnostic with a push-able backing (B6);
+  - cancellation (RST_STREAM / stream reset) maps to `RequestContext` (Decision 11);
+  - the HTTP version is on `Proto`, and per-request stream id lives in `ConnectionContext`.
+
+  **We do not wrap request/response in Http2/Http3-specific types** — that would reintroduce
+  the transport coupling the seam removes. New types live **only inside** `http2/` and
+  `http3/`: the multiplexed *connection* object (frame codec + HPACK/QPACK + stream table +
+  flow control) and its per-stream send/receive handles, which produce/consume the universal
+  types and are never exposed to handlers. netcap's `Connection` / `Listener` gain `Quic` /
+  `Iroh` variants (Decision 12 §9) for the accept/byte-stream side.
+
+## Future-Phase Transport Roadmap (approach decided, not yet built)
+
+### HTTP/3 (Phase 3)
+Replicate the `h3` crate's design tokio-free (source:
+`/home/darkvoid/Boxxed/@formulas/src.rust/src.tokio/h3/`) — QPACK, frame codec,
+connection/stream mapping — implementing h3's backend-agnostic QUIC trait abstraction over
+the QUIC backend. Rewrite `tokio::sync` → `ConcurrentQueueStreamIterator`/crossbeam and
+`Poll` → synchronous/iterator equivalents. The **QUIC backend is `quinn-proto`** (see §T14:
+sans-IO, tokio-free, added as a Cargo dependency); we write only the Valtron-driven driver
++ UDP plumbing in netcap (optionally `quinn-udp` for GSO/GRO). Module layout:
+
+```
+backends/foundation_netio/src/
+├── simple_http/   # HTTP/1.1
+├── http2/         # HTTP/2 (replicated from h2)
+├── http3/         # HTTP/3 framing (replicated from h3); quic.rs = backend-agnostic trait
+├── quic/          # quinn-proto (Cargo dep) + Valtron driver + UDP
+└── netcap/        # shared TCP/TLS/RawStream
+```
+Produces `SimpleIncomingRequest` / consumes `SimpleOutgoingResponse` like the others;
+`ConnectionHandler` adds a third branch. `Proto::HTTP30` already exists. Scope ≈ 6–10
+features. Sub-item T9: the QUIC trait abstraction needs synchronous equivalents of h3's
+`Poll`-based `Connection`/`SendStream`/`RecvStream`.
+
+### iroh peer-to-peer (Phase 3+)
+Source: `/home/darkvoid/Boxxed/@formulas/src.rust/src.WebTransport/src.n0-computer/iroh/`.
+**Decided (both paths):** (1) **standalone P2P transport** — iroh `Endpoint` → bidi/uni QUIC
+streams used directly for custom protocols / data sync / messaging (no HTTP framing); and
+(2) **HTTP/3 backend** — an `iroh/` module implements the same QUIC trait abstraction
+`http3/` expects, so HTTP/3 (and ConnectRPC) run over a P2P connection. We keep iroh's own
+stack intact for the standalone path and also offer QUIC-based iroh over our `quic/`. The
+peer's Ed25519 public key flows into auth via netcap `Endpoint<I>` identity →
+`ConnectionContext` (Decision 04 Q13 / Decision 09 T10). Scope ≈ 2–3 features on top of
+HTTP/3.
+
+### Phasing
+- **Phase 1:** HTTP/1.1 — Connect + gRPC-Web (no gRPC; half-duplex bidi).
+- **Phase 2:** HTTP/2 (replicated from h2) — full gRPC, full-duplex bidi, client multiplexing.
+- **Phase 3:** HTTP/3 (replicated from h3) + `quinn-proto` QUIC backend.
+- **Phase 3+:** iroh P2P + public-key auth.
+
 ## Open Questions
 
 1. **foundation_netio HTTP/2**: Does foundation_netio have any HTTP/2 frame-level support today, or is it purely HTTP/1.1? If none, we need to assess the `h2` crate integration effort.

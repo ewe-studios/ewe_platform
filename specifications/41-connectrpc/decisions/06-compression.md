@@ -193,6 +193,19 @@ In production, wrap in `Mutex` or use thread-local pools. The buffer pool reduce
 - Size-limited decompression prevents compression bomb DoS
 - Buffer pool reduces GC/allocation pressure
 
+## Review-Gap Coverage
+
+- **P17 / Q7 — `read_max_bytes` default (decided):** default to **unlimited (0)** to match
+  connect-go; the 4 MiB cap becomes opt-in. We own the new http2 layer, so nothing forces
+  a cap.
+- **H10 — per-message checks:** apply `compress_min_bytes` per envelope (small messages
+  sent uncompressed even when compression is negotiated); check `send_max_bytes` **after**
+  compression.
+- **RS6 — buffer pool (decided):** use thread-local pools in the valtron worker model to
+  avoid `Mutex` contention; buffers do not migrate between workers.
+- **RS10 — streaming compressor:** provide reset-able streaming compressor/decompressor
+  (not only the batch API) with pooling, for large/streamed messages.
+
 ## Open Questions
 
 1. **foundation_http CompressionMiddleware overlap**: foundation_http already has compression middleware. Should connectrpc bypass it and handle compression internally (as connect-go does), or can we reuse the middleware? connect-go handles compression per-message, not per-HTTP-response, so the middleware approach doesn't apply to streaming.

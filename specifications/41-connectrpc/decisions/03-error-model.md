@@ -295,6 +295,28 @@ impl ErrorWriter {
 - `wire_error` flag lets clients distinguish server-sent errors from transport/client errors
 - JSON error serialization matches the Connect protocol spec exactly
 
+## Review-Gap Coverage
+
+- **P2 / P3 — status mappings:** the `Code → HTTP` and `HTTP → Code` tables are already
+  in this doc; implement as `Code::http_status()` / `Code::from_http_status()`. Decision
+  05 references them rather than redefining.
+- **P4 — detail wire encoding:** `ErrorDetail` derives serde `Serialize`/`Deserialize`;
+  the wire form is `{type, value (base64 RawStdEncoding), debug?}`. Internal tracing uses
+  foundation_errstacks and is independent of the on-wire detail.
+- **P5 — EndStream details:** `WireError.details` is the same `Vec<WireErrorDetail>` used
+  for unary errors; `EndStreamResponse.error` embeds it (documented in the JSON shapes
+  above).
+- **P15 — 304 Not Modified:** add `ConnectError::not_modified()` / `is_not_modified()`
+  for conditional GET.
+- **H11 — error wrapping:** add `wrap_if_uncoded`, `wrap_if_context`, `wrap_if_rst`,
+  `wrap_if_h2c` helpers that map arbitrary errors to a `Code`.
+- **H12 — `code_of`:** free fn `code_of(&dyn Error) -> Code` (downcast to `ConnectError`,
+  else `Unknown`).
+- **H13 — chain traversal:** document the downcast pattern — walk `Error::source()` and
+  `downcast_ref::<ConnectError>()` — for interceptors checking nested errors.
+- **H17 — `ErrorWriter`:** holds only a buffer pool + a single protobuf codec (for gRPC
+  status details), not the full `CodecRegistry`.
+
 ## Open Questions
 
 1. **Error detail without protobuf**: If a service uses only JSON or Arrow codec (no buffa dependency), error details still need protobuf `Any` for interoperability. Should we require buffa for error details, or support JSON-only error details as a platform extension?

@@ -81,28 +81,28 @@ pub trait GreetService: Send + Sync + 'static {
         request: connectrpc::Request<GreetRequest>,
     ) -> Result<connectrpc::Response<GreetResponse>, connectrpc::ConnectError>;
 
-    /// Client streaming RPC: GreetGroup
+    /// Client streaming RPC: GreetGroup (pull requests; headers via `requests.headers()`)
     fn greet_group(
         &self,
         ctx: &connectrpc::RequestContext,
-        headers: &SimpleHeaders,
-        requests: Box<dyn connectrpc::StreamIterator<GreetRequest>>,
+        requests: connectrpc::MessageSource<GreetRequest>,
     ) -> Result<connectrpc::Response<GreetGroupResponse>, connectrpc::ConnectError>;
 
-    /// Server streaming RPC: GreetIndividuals
+    /// Server streaming RPC: GreetIndividuals (push responses into the sink)
     fn greet_individuals(
         &self,
         ctx: &connectrpc::RequestContext,
         request: connectrpc::Request<GreetRequest>,
-    ) -> Result<(SimpleHeaders, Box<dyn connectrpc::StreamIterator<GreetResponse>>), connectrpc::ConnectError>;
+        responses: connectrpc::MessageSink<GreetResponse>,
+    ) -> Result<(), connectrpc::ConnectError>;
 
-    /// Bidirectional streaming RPC: Converse
+    /// Bidirectional streaming RPC: Converse (interleave receive/send freely)
     fn converse(
         &self,
         ctx: &connectrpc::RequestContext,
-        headers: &SimpleHeaders,
-        requests: Box<dyn connectrpc::StreamIterator<ConverseRequest>>,
-    ) -> Result<(SimpleHeaders, Box<dyn connectrpc::StreamIterator<ConverseResponse>>), connectrpc::ConnectError>;
+        requests: connectrpc::MessageSource<ConverseRequest>,
+        responses: connectrpc::MessageSink<ConverseResponse>,
+    ) -> Result<(), connectrpc::ConnectError>;
 }
 
 // ============================================================
@@ -302,6 +302,46 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 - Procedure paths follow protobuf convention: `package.Service/Method`
 - Idempotency level from proto `option idempotency_level` flows through to handler options
 - Codegen depends on buffa-codegen for message type generation
+
+## Review-Gap Coverage
+
+- **R1 — leading slash:** generated procedure constants include the leading slash
+  (`/package.Service/Method`).
+- **R2 — Unimplemented handler:** generate `Unimplemented<Service>Handler` returning
+  `unimplemented` for every method.
+- **R3 — service-name constant:** generate a fully-qualified `<Service>Name` constant.
+- **R4 — client trait:** generate a `<Service>Client` trait alongside the struct (for
+  mocking/testing).
+- **R5 — `WithSchema`:** propagate the method descriptor/schema to generated handler and
+  client constructors.
+- **R14 — `ClientOptions: Clone`:** provide an explicit `Clone` impl (it holds
+  `Vec<Arc<dyn Interceptor>>`), since generated constructors clone it.
+- **Handler shape (H1 / H2 / H3):** generated server-streaming and bidi traits use
+  Decision 11's push model (`MessageSink<Res>` and/or `MessageSource<Req>`), not returned
+  iterators; client-streaming headers come from `MessageSource::headers()`, not a separate
+  parameter.
+
+**Codegen scope (decided — include it, fully built and ready):**
+- **One unified generator, no split tooling, no separate codegen crate.** We learn from
+  buffa-codegen and connect-go's protoc plugin and build our own single generator that
+  emits **everything** — message types + service traits + clients — in one pass (no second
+  manual codegen step). Placement:
+  - **generation logic** lives in **`foundation_macros`** (the repo's central home for all
+    proc/derive/codegen logic);
+  - **a binary in `foundation_netio`** exposes that capability as the CLI / protoc plugin.
+
+  This supersedes the `foundation_connectrpc_codegen` / `foundation_connectrpc_build`
+  crates sketched in the plan — codegen is not its own crate.
+- **Default `unimplemented` impls:** the generated service trait provides default methods
+  returning `unimplemented`, so a service can be implemented incrementally (tonic-style),
+  rather than connect-go's all-methods-required.
+- **Object-safety:** the generated service *handler* trait stays statically dispatched
+  (not object-safe — acceptable); the separately generated `<Service>Client` trait (R4)
+  covers mocking/testing where a trait object is wanted.
+- **View handlers (supported):** the byte-seam revision (Decision 11) removed the `dyn Any`
+  boundary that previously blocked this (RS2), so the typed facade can decode a borrowed
+  `MessageView<'a>` in place. Generate optional zero-copy "view" handler variants for
+  read-heavy services (the owned-message variant remains the default).
 
 ## Open Questions
 
