@@ -555,14 +555,14 @@ fn main() {
     config.define("LLAMA_BUILD_TESTS", "OFF");
     config.define("LLAMA_BUILD_EXAMPLES", "OFF");
     config.define("LLAMA_BUILD_TOOLS", "OFF");
-    // Newer llama.cpp (>= b98xx) adds the unified `llama` binary under app/ and
-    // an embedded server Web UI / HTML, all defaulting ON in a standalone build.
-    // We only need libllama + libcommon for the bindings, and app/ links the
-    // tools impl libs we disable above, so force these new targets OFF too.
+    // Newer llama.cpp (>= b98xx) adds a unified `llama` binary under app/, gated
+    // only by LLAMA_BUILD_APP (NOT by LLAMA_BUILD_TOOLS) and defaulting ON in a
+    // standalone build. It links the tools impl libs we disable via TOOLS=OFF,
+    // so it fails to build. We only need libllama + libcommon for the bindings,
+    // so force it OFF. (The server/UI live under tools/ and are already excluded
+    // by TOOLS=OFF; the actual llama-server is built separately by
+    // backends/foundation_ai/build.rs.)
     config.define("LLAMA_BUILD_APP", "OFF");
-    config.define("LLAMA_BUILD_SERVER", "OFF");
-    config.define("LLAMA_BUILD_UI", "OFF");
-    config.define("LLAMA_BUILD_HTML", "OFF");
     config.define("LLAMA_CURL", "OFF");
 
     // Ignore external/system llama.cpp installations that may have stale CMake configs.

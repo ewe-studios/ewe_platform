@@ -66,9 +66,24 @@ fn main() {
         .args([
             "..",
             "-DLLAMA_BUILD_SERVER=ON",
+            // The server lives under tools/ in newer llama.cpp (>= b98xx), gated
+            // by LLAMA_BUILD_TOOLS; set it ON explicitly so the server subdir is
+            // added regardless of standalone detection.
+            "-DLLAMA_BUILD_TOOLS=ON",
             "-DLLAMA_BUILD_TESTS=OFF",
             "-DLLAMA_BUILD_EXAMPLES=OFF",
+            // Don't build the new unified `llama` binary (app/) or the embedded
+            // Web UI / HTML — we only want the server executable.
+            "-DLLAMA_BUILD_APP=OFF",
+            "-DLLAMA_BUILD_UI=OFF",
+            "-DLLAMA_BUILD_HTML=OFF",
             "-DLLAMA_BUILD_COMMON=ON",
+            // Newer llama.cpp defaults BUILD_SHARED_LIBS=ON in a standalone
+            // build, which makes llama-server a tiny stub that dynamically loads
+            // libllama/libggml from the build tree via an absolute rpath — it
+            // breaks once build/ is cleaned and isn't portable. Force static so
+            // support/bin/llama-server is self-contained, as it was before.
+            "-DBUILD_SHARED_LIBS=OFF",
             "-DCMAKE_BUILD_TYPE=Release",
         ])
         .status()
