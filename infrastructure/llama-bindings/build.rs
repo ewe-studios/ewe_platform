@@ -962,6 +962,26 @@ fn main() {
         }
     }
 
+    // Compile the C++ chat-template shim (wrapper_chat.cpp). It wraps
+    // llama.cpp's Jinja-capable common_chat_templates_* API (common/chat.h),
+    // which the legacy llama_chat_apply_template C API cannot handle for modern
+    // models. Emitted BEFORE the llama/ggml link directives below so static
+    // resolution sees `-lewe_chat_shim` ahead of `-lllama-common`.
+    println!("cargo:rerun-if-changed=wrapper_chat.cpp");
+    println!("cargo:rerun-if-changed=wrapper_chat.h");
+    {
+        let mut chat_shim = cc::Build::new();
+        chat_shim
+            .cpp(true)
+            .std("c++17")
+            .file("wrapper_chat.cpp")
+            .include(llama_src.join("common"))
+            .include(llama_src.join("vendor"))
+            .include(llama_src.join("include"))
+            .include(llama_src.join("ggml/include"));
+        chat_shim.compile("ewe_chat_shim");
+    }
+
     // Link libraries
     let llama_libs_kind = if build_shared_libs || cfg!(feature = "system-ggml") {
         "dylib"

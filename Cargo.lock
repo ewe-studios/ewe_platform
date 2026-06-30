@@ -4085,7 +4085,6 @@ dependencies = [
  "foundation_db",
  "foundation_errstacks",
  "foundation_macros",
- "foundation_netio",
  "foundation_nostd",
  "fuser",
  "hex",
