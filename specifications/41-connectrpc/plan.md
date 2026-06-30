@@ -39,6 +39,7 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 | [11](decisions/11-transport-seam.md) | Transport Seam & Streaming Handler Model | draft |
 | [12](decisions/12-foundation-enablement.md) | Foundation Enablement (Streaming, Trailers, HTTP/2) | draft |
 | [13](decisions/13-websocket-transport.md) | WebSocket Transport (Bidi over HTTP/1.1) — *deferred, implemented last* | draft |
+| [14](decisions/14-io-uring-reactor-backend.md) | io_uring Reactor Backend (Linux) — efficient fd listening for native parking | draft |
 
 ## Reference Material
 

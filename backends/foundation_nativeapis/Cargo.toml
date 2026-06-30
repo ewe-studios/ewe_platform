@@ -31,7 +31,6 @@ derive_more = { workspace = true }
 serde_json = { version = "1", optional = true }
 foundation_compact = { path = "../foundation_compact", version = "0.2.0", optional = true }
 foundation_db = { path = "../foundation_db", version = "0.0.1", optional = true, default-features = false }
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", optional = true }
 libsql = { version = "0.9", optional = true }
 turso = { version = "0.5.3", optional = true }
 fjall = { version = "2", optional = true }

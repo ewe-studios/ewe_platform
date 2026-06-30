@@ -206,13 +206,29 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
   queue rather than busy-polling.
 - **`#[valtron(_test)] async fn`** lets us write/test handlers and the conformance harness in
   plain async.
-- **Native real-I/O parking needs a reactor** (L2 impl) — *not* shipped here. Our HTTP/1.1,
-  `http2/`, `http3/`, and **WebSocket** (Decision 13 E2) transports block on sockets; to park
-  (not spin) on native they need a `ReadinessSource` reactor in `foundation_netio`. That
-  reactor is its own platform feature; this decision provides the seam it registers into.
-  Until it lands, the WebSocket tasks use a timeout-poll + `Delayed` fallback (Decision 13),
-  so they work without it but do not truly park. On wasm, the browser drives wakers, so L1
-  alone suffices.
+- **Native real-I/O parking — the reactor already exists in `foundation_nativeapis`.** The L2
+  "reactor seam" below was written assuming we'd build one; in fact `foundation_nativeapis`
+  (spec 34) already ships an epoll/kqueue reactor (`native::poll` — `Poll`/`Registry`/
+  `Interest`/`Token`) plus `native::fd::RegisteredFd<T: AsRawFd>` / `FdRegistration` that
+  **implement `EventReadiness`**. So a leaf task can register its socket fd and return
+  `TaskStatus::Depends(Arc<RegisteredFd>)` to park — *the L2 bridge is realized over the
+  existing `EventReadiness` trait, not a new `ReadinessSource`/`OnceLock` abstraction.* The
+  only remaining wiring is "how a task obtains the reactor `Registry`," and exposing
+  `AsRawFd` on `netio`'s `RawStream` (Decision 13 prerequisite). Our HTTP/1.1, `http2/`,
+  `http3/`, and **WebSocket** (Decision 13 E2) transports park through this. The Linux backend
+  is being upgraded to **io_uring** for efficient high-connection-count listening — see
+  **[Decision 14](14-io-uring-reactor-backend.md)** — with a shared single reactor replacing
+  the current per-fd epoll. Until a task is wired to the reactor, WebSocket uses a timeout-poll
+  + `Delayed` fallback (Decision 13), so it works without it but does not truly park. On wasm,
+  the browser drives wakers, so L1 alone suffices.
+
+  > **Reconciliation note:** treat the L2 `ReadinessSource`/`ReadinessRegistration`/`Interest`
+  > trait sketch below as *superseded* by `foundation_nativeapis`'s reactor + `RegisteredFd:
+  > EventReadiness`. Keep L2 only as the conceptual seam description; do not build a parallel
+  > abstraction. Layering was unblocked by removing the unused optional `foundation_netio` dep
+  > from `foundation_nativeapis` (the crates are now siblings on `foundation_core`), so the
+  > transports can reach the reactor either by `netio → nativeapis` or by wiring at the
+  > ConnectRPC crate.
 
 ## Open Questions
 

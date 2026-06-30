@@ -126,15 +126,24 @@ impl WebSocketFrameDecoder {
   `loop { step }`-until-`Complete` wrapper for callers that want the simple API.
 - Enforces the same size limits and control-frame rules as today.
 
-**E2 — `Depends(QueueReadiness)` read model (opt-in, enhances E1).**
+**E2 — `Depends` read model via the existing native reactor (opt-in, enhances E1).**
 With a resumable decoder, both client and server tasks can stop timeout-polling and **park**:
-when `step` returns `Pending` because the socket has no bytes, the task registers the fd with
-the Decision 00 `ReadinessSource` (`Interest::Readable`) and returns
-`TaskStatus::Depends(QueueReadiness(wake_queue))`. The reactor wakes it when readable.
-- Gated by config / availability: if no `ReadinessSource` is registered (e.g. today, or
-  wasm), the task falls back to the **existing timeout-poll + `Delayed`** behavior — no
-  regression. This is the "enhance with `Depends` if it makes sense" path, explicitly tied to
-  **Decision 00** (its hard prerequisite for true parking on native).
+when `step` returns `Pending` because the socket has no bytes, the task parks on socket
+readiness and is woken when readable. The reactor and the bridge **already exist** in
+`foundation_nativeapis` — `native::poll` (epoll/kqueue) + `native::fd::RegisteredFd<T:
+AsRawFd>` / `FdRegistration`, which implement `EventReadiness`. So the task simply holds an
+`Arc<RegisteredFd<…>>` and returns `TaskStatus::Depends(registered_fd)`; no new
+`ReadinessSource` abstraction is required (Decision 00 reconciliation).
+- **Prerequisite:** expose `AsRawFd` on `netio`'s `RawStream`/`Connection` (delegating to the
+  inner `TcpStream`; for TLS, the underlying socket fd) so the upper layer can register it.
+  The unused optional `foundation_netio` dep was removed from `foundation_nativeapis`, so the
+  reactor is reachable either via `netio → nativeapis` or by wiring at the ConnectRPC crate.
+- **Backend:** epoll/kqueue today; **io_uring on Linux** for high connection counts via
+  **[Decision 14](14-io-uring-reactor-backend.md)** — same `EventReadiness` seam, same task
+  code.
+- Gated by availability: if no reactor is reachable (e.g. wasm), the task falls back to the
+  **existing timeout-poll + `Delayed`** behavior — no regression. This is the "enhance with
+  `Depends` if it makes sense" path, tied to **Decision 00**.
 
 **E3 — Robust server task (`WebSocketServerTask`) + `WsServerConfig`.**
 Add a progress-driven server-side `TaskIterator` (mirroring `WebSocketTask`'s `Open` state,
