@@ -12,6 +12,7 @@ pub mod agentic;
 pub mod backends;
 pub mod costing;
 pub mod errors;
+pub mod harness;
 pub mod models;
 pub mod types;
 

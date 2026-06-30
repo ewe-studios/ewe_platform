@@ -262,6 +262,11 @@ pub struct LlamaModels {
     inner: Arc<Mutex<LlamaModelsInner>>,
 }
 
+// SAFETY: LlamaModels uses Arc<Mutex<...>> for interior mutability.
+// The underlying llama.cpp pointers are protected by the mutex.
+unsafe impl Send for LlamaModels {}
+unsafe impl Sync for LlamaModels {}
+
 impl Clone for LlamaModels {
     fn clone(&self) -> Self {
         Self {
