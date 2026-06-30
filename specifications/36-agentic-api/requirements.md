@@ -1,6 +1,6 @@
 ---
 description: "Agentic API for foundation_ai — sessions, message/memory hierarchy, tool execution, steering, embeddings, vector search, and the agentic loop, all on Valtron"
-status: "in_progress"
+status: "complete"
 priority: "high"
 created: 2026-06-14
 author: "Main Agent"
