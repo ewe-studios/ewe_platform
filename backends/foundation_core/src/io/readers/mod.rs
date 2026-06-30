@@ -182,11 +182,9 @@ impl<R: Read> HintReadterator for BatchReader<R> {
                 self.received_data = true;
                 self.consecutive_retries = 0;
                 buf.truncate(n);
-                tracing::trace!(
-                    "Truncating to length Bytes(len={}) with data: {:?}",
-                    n,
-                    &buf
-                );
+                // NOTE: never trace `buf` contents here — this is the raw body
+                // stream (e.g. multi-GB model downloads), so dumping it explodes
+                // the logs and leaks payload bytes. The length above is enough.
                 Some(Ok(Data::Bytes(buf)))
             }
             Err(e)
