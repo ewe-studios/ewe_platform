@@ -25,6 +25,7 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 
 | # | Decision | Status |
 |---|---|---|
+| [00](decisions/00-valtron-async-readiness.md) | Valtron Async Readiness (foundation — async handlers park, not spin) | draft |
 | [01](decisions/01-transport-and-runtime.md) | Transport Layer & Runtime Model | draft |
 | [02](decisions/02-codec-and-serialization.md) | Codec System & Serialization | draft |
 | [03](decisions/03-error-model.md) | Error Model | draft |

@@ -308,6 +308,13 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
   trait is static-dispatch (we don't need `dyn GreetService`; the generated `<Service>Client`
   trait, R4, covers mocking). Fall back to `#[async_trait]` (boxed futures, object-safe) only
   if a `dyn`-dispatch need appears.
+- **`'static` returned streams (S2):** a returned `-> impl Stream + Send` from an
+  `async fn(&self, ctx: &Ctx, …)` would capture `&self`/`&ctx` and be **non-`'static`**, so
+  `from_stream` (which needs `Send + 'static`) couldn't drive it. Therefore the request
+  context is passed **owned / `Arc<Ctx>`** (not `&Ctx`) into streaming handlers, the handler
+  produces an **owning** stream (captures `Arc<Self>`/`Arc<Ctx>` clones in an `async move`),
+  and codegen emits the RPITIT return as `+ Send + 'static` with `use<>`-style capture
+  control. Unary is unaffected (its future is awaited and completes in place).
 
 **Codegen scope (decided — include it, fully built and ready):**
 - **One unified generator, no split tooling, no separate codegen crate.** We learn from

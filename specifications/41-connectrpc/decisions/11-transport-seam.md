@@ -67,8 +67,9 @@ holds the codec:
 struct MessageSink<T> { /* producer onto Arc<ConcurrentQueue<Stream<Frame, ()>>> */ }
 impl<T: Send + 'static> MessageSink<T> {
     fn set_headers(&self, headers: SimpleHeaders) -> Result<(), ConnectError>;
-    /// Encode + push one frame. On a full bounded queue, returns progress (`Pending`/`Wait`)
-    /// — never blocks; valtron reschedules. (`ConcurrentQueue::push` → `Full` == `Pending`.)
+    /// Encode + push one frame. Returns `Err(Full)` when the bounded queue is full; the
+    /// **bridging task** (not this call) translates that into `TaskStatus::Pending` so the
+    /// executor reschedules — the `send` call itself never blocks or yields scheduler states.
     fn send(&self, msg: T) -> Result<(), ConnectError>;
     fn close(self, trailers: SimpleHeaders) -> Result<(), ConnectError>;
 }
@@ -94,17 +95,25 @@ Users write **async functions / futures `Stream`s** (the signatures in Decision 
 never see `MessageSink`/`MessageSource`/`Stream<D,P>`/the queues. valtron's `from_future` /
 `from_stream` turn the user's async into a `TaskIterator` that returns `TaskStatus`; **each
 `.await` is the yield point** — async/await *is* the state machine the executor drives.
-There is **no blocking, no spin-loop, and no hand-written `Recv/Send` state machine** (that
-would be valtron Anti-Pattern 3). The wiring:
+
+> **Depends on Decision 00 (valtron async readiness).** The "no spin-loop" guarantee is only
+> true once Decision 00 Level 1 lands: today `from_future`/`from_stream` poll with a no-op
+> waker and busy-re-poll on `Pending`. Decision 00 makes `FutureTask` return
+> `Depends(QueueReadiness)` so an awaiting handler **parks** until its wake queue gets a
+> token. Decision 00 is a hard prerequisite for this section.
+
+There is **no blocking and no hand-written `Recv/Send` state machine** (that would be
+valtron Anti-Pattern 3). The wiring:
 
 ```
-request body ─[reader task]→ request_q ──(exposed as a futures Stream)──▶ async handler
+request body ─[reader task]→ request_q ──(req-frame → Stream<Req> adapter)──▶ async handler
 async handler ──(returns async Stream<Res>, consumed via from_stream)──▶ response_q ─[writer task]→ wire
 ```
 
-- A task pops the next request frame; empty → `TaskStatus::Wait` / `Depends(QueueReadiness)`
-  (the executor re-polls when the queue is non-empty — `task.rs::QueueReadiness`,
-  `is_ready = !queue.is_empty()`).
+- The request adapter exposes `request_q` as a futures `Stream<Req>` (S1 enabler): maps
+  `Next(frame)`→decode→`Ready(Some(Req))`, `Ignore`/`Wait`→`Pending`, closed→`Ready(None)`;
+  empty → the handler future parks via Decision 00's wake-queue `Depends(QueueReadiness)`,
+  woken by the reader task's push (`task.rs::QueueReadiness`, `is_ready = !queue.is_empty()`).
 - Outputs are pushed to the **bounded** response queue; full → the producing step returns
   `Pending`/`Wait` and valtron reschedules. FIFO ordering is the queue's (delivers backlog
   before the latest).
@@ -160,15 +169,16 @@ pub trait HandlerConn: Send {
     fn peer(&self) -> &Peer;
     fn request_headers(&self) -> &SimpleHeaders;
 
-    /// Next request **frame** (codec-encoded, de-enveloped + decompressed), or `None` at
-    /// end of stream. The typed `MessageSource<Req>` facade decodes it into `Req`.
-    fn receive(&mut self) -> Result<Option<Vec<u8>>, ConnectError>;
+    /// Next request **frame** as `Bytes` (codec-encoded, de-enveloped + decompressed), or
+    /// `None` at end of stream. `Bytes` (not `Vec<u8>`) so the facade can build a zero-copy
+    /// `OwnedView`/`RecordBatch` without a copy (S5; transport already yields `Bytes`).
+    fn receive(&mut self) -> Result<Option<Bytes>, ConnectError>;
 
     /// Send response headers (idempotent until the first frame/flush).
     fn send_headers(&mut self, headers: SimpleHeaders) -> Result<(), ConnectError>;
 
     /// Envelope + flush one already-encoded response **frame** to the transport.
-    fn send(&mut self, frame: &[u8]) -> Result<(), ConnectError>;
+    fn send(&mut self, frame: Bytes) -> Result<(), ConnectError>;
 
     /// Finish: write trailers (Connect end-stream / gRPC-Web trailer frame /
     /// HTTP/2 trailing HEADERS) per protocol, then close.
@@ -180,9 +190,9 @@ pub trait HandlerConn: Send {
 pub trait ClientConn: Send {
     fn spec(&self) -> &Spec;
     fn request_headers_mut(&mut self) -> &mut SimpleHeaders;
-    fn send(&mut self, frame: &[u8]) -> Result<(), ConnectError>;       // already-encoded frame
+    fn send(&mut self, frame: Bytes) -> Result<(), ConnectError>;       // already-encoded frame
     fn close_send(&mut self) -> Result<(), ConnectError>;
-    fn receive(&mut self) -> Result<Option<Vec<u8>>, ConnectError>;     // encoded frame, None at EOS
+    fn receive(&mut self) -> Result<Option<Bytes>, ConnectError>;       // encoded frame (Bytes), None at EOS
     fn response_headers(&self) -> &SimpleHeaders;
     fn response_trailers(&self) -> Result<&SimpleHeaders, ConnectError>;
 }

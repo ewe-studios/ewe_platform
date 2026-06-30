@@ -7,7 +7,7 @@ ConnectRPC is an HTTP-based RPC framework supporting three wire protocols (Conne
 Our platform uses:
 - **foundation_http** — Connection-owned, worker-pooled HTTP server with synchronous handler dispatch
 - **foundation_netio** — Custom HTTP types (`SimpleIncomingRequest`, `SimpleOutgoingResponse`, `SimpleMethod`, `SimpleHeaders`, `SimpleBody`/`SendSafeBody`), TCP/TLS, WebSocket, SSE
-- **foundation_core** — Valtron: a progress-driven async model using `Stream<D, P>` enum (Init/Ignore/Delayed/Pending/Next) with `ConcurrentQueueStreamIterator`, single/multi executor pools, WASM-compatible
+- **foundation_core** — Valtron: a progress-driven async model using `Stream<D, P>` enum (`Init`/`Ignore`/`Delayed`/`Pending`/`Next`/`Wait`/`Spread`) with `ConcurrentQueueStreamIterator`, single/multi executor pools, WASM-compatible
 
 The connect-go implementation assumes:
 - Full HTTP/2 support (required for gRPC protocol, bidi streaming)
@@ -202,7 +202,8 @@ pub trait QuicBidiStream: QuicSendStream + QuicRecvStream {
   http3 valtron task. This is the whole reason we don't use `h3` as-is. (T9 resolved here.)
 - **`poll_ready` folded into `send`** — back-pressure *is* `Stream::Pending`, so a separate
   readiness method is redundant.
-- **`accept_*` / `read` are progress-yielding sequences**, not single-shot polls.
+- **`accept_*` / `read` return one `Stream` value per call** (call repeatedly to advance —
+  `Next(v)` / `Pending` / `Wait` / ends on close), in valtron's poll-per-call style.
 - **`Is0rtt` is not a stream trait** — 0-RTT is connection/stream metadata, so it's a flag on
   `ConnectionContext` (Decision 04 Q13), not an I/O method.
 - **`SendStreamUnframed` dropped** unless raw byte streaming (WebTransport-style) is needed
@@ -240,7 +241,7 @@ identity. **It is tokio-based.** Two possible paths, with different value:
   bridge). Scope ≈ 2–3 features on top of HTTP/3, *if* pursued.
 
 ### Phasing
-- **Phase 1:** HTTP/1.1 — Connect + gRPC-Web (no gRPC; half-duplex bidi).
+- **Phase 1:** HTTP/1.1 — Connect + gRPC-Web (no gRPC; bidi streaming rejected with 505, see S3/OQ#4).
 - **Phase 2:** HTTP/2 (replicated from h2) — full gRPC, full-duplex bidi, client multiplexing.
 - **Phase 3:** HTTP/3 (replicated from h3) + `quinn-proto` QUIC backend.
 - **Phase 3+:** iroh P2P + public-key auth.

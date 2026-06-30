@@ -12,6 +12,14 @@ Guiding constraint throughout: **preserve existing HTTP/1.1 tests and behaviour.
 capability is added by decomposition and new variants, with the current whole-response
 path expressed as a composition of the same parts.
 
+> **Hard prerequisite: Decision 00 (valtron async readiness).** The async handler model
+> (Decisions 04/11) only parks (instead of busy-polling) once Decision 00 Level 1 lands.
+> Sequence Decision 00 first. Relatedly, **native real-I/O parking needs a `ReadinessSource`
+> reactor** (Decision 00 Level 2 defines the seam; the actual `polling`/`mio` reactor is a
+> separate `foundation_netio` feature that registers into it) — without it, native sockets
+> re-poll cooperatively rather than parking. On wasm the browser drives wakers, so Level 1
+> suffices.
+
 ## Decision
 
 ### 1. Per-message flush: the handler owns the stream (resolves B1)

@@ -273,23 +273,29 @@ pub trait Interceptor: Send + Sync + 'static {
     fn wrap_streaming_handler(&self, next: StreamingHandlerFunc) -> StreamingHandlerFunc;
 }
 
-/// Unary interceptor function — metadata + encoded request/response **frames** (no typed
-/// message; interceptors needing the message register as facade middleware, Decision 11).
+/// Unary interceptor function — **async** (returns a future), because the call it wraps is
+/// an async handler. Metadata + encoded request/response **frames** (no typed message;
+/// interceptors needing the message register as facade middleware, Decision 11).
 pub type UnaryFunc =
-    Box<dyn Fn(&RequestContext, UnaryCall) -> Result<UnaryReply, ConnectError> + Send + Sync>;
+    Arc<dyn Fn(RequestContext, UnaryCall) -> BoxFuture<'static, Result<UnaryReply, ConnectError>> + Send + Sync>;
 
-pub struct UnaryCall  { pub headers: SimpleHeaders, pub frame: Vec<u8> }   // encoded request
-pub struct UnaryReply { pub headers: SimpleHeaders, pub trailers: SimpleHeaders, pub frame: Vec<u8> } // encoded response
+pub struct UnaryCall  { pub headers: SimpleHeaders, pub frame: Bytes }   // encoded request
+pub struct UnaryReply { pub headers: SimpleHeaders, pub trailers: SimpleHeaders, pub frame: Bytes } // encoded response
 
-/// Streaming handler interceptor — wraps the byte-level `HandlerConn` **by value** so it
-/// can embed/wrap it (Decision 11; `&mut dyn` would block injecting a wrapper).
+/// Streaming handler interceptor — async; wraps the byte-level `HandlerConn` **by value** so
+/// it can embed/wrap it (Decision 11; `&mut dyn` would block injecting a wrapper).
 pub type StreamingHandlerFunc =
-    Box<dyn Fn(&RequestContext, Box<dyn HandlerConn>) -> Result<(), ConnectError> + Send + Sync>;
+    Arc<dyn Fn(RequestContext, Box<dyn HandlerConn>) -> BoxFuture<'static, Result<(), ConnectError>> + Send + Sync>;
 
 /// Streaming client interceptor — wraps the byte-level `ClientConn`.
 pub type StreamingClientFunc =
-    Box<dyn Fn(&RequestContext, &Spec) -> Box<dyn ClientConn> + Send + Sync>;
+    Arc<dyn Fn(RequestContext, Spec) -> Box<dyn ClientConn> + Send + Sync>;
 ```
+
+The fn-types are **future-returning** (`BoxFuture`), not sync `-> Result`: the innermost
+`UnaryFunc` is the async handler invocation, so a sync closure could only call it via
+`block_on` (forbidden). Owned args (`RequestContext`/`Spec` by value, `Bytes` frames) keep
+the returned future `'static` so it composes and spawns (see S2 / Decision 00).
 
 No `AnyRequest` / `AnyResponse`: the seam is bytes + metadata. Per-procedure typed access is
 the facade message-middleware (Decision 11). This removes RS2's `dyn Any` `'static`

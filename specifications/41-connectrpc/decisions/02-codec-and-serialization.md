@@ -44,6 +44,15 @@ pub trait Codec: Send + Sync + 'static {
     /// Deserialize bytes into a message.
     /// Returns a boxed message that the caller downcasts.
     fn unmarshal(&self, data: &[u8], target: &mut dyn MessageMut) -> Result<(), CodecError>;
+
+    /// Zero-copy decode (S4): produce an **owning view** backed by `bytes` — e.g.
+    /// `buffa::OwnedView<V>` (proto) or an Arc-backed `RecordBatch` (Arrow) — as a
+    /// `'static + Send` boxed value the facade downcasts. Default `None` for codecs with no
+    /// view representation (JSON), so owned-decode is used. Keeps zero-copy routed through
+    /// the codec registry rather than hard-wired to one codec.
+    fn unmarshal_owned_view(&self, bytes: Bytes) -> Result<Option<Box<dyn Any + Send>>, CodecError> {
+        Ok(None)
+    }
 }
 
 pub trait StableCodec: Codec {

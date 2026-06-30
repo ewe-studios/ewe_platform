@@ -275,7 +275,7 @@ fn call_unary_with_get_fallback(
 - Unary calls are straightforward: build request, send, parse response
 - Client streaming over HTTP/1.1: the request body is streamed via chunked transfer-encoding using the pushable `SendSafeBody::Stream` (Decision 12 §7) — no full-stream in-memory buffering
 - Server streaming: read envelopes from response body iterator
-- Bidi streaming over HTTP/1.1: half-duplex (send all, then receive all)
+- Bidi over HTTP/1.1: **rejected with 505** (Decision 11 capability matching, connect-go parity); only client/server-streaming are half-duplex there
 - Bidi streaming over HTTP/2: full-duplex (requires HTTP/2 transport — Phase 2)
 - HTTP GET support for idempotent RPCs with automatic POST fallback
 
@@ -302,6 +302,6 @@ folded in:
 ## Open Questions
 
 1. **SimpleOutgoingRequest**: foundation_netio's client types need verification. We may need `SimpleOutgoingRequest` (method, url, headers, body) as a new type if the existing client only supports `SimpleIncomingRequest`.
-2. **Client streaming body accumulation**: Over HTTP/1.1, the client must buffer all request messages before sending. This could be memory-intensive for large streams. Should we set a default buffer limit, or leave it to the user?
+2. **Client streaming body — resolved:** no in-memory accumulation; the request body streams via chunked transfer-encoding over the pushable `SendSafeBody::Stream` (Decision 12 §7).
 3. **Connection reuse**: HTTP/1.1 with keep-alive allows connection reuse across calls. Does foundation_netio's HTTP client handle this, or do we need connection pooling?
-4. **Concurrent bidi over HTTP/1.1**: connect-go supports "half-duplex bidi over HTTP/1.1" by consuming the full request before streaming the response. This means `send()` accumulates locally and `close_request()` triggers the actual HTTP request. The response stream is only available after `close_request()`. Is this acceptable, or should we error on bidi over HTTP/1.1?
+4. **Bidi over HTTP/1.1 — resolved:** rejected with `505` (capability matching, Decision 11), matching connect-go. Only client/server-streaming are half-duplex on HTTP/1.1.
