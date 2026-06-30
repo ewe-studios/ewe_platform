@@ -1,40 +1,29 @@
-//! Harness module - provides pre-configured agent sessions for common model setups.
+//! Harness module - provides pre-configured model providers for easy router creation.
 //!
-//! This module provides convenience functions for creating [`AgentSession`](crate::agentic::session::AgentSession)
-//! instances with sensible defaults for various models and configurations.
+//! This module provides zero-sized unit structs for various models, each with
+//! methods to create providers with different quantizations. Use these with
+//! [`crate::types::ProviderRouter`] to create pre-configured routers.
 //!
-//! # Quick Start
+//! # Example
 //!
 //! ```ignore
-//! use foundation_ai::harness::SessionHarness;
+//! use foundation_ai::harness::{Glm52, CloudPresets};
+//! use foundation_ai::types::{ProviderRouter, RoutableProviderBox};
 //!
-//! // Create a session with a specific model
-//! let session = SessionHarness::new()
-//!     .with_model("claude-sonnet-4-6")
-//!     .with_api_key("your-api-key")
-//!     .build()
-//!     .await?;
+//! // Create a router with a local GGUF model
+//! let provider = Glm52::q4_k_m(None)?;
+//! let routable = RoutableProviderBox::new(provider);
+//! let router = ProviderRouter::single(Box::new(routable));
 //!
-//! // Or use a pre-configured preset
-//! let session = SessionHarness::claude_opus("your-api-key").build().await?;
+//! // Or use cloud providers
+//! let provider = CloudPresets::claude_sonnet(api_key)?;
+//! let routable = RoutableProviderBox::new(provider);
+//! let router = ProviderRouter::single(Box::new(routable));
 //! ```
-//!
-//! # Available Presets
-//!
-//! The harness provides several preset configurations for common models:
-//!
-//! - **Claude Models**: Claude Opus, Claude Sonnet, Claude Haiku
-//! - **OpenAI Models**: GPT-4, GPT-4o, GPT-4o mini, o1, o3
-//! - **Local Models**: GGUF models from HuggingFace for local inference
-//!
-//! Each preset configures the appropriate provider, model ID, and sensible defaults
-//! for temperature, max tokens, and other parameters.
 
 pub mod providers;
-pub mod session;
 
 pub use providers::{
     CloudPresets, Gemma4E2b, Gemma4E4b, Gemma4_26b, Glm52, Ornith10, Q3_K_M, Q4_K_M, Q5_K_M, Q8_0,
     Qwen36,
 };
-pub use session::SessionHarness;
