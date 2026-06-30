@@ -42,6 +42,49 @@ The parking machinery exists and is the backbone:
 The missing piece is only a bridge **Rust `Waker` → `QueueReadiness`**, plus a seam for an
 external reactor to drive that waker. No new executor machinery.
 
+### Who calls `wake()`? (why the queue exists, and who fires it)
+
+The `wake_queue` is an **adapter between two wake models**. Rust futures speak
+`Waker::wake()` — a *callback* ("ping me when I can progress"). Valtron speaks
+`EventReadiness` — a *poll-the-readiness* model (a parked task carries
+`Depends(QueueReadiness(q))` and is re-run only when `q.is_ready()`). `queue_waker` builds a
+`Waker` whose `wake()` simply pushes a `WakeToken` onto the queue, so a `wake()` call becomes
+"queue non-empty," which the executor already knows how to park/unpark on:
+
+```
+future calls waker.wake()  →  token pushed onto wake_queue  →  QueueReadiness ready
+                           →  executor re-runs FutureTask  →  re-polls the future
+```
+
+Without the queue, the bridge can only return bare `Pending` (re-polled every turn) — that
+is C1. **`FutureTask` itself never calls `wake()`**; it only *owns* the queue and hands the
+waker down through `Context`. The thing that calls `wake()` is **whatever the leaf future is
+ultimately waiting on**, and there are three distinct cases:
+
+1. **In-process producer (a channel / our request queue).** A bidi handler awaits the next
+   request frame; another valtron task produces it. The producing side fires the stashed
+   waker — or, in our S1 design, pushes onto the **same** queue `QueueReadiness` already
+   watches, so readiness flips with no separate `wake()` hop. **No reactor needed.**
+2. **wasm.** A `JsFuture` registers a callback with the browser; when the promise resolves
+   the **browser event loop** calls the waker. The browser *is* the reactor — which is why
+   **Level 1 alone suffices on wasm**.
+3. **Native real I/O (socket fd / OS timer).** Nothing fires `wake()` unless some component
+   watches that fd (`epoll`/`mio`/`polling`). That watcher is the **reactor**, and
+   `foundation_core` ships none (no such dep). So a raw socket future would never wake on
+   native — **this is the entire reason Level 2 (`ReadinessSource`) exists**: a platform
+   crate plugs a reactor in, and the reactor pushes the token onto the very same Level-1 wake
+   queue. Full native chain:
+
+   ```
+   leaf socket future, on Pending, registers its fd + waker with ReadinessSource (L2)
+           ↓
+   OS reactor (in foundation_netio) watches the fd
+           ↓  fd becomes readable
+   reactor pushes WakeToken onto the L1 wake_queue   ( == calling wake() )
+           ↓
+   QueueReadiness ready → executor re-runs FutureTask → re-polls → now Ready
+   ```
+
 ## Decision
 
 Adopt the three-level design below as a spec-41 prerequisite. **Level 1 is mandatory**
