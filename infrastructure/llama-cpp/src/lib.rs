@@ -354,6 +354,12 @@ pub enum ApplyChatTemplateError {
     /// the string could not be converted to utf8.
     #[error("{0}")]
     FromUtf8Error(#[from] FromUtf8Error),
+    /// `llama_chat_apply_template` returned a negative value, meaning llama.cpp
+    /// could not apply this template — typically the template (often the one
+    /// baked into the model's GGUF metadata) is unknown or unsupported by this
+    /// build of llama.cpp. The value is the raw negative return code.
+    #[error("llama.cpp could not apply the chat template (return code {0}); the template is unknown or unsupported by this build")]
+    TemplateNotApplicable(i32),
 }
 
 /// Get the time in microseconds according to ggml

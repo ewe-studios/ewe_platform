@@ -766,8 +766,19 @@ impl LlamaModel {
             )
         };
 
-        if res > buff.len().try_into().expect("Buffer size exceeds i32::MAX") {
-            buff.resize(res.try_into().expect("res is negative"), 0);
+        // A negative return means llama.cpp could not apply the template (the
+        // template — often the one baked into the GGUF — is unknown/unsupported
+        // by this build). `res` comes from untrusted model metadata, so surface
+        // it as an error rather than panicking on the `try_into`.
+        if res < 0 {
+            return Err(ApplyChatTemplateError::TemplateNotApplicable(res));
+        }
+
+        // `res` is the number of bytes the template needs. If our buffer was too
+        // small, grow it to exactly that and render again.
+        let needed = usize::try_from(res).expect("res is non-negative");
+        if needed > buff.len() {
+            buff.resize(needed, 0);
 
             let res = unsafe {
                 infrastructure_llama_bindings::llama_chat_apply_template(
@@ -779,9 +790,12 @@ impl LlamaModel {
                     buff.len().try_into().expect("Buffer size exceeds i32::MAX"),
                 )
             };
+            if res < 0 {
+                return Err(ApplyChatTemplateError::TemplateNotApplicable(res));
+            }
             assert_eq!(Ok(res), buff.len().try_into());
         }
-        buff.truncate(res.try_into().expect("res is negative"));
+        buff.truncate(needed);
         Ok(String::from_utf8(buff)?)
     }
 }
