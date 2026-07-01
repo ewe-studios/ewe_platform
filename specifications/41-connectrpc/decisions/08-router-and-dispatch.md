@@ -84,10 +84,13 @@ enum HandlerKind {
 To store handlers of different `Req`/`Res` types in one `HashMap`, the router holds them
 **type-erased** — in two styles:
 
-- **Unary** erases to a bytes closure `(ctx, &dyn Codec, &[u8]) -> Vec<u8>`. The generic
-  `router.unary::<Req, Res, H>` wrapper owns the concrete types, so it runs the codec
-  itself (`Req::default()` + `unmarshal`, call the handler, `marshal` the `Res`). Bytes are
-  fine here only because the wrapper already holds both the codec and the types.
+- **Unary** erases to an **async** bytes function `(RequestContext, Arc<dyn Codec>, Bytes) ->
+  BoxFuture<Result<(Bytes, headers, trailers)>>`. The generic `router.unary::<Req, Res, H>`
+  wrapper owns the concrete types, so it resolves the negotiated `Arc<dyn Codec>` to its
+  concrete type (match on `codec.name()`, Decision 02) and runs it itself
+  (`unmarshal::<Req>(bytes)`, `.await` the async handler, `marshal::<Res>`). `Arc<dyn Codec>`
+  is owned so the returned future is `'static`; typed marshal is on the concrete codec — no
+  `dyn Any` message.
 - **Streaming** erases to the `HandlerConn` seam (Decision 11), whose `send` / `receive`
   carry **codec-encoded frame bytes** — not `dyn Any` messages. The **codec is confined to
   the typed `MessageSource<Req>` / `MessageSink<Res>` facade** the handler holds; the seam
@@ -99,9 +102,12 @@ To store handlers of different `Req`/`Res` types in one `HashMap`, the router ho
   bytes + metadata; see Decision 04.)
 
 ```rust
+// Erased handlers are ASYNC (they wrap async handlers, Decision 04) — `handle` returns a
+// future the router drives via valtron `from_future` (Decision 00/11). `CodecId` selects the
+// negotiated codec; the concrete codec + typed marshal live inside the wrapper.
 pub(crate) trait ErasedUnaryHandler: Send + Sync {
-    fn handle(&self, ctx: &RequestContext, codec: &dyn Codec, body: &[u8])
-        -> Result<(Vec<u8>, SimpleHeaders, SimpleHeaders), ConnectError>;
+    fn handle(&self, ctx: RequestContext, codec: Arc<dyn Codec>, body: Bytes)
+        -> BoxFuture<'static, Result<(Bytes, SimpleHeaders, SimpleHeaders), ConnectError>>;
     // -> (encoded_response_bytes, response_headers, response_trailers)
 }
 
@@ -109,8 +115,8 @@ pub(crate) trait ErasedUnaryHandler: Send + Sync {
 /// (Decision 11): the erased handler is invoked with the conn and pushes/pulls
 /// codec-encoded message bytes through it.
 pub(crate) trait ErasedStreamHandler: Send + Sync {
-    fn handle(&self, ctx: &RequestContext, codec: &dyn Codec, conn: Box<dyn HandlerConn>)
-        -> Result<(), ConnectError>;
+    fn handle(&self, ctx: RequestContext, codec: Arc<dyn Codec>, conn: Box<dyn HandlerConn>)
+        -> BoxFuture<'static, Result<(), ConnectError>>;
 }
 ```
 

@@ -295,33 +295,37 @@ After comparing connect-go's authn with foundation_auth, these gaps need filling
 
 ### Scope Authorization (Post-Auth)
 
-Foundation_auth provides `has_scope()` and `require_auth()`. These work as interceptors (not HTTP middleware):
+Authorization runs as a **seam interceptor** (not HTTP middleware), so it uses Decision 04's
+**async, future-returning** `Interceptor` fn-types over bytes + metadata — the principal is
+read from `ctx.extensions` (metadata the auth middleware inserted), never from the decoded
+message. Authorization is **Cedar-policy-based** (R14); `has_scope` is the simple fast path:
 
 ```rust
-/// ConnectRPC interceptor that checks JWT scopes.
-pub struct ScopeInterceptor {
-    required_scopes: Vec<String>,
+/// ConnectRPC seam interceptor that authorizes via foundation_auth Cedar policies (R14).
+pub struct AuthzInterceptor {
+    policies: Arc<CedarPolicySet>,   // or `required_scopes: Vec<String>` for the simple gate
 }
 
-impl Interceptor for ScopeInterceptor {
+impl Interceptor for AuthzInterceptor {
     fn wrap_unary(&self, next: UnaryFunc) -> UnaryFunc {
-        let scopes = self.required_scopes.clone();
-        Box::new(move |ctx, req| {
-            let claims = get_auth_info::<VerifiedClaims>(ctx)
-                .ok_or_else(|| ConnectError::unauthenticated("not authenticated"))?;
-
-            for scope in &scopes {
-                if !has_scope(claims, scope) {
-                    return Err(ConnectError::permission_denied(
-                        format!("missing required scope: {scope}")
-                    ));
+        let policies = self.policies.clone();
+        // UnaryFunc = Arc<dyn Fn(RequestContext, UnaryCall) -> BoxFuture<'static, Result<UnaryReply, ConnectError>>>
+        Arc::new(move |ctx, call| {
+            let policies = policies.clone();
+            let next = next.clone();
+            Box::pin(async move {
+                let principal = get_auth_info::<AuthContext>(&ctx)
+                    .ok_or_else(|| ConnectError::unauthenticated("not authenticated"))?;
+                // Cedar: principal + action(=ctx.spec.procedure) + resource(from ctx) → allow/deny.
+                // Fast path for a basic scope gate is `has_scope(principal, &["scope"])` (R8 signature).
+                if !policies.is_allowed(principal, &ctx.spec.procedure, &ctx) {
+                    return Err(ConnectError::permission_denied("policy denied"));
                 }
-            }
-
-            next(ctx, req)
+                next(ctx, call).await   // owned args; await the wrapped async call
+            })
         })
     }
-    // streaming variants similar
+    // wrap_streaming_handler / wrap_streaming_client: same async, future-returning shape (Decision 04).
 }
 ```
 

@@ -22,16 +22,21 @@ We need to generate ConnectRPC service stubs that:
 
 ## Decision
 
-### Approach: Companion Code Generator
+### Approach: one unified generator (no separate codegen crate)
 
-Create `connectrpc-codegen` as a companion to buffa's codegen. Two integration modes:
+> **Decided (see "Codegen scope" below).** Generation logic lives in **`foundation_macros`**
+> (the repo's central home for all proc/derive/codegen logic — see the macros-location rule);
+> a **binary in `foundation_netio`** exposes it as the CLI / protoc plugin. There is **no**
+> separate `connectrpc-codegen` / `connectrpc_build` crate, and the generator emits
+> **everything** (message types + service traits + clients) in **one pass** — no second manual
+> codegen step. The two integration modes below are surfaces over that single generator.
 
 #### Mode 1: build.rs (Recommended)
 
 ```rust
-// build.rs
+// build.rs — calls the foundation_macros generator via the foundation_netio build helper API
 fn main() {
-    connectrpc_build::Config::new()
+    foundation_netio::connectrpc_build::Config::new()
         .files(&["proto/greet.proto"])
         .includes(&["proto/"])
         .compile()
@@ -39,15 +44,17 @@ fn main() {
 }
 ```
 
-This invokes buffa-codegen internally (generating message types) and then generates ConnectRPC service stubs in the same output. Single `build.rs` call produces everything.
+Produces message types **and** ConnectRPC service stubs in one output — a single `build.rs`
+call, no separate buffa step.
 
 #### Mode 2: protoc plugin
 
 ```sh
-protoc --buffa_out=. --connect-rust_out=. --plugin=protoc-gen-connect-rust service.proto
+protoc --connect-ewe_out=. --plugin=protoc-gen-connect-ewe service.proto
 ```
 
-Separate plugin that generates only service stubs, referencing buffa-generated message types via `extern_path` mappings.
+The `protoc-gen-connect-ewe` **binary lives in `foundation_netio`** and drives the same
+`foundation_macros` generator; it emits message types + stubs together.
 
 ### Generated Output Structure
 
@@ -248,23 +255,22 @@ backends/foundation_connectrpc/          # Runtime library
 │       ├── middleware.rs
 │       └── helpers.rs
 
-backends/foundation_connectrpc_codegen/  # Code generation library
-├── Cargo.toml
+# Codegen is NOT a separate crate. Generation logic lives in foundation_macros;
+# the CLI / protoc-plugin binary lives in foundation_netio (see "Codegen scope" below).
+backends/foundation_macros/
 ├── src/
-│   ├── lib.rs
-│   ├── codegen.rs                       # Service stub generation
-│   └── bin/
-│       └── protoc-gen-connect-ewe.rs    # protoc plugin binary
+│   └── connectrpc/                      # unified generator: messages + service traits + clients
 
-backends/foundation_connectrpc_build/    # build.rs helper
-├── Cargo.toml
+backends/foundation_netio/
 ├── src/
-│   └── lib.rs
+│   └── connectrpc_build.rs              # build.rs helper API (Mode 1)
+└── src/bin/
+    └── protoc-gen-connect-ewe.rs        # protoc plugin binary (Mode 2)
 ```
 
 ### Naming: `protoc-gen-connect-ewe`
 
-The protoc plugin is named `protoc-gen-connect-ewe` to distinguish from the upstream `protoc-gen-connect-go` and third-party `protoc-gen-connect-rust`. This makes it clear it generates code for the ewe platform's ConnectRPC implementation.
+The protoc plugin binary (in `foundation_netio`) is named `protoc-gen-connect-ewe` to distinguish from the upstream `protoc-gen-connect-go` and third-party `protoc-gen-connect-rust`. This makes it clear it generates code for the ewe platform's ConnectRPC implementation.
 
 ### Method Name Conversion
 
@@ -277,12 +283,12 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 
 ## Consequences
 
-- Two crates for codegen: library (`foundation_connectrpc_codegen`) and build helper (`foundation_connectrpc_build`)
+- **No separate codegen crate**: generation logic is in `foundation_macros`; the CLI / protoc-plugin binary is in `foundation_netio`. One generator emits message types **and** service/client stubs in a single pass (supersedes the `foundation_connectrpc_codegen`/`_build` sketch).
 - Generated service traits use foundation_connectrpc's handler types
 - Generated clients are typed wrappers around `connectrpc::Client`
 - Procedure paths follow protobuf convention: `package.Service/Method`
 - Idempotency level from proto `option idempotency_level` flows through to handler options
-- Codegen depends on buffa-codegen for message type generation
+- The unified generator **learns from** buffa-codegen but emits message types itself (one pass); it does not depend on a separate buffa-codegen invocation
 
 ## Review-Gap Coverage
 

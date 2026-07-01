@@ -135,7 +135,7 @@ This is already handled by `EnvelopeWriter` in Decision 05.
 ```rust
 pub struct SizeLimits {
     /// Maximum decompressed message size to accept (DoS protection).
-    /// Default: 4 MiB. Set to 0 for unlimited.
+    /// Default: **unlimited (0)** to match connect-go (P17/Q7); a cap is opt-in.
     pub read_max_bytes: usize,
 
     /// Maximum message size to send. Default: unlimited (0).
@@ -149,7 +149,7 @@ pub struct SizeLimits {
 impl Default for SizeLimits {
     fn default() -> Self {
         Self {
-            read_max_bytes: 4 * 1024 * 1024,  // 4 MiB
+            read_max_bytes: 0,   // unlimited by default (connect-go parity, P17/Q7); cap is opt-in
             send_max_bytes: 0,
             compress_min_bytes: 0,
         }
@@ -182,7 +182,9 @@ impl BufferPool {
 }
 ```
 
-In production, wrap in `Mutex` or use thread-local pools. The buffer pool reduces allocation pressure during message marshaling/unmarshaling.
+Buffers are **thread-local per valtron worker** (decided, RS6) — no shared `Mutex`, and buffers
+do not migrate between workers. The pool reduces allocation pressure during message
+marshaling/unmarshaling.
 
 ## Consequences
 
@@ -206,8 +208,15 @@ In production, wrap in `Mutex` or use thread-local pools. The buffer pool reduce
 - **RS10 — streaming compressor:** provide reset-able streaming compressor/decompressor
   (not only the batch API) with pooling, for large/streamed messages.
 
-## Open Questions
+<!-- Open Questions resolved:
+ 1. foundation_http CompressionMiddleware overlap — RESOLVED: connectrpc handles compression
+    INTERNALLY, per-message (connect-go parity); the HTTP response-level middleware doesn't fit
+    streaming. (Decision 08 ordering keeps HTTP middleware outside the seam.)
+ 2. BufferPool thread-safety — RESOLVED (RS6): thread-local per worker, no Mutex.
+ 3. Streaming compression context — RESOLVED: each message compressed independently, no
+    dictionary sharing across message boundaries (per the protocol; see Per-Message section). -->
 
-1. **foundation_http CompressionMiddleware overlap**: foundation_http already has compression middleware. Should connectrpc bypass it and handle compression internally (as connect-go does), or can we reuse the middleware? connect-go handles compression per-message, not per-HTTP-response, so the middleware approach doesn't apply to streaming.
-2. **Thread-safety for BufferPool**: In valtron's worker pool model, each worker thread could have its own buffer pool (thread-local) to avoid contention. Is this preferable to a shared `Mutex<BufferPool>`?
-3. **Streaming compression context**: The protocol spec says "Compression contexts are not maintained over message boundaries." This means each message is compressed independently (no dictionary sharing). Confirm this is what we implement — it's simpler but slightly less efficient than context-preserving compression.
+## Cross-References
+
+- Envelope framing / per-message compression flags: Decision 05. Middleware ordering (HTTP vs
+  seam): Decision 08. Size limits also referenced by client/server configs (Decisions 07/12).
