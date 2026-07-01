@@ -246,18 +246,26 @@ gRPC uses different wire encoding:
 - `grpc-message` trailer: percent-encoded error message
 - `grpc-status-details-bin` trailer: base64-encoded `google.rpc.Status` protobuf
 
-### Error → foundation_errstacks Integration
+### Error representation = foundation_errstacks (`ErrorTrace<C>`)
 
-`ConnectError` is the RPC-level error type. It integrates with foundation_errstacks for internal error tracing:
+There is **no separate "ErrorTrace vs errstacks"** — `ErrorTrace<C>` *is* the foundation_errstacks
+type (its typed context + frame trace). So we don't invent a parallel tracing layer:
+
+- **`ConnectError` is a context type.** The canonical error is `ErrorTrace<ConnectError>` — the
+  errstacks trace carrying `ConnectError` as its context `C`, with attached frames for tracing.
+- **Expected/domain errors are custom context types.** A service defines its own error enum and
+  carries it as `ErrorTrace<MyDomainError>`; a `From<MyDomainError> for ConnectError` (or
+  `change_context`) maps it to the RPC error at the boundary. This is exactly "represent
+  expected errors via custom errors through errstacks" — no bespoke machinery.
+- **JSON/`debug` serialization is already provided** by errstacks' `StructuredErrorTrace` /
+  `StructuredFrame` — so there is **no separate `debug`-field toggle** to design; structured
+  JSON of the trace is the debug representation, emitted where diagnostics are wanted (kept off
+  the wire by default; the on-wire detail is separate, P4).
 
 ```rust
-impl From<ErrorTrace<ConnectError>> for ConnectError {
-    fn from(trace: ErrorTrace<ConnectError>) -> Self {
-        // Extract the ConnectError from the trace
-    }
-}
-
-// Handlers can use ? with ErrorTrace and it converts to ConnectError
+// The trace's context is ConnectError; `?` works through errstacks.
+type ConnectResult<T> = Result<T, ErrorTrace<ConnectError>>;
+// Domain errors flow in as custom contexts and change_context to ConnectError at the seam.
 ```
 
 ### ErrorWriter (Protocol-Aware Error Responses)
@@ -294,6 +302,12 @@ impl ErrorWriter {
 - `ErrorWriter` enables middleware (like auth) to write protocol-correct errors before handler dispatch
 - `wire_error` flag lets clients distinguish server-sent errors from transport/client errors
 - JSON error serialization matches the Connect protocol spec exactly
+- **Error details always available (decided):** the minimal `google.rpc.Status` / `Any`
+  protobuf types are bundled so structured error details work **regardless of the service's
+  codec** (JSON/Arrow-only services still emit protobuf-`Any` details, connect-go interop).
+- **Errors are foundation_errstacks `ErrorTrace<C>` (decided):** `ConnectError` is the context
+  type; domain errors are custom contexts mapped in via `From`/`change_context`. errstacks'
+  structured JSON is the debug representation — no separate `debug`-field flag.
 
 ## Review-Gap Coverage
 
@@ -317,8 +331,11 @@ impl ErrorWriter {
 - **H17 — `ErrorWriter`:** holds only a buffer pool + a single protobuf codec (for gRPC
   status details), not the full `CodecRegistry`.
 
-## Open Questions
+<!-- Open Questions resolved: (1) details always available via bundled google.rpc.Status/Any
+regardless of codec; (2) no separate debug field — errstacks structured JSON is the debug form;
+(3) errors ARE errstacks ErrorTrace<C> with ConnectError as context + custom domain contexts.
+See "Error representation" and Consequences above. -->
 
-1. **Error detail without protobuf**: If a service uses only JSON or Arrow codec (no buffa dependency), error details still need protobuf `Any` for interoperability. Should we require buffa for error details, or support JSON-only error details as a platform extension?
-2. **Debug field in error details**: connect-go optionally serializes error details to JSON under the `"debug"` key for readability. Should we always include debug JSON, never include it, or make it configurable?
-3. **foundation_errstacks integration depth**: Should `ConnectError` wrap `ErrorTrace` internally for rich tracing, or keep them separate (simple error + separate trace in logs)?
+## Cross-References
+
+- Wire encodings: Decision 05. Auth error writing: Decision 09. Codec registry: Decision 02.

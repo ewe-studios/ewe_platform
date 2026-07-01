@@ -450,6 +450,11 @@ Behaviours to implement (own the code; folded in from the review):
 
 1. **gRPC-Web text mode**: Base64 encoding/decoding of the entire response body is non-trivial for streaming. Do we implement this in Phase 1 or defer? It's primarily for browser clients.
 2. **gRPC Status protobuf**: `google.rpc.Status` is a protobuf message. We need this available for gRPC error encoding. Should we hand-write it, generate it from buffa, or include it as a well-known type?
-3. **Trailer delivery on HTTP/1.1**: The Connect protocol uses `Trailer-` prefixed headers (sent with the initial response headers). gRPC-Web uses in-body trailer frames. For gRPC over HTTP/2, we need actual HTTP/2 trailing HEADERS. Does foundation_netio support HTTP/1.1 trailing headers at all? If not, Connect's `Trailer-` prefix approach works on HTTP/1.1 (it's just regular headers).
+3. **Trailer delivery on HTTP/1.1 — resolved.** No dependency on HTTP/1.1 *trailing* headers:
+   Connect uses `Trailer-`-prefixed **regular** response headers, and gRPC-Web uses **in-body**
+   trailer frames — both work on foundation_netio's HTTP/1.1 as-is. Real HTTP/2 trailing
+   HEADERS are only needed for binary gRPC and are provided by the owned `http2/` module +
+   the trailers response part (Decision 12 §3/§5). So the trailers surface is a response part,
+   not a new HTTP/1.1 capability.
 4. **Content-Type charset parameter**: connect-go's `canonicalizeContentType` strips and normalizes charset parameters (e.g., `application/json; charset=utf-8` → `application/json`). Our detection must handle this too.
 5. **415 Unsupported Media Type**: When the server doesn't recognize the Content-Type, it must return HTTP 415. This happens before protocol detection. How does this interact with foundation_http's routing?

@@ -198,13 +198,17 @@ pub trait QuicBidiStream: QuicSendStream + QuicRecvStream {
 ```
 
 **Deliberate deviations from h3:**
-- **No `Poll`/`Context`/`Waker`** — readiness is `Stream::Pending` / `Wait`, driven by the
-  http3 valtron task. This is the whole reason we don't use `h3` as-is. (T9 resolved here.)
-   **TODO**: should be updated, i believe we already stressed how much more valtron works with TaskStatus to indicate and communicate waiting and readiness not Stream::Pending/Wait.
-
-- **`poll_ready` folded into `send`** — back-pressure *is* `Stream::Pending`, so a separate
-  readiness method is redundant.
-      **TODO**: Fix it, you know better, we already outlined what we will do to hook into valtron better for readiness
+- **No `Poll`/`Context`/`Waker`** — the http3 driver is a valtron task that communicates
+  waiting and readiness through the full **`TaskStatus`** vocabulary — `Pending` / `Wait` /
+  `Delayed`, and crucially `Depends(EventReadiness)` to actually **park** on the native
+  reactor (`RegisteredFd: EventReadiness`, Decisions 00/14) — rather than Rust's
+  `Poll`/`Context`/`Waker`. This richer readiness signalling is the whole reason we don't use
+  `h3` as-is. (T9 resolved here.) The per-call trait methods still hand back one `Stream`
+  value at a time (below); it's the *driving task* that maps those into `TaskStatus`.
+- **`poll_ready` folded into `send`** — write back-pressure is communicated by the driving
+  task's `TaskStatus`: `Pending` when the send pipe is full (Decision 11 `MessageSink` →
+  `Err(Full)` → `Pending`), or `Depends` on socket-writable via the reactor. So a separate
+  `poll_ready` readiness method is redundant.
 
 - **`accept_*` / `read` return one `Stream` value per call** (call repeatedly to advance —
   `Next(v)` / `Pending` / `Wait` / ends on close), in valtron's poll-per-call style.
@@ -257,9 +261,16 @@ identity. **It is tokio-based.** Two possible paths, with different value:
 
 ## Open Questions
 
-**TODO**: this was already resolved was it not ?
+*All three below are resolved by later decisions — retained as a resolution record.*
 
-1. **foundation_netio HTTP/2**: Does foundation_netio have any HTTP/2 frame-level support today, or is it purely HTTP/1.1? If none, we need to assess the `h2` crate integration effort.
-2. **Chunked transfer encoding**: Connect streaming over HTTP/1.1 requires chunked transfer encoding. Does foundation_http's response writer handle chunked encoding automatically, or do we need to manage `Transfer-Encoding: chunked` headers and chunk boundaries manually?
-3. **Backpressure**: connect-go uses `io.Pipe` which naturally provides backpressure (writer blocks when reader is slow). Foundation's iterator model doesn't block — do we need a bounded channel between encoder and transport writer?
+1. **foundation_netio HTTP/2 — resolved.** foundation_netio is HTTP/1.1 only today; HTTP/2 is
+   the new owned `http2/` module (replicated from h2, tokio-free), not the `h2` crate —
+   Decision 12 §5. No `h2` dependency.
+2. **Chunked transfer encoding — resolved.** Handled by the per-part `Http11` writer + the
+   pushable `SendSafeBody::Stream` (Decision 12 §1/§7); the writer manages
+   `Transfer-Encoding: chunked` and chunk boundaries. No manual management in the RPC layer.
+3. **Backpressure — resolved.** Provided by the bounded `ConcurrentQueue` pipes at the
+   transport seam (Decision 11): a full request/response pipe makes `MessageSink::send` return
+   `Err(Full)`, which the bridging task maps to `TaskStatus::Pending` — natural back-pressure
+   without blocking a worker.
 4. **Half-duplex bidi over HTTP/1.1**: connect-go supports this by fully consuming the request body before sending the response. Foundation_http's worker model already does this (read request, produce response). Confirm this is the case.

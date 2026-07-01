@@ -340,14 +340,21 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 
 ## Open Questions
 
-**TODO**: Looks outdated
+*All four are resolved by decisions elsewhere in this doc / the codegen decision — retained as
+a resolution record.*
 
-1. **buffa-codegen integration**: Should `foundation_connectrpc_codegen` invoke `buffa-codegen` internally (unified output), or require users to run both codegen steps? Unified is more ergonomic; separate is more flexible.
-2. **Service trait object safety**: The generated service trait is not object-safe (methods have generic-like streaming types). This is fine for static dispatch but means you can't do `Box<dyn GreetService>`. Is this acceptable?
-   **TODO**: did we not resolve this to support static dispatching ?
-
-3. **Default implementations**: Should the generated service trait provide default `unimplemented` implementations for all methods (like tonic), so users can implement incrementally? connect-go requires all methods.
-    **TODO**: interesting question, sure i guess, since they will edit the code after generation.
-
-4. **View handlers**: buffa supports `MessageView<'a>` for zero-copy deserialization. Should we generate "view" variants of handlers that receive borrowed views instead of owned messages? This could be a significant performance advantage for read-heavy services.
-   **TODO**: Looks outdated, correct me
+1. **buffa-codegen integration — resolved.** One **unified generator** (in `foundation_macros`
+   + the `foundation_netio` binary, per the placement decision above) emits both the message
+   types and the service/client code in a single invocation — users run one codegen step.
+2. **Service trait object safety — resolved (static dispatch).** The generated service
+   *handler* trait is intentionally **not** object-safe and is statically dispatched
+   (Consequences → "Object-safety"); `Box<dyn GreetService>` is not a goal. The separately
+   generated `<Service>Client` trait (R4) is the object-safe surface for mocking/`dyn`.
+3. **Default implementations — decided (yes).** The generated service trait provides default
+   `unimplemented!()` bodies so services can be implemented incrementally — appropriate since
+   generated code is edited after generation. (Diverges from connect-go's "all methods
+   required," deliberately.)
+4. **View handlers — resolved / superseded.** We **do** generate zero-copy variants, but over
+   `buffa::OwnedView<…>` (proto) / Arc-backed `RecordBatch` (Arrow), **not** a borrowed
+   `MessageView<'a>` — a naked `MessageView<'a>` can't cross `.await` (see "Zero-copy variants"
+   above and Decision 02 RS2). So the borrowed-view idea is replaced by the owning-view one.

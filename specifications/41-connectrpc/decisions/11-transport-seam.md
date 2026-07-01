@@ -335,15 +335,16 @@ transport (closes Decision 04 Q4).
 1. **Pipe depth default.** What bounded capacity for the request/response pipes (message
    count vs byte budget)? Likely tie to `read_max_bytes`/`send_max_bytes` plus a small
    message-count bound (e.g. 1–4) to keep latency low.
-2. **Half-duplex detection point.** On HTTP/1.1, the writer task starts only after the
-   reader signals request-complete (client/server-streaming); bidi is rejected up front via
-   capability matching (505). Confirm this is the exact gating point. (connect-go parity.)
-3. **Frame `Bytes` plumbing.** The seam carries codec-encoded frames; the transport already
-   hands them up as `Bytes` (`quinn-proto`/h2). For zero-copy the facade builds a
-   `buffa::OwnedView<V>` (Arc the frame `Bytes` + view) or, for Arrow, an Arc-backed
-   `RecordBatch`. Decide buffer-pool reuse for the **owned-decode** path; the zero-copy path
-   needs no reuse decision (each `OwnedView`/`RecordBatch` holds its own Arc'd bytes).
-4. **WASM Fetch capabilities.** Fetch cannot do request-body streaming or trailers;
-   its `TransportCapabilities` should report `Duplex::None`/`TrailerSupport::None` so the
-   client restricts WASM to unary + server-streaming over Connect/gRPC-Web. Confirm the
-   foundation_wasm bridge surface.
+2. **Half-duplex detection point — resolved.** On HTTP/1.1 the writer task starts only after
+   the reader signals request-complete (client/server-streaming); bidi is rejected up front
+   via capability matching (505). That is the exact gating point (connect-go parity).
+3. **Frame `Bytes` plumbing — mostly resolved; one open sub-item.** The seam carries
+   codec-encoded frames the transport hands up as `Bytes` (`quinn-proto`/h2); zero-copy builds
+   a `buffa::OwnedView<V>` or Arc-backed `RecordBatch`, each holding its own Arc'd bytes (no
+   reuse decision needed). **Still open:** whether the **owned-decode** path reuses a buffer
+   pool — tune during implementation.
+4. **WASM Fetch capabilities — resolved.** Fetch cannot do request-body streaming or trailers,
+   so its `TransportCapabilities` reports `Duplex::None` / `TrailerSupport::None`; the client
+   restricts WASM to unary + server-streaming over Connect/gRPC-Web (matches the Decision 07
+   baseline-transport matrix). Bridge-surface confirmation is a foundation_wasm implementation
+   detail, not a design question.

@@ -327,14 +327,18 @@ impl Interceptor for ScopeInterceptor {
 
 ## Consequences
 
-**TODO*: foundation_auth now supports cedar policies, we can use them greatly
-
 - Auth middleware runs at the HTTP level (before decompression), matching connect-go
 - `ErrorWriter` ensures auth errors are formatted per the client's protocol
 - foundation_auth's JWT, session, and OAuth infrastructure is reused
 - `PerProcedureAuth` allows mixing public and authenticated endpoints
 - Auth info flows through `RequestContext.extensions` — handlers access it via `get_auth_info::<T>()`
 - Scope/permission checks run as interceptors (after deserialization, per-RPC)
+- **Cedar policy authorization (decided, R14):** foundation_auth now supports **Cedar
+  policies** — we lean on them for authorization. Scope/permission interceptors evaluate a
+  Cedar policy set against the request principal (from the authenticator) + the procedure as
+  the action + any resource in `RequestContext`, rather than hand-rolled scope checks. This
+  gives declarative, centrally-managed per-procedure authz; `has_scope` remains the simple
+  fast path for basic scope gates.
 
 ## Review-Gap Coverage
 
@@ -357,14 +361,31 @@ bridge only where a sync/async boundary genuinely forces it (R13).
   rather than fetching inside the request path.
 - **T10 — iroh identity:** add a `PublicKeyAuthenticator`; `Peer` carries the Ed25519
   public key when the connection is iroh-based.
+- **R14 — Cedar authorization:** evaluate foundation_auth Cedar policies in the
+  scope/permission interceptor (principal = authenticated identity, action = procedure,
+  resource = request context). See Consequences.
+- **R15 — mTLS identity (decided, add):** extract the client certificate chain from
+  foundation_netio's TLS session at the connection boundary and surface it via
+  `ConnectionContext` → `RequestContext.extensions` as `PeerCertificates`. *What it takes:*
+  (a) request client-auth in the rustls `ServerConfig` (optional/required) in `netcap/ssl`;
+  (b) read the peer certs off the completed handshake and attach them to the connection
+  identity (`Endpoint<I>` / `ConnectionContext`, Decision 04 Q13); (c) a
+  `ClientCertAuthenticator` that validates/maps the cert (subject/SAN) to a principal.
+  Transport-level, so it composes with token auth rather than replacing it.
+- **R16 — OAuth introspection (decided, add):** provide an `IntrospectionAuthenticator` over
+  foundation_auth's `IntrospectionClient` for opaque (non-JWT) bearer tokens; like JWKS
+  (R13) it runs the network call out-of-band / cached, not inline in the request path.
+- **R17 — rate limiting (decided, add):** provide a rate-limiting **seam interceptor** that
+  maps rejection to `CodeResourceExhausted` (HTTP 429), keyed on principal/peer; reuse
+  foundation_http's limiter where it fits, wrap it as an interceptor for per-procedure limits.
+- **R18 — CORS (decided, verify+expand):** reuse foundation_http `CorsMiddleware`, but verify
+  it allows the ConnectRPC request headers (`Connect-Protocol-Version`, `Connect-Timeout-Ms`,
+  `Connect-Content-Encoding`, `Connect-Accept-Encoding`) and methods; expand its allow-list
+  (or add a Connect-aware preset) if it doesn't. Runs at the HTTP layer, outside the seam
+  interceptors (Decision 08 ordering).
 
 ## Open Questions
 
-1. **mTLS identity**: connect-go's authn doesn't handle mTLS (that's transport-level). Foundation_netio supports TLS — can we extract client certificates and pass them through? This would be in `RequestContext.extensions` as `PeerCertificates`.
-    **TODO**: What will it take to support mtls
-2. **OAuth token introspection**: For opaque tokens (not JWTs), foundation_auth has `IntrospectionClient`. Should we provide an `IntrospectionAuthenticator` that calls the token introspection endpoint?
-     *TODO*: If its good to have, add it.
-3. **Rate limiting**: `CodeResourceExhausted` maps to HTTP 429. Should we provide a rate-limiting middleware, or leave that to foundation_http's existing middleware?
-      *TODO*: sure lets add one
-4. **CORS**: connect-go has a separate `cors-go` package. foundation_http has `CorsMiddleware`. Verify the CORS middleware allows ConnectRPC-specific headers (`Connect-Protocol-Version`, `Connect-Timeout-Ms`, `Connect-Content-Encoding`, `Connect-Accept-Encoding`) and methods.
-      **TODO**: lets verify, and add if not meeting our needs or expand it
+*Resolved — the former open questions are now decided items R15–R18 (mTLS, OAuth
+introspection, rate limiting, CORS) in Review-Gap Coverage above, and R14 (Cedar) in
+Consequences. No open questions remain for this decision.*

@@ -203,8 +203,10 @@ protocol and is **not** adopted here). Consequences:
 - **E1 (resumable decoder) is generalized, not WS-private:** it is the WebSocket impl of the
   shared `IncrementalDecoder` primitive (Decision 12 §11), reused by `http2/`, HTTP/3, and the
   Connect envelope reader — one tested partial-read seam instead of per-protocol handlers.
-- **E2 ties WS to Decision 00:** true parking on native requires the `ReadinessSource`
-  reactor; until then WS uses the existing timeout-poll fallback with no regression.
+- **E2 ties WS to the native reactor:** true parking on native uses `foundation_nativeapis`'s
+  reactor via `RegisteredFd: EventReadiness` (Decisions 00/14) once `RawStream: AsRawFd`
+  (Decision 12 §12) is wired; until then WS uses the existing timeout-poll fallback with no
+  regression.
 - **Sequencing:** implemented **last** among transports; nothing in Phases 1–3 depends on it.
   Within this decision, order is **E1 → E3 → (E2 when Decision 00 reactor lands) → 13-F1**.
 
@@ -229,8 +231,9 @@ protocol and is **not** adopted here). Consequences:
 |---|---|---|
 | 13-E1 | **Resumable frame decoder** `WebSocketFrameDecoder` — WS impl of the Decision 12 §11 `IncrementalDecoder`; partial-frame state across reads; `WouldBlock` mid-frame → `Pending`, not "corrupted"; blocking `decode` becomes a `step`-loop wrapper | Decision 12 §11 |
 | 13-E3 | **`WebSocketServerTask` + `WsServerConfig`** — progress-driven server `TaskIterator`: assembler, dual `ConcurrentQueue` seam, config-gated auto-Pong / graceful Close; retrofit blocking `recv` to assemble (OQ#13.4) | 13-E1 |
-| 13-E2 | **`Depends(QueueReadiness)` read model** — client + server tasks park via Decision 00 `ReadinessSource` when no bytes; fall back to timeout-poll + `Delayed` when no reactor | 13-E1, **Decision 00** |
+| 13-E2 | **`Depends` read model** — client + server tasks park on socket readiness via the native reactor (`RegisteredFd: EventReadiness`, Decisions 00/14) when no bytes; fall back to timeout-poll + `Delayed` when no reactor is reachable | 13-E1, **Decisions 00/14**, Decision 12 §12 |
 | 13-F1 | **`WebSocketTransport` (server + client)** — wire the enhanced WS conn/task into the Decision 11 seam, perform the upgrade, carry Connect envelopes as binary WS messages; full-duplex bidi end-to-end | 13-E1, 13-E3 |
 
-*(Implementation order: 13-E1 → 13-E3 → 13-F1, with 13-E2 layered in once the Decision 00
-reactor exists. This whole decision is still scheduled last among transports.)*
+*(Implementation order: 13-E1 → 13-E3 → 13-F1, with 13-E2 layered in once the reactor is wired
+(`RawStream: AsRawFd`, Decision 12 §12). This whole decision is still scheduled last among
+transports.)*

@@ -402,7 +402,9 @@ already in the body above):
 
 1. **Sync vs async handlers — resolved.** Handlers are **async fns / async `Stream`s** (the Handler API above). valtron drives them via `from_future`/`from_stream`; `.await` is the yield point and nothing blocks a worker (Decision 11).
 2. **StreamIterator EOF signaling — resolved.** EOF is `Iterator::next() == None` / `receive() -> Ok(None)`. `Stream::Init` means *initializing*, never completion (Decision 11). (Moot anyway — handlers are async, not raw `StreamIterator`s.)
-3. **Interceptor overhead for unary**: connect-go applies interceptors once at client/handler creation time (not per-call). We should do the same — wrap the handler function once during registration, not on every request.
+3. **Interceptor overhead for unary — resolved.** Interceptors wrap the handler function
+   **once at registration**, not per-call (connect-go parity) — the composed call chain is
+   built at handler-creation time.
 4. **Context cancellation propagation — resolved (Option B + valtron poll-tree).** The
    transport pushes cancellation (conn close / RST_STREAM / QUIC reset / deadline) into
    `RequestContext.cancel()` (Decision 11). On cancel the request `Stream` terminates

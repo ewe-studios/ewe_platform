@@ -245,7 +245,7 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
 | # | Feature | Depends on |
 |---|---|---|
 | 00-F1 | Waker → `QueueReadiness` bridge: `WakeToken`, `queue_waker`, `FutureTask` returns `Depends`; single+multi parity | — |
-| 00-F2 | `ReadinessSource`/`ReadinessRegistration`/`Interest` + global slot + in-tree test reactor (no real reactor) | 00-F1 |
+| 00-F2 | **Reactor parking via the existing `foundation_nativeapis` reactor** — a task holds `Arc<RegisteredFd<…>>` (which is `EventReadiness`) and returns `Depends`; wire access to the reactor `Registry` + `RawStream: AsRawFd` (Decision 12 §12). Prove with an in-tree test `EventReadiness`. **No new `ReadinessSource`/global-slot abstraction** (superseded — see Reconciliation note). | 00-F1, Decision 12 §12, Decision 14 |
 | 00-F3 | `#[valtron]`/`#[valtron_test]` accept `async fn` via `block_on_future`; sync path unchanged | 00-F1 |
 
 ## Success Criteria
@@ -254,8 +254,9 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
   (verified: turn-count flat while blocked).
 - A future woken via the context waker is re-scheduled promptly; no lost wakeup under a
   wake-before-park stress test.
-- `foundation_core` gains the `ReadinessSource` seam with **no new dependency**; an in-tree
-  test reactor drives a future to completion through it.
+- Native fd parking works through `foundation_nativeapis`'s reactor (`RegisteredFd:
+  EventReadiness`) with **no new `foundation_core` dependency and no new `ReadinessSource`
+  abstraction**; an in-tree test `EventReadiness` drives a future to completion via `Depends`.
 - `#[valtron_test] async fn` / `#[valtron] async fn` compile and run; `?`/`return` behave;
   sync forms unchanged. Works on `single` and `multi`.
 

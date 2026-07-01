@@ -90,7 +90,9 @@ This is the minimal type-erasure boundary. Each codec implementation knows what 
 
 ### Proto Codec (buffa)
 
-**TODO**: Are we not using the OwnedView from Buffa?
+Yes — the ProtoCodec is where `buffa::OwnedView` is produced. `unmarshal_owned_view` (S4)
+returns a `buffa::OwnedView<V>` backed by the request `Bytes`, giving the zero-copy path
+(RS2); plain `unmarshal` remains for owned-decode callers. Both are implemented:
 
 ```rust
 pub struct ProtoCodec;
@@ -104,6 +106,12 @@ impl Codec for ProtoCodec {
 
     fn unmarshal(&self, data: &[u8], target: &mut dyn MessageMut) -> Result<(), CodecError> {
         // Downcast to buffa::Message, call merge_from
+    }
+
+    fn unmarshal_owned_view(&self, bytes: Bytes) -> Result<Option<Box<dyn Any + Send>>, CodecError> {
+        // buffa::OwnedView<V>::parse(bytes) — self-referential view over the Bytes,
+        // 'static + Send + Sync, no copy. Boxed for the facade to downcast (RS2 / S4).
+        Ok(Some(Box::new(buffa::OwnedView::<V>::parse(bytes)?)))
     }
 }
 
@@ -150,7 +158,10 @@ impl StableCodec for JsonCodec {
 
 ### Arrow Codec (foundation_arrow)
 
-**Same, should we be returning Vec or a arrow view ?
+Resolved: the Arrow codec returns a **view**, not a `Vec`, for decode. `unmarshal_owned_view`
+yields an Arc-backed `RecordBatch` (its buffers are already `Arc`-shared, so this is
+zero-copy over the request `Bytes`); `marshal` still produces bytes for the wire. This is the
+same S4 owned-view path the ProtoCodec uses, routed through the codec registry.
 
 ```rust
 pub struct ArrowCodec;
@@ -259,7 +270,16 @@ Decided items folded in from the review (we own the code; implement directly):
 
 ## Open Questions
 
-1. **buffa JSON support**: Does buffa have built-in JSON serialization that follows the protobuf canonical JSON mapping? Or do we need to implement that ourselves? The connect-go implementation uses `protojson.Marshal`/`protojson.Unmarshal` from the official Go protobuf library. buffa has a `json` feature — need to verify it produces canonical protobuf JSON.
-2. **Type erasure cost**: `dyn MessageRef` requires heap allocation and virtual dispatch. For high-throughput services, is this acceptable? Alternative: make `Codec` generic over message type, but this prevents storing mixed codecs in a registry. connect-go pays the same cost with `any` interface.
-3. **Arrow batch semantics**: Arrow IPC naturally represents record batches (multiple rows). For unary RPCs, a single-row batch is sent. For streaming, each envelope could carry a multi-row batch. Should we define batch size policy, or leave it to the application?
-4. **Zero-copy deserialization** — *resolved* (see RS2 above): supported via `buffa::OwnedView<V>` (`'static + Send + Sync`) for proto and Arc-backed `RecordBatch` for Arrow; owned-decode is the default. A naked borrowed `MessageView<'a>` is not usable under async handlers.
+1. **buffa JSON support** *(factual — being verified in code)*: confirm buffa's `json` feature
+   emits canonical protobuf-JSON (lowerCamelCase, string enums, well-known-type mappings). If
+   it does, `JsonCodec` uses it directly; if not, we implement the canonical mapping over
+   buffa reflection. Not a design decision — a capability check.
+2. **Arrow batch semantics**: unary = single-row batch; streaming = one batch per envelope.
+   Define a batch-size policy, or leave batching to the application?
+
+<!-- Resolved and removed:
+ • Type-erasure cost — MOOT: the per-procedure facade/handler wrapper owns the CONCRETE codec
+   and message type (Decision 11 / codegen), so marshal/unmarshal run against concrete types on
+   the hot path; `dyn MessageRef` erasure exists only at the generic registry seam, not per call.
+ • Zero-copy deserialization — resolved via buffa::OwnedView<V> / Arc-backed RecordBatch (RS2). -->
+

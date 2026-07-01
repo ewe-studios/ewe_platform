@@ -14,9 +14,10 @@ path expressed as a composition of the same parts.
 
 > **Hard prerequisite: Decision 00 (valtron async readiness).** The async handler model
 > (Decisions 04/11) only parks (instead of busy-polling) once Decision 00 Level 1 lands.
-> Sequence Decision 00 first. Relatedly, **native real-I/O parking needs a `ReadinessSource`
-> reactor** (Decision 00 Level 2 defines the seam; the actual `polling`/`mio` reactor is a
-> separate `foundation_netio` feature that registers into it) — without it, native sockets
+> Sequence Decision 00 first. Relatedly, **native real-I/O parking uses the existing
+> `foundation_nativeapis` reactor** (epoll/kqueue, io_uring per Decision 14) via
+> `RegisteredFd: EventReadiness` — the bridge already exists (Decision 00 reconciliation); the
+> only wiring is `RawStream: AsRawFd` (§12). Without a reachable reactor, native sockets
 > re-poll cooperatively rather than parking. On wasm the browser drives wakers, so Level 1
 > suffices.
 
