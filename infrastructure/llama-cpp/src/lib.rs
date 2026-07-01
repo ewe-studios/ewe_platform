@@ -362,6 +362,23 @@ pub enum ApplyChatTemplateError {
     TemplateNotApplicable(i32),
 }
 
+/// Failed to render a chat via the Jinja (minja) chat-template path
+/// (`common_chat_templates_*` in llama.cpp's common library).
+#[derive(Debug, thiserror::Error)]
+pub enum JinjaChatTemplateError {
+    /// The model's chat templates could not be initialized — the model exposes
+    /// no usable chat template, or the template failed to parse.
+    #[error("failed to initialize chat templates from model (no template, or the Jinja template failed to parse)")]
+    InitFailed,
+    /// The template rendered but the result could not be produced (allocation
+    /// failure or a C++ exception at the boundary was caught and reported).
+    #[error("failed to apply the Jinja chat template to the messages")]
+    ApplyFailed,
+    /// The rendered prompt was not valid UTF-8.
+    #[error("{0}")]
+    FromUtf8Error(#[from] std::str::Utf8Error),
+}
+
 /// Get the time in microseconds according to ggml
 ///
 /// ```

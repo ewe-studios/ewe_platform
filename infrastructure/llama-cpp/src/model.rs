@@ -13,9 +13,9 @@ use crate::model::params::LlamaModelParams;
 use crate::token::LlamaToken;
 use crate::token_type::{LlamaTokenAttr, LlamaTokenAttrs};
 use crate::{
-    ApplyChatTemplateError, ChatTemplateError, LlamaContextLoadError, LlamaLoraAdapterInitError,
-    LlamaModelLoadError, MetaValError, NewLlamaChatMessageError, StringToTokenError,
-    TokenToStringError,
+    ApplyChatTemplateError, ChatTemplateError, JinjaChatTemplateError, LlamaContextLoadError,
+    LlamaLoraAdapterInitError, LlamaModelLoadError, MetaValError, NewLlamaChatMessageError,
+    StringToTokenError, TokenToStringError,
 };
 
 pub mod params;
@@ -90,6 +90,18 @@ impl LlamaChatMessage {
             role: CString::new(role)?,
             content: CString::new(content)?,
         })
+    }
+
+    /// Pointer to the NUL-terminated role string (valid for `&self`'s lifetime).
+    #[must_use]
+    pub fn role_ptr(&self) -> *const c_char {
+        self.role.as_ptr()
+    }
+
+    /// Pointer to the NUL-terminated content string (valid for `&self`'s lifetime).
+    #[must_use]
+    pub fn content_ptr(&self) -> *const c_char {
+        self.content.as_ptr()
     }
 }
 
@@ -797,6 +809,69 @@ impl LlamaModel {
         }
         buff.truncate(needed);
         Ok(String::from_utf8(buff)?)
+    }
+
+    /// Render a chat into a prompt using the model's **Jinja** chat template via
+    /// llama.cpp's `common_chat_templates_*` (minja) path.
+    ///
+    /// WHY: the legacy [`Self::apply_chat_template`] uses the C
+    /// `llama_chat_apply_template`, which only understands a hardcoded set of
+    /// templates and returns an error for the Jinja templates that modern GGUF
+    /// models ship (Gemma 4, Qwen3-Next, GLM, DeepSeek, ...). This method uses
+    /// the Jinja-capable path instead, applying the model's embedded template.
+    ///
+    /// `add_ass` appends the assistant generation prompt (equivalent to
+    /// `add_generation_prompt=true`).
+    ///
+    /// # Errors
+    /// Returns [`JinjaChatTemplateError`] if the model exposes no usable
+    /// template, the template fails to parse/apply, or the rendered prompt is
+    /// not valid UTF-8.
+    pub fn apply_jinja_chat_template(
+        &self,
+        chat: &[LlamaChatMessage],
+        add_ass: bool,
+    ) -> Result<String, JinjaChatTemplateError> {
+        // Init templates from the model (uses its embedded Jinja template).
+        let tmpls = unsafe {
+            infrastructure_llama_bindings::ewe_chat_templates_init(
+                self.model.as_ptr(),
+                std::ptr::null(),
+            )
+        };
+        if tmpls.is_null() {
+            return Err(JinjaChatTemplateError::InitFailed);
+        }
+
+        // Parallel role/content pointer arrays; the CStrings are owned by `chat`
+        // and outlive this call, so the pointers stay valid.
+        let roles: Vec<*const c_char> = chat.iter().map(LlamaChatMessage::role_ptr).collect();
+        let contents: Vec<*const c_char> = chat.iter().map(LlamaChatMessage::content_ptr).collect();
+
+        let raw = unsafe {
+            infrastructure_llama_bindings::ewe_chat_templates_apply(
+                tmpls,
+                roles.as_ptr(),
+                contents.as_ptr(),
+                chat.len(),
+                add_ass,
+            )
+        };
+
+        // Free the templates handle regardless of the apply outcome.
+        unsafe { infrastructure_llama_bindings::ewe_chat_templates_free(tmpls) };
+
+        if raw.is_null() {
+            return Err(JinjaChatTemplateError::ApplyFailed);
+        }
+
+        // Copy the C string into an owned String, then free the C allocation.
+        let result = unsafe { CStr::from_ptr(raw) }
+            .to_str()
+            .map(std::borrow::ToOwned::to_owned);
+        unsafe { infrastructure_llama_bindings::ewe_chat_string_free(raw) };
+
+        Ok(result?)
     }
 }
 

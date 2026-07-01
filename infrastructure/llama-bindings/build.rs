@@ -330,6 +330,10 @@ fn main() {
         .allowlist_type("ggml_.*")
         .allowlist_function("llama_.*")
         .allowlist_type("llama_.*")
+        // The C++ chat-template shim (wrapper_chat.h) exposes ewe_chat_* / the
+        // ewe_chat_templates opaque type; allow them through the filter above.
+        .allowlist_function("ewe_chat_.*")
+        .allowlist_type("ewe_chat_.*")
         .prepend_enum_name(false);
 
     // Configure mtmd feature if enabled

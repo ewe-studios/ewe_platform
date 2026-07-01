@@ -816,22 +816,36 @@ fn apply_chat_template(
         }
     }
 
-    // Get chat template (use custom if provided, otherwise default)
-    let template = if let Some(custom_template) = &interaction.chat_template {
-        LlamaChatTemplate::new(custom_template)
-            .map_err(|e| GenerationError::Generic(format!("Failed to create chat template: {e}")))?
-    } else {
-        model
-            .chat_template(None)
-            .map_err(Into::<GenerationError>::into)?
-    };
+    // Render the prompt.
+    //
+    // When no explicit template override is given, prefer the Jinja (minja)
+    // path: it applies the model's embedded chat template and handles the
+    // modern Jinja templates that the legacy `llama_chat_apply_template` cannot
+    // (Gemma 4, Qwen3-Next, GLM, DeepSeek, ...). Fall back to the legacy path
+    // if the Jinja render fails, so models whose templates the legacy API
+    // handles keep working.
+    if let Some(custom_template) = &interaction.chat_template {
+        let template = LlamaChatTemplate::new(custom_template)
+            .map_err(|e| GenerationError::Generic(format!("Failed to create chat template: {e}")))?;
+        return model
+            .apply_chat_template(&template, &chat_messages, true)
+            .map_err(Into::<GenerationError>::into);
+    }
 
-    // Apply chat template
-    let prompt = model
-        .apply_chat_template(&template, &chat_messages, true)
-        .map_err(Into::<GenerationError>::into)?;
-
-    Ok(prompt)
+    match model.apply_jinja_chat_template(&chat_messages, true) {
+        Ok(prompt) => Ok(prompt),
+        Err(jinja_err) => {
+            tracing::debug!(
+                "Jinja chat template failed ({jinja_err}); falling back to legacy template path"
+            );
+            let template = model
+                .chat_template(None)
+                .map_err(Into::<GenerationError>::into)?;
+            model
+                .apply_chat_template(&template, &chat_messages, true)
+                .map_err(Into::<GenerationError>::into)
+        }
+    }
 }
 
 /// Generate embeddings from the input prompt.
