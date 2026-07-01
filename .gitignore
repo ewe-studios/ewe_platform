@@ -174,3 +174,4 @@ artefacts/temples/output_directory
 
 backends/foundation_testbed/.testbed
 backends/foundation_testbed/.testbed/.*
+.blackboxcli/

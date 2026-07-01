@@ -52,6 +52,7 @@ pub mod model;
 #[cfg(feature = "mtmd")]
 pub mod mtmd;
 pub mod sampling;
+pub mod speculative;
 pub mod timing;
 pub mod token;
 pub mod token_type;

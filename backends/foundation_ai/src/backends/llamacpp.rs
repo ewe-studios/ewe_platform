@@ -331,9 +331,10 @@ struct LlamaModelsInner {
     spec: ModelSpec,
     pricing: ModelUsageCosting,
     cumulative_cost: CostAccumulator,
-    /// Opt-in speculative-decoding config (MTP), validated at model creation.
-    /// `None` = standard decoding.
-    speculative: Option<SpeculativeConfig>,
+    /// The backend config this model was loaded with — carries the opt-in
+    /// speculative (MTP) config plus context sizing used to build the MTP
+    /// generator. Validated at model creation.
+    config: LlamaBackendConfig,
 }
 
 /// `llama.cpp` model wrapper implementing the `Model` trait.
@@ -358,14 +359,14 @@ impl Clone for LlamaModels {
 }
 
 impl LlamaModels {
-    /// Create a new `LlamaModels` instance with an optional speculative
-    /// (MTP) config already validated against the model's capabilities.
+    /// Create a new `LlamaModels` instance carrying the backend `config`
+    /// (already validated against the model's MTP capabilities).
     #[allow(clippy::arc_with_non_send_sync)]
-    fn new_with_speculative(
+    fn new_with_config(
         model: LlamaModel,
         context: LlamaModelContextParams,
         spec: ModelSpec,
-        speculative: Option<SpeculativeConfig>,
+        config: LlamaBackendConfig,
     ) -> Self {
         Self {
             inner: Arc::new(Mutex::new(LlamaModelsInner {
@@ -375,7 +376,7 @@ impl LlamaModels {
                 spec,
                 pricing: ModelUsageCosting::default(),
                 cumulative_cost: CostAccumulator::new(),
-                speculative,
+                config,
             })),
         }
     }
@@ -1273,15 +1274,21 @@ impl LlamaBackends {
         let model = LlamaModel::load_from_file(&backend, model_path, &model_params)
             .map_err(|e| ModelProviderErrors::ModelErrors(e.into()))?;
 
-        // Capability gate (spec-51 G2): MTP requested → model must support it.
-        if config.speculative.is_some() && !model.supports_mtp() {
-            return Err(ModelProviderErrors::ModelErrors(ModelErrors::NotFound(
-                format!(
-                    "speculative/MTP decoding requested but model '{}' has no MTP head \
-                     (n_layer_nextn == 0)",
-                    model_spec.name
-                ),
-            )));
+        // Capability gate (spec-51 G2): MTP requested → the model must have an
+        // embedded MTP head (n_layer_nextn > 0) OR a separate MTP head GGUF must
+        // be supplied (the Gemma/Qwen heads are separate draft models). If
+        // neither, error rather than silently ignoring the request.
+        if let Some(spec) = &config.speculative {
+            let has_head = model.supports_mtp() || spec.mtp_model.is_some();
+            if !has_head {
+                return Err(ModelProviderErrors::ModelErrors(ModelErrors::NotFound(
+                    format!(
+                        "speculative/MTP decoding requested but model '{}' has no embedded MTP \
+                         head (n_layer_nextn == 0) and no separate mtp_model path was provided",
+                        model_spec.name
+                    ),
+                )));
+            }
         }
 
         // Apply context params from config (context length, batch, threads).

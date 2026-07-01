@@ -331,9 +331,12 @@ fn main() {
         .allowlist_function("llama_.*")
         .allowlist_type("llama_.*")
         // The C++ chat-template shim (wrapper_chat.h) exposes ewe_chat_* / the
-        // ewe_chat_templates opaque type; allow them through the filter above.
+        // ewe_chat_templates opaque type; the MTP speculative shim
+        // (wrapper_mtp.h) exposes ewe_mtp_*. Allow them through the filter above.
         .allowlist_function("ewe_chat_.*")
         .allowlist_type("ewe_chat_.*")
+        .allowlist_function("ewe_mtp_.*")
+        .allowlist_type("ewe_mtp_.*")
         .prepend_enum_name(false);
 
     // Configure mtmd feature if enabled
@@ -973,17 +976,22 @@ fn main() {
     // resolution sees `-lewe_chat_shim` ahead of `-lllama-common`.
     println!("cargo:rerun-if-changed=wrapper_chat.cpp");
     println!("cargo:rerun-if-changed=wrapper_chat.h");
+    println!("cargo:rerun-if-changed=wrapper_mtp.cpp");
+    println!("cargo:rerun-if-changed=wrapper_mtp.h");
     {
-        let mut chat_shim = cc::Build::new();
-        chat_shim
-            .cpp(true)
+        // Both C++ shims (chat-template + MTP speculative) compile the same way:
+        // C++17 against llama.cpp's common/ headers, linked ahead of
+        // libllama-common below.
+        let mut shim = cc::Build::new();
+        shim.cpp(true)
             .std("c++17")
             .file("wrapper_chat.cpp")
+            .file("wrapper_mtp.cpp")
             .include(llama_src.join("common"))
             .include(llama_src.join("vendor"))
             .include(llama_src.join("include"))
             .include(llama_src.join("ggml/include"));
-        chat_shim.compile("ewe_chat_shim");
+        shim.compile("ewe_shim");
     }
 
     // Link libraries

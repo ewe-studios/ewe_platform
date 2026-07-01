@@ -67,9 +67,10 @@ pub trait StableCodec: Codec {
 
 ### Message Abstraction
 
-**TODO**: Is this still needed?
-
-connect-go uses Go's `any` interface for type erasure. We need a Rust equivalent that works across buffa messages, serde types, and Arrow types:
+Yes — still needed. `MessageRef` / `MessageMut` are the type-erasure boundary the whole codec
+system is built on (`marshal(&dyn MessageRef)` / `unmarshal(&mut dyn MessageMut)`), and the
+facade/`MessageSource` decode paths and codegen all go through them. connect-go uses Go's
+`any` interface for type erasure. We need a Rust equivalent that works across buffa messages, serde types, and Arrow types:
 
 ```rust
 /// Read-only access to a message for serialization.

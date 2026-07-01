@@ -200,8 +200,12 @@ pub trait QuicBidiStream: QuicSendStream + QuicRecvStream {
 **Deliberate deviations from h3:**
 - **No `Poll`/`Context`/`Waker`** — readiness is `Stream::Pending` / `Wait`, driven by the
   http3 valtron task. This is the whole reason we don't use `h3` as-is. (T9 resolved here.)
+   **TODO**: should be updated, i believe we already stressed how much more valtron works with TaskStatus to indicate and communicate waiting and readiness not Stream::Pending/Wait.
+
 - **`poll_ready` folded into `send`** — back-pressure *is* `Stream::Pending`, so a separate
   readiness method is redundant.
+      **TODO**: Fix it, you know better, we already outlined what we will do to hook into valtron better for readiness
+
 - **`accept_*` / `read` return one `Stream` value per call** (call repeatedly to advance —
   `Next(v)` / `Pending` / `Wait` / ends on close), in valtron's poll-per-call style.
 - **`Is0rtt` is not a stream trait** — 0-RTT is connection/stream metadata, so it's a flag on
@@ -252,6 +256,8 @@ identity. **It is tokio-based.** Two possible paths, with different value:
   and additive. See **[Decision 13](13-websocket-transport.md)** — deferred, implemented last.
 
 ## Open Questions
+
+**TODO**: this was already resolved was it not ?
 
 1. **foundation_netio HTTP/2**: Does foundation_netio have any HTTP/2 frame-level support today, or is it purely HTTP/1.1? If none, we need to assess the `h2` crate integration effort.
 2. **Chunked transfer encoding**: Connect streaming over HTTP/1.1 requires chunked transfer encoding. Does foundation_http's response writer handle chunked encoding automatically, or do we need to manage `Transfer-Encoding: chunked` headers and chunk boundaries manually?

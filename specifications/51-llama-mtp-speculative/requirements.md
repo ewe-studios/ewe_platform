@@ -81,10 +81,32 @@ Two hard constraints shape the design:
   false); honest `warn!`-and-fall-back at decode when engine is not yet wired
   (G5 fallback). Tests: `tests/harness/mtp_tests.rs` (offline, 5) +
   `tests/harness/integrations/mtp_gate.rs` (gate error + control, 2).
-- **Phase 2 — speculative decode engine (TODO):** C++ `extern "C"` shim over
-  `common/speculative.h` (mirroring `wrapper_chat.*`) + draft/verify/accept loop
-  in the llama.cpp generate/stream path (G3). Needs an MTP-head GGUF to validate
-  output-equivalence.
+- **Phase 2 — speculative decode engine (IN PROGRESS, in-process FFI):**
+  Decision (user): implement in-process via a C++ shim, not server-backed.
+  Findings while starting:
+  * The Gemma/Qwen MTP head is a **separate draft GGUF** (arch
+    `Gemma4Assistant`), loaded alongside the target and sharing the target KV
+    cache (draft context created with `ctx_type=LLAMA_CONTEXT_TYPE_MTP`,
+    `ctx_other=ctx_tgt`). So the **main model has `n_layer_nextn == 0`** — the
+    Phase-1 gate (which checks the main model) wrongly rejects it and must be
+    updated to accept a model when a valid MTP head is supplied.
+  * Downloaded the head `mtp-gemma-4-E2B-it.gguf` (~98 MB, Q8_0) into
+    `artefacts/models/`.
+  * **Validated MTP works on our b9850 build** via `support/bin/llama-server`
+    `--model-draft … --spec-type draft-mtp`: `draft acceptance = 0.417
+    (5/12), mean len 2.67`.
+  * Integration model: reference is `examples/speculative-simple` +
+    `tools/server` (MTP path). Single-sequence loop: `common_speculative_init`
+    → `common_speculative_begin(prompt)` → per step: set draft params →
+    `common_speculative_draft` → build target batch `[id_last, draft…]` →
+    `llama_set_embeddings(ctx_tgt, common_speculative_need_embd(spec))` →
+    `llama_decode(ctx_tgt)` → `common_speculative_process(spec, batch)` →
+    `common_sampler_sample_and_accept_n` → `common_speculative_accept` →
+    commit + `llama_memory_seq_rm` extras. Checkpoints skipped (single fresh
+    seq); if the context requires checkpoints, fall back to standard decode.
+  * Shim: `infrastructure/llama-bindings/wrapper_mtp.{h,cpp}` exposing
+    `ewe_mtp_init` / `ewe_mtp_generate` / `ewe_mtp_free` (mirrors the
+    `wrapper_chat` build wiring: `cc` compile + `ewe_mtp_.*` bindgen allowlist).
 - **Config-threading gap (FIXED):** `HuggingFaceGGUFProvider` now carries the
   full `LlamaBackendConfig` into `LlamaBackends::load_model`, which applies
   `to_model_params()` (GPU layers) and `to_context_params()` (context length,
