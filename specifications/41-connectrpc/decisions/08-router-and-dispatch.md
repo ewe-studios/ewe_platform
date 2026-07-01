@@ -130,8 +130,8 @@ impl Router {
         handler: H,
         options: HandlerOptions,
     ) where
-        Req: MessageMut + Default + 'static,
-        Res: MessageRef + 'static,
+        Req: Message + Default + 'static,
+        Res: Message + 'static,
         H: UnaryHandler<Req, Res>;
 
     pub fn server_stream<Req, Res, H>(
@@ -140,8 +140,8 @@ impl Router {
         handler: H,
         options: HandlerOptions,
     ) where
-        Req: MessageMut + Default + 'static,
-        Res: MessageRef + 'static,
+        Req: Message + Default + 'static,
+        Res: Message + 'static,
         H: ServerStreamHandler<Req, Res>;
 
     pub fn client_stream<Req, Res, H>(
@@ -150,8 +150,8 @@ impl Router {
         handler: H,
         options: HandlerOptions,
     ) where
-        Req: MessageMut + Default + 'static,
-        Res: MessageRef + 'static,
+        Req: Message + Default + 'static,
+        Res: Message + 'static,
         H: ClientStreamHandler<Req, Res>;
 
     pub fn bidi_stream<Req, Res, H>(
@@ -160,8 +160,8 @@ impl Router {
         handler: H,
         options: HandlerOptions,
     ) where
-        Req: MessageMut + Default + 'static,
-        Res: MessageRef + 'static,
+        Req: Message + Default + 'static,
+        Res: Message + 'static,
         H: BidiStreamHandler<Req, Res>;
 }
 ```

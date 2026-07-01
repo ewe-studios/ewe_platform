@@ -48,7 +48,7 @@ connect-go uses Go's `io.Pipe` to create a writer that feeds a reader concurrent
 
 - **Request body reading**: `SimpleBody::Stream` provides `Iterator<Item = Result<Vec<u8>, BoxedError>>`. The envelope decoder wraps this iterator, yielding decoded messages.
 - **Response body writing (streaming)**: the handler is an async `Stream` of responses (Decision 04); the writer task envelopes/compresses each message and flushes per frame via the per-part `Http11` writer (Decision 12). The valtron `TaskStatus`/`Stream`/queue machinery is internal (Decision 11) — the handler does not return a valtron iterator.
-- **Bidi streaming**: Requires concurrent read (from request body iterator) and write (to response body stream). Valtron executor manages both sides. On HTTP/1.1, this is half-duplex (request fully consumed before response begins). On HTTP/2, this is full-duplex.
+- **Bidi streaming**: concurrent read (request `Stream<Req>`) and write (response `Stream<Res>`), each driven by an independent valtron task (Decision 11). **On HTTP/1.1 bidi is rejected with `505`** (no full-duplex); it is full-duplex only on HTTP/2/3 (or via the WebSocket transport, Decision 13). Client/server-streaming remain half-duplex on HTTP/1.1.
 
 ### HTTP/2 Support
 
@@ -66,8 +66,8 @@ The core protocol logic (codec, compression, envelope framing, error types, inte
 
 ## Consequences
 
-- Handlers receive `SimpleIncomingRequest` / produce `SimpleOutgoingResponse` — no new HTTP type system
-- Streaming uses foundation's iterator model, not async streams — simpler but requires careful buffer management
+- At the **HTTP boundary** the transport deals in `SimpleIncomingRequest` / `SimpleOutgoingResponse` — no new HTTP type system. The **typed handler API** (async fns over concrete `Req`/`Res`) is Decision 04; the byte seam between them is Decision 11.
+- **Handlers are async** — async fns / async `Stream`s driven by valtron via `from_future`/`from_stream` (Decisions 04/11/00). The valtron `TaskStatus`/queue machinery is internal; handlers do not return valtron iterators. (Earlier "iterator model, not async" framing was superseded.)
 - gRPC (HTTP/2) is a Phase 2 transport addition, not a protocol-layer concern
 - Connect + gRPC-Web work on HTTP/1.1 from day one
 - Valtron executor handles concurrent stream processing for bidi RPCs
@@ -273,4 +273,8 @@ identity. **It is tokio-based.** Two possible paths, with different value:
    transport seam (Decision 11): a full request/response pipe makes `MessageSink::send` return
    `Err(Full)`, which the bridging task maps to `TaskStatus::Pending` — natural back-pressure
    without blocking a worker.
-4. **Half-duplex bidi over HTTP/1.1**: connect-go supports this by fully consuming the request body before sending the response. Foundation_http's worker model already does this (read request, produce response). Confirm this is the case.
+4. **Bidi over HTTP/1.1 — resolved (rejected, not half-duplex).** True bidi needs full-duplex,
+   which HTTP/1.1 cannot do, so bidi is **rejected with `505`** via capability matching
+   (Decision 11); only **client- and server-streaming** are half-duplex on HTTP/1.1 (reader
+   drains the request, then the writer runs). Full-duplex bidi requires HTTP/2/3 or the
+   WebSocket transport (Decision 13).

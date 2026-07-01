@@ -79,16 +79,17 @@ pub struct EnvelopeReader {
 
 impl EnvelopeReader {
     /// Read the next message from the stream, decoding and decompressing.
-    // `T: MessageMut + Default` (a default is needed to unmarshal into). Source is stored
-    // at construction (C8), so `read` takes no source param. This is the low-level frame
-    // reader; the per-procedure facade decode (`MessageSource`, Decision 11) is the
-    // higher-level path that owns the codec.
+    // `T: Message + Default` (a default is needed to unmarshal into) — the concrete message
+    // type, bounded by the codec's native trait (buffa::Message / FromArrow), NOT a type-erased
+    // MessageMut. Source is stored at construction (C8), so `read` takes no source param. This
+    // is the low-level frame reader; the per-procedure facade decode (`MessageSource`, Decision
+    // 11) is the higher-level path that owns the codec.
     //
     // On a non-blocking fd the 5-byte prefix + body can span multiple reads, so the reader
     // is implemented over the shared `IncrementalDecoder` primitive (Decision 12 §11) —
     // partial state is retained and a short read yields `Pending`, not an error. The blocking
     // `read` here is the `loop { step }`-until-frame wrapper over it.
-    pub fn read<T: MessageMut + Default>(&mut self) -> Result<Option<T>, ConnectError>;
+    pub fn read<T: Message + Default>(&mut self) -> Result<Option<T>, ConnectError>;
 }
 
 /// Writes envelopes to a byte sink, handling compression.
@@ -101,7 +102,7 @@ pub struct EnvelopeWriter {
 
 impl EnvelopeWriter {
     /// Encode a message into an envelope frame.
-    pub fn write<T: MessageRef>(&self, msg: &T) -> Result<Vec<u8>, ConnectError>;
+    pub fn write<T: Message>(&self, msg: &T) -> Result<Vec<u8>, ConnectError>;
 
     /// Write an EndStreamResponse (Connect protocol).
     pub fn write_end_stream(&self, error: Option<&ConnectError>, trailers: &SimpleHeaders) -> Result<Vec<u8>, ConnectError>;

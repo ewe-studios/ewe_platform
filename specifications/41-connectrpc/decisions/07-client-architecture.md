@@ -80,7 +80,7 @@ pub struct Client<Req, Res> {
     _phantom: PhantomData<(Req, Res)>,
 }
 
-impl<Req: MessageRef, Res: MessageMut + Default> Client<Req, Res> {
+impl<Req: Message, Res: Message + Default> Client<Req, Res> {
     pub fn new(transport: Arc<dyn Transport>, url: &str, options: ClientOptions)
         -> Result<Self, ConnectError>;
 
@@ -175,7 +175,7 @@ scheduling the conn's pipes — the API is identical.
 ```rust
 /// Client's view of a server streaming RPC (one request, many responses).
 pub struct ServerStream<Res> { conn: Box<dyn ClientConn>, _p: PhantomData<Res> }
-impl<Res: MessageMut + Default> ServerStream<Res> {
+impl<Res: Message + Default> ServerStream<Res> {
     pub fn receive(&mut self) -> Result<Option<Res>, ConnectError>; // None at end of stream
     pub fn response_headers(&self) -> &SimpleHeaders;               // available immediately
     pub fn response_trailers(&self) -> Result<&SimpleHeaders, ConnectError>; // after end
@@ -185,7 +185,7 @@ impl<Res: MessageMut + Default> ServerStream<Res> {
 
 /// Client's view of a client streaming RPC (many requests, one response).
 pub struct ClientStream<Req, Res> { conn: Box<dyn ClientConn>, _p: PhantomData<(Req, Res)> }
-impl<Req: MessageRef, Res: MessageMut + Default> ClientStream<Req, Res> {
+impl<Req: Message, Res: Message + Default> ClientStream<Req, Res> {
     pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders; // before first send
     pub fn send(&mut self, msg: &Req) -> Result<(), ConnectError>;
     pub fn close_and_receive(self) -> Result<Response<Res>, ConnectError>;
@@ -193,7 +193,7 @@ impl<Req: MessageRef, Res: MessageMut + Default> ClientStream<Req, Res> {
 
 /// Client's view of a bidirectional streaming RPC.
 pub struct BidiStream<Req, Res> { conn: Box<dyn ClientConn>, _p: PhantomData<(Req, Res)> }
-impl<Req: MessageRef, Res: MessageMut + Default> BidiStream<Req, Res> {
+impl<Req: Message, Res: Message + Default> BidiStream<Req, Res> {
     pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders;
     pub fn send(&mut self, msg: &Req) -> Result<(), ConnectError>;
     /// Header-only send (no body) is `send_headers` then proceed (C5).
@@ -220,14 +220,15 @@ fn build_get_request(&self, request: &Request<Req>) -> Result<SimpleOutgoingRequ
         format!("encoding={}", self.config.codec.name()),
     ];
 
-    if let Some(stable_codec) = self.config.codec.as_stable() {
-        let stable = stable_codec.marshal_stable(request.msg.as_ref())?;
-        if stable_codec.is_binary() {
-            query_params.push(format!("message={}", base64url_encode(&stable)));
-            query_params.push("base64=1".to_string());
-        } else {
-            query_params.push(format!("message={}", percent_encode(&stable)));
-        }
+    // `marshal_stable` is on `Codec` (no separate `StableCodec`/`as_stable`). The client is
+    // generic over the concrete `Req`, so it resolves the negotiated codec to its concrete
+    // type and calls the typed `marshal_stable::<Req>` directly (no message erasure).
+    let stable = self.codec.marshal_stable(&request.msg)?;   // concrete codec, concrete Req
+    if self.codec.is_binary() {
+        query_params.push(format!("message={}", base64url_encode(&stable)));
+        query_params.push("base64=1".to_string());
+    } else {
+        query_params.push(format!("message={}", percent_encode(&stable)));
     }
 
     if let Some(compression) = &self.config.send_compression {

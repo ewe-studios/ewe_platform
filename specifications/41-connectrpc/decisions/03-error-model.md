@@ -183,8 +183,45 @@ impl ErrorDetail {
     /// Attempt to decode into a concrete buffa message type.
     #[cfg(feature = "proto")]
     pub fn decode<M: buffa::Message + Default>(&self) -> Result<M, CodecError>;
+
+    /// Our-stack rich diagnostics: carry an errstacks `StructuredErrorTrace` as a detail
+    /// WITHOUT requiring proto. Uses an assigned well-known type_url so it round-trips
+    /// between our clients/servers; standard clients simply ignore an unknown type_url.
+    pub fn from_errstacks(trace: &StructuredErrorTrace) -> Self; // type_url =
+        // "type.googleapis.com/foundation.errstacks.StructuredErrorTrace", value = its bytes/JSON
 }
 ```
+
+### Detail encoding model (decided)
+
+Precise layering — note the two unrelated "Any" types (see below):
+
+1. **Primary error** — `Code` + `message`: **always sent, never uses any `Any`.** Covers the
+   majority of errors.
+2. **Typed structured details** — *optional*, encoded as **`google.protobuf.Any`**
+   (`{type_url, value}`) purely for **standard-client / cross-language interop**
+   (connect-go / connect-es / grpc decode by `type_url`). Proto-generated detail types are the
+   natural payloads — codegen supplies both the `type_url` (proto FQN) and the serializer.
+3. **Our-stack rich diagnostics** — the errstacks `StructuredErrorTrace` rides as **one
+   well-known detail entry** (`ErrorDetail::from_errstacks`) with an assigned type_url and no
+   proto dependency, so our clients get the full trace while standard clients still get
+   code + message (+ any `google.protobuf.Any` details) and ignore the unknown type_url.
+4. **Bundling** — the minimal `google.rpc.Status` / `google.protobuf.Any` types are bundled
+   **only** to make (2) codec-independent (a JSON/Arrow-only service can still emit interop
+   details). If a deployment never emits typed details and never talks to a standard client,
+   this machinery is dormant.
+
+Net: **errstacks is the default error model everywhere internally; `google.protobuf.Any` is a
+thin, optional wire-interop shim for typed details, not a competing error model.**
+
+> **Two different "Any" — do not conflate.** `google.protobuf.Any` (here) is a *protobuf wire
+> message* (`{type_url, value}`, serializable, cross-language, self-describing). Rust's
+> `std::any::Any` (used in Decision 02's `Box<dyn Any + Send>` codec seam) is *in-process*
+> type erasure via `TypeId` — process-local, not stable, not serializable. **You cannot build
+> a `google.protobuf.Any` from a `dyn Any`** (`TypeId` is not a `type_url` and can't
+> serialize); wire details therefore require proto type identity (or the assigned errstacks
+> type_url in (3)), which is exactly why (2)/(3) exist. Docs write the fully-qualified name
+> (`google.protobuf.Any` vs `std::any::Any`) wherever ambiguous.
 
 ### JSON Serialization (Connect Protocol)
 
