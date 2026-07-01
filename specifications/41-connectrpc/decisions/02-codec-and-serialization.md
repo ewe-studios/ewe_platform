@@ -101,8 +101,9 @@ impl Codec for ProtoCodec {
         // M::parse_from(data)
     }
     fn unmarshal_owned_view<M: buffa::Message>(&self, bytes: Bytes) -> Result<M::View, CodecError> {
-        // buffa::OwnedView<M>::parse(bytes) — self-referential Bytes+view,
-        // 'static + Send + Sync, no copy (RS2 / S4). M::View = buffa::OwnedView<M>.
+        // buffa::view::OwnedView::<M::View>::decode(bytes) — self-referential Bytes+view,
+        // 'static + Send + Sync, Deref<Target = View>, no copy (RS2 / S4). The type parameter
+        // is the *view* type (e.g. `PersonView`), and `M::View = OwnedView<PersonView>`.
     }
     fn marshal_stable<M: buffa::Message>(&self, m: &M) -> Result<Bytes, CodecError> {
         // Deterministic field ordering (buffa is deterministic for a schema version;
@@ -114,6 +115,13 @@ impl Codec for ProtoCodec {
 (`Message` for the proto codec family = `buffa::Message`.)
 
 buffa dependency is behind a `proto` feature flag (default on). The buffa crate is `no_std + alloc` capable.
+
+> **Reference source:** buffa lives at
+> `/home/darkvoid/Boxxed/@formulas/src.rust/src.RPC/src.connect-protocol/buffa/` (workspace:
+> `buffa`, `buffa-codegen`, `buffa-descriptor`, `buffa-types`, `protoc-gen-buffa`,
+> `conformance`). It is a mature pure-Rust, editions-first protobuf impl with canonical JSON
+> (`json` feature, conformance-tested), zero-copy `OwnedView<V>` (`view` feature), and text
+> format — the runtime + codegen basis for Decisions 02/05/10.
 
 ### JSON Codec (serde_json)
 
@@ -264,12 +272,17 @@ Decided items folded in from the review (we own the code; implement directly):
 
 ## Open Questions
 
-1. **buffa JSON support** *(factual — being verified in code)*: confirm buffa's `json` feature
-   emits canonical protobuf-JSON (lowerCamelCase, string enums, well-known-type mappings). If
-   it does, `JsonCodec` uses it directly; if not, we implement the canonical mapping over
-   buffa reflection. Not a design decision — a capability check.
-2. **Arrow batch semantics**: unary = single-row batch; streaming = one batch per envelope.
-   Define a batch-size policy, or leave batching to the application?
+1. **buffa JSON support — resolved (verified).** buffa's `json` feature emits **canonical
+   protobuf-JSON** (verified in source: `buffa/Cargo.toml` `json` feature + `DESIGN.md`
+   §454–468 + the `conformance/` crate): snake_case→camelCase, `int64`/`uint64`/`sint64` as
+   strings, proto3 default-value omission, and bespoke well-known-type JSON (Timestamp→RFC3339,
+   Duration→`"1.5s"`, `Any`→`{"@type":…}`, wrappers, Value/Struct). So `JsonCodec` uses buffa's
+   `json` **directly** — we do not hand-roll the canonical mapping.
+2. **Arrow batch semantics — decided: leave to the application.** Unary = a single-row batch;
+   for streaming the handler/client choose rows-per-batch and the framework carries each
+   `RecordBatch` through as **one enveloped message, unchanged** — this preserves Arrow's
+   bulk/columnar strength (no framework-imposed batch size). DoS safety still comes from
+   `read_max_bytes` (Decision 06) bounding total decoded size, not from a row cap.
 
 <!-- Resolved and removed:
  • Type-erasure cost — MOOT and now eliminated: codecs are monomorphic over concrete Req/Res
