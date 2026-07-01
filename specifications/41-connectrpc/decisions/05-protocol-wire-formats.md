@@ -449,13 +449,33 @@ Behaviours to implement (own the code; folded in from the review):
 
 ## Open Questions
 
-1. **gRPC-Web text mode**: Base64 encoding/decoding of the entire response body is non-trivial for streaming. Do we implement this in Phase 1 or defer? It's primarily for browser clients.
-2. **gRPC Status protobuf**: `google.rpc.Status` is a protobuf message. We need this available for gRPC error encoding. Should we hand-write it, generate it from buffa, or include it as a well-known type?
+1. **gRPC-Web text mode — decided: Phase 1 (implement).** Support `application/grpc-web-text`
+   (whole-body base64) alongside binary gRPC-Web from the start, for maximum browser reach
+   incl. legacy XHR-only clients. Implementation note: base64 operates on 3-byte groups, so for
+   **streaming** the encoder/decoder must buffer partial groups across frame/chunk boundaries
+   (don't assume an envelope boundary aligns to a base64 boundary) — a small stateful
+   base64 stream adapter sits outermost on the body, wrapping the normal envelope framing.
+2. **gRPC Status protobuf — decided.** `google.protobuf.Any` is **reused from `buffa-types`**
+   (already a WKT there, with `pack`/`unpack` + canonical JSON + type-URL registry — verified).
+   `google.rpc.Status` is **not** a WKT, so it is **generated from `google/rpc/status.proto`**
+   via our buffa-codegen-based generator (Decision 10) and bundled in `foundation_connectrpc`.
+   No hand-written wire types; matches Decision 03's "details available regardless of codec."
 3. **Trailer delivery on HTTP/1.1 — resolved.** No dependency on HTTP/1.1 *trailing* headers:
    Connect uses `Trailer-`-prefixed **regular** response headers, and gRPC-Web uses **in-body**
    trailer frames — both work on foundation_netio's HTTP/1.1 as-is. Real HTTP/2 trailing
    HEADERS are only needed for binary gRPC and are provided by the owned `http2/` module +
    the trailers response part (Decision 12 §3/§5). So the trailers surface is a response part,
    not a new HTTP/1.1 capability.
-4. **Content-Type charset parameter**: connect-go's `canonicalizeContentType` strips and normalizes charset parameters (e.g., `application/json; charset=utf-8` → `application/json`). Our detection must handle this too.
-5. **415 Unsupported Media Type**: When the server doesn't recognize the Content-Type, it must return HTTP 415. This happens before protocol detection. How does this interact with foundation_http's routing?
+4. **Content-Type charset parameter — decided: normalize.** A `canonicalize_content_type`
+   step strips the `charset` parameter and lowercases the media type **before** protocol/codec
+   detection, so `application/json; charset=utf-8` is treated as `application/json` (connect-go
+   parity). Required for browser/proxy interop — without it those requests would 415. Pairs
+   with Decision 02 P1 (dual JSON registration).
+5. **415 / 405 — decided: matched inside `ConnectRpcHandler` by parsed header.** foundation_http
+   only prefix-routes to the handler; content-type negotiation is a plain header read + lookup
+   because we already parse headers into `SimpleHeaders`. Inside the handler, after matching the
+   procedure path: read `Content-Type`, normalize it (OQ#4), and match against the procedure's
+   registered protocol handlers' accepted content-types. **No match → 415**; method not in the
+   procedure's allowed set → **405** (+ `Accept-Post`). foundation_http never inspects RPC
+   content-types (it can't distinguish 415 vs 405 vs a valid Connect GET). This is the same
+   dispatch path as Decision 08.

@@ -339,8 +339,9 @@ impl ErrorWriter {
 - `ErrorWriter` enables middleware (like auth) to write protocol-correct errors before handler dispatch
 - `wire_error` flag lets clients distinguish server-sent errors from transport/client errors
 - JSON error serialization matches the Connect protocol spec exactly
-- **Error details always available (decided):** the minimal `google.rpc.Status` / `Any`
-  protobuf types are bundled so structured error details work **regardless of the service's
+- **Error details always available (decided):** `google.protobuf.Any` is **reused from
+  `buffa-types`** (existing WKT) and `google.rpc.Status` is **generated from its `.proto`** and
+  bundled (Decision 05 OQ#2), so structured error details work **regardless of the service's
   codec** (JSON/Arrow-only services still emit protobuf-`Any` details, connect-go interop).
 - **Errors are foundation_errstacks `ErrorTrace<C>` (decided):** `ConnectError` is the context
   type; domain errors are custom contexts mapped in via `From`/`change_context`. errstacks'
