@@ -7,6 +7,9 @@ loop, tool execution, memory hierarchy, and context assembly.
 ## Key modules
 - **`backends/`** — Model provider implementations: OpenAI, Anthropic Messages,
   Llama.cpp (local), Candle (local ML framework), OpenAI Responses API.
+- **`harness/`** — One-call model setup: pre-configured provider presets,
+  `RouterMix` for mixing heterogeneous providers, and ready-to-customize agent
+  builders for common combinations (see Doc 12).
 - **`agentic/`** — The agentic layer:
   - `loop_detection.rs` — Repetition detection with escalation ladder
   - `memory.rs` / `memory_coordinator.rs` — Working memory, observation, reflection

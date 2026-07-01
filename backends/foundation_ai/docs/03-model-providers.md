@@ -158,9 +158,17 @@ The `Model` trait is where `supports()`, `costing()`, `generate()`, and
 
 ### Llama.cpp (`llamacpp.rs`)
 - Local inference via llama.cpp bindings
-- Chat template support (Jinja templates)
+- Chat template support: renders the model's embedded **Jinja** template via the
+  minja path (`common_chat_templates_*`), so modern models (Gemma 4, Qwen3-Next,
+  GLM, DeepSeek) work; falls back to the legacy `llama_chat_apply_template` for
+  templates it can handle. An explicit `chat_template` override uses the legacy
+  path.
 - GGUF model loading
 - GPU acceleration (CUDA, Metal, Vulkan)
+- MTP / speculative decoding is a specified opt-in (spec-51), off by default.
+
+> **Presets:** for one-call multi-model setup over these providers (GLM 5.2 +
+> Gemma memory, Claude Opus + Sonnet, etc.), see Doc 12 — the `harness` module.
 
 ### Candle (`candle.rs`)
 - Local inference via Candle ML framework

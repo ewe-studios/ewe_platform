@@ -210,6 +210,14 @@ This directory contains all project specifications and requirements. Each specif
 
 ---
 
+### [51: llama.cpp Multi-Token Prediction (MTP)](./51-llama-mtp-speculative/)
+**Status:** 🔄 In Progress
+**Description:** Opt-in, capability-gated MTP / speculative decoding for the llama.cpp provider, surfaced through the foundation_ai harness presets for the models that support it (GLM 5.2, Qwen 3.6, Gemma 4). Records the harness module, llama.cpp b9850 upgrade, and Jinja/minja chat-template shim as background.
+**Has Features:** No (tasks tracked in requirements.md)
+**Builds On:** [36-agentic-api](./completed/36-agentic-api/)
+
+---
+
 ## Status Dashboard
 
 ### Summary
