@@ -38,8 +38,8 @@ use foundation_db::traits::DocumentStore;
 
 use crate::agentic::{AgentSession, AgentSessionBuilder, MemoryStore};
 use crate::types::{
-    ModelId, ModelProvider, ModelProviders, ProviderRouter, RoutableProvider, RoutableProviderBox,
-    RoutingRule, SessionId,
+    ModelId, ModelProvider, ProviderRouter, RoutableProvider, RoutableProviderBox, RoutingRule,
+    SessionId,
 };
 
 /// Which slot a registered model fills in the resulting agent configuration.
@@ -110,10 +110,16 @@ impl RouterMix {
     {
         // Provider identity for explicit routing: name is the model id string
         // (guaranteed distinct per role), provider kind comes from describe().
+        // A provider that cannot describe itself has no identity and cannot be
+        // routed — panic rather than inventing a bogus default, matching
+        // `RoutableProviderBox::new()`'s contract.
         let provider_id = provider
             .describe()
-            .map(|d| d.provider)
-            .unwrap_or_else(|_| ModelProviders::Custom("harness".to_string()));
+            .expect(
+                "provider must return a descriptor with a provider_id to be \
+                 registered in a RouterMix — a provider without identity cannot be routed",
+            )
+            .provider;
         let name = model.name().to_string();
 
         let boxed: Box<dyn RoutableProvider> =
