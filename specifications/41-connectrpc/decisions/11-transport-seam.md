@@ -203,10 +203,11 @@ pub trait ClientConn: Send {
 `MessageSink<T>` / `MessageSource<T>` are the **typed, per-RPC facade** the handler sees.
 They own the `Arc<dyn Codec>` and are the only place the concrete `Req`/`Res` is known:
 
-- `MessageSink<Res>::send(res)` → run the facade's **message-middleware** → `codec.marshal`
-  → push the frame into the bounded queue → `HandlerConn::send(&frame)`.
-- `MessageSource<Req>::receive()` → `HandlerConn::receive()? ` → run middleware → `let mut
-  r = Req::default(); codec.unmarshal(&frame, &mut r)` → `Some(r)`.
+- `MessageSink<Res>::send(res)` → run the facade's **message-middleware** → `codec.marshal::<Res>(&res)`
+  → push the frame into the bounded queue → `HandlerConn::send(frame)`.
+- `MessageSource<Req>::receive()` → `HandlerConn::receive()?` (a `Bytes` frame) → run middleware
+  → `codec.unmarshal::<Req>(frame)` (or `unmarshal_owned_view::<Req>` for the zero-copy variant)
+  → `Some(req)`. Concrete codec + concrete type — no `dyn Any`, no `Default`+`&mut` erasure.
 
 The seam (`HandlerConn`/`ClientConn`) carries **only encoded frames + metadata** (no
 `dyn Any`). **Zero-copy (decided, supported):** the facade can decode into an owned message
