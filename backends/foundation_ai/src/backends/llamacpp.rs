@@ -24,6 +24,7 @@ use infrastructure_llama_cpp::token::LlamaToken;
 use foundation_compact::SystemTime;
 use std::fmt::Write;
 use std::num::NonZeroU32;
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 use foundation_core::valtron::Stream;
@@ -43,6 +44,58 @@ use crate::types::base_types::{
 // ==================================
 // LlamaBackendConfig
 // ==================================
+
+/// Which speculative-decoding draft strategy to use.
+///
+/// Currently only Multi-Token Prediction (MTP) is implemented; the enum is
+/// non-exhaustive to leave room for llama.cpp's other draft types
+/// (`draft-simple`, `draft-eagle3`, n-gram, …) without a breaking change.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[non_exhaustive]
+pub enum SpeculativeKind {
+    /// Multi-Token Prediction — use the model's MTP head as the draft
+    /// (llama.cpp `draft-mtp`).
+    Mtp,
+}
+
+/// Opt-in speculative-decoding configuration for the llama.cpp backend.
+///
+/// WHY: modern models (GLM 5.2, Qwen 3.6, Gemma 4, …) ship an MTP head that
+/// llama.cpp can use to draft several tokens per target step, speeding up
+/// generation. Most models ship no such head, so this is opt-in and
+/// capability-gated — see [`spec-51`](../../../../specifications/51-llama-mtp-speculative).
+///
+/// WHAT: the draft strategy plus its parameters. `mtp_model` points at a
+/// separate MTP head GGUF when the head is not embedded in the main model.
+///
+/// HOW: set it on [`LlamaBackendConfig::speculative`] (default `None` = plain
+/// decoding). When present and the model supports it, the backend engages the
+/// speculative decode path; when the model does not support it, model creation
+/// fails rather than silently ignoring the request.
+#[derive(Debug, Clone)]
+pub struct SpeculativeConfig {
+    /// The draft strategy.
+    pub kind: SpeculativeKind,
+    /// Path to a separate MTP head GGUF, if the head is not part of the main
+    /// model file. `None` uses the main model's embedded head.
+    pub mtp_model: Option<PathBuf>,
+    /// Maximum number of draft tokens to propose per target step
+    /// (llama.cpp `n_max`).
+    pub n_max: u32,
+}
+
+impl SpeculativeConfig {
+    /// Multi-Token Prediction config. `mtp_model` is the (optional) separate
+    /// MTP head GGUF; `n_max` is the max draft tokens per step.
+    #[must_use]
+    pub fn mtp(mtp_model: Option<PathBuf>, n_max: u32) -> Self {
+        Self {
+            kind: SpeculativeKind::Mtp,
+            mtp_model,
+            n_max,
+        }
+    }
+}
 
 /// Configuration for llama.cpp backend initialization.
 ///
@@ -79,6 +132,9 @@ pub struct LlamaBackendConfig {
     pub split_mode: SplitMode,
     /// Main GPU index for multi-GPU systems.
     pub main_gpu: u32,
+    /// Opt-in speculative decoding (MTP). `None` = standard single-token
+    /// decoding (the default; zero behavior change unless set).
+    pub speculative: Option<SpeculativeConfig>,
 }
 
 impl Default for LlamaBackendConfig {
@@ -93,6 +149,7 @@ impl Default for LlamaBackendConfig {
             kv_cache_type: KVCacheType::F16,
             split_mode: SplitMode::Layer,
             main_gpu: 0,
+            speculative: None, // standard decoding by default
         }
     }
 }
@@ -226,6 +283,24 @@ impl LlamaBackendConfigBuilder {
         self
     }
 
+    /// Enable speculative decoding with an explicit [`SpeculativeConfig`].
+    #[must_use]
+    pub fn speculative(mut self, spec: SpeculativeConfig) -> Self {
+        self.config.speculative = Some(spec);
+        self
+    }
+
+    /// Enable Multi-Token Prediction (MTP) speculative decoding.
+    ///
+    /// `mtp_model` is an optional separate MTP head GGUF (`None` uses the main
+    /// model's embedded head); `n_max` is the max draft tokens per step. Only
+    /// takes effect on models that support MTP — see [`SpeculativeConfig`].
+    #[must_use]
+    pub fn mtp(mut self, mtp_model: Option<PathBuf>, n_max: u32) -> Self {
+        self.config.speculative = Some(SpeculativeConfig::mtp(mtp_model, n_max));
+        self
+    }
+
     /// Build the final config.
     #[must_use]
     pub fn build(self) -> LlamaBackendConfig {
@@ -252,6 +327,9 @@ struct LlamaModelsInner {
     spec: ModelSpec,
     pricing: ModelUsageCosting,
     cumulative_cost: CostAccumulator,
+    /// Opt-in speculative-decoding config (MTP), validated at model creation.
+    /// `None` = standard decoding.
+    speculative: Option<SpeculativeConfig>,
 }
 
 /// `llama.cpp` model wrapper implementing the `Model` trait.
@@ -276,9 +354,15 @@ impl Clone for LlamaModels {
 }
 
 impl LlamaModels {
-    /// Create a new `LlamaModels` instance.
+    /// Create a new `LlamaModels` instance with an optional speculative
+    /// (MTP) config already validated against the model's capabilities.
     #[allow(clippy::arc_with_non_send_sync)]
-    fn new(model: LlamaModel, context: LlamaModelContextParams, spec: ModelSpec) -> Self {
+    fn new_with_speculative(
+        model: LlamaModel,
+        context: LlamaModelContextParams,
+        spec: ModelSpec,
+        speculative: Option<SpeculativeConfig>,
+    ) -> Self {
         Self {
             inner: Arc::new(Mutex::new(LlamaModelsInner {
                 model: Arc::new(model),
@@ -287,6 +371,7 @@ impl LlamaModels {
                 spec,
                 pricing: ModelUsageCosting::default(),
                 cumulative_cost: CostAccumulator::new(),
+                speculative,
             })),
         }
     }
@@ -346,14 +431,29 @@ impl Model for LlamaModels {
         let backend = LlamaBackend::init_or_get().map_err(Into::<GenerationError>::into)?;
 
         // Get model, spec, and context params
-        let (model, spec, ctx_params) = {
+        let (model, spec, ctx_params, speculative) = {
             let inner = self.inner.lock().unwrap();
             (
                 Arc::clone(&inner.model),
                 inner.spec.clone(),
                 inner.context.clone(),
+                inner.speculative.clone(),
             )
         };
+
+        // Speculative decoding (MTP) is configured and was capability-validated
+        // at model load. The draft/verify/accept engine is not wired yet
+        // (spec-51, follow-up), so for now fall back to standard decoding with a
+        // clear signal rather than silently pretending it is engaged.
+        if let Some(spec_cfg) = &speculative {
+            tracing::warn!(
+                kind = ?spec_cfg.kind,
+                n_max = spec_cfg.n_max,
+                "speculative/MTP decoding is configured and supported by this model, \
+                 but the speculative decode engine is not yet wired — using standard \
+                 decoding for now"
+            );
+        }
 
         // Create context
         let mut ctx = model
@@ -1111,25 +1211,9 @@ impl ModelProvider for LlamaBackends {
     }
 
     fn get_model_by_spec(&self, model_spec: ModelSpec) -> ModelProviderResult<Self::Model> {
-        // Get model location
-        let model_path = model_spec.model_location.as_ref().ok_or_else(|| {
-            ModelProviderErrors::ModelErrors(ModelErrors::NotFound(
-                "No model location specified".to_string(),
-            ))
-        })?;
-
-        // Load model
-        let backend = LlamaBackend::init_or_get().map_err(|e| {
-            ModelProviderErrors::ModelErrors(ModelErrors::FailedLoading(Box::new(e)))
-        })?;
-
-        let model_params = LlamaModelParams::default();
-        let model = LlamaModel::load_from_file(&backend, model_path, &model_params)
-            .map_err(|e| ModelProviderErrors::ModelErrors(e.into()))?;
-
-        let context_params = LlamaModelContextParams::default();
-
-        Ok(LlamaModels::new(model, context_params, model_spec))
+        // Standard decoding (no speculative config); load_model validates the
+        // model location and loads.
+        self.load_model(model_spec, None)
     }
 
     fn get_one(
@@ -1147,6 +1231,59 @@ impl ModelProvider for LlamaBackends {
     ) -> ModelProviderResult<Vec<crate::types::base_types::ModelSpec>> {
         Err(ModelProviderErrors::NotFound(
             "Model registry not implemented".to_string(),
+        ))
+    }
+}
+
+impl LlamaBackends {
+    /// Load a model, optionally with a speculative-decoding (MTP) config.
+    ///
+    /// When `speculative` is `Some`, the model is checked for MTP support
+    /// (`n_layer_nextn > 0`). If the model does **not** support it, this returns
+    /// an error rather than silently ignoring the request — enabling MTP on an
+    /// incapable model is a configuration mistake, not a no-op (spec-51 G2).
+    ///
+    /// # Errors
+    /// Returns [`ModelProviderErrors`] if the model location is missing, the
+    /// model fails to load, or MTP was requested for a model that lacks an MTP
+    /// head.
+    pub fn load_model(
+        &self,
+        model_spec: ModelSpec,
+        speculative: Option<SpeculativeConfig>,
+    ) -> ModelProviderResult<LlamaModels> {
+        let model_path = model_spec.model_location.as_ref().ok_or_else(|| {
+            ModelProviderErrors::ModelErrors(ModelErrors::NotFound(
+                "No model location specified".to_string(),
+            ))
+        })?;
+
+        let backend = LlamaBackend::init_or_get().map_err(|e| {
+            ModelProviderErrors::ModelErrors(ModelErrors::FailedLoading(Box::new(e)))
+        })?;
+
+        let model_params = LlamaModelParams::default();
+        let model = LlamaModel::load_from_file(&backend, model_path, &model_params)
+            .map_err(|e| ModelProviderErrors::ModelErrors(e.into()))?;
+
+        // Capability gate (spec-51 G2): MTP requested → model must support it.
+        if speculative.is_some() && !model.supports_mtp() {
+            return Err(ModelProviderErrors::ModelErrors(ModelErrors::NotFound(
+                format!(
+                    "speculative/MTP decoding requested but model '{}' has no MTP head \
+                     (n_layer_nextn == 0)",
+                    model_spec.name
+                ),
+            )));
+        }
+
+        let context_params = LlamaModelContextParams::default();
+
+        Ok(LlamaModels::new_with_speculative(
+            model,
+            context_params,
+            model_spec,
+            speculative,
         ))
     }
 }

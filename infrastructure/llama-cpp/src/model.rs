@@ -155,6 +155,22 @@ impl LlamaModel {
         u32::try_from(n_ctx_train).expect("n_ctx_train fits into an u32")
     }
 
+    /// Number of "nextn" (multi-token prediction / MTP) layers the model has.
+    ///
+    /// Returns `0` for models without an MTP head. A positive value means the
+    /// model can drive MTP speculative decoding (llama.cpp `draft-mtp`).
+    #[must_use]
+    pub fn n_layer_nextn(&self) -> i32 {
+        unsafe { infrastructure_llama_bindings::llama_model_n_layer_nextn(self.model.as_ptr()) }
+    }
+
+    /// Whether this model exposes a Multi-Token Prediction (MTP) head, i.e.
+    /// [`Self::n_layer_nextn`] is greater than zero.
+    #[must_use]
+    pub fn supports_mtp(&self) -> bool {
+        self.n_layer_nextn() > 0
+    }
+
     /// Get all tokens in the model.
     pub fn tokens(
         &self,

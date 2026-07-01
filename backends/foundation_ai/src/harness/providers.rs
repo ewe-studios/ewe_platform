@@ -20,8 +20,11 @@
 //! let provider = Glm52::q4_k_m(Some(config))?;
 //! ```
 
+use std::path::PathBuf;
+
 use crate::backends::anthropic_messages_provider::{AnthropicConfig, AnthropicMessagesProvider};
 use crate::backends::huggingface_gguf_provider::{HuggingFaceGGUFConfig, HuggingFaceGGUFProvider};
+use crate::backends::llamacpp::SpeculativeConfig;
 use crate::backends::openai_provider::{OpenAIConfig, OpenAIProvider};
 use crate::backends::openai_responses_provider::{ResponsesConfig, ResponsesProvider};
 use foundation_auth::{AuthCredential, ConfidentialText};
@@ -53,6 +56,34 @@ fn create_provider(
 }
 
 // ===========================================================================
+// MTP / speculative decoding opt-in (spec-51)
+// ===========================================================================
+
+/// Enable Multi-Token Prediction (MTP) speculative decoding on a GGUF config.
+///
+/// Starts from `base` (or the default config) and sets the speculative field.
+/// `n_max` is the max draft tokens proposed per target step; `mtp_model` is an
+/// optional separate MTP head GGUF (`None` uses the main model's embedded head).
+///
+/// MTP is **opt-in and capability-gated**: it only takes effect on models that
+/// actually ship an MTP head (see each preset's `SUPPORTS_MTP` — currently
+/// GLM 5.2, Qwen 3.6, and the Gemma 4 family). Enabling it on a model without
+/// an MTP head fails at model load rather than silently doing nothing.
+///
+/// Pass the result as the *main-model* config to a combo router, e.g.
+/// `glm52_gemma_router(Some(with_mtp(None, 4, None)), None)`.
+#[must_use]
+pub fn with_mtp(
+    base: Option<HuggingFaceGGUFConfig>,
+    n_max: u32,
+    mtp_model: Option<PathBuf>,
+) -> HuggingFaceGGUFConfig {
+    let mut config = base.unwrap_or_default();
+    config.llama_config.speculative = Some(SpeculativeConfig::mtp(mtp_model, n_max));
+    config
+}
+
+// ===========================================================================
 // Model presets with quantization methods
 // ===========================================================================
 
@@ -61,6 +92,8 @@ pub struct Glm52;
 
 impl Glm52 {
     pub const MODEL_ID: &str = "unsloth/GLM-5.2-GGUF";
+    /// GLM 5.2 ships an MTP head — MTP speculative decoding is supported.
+    pub const SUPPORTS_MTP: bool = true;
 
     pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
         create_provider(Q3_K_M, config)
@@ -84,6 +117,8 @@ pub struct Qwen36;
 
 impl Qwen36 {
     pub const MODEL_ID: &str = "unsloth/Qwen3.6-35B-A3B-GGUF";
+    /// Qwen 3.6 ships an MTP head — MTP speculative decoding is supported.
+    pub const SUPPORTS_MTP: bool = true;
 
     pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
         create_provider(Q3_K_M, config)
@@ -107,6 +142,8 @@ pub struct Ornith10;
 
 impl Ornith10 {
     pub const MODEL_ID: &str = "LordNeel/Ornith-1.0-35B-GGUF-llamacpp-tp1";
+    /// Ornith 1.0 does not ship an MTP head.
+    pub const SUPPORTS_MTP: bool = false;
 
     pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
         create_provider(Q3_K_M, config)
@@ -130,6 +167,8 @@ pub struct Gemma4E4b;
 
 impl Gemma4E4b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-E4B-it-GGUF";
+    /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
+    pub const SUPPORTS_MTP: bool = true;
 
     pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
         create_provider(Q3_K_M, config)
@@ -153,6 +192,8 @@ pub struct Gemma4_26b;
 
 impl Gemma4_26b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-26B-A4B-it-GGUF";
+    /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
+    pub const SUPPORTS_MTP: bool = true;
 
     pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
         create_provider(Q3_K_M, config)
@@ -183,6 +224,8 @@ pub struct Gemma4E2b;
 
 impl Gemma4E2b {
     pub const MODEL_ID: &str = "unsloth/gemma-4-E2B-it-GGUF";
+    /// Gemma 4 ships an MTP head — MTP speculative decoding is supported.
+    pub const SUPPORTS_MTP: bool = true;
 
     pub fn q3_k_m(config: Option<HuggingFaceGGUFConfig>) -> Result<HuggingFaceGGUFProvider, String> {
         create_provider(Q3_K_M, config)

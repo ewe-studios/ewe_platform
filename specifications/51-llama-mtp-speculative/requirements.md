@@ -68,6 +68,28 @@ Two hard constraints shape the design:
   runtime (e.g. the MTP head GGUF is missing), fall back to standard decoding
   with a single clear `tracing::warn!`, never a panic.
 
+## Progress
+
+- **Phase 1 — config surface, threading, capability gate, harness (DONE):**
+  `SpeculativeConfig`/`SpeculativeKind` + `LlamaBackendConfig.speculative`
+  (default `None`) with builder `.speculative()` / `.mtp()`; capability probe
+  `LlamaModel::supports_mtp()` (via `llama_model_n_layer_nextn`); capability
+  gate in `LlamaBackends::load_model` (errors when MTP requested on a model with
+  no head — G2); config threaded through `HuggingFaceGGUFProvider` (previously
+  the whole `llama_config` was dropped); harness `with_mtp()` helper +
+  `SUPPORTS_MTP` on presets (GLM 5.2 / Qwen 3.6 / Gemma 4 = true, Ornith =
+  false); honest `warn!`-and-fall-back at decode when engine is not yet wired
+  (G5 fallback). Tests: `tests/harness/mtp_tests.rs` (offline, 5) +
+  `tests/harness/integrations/mtp_gate.rs` (gate error + control, 2).
+- **Phase 2 — speculative decode engine (TODO):** C++ `extern "C"` shim over
+  `common/speculative.h` (mirroring `wrapper_chat.*`) + draft/verify/accept loop
+  in the llama.cpp generate/stream path (G3). Needs an MTP-head GGUF to validate
+  output-equivalence.
+- **Known latent gap (separate from MTP):** `HuggingFaceGGUFProvider` still
+  builds `LlamaModelParams::default()` / `LlamaModelContextParams::default()` in
+  `load_model`, so `n_gpu_layers` / `context_length` from `LlamaBackendConfig`
+  are not applied. Only `speculative` is now threaded. Worth a follow-up.
+
 ## Non-Goals
 
 - Non-MTP speculative types (`draft-simple`, `draft-eagle3`, `draft-dflash`,

@@ -31,6 +31,9 @@ pub struct HuggingFaceGGUFProvider {
     llama_backend: LlamaBackends,
     cache_dir: PathBuf,
     default_quantization: Option<String>,
+    /// Opt-in speculative (MTP) config carried from `LlamaBackendConfig`.
+    /// `None` = standard decoding. Applied + capability-checked at `get_model`.
+    speculative: Option<crate::backends::llamacpp::SpeculativeConfig>,
 }
 
 /// Configuration for `HuggingFace` provider.
@@ -253,6 +256,7 @@ impl HuggingFaceGGUFProvider {
             llama_backend: config.llama_backend,
             cache_dir: config.cache_dir,
             default_quantization: config.default_quantization,
+            speculative: config.llama_config.speculative,
         })
     }
 
@@ -491,8 +495,10 @@ impl ModelProvider for HuggingFaceGGUFProvider {
             lora_location: None,
         };
 
-        // Delegate to LlamaBackends for actual model loading
-        self.llama_backend.get_model_by_spec(model_spec)
+        // Delegate to LlamaBackends for actual model loading, carrying the
+        // opt-in speculative (MTP) config so it is applied + capability-checked.
+        self.llama_backend
+            .load_model(model_spec, self.speculative.clone())
     }
 
     fn get_model_by_spec(&self, _model_spec: ModelSpec) -> ModelProviderResult<Self::Model> {
