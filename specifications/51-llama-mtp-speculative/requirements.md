@@ -85,10 +85,17 @@ Two hard constraints shape the design:
   `common/speculative.h` (mirroring `wrapper_chat.*`) + draft/verify/accept loop
   in the llama.cpp generate/stream path (G3). Needs an MTP-head GGUF to validate
   output-equivalence.
-- **Known latent gap (separate from MTP):** `HuggingFaceGGUFProvider` still
-  builds `LlamaModelParams::default()` / `LlamaModelContextParams::default()` in
-  `load_model`, so `n_gpu_layers` / `context_length` from `LlamaBackendConfig`
-  are not applied. Only `speculative` is now threaded. Worth a follow-up.
+- **Config-threading gap (FIXED):** `HuggingFaceGGUFProvider` now carries the
+  full `LlamaBackendConfig` into `LlamaBackends::load_model`, which applies
+  `to_model_params()` (GPU layers) and `to_context_params()` (context length,
+  batch, threads). Previously the whole config was dropped and defaults used.
+  `to_context_params()` also no longer force-enables embeddings (that would
+  break text generation, which shares the context). Verified: Gemma 4 E2B still
+  generates after the change.
+- **Phase 2 blocker (test model):** cached models have no embedded MTP head
+  (`n_layer_nextn == 0`, confirmed for Gemma 4 E2B). Building the speculative
+  decode engine requires an MTP-head GGUF to validate output-equivalence —
+  identify + pull one before implementing so it lands tested, not blind.
 
 ## Non-Goals
 

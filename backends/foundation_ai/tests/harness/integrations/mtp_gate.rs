@@ -44,12 +44,9 @@ fn smollm_spec() -> ModelSpec {
 #[traced_test]
 fn test_mtp_on_unsupported_model_errors() {
     let backend = LlamaBackends::LLamaCPU;
-    let mtp = LlamaBackendConfig::builder()
-        .mtp(None, 4)
-        .build()
-        .speculative;
+    let config = LlamaBackendConfig::builder().mtp(None, 4).build();
 
-    let result = backend.load_model(smollm_spec(), mtp);
+    let result = backend.load_model(smollm_spec(), &config);
 
     assert!(
         result.is_err(),
@@ -67,7 +64,7 @@ fn test_mtp_on_unsupported_model_errors() {
 #[traced_test]
 fn test_no_mtp_loads_normally() {
     let backend = LlamaBackends::LLamaCPU;
-    let result = backend.load_model(smollm_spec(), None);
+    let result = backend.load_model(smollm_spec(), &LlamaBackendConfig::default());
     assert!(
         result.is_ok(),
         "SmolLM2 should load with standard decoding: {:?}",

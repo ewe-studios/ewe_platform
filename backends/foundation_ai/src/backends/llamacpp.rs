@@ -189,6 +189,11 @@ impl LlamaBackendConfig {
     }
 
     /// Convert this config into llama.cpp context parameters.
+    ///
+    /// Note: embeddings are intentionally NOT force-enabled here — that would
+    /// switch the context into embedding mode and break text generation, since
+    /// generation and embeddings share one context. Embedding requests are
+    /// handled on their own path.
     #[must_use]
     #[allow(
         clippy::cast_possible_truncation,
@@ -200,7 +205,6 @@ impl LlamaBackendConfig {
         params = params.with_n_ctx(NonZeroU32::new(self.context_length as u32));
         params = params.with_n_batch(self.batch_size as u32);
         params = params.with_n_threads(self.n_threads as i32);
-        params = params.with_embeddings(true); // Enable embeddings
         params
     }
 }
@@ -1211,9 +1215,9 @@ impl ModelProvider for LlamaBackends {
     }
 
     fn get_model_by_spec(&self, model_spec: ModelSpec) -> ModelProviderResult<Self::Model> {
-        // Standard decoding (no speculative config); load_model validates the
-        // model location and loads.
-        self.load_model(model_spec, None)
+        // Default config (standard decoding); load_model validates the model
+        // location and loads.
+        self.load_model(model_spec, &LlamaBackendConfig::default())
     }
 
     fn get_one(
@@ -1236,9 +1240,10 @@ impl ModelProvider for LlamaBackends {
 }
 
 impl LlamaBackends {
-    /// Load a model, optionally with a speculative-decoding (MTP) config.
+    /// Load a model, applying a [`LlamaBackendConfig`] (GPU layers, context
+    /// length, batch size, threads) and its optional speculative (MTP) config.
     ///
-    /// When `speculative` is `Some`, the model is checked for MTP support
+    /// When `config.speculative` is `Some`, the model is checked for MTP support
     /// (`n_layer_nextn > 0`). If the model does **not** support it, this returns
     /// an error rather than silently ignoring the request — enabling MTP on an
     /// incapable model is a configuration mistake, not a no-op (spec-51 G2).
@@ -1250,7 +1255,7 @@ impl LlamaBackends {
     pub fn load_model(
         &self,
         model_spec: ModelSpec,
-        speculative: Option<SpeculativeConfig>,
+        config: &LlamaBackendConfig,
     ) -> ModelProviderResult<LlamaModels> {
         let model_path = model_spec.model_location.as_ref().ok_or_else(|| {
             ModelProviderErrors::ModelErrors(ModelErrors::NotFound(
@@ -1262,12 +1267,14 @@ impl LlamaBackends {
             ModelProviderErrors::ModelErrors(ModelErrors::FailedLoading(Box::new(e)))
         })?;
 
-        let model_params = LlamaModelParams::default();
+        // Apply model params from config (GPU offload, …) — previously these
+        // were silently dropped and defaults were used.
+        let model_params = config.to_model_params();
         let model = LlamaModel::load_from_file(&backend, model_path, &model_params)
             .map_err(|e| ModelProviderErrors::ModelErrors(e.into()))?;
 
         // Capability gate (spec-51 G2): MTP requested → model must support it.
-        if speculative.is_some() && !model.supports_mtp() {
+        if config.speculative.is_some() && !model.supports_mtp() {
             return Err(ModelProviderErrors::ModelErrors(ModelErrors::NotFound(
                 format!(
                     "speculative/MTP decoding requested but model '{}' has no MTP head \
@@ -1277,13 +1284,14 @@ impl LlamaBackends {
             )));
         }
 
-        let context_params = LlamaModelContextParams::default();
+        // Apply context params from config (context length, batch, threads).
+        let context_params = config.to_context_params();
 
         Ok(LlamaModels::new_with_speculative(
             model,
             context_params,
             model_spec,
-            speculative,
+            config.speculative.clone(),
         ))
     }
 }
