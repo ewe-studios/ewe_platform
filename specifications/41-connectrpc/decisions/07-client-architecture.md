@@ -41,10 +41,11 @@ Client options select protocol:
 ### Transport Trait
 
 The client transport is **streaming-capable** and lives in `11-transport-seam.md`: it
-exposes `open(spec, headers) -> ClientConn` (a bidirectional exchange backed by bounded
-`MessageSink`/`MessageSource` pipes) plus `capabilities() -> TransportCapabilities` so the
-client can reject incompatible protocol+version combinations before sending. Unary is the
-degenerate case, available as a `round_trip` convenience built on `open`:
+exposes `open(request: RequestHead) -> TransportStream` (a bidirectional body exchange the
+protocol's `ClientConn` drives, backed by bounded pipes) plus `capabilities() ->
+TransportCapabilities` so the client can reject incompatible protocol+version combinations
+before sending. Unary is the degenerate case, available as a `round_trip` convenience built
+on `open`:
 
 ```rust
 pub trait Transport: Send + Sync + 'static {
@@ -220,11 +221,14 @@ fn build_get_request(&self, request: &Request<Req>) -> Result<SimpleOutgoingRequ
         format!("encoding={}", self.config.codec.name()),
     ];
 
-    // `marshal_stable` is on `Codec` (no separate `StableCodec`/`as_stable`). The client is
-    // generic over the concrete `Req`, so it resolves the negotiated codec to its concrete
-    // type and calls the typed `marshal_stable::<Req>` directly (no message erasure).
-    let stable = self.codec.marshal_stable(&request.msg)?;   // concrete codec, concrete Req
-    if self.codec.is_binary() {
+    // `marshal_stable` is on `Codec` (no separate `StableCodec`/`as_stable`), but it's a
+    // `where Self: Sized` method — not callable through `Arc<dyn Codec>`. `config.codec` is the
+    // negotiation handle; resolve it to the concrete codec (match on `config.codec.name()`),
+    // then call the typed `marshal_stable::<Req>` on that concrete codec (no message erasure).
+    let codec = resolve_concrete_codec(&self.config.codec);   // proto|json|arrow by name
+    let is_binary = self.config.codec.is_binary();            // object-safe, fine on dyn
+    let stable = codec.marshal_stable(&request.msg)?;         // concrete codec, concrete Req
+    if is_binary {
         query_params.push(format!("message={}", base64url_encode(&stable)));
         query_params.push("base64=1".to_string());
     } else {

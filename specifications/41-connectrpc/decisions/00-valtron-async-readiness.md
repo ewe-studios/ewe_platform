@@ -69,21 +69,22 @@ ultimately waiting on**, and there are three distinct cases:
    the **browser event loop** calls the waker. The browser *is* the reactor — which is why
    **Level 1 alone suffices on wasm**.
 3. **Native real I/O (socket fd / OS timer).** Nothing fires `wake()` unless some component
-   watches that fd (`epoll`/`mio`/`polling`). That watcher is the **reactor**, and
+   watches that fd (`epoll`/`kqueue`/`io_uring`). That watcher is the **reactor**, and
    `foundation_core` ships none (no such dep). So a raw socket future would never wake on
-   native — **this is the entire reason Level 2 (`ReadinessSource`) exists**: a platform
-   crate plugs a reactor in, and the reactor pushes the token onto the very same Level-1 wake
-   queue. Full native chain:
+   native — this is what Level 2 addresses. **The reactor already exists in
+   `foundation_nativeapis`** (`native::poll` + `RegisteredFd: EventReadiness`), so rather than
+   a `wake()`-into-queue hop, a native task parks directly on `Depends(Arc<RegisteredFd>)`.
+   Full native chain:
 
    ```
-   leaf socket future, on Pending, registers its fd + waker with ReadinessSource (L2)
-           ↓
-   OS reactor (in foundation_netio) watches the fd
-           ↓  fd becomes readable
-   reactor pushes WakeToken onto the L1 wake_queue   ( == calling wake() )
-           ↓
-   QueueReadiness ready → executor re-runs FutureTask → re-polls → now Ready
+   leaf socket task, on Pending, holds Arc<RegisteredFd<fd>>  (RegisteredFd: EventReadiness)
+           ↓  returns TaskStatus::Depends(Arc<RegisteredFd>)
+   foundation_nativeapis reactor (epoll/kqueue/io_uring) tracks the fd
+           ↓  fd becomes readable → RegisteredFd::is_ready() == true
+   executor re-runs the task → re-polls → now Ready
    ```
+   (The Level-1 `wake_queue` path still covers **in-process** wakers, case 1; the native
+   reactor is the case-3 mechanism and needs no separate `ReadinessSource` abstraction.)
 
 ## Decision
 
@@ -135,14 +136,25 @@ fn next_status(&mut self) -> Option<TaskStatus<F::Output, FuturePollState, NoAct
   delay (cooperative, not hot-spin); else document that valtron-driven futures must wake via
   the context waker. Prefer the timed-fallback for robustness.
 
-### Level 2 — `ReadinessSource` reactor seam (no reactor pulled into foundation_core)
+### Level 2 — reactor seam (⚠️ **superseded — the reactor already exists**)
+
+> **Superseded by `foundation_nativeapis` (see Consequences → "Native real-I/O parking").**
+> The `ReadinessSource` / `ReadinessRegistration` / `Interest` / `READINESS_SOURCE` `OnceLock`
+> sketch below was written assuming we'd *build* the native reactor and its bridge. We don't:
+> `foundation_nativeapis` already ships the epoll/kqueue reactor (`native::poll`) **and** the
+> valtron bridge (`native::fd::RegisteredFd<T: AsRawFd>` / `FdRegistration`, which implement
+> `EventReadiness`). So a task parks by holding an `Arc<RegisteredFd>` and returning
+> `Depends` — **no new `ReadinessSource` trait, no `OnceLock` slot.** The remaining wiring is
+> `RawStream: AsRawFd` (Decision 12 §12) + io_uring backend (Decision 14). The sketch below is
+> retained only as the *conceptual* seam description; **do not build it as a parallel
+> abstraction.**
 
 Level 1 parks futures that wake via the context waker. A leaf future on a real OS resource
 (socket/timer) only progresses if *something* fires its waker. On **wasm** the browser event
 loop (`JsFuture`) does this — Level 1 suffices. **Native** needs a reactor, but
-`foundation_core` must not depend on `mio`/`polling`/tokio. So `foundation_core` owns only
-the seam; the reactor lives in a platform crate and registers itself, driving the **same**
-Level-1 queue.
+`foundation_core` must not depend on `mio`/`polling`/tokio — which is exactly why the reactor
+lives in the sibling platform crate `foundation_nativeapis` and bridges through
+`foundation_core`'s existing `EventReadiness` trait. The conceptual seam:
 
 ```rust
 // foundation_core::valtron — trait only, no impl, no deps.
@@ -165,14 +177,16 @@ pub fn readiness_source() -> Option<Arc<dyn ReadinessSource>>;
 
 - **foundation_core owns:** the two traits, `Interest`, the registration slot, `WakeToken`
   + the wake queue (from L1). **No reactor, no OS types, no new dep.**
-- **A platform crate owns the reactor** (e.g. `foundation_netio` over `polling`/`mio`):
-  registers once at startup; when an fd is ready it pushes the token → L1's `QueueReadiness`
-  becomes ready → the executor re-runs the task. The leaf future calls
-  `readiness_source().register(..)` in its own `poll` when returning `Pending` (it knows its
-  fd); `foundation_core` never touches the fd. The reactor **plugs in, is not pulled in.**
-- **In this spec:** prove the seam with an in-tree **test reactor** (a thread that pushes the
-  token after `Interest::Timer`). **No production reactor ships here** — the native reactor
-  for our HTTP transports is separate platform work (see Consequences).
+- **The platform crate that owns the reactor is `foundation_nativeapis`** (epoll/kqueue,
+  io_uring per Decision 14). Its `RegisteredFd`/`FdRegistration` already implement
+  `EventReadiness`, so a leaf task registers its fd and returns `Depends(Arc<RegisteredFd>)`
+  directly — `foundation_core` never touches the fd, and there is **no `ReadinessSource`
+  trait or `OnceLock` slot to build** (the conceptual bridge above is realized by the existing
+  `EventReadiness` impls).
+- **In this spec:** prove the parking path with an in-tree **test `EventReadiness`** (a thread
+  that flips ready after a delay). The **production reactor already exists** in
+  `foundation_nativeapis`; the only new work is wiring (`RawStream: AsRawFd`, Decision 12 §12)
+  and the io_uring backend (Decision 14) — not a new reactor.
 
 ### Level 3 — `#[valtron]` / `#[valtron_test]` accept `async fn`
 

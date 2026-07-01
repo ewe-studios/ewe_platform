@@ -2,8 +2,9 @@
 
 ## Context
 
-`gaps.md` §1 lists foundation_netio / foundation_http blockers (B1–B5) that ConnectRPC
-streaming and gRPC depend on. **We own this code**, so the resolution is to extend the
+The review identified foundation_netio / foundation_http blockers (**B1–B5**) that ConnectRPC
+streaming and gRPC depend on (originally tracked in the now-removed `gaps.md`; the resolutions
+are folded in here). **We own this code**, so the resolution is to extend the
 platform correctly rather than work around it. This decision records the chosen approach
 for each blocker. It is the foundation-side counterpart to Decision 11 (which defines the
 transport-seam API these capabilities must satisfy).
@@ -244,8 +245,10 @@ pub enum DecodeStep<F> { Pending, Frame(F) }
 - A small **accumulating buffer** type (carry leftover bytes between `step`s, expose a
   contiguous view) is the reusable core; each codec is a state machine over it.
 - Composes with Decision 00: when `step` returns `Pending` on an empty socket, the driving
-  task registers `Interest::Readable` and returns `Depends(QueueReadiness)`; otherwise it
-  uses the timeout-poll fallback. Same parking story for **all** wire codecs, not just WS.
+  task parks on the native reactor — `Depends(Arc<RegisteredFd>)` via `foundation_nativeapis`
+  (`RegisteredFd: EventReadiness`), or the L1 wake-queue (`Depends(QueueReadiness)`) for an
+  in-process producer; falls back to timeout-poll if no reactor is reachable. Same parking
+  story for **all** wire codecs, not just WS.
 - **Backward compatible:** the existing blocking `decode` / envelope reads become
   `loop { step }`-until-`Frame` wrappers, so today's callers are unaffected.
 
