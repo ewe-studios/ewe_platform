@@ -19,6 +19,7 @@ use infrastructure_llama_cpp::model::{
     AddBos, LlamaChatMessage, LlamaChatTemplate, LlamaModel, Special,
 };
 use infrastructure_llama_cpp::sampling::LlamaSampler;
+use infrastructure_llama_cpp::speculative::{LlamaMtp, MtpSampling};
 use infrastructure_llama_cpp::token::LlamaToken;
 
 use foundation_compact::SystemTime;
@@ -435,30 +436,17 @@ impl Model for LlamaModels {
     ) -> GenerationResult<Vec<Messages>> {
         let backend = LlamaBackend::init_or_get().map_err(Into::<GenerationError>::into)?;
 
-        // Get model, spec, and context params
-        let (model, spec, ctx_params, speculative) = {
+        // Get model, spec, context params, and the full backend config (carries
+        // any opt-in speculative/MTP setup + runtime sizing).
+        let (model, spec, ctx_params, backend_config) = {
             let inner = self.inner.lock().unwrap();
             (
                 Arc::clone(&inner.model),
                 inner.spec.clone(),
                 inner.context.clone(),
-                inner.speculative.clone(),
+                inner.config.clone(),
             )
         };
-
-        // Speculative decoding (MTP) is configured and was capability-validated
-        // at model load. The draft/verify/accept engine is not wired yet
-        // (spec-51, follow-up), so for now fall back to standard decoding with a
-        // clear signal rather than silently pretending it is engaged.
-        if let Some(spec_cfg) = &speculative {
-            tracing::warn!(
-                kind = ?spec_cfg.kind,
-                n_max = spec_cfg.n_max,
-                "speculative/MTP decoding is configured and supported by this model, \
-                 but the speculative decode engine is not yet wired — using standard \
-                 decoding for now"
-            );
-        }
 
         // Create context
         let mut ctx = model
@@ -482,7 +470,15 @@ impl Model for LlamaModels {
         if is_embedding {
             generate_embeddings(&model, &mut ctx, &prompt, &spec)
         } else {
-            generate_text(&model, &mut ctx, &mut sampler, &prompt, &params, &spec)
+            generate_text(
+                &model,
+                &mut ctx,
+                &mut sampler,
+                &prompt,
+                &params,
+                &spec,
+                &backend_config,
+            )
         }
     }
 
@@ -1028,6 +1024,107 @@ fn generate_embeddings(
     }])
 }
 
+/// Run MTP speculative generation through the C++ shim wrapper.
+///
+/// WHY: MTP (`common/speculative.h`) is a stateful C++ engine; we own an
+/// [`LlamaMtp`] that internally holds its own target + draft contexts and the
+/// speculator. This helper marshals `ModelParams` → [`MtpSampling`], runs one
+/// full `begin → draft → verify → accept` loop, and returns the result in the
+/// standard [`Messages::Assistant`] shape used by the rest of the backend.
+///
+/// The MTP head GGUF path is supplied by the caller via
+/// [`SpeculativeConfig::mtp_model`] — the wire-up matches the Gemma/Qwen head
+/// shape (a separate draft GGUF that shares the target KV cache).
+///
+/// Errors here are propagated to the caller which decides whether to fall back
+/// to standard decoding (spec-51 G5).
+#[allow(
+    clippy::cast_possible_truncation,
+    clippy::cast_sign_loss,
+    clippy::cast_possible_wrap,
+    clippy::cast_precision_loss
+)]
+fn run_mtp_generation(
+    model: &LlamaModel,
+    prompt: &str,
+    params: &ModelParams,
+    backend_config: &LlamaBackendConfig,
+    spec_cfg: &SpeculativeConfig,
+    mtp_path: &std::path::Path,
+) -> GenerationResult<Vec<Messages>> {
+    let sampling = MtpSampling {
+        temperature: params.temperature,
+        top_k: params.top_k as i32,
+        top_p: params.top_p,
+        repeat_penalty: params.repeat_penalty,
+        seed: params.seed.unwrap_or(0xFFFF_FFFF),
+    };
+
+    let n_ctx = backend_config.context_length as u32;
+    let n_batch = backend_config.batch_size as u32;
+    let n_threads = backend_config.n_threads as i32;
+    let n_draft_max = spec_cfg.n_max as i32;
+    let n_predict = params.max_tokens as i32;
+
+    let mtp = LlamaMtp::new(model, mtp_path, n_ctx, n_batch, n_threads, n_draft_max, sampling)
+        .map_err(|e| GenerationError::Generic(format!("MTP init failed: {e}")))?;
+
+    let generation = mtp
+        .generate(prompt, n_predict)
+        .map_err(|e| GenerationError::Generic(format!("MTP generate failed: {e}")))?;
+
+    tracing::info!(
+        n_prompt_tokens = generation.n_prompt_tokens,
+        n_generated = generation.n_generated,
+        n_drafted = generation.n_drafted,
+        n_accepted = generation.n_accepted,
+        acceptance_rate = generation.acceptance_rate(),
+        "MTP speculative decode completed"
+    );
+
+    let input_tokens = f64::from(generation.n_prompt_tokens.max(0));
+    let output_tokens = f64::from(generation.n_generated.max(0));
+
+    let zero_pricing = ModelUsageCosting::default();
+    let mtp_usage = UsageReport {
+        input: input_tokens,
+        output: output_tokens,
+        cache_read: 0.0,
+        cache_write: 0.0,
+        total_tokens: input_tokens + output_tokens,
+        cost: UsageCosting {
+            currency: "USD".to_string(),
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: 0.0,
+            status: CostStatus::Actual,
+        },
+    };
+    let mtp_cost = calculate_cost(&zero_pricing, &mtp_usage, CostStatus::Actual);
+    let mtp_usage = UsageReport {
+        cost: mtp_cost,
+        ..mtp_usage
+    };
+
+    Ok(vec![Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
+        model: ModelId::Name("llamacpp".to_string(), None),
+        timestamp: SystemTime::now(),
+        usage: mtp_usage,
+        content: ModelOutput::Text(TextContent {
+            content: generation.text,
+            signature: None,
+        }),
+        stop_reason: StopReason::Stop,
+        provider: ModelProviders::LLAMACPP,
+        error_detail: None,
+        signature: None,
+        metadata: None,
+    }])
+}
+
 /// Generate text from the input prompt using autoregressive decoding.
 ///
 /// This function implements the main token generation loop:
@@ -1049,7 +1146,30 @@ fn generate_text(
     prompt: &str,
     params: &ModelParams,
     _spec: &ModelSpec,
+    backend_config: &LlamaBackendConfig,
 ) -> GenerationResult<Vec<Messages>> {
+    // Speculative (MTP) engaged path — spec-51 Phase 2.
+    //
+    // We only run the MTP engine when the caller supplied a separate MTP head
+    // GGUF (`mtp_model: Some(path)`), which is the shape modern models
+    // (Gemma 4 / Qwen 3.6 / GLM 5.2) actually ship. If the shim init or
+    // generation fails we `warn!` once and transparently fall through to the
+    // standard decode path — spec-51 G5 (graceful fallback, never a panic).
+    if let Some(spec_cfg) = &backend_config.speculative {
+        if let (SpeculativeKind::Mtp, Some(mtp_path)) = (spec_cfg.kind, &spec_cfg.mtp_model) {
+            match run_mtp_generation(model, prompt, params, backend_config, spec_cfg, mtp_path) {
+                Ok(messages) => return Ok(messages),
+                Err(err) => {
+                    tracing::warn!(
+                        error = %err,
+                        n_max = spec_cfg.n_max,
+                        "MTP speculative generation failed — falling back to standard decoding"
+                    );
+                }
+            }
+        }
+    }
+
     // Tokenize the prompt
     let tokens = model
         .str_to_token(prompt, AddBos::Always)
@@ -1294,11 +1414,11 @@ impl LlamaBackends {
         // Apply context params from config (context length, batch, threads).
         let context_params = config.to_context_params();
 
-        Ok(LlamaModels::new_with_speculative(
+        Ok(LlamaModels::new_with_config(
             model,
             context_params,
             model_spec,
-            config.speculative.clone(),
+            config.clone(),
         ))
     }
 }
