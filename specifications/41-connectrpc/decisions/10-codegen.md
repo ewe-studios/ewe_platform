@@ -340,7 +340,14 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 
 ## Open Questions
 
+**TODO**: Looks outdated
+
 1. **buffa-codegen integration**: Should `foundation_connectrpc_codegen` invoke `buffa-codegen` internally (unified output), or require users to run both codegen steps? Unified is more ergonomic; separate is more flexible.
 2. **Service trait object safety**: The generated service trait is not object-safe (methods have generic-like streaming types). This is fine for static dispatch but means you can't do `Box<dyn GreetService>`. Is this acceptable?
+   **TODO**: did we not resolve this to support static dispatching ?
+
 3. **Default implementations**: Should the generated service trait provide default `unimplemented` implementations for all methods (like tonic), so users can implement incrementally? connect-go requires all methods.
+    **TODO**: interesting question, sure i guess, since they will edit the code after generation.
+
 4. **View handlers**: buffa supports `MessageView<'a>` for zero-copy deserialization. Should we generate "view" variants of handlers that receive borrowed views instead of owned messages? This could be a significant performance advantage for read-heavy services.
+   **TODO**: Looks outdated, correct me

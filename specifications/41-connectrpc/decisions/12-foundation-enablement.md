@@ -252,6 +252,29 @@ Decision 13 E1 (`WebSocketFrameDecoder`) becomes *the WebSocket implementation o
 trait*; the `http2/` frame codec and the Decision 05 envelope reader adopt it too. This
 removes three bespoke partial-read handlers in favor of one tested primitive.
 
+### 12. Expose `AsRawFd` on `netio` streams (reactor prerequisite)
+
+The native parking model (Decision 00 L2 / Decision 13 E2 / Decision 14) registers a
+connection's socket fd with the `foundation_nativeapis` reactor to obtain a
+`RegisteredFd: EventReadiness`. That requires the raw fd, but `netcap::RawStream` currently
+exposes none — it wraps `Connection` inside `BufferedReader<BufferedWriter<…>>` with no fd
+accessor. Since the reactor lives in a sibling crate (`foundation_nativeapis`), the fd must
+be reachable from **above** `netio` (the ConnectRPC crate) to register it.
+
+**Decision: add `AsRawFd` (and `AsFd`) to `netcap::RawStream` / `Connection`**, delegating to
+the inner socket:
+
+- `Connection::Tcp(std::net::TcpStream)` → the stream's `as_raw_fd()`.
+- TLS variants (`AsServerTls`/`AsClientTls`) → the fd of the **underlying** TCP socket the TLS
+  session wraps (readiness is a property of the socket, not the TLS layer).
+- Non-socket / wasm variants → no impl (the fd path is native-socket only; wasm parks via the
+  browser, Decision 00 L1).
+
+This is additive (a trait impl, no behavior change) and is the single missing seam between
+`netio`'s streams and the `nativeapis` reactor. With it, the ConnectRPC layer can build a
+`RegisteredFd` from any live `RawStream` and hand the task an `EventReadiness` to `Depends`
+on — no dependency inversion required.
+
 ## Open Questions
 
 1. Exact public shape of the per-part iterator API and the new `Http11` variants

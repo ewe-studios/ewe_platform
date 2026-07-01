@@ -214,7 +214,7 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
   `TaskStatus::Depends(Arc<RegisteredFd>)` to park — *the L2 bridge is realized over the
   existing `EventReadiness` trait, not a new `ReadinessSource`/`OnceLock` abstraction.* The
   only remaining wiring is "how a task obtains the reactor `Registry`," and exposing
-  `AsRawFd` on `netio`'s `RawStream` (Decision 13 prerequisite). Our HTTP/1.1, `http2/`,
+  `AsRawFd` on `netio`'s `RawStream` (Decision 12 §12). Our HTTP/1.1, `http2/`,
   `http3/`, and **WebSocket** (Decision 13 E2) transports park through this. The Linux backend
   is being upgraded to **io_uring** for efficient high-connection-count listening — see
   **[Decision 14](14-io-uring-reactor-backend.md)** — with a shared single reactor replacing

@@ -327,6 +327,8 @@ impl Interceptor for ScopeInterceptor {
 
 ## Consequences
 
+**TODO*: foundation_auth now supports cedar policies, we can use them greatly
+
 - Auth middleware runs at the HTTP level (before decompression), matching connect-go
 - `ErrorWriter` ensures auth errors are formatted per the client's protocol
 - foundation_auth's JWT, session, and OAuth infrastructure is reused
@@ -359,6 +361,10 @@ bridge only where a sync/async boundary genuinely forces it (R13).
 ## Open Questions
 
 1. **mTLS identity**: connect-go's authn doesn't handle mTLS (that's transport-level). Foundation_netio supports TLS — can we extract client certificates and pass them through? This would be in `RequestContext.extensions` as `PeerCertificates`.
+    **TODO**: What will it take to support mtls
 2. **OAuth token introspection**: For opaque tokens (not JWTs), foundation_auth has `IntrospectionClient`. Should we provide an `IntrospectionAuthenticator` that calls the token introspection endpoint?
+     *TODO*: If its good to have, add it.
 3. **Rate limiting**: `CodeResourceExhausted` maps to HTTP 429. Should we provide a rate-limiting middleware, or leave that to foundation_http's existing middleware?
+      *TODO*: sure lets add one
 4. **CORS**: connect-go has a separate `cors-go` package. foundation_http has `CorsMiddleware`. Verify the CORS middleware allows ConnectRPC-specific headers (`Connect-Protocol-Version`, `Connect-Timeout-Ms`, `Connect-Content-Encoding`, `Connect-Accept-Encoding`) and methods.
+      **TODO**: lets verify, and add if not meeting our needs or expand it

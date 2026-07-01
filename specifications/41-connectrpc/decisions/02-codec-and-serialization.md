@@ -67,6 +67,8 @@ pub trait StableCodec: Codec {
 
 ### Message Abstraction
 
+**TODO**: Is this still needed?
+
 connect-go uses Go's `any` interface for type erasure. We need a Rust equivalent that works across buffa messages, serde types, and Arrow types:
 
 ```rust
@@ -86,6 +88,8 @@ pub trait MessageMut: Send {
 This is the minimal type-erasure boundary. Each codec implementation knows what concrete types it expects and downcasts internally. This matches connect-go's pattern where `protoBinaryCodec.Marshal` casts `any` to `proto.Message`.
 
 ### Proto Codec (buffa)
+
+**TODO**: Are we not using the OwnedView from Buffa?
 
 ```rust
 pub struct ProtoCodec;
@@ -144,6 +148,8 @@ impl StableCodec for JsonCodec {
 ```
 
 ### Arrow Codec (foundation_arrow)
+
+**Same, should we be returning Vec or a arrow view ?
 
 ```rust
 pub struct ArrowCodec;

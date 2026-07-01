@@ -134,10 +134,11 @@ readiness and is woken when readable. The reactor and the bridge **already exist
 AsRawFd>` / `FdRegistration`, which implement `EventReadiness`. So the task simply holds an
 `Arc<RegisteredFd<…>>` and returns `TaskStatus::Depends(registered_fd)`; no new
 `ReadinessSource` abstraction is required (Decision 00 reconciliation).
-- **Prerequisite:** expose `AsRawFd` on `netio`'s `RawStream`/`Connection` (delegating to the
-  inner `TcpStream`; for TLS, the underlying socket fd) so the upper layer can register it.
-  The unused optional `foundation_netio` dep was removed from `foundation_nativeapis`, so the
-  reactor is reachable either via `netio → nativeapis` or by wiring at the ConnectRPC crate.
+- **Prerequisite:** expose `AsRawFd` on `netio`'s `RawStream`/`Connection` (**Decision 12
+  §12** — delegates to the inner `TcpStream`; for TLS, the underlying socket fd) so the upper
+  layer can register it. The unused optional `foundation_netio` dep was removed from
+  `foundation_nativeapis`, so the reactor is reachable either via `netio → nativeapis` or by
+  wiring at the ConnectRPC crate.
 - **Backend:** epoll/kqueue today; **io_uring on Linux** for high connection counts via
   **[Decision 14](14-io-uring-reactor-backend.md)** — same `EventReadiness` seam, same task
   code.
