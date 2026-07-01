@@ -131,10 +131,12 @@ fn next_status(&mut self) -> Option<TaskStatus<F::Output, FuturePollState, NoAct
   executor parking lands in the same queue the `QueueReadiness` watches → `is_ready` true →
   no park / immediate unpark. Draining stale tokens at the *top* of `next_status` (before
   poll) prevents treating a prior turn's token as a fresh wake. No lost wakeups.
-- **No-waker futures (never wake):** mitigate with a `Depends` that *also* carries a bounded
-  timeout (reuse `Sleepable::Timable`) so a never-waking future is re-polled after a bounded
-  delay (cooperative, not hot-spin); else document that valtron-driven futures must wake via
-  the context waker. Prefer the timed-fallback for robustness.
+- **No-waker futures (never wake):** **no timed fallback** — we match tokio/smol, which both
+  rely strictly on the wake contract + a reactor and do **not** add a "just in case" re-poll.
+  A future that returns `Pending` must arrange a `wake()`; every real leaf wakeup comes from
+  the `foundation_nativeapis` reactor (`RegisteredFd: EventReadiness`) or an in-process
+  producer. A genuinely non-waking future is a **bug to fix**, not something the executor
+  masks. (Zero idle cost; ecosystem-standard behaviour.)
 
 ### Level 2 — reactor seam (⚠️ **superseded — the reactor already exists**)
 
@@ -246,13 +248,19 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
 
 ## Open Questions
 
-1. **Waker → wake-queue handle plumbing.** Preferred: a leaf future just calls
-   `cx.waker().wake()` — which is our `queue_waker`, so L1 needs **no** cooperation from leaf
-   futures. A `Context` extension to pass the queue explicitly is the invasive fallback.
-2. **No-waker future fallback** (above): timed-`Depends` vs documented contract — decide per
-   the executor's `Sleepable::Timable` support.
-3. **Single vs multi parity:** wire and test on both `single` (wasm) and `multi` (native);
-   both already handle `Depends`.
+1. **Waker → wake-queue handle plumbing — decided: standard context waker, no leaf
+   cooperation.** A leaf future just calls `cx.waker().wake()` as in normal Rust async — the
+   `Context` we pass *is* the `queue_waker`, so L1 needs **no** cooperation from leaf futures
+   and works with any future/combinator. (The `Context`-extension alternative is rejected as
+   invasive/non-idiomatic.)
+2. **No-waker future fallback — decided: none (match tokio/smol).** Rely on the wake contract
+   + the `foundation_nativeapis` reactor for all real wakeups; no "just in case" timed
+   re-poll. A future that returns `Pending` without arranging a `wake()` is a bug to fix, not
+   masked by the executor (tokio and smol both do exactly this). Zero idle cost.
+3. **Single vs multi parity — decided: both, required.** Land `WakeToken`/`queue_waker`/
+   `FutureTask`→`Depends` in **both** `future_task.rs` impls (`single`/wasm and `multi`/native)
+   and test on both — keeps WASM/single-thread parking at parity with native (needed for the
+   WASM client, Decisions 07/11). Both executors already handle `Depends`.
 
 ## Features (generated from this decision)
 
