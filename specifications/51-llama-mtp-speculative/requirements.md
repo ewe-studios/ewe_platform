@@ -81,9 +81,15 @@ Two hard constraints shape the design:
   false); honest `warn!`-and-fall-back at decode when engine is not yet wired
   (G5 fallback). Tests: `tests/harness/mtp_tests.rs` (offline, 5) +
   `tests/harness/integrations/mtp_gate.rs` (gate error + control, 2).
-- **Phase 2 — speculative decode engine (IN PROGRESS, in-process FFI):**
+- **Phase 2 — speculative decode engine (DONE, in-process FFI, verified):**
   Decision (user): implement in-process via a C++ shim, not server-backed.
-  Findings while starting:
+  VERIFIED end-to-end on Gemma 4 E2B + `mtp-gemma-4-E2B-it.gguf`: `Model::generate`
+  ran the shim and reported `n_prompt_tokens=93 n_generated=2 n_drafted=8
+  n_accepted=4 acceptance_rate=0.5`, output "Hello!". Tests:
+  `tests/harness/integrations/mtp_generate.rs` (live e2e) + `mtp_gate.rs` (2) +
+  `mtp_tests.rs` (5 offline) — all pass. Committed in `9259281da` (wiring),
+  `LlamaMtp` safe wrapper in `infrastructure/llama-cpp/src/speculative.rs`.
+  Findings while building:
   * The Gemma/Qwen MTP head is a **separate draft GGUF** (arch
     `Gemma4Assistant`), loaded alongside the target and sharing the target KV
     cache (draft context created with `ctx_type=LLAMA_CONTEXT_TYPE_MTP`,
@@ -114,10 +120,19 @@ Two hard constraints shape the design:
   `to_context_params()` also no longer force-enables embeddings (that would
   break text generation, which shares the context). Verified: Gemma 4 E2B still
   generates after the change.
-- **Phase 2 blocker (test model):** cached models have no embedded MTP head
-  (`n_layer_nextn == 0`, confirmed for Gemma 4 E2B). Building the speculative
-  decode engine requires an MTP-head GGUF to validate output-equivalence —
-  identify + pull one before implementing so it lands tested, not blind.
+- **Known limitations / follow-ups (Phase 2 landed, not yet optimized):**
+  * `stream()` does NOT use MTP — only the non-streaming `generate()` path
+    dispatches to the shim (the shim is batch-oriented). Streaming MTP is a
+    follow-up.
+  * `LlamaMtp::new` reloads the draft GGUF and recreates target+draft contexts
+    on **every** `generate()` call (no caching) — correctness is fine, but it's
+    a per-call cost; cache the generator per model for production.
+  * `generate()` still builds a standard `ctx` + sampler even when MTP is
+    engaged (then discarded by the MTP path) — minor wasted allocation; gate the
+    ctx creation on `speculative.is_none()`.
+  * Capability gate accepts MTP when a separate `mtp_model` path is supplied
+    without pre-validating the head loads; a bad head surfaces at generate time
+    and falls back (G5). Fine, but could validate earlier.
 
 ## Non-Goals
 
