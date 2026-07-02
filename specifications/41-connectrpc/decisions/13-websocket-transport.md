@@ -73,13 +73,39 @@ streaming (including full-duplex bidi) over a WebSocket connection — implement
 
 - **Handshake / routing.** The upgrade request's path selects the procedure (same routing as
   Decision 08). The server performs the `101` upgrade via the existing
-  `foundation_http` upgrade path + `foundation_netio` handshake helpers.
+  `foundation_http` upgrade path + `foundation_netio` handshake helpers. Subprotocol
+  negotiation (`Sec-WebSocket-Protocol: ewe.connectrpc.batch.v1, ewe.connectrpc.v1`) picks
+  the framing mode and versions the protocol; call metadata (codec/compression/timeout)
+  rides the upgrade URL's Connect GET query params (`?connect=v1&encoding=…`) since
+  browsers cannot set upgrade headers — full rules in OQ#13.3 (resolved).
 - **Framing.** Each RPC message is a Connect **enveloped frame** (Decision 05) carried in a
   **binary** `WebSocketMessage`. We reuse the existing envelope reader/writer — the WebSocket
   layer only supplies message boundaries; we do **not** invent a new envelope.
-  - Open question OQ#13.1: whether to use one WS binary message per envelope (simplest) or
-    let a single WS message contain a batch of envelopes. Default: **one envelope per WS
-    binary message.**
+  - **Batch framing is first-class (OQ#13.1, resolved).** We own this transport, so a WS
+    binary message carries a **batch header + N complete envelopes**, mirroring the envelope
+    header shape (Decision 05):
+
+    ```
+    ┌────────────┬──────────────┬──────────────┬───┬──────────────┐
+    │ u8 bflags  │ u32 count=N  │ envelope 1   │ … │ envelope N   │
+    └────────────┴──────────────┴──────────────┴───┴──────────────┘
+    ```
+
+    - `count ≥ 1`; empty batches are a protocol error. An envelope MUST NOT span WS
+      messages (WS-level fragmentation/`MessageAssembler` already handles large messages
+      transparently below this layer). After reading `count` envelopes, leftover bytes —
+      or running short — is a protocol error → Close + RPC error.
+    - `bflags` is reserved (0) for future batch-level semantics (e.g. whole-batch
+      compression); receivers MUST reject unknown flags.
+    - **Batching is opportunistic, never timed:** a batch is whatever is already queued in
+      the Decision 11 response/request pipe at flush time (vectored-write style). No
+      Nagle-style timer, no held-back messages — Decision 11's flush-per-frame latency
+      contract is preserved; header amortization comes free on bursty producers. Batch
+      size is naturally bounded by the pipe depth (4) × per-message caps; assembler size
+      limits apply to the whole WS message.
+    - **Interop mode:** where a peer requires plain framing, the subprotocol negotiation
+      (OQ#13.3) selects **1:1 mode** — one bare envelope per WS binary message, no batch
+      header. Batch mode is used only when both ends negotiate our subprotocol token.
 - **Direction.** On the **client**, outbound goes through `MessageDelivery` / its
   `ConcurrentQueue` and inbound arrives from the `WebSocketTask` stream. On the **server**,
   the `WebSocketServerTask` (E3) exposes the `inbound`/`outbound` `ConcurrentQueue` pair
@@ -212,18 +238,63 @@ protocol and is **not** adopted here). Consequences:
 
 ## Open Questions
 
-- **OQ#13.1** — one envelope per WS binary message vs. batched envelopes per message.
-  *Tentative:* one-per-message.
-- **OQ#13.2** — whether to expose a WebSocket transport for **unary/server-stream** too (for
-  uniformity on HTTP/1.1) or restrict it to bidi/client-stream where it actually adds
-  capability. *Tentative:* allow all four kinds over WS for uniformity, but bidi is the
-  motivating case.
-- **OQ#13.3** — subprotocol negotiation: advertise a `Sec-WebSocket-Protocol` token (e.g.
-  `connect-rpc`) so peers can detect compatibility during the handshake.
-- **OQ#13.4** — should the blocking `WebSocketServerConnection::recv` be retrofitted with the
-  assembler (correctness for the simple API), or left blocking-convenience-only with the
-  robust path being `WebSocketServerTask`? *Tentative:* retrofit `recv` for correctness; steer
-  RPC users to the task.
+- **OQ#13.1 — resolved: batch framing is first-class.** A WS binary message is
+  `u8 bflags + u32 count + N complete envelopes` (header mirrors the Decision 05 envelope
+  shape; `count ≥ 1`; spanning forbidden; trailing/short bytes = protocol error; unknown
+  `bflags` rejected). Batching is **opportunistic only** — drain what's already queued in
+  the Decision 11 pipes at flush time, never a timer — so flush-per-frame latency is
+  preserved. Plain **1:1 mode** (bare envelope per message, no batch header) exists for
+  interop and is selected via subprotocol negotiation (OQ#13.3). See §Framing for the
+  normative rules.
+- **OQ#13.2 — resolved: all four RPC kinds, one call per connection.**
+  - **All kinds** (unary, server-stream, client-stream, bidi) are valid over WS — capability
+    matching reports `Duplex::Full` + trailer support, no artificial kind restrictions. The
+    seam doesn't branch on kind (unary is a 1-message stream), so supporting all four costs
+    zero transport code while restricting would *require* extra capability-matrix code. In
+    browser/WASM, WS is the **only** client-stream/bidi path (Fetch can't stream request
+    bodies, Decision 11), and a WS-only client can still call any procedure.
+  - **One RPC per WS connection:** the upgrade path selects the procedure;
+    `EndStreamResponse` + `Close` tears down. No call re-arm / sequential-reuse rules —
+    rejected as a mini-multiplexing protocol we'd have to spec, test, and interop forever.
+  - **Cost, stated honestly:** unary over WS pays an upgrade round-trip per call — worse
+    than pooled h1 keep-alive (Decision 07). Docs mark HTTP as the preferred
+    unary/server-stream path; WS unary exists for uniformity, not as the default.
+- **OQ#13.3 — resolved: versioned, domain-scoped token family + Connect GET query params
+  for call metadata.**
+  - **Tokens:** `ewe.connectrpc.v1` (1:1 framing) and `ewe.connectrpc.batch.v1` (batch
+    framing, OQ#13.1) — the framing mode is settled at the handshake, never byte-sniffed;
+    `v1` gives a compatible evolution path (k8s `v4.channel.k8s.io` pattern); the `ewe.`
+    scope avoids squatting the bare `connectrpc` name in the flat WS subprotocol namespace.
+  - **Negotiation (normative):** client offers a preference-ordered list
+    (`Sec-WebSocket-Protocol: ewe.connectrpc.batch.v1, ewe.connectrpc.v1`); the server
+    picks the **first it supports** and echoes exactly one in the `101`. No recognized
+    token offered → **refuse the upgrade (400)**; never accept with a missing/unknown
+    subprotocol. Client side: missing echo, or an echo not in the offered list → protocol
+    error before any message is sent. No silent fallback into ambiguous framing.
+  - **Call metadata (codec / compression / timeout):** browsers cannot set headers on
+    `new WebSocket()` — the URL and subprotocol list are the only client-controlled
+    channels. So metadata rides the **upgrade URL query params, reusing Connect's official
+    GET-protocol vocabulary**: `?connect=v1&encoding=proto&compression=gzip[&timeout_ms=…]`.
+    Native clients MAY instead send the normal Connect headers on the upgrade request; if
+    both are present and disagree → refuse the upgrade (no silent precedence). Failures
+    (unknown codec, unsupported compression) are rejected at the HTTP layer **before** the
+    `101`, where status codes and error bodies exist. The first-message metadata-envelope
+    pattern (improbable-eng / graphql-ws) was rejected: it invents a WS-only metadata
+    encoding, moves failures past the upgrade, and adds an awaiting-metadata state to every
+    connection bring-up.
+- **OQ#13.4 — resolved: retrofit `recv` with the assembler (correctness fix).** Verified in
+  code: today `recv()` is `recv_frame()?.to_message()` (`websocket/native/server.rs:325`) —
+  single-frame only, so any RFC-6455 peer that fragments breaks it (fragmented Text can even
+  fail UTF-8 validation on a partial payload); the "handles frame assembly" doc comment is
+  currently false. `MessageAssembler` (`websocket/shared/assembler.rs`) already has the
+  needed API (`process_frame` → `Option<message>`, `max_message_size` cap, `is_assembling`).
+  The retrofit is a small loop: read frames; control frames (Ping/Close) return immediately
+  per RFC 6455; data/continuation frames feed the assembler (a struct field, so an
+  interleaved control frame returns now and the next `recv()` resumes the in-progress
+  assembly); a completed message returns; the size cap gives the blocking API the same
+  memory bound as the task path. `messages()` wraps `recv` and gets the fix for free.
+  Boundaries unchanged: `recv` stays blocking-convenience-only — no auto-Pong, no delivery
+  queue; the RPC path remains `WebSocketServerTask` (E3).
 
 ## Features
 
