@@ -120,19 +120,26 @@ Two hard constraints shape the design:
   `to_context_params()` also no longer force-enables embeddings (that would
   break text generation, which shares the context). Verified: Gemma 4 E2B still
   generates after the change.
-- **Known limitations / follow-ups (Phase 2 landed, not yet optimized):**
-  * `stream()` does NOT use MTP — only the non-streaming `generate()` path
-    dispatches to the shim (the shim is batch-oriented). Streaming MTP is a
-    follow-up.
-  * `LlamaMtp::new` reloads the draft GGUF and recreates target+draft contexts
-    on **every** `generate()` call (no caching) — correctness is fine, but it's
-    a per-call cost; cache the generator per model for production.
-  * `generate()` still builds a standard `ctx` + sampler even when MTP is
-    engaged (then discarded by the MTP path) — minor wasted allocation; gate the
-    ctx creation on `speculative.is_none()`.
-  * Capability gate accepts MTP when a separate `mtp_model` path is supplied
-    without pre-validating the head loads; a bad head surfaces at generate time
-    and falls back (G5). Fine, but could validate earlier.
+- **Phase 2 follow-ups (ALL DONE, verified):** the shim was refactored from a
+  one-shot `ewe_mtp_generate` to a **step-driven** engine — `ewe_mtp_init`
+  (build reusable engine: contexts + speculator), `ewe_mtp_begin` (reset KV +
+  sampler, decode prompt), `ewe_mtp_step` (one draft→verify→accept step, returns
+  the committed piece), `ewe_mtp_stats`. `LlamaMtp` exposes `begin`/`step`/
+  `stats` plus a `generate` convenience. This unlocked all three follow-ups:
+  * **Streaming MTP (was: not supported):** `Model::stream` now drives the
+    engine one `step()` per poll (`mtp_stream_next` + `MtpStreamState`), yielding
+    committed pieces. Verified: `tests/harness/integrations/mtp_generate.rs::
+    test_mtp_stream_gemma4_e2b` → `MTP stream collected: "Hello!"`.
+  * **Engine caching (was: reload per call):** the engine is cached in
+    `LlamaModelsInner.mtp: Arc<Mutex<Option<LlamaMtp>>>`, lazily built on first
+    MTP `generate()` and reused — no per-call draft reload. (Streams own their
+    own engine for exclusive access over the stream's lifetime.)
+  * **No wasted ctx (was: standard ctx built then discarded):** the MTP dispatch
+    moved into `Model::generate` BEFORE the standard `ctx`/`sampler` are built;
+    they are created only on the standard/fallback path. `generate_text` is now
+    the standard-only decode.
+  * Note: the capability gate still validates a separate `mtp_model` lazily (a
+    bad head surfaces at generate time → G5 fallback) — intentional, not a bug.
 
 ## Non-Goals
 

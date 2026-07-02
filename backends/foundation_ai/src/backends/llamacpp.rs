@@ -696,6 +696,13 @@ impl Iterator for LlamaCppStream {
             return Some(Stream::Init);
         }
 
+        // MTP streaming branch (spec-51): when speculative decoding is engaged,
+        // drive the MTP engine one step per poll instead of the standard
+        // single-token decode. The standard `ctx` is never created in this mode.
+        if inner.mtp.is_some() {
+            return mtp_stream_next(&mut inner);
+        }
+
         // Create backend and context on second call if not exists
         if inner.backend.is_none() {
             let Ok(backend) = LlamaBackend::init_or_get() else {
@@ -840,6 +847,109 @@ impl Iterator for LlamaCppStream {
             signature: None,
             metadata: None,
         }))
+    }
+}
+
+/// Build a streaming `Assistant` message for a text `piece` (local model → $0).
+fn build_stream_assistant(
+    input_tokens: usize,
+    output_tokens: usize,
+    piece: String,
+) -> Messages {
+    #[allow(clippy::cast_precision_loss)]
+    let usage = UsageReport {
+        input: input_tokens as f64,
+        output: output_tokens as f64,
+        cache_read: 0.0,
+        cache_write: 0.0,
+        total_tokens: (input_tokens + output_tokens) as f64,
+        cost: UsageCosting {
+            currency: "USD".to_string(),
+            input: 0.0,
+            output: 0.0,
+            cache_read: 0.0,
+            cache_write: 0.0,
+            total_tokens: 0.0,
+            status: CostStatus::Actual,
+        },
+    };
+    let zero_pricing = ModelUsageCosting::default();
+    let cost = calculate_cost(&zero_pricing, &usage, CostStatus::Actual);
+    Messages::Assistant {
+        id: foundation_compact::ids::new_scru128(),
+        model: ModelId::Name("llamacpp".to_string(), None),
+        timestamp: SystemTime::now(),
+        usage: UsageReport { cost, ..usage },
+        content: ModelOutput::Text(TextContent {
+            content: piece,
+            signature: None,
+        }),
+        stop_reason: StopReason::Stop,
+        provider: ModelProviders::LLAMACPP,
+        error_detail: None,
+        signature: None,
+        metadata: None,
+    }
+}
+
+/// Advance the MTP streaming engine one step per poll.
+///
+/// First poll after `Init` calls `begin()`; subsequent polls call `step()` and
+/// yield the committed text piece. A step that produces no text (e.g. only an
+/// EOG) yields a `Pending` rather than an empty message. Any engine error
+/// finishes the stream gracefully (spec-51 G5).
+#[allow(clippy::cast_sign_loss)]
+fn mtp_stream_next(inner: &mut LlamaCppStreamInner) -> Option<Stream<Messages, ModelState>> {
+    let need_begin = match inner.mtp.as_ref() {
+        Some(m) => !m.started,
+        None => return None,
+    };
+
+    if need_begin {
+        let res = {
+            let mtp = inner.mtp.as_ref().unwrap();
+            mtp.engine.begin(&mtp.prompt, mtp.n_predict, mtp.sampling)
+        };
+        return match res {
+            Ok(n) => {
+                inner.mtp.as_mut().unwrap().started = true;
+                inner.input_tokens = n.max(0) as usize;
+                Some(Stream::Pending(ModelState::GeneratingTokens(None)))
+            }
+            Err(err) => {
+                tracing::warn!(error = %err, "MTP stream begin failed");
+                inner.finished = true;
+                Some(Stream::Pending(ModelState::Finished))
+            }
+        };
+    }
+
+    let res = inner.mtp.as_ref().unwrap().engine.step();
+    match res {
+        Ok(step) => {
+            if step.piece.is_empty() {
+                if step.done {
+                    inner.finished = true;
+                    return Some(Stream::Pending(ModelState::Finished));
+                }
+                return Some(Stream::Pending(ModelState::GeneratingTokens(None)));
+            }
+            inner.tokens_generated += 1;
+            let msg = build_stream_assistant(
+                inner.input_tokens,
+                inner.tokens_generated as usize,
+                step.piece,
+            );
+            if step.done {
+                inner.finished = true;
+            }
+            Some(Stream::Next(msg))
+        }
+        Err(err) => {
+            tracing::warn!(error = %err, "MTP stream step failed");
+            inner.finished = true;
+            Some(Stream::Pending(ModelState::Finished))
+        }
     }
 }
 
@@ -1083,6 +1193,64 @@ fn mtp_sampling_from_params(params: &ModelParams) -> MtpSampling {
         repeat_penalty: params.repeat_penalty,
         seed: params.seed.unwrap_or(0xFFFF_FFFF),
     }
+}
+
+/// Build the per-stream MTP engine + state when speculative (MTP) decoding is
+/// engaged for `model`. Returns `None` (→ standard streaming) when MTP is not
+/// configured, or when the engine fails to initialize (logged as a `warn!`).
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+fn build_mtp_stream_state(
+    model: &LlamaModels,
+    interaction: &ModelInteraction,
+    params: &ModelParams,
+    n_predict: i32,
+) -> Option<MtpStreamState> {
+    let (model_arc, config) = {
+        let inner = model.inner.lock().unwrap();
+        (Arc::clone(&inner.model), inner.config.clone())
+    };
+
+    let spec_cfg = config.speculative.as_ref()?;
+    if spec_cfg.kind != SpeculativeKind::Mtp {
+        return None;
+    }
+    let mtp_path = spec_cfg.mtp_model.as_ref()?;
+
+    // Chat-templated prompt — parity with the non-streaming path.
+    let prompt = if interaction.messages.is_empty() {
+        interaction.system_prompt.clone().unwrap_or_default()
+    } else {
+        match apply_chat_template(&model_arc, interaction) {
+            Ok(p) => p,
+            Err(err) => {
+                tracing::warn!(error = %err, "MTP stream: chat template failed — using standard streaming");
+                return None;
+            }
+        }
+    };
+
+    let engine = match LlamaMtp::new(
+        &model_arc,
+        mtp_path,
+        config.context_length as u32,
+        config.batch_size as u32,
+        config.n_threads as i32,
+        spec_cfg.n_max as i32,
+    ) {
+        Ok(engine) => engine,
+        Err(err) => {
+            tracing::warn!(error = %err, "MTP stream: engine init failed — using standard streaming");
+            return None;
+        }
+    };
+
+    Some(MtpStreamState {
+        engine,
+        prompt,
+        sampling: mtp_sampling_from_params(params),
+        n_predict,
+        started: false,
+    })
 }
 
 /// Run MTP speculative generation through the C++ shim wrapper.

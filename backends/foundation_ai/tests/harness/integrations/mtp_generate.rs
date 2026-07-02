@@ -27,7 +27,7 @@ use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec,
     TextContent, ToolShed, UserModelContent,
 };
-use foundation_core::valtron::valtron_test;
+use foundation_core::valtron::{valtron_test, Stream};
 use tracing_test::traced_test;
 
 fn project_root() -> std::path::PathBuf {
@@ -133,4 +133,64 @@ fn test_mtp_generate_gemma4_e2b_end_to_end() {
     );
 
     println!("MTP end-to-end generated: {text:?}");
+}
+
+/// Streaming MTP: `Model::stream` drives the engine step-by-step and yields
+/// non-empty assistant pieces (spec-51 #1 follow-up).
+#[valtron_test]
+#[traced_test]
+fn test_mtp_stream_gemma4_e2b() {
+    let Some((target_path, draft_path)) = gemma_paths() else {
+        eprintln!("skipping MTP stream test: cached Gemma 4 E2B or MTP head not found");
+        return;
+    };
+
+    let backend = LlamaBackends::LLamaCPU;
+    let config = LlamaBackendConfig::builder()
+        .context_length(2048)
+        .batch_size(512)
+        .mtp(Some(draft_path), 4)
+        .build();
+
+    let spec = ModelSpec {
+        name: "gemma-4-E2B-it-Q4_K_M".to_string(),
+        id: ModelId::Name("gemma-4-E2B-it".to_string(), None),
+        devices: None,
+        model_location: Some(target_path.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+
+    let model = backend
+        .load_model(spec, &config)
+        .expect("Gemma 4 E2B + MTP head should load");
+
+    let params = ModelParams {
+        max_tokens: 24,
+        ..ModelParams::default()
+    };
+
+    let stream = model
+        .stream(hello_interaction(), Some(params))
+        .expect("MTP stream should start");
+
+    let mut collected = String::new();
+    let mut saw_init = false;
+    for item in stream {
+        match item {
+            Stream::Init => saw_init = true,
+            Stream::Next(Messages::Assistant { content, .. }) => {
+                if let ModelOutput::Text(TextContent { content, .. }) = content {
+                    collected.push_str(&content);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    assert!(saw_init, "stream should emit Init");
+    assert!(
+        !collected.trim().is_empty(),
+        "MTP stream must yield non-empty text; got: {collected:?}"
+    );
+    println!("MTP stream collected: {collected:?}");
 }
