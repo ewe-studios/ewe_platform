@@ -22,8 +22,6 @@
 //! Gated behind the `integration_tests` feature (like the other pull tests),
 //! no `#[ignore]`: when the feature is on this is meant to run.
 
-#![cfg(feature = "integration_tests")]
-
 use foundation_ai::backends::llamacpp::{LlamaBackendConfig, LlamaBackends};
 use foundation_ai::types::{
     MessageRole, Messages, Model, ModelId, ModelInteraction, ModelOutput, ModelParams, ModelSpec,
