@@ -40,52 +40,77 @@ Define a `Codec` trait in foundation_connectrpc that mirrors connect-go's interf
 > `&dyn` message, no `as_any`** — codecs are used **monomorphically** over the concrete type.
 
 ```rust
-// Encode/decode are monomorphic over the concrete message `M`, bounded by the codec's
-// native message trait (`buffa::Message` for proto/proto-JSON; the Arrow message trait for
-// Arrow). Used by codegen, never as a `dyn Codec` marshaling an erased message.
+// The message type lives ON THE TRAIT (`CodecFor<M>`), not on generic methods — one Rust
+// trait cannot declare `marshal<M: Message>` while impls narrow `M` to `buffa::Message` /
+// `ToArrow`, and there is no unified `Message` trait. Split by role:
+
+/// Object-safe metadata + negotiation handle. The registry/configs hold `Arc<dyn Codec>`.
 pub trait Codec: Send + Sync + 'static {
-    // --- object-safe part (usable through `Arc<dyn Codec>` for negotiation/metadata) ---
     /// Wire name used in Content-Type headers ("proto"|"json"|"arrow").
     fn name(&self) -> &str;
     /// Binary (base64 in GET query) vs text encoding.
     fn is_binary(&self) -> bool;
-
-    // --- typed part: monomorphic, called on the CONCRETE codec (not via `dyn Codec`) ---
-    // `where Self: Sized` keeps the trait object-safe while these stay generic.
-    /// Encode a concrete message to wire bytes.
-    fn marshal<M: Message>(&self, message: &M) -> Result<Bytes, CodecError> where Self: Sized;
-    /// Decode wire bytes into a concrete owned message.
-    fn unmarshal<M: Message + Default>(&self, data: Bytes) -> Result<M, CodecError> where Self: Sized;
-    /// Zero-copy decode (S4/RS2): an owning view over `bytes` — `buffa::OwnedView<M>` (proto)
-    /// or Arc-backed `RecordBatch` (Arrow). `M::View = M` for codecs with no view form (JSON).
-    fn unmarshal_owned_view<M: Message>(&self, bytes: Bytes) -> Result<M::View, CodecError> where Self: Sized;
-    /// Deterministic serialization for HTTP GET caching (stable field ordering).
-    fn marshal_stable<M: Message>(&self, message: &M) -> Result<Bytes, CodecError> where Self: Sized;
 }
+
+/// Typed encode/decode for ONE message type `M`. Because the generic is on the trait,
+/// each codec blanket-implements it over its family's native message trait (bounds live on
+/// the impl block, never the trait), and `dyn CodecFor<M>` is object-safe — the typed facade
+/// holds `Arc<dyn CodecFor<Req>>` / `Arc<dyn CodecFor<Res>>` selected by runtime negotiation.
+/// No `dyn Any` message ever exists.
+pub trait CodecFor<M>: Codec {
+    /// Encode a concrete message to wire bytes.
+    fn marshal(&self, message: &M) -> Result<Bytes, CodecError>;
+    /// Decode wire bytes into a concrete owned message.
+    fn unmarshal(&self, data: Bytes) -> Result<M, CodecError>;
+    /// Deterministic serialization for HTTP GET caching (stable field ordering).
+    fn marshal_stable(&self, message: &M) -> Result<Bytes, CodecError>;
+    /// Append-encode into a pooled buffer (RS8) for hot paths.
+    fn marshal_append(&self, buf: &mut Vec<u8>, message: &M) -> Result<(), CodecError>;
+}
+
+// Blanket impls per codec family — the family bound sits on the impl block:
+impl<M: buffa::Message + Default> CodecFor<M> for ProtoCodec { /* … */ }
+impl<M: buffa::Message + Default> CodecFor<M> for JsonCodec  { /* canonical proto-JSON */ }
+impl<M: ToArrow + FromArrow>      CodecFor<M> for ArrowCodec { /* … */ }
 ```
 
-`Message` here is **not** a type-erasure trait — it's just the concrete-message bound the codec
-family implements against (`buffa::Message`, the Arrow message trait, etc.); it is used only as
-a generic bound (`M: Message`), never as `&dyn Message`.
+> **Why not `trait Codec { type Message: … }`?** (considered, rejected)
+> (a) One impl = one `Message` type, but a codec encodes unboundedly many message types — the
+> struct would have to go generic (`ProtoCodec<M>`) with per-type instances constructed from
+> config for every procedure. (b) A bound on the associated type written in the *trait* would
+> apply to every codec family at once (proto messages aren't `ToArrow`). (c) `dyn Codec` with
+> an unnamed associated type is not a valid type, so the metadata/typed split is needed
+> anyway — and `dyn Codec<Message = M>` is exactly `dyn CodecFor<M>` with more ceremony.
+> `CodecFor<M>` keeps one configured codec value serving all message types
+> (`Arc<TheCodec>` coerces to `Arc<dyn CodecFor<Req>>` per procedure).
 
-**Two-layer use of `Codec` (this is why `Arc<dyn Codec>` remains valid everywhere):**
+**Zero-copy decode is NOT on `dyn CodecFor<M>`.** `unmarshal_owned_view`'s return type differs
+per family (`buffa::OwnedView<V>` / Arc-backed `RecordBatch` / owned `M`), so it stays an
+**inherent method on each concrete codec**; the zero-copy handler variant bakes the view type
+into its signature (Decision 10), so the generated facade dispatches view decode statically
+against the concrete codec. (S4/RS2 unchanged in substance.)
+
+**Two-layer use (this is why `Arc<dyn Codec>` remains valid everywhere):**
 - **Negotiation / metadata** goes through `Arc<dyn Codec>` (`name`/`is_binary`/content-type) —
-  the registry and configs hold codecs this way. Object-safe because the typed methods are
-  `where Self: Sized` (excluded from the vtable).
-- **Typed encode/decode** is called on the **concrete** codec (`ProtoCodec`/`JsonCodec`/
-  `ArrowCodec`), monomorphic over `Req`/`Res`. The generated facade resolves the negotiated
-  codec to its concrete type (match on the codec's identity) and calls `marshal::<Res>` /
-  `unmarshal::<Req>` directly.
+  the registry and configs hold codecs this way.
+- **Typed encode/decode** goes through `Arc<dyn CodecFor<M>>`, built **at registration time**:
+  the generated register fn / client constructor (where `Req`/`Res` are concrete) builds a
+  per-procedure table `ProcedureCodecs<Req, Res>` — codec name →
+  `(Arc<dyn CodecFor<Req>>, Arc<dyn CodecFor<Res>>)` — covering the default codecs plus any
+  user-supplied custom codec (bound `C: CodecFor<Req> + CodecFor<Res>` on the registration
+  fn). At request time negotiation resolves the name and the facade looks up the typed
+  handles — no name-matching on hot paths.
 
-So content-type negotiation stays runtime (via `dyn Codec`), while message
-serialization is fully typed — **no `dyn Any` message ever exists**, and the `Arc<dyn Codec>`
-fields in Decisions 05/07/08/11 are the negotiation handle, not a typed-marshal path.
+So content-type negotiation stays runtime (via `dyn Codec`), while message serialization is
+fully typed via `dyn CodecFor<M>` — **no `dyn Any` message ever exists**, and the
+`Arc<dyn Codec>` fields in Decisions 05/07/08/11 are the negotiation handle; the typed-marshal
+path is the per-procedure `CodecFor` table.
 
 ### Proto Codec (buffa)
 
-Yes — the ProtoCodec is where `buffa::OwnedView` is produced. `unmarshal_owned_view` (S4)
-returns a `buffa::OwnedView<V>` backed by the request `Bytes`, giving the zero-copy path
-(RS2); plain `unmarshal` remains for owned-decode callers. Both are implemented:
+Yes — the ProtoCodec is where `buffa::OwnedView` is produced. The **inherent**
+`unmarshal_owned_view` (S4) returns a `buffa::OwnedView<V>` backed by the request `Bytes`,
+giving the zero-copy path (RS2); the `CodecFor` blanket impl covers owned decode:
 
 ```rust
 pub struct ProtoCodec;
@@ -93,26 +118,34 @@ pub struct ProtoCodec;
 impl Codec for ProtoCodec {
     fn name(&self) -> &str { "proto" }
     fn is_binary(&self) -> bool { true }
+}
 
-    fn marshal<M: buffa::Message>(&self, m: &M) -> Result<Bytes, CodecError> {
+impl<M: buffa::Message + Default> CodecFor<M> for ProtoCodec {
+    fn marshal(&self, m: &M) -> Result<Bytes, CodecError> {
         // m.compute_size() + write_to — concrete, no downcast.
     }
-    fn unmarshal<M: buffa::Message + Default>(&self, data: Bytes) -> Result<M, CodecError> {
+    fn unmarshal(&self, data: Bytes) -> Result<M, CodecError> {
         // M::parse_from(data)
     }
-    fn unmarshal_owned_view<M: buffa::Message>(&self, bytes: Bytes) -> Result<M::View, CodecError> {
-        // buffa::view::OwnedView::<M::View>::decode(bytes) — self-referential Bytes+view,
-        // 'static + Send + Sync, Deref<Target = View>, no copy (RS2 / S4). The type parameter
-        // is the *view* type (e.g. `PersonView`), and `M::View = OwnedView<PersonView>`.
-    }
-    fn marshal_stable<M: buffa::Message>(&self, m: &M) -> Result<Bytes, CodecError> {
+    fn marshal_stable(&self, m: &M) -> Result<Bytes, CodecError> {
         // Deterministic field ordering (buffa is deterministic for a schema version;
         // we enforce it explicitly for GET caching).
     }
+    fn marshal_append(&self, buf: &mut Vec<u8>, m: &M) -> Result<(), CodecError> {
+        // write_to into the pooled buffer (RS8).
+    }
+}
+
+impl ProtoCodec {
+    /// INHERENT (per-family return type — deliberately not on `dyn CodecFor`, see trait
+    /// section): zero-copy owning view over the frame bytes.
+    pub fn unmarshal_owned_view<V: buffa::MessageView>(&self, bytes: Bytes)
+        -> Result<buffa::OwnedView<V>, CodecError> {
+        // buffa::view::OwnedView::<V>::decode(bytes) — self-referential Bytes+view,
+        // 'static + Send + Sync, Deref<Target = V>, no copy (RS2 / S4).
+    }
 }
 ```
-
-(`Message` for the proto codec family = `buffa::Message`.)
 
 buffa dependency is behind a `proto` feature flag (default on). The buffa crate is `no_std + alloc` capable.
 
@@ -131,31 +164,33 @@ pub struct JsonCodec;
 impl Codec for JsonCodec {
     fn name(&self) -> &str { "json" }
     fn is_binary(&self) -> bool { false }
+}
 
-    fn marshal<M: buffa::Message>(&self, m: &M) -> Result<Bytes, CodecError> {
+impl<M: buffa::Message + Default> CodecFor<M> for JsonCodec {
+    fn marshal(&self, m: &M) -> Result<Bytes, CodecError> {
         // Concrete buffa message → canonical protobuf-JSON (lowerCamelCase, string enums).
         // Monomorphic over M — no `dyn Any`, no downcast, so the S6 "downcast to Serialize"
         // problem never arises. A non-protobuf serde-JSON service is a *separate* codec over
         // its own concrete type under its OWN content-type (Q5).
     }
-    fn unmarshal<M: buffa::Message + Default>(&self, data: Bytes) -> Result<M, CodecError> {
+    fn unmarshal(&self, data: Bytes) -> Result<M, CodecError> {
         // canonical JSON, DiscardUnknown = true; reject zero-length payloads (P16).
     }
-    fn unmarshal_owned_view<M: buffa::Message>(&self, data: Bytes) -> Result<M::View, CodecError> {
-        // JSON has no zero-copy view: M::View = M, so this just calls unmarshal.
-    }
-    fn marshal_stable<M: buffa::Message>(&self, m: &M) -> Result<Bytes, CodecError> {
+    fn marshal_stable(&self, m: &M) -> Result<Bytes, CodecError> {
         // Serialize then compact (strip whitespace), matching connect-go.
     }
+    fn marshal_append(&self, buf: &mut Vec<u8>, m: &M) -> Result<(), CodecError> { /* RS8 */ }
 }
+
+// JSON has no zero-copy view form — owned decode is its only path (no inherent view method).
 ```
 
 ### Arrow Codec (foundation_arrow)
 
-Resolved: the Arrow codec returns a **view**, not a `Vec`, for decode. `unmarshal_owned_view`
-yields an Arc-backed `RecordBatch` (its buffers are already `Arc`-shared, so this is
-zero-copy over the request `Bytes`); `marshal` still produces bytes for the wire. This is the
-same S4 owned-view path the ProtoCodec uses, routed through the codec registry.
+Resolved: the Arrow codec returns a **view**, not a `Vec`, for zero-copy decode. The inherent
+`unmarshal_batch` yields an Arc-backed `RecordBatch` (its buffers are already `Arc`-shared, so
+this is zero-copy over the request `Bytes`); `marshal` still produces bytes for the wire. This
+is the same S4 owned-view path the ProtoCodec uses.
 
 ```rust
 pub struct ArrowCodec;
@@ -163,20 +198,25 @@ pub struct ArrowCodec;
 impl Codec for ArrowCodec {
     fn name(&self) -> &str { "arrow" }
     fn is_binary(&self) -> bool { true }
+}
 
-    fn marshal<M: ToArrow>(&self, m: &M) -> Result<Bytes, CodecError> {
+impl<M: ToArrow + FromArrow> CodecFor<M> for ArrowCodec {
+    fn marshal(&self, m: &M) -> Result<Bytes, CodecError> {
         // m.encode_arrow() → Arrow IPC bytes (concrete `M: ToArrow`, no downcast).
     }
-    fn unmarshal<M: FromArrow + Default>(&self, data: Bytes) -> Result<M, CodecError> {
+    fn unmarshal(&self, data: Bytes) -> Result<M, CodecError> {
         // M::decode_arrow(data)
     }
-    fn unmarshal_owned_view<M: FromArrow>(&self, data: Bytes) -> Result<M::View, CodecError> {
-        // Arc-backed RecordBatch over `data` — already 'static/Send, zero-copy.
-    }
-    fn marshal_stable<M: ToArrow>(&self, m: &M) -> Result<Bytes, CodecError> { /* deterministic IPC */ }
+    fn marshal_stable(&self, m: &M) -> Result<Bytes, CodecError> { /* deterministic IPC */ }
+    fn marshal_append(&self, buf: &mut Vec<u8>, m: &M) -> Result<(), CodecError> { /* RS8 */ }
+}
+
+impl ArrowCodec {
+    /// INHERENT zero-copy path (per-family return type, not on `dyn CodecFor`): Arc-backed
+    /// `RecordBatch` over `data` — already 'static/Send, zero-copy.
+    pub fn unmarshal_batch(&self, data: Bytes) -> Result<RecordBatch, CodecError> { /* … */ }
 }
 ```
-(For Arrow, `Message` = `ToArrow`/`FromArrow`; the message type is a `RecordBatch`-backed type.)
 
 Arrow codec is behind an `arrow` feature flag. This is a platform extension — not part of the ConnectRPC spec. Content-Type: `application/arrow` for unary, `application/connect+arrow` for streaming.
 
@@ -230,10 +270,11 @@ For gRPC/gRPC-Web protocols:
 
 - **Three first-class codecs**: proto (buffa), json (serde_json), arrow (foundation_arrow)
 - **Extensible**: Custom codecs register via `CodecRegistry::register`
-- **No message type-erasure**: codecs are monomorphic over the concrete message (bounded by
-  the codec's native trait — `buffa::Message`, `ToArrow`/`FromArrow`); the framework's generic
-  seam is byte-level `Bytes` (Decision 11) and typing lives in the generated facade (Decision
-  10). No `MessageRef`/`MessageMut`/`dyn Any` messages.
+- **No message type-erasure**: typed dispatch is `dyn CodecFor<M>` (message type on the
+  trait; blanket impls per family over `buffa::Message` / `ToArrow`+`FromArrow`); the
+  framework's generic seam is byte-level `Bytes` (Decision 11) and the typed handles live in
+  the per-procedure `ProcedureCodecs` table built by generated code (Decision 10). No
+  `MessageRef`/`MessageMut`/`dyn Any` messages, no unified `Message` trait.
 - **Feature-gated**: `proto` (default), `json` (default), `arrow` (optional)
 - **Proto JSON uses protobuf canonical mapping**: lowerCamelCase field names, string enums, omitted zero values — matching connect-go's `protojson`
 
@@ -248,8 +289,8 @@ Decided items folded in from the review (we own the code; implement directly):
   ("zero-length payload is not a valid JSON object").
 - **RS7 — frozen registries:** `CodecRegistry` / `CompressionRegistry` are built then
   frozen (builder → `Arc`); no `&mut register` after handlers hold references.
-- **RS8 — `MarshalAppend`:** add `marshal_append<M: Message>(&self, buf: &mut Vec<u8>, m: &M)`
-  to `Codec` for pooled-buffer reuse on hot paths.
+- **RS8 — `MarshalAppend`:** `marshal_append(&self, buf: &mut Vec<u8>, m: &M)` is on
+  `CodecFor<M>` (see trait section) for pooled-buffer reuse on hot paths.
 - **RS9 — Send/Sync:** moot — with monomorphic codecs there is no erased `MessageRef`/
   `MessageMut` pair, so no `Send`-only vs `Send+Sync` split to reconcile; the concrete `Req`/
   `Res` carry their own auto-trait bounds.
@@ -282,10 +323,9 @@ Decided items folded in from the review (we own the code; implement directly):
    for streaming the handler/client choose rows-per-batch and the framework carries each
    `RecordBatch` through as **one enveloped message, unchanged** — this preserves Arrow's
    bulk/columnar strength (no framework-imposed batch size). DoS safety still comes from
-   `read_max_bytes` (Decision 06) bounding total decoded size, not from a row cap.
+   `read_max_bytes` (Decision 06) bounding total decoded size, not from a row cap. We should also intelligently pass this to the mesage batcher so it knows whats the max bytes allowed and can ensure mesasge envelop never go past it.
 
 <!-- Resolved and removed:
  • Type-erasure cost — MOOT and now eliminated: codecs are monomorphic over concrete Req/Res
    (facade owns the concrete codec, Decision 10/11); no dyn Any messages, no MessageRef/MessageMut.
  • Zero-copy deserialization — resolved via buffa::OwnedView<V> / Arc-backed RecordBatch (RS2). -->
-

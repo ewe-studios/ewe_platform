@@ -97,7 +97,9 @@ impl CompressionRegistry {
 
 ### Compression Negotiation
 
-From connect-go's `negotiateCompression`:
+**This is the single normative definition** (Decision 05's earlier duplicate sketch was
+removed — its protocols map their header names onto this function). From connect-go's
+`negotiateCompression`:
 
 ```rust
 pub fn negotiate_compression(

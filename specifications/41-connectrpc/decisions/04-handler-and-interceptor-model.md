@@ -142,7 +142,7 @@ pub enum IdempotencyLevel {
 #[derive(Debug, Clone)]
 pub struct Peer {
     pub addr: String,              // remote address (IP:port on server, host:port on client)
-    pub protocol: String,          // "connect", "grpc", "grpcweb"
+    pub protocol: String,          // "connect", "grpc", "grpc-web" (hyphenated, R11)
 }
 ```
 
@@ -190,6 +190,7 @@ pub struct RequestContext {
     pub headers: SimpleHeaders,
     pub deadline: Option<Instant>,
     pub extensions: Extensions,     // type-map for custom middleware data
+    pub connection: Arc<ConnectionContext>, // Q13; carried from SimpleIncomingRequest (Decision 12 §13)
     canceled: Arc<AtomicBool>,
 }
 
@@ -201,7 +202,41 @@ impl RequestContext {
 }
 ```
 
-`Extensions` is a type-map (like `http::Extensions`) that middleware can insert typed data into. The auth middleware inserts the authenticated identity here.
+`Extensions` is a type-map (like `http::Extensions`) that middleware can insert typed data into. The auth middleware inserts the authenticated identity here (written during dispatch, before the context is frozen into the shared `Ctx` below; handlers read it).
+
+### Ctx — the per-call context handle (decided)
+
+`Ctx` is the context parameter every handler and client method receives, **by value, in all
+four RPC kinds** (server and client — no `&Ctx` in any signature). It follows
+foundation_http's `Serve` pattern (`Arc<ContextBag>` in `foundation_http::shared::serve`): an
+Arc-backed, cheaply-clonable, `'static` handle — which is also what lets streaming handlers
+return `impl Stream + Send + 'static` (Decision 10 S2; an `async move` just captures a clone).
+
+```rust
+/// Cheap to clone (two Arcs). Passed by value everywhere.
+#[derive(Clone)]
+pub struct Ctx {
+    /// App-scoped shared dependencies — foundation_http's `ContextBag`: DB pools, config,
+    /// caches, service singletons, alert/event/remote-trigger facilities. The same bag the
+    /// HTTP layer hands `Serve` handlers, so HTTP and RPC handlers share one dependency store.
+    pub bag: Arc<ContextBag>,
+    /// Per-RPC state: `Spec`, `Peer`, request headers, deadline, cancellation, `Extensions`,
+    /// and the `ConnectionContext` (Q13).
+    pub request: Arc<RequestContext>,
+}
+
+impl Ctx {
+    // Delegates for the common RequestContext surface:
+    pub fn spec(&self) -> &Spec;
+    pub fn peer(&self) -> &Peer;
+    pub fn is_canceled(&self) -> bool;
+    pub async fn cancelled(&self);
+    pub fn remaining_timeout(&self) -> Option<Duration>;
+}
+```
+
+Handlers reach shared services via `ctx.bag.get::<DbPool>()` and RPC state via `ctx.request`
+(or the delegates). Interceptor fn-types take the same `Ctx` by value.
 
 ### Handler API (async functions / streams)
 
@@ -212,21 +247,21 @@ async into tasks, and each `.await` is the yield point — async/await *is* the 
 the executor drives. The internal wiring is in `11-transport-seam.md`.
 
 ```rust
-// unary
-async fn greet(&self, ctx: &Ctx, req: Request<GreetReq>)
-    -> Result<Response<GreetRes>, ConnectError>;
+// unary — ctx BY VALUE (Ctx is Arc-backed, §Ctx above); errors are ConnectResult (Decision 03)
+async fn greet(&self, ctx: Ctx, req: Request<GreetReq>)
+    -> ConnectResult<Response<GreetRes>>;
 
 // server streaming — return an async Stream of responses
-async fn list(&self, ctx: &Ctx, req: Request<ListReq>)
-    -> Result<impl Stream<Item = Result<File, ConnectError>>, ConnectError>;
+async fn list(&self, ctx: Ctx, req: Request<ListReq>)
+    -> ConnectResult<impl Stream<Item = ConnectResult<File>>>;
 
 // client streaming — consume an async Stream, return one response
-async fn upload(&self, ctx: &Ctx, reqs: impl Stream<Item = Result<Chunk, ConnectError>>)
-    -> Result<Response<UploadRes>, ConnectError>;
+async fn upload(&self, ctx: Ctx, reqs: impl Stream<Item = ConnectResult<Chunk>>)
+    -> ConnectResult<Response<UploadRes>>;
 
 // bidi — async Stream in, async Stream out (interleave with .await)
-async fn echo(&self, ctx: &Ctx, reqs: impl Stream<Item = Result<EchoReq, ConnectError>>)
-    -> Result<impl Stream<Item = Result<EchoRes, ConnectError>>, ConnectError>;
+async fn echo(&self, ctx: Ctx, reqs: impl Stream<Item = ConnectResult<EchoReq>>)
+    -> ConnectResult<impl Stream<Item = ConnectResult<EchoRes>>>;
 ```
 
 The same signatures hold on every transport (HTTP/1.1 / HTTP/2 / HTTP/3); **duplex is a
@@ -277,7 +312,7 @@ pub trait Interceptor: Send + Sync + 'static {
 /// an async handler. Metadata + encoded request/response **frames** (no typed message;
 /// interceptors needing the message register as facade middleware, Decision 11).
 pub type UnaryFunc =
-    Arc<dyn Fn(RequestContext, UnaryCall) -> BoxFuture<'static, Result<UnaryReply, ConnectError>> + Send + Sync>;
+    Arc<dyn Fn(Ctx, UnaryCall) -> BoxFuture<'static, ConnectResult<UnaryReply>> + Send + Sync>;
 
 pub struct UnaryCall  { pub headers: SimpleHeaders, pub frame: Bytes }   // encoded request
 pub struct UnaryReply { pub headers: SimpleHeaders, pub trailers: SimpleHeaders, pub frame: Bytes } // encoded response
@@ -285,16 +320,17 @@ pub struct UnaryReply { pub headers: SimpleHeaders, pub trailers: SimpleHeaders,
 /// Streaming handler interceptor — async; wraps the byte-level `HandlerConn` **by value** so
 /// it can embed/wrap it (Decision 11; `&mut dyn` would block injecting a wrapper).
 pub type StreamingHandlerFunc =
-    Arc<dyn Fn(RequestContext, Box<dyn HandlerConn>) -> BoxFuture<'static, Result<(), ConnectError>> + Send + Sync>;
+    Arc<dyn Fn(Ctx, Box<dyn HandlerConn>) -> BoxFuture<'static, ConnectResult<()>> + Send + Sync>;
 
-/// Streaming client interceptor — wraps the byte-level `ClientConn`.
+/// Streaming client interceptor — async like the others (opening a conn does I/O via
+/// `Transport::open`, Decision 11); wraps the byte-level `ClientConn`.
 pub type StreamingClientFunc =
-    Arc<dyn Fn(RequestContext, Spec) -> Box<dyn ClientConn> + Send + Sync>;
+    Arc<dyn Fn(Ctx, Spec) -> BoxFuture<'static, ConnectResult<Box<dyn ClientConn>>> + Send + Sync>;
 ```
 
 The fn-types are **future-returning** (`BoxFuture`), not sync `-> Result`: the innermost
 `UnaryFunc` is the async handler invocation, so a sync closure could only call it via
-`block_on` (forbidden). Owned args (`RequestContext`/`Spec` by value, `Bytes` frames) keep
+`block_on` (forbidden). Owned args (`Ctx`/`Spec` by value, `Bytes` frames) keep
 the returned future `'static` so it composes and spawns (see S2 / Decision 00).
 
 No `AnyRequest` / `AnyResponse`: the seam is bytes + metadata. Per-procedure typed access is
@@ -305,7 +341,7 @@ constraint (zero-copy views become possible) and the RS5 / RS9 `Any` issues.
 
 The streaming interceptor's view of a connection **is** Decision 11's `HandlerConn`, which
 carries **encoded frames (bytes) + metadata** (`spec` / `peer` / `request_headers` /
-`receive` → `Vec<u8>` / `send` ← `&[u8]` / `send_headers` / `response_trailers` / `close`),
+`receive` → `Bytes` / `send` ← `Bytes` / `send_headers` / `response_trailers` / `close`),
 not typed messages. It is passed **by value** (`Box<dyn HandlerConn>`, see
 `StreamingHandlerFunc` above) so an interceptor can wrap or embed it — `&mut dyn` would
 prevent injecting a wrapper. There is no separate `StreamingHandlerConn` type; it was
@@ -349,7 +385,7 @@ where
 
 ```rust
 pub struct RecoverInterceptor<F> {
-    handler: F,  // Fn(&RequestContext, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError
+    handler: F,  // Fn(&Ctx, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError
 }
 
 impl<F> RecoverInterceptor<F> {
@@ -392,8 +428,10 @@ already in the body above):
   public key, carried via netcap `Endpoint<I>`), TLS/mTLS peer certificate, negotiated
   ALPN / HTTP version, 0-RTT flag, and QUIC connection id. `SimpleIncomingRequest` carries
   the `ConnectionContext`, and `RequestContext` references it (handlers reach
-  `ctx.connection.peer`, `ctx.connection.tls`, …) while keeping `extensions` for untyped
-  user/middleware data. Connection-scoped fields are shared across multiplexed HTTP/2 and
+  `ctx.request.connection.peer`, `ctx.request.connection.tls`, …) while keeping `extensions`
+  for untyped user/middleware data. *The netio-side plumbing — defining `ConnectionContext`
+  and carrying it on `SimpleIncomingRequest` — is a foundation enabler tracked in
+  **Decision 12 §13**.* Connection-scoped fields are shared across multiplexed HTTP/2 and
   HTTP/3 requests on the same connection; the per-request HTTP/2/3 **stream id** stays
   request-scoped. (Folds in T10 — iroh public key — and the netcap `Endpoint<I>` identity
   generic from Decision 12 §9.)

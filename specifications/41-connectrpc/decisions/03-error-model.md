@@ -216,7 +216,8 @@ thin, optional wire-interop shim for typed details, not a competing error model.
 
 > **Two different "Any" — do not conflate.** `google.protobuf.Any` (here) is a *protobuf wire
 > message* (`{type_url, value}`, serializable, cross-language, self-describing). Rust's
-> `std::any::Any` (used in Decision 02's `Box<dyn Any + Send>` codec seam) is *in-process*
+> `std::any::Any` (which appears in this design only in panic payloads and the `Extensions`
+> type-map — the Decision 02 codec path has **no** `dyn Any`) is *in-process*
 > type erasure via `TypeId` — process-local, not stable, not serializable. **You cannot build
 > a `google.protobuf.Any` from a `dyn Any`** (`TypeId` is not a `type_url` and can't
 > serialize); wire details therefore require proto type identity (or the assigned errstacks
@@ -305,28 +306,41 @@ type ConnectResult<T> = Result<T, ErrorTrace<ConnectError>>;
 // Domain errors flow in as custom contexts and change_context to ConnectError at the seam.
 ```
 
+**Normative (decided — swept through all docs):** `ConnectResult<T>` is the error type of
+**every public signature** — handlers, interceptor fn-types, seam traits
+(`HandlerConn`/`ClientConn`), the client surface, and generated traits/clients (Decisions
+04/05/07/08/10/11 use it). Bare `Result<_, ConnectError>` appears nowhere in the public API;
+`ConnectError → ErrorTrace<ConnectError>` has a `From` impl (same pattern as foundation_http's
+`ServeError`) so constructors compose with `?`/`.into()`. Pure flow-control signals (bounded
+pipe `Full`, `Pending`) are not errors and stay outside this type (Decision 11).
+
 ### ErrorWriter (Protocol-Aware Error Responses)
 
 Mirrors connect-go's `ErrorWriter` — writes errors in the correct protocol format from middleware (before handler dispatch):
 
 ```rust
+/// Per H17: holds only a buffer pool + the single protobuf codec needed to encode
+/// `google.rpc.Status` details for gRPC trailers — NOT the full `CodecRegistry`
+/// (Connect errors are always JSON; gRPC-Web trailers are text).
 pub struct ErrorWriter {
-    codecs: Arc<CodecRegistry>,
-    // Options for gRPC error encoding
+    buffers: BufferPool,       // thread-local per worker (Decision 06 RS6)
+    status_codec: ProtoCodec,  // encodes google.rpc.Status for grpc-status-details-bin
 }
 
 impl ErrorWriter {
-    pub fn new(codecs: Arc<CodecRegistry>) -> Self;
+    pub fn new() -> Self;
 
     /// Can this writer handle errors for the given request?
     pub fn is_supported(&self, request: &SimpleIncomingRequest) -> bool;
 
-    /// Write an error response in the appropriate protocol format.
+    /// Write an error response in the appropriate protocol format. Takes the full trace
+    /// (ConnectResult norm): code/message/details come from the ConnectError context;
+    /// `ErrorDetail::from_errstacks` can ride the trace as a wire detail.
     pub fn write(
         &self,
         response: &mut SimpleOutgoingResponse,
         request: &SimpleIncomingRequest,
-        error: &ConnectError,
+        error: &ErrorTrace<ConnectError>,
     ) -> Result<(), CodecError>;
 }
 ```

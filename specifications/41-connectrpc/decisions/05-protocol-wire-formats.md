@@ -69,46 +69,45 @@ impl Envelope {
 ### EnvelopeReader / EnvelopeWriter
 
 ```rust
-/// Reads envelopes from a byte iterator, handling decompression.
+/// Reads envelopes from the body byte stream, handling decompression. **Frame-level only** —
+/// yields codec-encoded frame `Bytes`, never decodes messages: typed decode lives in the
+/// `MessageSource<Req>` facade (Decision 11), which holds the `Arc<dyn CodecFor<Req>>`
+/// (Decision 02). (Holding a codec here was a leftover of the pre-`CodecFor` sketch — typed
+/// methods are not reachable through `Arc<dyn Codec>`.)
 pub struct EnvelopeReader {
-    codec: Arc<dyn Codec>,
-    decompressor: Option<Arc<dyn Decompressor>>,
+    decompressor: Option<Arc<dyn Compressor>>,   // Decision 06 — one trait, `Compressor`
     read_max_bytes: usize,
     buffer: Vec<u8>,
 }
 
 impl EnvelopeReader {
-    /// Read the next message from the stream, decoding and decompressing.
-    // `T: Message + Default` (a default is needed to unmarshal into) — the concrete message
-    // type, bounded by the codec's native trait (buffa::Message / FromArrow), NOT a type-erased
-    // MessageMut. Source is stored at construction (C8), so `read` takes no source param. This
-    // is the low-level frame reader; the per-procedure facade decode (`MessageSource`, Decision
-    // 11) is the higher-level path that owns the codec.
+    /// Next de-enveloped, decompressed frame as `Bytes`, or `None` at end of stream.
+    // Source is stored at construction (C8), so `read` takes no source param.
     //
     // On a non-blocking fd the 5-byte prefix + body can span multiple reads, so the reader
     // is implemented over the shared `IncrementalDecoder` primitive (Decision 12 §11) —
     // partial state is retained and a short read yields `Pending`, not an error. The blocking
     // `read` here is the `loop { step }`-until-frame wrapper over it.
-    pub fn read<T: Message + Default>(&mut self) -> Result<Option<T>, ConnectError>;
+    pub fn read(&mut self) -> ConnectResult<Option<Bytes>>;
 }
 
-/// Writes envelopes to a byte sink, handling compression.
+/// Writes envelopes to a byte sink, handling compression. Frame-level only: takes an
+/// already-encoded frame (the `MessageSink<Res>` facade did the typed encode).
 pub struct EnvelopeWriter {
-    codec: Arc<dyn Codec>,
     compressor: Option<Arc<dyn Compressor>>,
     compress_min_bytes: usize,
     send_max_bytes: usize,
 }
 
 impl EnvelopeWriter {
-    /// Encode a message into an envelope frame.
-    pub fn write<T: Message>(&self, msg: &T) -> Result<Vec<u8>, ConnectError>;
+    /// Envelope one already-encoded frame (compress iff negotiated and ≥ compress_min_bytes).
+    pub fn write(&self, frame: Bytes) -> ConnectResult<Vec<u8>>;
 
     /// Write an EndStreamResponse (Connect protocol).
-    pub fn write_end_stream(&self, error: Option<&ConnectError>, trailers: &SimpleHeaders) -> Result<Vec<u8>, ConnectError>;
+    pub fn write_end_stream(&self, error: Option<&ErrorTrace<ConnectError>>, trailers: &SimpleHeaders) -> ConnectResult<Vec<u8>>;
 
     /// Write a trailer frame (gRPC-Web protocol).
-    pub fn write_trailer_frame(&self, trailers: &SimpleHeaders) -> Result<Vec<u8>, ConnectError>;
+    pub fn write_trailer_frame(&self, trailers: &SimpleHeaders) -> ConnectResult<Vec<u8>>;
 }
 ```
 
@@ -363,7 +362,7 @@ pub(crate) trait ProtocolHandler: Send + Sync {
         responder: BodySink,       // response frames out (writer task drains)
         codecs: &CodecRegistry,
         compression: &CompressionRegistry,
-    ) -> Result<Box<dyn HandlerConn>, ConnectError>;
+    ) -> ConnectResult<Box<dyn HandlerConn>>;
 }
 
 pub(crate) trait ProtocolClient: Send + Sync {
@@ -389,22 +388,12 @@ pub(crate) trait ProtocolClient: Send + Sync {
 
 ### Compression Negotiation
 
-Shared across all protocols (but with different header names):
-
-```rust
-pub struct CompressionNegotiation {
-    /// Compression algorithm for the request body.
-    pub request_compression: Option<String>,
-    /// Compression algorithm for the response body.
-    pub response_compression: Option<String>,
-}
-
-pub fn negotiate_compression(
-    registry: &CompressionRegistry,
-    request_encoding: Option<&str>,      // Content-Encoding or Connect-Content-Encoding or Grpc-Encoding
-    accept_encoding: Option<&str>,       // Accept-Encoding or Connect-Accept-Encoding or Grpc-Accept-Encoding
-) -> Result<CompressionNegotiation, ConnectError>;
-```
+Shared across all protocols — only the header names differ per protocol
+(`Content-Encoding` / `Connect-Content-Encoding` / `Grpc-Encoding`, and the matching
+accept-encoding headers). The **single normative definition** — `negotiate_compression`
+returning `NegotiatedCompression` — lives in **Decision 06**; each `ProtocolHandler` here
+only maps its protocol's header names onto that one function. (An earlier duplicate
+`CompressionNegotiation` sketch in this doc was removed.)
 
 ## Consequences
 

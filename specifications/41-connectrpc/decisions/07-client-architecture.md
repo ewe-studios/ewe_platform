@@ -41,7 +41,7 @@ Client options select protocol:
 ### Transport Trait
 
 The client transport is **streaming-capable** and lives in `11-transport-seam.md`: it
-exposes `open(request: RequestDescriptor) -> TransportStream` (a bidirectional body exchange
+exposes an **async** `open(request: RequestDescriptor) -> TransportStream` (a bidirectional body exchange
 the protocol's `ClientConn` drives, backed by bounded pipes) plus `capabilities() ->
 TransportCapabilities` so the client can reject incompatible protocol+version combinations
 before sending. Unary is the degenerate case, available as a `round_trip` convenience built
@@ -55,14 +55,17 @@ pub trait Transport: Send + Sync + 'static {
     fn capabilities(&self) -> TransportCapabilities;
 
     /// Open a streaming exchange; returns the request sink + response source.
+    /// ASYNC (`BoxFuture` keeps the trait dyn-safe): connecting / pool checkout does I/O
+    /// and must park, not block a worker (async-canonical decision).
     /// `RequestDescriptor` is netio's existing head-only request (proto/url/headers/method);
     /// the body flows through the returned `TransportStream` (Decision 11).
-    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
+    fn open(&self, request: RequestDescriptor)
+        -> BoxFuture<'static, Result<TransportStream, TransportError>>;
 }
 
 // Unary convenience over `open` (send one, close, read one):
 impl dyn Transport {
-    pub fn round_trip(&self, req: PreparedRequest)
+    pub async fn round_trip(&self, req: PreparedRequest)
         -> Result<SimpleResponse<SendSafeBody>, TransportError> { /* open + send + close + read */ }
 }
 ```
@@ -83,28 +86,34 @@ pub struct Client<Req, Res> {
     transport: Arc<dyn Transport>,
     config: ClientConfig,
     protocol: Box<dyn ProtocolClient>,
-    _phantom: PhantomData<(Req, Res)>,
+    /// Per-procedure typed codec table (Decision 02): codec name →
+    /// (Arc<dyn CodecFor<Req>>, Arc<dyn CodecFor<Res>>). Built by the generated constructor
+    /// (where Req/Res are concrete) for the default codecs + any custom codec — replaces the
+    /// former unified `Message` bound, which does not exist.
+    codecs: ProcedureCodecs<Req, Res>,
 }
 
-impl<Req: Message, Res: Message + Default> Client<Req, Res> {
-    pub fn new(transport: Arc<dyn Transport>, url: &str, options: ClientOptions)
-        -> Result<Self, ConnectError>;
+impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
+    pub fn new(transport: Arc<dyn Transport>, url: &str,
+               codecs: ProcedureCodecs<Req, Res>, options: ClientOptions)
+        -> ConnectResult<Self>;
 
     // Async surface (mirrors the generated client + the server handler shapes).
-    pub async fn unary(&self, ctx: &Ctx, request: Request<Req>)
-        -> Result<Response<Res>, ConnectError>;
+    // Ctx is the by-value Arc-backed context handle (Decision 04 §Ctx).
+    pub async fn unary(&self, ctx: Ctx, request: Request<Req>)
+        -> ConnectResult<Response<Res>>;
 
     /// Server streaming — await a response Stream.
-    pub async fn server_stream(&self, ctx: &Ctx, request: Request<Req>)
-        -> Result<impl Stream<Item = Result<Res, ConnectError>>, ConnectError>;
+    pub async fn server_stream(&self, ctx: Ctx, request: Request<Req>)
+        -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>;
 
     /// Client streaming — send an async Stream of requests, await one response.
-    pub async fn client_stream(&self, ctx: &Ctx, reqs: impl Stream<Item = Req>)
-        -> Result<Response<Res>, ConnectError>;
+    pub async fn client_stream(&self, ctx: Ctx, reqs: impl Stream<Item = Req>)
+        -> ConnectResult<Response<Res>>;
 
     /// Bidi — async Stream in, async Stream out.
-    pub async fn bidi_stream(&self, ctx: &Ctx, reqs: impl Stream<Item = Req>)
-        -> Result<impl Stream<Item = Result<Res, ConnectError>>, ConnectError>;
+    pub async fn bidi_stream(&self, ctx: Ctx, reqs: impl Stream<Item = Req>)
+        -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>;
 }
 ```
 
@@ -163,7 +172,7 @@ impl ClientOptions {
    - Headers: Content-Type, protocol-specific headers, timeout, compression, custom headers
    - Body: marshaled + optionally compressed request message (`SendSafeBody`)
 2. Apply client interceptor chain (wraps the call function)
-3. `transport.round_trip(request)` → `SimpleResponse<SendSafeBody>`
+3. `transport.round_trip(request).await` → `SimpleResponse<SendSafeBody>`
 4. Check HTTP status:
    - 200: unmarshal response body
    - Non-200: parse error from body (Connect JSON error) or infer from HTTP status
@@ -179,35 +188,48 @@ the half-duplex (HTTP/1.1) vs full-duplex (HTTP/2/3) difference is handled by th
 scheduling the conn's pipes — the API is identical.
 
 ```rust
+// ASYNC-CANONICAL (decided): these handles are async facades over the ClientConn pipes,
+// parking via Decision 00 — a blocking receive would tie up a valtron worker. Sync
+// convenience wrappers (valtron block_on) exist for off-pool callers only. Typed
+// encode/decode goes through the handle's `Arc<dyn CodecFor<…>>` (Decision 02).
+
 /// Client's view of a server streaming RPC (one request, many responses).
-pub struct ServerStream<Res> { conn: Box<dyn ClientConn>, _p: PhantomData<Res> }
-impl<Res: Message + Default> ServerStream<Res> {
-    pub fn receive(&mut self) -> Result<Option<Res>, ConnectError>; // None at end of stream
-    pub fn response_headers(&self) -> &SimpleHeaders;               // available immediately
-    pub fn response_trailers(&self) -> Result<&SimpleHeaders, ConnectError>; // after end
+pub struct ServerStream<Res> { conn: Box<dyn ClientConn>, codec: Arc<dyn CodecFor<Res>> }
+impl<Res: Send + 'static> ServerStream<Res> {
+    pub async fn receive(&mut self) -> ConnectResult<Option<Res>>; // None at end of stream
+    pub fn response_headers(&self) -> &SimpleHeaders;              // available immediately
+    pub async fn response_trailers(&self) -> ConnectResult<&SimpleHeaders>; // after end
     /// Non-blocking close of the receive side (connection reuse).
     pub fn close(self);
 }
 
 /// Client's view of a client streaming RPC (many requests, one response).
-pub struct ClientStream<Req, Res> { conn: Box<dyn ClientConn>, _p: PhantomData<(Req, Res)> }
-impl<Req: Message, Res: Message + Default> ClientStream<Req, Res> {
+pub struct ClientStream<Req, Res> {
+    conn: Box<dyn ClientConn>,
+    req_codec: Arc<dyn CodecFor<Req>>,
+    res_codec: Arc<dyn CodecFor<Res>>,
+}
+impl<Req: Send + 'static, Res: Send + 'static> ClientStream<Req, Res> {
     pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders; // before first send
-    pub fn send(&mut self, msg: &Req) -> Result<(), ConnectError>;
-    pub fn close_and_receive(self) -> Result<Response<Res>, ConnectError>;
+    pub async fn send(&mut self, msg: &Req) -> ConnectResult<()>;
+    pub async fn close_and_receive(self) -> ConnectResult<Response<Res>>;
 }
 
 /// Client's view of a bidirectional streaming RPC.
-pub struct BidiStream<Req, Res> { conn: Box<dyn ClientConn>, _p: PhantomData<(Req, Res)> }
-impl<Req: Message, Res: Message + Default> BidiStream<Req, Res> {
+pub struct BidiStream<Req, Res> {
+    conn: Box<dyn ClientConn>,
+    req_codec: Arc<dyn CodecFor<Req>>,
+    res_codec: Arc<dyn CodecFor<Res>>,
+}
+impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
     pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders;
-    pub fn send(&mut self, msg: &Req) -> Result<(), ConnectError>;
+    pub async fn send(&mut self, msg: &Req) -> ConnectResult<()>;
     /// Header-only send (no body) is `send_headers` then proceed (C5).
-    pub fn send_headers(&mut self) -> Result<(), ConnectError>;
-    pub fn close_request(&mut self) -> Result<(), ConnectError>;
-    pub fn receive(&mut self) -> Result<Option<Res>, ConnectError>;
+    pub async fn send_headers(&mut self) -> ConnectResult<()>;
+    pub async fn close_request(&mut self) -> ConnectResult<()>;
+    pub async fn receive(&mut self) -> ConnectResult<Option<Res>>;
     pub fn response_headers(&self) -> &SimpleHeaders;
-    pub fn response_trailers(&self) -> Result<&SimpleHeaders, ConnectError>;
+    pub async fn response_trailers(&self) -> ConnectResult<&SimpleHeaders>;
 }
 ```
 
@@ -220,32 +242,36 @@ reader and writer run concurrently (full-duplex). Same types, no API change.
 When `IdempotencyLevel::NoSideEffects` and `with_http_get()` is enabled:
 
 ```rust
-fn build_get_request(&self, request: &Request<Req>) -> Result<PreparedRequest, ConnectError> {
-    // GET encodes the message into the query via the stable codec below — no separate marshal.
+fn build_get_request(&self, request: &Request<Req>) -> ConnectResult<PreparedRequest> {
+    // GET encodes the message into the query via the stable codec — no separate marshal.
     let mut query_params = vec![
         format!("encoding={}", self.config.codec.name()),
     ];
 
-    // `marshal_stable` is on `Codec` (no separate `StableCodec`/`as_stable`), but it's a
-    // `where Self: Sized` method — not callable through `Arc<dyn Codec>`. `config.codec` is the
-    // negotiation handle; resolve it to the concrete codec (match on `config.codec.name()`),
-    // then call the typed `marshal_stable::<Req>` on that concrete codec (no message erasure).
-    let codec = resolve_concrete_codec(&self.config.codec);   // proto|json|arrow by name
-    let is_binary = self.config.codec.is_binary();            // object-safe, fine on dyn
-    let stable = codec.marshal_stable(&request.msg)?;         // concrete codec, concrete Req
-    if is_binary {
-        query_params.push(format!("message={}", base64url_encode(&stable)));
+    // `marshal_stable` is on `CodecFor<Req>` (Decision 02) — dyn-callable, no name-match
+    // needed: the ProcedureCodecs table already holds the selected codec as
+    // `Arc<dyn CodecFor<Req>>`.
+    let codec = self.codecs.for_request(self.config.codec.name())?; // Arc<dyn CodecFor<Req>>
+    let stable = codec.marshal_stable(&request.msg)?;
+
+    // Compression is applied BEFORE query encoding — the compressed bytes are what ride the
+    // URL (an earlier sketch pushed `message=` first and only then flagged compression);
+    // compressed payloads are always base64url, regardless of the codec's text/binary form.
+    let (payload, compressed) = match &self.config.send_compression {
+        Some(algo) if algo != "identity" => {
+            let compressor = self.config.compression.get(algo)
+                .ok_or_else(|| ConnectError::internal(format!("unknown compression {algo}")))?;
+            query_params.push(format!("compression={algo}"));
+            (compressor.compress(&stable)?, true)
+        }
+        _ => (stable, false),
+    };
+
+    if self.config.codec.is_binary() || compressed {
+        query_params.push(format!("message={}", base64url_encode(&payload)));
         query_params.push("base64=1".to_string());
     } else {
-        query_params.push(format!("message={}", percent_encode(&stable)));
-    }
-
-    if let Some(compression) = &self.config.send_compression {
-        if compression != "identity" {
-            // Compress the message and base64-encode
-            query_params.push(format!("compression={}", compression));
-            query_params.push("base64=1".to_string());
-        }
+        query_params.push(format!("message={}", percent_encode(&payload)));
     }
 
     query_params.push(format!("connect={}", connect_protocol::QUERY_CONNECT_VERSION_VALUE));
@@ -259,22 +285,22 @@ fn build_get_request(&self, request: &Request<Req>) -> Result<PreparedRequest, C
 connect-go supports falling back to POST if GET fails (URL too long, server rejects). Implement this:
 
 ```rust
-fn call_unary_with_get_fallback(
+async fn call_unary_with_get_fallback(
     &self,
-    ctx: &mut RequestContext,
+    ctx: Ctx,
     request: Request<Req>,
-) -> Result<Response<Res>, ConnectError> {
+) -> ConnectResult<Response<Res>> {
     let get_request = self.build_get_request(&request)?;
 
     // Check URL length against configured max (default: 8KiB)
     if get_request.url().len() > self.config.get_url_max_bytes {
-        return self.call_unary_post(ctx, request);
+        return self.call_unary_post(ctx, request).await;
     }
 
-    match self.transport.round_trip(get_request) {
+    match self.transport.round_trip(get_request).await {
         Ok(response) => self.process_unary_response(response),
-        Err(_) if self.config.get_use_fallback => self.call_unary_post(ctx, request),
-        Err(e) => Err(ConnectError::from(e)),
+        Err(_) if self.config.get_use_fallback => self.call_unary_post(ctx, request).await,
+        Err(e) => Err(ConnectError::from(e).into()),
     }
 }
 ```
