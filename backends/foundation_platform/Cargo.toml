@@ -1,0 +1,17 @@
+[package]
+name = "foundation_platform"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+keywords.workspace = true
+
+[dependencies]
+tauri = { version = "2.0.0", features = [] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true
