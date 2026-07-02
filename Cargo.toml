@@ -7,7 +7,7 @@ members = [
   "backends/*",
   "infrastructure/*",
   "tests",  # Workspace integration tests
-  "benches", "backends/foundation_platform",  # Workspace benchmarks
+  "benches", # Workspace benchmarks
 ]
 
 exclude = [
