@@ -1,13 +1,16 @@
-// Implementation of the MTP speculative-decoding shim declared in wrapper_mtp.h.
+// Implementation of the step-driven MTP speculative-decoding shim declared in
+// wrapper_mtp.h.
 //
-// Runs a self-contained single-sequence MTP speculative generation loop,
-// modelled on examples/speculative-simple.cpp with the MTP-specific setup from
-// tools/server (draft context uses ctx_type = LLAMA_CONTEXT_TYPE_MTP and shares
-// the target KV cache via ctx_other; target embeddings are enabled when the
-// speculator needs them; common_speculative_process replaces the manual draft
-// decode). Checkpoints are intentionally omitted — each call is a fresh single
-// sequence; if the context requires checkpoint-based rollback the loop would
-// still function via the always-re-evaluate path.
+// Runs a single-sequence MTP speculative generation loop, modelled on
+// examples/speculative-simple.cpp with the MTP-specific setup from tools/server
+// (draft context uses ctx_type = LLAMA_CONTEXT_TYPE_MTP and shares the target KV
+// cache via ctx_other; target embeddings are enabled when the speculator needs
+// them; common_speculative_process replaces the manual draft decode).
+//
+// The engine (contexts + speculator) is built once in ewe_mtp_init and reused;
+// ewe_mtp_begin resets per-generation state (KV cache + sampler); ewe_mtp_step
+// advances one draft -> verify -> accept step. Checkpoints are omitted — each
+// step always re-evaluates from the committed prefix.
 //
 // All C++ exceptions are caught at the boundary and reported as NULL / -1.
 
@@ -24,31 +27,62 @@
 #include <vector>
 
 struct ewe_mtp {
+    // Reusable engine state (built once).
     const llama_model * model_tgt = nullptr;
     llama_model *       model_dft = nullptr;
     llama_context *     ctx_tgt   = nullptr;
     llama_context *     ctx_dft   = nullptr;
     common_speculative * spec     = nullptr;
+    const llama_vocab * vocab     = nullptr;
+    llama_batch         batch     = {};
+    bool                batch_ok  = false;
 
     // Kept alive for the lifetime of `spec` (holds ctx pointers / n_max).
     common_params_speculative pspec;
-    common_params_sampling    sparams;
 
     int32_t n_draft_max = 4;
+
+    // Per-generation state (reset by ewe_mtp_begin).
+    common_sampler *         smpl = nullptr;
+    std::vector<llama_token> prompt_tgt;
+    std::vector<llama_token> draft;
+    llama_token              id_last   = 0;
+    int                      n_past    = 0;
+    int                      n_predict = 0;
+    int                      n_prompt_tokens = 0;
+    int                      n_generated = 0;
+    int                      n_drafted   = 0;
+    int                      n_accepted  = 0;
+    bool                     done      = true;
 };
+
+static void ewe_mtp_reset_generation(ewe_mtp * h) {
+    if (h->smpl != nullptr) {
+        common_sampler_free(h->smpl);
+        h->smpl = nullptr;
+    }
+    h->prompt_tgt.clear();
+    h->draft.clear();
+    h->id_last         = 0;
+    h->n_past          = 0;
+    h->n_predict       = 0;
+    h->n_prompt_tokens = 0;
+    h->n_generated     = 0;
+    h->n_drafted       = 0;
+    h->n_accepted      = 0;
+    h->done            = true;
+}
 
 extern "C" ewe_mtp * ewe_mtp_init(const llama_model * target_model,
                                   const char *        draft_path,
                                   uint32_t            n_ctx,
                                   uint32_t            n_batch,
                                   int32_t             n_threads,
-                                  int32_t             n_draft_max,
-                                  ewe_mtp_sampling    sampling) {
+                                  int32_t             n_draft_max) {
     if (target_model == nullptr || draft_path == nullptr) {
         return nullptr;
     }
     try {
-        // Load the draft (MTP head) model.
         llama_model_params mparams = llama_model_default_params();
         llama_model * model_dft    = llama_model_load_from_file(draft_path, mparams);
         if (model_dft == nullptr) {
@@ -88,28 +122,25 @@ extern "C" ewe_mtp * ewe_mtp_init(const llama_model * target_model,
             return nullptr;
         }
 
-        auto * h      = new ewe_mtp();
-        h->model_tgt  = target_model;
-        h->model_dft  = model_dft;
-        h->ctx_tgt    = ctx_tgt;
-        h->ctx_dft    = ctx_dft;
+        auto * h       = new ewe_mtp();
+        h->model_tgt   = target_model;
+        h->model_dft   = model_dft;
+        h->ctx_tgt     = ctx_tgt;
+        h->ctx_dft     = ctx_dft;
+        h->vocab       = llama_model_get_vocab(target_model);
         h->n_draft_max = n_draft_max;
+        h->batch       = llama_batch_init(llama_n_batch(ctx_tgt), 0, 1);
+        h->batch_ok    = true;
 
-        h->sparams                = common_params_sampling();
-        h->sparams.temp           = sampling.temperature;
-        h->sparams.top_k          = sampling.top_k;
-        h->sparams.top_p          = sampling.top_p;
-        h->sparams.penalty_repeat = sampling.repeat_penalty;
-        h->sparams.seed           = sampling.seed;
-
-        h->pspec            = common_params_speculative();
-        h->pspec.types      = { COMMON_SPECULATIVE_TYPE_DRAFT_MTP };
+        h->pspec               = common_params_speculative();
+        h->pspec.types         = { COMMON_SPECULATIVE_TYPE_DRAFT_MTP };
         h->pspec.draft.n_max   = n_draft_max;
         h->pspec.draft.ctx_tgt = ctx_tgt;
         h->pspec.draft.ctx_dft = ctx_dft;
 
         h->spec = common_speculative_init(h->pspec, 1);
         if (h->spec == nullptr) {
+            llama_batch_free(h->batch);
             llama_free(ctx_dft);
             llama_free(ctx_tgt);
             llama_model_free(model_dft);
@@ -127,6 +158,12 @@ extern "C" void ewe_mtp_free(ewe_mtp * h) {
     if (h == nullptr) {
         return;
     }
+    if (h->smpl != nullptr) {
+        common_sampler_free(h->smpl);
+    }
+    if (h->batch_ok) {
+        llama_batch_free(h->batch);
+    }
     if (h->spec != nullptr) {
         common_speculative_free(h->spec);
     }
@@ -142,156 +179,180 @@ extern "C" void ewe_mtp_free(ewe_mtp * h) {
     delete h;
 }
 
-extern "C" char * ewe_mtp_generate(ewe_mtp *    h,
-                                   const char * prompt,
-                                   int32_t      n_predict,
-                                   int32_t *    n_prompt_tokens,
-                                   int32_t *    n_generated,
-                                   int32_t *    n_drafted,
-                                   int32_t *    n_accepted) {
+extern "C" int32_t ewe_mtp_begin(ewe_mtp *        h,
+                                 const char *     prompt,
+                                 int32_t          n_predict,
+                                 ewe_mtp_sampling sampling) {
     if (h == nullptr || prompt == nullptr) {
-        return nullptr;
+        return -1;
     }
-    common_sampler * smpl = nullptr;
-    llama_batch      batch = {};
-    bool             batch_inited = false;
     try {
-        const llama_vocab * vocab = llama_model_get_vocab(h->model_tgt);
+        ewe_mtp_reset_generation(h);
 
-        std::vector<llama_token> inp = common_tokenize(h->ctx_tgt, std::string(prompt), true, true);
+        // Reset the shared KV cache so a reused engine starts clean.
+        llama_memory_clear(llama_get_memory(h->ctx_tgt), true);
+        llama_memory_clear(llama_get_memory(h->ctx_dft), true);
+
+        common_params_sampling sparams;
+        sparams.temp           = sampling.temperature;
+        sparams.top_k          = sampling.top_k;
+        sparams.top_p          = sampling.top_p;
+        sparams.penalty_repeat = sampling.repeat_penalty;
+        sparams.seed           = sampling.seed;
+
+        h->smpl = common_sampler_init(h->model_tgt, sparams);
+        if (h->smpl == nullptr) {
+            return -1;
+        }
+
+        std::vector<llama_token> inp =
+            common_tokenize(h->ctx_tgt, std::string(prompt), true, true);
         if (inp.empty() || (uint32_t) inp.size() >= llama_n_ctx(h->ctx_tgt)) {
-            return nullptr;
+            return -1;
         }
-        if (n_prompt_tokens != nullptr) {
-            *n_prompt_tokens = (int32_t) inp.size();
-        }
-
-        smpl = common_sampler_init(h->model_tgt, h->sparams);
-        if (smpl == nullptr) {
-            return nullptr;
-        }
+        h->n_prompt_tokens = (int) inp.size();
 
         // Enable target embeddings if the MTP speculator needs them.
         llama_set_embeddings(h->ctx_tgt, common_speculative_need_embd(h->spec));
 
         // Evaluate the prompt (all but the last token) on the target.
         if (llama_decode(h->ctx_tgt, llama_batch_get_one(inp.data(), (int32_t) inp.size() - 1)) != 0) {
-            common_sampler_free(smpl);
-            return nullptr;
+            return -1;
         }
 
-        llama_token              id_last = inp.back();
-        std::vector<llama_token> prompt_tgt(inp.begin(), inp.end() - 1);
-        prompt_tgt.reserve(llama_n_ctx(h->ctx_tgt));
-        int n_past = (int) inp.size() - 1;
+        h->id_last = inp.back();
+        h->prompt_tgt.assign(inp.begin(), inp.end() - 1);
+        h->prompt_tgt.reserve(llama_n_ctx(h->ctx_tgt));
+        h->n_past    = (int) inp.size() - 1;
+        h->n_predict = n_predict;
+        h->done      = false;
 
-        common_speculative_begin(h->spec, 0, prompt_tgt);
+        common_speculative_begin(h->spec, 0, h->prompt_tgt);
 
-        batch        = llama_batch_init(llama_n_batch(h->ctx_tgt), 0, 1);
-        batch_inited = true;
-
-        std::string out_text;
-        int         generated = 0;
-        int         drafted   = 0;
-        int         accepted  = 0;
-        bool        eos       = false;
-
-        std::vector<llama_token> draft;
-
-        while (true) {
-            // Generate the draft for the current position.
-            draft.clear();
-            common_speculative_get_draft_params(h->spec, 0) = {
-                /* .drafting = */ true,
-                /* .n_max    = */ h->n_draft_max,
-                /* .n_past   = */ n_past,
-                /* .id_last  = */ id_last,
-                /* .prompt   = */ &prompt_tgt,
-                /* .result   = */ &draft,
-            };
-            common_speculative_draft(h->spec);
-            const int n_draft = (int) draft.size();
-
-            // Target batch: [id_last, draft0, draft1, ...].
-            common_batch_clear(batch);
-            common_batch_add(batch, id_last, n_past++, { 0 }, true);
-            for (int i = 0; i < n_draft; ++i) {
-                common_batch_add(batch, draft[i], n_past + i, { 0 }, true);
-            }
-
-            if (llama_decode(h->ctx_tgt, batch) != 0) {
-                break;
-            }
-
-            // MTP processing (draft-side) — replaces the manual draft decode.
-            if (!common_speculative_process(h->spec, batch)) {
-                break;
-            }
-
-            // Verify: sample from the target logits and accept the matching
-            // draft prefix. `ids` = accepted draft tokens + one bonus token.
-            std::vector<llama_token> ids =
-                common_sampler_sample_and_accept_n(smpl, h->ctx_tgt, draft);
-            if (ids.empty()) {
-                break;
-            }
-
-            common_speculative_accept(h->spec, 0, (int) ids.size() - 1);
-
-            n_past += (int) ids.size() - 1;
-            drafted += n_draft;
-            accepted += (int) ids.size() - 1;
-
-            for (size_t i = 0; i < ids.size(); ++i) {
-                prompt_tgt.push_back(id_last);
-                id_last = ids[i];
-
-                if (llama_vocab_is_eog(vocab, id_last)) {
-                    eos = true;
-                    break;
-                }
-                out_text += common_token_to_piece(h->ctx_tgt, id_last);
-                generated++;
-                if (generated >= n_predict) {
-                    break;
-                }
-            }
-
-            // Drop KV entries for any rejected draft tokens.
-            llama_memory_seq_rm(llama_get_memory(h->ctx_tgt), 0, n_past, -1);
-            llama_memory_seq_rm(llama_get_memory(h->ctx_dft), 0, n_past, -1);
-
-            if (eos || generated >= n_predict) {
-                break;
-            }
-        }
-
-        if (n_generated != nullptr) {
-            *n_generated = generated;
-        }
-        if (n_drafted != nullptr) {
-            *n_drafted = drafted;
-        }
-        if (n_accepted != nullptr) {
-            *n_accepted = accepted;
-        }
-
-        llama_batch_free(batch);
-        common_sampler_free(smpl);
-
-        char * out = static_cast<char *>(std::malloc(out_text.size() + 1));
-        if (out == nullptr) {
-            return nullptr;
-        }
-        std::memcpy(out, out_text.c_str(), out_text.size() + 1);
-        return out;
+        return h->n_prompt_tokens;
     } catch (...) {
-        if (batch_inited) {
-            llama_batch_free(batch);
+        h->done = true;
+        return -1;
+    }
+}
+
+// Copy a std::string into a fresh malloc'd C string (caller frees). Returns
+// nullptr only on allocation failure.
+static char * ewe_mtp_dup(const std::string & s) {
+    char * out = static_cast<char *>(std::malloc(s.size() + 1));
+    if (out != nullptr) {
+        std::memcpy(out, s.c_str(), s.size() + 1);
+    }
+    return out;
+}
+
+extern "C" int32_t ewe_mtp_step(ewe_mtp * h, char ** out_piece) {
+    if (out_piece != nullptr) {
+        *out_piece = nullptr;
+    }
+    if (h == nullptr || h->smpl == nullptr) {
+        return -1;
+    }
+    if (h->done) {
+        return 0;
+    }
+    try {
+        // Generate the draft for the current position.
+        h->draft.clear();
+        common_speculative_get_draft_params(h->spec, 0) = {
+            /* .drafting = */ true,
+            /* .n_max    = */ h->n_draft_max,
+            /* .n_past   = */ h->n_past,
+            /* .id_last  = */ h->id_last,
+            /* .prompt   = */ &h->prompt_tgt,
+            /* .result   = */ &h->draft,
+        };
+        common_speculative_draft(h->spec);
+        const int n_draft = (int) h->draft.size();
+
+        // Target batch: [id_last, draft0, draft1, ...].
+        common_batch_clear(h->batch);
+        common_batch_add(h->batch, h->id_last, h->n_past++, { 0 }, true);
+        for (int i = 0; i < n_draft; ++i) {
+            common_batch_add(h->batch, h->draft[i], h->n_past + i, { 0 }, true);
         }
-        if (smpl != nullptr) {
-            common_sampler_free(smpl);
+
+        if (llama_decode(h->ctx_tgt, h->batch) != 0) {
+            h->done = true;
+            return -1;
         }
-        return nullptr;
+        if (!common_speculative_process(h->spec, h->batch)) {
+            h->done = true;
+            return -1;
+        }
+
+        std::vector<llama_token> ids =
+            common_sampler_sample_and_accept_n(h->smpl, h->ctx_tgt, h->draft);
+        if (ids.empty()) {
+            h->done = true;
+            return -1;
+        }
+
+        common_speculative_accept(h->spec, 0, (int) ids.size() - 1);
+
+        h->n_past     += (int) ids.size() - 1;
+        h->n_drafted  += n_draft;
+        h->n_accepted += (int) ids.size() - 1;
+
+        std::string piece;
+        for (size_t i = 0; i < ids.size(); ++i) {
+            h->prompt_tgt.push_back(h->id_last);
+            h->id_last = ids[i];
+
+            if (llama_vocab_is_eog(h->vocab, h->id_last)) {
+                h->done = true;
+                break;
+            }
+            piece += common_token_to_piece(h->ctx_tgt, h->id_last);
+            h->n_generated++;
+            if (h->n_generated >= h->n_predict) {
+                h->done = true;
+                break;
+            }
+        }
+
+        // Drop KV entries for any rejected draft tokens.
+        llama_memory_seq_rm(llama_get_memory(h->ctx_tgt), 0, h->n_past, -1);
+        llama_memory_seq_rm(llama_get_memory(h->ctx_dft), 0, h->n_past, -1);
+
+        if (out_piece != nullptr) {
+            *out_piece = ewe_mtp_dup(piece);
+            if (*out_piece == nullptr) {
+                h->done = true;
+                return -1;
+            }
+        }
+
+        return h->done ? 0 : 1;
+    } catch (...) {
+        h->done = true;
+        return -1;
+    }
+}
+
+extern "C" void ewe_mtp_stats(const ewe_mtp * h,
+                              int32_t *       n_prompt_tokens,
+                              int32_t *       n_generated,
+                              int32_t *       n_drafted,
+                              int32_t *       n_accepted) {
+    if (h == nullptr) {
+        return;
+    }
+    if (n_prompt_tokens != nullptr) {
+        *n_prompt_tokens = h->n_prompt_tokens;
+    }
+    if (n_generated != nullptr) {
+        *n_generated = h->n_generated;
+    }
+    if (n_drafted != nullptr) {
+        *n_drafted = h->n_drafted;
+    }
+    if (n_accepted != nullptr) {
+        *n_accepted = h->n_accepted;
     }
 }

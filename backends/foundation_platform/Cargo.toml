@@ -9,7 +9,7 @@ repository.workspace = true
 keywords.workspace = true
 
 [dependencies]
-tauri = { version = "2.0.0", features = [] }
+tauri = { version = "2.11.5", features = [] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 
