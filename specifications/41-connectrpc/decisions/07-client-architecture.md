@@ -41,11 +41,12 @@ Client options select protocol:
 ### Transport Trait
 
 The client transport is **streaming-capable** and lives in `11-transport-seam.md`: it
-exposes `open(request: RequestHead) -> TransportStream` (a bidirectional body exchange the
-protocol's `ClientConn` drives, backed by bounded pipes) plus `capabilities() ->
+exposes `open(request: RequestDescriptor) -> TransportStream` (a bidirectional body exchange
+the protocol's `ClientConn` drives, backed by bounded pipes) plus `capabilities() ->
 TransportCapabilities` so the client can reject incompatible protocol+version combinations
 before sending. Unary is the degenerate case, available as a `round_trip` convenience built
-on `open`:
+on `open`. **All types are existing foundation_netio types** (verified) — no new
+request/response types:
 
 ```rust
 pub trait Transport: Send + Sync + 'static {
@@ -54,21 +55,25 @@ pub trait Transport: Send + Sync + 'static {
     fn capabilities(&self) -> TransportCapabilities;
 
     /// Open a streaming exchange; returns the request sink + response source.
-    fn open(&self, request: RequestHead) -> Result<TransportStream, TransportError>;
+    /// `RequestDescriptor` is netio's existing head-only request (proto/url/headers/method);
+    /// the body flows through the returned `TransportStream` (Decision 11).
+    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
 }
 
 // Unary convenience over `open` (send one, close, read one):
 impl dyn Transport {
-    pub fn round_trip(&self, req: SimpleOutgoingRequest)
-        -> Result<SimpleIncomingResponse, TransportError> { /* open + send + close + read */ }
+    pub fn round_trip(&self, req: PreparedRequest)
+        -> Result<SimpleResponse<SendSafeBody>, TransportError> { /* open + send + close + read */ }
 }
 ```
 
 Implementations: foundation_netio HTTP client (HTTP/1.1 today; HTTP/2/3 via the new
-modules), WASM Fetch (unary + server-streaming only — `Duplex::None`), custom.
-`SimpleOutgoingRequest` / `SimpleIncomingResponse` are the client-side counterparts to the
-server types; reuse or adapt the existing `netcap` types. The streaming client types below
-are realized over `MessageSource` / `MessageSink` (not embedded
+modules), WASM Fetch (unary + server-streaming only — `Duplex::None`), custom. The client
+request/response types are the **existing** netio ones: `PreparedRequest` (out, converts to
+`SimpleIncomingRequest` for rendering) and `SimpleResponse<SendSafeBody>` (in);
+`RequestDescriptor` is the head-only request the streaming seam takes. There is **no**
+`SimpleOutgoingRequest`/`SimpleIncomingResponse` (they don't exist and aren't needed). The
+streaming client types below are realized over `MessageSource` / `MessageSink` (not embedded
 `EnvelopeReader`/`EnvelopeWriter`).
 
 ### Client[Req, Res]
@@ -152,13 +157,13 @@ impl ClientOptions {
 
 ### Unary Call Flow
 
-1. Build `SimpleOutgoingRequest`:
+1. Build a `PreparedRequest`:
    - Method: POST (or GET if idempotent + enabled)
    - URL: `{base_url}/{procedure}`
    - Headers: Content-Type, protocol-specific headers, timeout, compression, custom headers
-   - Body: marshaled + optionally compressed request message
+   - Body: marshaled + optionally compressed request message (`SendSafeBody`)
 2. Apply client interceptor chain (wraps the call function)
-3. `transport.round_trip(request)` → `SimpleIncomingResponse`
+3. `transport.round_trip(request)` → `SimpleResponse<SendSafeBody>`
 4. Check HTTP status:
    - 200: unmarshal response body
    - Non-200: parse error from body (Connect JSON error) or infer from HTTP status
@@ -215,7 +220,7 @@ reader and writer run concurrently (full-duplex). Same types, no API change.
 When `IdempotencyLevel::NoSideEffects` and `with_http_get()` is enabled:
 
 ```rust
-fn build_get_request(&self, request: &Request<Req>) -> Result<SimpleOutgoingRequest, ConnectError> {
+fn build_get_request(&self, request: &Request<Req>) -> Result<PreparedRequest, ConnectError> {
     // GET encodes the message into the query via the stable codec below — no separate marshal.
     let mut query_params = vec![
         format!("encoding={}", self.config.codec.name()),
@@ -306,7 +311,17 @@ folded in:
 
 ## Open Questions
 
-1. **SimpleOutgoingRequest**: foundation_netio's client types need verification. We may need `SimpleOutgoingRequest` (method, url, headers, body) as a new type if the existing client only supports `SimpleIncomingRequest`.
+1. **Client request/response types — resolved (verified in foundation_netio).** No new types:
+   the client builds a **`PreparedRequest`** `{method, url, headers, body: SendSafeBody,
+   extensions}` (which converts to the universal `SimpleIncomingRequest` for rendering) and
+   reads a **`SimpleResponse<SendSafeBody>`** (`send_async`'s return; streaming via
+   `IncomingResponseParts`). The streaming seam's head-only request is netio's existing
+   **`RequestDescriptor`**; the response head is **`SimpleResponse<()>`**. `SimpleOutgoingRequest`
+   / `SimpleIncomingResponse` do **not** exist and are not needed.
 2. **Client streaming body — resolved:** no in-memory accumulation; the request body streams via chunked transfer-encoding over the pushable `SendSafeBody::Stream` (Decision 12 §7).
-3. **Connection reuse**: HTTP/1.1 with keep-alive allows connection reuse across calls. Does foundation_netio's HTTP client handle this, or do we need connection pooling?
+3. **Connection reuse — resolved (verified in foundation_netio):** no new pooling in connectrpc; reuse is split by protocol.
+   - **HTTP/1.1:** foundation_netio's `HttpConnectionPool` (`client/native/pool.rs` + `connection.rs`) already provides keep-alive reuse — per-`host:port` LIFO checkout/checkin of exclusive `SharedByteBufferStream<RawStream>`s, `max_per_host` cap, `max_idle_time` staleness eviction. The client uses it transparently: on response drop the stream is drained and returned to the pool, honoring `Connection: close` (`FinalizedResponse::drop`). The connectrpc client gets this for free through the Decision 11 transport seam.
+   - **HTTP/2 / HTTP/3:** this pool does **not** apply — its exclusive one-request-per-connection ownership model is inherently HTTP/1.1. h2/h3 reuse is multiplexing many concurrent streams over **one shared connection per origin**, owned by the Decision 12 multiplexer (`http2/` / `http3/`); h3 has no `RawStream` to pool at all (QUIC endpoint owns the connection). Not a gap — the standard split (cf. hyper: h1 idle pool vs. shared h2 connection per origin).
+   - **Caveat (h1 streaming):** a long-lived streaming RPC over HTTP/1.1 holds its connection exclusively for the stream's entire lifetime (inherent to h1, not a pool flaw). Heavy h1 streaming workloads need `max_per_host` headroom; truly concurrent streaming belongs on h2.
+   - Netio follow-up (not a connectrpc concern): the pool self-describes as conservative (`Arc<Mutex<…>>`, sync); background cleanup / async-aware primitives are noted for a later phase.
 4. **Bidi over HTTP/1.1 — resolved:** rejected with `505` (capability matching, Decision 11), matching connect-go. Only client/server-streaming are half-duplex on HTTP/1.1.

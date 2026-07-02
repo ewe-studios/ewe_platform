@@ -37,7 +37,7 @@ render-once-at-the-end path; using the ownership `Serve` already grants removes 
 `Http11ResponseIterator` is refactored into a set of smaller **per-part iterators** —
 status line, header block, each body chunk, trailers — that compose back into
 `Http11ResponseIterator`. Add new `Http11` variants that build a response from this
-per-part iterator set, so a streaming handler can:
+per-part iterator set (exact shape resolved in Open Question 1), so a streaming handler can:
 
 1. emit status + headers immediately,
 2. emit envelope-framed body chunks one at a time (flushing per chunk, per #1),
@@ -51,7 +51,8 @@ which part-iterators to compose instead of calling a single fixed renderer.
 ### 3. Trailers as a response part (resolves B3)
 
 Add a **trailers part-iterator** (new `Http11` variant) and a trailers field on
-`SimpleOutgoingResponse`. Each protocol emits trailers through the mechanism it needs,
+`SimpleOutgoingResponse` (plain `SimpleHeaders`, empty by default — Open Question 2).
+Each protocol emits trailers through the mechanism it needs,
 all via the part composition:
 
 | Protocol | Trailer mechanism |
@@ -122,12 +123,14 @@ backends/foundation_netio/src/
 └── netcap/               # shared TCP/TLS/RawStream (used by both)
 ```
 
-`ConnectionHandler` in foundation_http branches after protocol detection (ALPN or h2c
-magic prefix); both paths produce `SimpleIncomingRequest` / consume
-`SimpleOutgoingResponse`. ALPN wiring (rustls `set_protocols(&[b"h2", b"http/1.1"])`) and
-h2c detection are part of this module (closes B7); the `HTTPStreams` factory branches on
-negotiated protocol (closes B8). Estimated 5–8 features, phaseable: (1) frame codec +
-HPACK, (2) server multiplexer, (3) client multiplexer, (4) flow-control tuning.
+`ConnectionHandler` in foundation_http branches after protocol detection — ALPN, h2c
+magic prefix, or `Upgrade: h2c` (all three entry paths, Open Question 4); every path
+produces `SimpleIncomingRequest` / consumes `SimpleOutgoingResponse`. ALPN wiring (rustls
+`set_protocols(&[b"h2", b"http/1.1"])`) and h2c detection/upgrade are part of this module
+(closes B7); the `HTTPStreams` factory branches on negotiated protocol (closes B8).
+Estimated 5–8 features, phaseable: (1) frame codec + HPACK + SETTINGS + flow-control
+arithmetic, (2) server + client multiplexers including the h2c entry paths (one phase —
+Open Questions 3/4), (3) flow-control tuning.
 
 ## Consequences
 
@@ -281,10 +284,78 @@ on — no dependency inversion required.
 
 ## Open Questions
 
-1. Exact public shape of the per-part iterator API and the new `Http11` variants
-   (deferred to the foundation feature spec). Must not regress the existing atomic path.
-2. Is `SimpleOutgoingResponse.trailers` an `Option<SimpleHeaders>` or always present and
-   empty by default?
-3. HTTP/2 multiplexer scope/phasing (server-side first, then client-side) — tracked with
-   B5d's estimate (5–8 features).
-4. h2c (cleartext HTTP/2) support in Phase 2, or TLS-ALPN only first?
+1. **Per-part `Http11` variants — resolved.** Fine-grained parts *and* a combined head:
+   users compose part-by-part or use the convenience variant.
+
+   ```rust
+   pub enum Http11 {
+       // ── existing (unchanged) ──
+       Request(SimpleIncomingRequest),
+       RequestDescriptor(RequestDescriptor),
+       RequestBody(SimpleIncomingRequest),
+       Response(SimpleOutgoingResponse),      // atomic; now composed from the parts below
+
+       // ── new per-part variants ──
+       ResponseStatusLine(Status),            // "HTTP/1.1 200 OK\r\n"
+       ResponseHeaders(SimpleHeaders),        // header block + terminating CRLF
+       ResponseHead(SimpleResponse<()>),      // convenience: status line + header block in one
+       ResponseBodyChunk(Http11Chunk),        // one body chunk
+       ResponseTrailers(SimpleHeaders),       // last-chunk marker + trailer block
+   }
+
+   pub enum Http11Chunk {
+       Chunked(Vec<u8>),  // iterator emits {len:x}\r\n…\r\n framing
+       Raw(Vec<u8>),      // content-length / close-delimited passthrough
+   }
+   ```
+
+   - `ResponseHead` carries **`SimpleResponse<()>`** — the same head type the client seam
+     reads (Decision 07 OQ#1), so head shape is symmetric across client/server. Interim 1xx
+     responses are just `ResponseHead` emitted more than once before the final head.
+   - **Chunked wire framing lives in the part-iterator**, not the protocol: protocols pick
+     `Http11Chunk::Chunked` vs `::Raw`; the `{len:x}\r\n…\r\n` syntax stays in netio (the
+     B5c#3 goal — no protocol hand-rolls HTTP/1.1 wire format).
+   - `ResponseTrailers` emits the `0\r\n` last-chunk marker + trailer block + final CRLF
+     (HTTP/1.1 trailers exist only in chunked mode, so the stream terminator belongs to this
+     part; a raw/no-trailer stream just ends). Connect and gRPC-Web never use it (§3 table);
+     it exists for protocol completeness.
+   - Per-part iterators (`Http11ResponseHeadIterator`, `Http11ChunkIterator`,
+     `Http11TrailersIterator`, …) are the composition units; the existing
+     `Http11ResponseIterator` becomes their composition — the atomic path and its tests are
+     preserved, not regressed.
+2. **`SimpleOutgoingResponse.trailers` — resolved: plain `SimpleHeaders`, empty by default**
+   (matches the `headers` field convention on the same struct). Writers emit the trailer
+   part iff `!trailers.is_empty()`. `Option` was rejected: "no trailers" vs "empty trailers"
+   is wire-indistinguishable in every protocol here (HTTP/1.1 chunked ends `0\r\n\r\n`
+   either way; h2 sends no trailing HEADERS frame when empty; gRPC trailers are never empty
+   — `grpc-status` is mandatory and supplied by the protocol layer), so the extra state
+   encodes a distinction nothing consumes.
+3. **HTTP/2 multiplexer phasing — resolved: server + client multiplexers built in one
+   phase** on top of the shared substrate. Phases: (1) frame codec + HPACK + SETTINGS +
+   flow-control arithmetic (direction-neutral substrate), (2) server **and** client
+   multiplexers together — the client multiplexer conformance-tests against our own server
+   in addition to external peers (grpcurl, connect-go), and gRPC client + server land in the
+   same phase, (3) flow-control tuning; priority tree stays deferred. Tracked with B5d's
+   estimate (5–8 features).
+4. **h2c — resolved: full h2c support, all three HTTP/2 entry paths ship with the `http2/`
+   module.**
+   - **TLS-ALPN:** rustls `set_protocols([b"h2", b"http/1.1"])`; the negotiated protocol
+     decides the branch during the handshake — no application bytes needed.
+   - **h2c prior-knowledge:** on cleartext connections `ConnectionHandler` peeks ≤ 24 bytes
+     via netcap's existing `Connection::peek()`; prefix `PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n`
+     → h2 connection state machine, else → HTTP/1.1 parser undisturbed (`PRI` is not a real
+     HTTP method — no collision). Client side needs no detection: it writes the preface +
+     SETTINGS on a plain socket (`http://` URL + preferred version ≥ h2 via `ClientOptions`
+     / Decision 11 capability matching). This is what `grpcurl -plaintext`, connect-go h2c,
+     and the conformance runner's `TLS: false` matrix speak — the full gRPC test matrix runs
+     cert-free on a bare TCP socket, and the wire is inspectable without TLS keylogging
+     while bringing up the from-scratch frame codec / HPACK / multiplexer.
+   - **`Upgrade: h2c` (RFC 7540 §3.2):** the HTTP/1.1 Upgrade handshake is also supported —
+     client sends `Connection: Upgrade, HTTP2-Settings` + `Upgrade: h2c`; server replies
+     `101 Switching Protocols`, switches to h2 framing, and replays the initiating HTTP/1.1
+     request as **h2 stream 1**, answering it through the multiplexer. Although RFC 9113
+     deprecated this mechanism and modern gRPC/Connect tooling is prior-knowledge-only, we
+     keep full-parity coverage of the h2c surface; the h1→h2 bridge (h1-parsed request
+     entering h2 stream accounting, response rendered by the h2 writer) is part of the
+     server-multiplexer feature. Same limits (SETTINGS, header-list size, flow-control
+     windows) enforced on all three paths.

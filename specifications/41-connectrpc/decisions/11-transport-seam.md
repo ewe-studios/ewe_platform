@@ -56,7 +56,8 @@ chain (see "Facade message-middleware" below).
 
 Boundedness is mandatory — it is what provides backpressure (the analog of `io.Pipe`
 blocking a fast writer when the reader is slow), so a streaming RPC does not buffer an
-entire stream in memory.
+entire stream in memory. Default depth: **4 messages per pipe**, configurable via
+client/server options (see Open Question 1, resolved).
 
 `MessageSink`/`MessageSource` are **internal adapters** over the two queues — not
 user-facing (users write async fns/`Stream`s, Decision 04). They are the typed facade that
@@ -248,20 +249,25 @@ pub trait Transport: Send + Sync + 'static {
 
     /// Open a streaming exchange: returns sinks/sources for the request and response
     /// bodies. Unary is the degenerate case (send one, close, receive one).
-    fn open(&self, request: RequestHead) -> Result<TransportStream, TransportError>;
+    /// `RequestDescriptor` is netio's existing head-only request (proto/url/headers/method);
+    /// the body flows through the returned `TransportStream` (not in the head).
+    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
 }
 
 /// A live transport exchange. The protocol's ClientConn drives these.
 pub struct TransportStream {
     pub send_body: BodySink,                 // bounded; protocol writes envelope frames
-    pub response: Box<dyn FnOnce() -> Result<ResponseHead, TransportError> + Send>,
+    // response head = netio's `SimpleResponse<()>` (status + headers, no body)
+    pub response: Box<dyn FnOnce() -> Result<SimpleResponse<()>, TransportError> + Send>,
     pub recv_body: BodySource,               // bounded; protocol reads envelope frames
 }
 
 /// Convenience: unary round-trip is built on `open` for transports/callers that prefer it.
+/// Uses the existing netio client types — `PreparedRequest` in, `SimpleResponse<SendSafeBody>`
+/// out (no fictional `SimpleOutgoingRequest`/`SimpleIncomingResponse`; verified — Decision 07).
 impl dyn Transport {
-    pub fn round_trip(&self, req: SimpleOutgoingRequest)
-        -> Result<SimpleIncomingResponse, TransportError> { /* open + send + close + read */ }
+    pub fn round_trip(&self, req: PreparedRequest)
+        -> Result<SimpleResponse<SendSafeBody>, TransportError> { /* open + send + close + read */ }
 }
 ```
 
@@ -333,9 +339,17 @@ transport (closes Decision 04 Q4).
 
 ## Open Questions
 
-1. **Pipe depth default.** What bounded capacity for the request/response pipes (message
-   count vs byte budget)? Likely tie to `read_max_bytes`/`send_max_bytes` plus a small
-   message-count bound (e.g. 1–4) to keep latency low.
+1. **Pipe depth default — resolved: message-count bound, default 4, configurable.**
+   The pipes are `ConcurrentQueue::bounded(n)` — valtron bounds by count only, and its
+   `ConcurrentQueueStreamIterator` is polling-based (`max_turns` + `park_duration`), so a
+   depth-1 rendezvous pipe would park-stall on every message. **Default depth 4 per pipe**,
+   overridable via client/server options: it amortizes the polling handoff while keeping
+   in-flight frames tightly bounded. A byte-budget bound was rejected — it needs custom
+   accounting valtron doesn't have, and `read_max_bytes` defaults to unlimited (Decision 06
+   P17/Q7) so it would need its own default anyway; revisit only if profiling demands it.
+   Worst-case in-flight memory ≈ depth × max message size, per direction (unbounded only if
+   the operator leaves `read_max_bytes`/`send_max_bytes` at the connect-go-parity unlimited
+   default — same posture as connect-go, orthogonal to depth).
 2. **Half-duplex detection point — resolved.** On HTTP/1.1 the writer task starts only after
    the reader signals request-complete (client/server-streaming); bidi is rejected up front
    via capability matching (505). That is the exact gating point (connect-go parity).
