@@ -242,6 +242,8 @@ path still does an IPC framing copy.
 /// Client (client). Map: wire name → (Arc<dyn CodecFor<Req>>, Arc<dyn CodecFor<Res>>).
 pub struct ProcedureCodecs<Req, Res> { /* … */ }
 
+**TODO**: should we add a any(Vec<Codec>), so users can supply a list of codec at once ?
+
 impl<Req, Res> ProcedureCodecs<Req, Res> {
     /// The interop default (what codegen emits): proto + json, per the Connect spec —
     /// callable by connect-go / connect-es / curl / browsers. METHOD-LEVEL BOUNDS
@@ -326,9 +328,7 @@ For gRPC/gRPC-Web protocols:
 - **Feature-gated**: `proto` (default), `json` (default), `arrow` (optional)
 - **Proto JSON uses protobuf canonical mapping**: lowerCamelCase field names, string enums, omitted zero values — matching connect-go's `protojson`
 
-## Review-Gap Coverage
-
-Decided items folded in from the review (we own the code; implement directly):
+## Decided Details
 
 - **P1 — JSON charset acceptance:** `application/json; charset=utf-8` is accepted rather
   than 415'd via content-type canonicalization (Decision 05 P6): the `charset` parameter is
@@ -341,9 +341,6 @@ Decided items folded in from the review (we own the code; implement directly):
   global `CodecRegistry` is deleted — see §ProcedureCodecs.)
 - **RS8 — `MarshalAppend`:** `marshal_append(&self, buf: &mut Vec<u8>, m: &M)` is on
   `CodecFor<M>` (see trait section) for pooled-buffer reuse on hot paths.
-- **RS9 — Send/Sync:** moot — with monomorphic codecs there is no erased `MessageRef`/
-  `MessageMut` pair, so no `Send`-only vs `Send+Sync` split to reconcile; the concrete `Req`/
-  `Res` carry their own auto-trait bounds.
 - **RS2 — zero-copy views (supported, via owning views):** a *naked* `buffa::MessageView<'a>`
   can't work under async handlers (not `'static`; can't be held across `.await`). The
   supported form is **`buffa::OwnedView<V>`** — a self-referential `Bytes`+view bundle that
@@ -367,8 +364,6 @@ Decided items folded in from the review (we own the code; implement directly):
   extension under a distinct name) — never silently under `application/json` for protobuf
   services. The codec name on the wire is what selects canonical vs extension behaviour.
 
-## Decided Details
-
 1. **buffa JSON support — resolved (verified).** buffa's `json` feature emits **canonical
    protobuf-JSON** (verified in source: `buffa/Cargo.toml` `json` feature + `DESIGN.md`
    §454–468 + the `conformance/` crate): snake_case→camelCase, `int64`/`uint64`/`sint64` as
@@ -384,4 +379,3 @@ Decided items folded in from the review (we own the code; implement directly):
    caps also govern the WS batch framing: per-envelope `read_max_bytes`/`send_max_bytes`
    apply unchanged inside a batch, and the assembler's `max_message_size` bounds the whole
    WS message (rule recorded in Decision 13 §Framing).
-

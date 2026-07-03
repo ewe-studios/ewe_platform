@@ -342,7 +342,7 @@ pub fn register_greet_service<S: GreetServiceHandler>(router: &mut Router, servi
 - Generated code provides ergonomic service registration
 - Per-procedure options (interceptors, limits, idempotency) supported
 
-## Review-Gap Coverage
+## Decided Details
 
 - **R1 — leading slash (decided):** procedure paths and generated constants include the
   leading slash (`/package.Service/Method`); the router matches the full path standard
@@ -358,8 +358,6 @@ pub fn register_greet_service<S: GreetServiceHandler>(router: &mut Router, servi
   procedure; the router itself holds no codec state (Decision 02).
 - **Q10 — consumption (decided):** `into_handler(self)` consumes and freezes the router;
   no post-build mutation. Documented.
-
-## Decided Details
 
 1. **Path prefix routing (decided):** register the `ConnectRpcHandler` as a **single prefix
    route** in foundation_http and sub-route internally via the `HashMap` (keyed on

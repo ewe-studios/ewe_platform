@@ -426,9 +426,7 @@ only maps its protocol's header names onto that one function. (An earlier duplic
 - Connect + gRPC-Web work on HTTP/1.1; gRPC requires HTTP/2
 - Protocol detection is O(1) from Content-Type header parsing
 
-## Review-Gap Coverage
-
-Behaviours to implement (own the code; folded in from the review):
+## Decided Details
 
 - **P6 — content-type canonicalization:** strip parameters for matching but preserve
   `charset`; `application/json; charset=utf-8` matches `application/json`. Applies to
@@ -458,8 +456,6 @@ Behaviours to implement (own the code; folded in from the review):
 - **T8 — pseudo-headers:** `:method`/`:path`/`:scheme`/`:authority`/`:status` are mapped
   to request/response fields inside the `http2/` module (Decision 12 §6); handlers never
   see them.
-
-## Decided Details
 
 1. **gRPC-Web text mode — decided: Phase 1 (implement).** Support `application/grpc-web-text`
    (whole-body base64) alongside binary gRPC-Web from the start, for maximum browser reach

@@ -146,7 +146,7 @@ arithmetic, (2) server + client multiplexers including the h2c entry paths (one 
 - Satisfies the API Decision 11 requires: the writer task emits one body-chunk part and
   flushes per message; the trailers part carries end-of-stream metadata.
 
-## Review-Gap Coverage
+## Decision (continued: §7–§13)
 
 ### 7. Push-able client request body (resolves B6)
 `SendSafeBody::Stream` wraps an iterator; back it with the 00-F4 pipe primitive

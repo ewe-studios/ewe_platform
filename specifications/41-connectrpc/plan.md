@@ -65,9 +65,11 @@ backends/foundation_connectrpc/          # Runtime library
 ## Resolution Record (Aggregated) & Implementation-Time Tunables
 
 **All design-blocking questions are resolved.** Each decision doc records its resolutions
-inline (the Review-Gap Coverage and **Resolution Records** sections — no doc has an "Open
-Questions" section anymore; anything so titled would be a regression) — the questions that
-used to be listed here (netio HTTP/2 support, buffa canonical
+inline under a single **`## Decided Details`** section (no doc has an "Open Questions" or
+"Review-Gap Coverage" section anymore — anything so titled would be a regression; pure
+pointer/duplicate items were deleted, and every retained item is normative decided
+behaviour with a stable label other docs may cite) — the questions that used to be listed
+here (netio HTTP/2 support, buffa canonical
 JSON, zero-copy views, error details/debug, sync-vs-async handlers, cancellation, bidi,
 gRPC-Web text mode, `google.rpc.Status`, HTTP/1.1 trailers, client types/pooling/streaming
 bodies, prefix routing, middleware ordering, mTLS/introspection/CORS, unified codegen,

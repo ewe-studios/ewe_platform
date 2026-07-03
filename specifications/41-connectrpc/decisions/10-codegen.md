@@ -306,7 +306,7 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 - Idempotency level from proto `option idempotency_level` flows through to handler options
 - The unified generator **learns from** buffa-codegen but emits message types itself (one pass); it does not depend on a separate buffa-codegen invocation
 
-## Review-Gap Coverage
+## Decided Details
 
 - **R1 — leading slash:** generated procedure constants include the leading slash
   (`/package.Service/Method`).

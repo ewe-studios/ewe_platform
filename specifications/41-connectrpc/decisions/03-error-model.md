@@ -367,7 +367,7 @@ impl ErrorWriter {
   type; domain errors are custom contexts mapped in via `From`/`change_context`. errstacks'
   structured JSON is the debug representation — no separate `debug`-field flag.
 
-## Review-Gap Coverage
+## Decided Details
 
 - **P2 / P3 — status mappings:** the `Code → HTTP` and `HTTP → Code` tables are already
   in this doc; implement as `Code::http_status()` / `Code::from_http_status()`. Decision

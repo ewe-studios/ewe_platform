@@ -396,10 +396,7 @@ async fn call_unary_with_get_fallback(
 - Bidi streaming over HTTP/2: full-duplex (requires HTTP/2 transport — Phase 2)
 - HTTP GET support for idempotent RPCs with automatic POST fallback
 
-## Review-Gap Coverage
-
-Transport + streaming client types are superseded by Decision 11. Remaining parity items,
-folded in:
+## Decided Details
 
 - **C1 — simple call variants:** add `call_client_stream_simple` / `call_bidi_stream_simple`
   that send headers immediately and return unwrapped types (simple codegen mode).
@@ -416,8 +413,6 @@ folded in:
 - **T12 — version selection (decided):** `ClientOptions::with_preferred_http_version()`;
   Connect and gRPC-Web prefer the highest available version, gRPC requires ≥ HTTP/2 —
   enforced by Decision 11's capability matching.
-
-## Decided Details
 
 - **Connection reuse — decided (verified in foundation_netio):** no new pooling in connectrpc; reuse is split by protocol.
    - **HTTP/1.1:** foundation_netio's `HttpConnectionPool` (`client/native/pool.rs` + `connection.rs`) already provides keep-alive reuse — per-`host:port` LIFO checkout/checkin of exclusive `SharedByteBufferStream<RawStream>`s, `max_per_host` cap, `max_idle_time` staleness eviction. The client uses it transparently: on response drop the stream is drained and returned to the pool, honoring `Connection: close` (`FinalizedResponse::drop`). The connectrpc client gets this for free through the Decision 11 transport seam.

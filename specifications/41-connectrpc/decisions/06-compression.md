@@ -274,7 +274,7 @@ revisit size classes only if profiling demands it.
 - Size-limited decompression prevents compression bomb DoS
 - Buffer pool reduces GC/allocation pressure
 
-## Review-Gap Coverage
+## Decided Details
 
 - **P17 / Q7 — `read_max_bytes` default (decided):** default to **unlimited (0)** to match
   connect-go; the 4 MiB cap becomes opt-in. We own the new http2 layer, so nothing forces

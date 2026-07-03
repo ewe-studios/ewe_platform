@@ -395,7 +395,7 @@ impl Interceptor for AuthzInterceptor {
   gives declarative, centrally-managed per-procedure authz; `has_scope` remains the simple
   fast path for basic scope gates.
 
-## Review-Gap Coverage
+## Decided Details
 
 **Q9 decision:** fix the small mismatches **upstream in foundation_auth** and reuse them;
 bridge only where a sync/async boundary genuinely forces it (R13).

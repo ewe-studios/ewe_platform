@@ -500,8 +500,6 @@ already in the body above):
 
 - **RS4 — panic recovery:** wrap handler invocation in `AssertUnwindSafe`; treat the
   connection as poisoned after a caught panic.
-- **RS5 / RS9 — moot:** `AnyRequest` / `AnyResponse` are removed (byte+metadata seam), so
-  the sealed-`Any` and `Any` `Send`/`Sync` concerns no longer apply.
 - **H4 — unary cardinality:** receive exactly one message; zero or more than one →
   `unimplemented`.
 - **H14 — `Spec.schema`:** add an optional schema/descriptor handle for interceptors and
@@ -510,9 +508,6 @@ already in the body above):
 - **H16 — `Request::http_method()`:** expose GET vs POST.
 - **H18 / H19 — recover/thunk asymmetry:** `RecoverInterceptor` wraps unary +
   streaming-handler only (never streaming-client); the thunk sentinel is client-side only.
-- **Q3 — moot:** there is no `AnyRequest`/`any_ref()` boundary anymore; the seam is bytes,
-  the typed message lives only in the facade. (Was: "does `any_ref` return `&T` or
-  `&Request<T>`" — no longer applicable.)
 - **Q13 — connection metadata (decided): typed `ConnectionContext`.** Introduce a typed
   `ConnectionContext` for connection-scoped state — peer identity (incl. the iroh Ed25519
   public key, carried via netcap `Endpoint<I>`), TLS/mTLS peer certificate, negotiated

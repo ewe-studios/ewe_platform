@@ -62,7 +62,7 @@ gRPC protocol requires HTTP/2. Current foundation_netio supports HTTP/1.1 native
 
 ### WASM Compatibility
 
-The core protocol logic (codec, compression, envelope framing, error types, interceptors) must compile to `wasm32-unknown-unknown`. Transport-specific code (TCP sockets, TLS, HTTP/2 frames) is `#[cfg(not(target_arch = "wasm32"))]` gated. WASM clients use browser Fetch API via foundation_wasm bridges.
+The core protocol logic (codec, compression, envelope framing, error types, interceptors) must compile to `wasm32-unknown-unknown`. Transport-specific code (TCP sockets, TLS, HTTP/2 frames) is `#[cfg(not(target_arch = "wasm32"))]` gated. WASM clients use browser Fetch API via foundation_wasm and wasm-bindgen bridges (we build each and feature gate them).
 
 ## Consequences
 
@@ -73,7 +73,7 @@ The core protocol logic (codec, compression, envelope framing, error types, inte
 - Valtron executor handles concurrent stream processing for bidi RPCs
 - WASM client support is possible because core protocol logic has no OS dependencies
 
-## Review-Gap Coverage
+## Decided Details
 
 - **T1 — multi-version mapping (decided):** the connect-go → foundation type mapping in
   this doc is HTTP-version-agnostic. Every transport module (`simple_http/`, `http2/`,
