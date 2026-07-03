@@ -1,5 +1,7 @@
 # Decision 10: Code Generation
 
+**TODO**: I would also like to add the capability to generate a service and client definition from a trait with the only requirement that the inputs structs and outputs must all support ToArrow/FromArrow and/or serde or buffer serializaiton for json since protobuf requires the protobuf definition, this flexibility allows users decide if they want a protobuf or code driven definition, our macro does not care, it generates the needed code as necessary. This is really nice because i can have a crate that just defines my service traits and generate the actual implementation modules for them in another module if we want. I wonder if we can even support importing other service trait definitions and generating for them in a new crate - if not directly - maybe by adding a declaration on a empty struct or module (as I am not sure rust allows us define a macro without it being on a struct, module or function) but lets explore.
+
 ## Context
 
 connect-go generates service stubs as part of a protoc plugin (`protoc-gen-connect-go`). For each service in a `.proto` file, it generates:
@@ -33,6 +35,8 @@ We need to generate ConnectRPC service stubs that:
 
 #### Mode 1: build.rs (Recommended)
 
+**Yes add**
+
 ```rust
 // build.rs — calls the foundation_macros generator via the foundation_netio build helper API
 fn main() {
@@ -48,6 +52,9 @@ Produces message types **and** ConnectRPC service stubs in one output — a sing
 call, no separate buffa step.
 
 #### Mode 2: protoc plugin
+
+**Yes add**
+
 
 ```sh
 protoc --connect-ewe_out=. --plugin=protoc-gen-connect-ewe service.proto
