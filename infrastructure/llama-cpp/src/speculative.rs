@@ -19,6 +19,7 @@
 
 use std::ffi::{CStr, CString};
 use std::path::Path;
+use std::sync::Arc;
 
 use crate::model::LlamaModel;
 
@@ -109,9 +110,12 @@ pub enum MtpError {
     /// A string argument contained a NUL byte.
     #[error("{0}")]
     NulError(#[from] std::ffi::NulError),
-    /// The shim could not initialize (draft load / context creation / MTP init
-    /// failed, or the target context does not support the required operations).
-    #[error("failed to initialize MTP speculative engine (draft load, context, or MTP init failed)")]
+    /// The draft (MTP head) GGUF failed to load.
+    #[error("failed to load the MTP draft model GGUF")]
+    ModelLoadFailed,
+    /// The engine could not initialize (context creation or MTP init failed, or
+    /// the target context does not support the required operations).
+    #[error("failed to initialize MTP speculative engine (context or MTP init failed)")]
     InitFailed,
     /// `begin` failed (bad prompt, decode error, or a caught C++ exception).
     #[error("failed to begin MTP generation (bad prompt or decode error)")]
@@ -124,38 +128,80 @@ pub enum MtpError {
     Utf8(#[from] std::str::Utf8Error),
 }
 
-/// RAII handle to a reusable MTP speculative engine.
-pub struct LlamaMtp {
-    handle: *mut infrastructure_llama_bindings::ewe_mtp,
+/// The loaded draft (MTP head) model — immutable weights, shareable read-only
+/// across many engines.
+///
+/// WHY: loading the draft GGUF (~100 MB) is the expensive part of MTP; the
+/// contexts are cheap. Load this once and share it (via `Arc`) so every
+/// concurrent generation builds its own [`LlamaMtp`] engine from the same
+/// weights without reloading — the same way a single target [`LlamaModel`]
+/// backs many contexts.
+pub struct LlamaMtpModel {
+    handle: *mut infrastructure_llama_bindings::ewe_mtp_model,
 }
 
-// SAFETY: the handle owns its own contexts; callers wrap it in a mutex (as the
-// llama.cpp backend does) so it is never used from two threads at once. The
-// underlying llama.cpp pointers are not otherwise shared.
+// SAFETY: the draft model is immutable after load; `ewe_mtp_init` only reads it
+// to create contexts (never mutates it), so it is safe to share across threads.
+unsafe impl Send for LlamaMtpModel {}
+unsafe impl Sync for LlamaMtpModel {}
+
+impl LlamaMtpModel {
+    /// Load the draft (MTP head) GGUF at `draft_path`.
+    ///
+    /// # Errors
+    /// Returns [`MtpError::ModelLoadFailed`] if the GGUF cannot be loaded.
+    pub fn load(draft_path: &Path) -> Result<Self, MtpError> {
+        let draft = CString::new(draft_path.to_string_lossy().as_bytes())?;
+        let handle = unsafe { infrastructure_llama_bindings::ewe_mtp_model_load(draft.as_ptr()) };
+        if handle.is_null() {
+            return Err(MtpError::ModelLoadFailed);
+        }
+        Ok(Self { handle })
+    }
+}
+
+impl Drop for LlamaMtpModel {
+    fn drop(&mut self) {
+        unsafe { infrastructure_llama_bindings::ewe_mtp_model_free(self.handle) };
+    }
+}
+
+/// RAII handle to a per-generation MTP speculative engine (contexts +
+/// speculator). Build a fresh one per `generate()`/`stream()`; two concurrent
+/// generations use two independent engines.
+pub struct LlamaMtp {
+    handle: *mut infrastructure_llama_bindings::ewe_mtp,
+    /// Keeps the shared draft model alive for the engine's lifetime. Dropped
+    /// after `handle` (see `Drop`), so contexts are freed before the model.
+    _draft: Arc<LlamaMtpModel>,
+}
+
+// SAFETY: the handle owns its own contexts; callers wrap it in a mutex / use it
+// from one thread at a time. The shared draft model is read-only.
 unsafe impl Send for LlamaMtp {}
 
 impl LlamaMtp {
-    /// Build a reusable MTP engine over `target` using the MTP head GGUF at
-    /// `draft_path`. `n_draft_max` is the max draft tokens proposed per step.
+    /// Build a fresh MTP engine over the shared `target` and `draft` models.
+    /// `n_draft_max` is the max draft tokens proposed per step.
     ///
-    /// This is the expensive step (loads the draft model, creates two contexts);
-    /// keep the returned engine and reuse it across generations.
+    /// Cheap: creates the two contexts + speculator from already-loaded weights.
+    /// The `draft` `Arc` is held for the engine's lifetime so the model outlives
+    /// the contexts that reference it.
     ///
     /// # Errors
-    /// Returns [`MtpError::InitFailed`] if the shim cannot initialize.
+    /// Returns [`MtpError::InitFailed`] if the engine cannot initialize.
     pub fn new(
         target: &LlamaModel,
-        draft_path: &Path,
+        draft: Arc<LlamaMtpModel>,
         n_ctx: u32,
         n_batch: u32,
         n_threads: i32,
         n_draft_max: i32,
     ) -> Result<Self, MtpError> {
-        let draft = CString::new(draft_path.to_string_lossy().as_bytes())?;
         let handle = unsafe {
             infrastructure_llama_bindings::ewe_mtp_init(
                 target.model.as_ptr(),
-                draft.as_ptr(),
+                draft.handle,
                 n_ctx,
                 n_batch,
                 n_threads,
@@ -165,7 +211,10 @@ impl LlamaMtp {
         if handle.is_null() {
             return Err(MtpError::InitFailed);
         }
-        Ok(Self { handle })
+        Ok(Self {
+            handle,
+            _draft: draft,
+        })
     }
 
     /// Begin a new generation for a (chat-templated) `prompt`, up to `n_predict`

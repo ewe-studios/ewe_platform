@@ -130,16 +130,46 @@ Two hard constraints shape the design:
     engine one `step()` per poll (`mtp_stream_next` + `MtpStreamState`), yielding
     committed pieces. Verified: `tests/harness/integrations/mtp_generate.rs::
     test_mtp_stream_gemma4_e2b` → `MTP stream collected: "Hello!"`.
-  * **Engine caching (was: reload per call):** the engine is cached in
-    `LlamaModelsInner.mtp: Arc<Mutex<Option<LlamaMtp>>>`, lazily built on first
-    MTP `generate()` and reused — no per-call draft reload. (Streams own their
-    own engine for exclusive access over the stream's lifetime.)
   * **No wasted ctx (was: standard ctx built then discarded):** the MTP dispatch
     moved into `Model::generate` BEFORE the standard `ctx`/`sampler` are built;
     they are created only on the standard/fallback path. `generate_text` is now
     the standard-only decode.
   * Note: the capability gate still validates a separate `mtp_model` lazily (a
     bad head surfaces at generate time → G5 fallback) — intentional, not a bug.
+
+- **Concurrency redesign — share the draft MODEL, build the ENGINE per call
+  (REPLACES the single-cached-engine approach):** a single cached `LlamaMtp`
+  engine holds mutable per-generation state (target+draft KV, sampler, loop
+  position) and therefore CANNOT be shared by two concurrent generations. The
+  first design cached one engine and either (a) held its mutex for the whole
+  `generate()` (serializing all MTP calls) or (b) let a stream "check it out"
+  (so the next stream found the slot empty). Both are wrong for concurrent use,
+  which we want everywhere (locally too — multiple requests can run at once).
+
+  Insight: the expensive, immutable part is the **draft model weights** (~98 MB),
+  which are read-only and safely shareable across many contexts; the
+  **contexts + speculator** are mutable but cheap (the standard path already
+  builds a `llama_context` per call). So:
+  * Cache the **draft model** once: `LlamaModelsInner.mtp_model:
+    Arc<Mutex<Option<Arc<LlamaMtpModel>>>>` (lazily loaded, shared read-only).
+  * Build a **fresh `LlamaMtp` engine per `generate()`/`stream()` call** from
+    the shared target + draft models. No lock held during generation → full
+    concurrency, no starvation; `generate()` and `stream()` become consistent.
+  * Confirmed safe: `llama_init_from_model` only READS the model and allocates
+    per-context buffers — same pattern we already use for the shared target
+    model across concurrent `generate()` calls.
+
+  Shim split: new `ewe_mtp_model` opaque type + `ewe_mtp_model_load` /
+  `ewe_mtp_model_free`; `ewe_mtp_init` takes a pre-loaded `ewe_mtp_model*`
+  (creates only ctx_tgt/ctx_dft/spec/batch) and `ewe_mtp_free` no longer frees
+  the model. Rust: `LlamaMtpModel` (RAII, `Send + Sync`); `LlamaMtp::new` takes
+  `Arc<LlamaMtpModel>` and holds it so the model outlives the engine.
+
+  NOTE (scope): even with a shared model, `begin()` clears the KV cache and
+  re-decodes the whole prompt every call — caching the model saves only the
+  draft load + context alloc, NOT prompt re-decode. Reusing KV/prefix across
+  turns (prefix caching) is a separate optimization that trades AGAINST
+  concurrency (KV reuse binds an engine to one conversation) — deferred.
 
 ## Non-Goals
 

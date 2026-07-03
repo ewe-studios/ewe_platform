@@ -19,7 +19,7 @@ use infrastructure_llama_cpp::model::{
     AddBos, LlamaChatMessage, LlamaChatTemplate, LlamaModel, Special,
 };
 use infrastructure_llama_cpp::sampling::LlamaSampler;
-use infrastructure_llama_cpp::speculative::{LlamaMtp, MtpSampling};
+use infrastructure_llama_cpp::speculative::{LlamaMtp, LlamaMtpModel, MtpSampling};
 use infrastructure_llama_cpp::token::LlamaToken;
 
 use foundation_compact::SystemTime;
@@ -336,11 +336,13 @@ struct LlamaModelsInner {
     /// speculative (MTP) config plus context sizing used to build the MTP
     /// generator. Validated at model creation.
     config: LlamaBackendConfig,
-    /// Cached MTP speculative engine, lazily built on the first MTP-backed
-    /// `generate()` and reused across calls (avoids reloading the ~100 MB draft
-    /// GGUF and recreating contexts every call). `None` until first use; only
-    /// ever populated when `config.speculative` selects MTP with a head path.
-    mtp: Arc<Mutex<Option<LlamaMtp>>>,
+    /// Cached MTP draft **model** (the ~100 MB head weights), lazily loaded on
+    /// the first MTP-backed `generate()`/`stream()` and shared read-only across
+    /// all subsequent calls. Each generation builds its own cheap engine
+    /// (contexts + speculator) from this shared model, so concurrent generations
+    /// never contend. `None` until first use; only populated when
+    /// `config.speculative` selects MTP with a head path.
+    mtp_model: Arc<Mutex<Option<Arc<LlamaMtpModel>>>>,
 }
 
 /// `llama.cpp` model wrapper implementing the `Model` trait.
@@ -383,7 +385,7 @@ impl LlamaModels {
                 pricing: ModelUsageCosting::default(),
                 cumulative_cost: CostAccumulator::new(),
                 config,
-                mtp: Arc::new(Mutex::new(None)),
+                mtp_model: Arc::new(Mutex::new(None)),
             })),
         }
     }
@@ -443,16 +445,16 @@ impl Model for LlamaModels {
         let backend = LlamaBackend::init_or_get().map_err(Into::<GenerationError>::into)?;
 
         // Get model, spec, context params, the full backend config (carries any
-        // opt-in speculative/MTP setup + runtime sizing), and the cached MTP
-        // engine slot.
-        let (model, spec, ctx_params, backend_config, mtp_slot) = {
+        // opt-in speculative/MTP setup + runtime sizing), and the shared MTP
+        // draft-model cache slot.
+        let (model, spec, ctx_params, backend_config, mtp_model_slot) = {
             let inner = self.inner.lock().unwrap();
             (
                 Arc::clone(&inner.model),
                 inner.spec.clone(),
                 inner.context.clone(),
                 inner.config.clone(),
-                Arc::clone(&inner.mtp),
+                Arc::clone(&inner.mtp_model),
             )
         };
 
@@ -482,7 +484,7 @@ impl Model for LlamaModels {
         if let Some(spec_cfg) = &backend_config.speculative {
             if let (SpeculativeKind::Mtp, Some(mtp_path)) = (spec_cfg.kind, &spec_cfg.mtp_model) {
                 match run_mtp_generation(
-                    &mtp_slot,
+                    &mtp_model_slot,
                     &model,
                     &prompt,
                     &params,
@@ -1205,9 +1207,13 @@ fn build_mtp_stream_state(
     params: &ModelParams,
     n_predict: i32,
 ) -> Option<MtpStreamState> {
-    let (model_arc, config) = {
+    let (model_arc, config, mtp_model_slot) = {
         let inner = model.inner.lock().unwrap();
-        (Arc::clone(&inner.model), inner.config.clone())
+        (
+            Arc::clone(&inner.model),
+            inner.config.clone(),
+            Arc::clone(&inner.mtp_model),
+        )
     };
 
     let spec_cfg = config.speculative.as_ref()?;
@@ -1229,14 +1235,16 @@ fn build_mtp_stream_state(
         }
     };
 
-    let engine = match LlamaMtp::new(
-        &model_arc,
-        mtp_path,
-        config.context_length as u32,
-        config.batch_size as u32,
-        config.n_threads as i32,
-        spec_cfg.n_max as i32,
-    ) {
+    // Load the shared draft model once, then build this stream's own engine from
+    // it (independent contexts — concurrent streams never contend).
+    let draft_model = match get_or_load_mtp_model(&mtp_model_slot, mtp_path) {
+        Ok(m) => m,
+        Err(err) => {
+            tracing::warn!(error = %err, "MTP stream: draft model load failed — using standard streaming");
+            return None;
+        }
+    };
+    let engine = match build_mtp_engine(&model_arc, draft_model, &config, spec_cfg) {
         Ok(engine) => engine,
         Err(err) => {
             tracing::warn!(error = %err, "MTP stream: engine init failed — using standard streaming");
@@ -1251,6 +1259,43 @@ fn build_mtp_stream_state(
         n_predict,
         started: false,
     })
+}
+
+/// Load-once, share the MTP draft model weights.
+///
+/// The slot lock is held only during the one-time load; afterward callers get a
+/// cheap `Arc` clone. Concurrent first callers block on the single load rather
+/// than each loading the ~100 MB GGUF independently.
+fn get_or_load_mtp_model(
+    slot: &Arc<Mutex<Option<Arc<LlamaMtpModel>>>>,
+    mtp_path: &std::path::Path,
+) -> Result<Arc<LlamaMtpModel>, infrastructure_llama_cpp::speculative::MtpError> {
+    let mut guard = slot.lock().unwrap();
+    if let Some(model) = guard.as_ref() {
+        return Ok(Arc::clone(model));
+    }
+    let model = Arc::new(LlamaMtpModel::load(mtp_path)?);
+    *guard = Some(Arc::clone(&model));
+    Ok(model)
+}
+
+/// Build a fresh per-generation MTP engine (contexts + speculator) from the
+/// shared target + draft models — cheap, and independent from any other engine.
+#[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss, clippy::cast_possible_wrap)]
+fn build_mtp_engine(
+    model: &LlamaModel,
+    draft_model: Arc<LlamaMtpModel>,
+    backend_config: &LlamaBackendConfig,
+    spec_cfg: &SpeculativeConfig,
+) -> Result<LlamaMtp, infrastructure_llama_cpp::speculative::MtpError> {
+    LlamaMtp::new(
+        model,
+        draft_model,
+        backend_config.context_length as u32,
+        backend_config.batch_size as u32,
+        backend_config.n_threads as i32,
+        spec_cfg.n_max as i32,
+    )
 }
 
 /// Run MTP speculative generation through the C++ shim wrapper.
@@ -1274,7 +1319,7 @@ fn build_mtp_stream_state(
     clippy::cast_precision_loss
 )]
 fn run_mtp_generation(
-    mtp_slot: &Arc<Mutex<Option<LlamaMtp>>>,
+    mtp_model_slot: &Arc<Mutex<Option<Arc<LlamaMtpModel>>>>,
     model: &LlamaModel,
     prompt: &str,
     params: &ModelParams,
@@ -1285,21 +1330,15 @@ fn run_mtp_generation(
     let sampling = mtp_sampling_from_params(params);
     let n_predict = params.max_tokens as i32;
 
-    // Reuse the cached engine, building it once on first use (the expensive
-    // draft-model load + context creation happens only here).
-    let mut guard = mtp_slot.lock().unwrap();
-    if guard.is_none() {
-        let n_ctx = backend_config.context_length as u32;
-        let n_batch = backend_config.batch_size as u32;
-        let n_threads = backend_config.n_threads as i32;
-        let n_draft_max = spec_cfg.n_max as i32;
-        let engine = LlamaMtp::new(model, mtp_path, n_ctx, n_batch, n_threads, n_draft_max)
-            .map_err(|e| GenerationError::Generic(format!("MTP init failed: {e}")))?;
-        *guard = Some(engine);
-    }
-    let mtp = guard.as_ref().expect("MTP engine just built");
+    // Load the draft model once (shared read-only), then build a FRESH engine
+    // for this generation — no lock is held during generation, so concurrent
+    // generations proceed on independent engines.
+    let draft_model = get_or_load_mtp_model(mtp_model_slot, mtp_path)
+        .map_err(|e| GenerationError::Generic(format!("MTP model load failed: {e}")))?;
+    let engine = build_mtp_engine(model, draft_model, backend_config, spec_cfg)
+        .map_err(|e| GenerationError::Generic(format!("MTP init failed: {e}")))?;
 
-    let generation = mtp
+    let generation = engine
         .generate(prompt, n_predict, sampling)
         .map_err(|e| GenerationError::Generic(format!("MTP generate failed: {e}")))?;
 

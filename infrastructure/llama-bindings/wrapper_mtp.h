@@ -7,15 +7,25 @@
 // examples/speculative-simple + the server's MTP path) behind a small
 // `extern "C"` surface. The implementation lives in wrapper_mtp.cpp.
 //
-// The generator is STEP-DRIVEN: `ewe_mtp_init` builds the reusable engine (the
-// two contexts + speculator — the expensive part) ONCE; `ewe_mtp_begin` starts
-// a generation (resetting KV cache + sampler); `ewe_mtp_step` advances one
-// speculative step and yields the committed text. This lets a caller reuse one
-// engine across many generations (no per-call draft reload) and stream token
-// pieces as they are produced.
+// Two-level design, split for concurrency:
+//
+//   * `ewe_mtp_model` — the loaded draft (MTP head) GGUF weights. IMMUTABLE and
+//     expensive (~100 MB); load it ONCE with `ewe_mtp_model_load` and share it
+//     read-only across every engine. Free with `ewe_mtp_model_free`.
+//
+//   * `ewe_mtp` — a per-generation ENGINE: a target context, an MTP draft
+//     context, the speculator, and a sampler. Cheap to build; create a FRESH
+//     one per `generate()`/`stream()` from a shared target model + a shared
+//     `ewe_mtp_model`. Two concurrent generations use two independent engines
+//     (they must — each holds mutable KV state).
+//
+// The engine is STEP-DRIVEN: `ewe_mtp_init` builds it; `ewe_mtp_begin` starts a
+// generation (resetting KV cache + sampler); `ewe_mtp_step` advances one
+// speculative step and yields the committed text.
 //
 // The MTP head is a SEPARATE draft GGUF (e.g. `mtp-gemma-4-E2B-it.gguf`, arch
-// Gemma4Assistant) that shares the target model's KV cache.
+// Gemma4Assistant) that shares the target model's KV cache. The `ewe_mtp_model`
+// must outlive every engine created from it.
 
 #pragma once
 
@@ -29,8 +39,12 @@ extern "C" {
 
 struct llama_model;
 
-// Opaque MTP speculative generator: owns a target context, an MTP draft
-// context, and the speculator (all reusable across generations).
+// Opaque loaded draft (MTP head) model — immutable, shareable across engines.
+typedef struct ewe_mtp_model ewe_mtp_model;
+
+// Opaque MTP speculative ENGINE: a target context, an MTP draft context, and
+// the speculator. Built fresh per generation; NOT shareable across concurrent
+// generations.
 typedef struct ewe_mtp ewe_mtp;
 
 // Sampling parameters for the target model (kept minimal + stable across FFI).
@@ -42,21 +56,29 @@ typedef struct ewe_mtp_sampling {
     uint32_t seed;
 } ewe_mtp_sampling;
 
-// Create an MTP speculative engine over an already-loaded target model plus a
-// draft (MTP head) GGUF at `draft_path`. `n_draft_max` is the max draft tokens
-// proposed per step. Reusable across many `ewe_mtp_begin`/`ewe_mtp_step`
-// generations.
+// Load the draft (MTP head) GGUF at `draft_path`. Returns NULL on failure. The
+// result is immutable and may be shared across many `ewe_mtp_init` engines
+// concurrently; it must outlive them all.
+ewe_mtp_model * ewe_mtp_model_load(const char * draft_path);
+
+// Free a draft model from `ewe_mtp_model_load`. NULL-safe. Must not be called
+// while any engine created from it is still alive.
+void ewe_mtp_model_free(ewe_mtp_model * model);
+
+// Create a per-generation MTP engine over an already-loaded target model plus a
+// shared, already-loaded draft model. `n_draft_max` is the max draft tokens
+// proposed per step. Build a fresh engine per generation.
 //
-// Returns NULL on failure (draft load failed, context creation failed, or MTP
-// init failed).
+// Returns NULL on failure (context creation or MTP init failed). Does NOT take
+// ownership of either model.
 ewe_mtp * ewe_mtp_init(const struct llama_model * target_model,
-                       const char *               draft_path,
+                       const ewe_mtp_model *      draft_model,
                        uint32_t                   n_ctx,
                        uint32_t                   n_batch,
                        int32_t                    n_threads,
                        int32_t                    n_draft_max);
 
-// Free an engine from `ewe_mtp_init`. NULL-safe.
+// Free an engine from `ewe_mtp_init`. NULL-safe. Does not free the draft model.
 void ewe_mtp_free(ewe_mtp * h);
 
 // Begin a new generation for `prompt` (a NUL-terminated, already chat-templated

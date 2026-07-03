@@ -194,3 +194,65 @@ fn test_mtp_stream_gemma4_e2b() {
     );
     println!("MTP stream collected: {collected:?}");
 }
+
+/// Concurrency proof: two MTP generations run **at the same time** on one shared
+/// model — the draft model is loaded once and shared read-only, while each
+/// generation builds its own independent engine (contexts + speculator). If the
+/// design regressed to a single shared engine, this would deadlock or corrupt.
+#[valtron_test]
+#[traced_test]
+fn test_mtp_concurrent_generations_share_model() {
+    let Some((target_path, draft_path)) = gemma_paths() else {
+        eprintln!("skipping MTP concurrency test: cached Gemma 4 E2B or MTP head not found");
+        return;
+    };
+
+    let config = LlamaBackendConfig::builder()
+        .context_length(2048)
+        .batch_size(512)
+        .mtp(Some(draft_path), 4)
+        .build();
+    let spec = ModelSpec {
+        name: "gemma-4-E2B-it-Q4_K_M".to_string(),
+        id: ModelId::Name("gemma-4-E2B-it".to_string(), None),
+        devices: None,
+        model_location: Some(target_path.to_string_lossy().to_string().into()),
+        lora_location: None,
+    };
+
+    // One model instance; clones share the inner Arc (and the draft-model cache).
+    let model = LlamaBackends::LLamaCPU
+        .load_model(spec, &config)
+        .expect("Gemma 4 E2B + MTP head should load");
+
+    let handles: Vec<_> = (0..2)
+        .map(|i| {
+            let m = model.clone();
+            std::thread::spawn(move || {
+                let params = ModelParams {
+                    max_tokens: 16,
+                    ..ModelParams::default()
+                };
+                let out = m
+                    .generate(hello_interaction(), Some(params))
+                    .unwrap_or_else(|e| panic!("concurrent MTP generation {i} failed: {e}"));
+                let text = out.iter().find_map(|msg| match msg {
+                    Messages::Assistant {
+                        content: ModelOutput::Text(TextContent { content, .. }),
+                        ..
+                    } => Some(content.clone()),
+                    _ => None,
+                });
+                assert!(
+                    text.as_deref().map(str::trim).is_some_and(|t| !t.is_empty()),
+                    "concurrent MTP generation {i} yielded empty text"
+                );
+            })
+        })
+        .collect();
+
+    for h in handles {
+        h.join().expect("concurrent MTP generation thread panicked");
+    }
+    println!("MTP concurrency: 2 generations completed on one shared model");
+}

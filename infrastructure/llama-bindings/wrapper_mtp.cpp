@@ -26,10 +26,45 @@
 #include <string>
 #include <vector>
 
+// Loaded draft (MTP head) model — immutable weights, shared read-only across
+// engines. Owns the llama_model and frees it in ewe_mtp_model_free.
+struct ewe_mtp_model {
+    llama_model * model = nullptr;
+};
+
+extern "C" ewe_mtp_model * ewe_mtp_model_load(const char * draft_path) {
+    if (draft_path == nullptr) {
+        return nullptr;
+    }
+    try {
+        llama_model_params mparams = llama_model_default_params();
+        llama_model * model        = llama_model_load_from_file(draft_path, mparams);
+        if (model == nullptr) {
+            return nullptr;
+        }
+        auto * h  = new ewe_mtp_model();
+        h->model  = model;
+        return h;
+    } catch (...) {
+        return nullptr;
+    }
+}
+
+extern "C" void ewe_mtp_model_free(ewe_mtp_model * model) {
+    if (model == nullptr) {
+        return;
+    }
+    if (model->model != nullptr) {
+        llama_model_free(model->model);
+    }
+    delete model;
+}
+
 struct ewe_mtp {
-    // Reusable engine state (built once).
+    // Per-generation engine state. The draft MODEL is NOT owned here (it is a
+    // shared ewe_mtp_model owned by the caller); only the contexts + speculator
+    // + batch belong to this engine.
     const llama_model * model_tgt = nullptr;
-    llama_model *       model_dft = nullptr;
     llama_context *     ctx_tgt   = nullptr;
     llama_context *     ctx_dft   = nullptr;
     common_speculative * spec     = nullptr;
@@ -73,21 +108,19 @@ static void ewe_mtp_reset_generation(ewe_mtp * h) {
     h->done            = true;
 }
 
-extern "C" ewe_mtp * ewe_mtp_init(const llama_model * target_model,
-                                  const char *        draft_path,
-                                  uint32_t            n_ctx,
-                                  uint32_t            n_batch,
-                                  int32_t             n_threads,
-                                  int32_t             n_draft_max) {
-    if (target_model == nullptr || draft_path == nullptr) {
+extern "C" ewe_mtp * ewe_mtp_init(const llama_model *   target_model,
+                                  const ewe_mtp_model * draft_model,
+                                  uint32_t              n_ctx,
+                                  uint32_t              n_batch,
+                                  int32_t               n_threads,
+                                  int32_t               n_draft_max) {
+    if (target_model == nullptr || draft_model == nullptr || draft_model->model == nullptr) {
         return nullptr;
     }
     try {
-        llama_model_params mparams = llama_model_default_params();
-        llama_model * model_dft    = llama_model_load_from_file(draft_path, mparams);
-        if (model_dft == nullptr) {
-            return nullptr;
-        }
+        // The draft model is shared + owned by the caller — reference it, never
+        // load or free it here.
+        llama_model * model_dft = draft_model->model;
 
         // Target context. MTP needs recurrent-state snapshots on the target for
         // draft rollback (n_rs_seq = n_max).
@@ -101,7 +134,6 @@ extern "C" ewe_mtp * ewe_mtp_init(const llama_model * target_model,
         llama_context * ctx_tgt =
             llama_init_from_model(const_cast<llama_model *>(target_model), cparams_tgt);
         if (ctx_tgt == nullptr) {
-            llama_model_free(model_dft);
             return nullptr;
         }
 
@@ -118,13 +150,11 @@ extern "C" ewe_mtp * ewe_mtp_init(const llama_model * target_model,
         llama_context * ctx_dft = llama_init_from_model(model_dft, cparams_dft);
         if (ctx_dft == nullptr) {
             llama_free(ctx_tgt);
-            llama_model_free(model_dft);
             return nullptr;
         }
 
         auto * h       = new ewe_mtp();
         h->model_tgt   = target_model;
-        h->model_dft   = model_dft;
         h->ctx_tgt     = ctx_tgt;
         h->ctx_dft     = ctx_dft;
         h->vocab       = llama_model_get_vocab(target_model);
@@ -143,7 +173,6 @@ extern "C" ewe_mtp * ewe_mtp_init(const llama_model * target_model,
             llama_batch_free(h->batch);
             llama_free(ctx_dft);
             llama_free(ctx_tgt);
-            llama_model_free(model_dft);
             delete h;
             return nullptr;
         }
@@ -173,9 +202,8 @@ extern "C" void ewe_mtp_free(ewe_mtp * h) {
     if (h->ctx_tgt != nullptr) {
         llama_free(h->ctx_tgt);
     }
-    if (h->model_dft != nullptr) {
-        llama_model_free(h->model_dft);
-    }
+    // Note: the draft model is NOT owned by the engine — it is a shared
+    // ewe_mtp_model freed separately by ewe_mtp_model_free.
     delete h;
 }
 
