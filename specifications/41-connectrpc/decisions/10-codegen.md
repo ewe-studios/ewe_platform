@@ -1,7 +1,5 @@
 # Decision 10: Code Generation
 
-**TODO**: I would also like to add the capability to generate a service and client definition from a trait with the only requirement that the inputs structs and outputs must all support ToArrow/FromArrow and/or serde or buffer serializaiton for json since protobuf requires the protobuf definition, this flexibility allows users decide if they want a protobuf or code driven definition, our macro does not care, it generates the needed code as necessary. This is really nice because i can have a crate that just defines my service traits and generate the actual implementation modules for them in another module if we want. I wonder if we can even support importing other service trait definitions and generating for them in a new crate - if not directly - maybe by adding a declaration on a empty struct or module (as I am not sure rust allows us define a macro without it being on a struct, module or function) but lets explore.
-
 ## Context
 
 connect-go generates service stubs as part of a protoc plugin (`protoc-gen-connect-go`). For each service in a `.proto` file, it generates:
@@ -31,11 +29,9 @@ We need to generate ConnectRPC service stubs that:
 > a **binary in `foundation_netio`** exposes it as the CLI / protoc plugin. There is **no**
 > separate `connectrpc-codegen` / `connectrpc_build` crate, and the generator emits
 > **everything** (message types + service traits + clients) in **one pass** — no second manual
-> codegen step. The two integration modes below are surfaces over that single generator.
+> codegen step. The three integration modes below are surfaces over that single generator.
 
 #### Mode 1: build.rs (Recommended)
-
-**Yes add**
 
 ```rust
 // build.rs — calls the foundation_macros generator via the foundation_netio build helper API
@@ -53,15 +49,67 @@ call, no separate buffa step.
 
 #### Mode 2: protoc plugin
 
-**Yes add**
-
-
 ```sh
 protoc --connect-ewe_out=. --plugin=protoc-gen-connect-ewe service.proto
 ```
 
 The `protoc-gen-connect-ewe` **binary lives in `foundation_netio`** and drives the same
 `foundation_macros` generator; it emits message types + stubs together.
+
+#### Mode 3: code-first — `#[connectrpc::service]` on a Rust trait (decided)
+
+Proto is not the only source of truth: a service may be defined as a **plain Rust trait**,
+and the macro generates everything the proto path generates. The generator does not care
+which definition style drove it — same registration fns, same typed clients, same
+`ProcedureCodecs` tables, same runtime.
+
+```rust
+// crate `my_api` — definitions only, no implementations required here
+#[connectrpc::service(package = "acme.greet.v1", codecs(json, arrow))]
+pub trait GreetService {
+    async fn greet(&self, ctx: Ctx, req: Request<GreetRequest>)
+        -> ConnectResult<Response<GreetResponse>>;
+    async fn feed(&self, ctx: Ctx, req: Request<FeedRequest>)
+        -> ConnectResult<impl Stream<Item = ConnectResult<Batch>>>;   // four Decision 04 shapes,
+}                                                                     // recognized syntactically
+```
+
+- **Message-type requirement:** every `Req`/`Res` must satisfy at least one codec family
+  the service declares — `serde::Serialize + DeserializeOwned` (json) and/or
+  `ToArrow + FromArrow` (arrow). The macro emits the matching table
+  (`ProcedureCodecs::of((JsonCodec, ArrowCodec))` here). **Proto stays proto-first**: the
+  proto codec needs a schema (`buffa::Message` comes from generation, not a derive), so
+  `codecs(proto, …)` is valid only when the types are also proto-generated.
+- **Conformance class (Decision 02 Q5):** a code-first JSON service serializes via plain
+  serde — there is no proto schema, hence no canonical-mapping divergence *on the same
+  procedure*, so it uses wire name `json`; any Connect+JSON client whose field shapes match
+  can call it, but it is not schema-driven interop. Extension-class, same caveat family as
+  `only(...)` endpoints — never claim gRPC/proto reachability for it.
+- **Paths** come from the `package` attribute + trait/method names
+  (`/acme.greet.v1.GreetService/Greet`), leading slash per R1.
+
+#### Cross-crate generation (decided: descriptor-macro re-expansion; no dummy struct)
+
+Defining traits in one crate and generating server/client modules in another works, with
+one honest constraint: **proc-macros cannot reflect on foreign items** — a macro only sees
+the tokens it is attached to. The bridge is token shipping:
+
+- `#[connectrpc::service]` additionally emits an exported **descriptor macro**
+  (`#[macro_export] macro_rules! greet_service_tokens`) carrying the trait's token shape —
+  the same callback/token-shipping pattern paste-style crates use.
+- A consuming crate re-expands those tokens with a **function-like** proc macro invoked at
+  item position — no host struct/module needed (only *attribute* macros require an item to
+  sit on; function-like macros stand alone):
+
+  ```rust
+  // crate `my_server` — generate the chosen artifacts locally
+  connectrpc::generate!(my_api::greet_service_tokens => mod greet { server, client });
+  ```
+
+- **Limit stated plainly:** only traits annotated with `#[connectrpc::service]` are
+  importable this way (the descriptor macro is the reflection surface); a bare foreign
+  trait cannot be consumed. All macro logic lives in `foundation_macros` per the
+  macros-location rule.
 
 ### Generated Output Structure
 
@@ -307,6 +355,10 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 ## Consequences
 
 - **No separate codegen crate**: generation logic is in `foundation_macros`; the CLI / protoc-plugin binary is in `foundation_netio`. One generator emits message types **and** service/client stubs in a single pass (supersedes the `foundation_connectrpc_codegen`/`_build` sketch).
+- **Code-first mode (Mode 3)**: services may be defined as plain Rust traits
+  (`#[connectrpc::service]`); json/arrow codec tables are derived from the types' declared
+  families, proto remains proto-first, and cross-crate generation works via the exported
+  descriptor macro + function-like `connectrpc::generate!` (no dummy host item needed)
 - Generated service traits use foundation_connectrpc's handler types
 - Generated clients are typed wrappers around `connectrpc::Client`
 - Procedure paths follow protobuf convention: `package.Service/Method`

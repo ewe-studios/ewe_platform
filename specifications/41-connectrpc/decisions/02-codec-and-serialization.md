@@ -242,9 +242,17 @@ path still does an IPC framing copy.
 /// Client (client). Map: wire name → (Arc<dyn CodecFor<Req>>, Arc<dyn CodecFor<Res>>).
 pub struct ProcedureCodecs<Req, Res> { /* … */ }
 
-**TODO**: should we add a any(Vec<Codec>), so users can supply a list of codec at once ?
-
 impl<Req, Res> ProcedureCodecs<Req, Res> {
+    /// Supply several codecs AT ONCE (decided — resolves the "list of codecs" question).
+    /// Deliberately NOT `Vec<Arc<dyn Codec>>`: a dyn list cannot yield the typed
+    /// `CodecFor<Req>`/`CodecFor<Res>` entries — that is the exact type-erasure wall the
+    /// deleted registry hit. Instead `CodecSet` is implemented for TUPLES of concrete
+    /// codecs (macro-generated up to N elements), each element independently bound
+    /// `CodecFor<Req> + CodecFor<Res>`, so a heterogeneous list stays fully typed:
+    ///     ProcedureCodecs::of((ProtoCodec, JsonCodec, ArrowCodec))
+    /// `defaults()` ≡ `of((ProtoCodec, JsonCodec))`; `only(c)` ≡ `of((c,))` — both are
+    /// thin wrappers over this one constructor.
+    pub fn of(set: impl CodecSet<Req, Res>) -> Self;
     /// The interop default (what codegen emits): proto + json, per the Connect spec —
     /// callable by connect-go / connect-es / curl / browsers. METHOD-LEVEL BOUNDS
     /// (fresh-review-2 #7): building the entries coerces `Arc<ProtoCodec>`/`Arc<JsonCodec>`
@@ -279,6 +287,7 @@ registration (codegen; Req/Res concrete)
   ProcedureCodecs::<Req,Res>::defaults()          ← proto + json (interop default)
       [.with_codec(MyCodec)]                      ← via generated *_with_codec entry points
       [ProcedureCodecs::only(ArrowCodec)]         ← single-codec extension endpoints
+      [ProcedureCodecs::of((Proto, Json, Arrow))] ← several at once (typed tuple CodecSet)
         │ frozen; owned by HandlerEntry (server) / Client (client)
         ▼
 request time (server)
