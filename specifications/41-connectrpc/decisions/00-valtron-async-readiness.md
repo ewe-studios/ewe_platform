@@ -138,6 +138,44 @@ fn next_status(&mut self) -> Option<TaskStatus<F::Output, FuturePollState, NoAct
   producer. A genuinely non-waking future is a **bug to fix**, not something the executor
   masks. (Zero idle cost; ecosystem-standard behaviour.)
 
+### Level 1b — producer-side (vacancy) readiness, composite signals & two-sided pipe wake
+
+`QueueReadiness` covers only the **consumer** direction (ready when non-empty). The bounded
+seam pipes (Decision 11) also park **producers** when a pipe is full; without a defined wake
+source for that direction, a full pipe degrades to bare `Pending` re-polling — the exact
+busy-poll this decision exists to remove. Three pieces close it. A parked task still returns
+exactly **one** `Depends`; composition happens *inside* the readiness object:
+
+```rust
+/// EventReadiness for the producer side: ready when the bounded queue has capacity.
+pub struct QueueVacancyReadiness<T>(Arc<ConcurrentQueue<T>>);
+impl<T> EventReadiness for QueueVacancyReadiness<T> {
+    fn is_ready(&self, _: Option<Duration>) -> bool { !self.0.is_full() }
+}
+
+/// Combinator: ready when ANY child signal is ready. A task parks on ONE object, but that
+/// object may own arbitrary wake logic over several underlying signals
+/// (e.g. "response pipe has vacancy OR request cancelled").
+pub struct AnyReadiness(Vec<Arc<dyn EventReadiness>>);
+```
+
+- **Readiness impls are open logic.** The type handed to `Depends` may watch queues, flags,
+  fds, or any combination of them — and because the wake queue is a real queue, tokens can
+  carry a **payload** the woken task uses to decide *what* to do (which side woke it, which
+  sub-signal fired). `QueueReadiness` / `QueueVacancyReadiness` are stock building blocks,
+  not the ceiling.
+- **Futures path — waker hooks on the pipe (both directions).** For async callers
+  (`MessageSink::send(..).await`, client stream `send`), the bounded pipe itself stashes the
+  blocked side's `Waker`: a `push` fires the stashed **consumer** waker; a `pop` on a
+  previously-full pipe fires the stashed **producer** waker. Each `wake()` lands a token on
+  that future's L1 wake queue → its `Depends(QueueReadiness)` unparks. This generalizes
+  case 1 above ("in-process producer") to both directions — *consumer-drains-wakes-producer
+  is defined wiring, not an implication.*
+- **Task path.** A valtron task producing into a full pipe returns
+  `Depends(Arc<QueueVacancyReadiness>)` (or a composite); a task consuming an empty pipe
+  returns `Depends(Arc<QueueReadiness>)`. **Bare `Pending` is never the answer to
+  pipe-full / pipe-empty.**
+
 ### Level 2 — reactor seam (⚠️ **superseded — the reactor already exists**)
 
 > **Superseded by `foundation_nativeapis` (see Consequences → "Native real-I/O parking").**
@@ -246,22 +284,6 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
   > transports can reach the reactor either by `netio → nativeapis` or by wiring at the
   > ConnectRPC crate.
 
-## Open Questions
-
-1. **Waker → wake-queue handle plumbing — decided: standard context waker, no leaf
-   cooperation.** A leaf future just calls `cx.waker().wake()` as in normal Rust async — the
-   `Context` we pass *is* the `queue_waker`, so L1 needs **no** cooperation from leaf futures
-   and works with any future/combinator. (The `Context`-extension alternative is rejected as
-   invasive/non-idiomatic.)
-2. **No-waker future fallback — decided: none (match tokio/smol).** Rely on the wake contract
-   + the `foundation_nativeapis` reactor for all real wakeups; no "just in case" timed
-   re-poll. A future that returns `Pending` without arranging a `wake()` is a bug to fix, not
-   masked by the executor (tokio and smol both do exactly this). Zero idle cost.
-3. **Single vs multi parity — decided: both, required.** Land `WakeToken`/`queue_waker`/
-   `FutureTask`→`Depends` in **both** `future_task.rs` impls (`single`/wasm and `multi`/native)
-   and test on both — keeps WASM/single-thread parking at parity with native (needed for the
-   WASM client, Decisions 07/11). Both executors already handle `Depends`.
-
 ## Features (generated from this decision)
 
 | # | Feature | Depends on |
@@ -269,6 +291,7 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
 | 00-F1 | Waker → `QueueReadiness` bridge: `WakeToken`, `queue_waker`, `FutureTask` returns `Depends`; single+multi parity | — |
 | 00-F2 | **Reactor parking via the existing `foundation_nativeapis` reactor** — a task holds `Arc<RegisteredFd<…>>` (which is `EventReadiness`) and returns `Depends`; wire access to the reactor `Registry` + `RawStream: AsRawFd` (Decision 12 §12). Prove with an in-tree test `EventReadiness`. **No new `ReadinessSource`/global-slot abstraction** (superseded — see Reconciliation note). | 00-F1, Decision 12 §12, Decision 14 |
 | 00-F3 | `#[valtron]`/`#[valtron_test]` accept `async fn` via `block_on_future`; sync path unchanged | 00-F1 |
+| 00-F4 | **`FramePipe` — the bounded seam pipe** (L1b; named primitive, Decision 11): bounded `ConcurrentQueue` + two waker stashes (`push` wakes stashed consumer, `pop` wakes stashed producer) + `QueueReadiness`/`QueueVacancyReadiness` accessors + `AnyReadiness` combinator (awaits/parks compose the call's `CancelSignal`); replaces `ConcurrentQueueStreamIterator`'s polling handoff on the seam; no bare `Pending` for pipe-full/pipe-empty anywhere | 00-F1 |
 
 ## Success Criteria
 
@@ -276,6 +299,9 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
   (verified: turn-count flat while blocked).
 - A future woken via the context waker is re-scheduled promptly; no lost wakeup under a
   wake-before-park stress test.
+- A producer future awaiting a **full** bounded pipe parks and is woken by the consumer's
+  `pop` (turn-count flat while full) — symmetric to the consumer/empty case; a task
+  producer parks via `Depends(QueueVacancyReadiness)`.
 - Native fd parking works through `foundation_nativeapis`'s reactor (`RegisteredFd:
   EventReadiness`) with **no new `foundation_core` dependency and no new `ReadinessSource`
   abstraction**; an in-tree test `EventReadiness` drives a future to completion via `Depends`.

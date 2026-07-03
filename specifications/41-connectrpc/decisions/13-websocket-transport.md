@@ -6,7 +6,8 @@
 
 ## Context
 
-Decision 01 / S3 / OQ#4 reject **bidirectional streaming over plain HTTP/1.1** with `505`,
+Decision 01 (S3) and Decision 11's capability matching reject **bidirectional streaming
+over plain HTTP/1.1** with `505`,
 because a raw HTTP/1.1 request/response body is **half-duplex**: the client must finish
 sending its body before the server may stream its response. Full-duplex bidi there is
 genuinely impossible without changing the framing.
@@ -77,11 +78,11 @@ streaming (including full-duplex bidi) over a WebSocket connection — implement
   negotiation (`Sec-WebSocket-Protocol: ewe.connectrpc.batch.v1, ewe.connectrpc.v1`) picks
   the framing mode and versions the protocol; call metadata (codec/compression/timeout)
   rides the upgrade URL's Connect GET query params (`?connect=v1&encoding=…`) since
-  browsers cannot set upgrade headers — full rules in OQ#13.3 (resolved).
+  browsers cannot set upgrade headers — full rules in §Decided Details OQ#13.3.
 - **Framing.** Each RPC message is a Connect **enveloped frame** (Decision 05) carried in a
   **binary** `WebSocketMessage`. We reuse the existing envelope reader/writer — the WebSocket
   layer only supplies message boundaries; we do **not** invent a new envelope.
-  - **Batch framing is first-class (OQ#13.1, resolved).** We own this transport, so a WS
+  - **Batch framing is first-class (decided; normative rules are THIS section).** We own this transport, so a WS
     binary message carries a **batch header + N complete envelopes**, mirroring the envelope
     header shape (Decision 05):
 
@@ -91,6 +92,10 @@ streaming (including full-duplex bidi) over a WebSocket connection — implement
     └────────────┴──────────────┴──────────────┴───┴──────────────┘
     ```
 
+    - All multi-byte batch-header fields are **big-endian** (network order): `count` is a
+      BE `u32`, matching the Decision 05 envelope's 4-byte BE length prefix (the byte order
+      the Connect and gRPC framings themselves use) — one byte-order rule across the whole
+      wire stack, and what a peer already parsing envelopes expects.
     - `count ≥ 1`; empty batches are a protocol error. An envelope MUST NOT span WS
       messages (WS-level fragmentation/`MessageAssembler` already handles large messages
       transparently below this layer). After reading `count` envelopes, leftover bytes —
@@ -103,6 +108,10 @@ streaming (including full-duplex bidi) over a WebSocket connection — implement
       contract is preserved; header amortization comes free on bursty producers. Batch
       size is naturally bounded by the pipe depth (4) × per-message caps; assembler size
       limits apply to the whole WS message.
+    - **Size caps (normative, ties Decision 02 §Decided Details — Arrow batch semantics — / Decision 06):** per-envelope
+      `read_max_bytes` / `send_max_bytes` apply unchanged inside a batch — batching never
+      relaxes them — and the assembler's `max_message_size` bounds the complete batched WS
+      message; the batcher must never assemble a message that would exceed it.
     - **Interop mode:** where a peer requires plain framing, the subprotocol negotiation
       (OQ#13.3) selects **1:1 mode** — one bare envelope per WS binary message, no batch
       header. Batch mode is used only when both ends negotiate our subprotocol token.
@@ -236,19 +245,14 @@ protocol and is **not** adopted here). Consequences:
 - **Sequencing:** implemented **last** among transports; nothing in Phases 1–3 depends on it.
   Within this decision, order is **E1 → E3 → (E2 when Decision 00 reactor lands) → 13-F1**.
 
-## Open Questions
+## Decided Details
 
-- **OQ#13.1 — resolved: batch framing is first-class.** A WS binary message is
-  `u8 bflags + u32 count + N complete envelopes` (header mirrors the Decision 05 envelope
-  shape; `count ≥ 1`; spanning forbidden; trailing/short bytes = protocol error; unknown
-  `bflags` rejected). Batching is **opportunistic only** — drain what's already queued in
-  the Decision 11 pipes at flush time, never a timer — so flush-per-frame latency is
-  preserved. Plain **1:1 mode** (bare envelope per message, no batch header) exists for
-  interop and is selected via subprotocol negotiation (OQ#13.3). See §Framing for the
-  normative rules.
 - **OQ#13.2 — resolved: all four RPC kinds, one call per connection.**
-  - **All kinds** (unary, server-stream, client-stream, bidi) are valid over WS — capability
-    matching reports `Duplex::Full` + trailer support, no artificial kind restrictions. The
+  - **All kinds** (unary, server-stream, client-stream, bidi) are valid over WS — its
+    `TransportCapabilities` report `request_streaming: true`, `full_duplex: true`
+    (`h2_trailers: false` — Connect end-of-stream/trailers ride the envelope, which needs
+    nothing from the transport; Decision 11 remodeled axes), no artificial kind
+    restrictions. The
     seam doesn't branch on kind (unary is a 1-message stream), so supporting all four costs
     zero transport code while restricting would *require* extra capability-matrix code. In
     browser/WASM, WS is the **only** client-stream/bidi path (Fetch can't stream request
@@ -274,7 +278,10 @@ protocol and is **not** adopted here). Consequences:
   - **Call metadata (codec / compression / timeout):** browsers cannot set headers on
     `new WebSocket()` — the URL and subprotocol list are the only client-controlled
     channels. So metadata rides the **upgrade URL query params, reusing Connect's official
-    GET-protocol vocabulary**: `?connect=v1&encoding=proto&compression=gzip[&timeout_ms=…]`.
+    GET-protocol vocabulary**: `?connect=v1&encoding=proto&compression=gzip[&timeout_ms=…]`
+    — with one marked exception: `timeout_ms` is OUR extension (Connect's GET vocabulary
+    has no timeout param; it rides the `Connect-Timeout-Ms` header, which browsers cannot
+    set on an upgrade).
     Native clients MAY instead send the normal Connect headers on the upgrade request; if
     both are present and disagree → refuse the upgrade (no silent precedence). Failures
     (unknown codec, unsupported compression) are rejected at the HTTP layer **before** the

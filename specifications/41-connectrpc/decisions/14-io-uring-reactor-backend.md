@@ -98,7 +98,7 @@ automatic fallback. The `EventReadiness` seam and all transports are unchanged.*
 - Depends on the kernel: multishot poll needs Linux ≥ 5.13; the probe-and-fallback keeps
   older kernels working on epoll.
 
-## Open Questions
+## Decided Details
 
 - **OQ#14.1 — resolved: one process-level shared reactor** (OnceLock singleton, mirroring
   the valtron pool) holding the selector + a concurrent `Token → wake` map; applies to both

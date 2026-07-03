@@ -46,7 +46,7 @@ Port the connect-go architecture onto foundation types with the following mappin
 
 connect-go uses Go's `io.Pipe` to create a writer that feeds a reader concurrently. Foundation uses iterator-based streaming:
 
-- **Request body reading**: `SimpleBody::Stream` provides `Iterator<Item = Result<Vec<u8>, BoxedError>>`. The envelope decoder wraps this iterator, yielding decoded messages.
+- **Request body reading**: the reader task accumulates wire bytes in its task-owned buffer and de-envelopes via the shared `IncrementalDecoder` (Decision 12 §11), yielding zero-copy `Bytes` frames (Decisions 05/06/11) — the read path is `Bytes` end-to-end.
 - **Response body writing (streaming)**: the handler is an async `Stream` of responses (Decision 04); the writer task envelopes/compresses each message and flushes per frame via the per-part `Http11` writer (Decision 12). The valtron `TaskStatus`/`Stream`/queue machinery is internal (Decision 11) — the handler does not return a valtron iterator.
 - **Bidi streaming**: concurrent read (request `Stream<Req>`) and write (response `Stream<Res>`), each driven by an independent valtron task (Decision 11). **On HTTP/1.1 bidi is rejected with `505`** (no full-duplex); it is full-duplex only on HTTP/2/3 (or via the WebSocket transport, Decision 13). Client/server-streaming remain half-duplex on HTTP/1.1.
 
@@ -193,7 +193,11 @@ pub trait QuicRecvStream: Send {
 }
 
 pub trait QuicBidiStream: QuicSendStream + QuicRecvStream {
-    fn split(self) -> (impl QuicSendStream, impl QuicRecvStream);
+    fn split(self) -> (impl QuicSendStream, impl QuicRecvStream)
+    where
+        Self: Sized;   // static dispatch throughout — these traits are NOT dyn-compatible
+                       // anyway (`send(&mut impl Buf)` is an APIT method); associated
+                       // types + generics are the intended usage
 }
 ```
 
@@ -206,9 +210,10 @@ pub trait QuicBidiStream: QuicSendStream + QuicRecvStream {
   `h3` as-is. (T9 resolved here.) The per-call trait methods still hand back one `Stream`
   value at a time (below); it's the *driving task* that maps those into `TaskStatus`.
 - **`poll_ready` folded into `send`** — write back-pressure is communicated by the driving
-  task's `TaskStatus`: `Pending` when the send pipe is full (Decision 11 `MessageSink` →
-  `Err(Full)` → `Pending`), or `Depends` on socket-writable via the reactor. So a separate
-  `poll_ready` readiness method is redundant.
+  task's `TaskStatus`: `Depends(QueueVacancyReadiness)` when the send pipe is full
+  (Decision 00 L1b; async senders park on the pipe's stashed waker instead), or `Depends`
+  on socket-writable via the reactor. So a separate `poll_ready` readiness method is
+  redundant.
 
 - **`accept_*` / `read` return one `Stream` value per call** (call repeatedly to advance —
   `Next(v)` / `Pending` / `Wait` / ends on close), in valtron's poll-per-call style.
@@ -249,7 +254,7 @@ identity. **It is tokio-based.** Two possible paths, with different value:
   bridge). Scope ≈ 2–3 features on top of HTTP/3, *if* pursued.
 
 ### Phasing
-- **Phase 1:** HTTP/1.1 — Connect + gRPC-Web (no gRPC; bidi streaming rejected with 505, see S3/OQ#4).
+- **Phase 1:** HTTP/1.1 — Connect + gRPC-Web (no gRPC; bidi streaming rejected with 505 via Decision 11 capability matching).
 - **Phase 2:** HTTP/2 (replicated from h2) — full gRPC, full-duplex bidi, client multiplexing.
 - **Phase 3:** HTTP/3 (replicated from h3) + `quinn-proto` QUIC backend.
 - **Phase 3+:** iroh P2P + public-key auth.
@@ -258,23 +263,3 @@ identity. **It is tokio-based.** Two possible paths, with different value:
   505 above applies only to **plain HTTP/1.1 POST** bidi; a WebSocket channel *is* our
   transport seam, so it can carry bidi on HTTP/1.1 deployments. Non-standard (our-stack-only)
   and additive. See **[Decision 13](13-websocket-transport.md)** — deferred, implemented last.
-
-## Open Questions
-
-*All three below are resolved by later decisions — retained as a resolution record.*
-
-1. **foundation_netio HTTP/2 — resolved.** foundation_netio is HTTP/1.1 only today; HTTP/2 is
-   the new owned `http2/` module (replicated from h2, tokio-free), not the `h2` crate —
-   Decision 12 §5. No `h2` dependency.
-2. **Chunked transfer encoding — resolved.** Handled by the per-part `Http11` writer + the
-   pushable `SendSafeBody::Stream` (Decision 12 §1/§7); the writer manages
-   `Transfer-Encoding: chunked` and chunk boundaries. No manual management in the RPC layer.
-3. **Backpressure — resolved.** Provided by the bounded `ConcurrentQueue` pipes at the
-   transport seam (Decision 11): a full request/response pipe makes `MessageSink::send` return
-   `Err(Full)`, which the bridging task maps to `TaskStatus::Pending` — natural back-pressure
-   without blocking a worker.
-4. **Bidi over HTTP/1.1 — resolved (rejected, not half-duplex).** True bidi needs full-duplex,
-   which HTTP/1.1 cannot do, so bidi is **rejected with `505`** via capability matching
-   (Decision 11); only **client- and server-streaming** are half-duplex on HTTP/1.1 (reader
-   drains the request, then the writer runs). Full-duplex bidi requires HTTP/2/3 or the
-   WebSocket transport (Decision 13).

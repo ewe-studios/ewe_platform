@@ -37,7 +37,7 @@ render-once-at-the-end path; using the ownership `Serve` already grants removes 
 `Http11ResponseIterator` is refactored into a set of smaller **per-part iterators** —
 status line, header block, each body chunk, trailers — that compose back into
 `Http11ResponseIterator`. Add new `Http11` variants that build a response from this
-per-part iterator set (exact shape resolved in Open Question 1), so a streaming handler can:
+per-part iterator set (exact shape in §Decided Details #1), so a streaming handler can:
 
 1. emit status + headers immediately,
 2. emit envelope-framed body chunks one at a time (flushing per chunk, per #1),
@@ -51,7 +51,7 @@ which part-iterators to compose instead of calling a single fixed renderer.
 ### 3. Trailers as a response part (resolves B3)
 
 Add a **trailers part-iterator** (new `Http11` variant) and a trailers field on
-`SimpleOutgoingResponse` (plain `SimpleHeaders`, empty by default — Open Question 2).
+`SimpleOutgoingResponse` (plain `SimpleHeaders`, empty by default — §Decided Details #2).
 Each protocol emits trailers through the mechanism it needs,
 all via the part composition:
 
@@ -124,13 +124,13 @@ backends/foundation_netio/src/
 ```
 
 `ConnectionHandler` in foundation_http branches after protocol detection — ALPN, h2c
-magic prefix, or `Upgrade: h2c` (all three entry paths, Open Question 4); every path
+magic prefix, or `Upgrade: h2c` (all three entry paths, §Decided Details #4); every path
 produces `SimpleIncomingRequest` / consumes `SimpleOutgoingResponse`. ALPN wiring (rustls
 `set_protocols(&[b"h2", b"http/1.1"])`) and h2c detection/upgrade are part of this module
 (closes B7); the `HTTPStreams` factory branches on negotiated protocol (closes B8).
 Estimated 5–8 features, phaseable: (1) frame codec + HPACK + SETTINGS + flow-control
 arithmetic, (2) server + client multiplexers including the h2c entry paths (one phase —
-Open Questions 3/4), (3) flow-control tuning.
+§Decided Details #3/#4), (3) flow-control tuning.
 
 ## Consequences
 
@@ -149,10 +149,11 @@ Open Questions 3/4), (3) flow-control tuning.
 ## Review-Gap Coverage
 
 ### 7. Push-able client request body (resolves B6)
-`SendSafeBody::Stream` wraps an iterator; back it with a `ConcurrentQueueStreamIterator`
-so the client can **push** request frames after the request has started sending — the
-producer half is held by the client-stream / bidi task, the consumer half is drained by
-the request renderer. This reproduces connect-go's `io.Pipe` (concurrent request-write
+`SendSafeBody::Stream` wraps an iterator; back it with the 00-F4 pipe primitive
+(`Pipe<Bytes>` — waker-hooked, both readiness accessors; NOT `ConcurrentQueueStreamIterator`,
+whose polling handoff 00-F4 exists to remove) so the client can **push** request bytes after
+the request has started sending — the producer half is held by the client-stream / bidi
+task, the consumer half is drained by the request renderer. This reproduces connect-go's `io.Pipe` (concurrent request-write
 while reading the response) without buffering the whole request, and pairs with Decision
 11's `MessageSink`/`MessageSource` pipes. No new body type is needed; the existing
 `Stream` variant gains a pushable backing.
@@ -190,7 +191,7 @@ foundation_http layer. Instead:
 This keeps the connection types usable and centralized, and turns Q12/T11 into incremental
 variant additions on an abstraction we already have.
 
-### 10. Graceful shutdown / connection draining — resolves Decision 08 OQ#3
+### 10. Graceful shutdown / connection draining (required by Decision 08's router)
 
 **Verified today:** foundation_http's `serve_loop` checks `OnSignal::probe()` and **stops
 accepting** on shutdown, but does **not drain** — there is no active-connection tracking,
@@ -299,8 +300,16 @@ they are owned here as a foundation enabler:
 - `SimpleIncomingRequest` gains an `Arc<ConnectionContext>` field, defaulting to an empty
   context for callers that construct requests directly (tests, wasm client rendering) —
   additive, no behavior change for existing HTTP/1.1 tests.
+- **`Extensions` values become `Arc<dyn Any + Send + Sync>`** (from `Box<dyn Any + …>`), so
+  the map is cheaply clonable — required by Decision 04's owned-`Clone` `Ctx` / COW write
+  model (`Ctx::with_extension` clones the map by pointer bumps). `insert<T>` wraps in
+  `Arc::new` internally, so call sites are unchanged, and `Arc::from(Box)` migrates any
+  boxed values for free. This is the same map the auth middleware writes into and dispatch
+  **moves** into `RequestContext` (Decision 04 §Extensions pathway / Decision 09). No
+  boxed-insertion API is needed: auth stores the one concrete `AuthInfo` type via a normal
+  typed `insert` (Decision 09 A6 contract).
 
-## Open Questions
+## Decided Details
 
 1. **Per-part `Http11` variants — resolved.** Fine-grained parts *and* a combined head:
    users compose part-by-part or use the convenience variant.
@@ -328,7 +337,7 @@ they are owned here as a foundation enabler:
    ```
 
    - `ResponseHead` carries **`SimpleResponse<()>`** — the same head type the client seam
-     reads (Decision 07 OQ#1), so head shape is symmetric across client/server. Interim 1xx
+     reads (Decision 07 §Transport — verified netio types), so head shape is symmetric across client/server. Interim 1xx
      responses are just `ResponseHead` emitted more than once before the final head.
    - **Chunked wire framing lives in the part-iterator**, not the protocol: protocols pick
      `Http11Chunk::Chunked` vs `::Raw`; the `{len:x}\r\n…\r\n` syntax stays in netio (the

@@ -46,7 +46,10 @@ All three protocols use the same 5-byte envelope framing for streaming messages:
 ```rust
 pub struct Envelope {
     pub flags: u8,
-    pub data: Vec<u8>,
+    /// Zero-copy slice of the arriving buffer (`Bytes`, not `Vec<u8>`): the read path is
+    /// `Bytes` end-to-end so the facade can build `OwnedView`/`RecordBatch` without a copy
+    /// (Decision 11 S5).
+    pub data: Bytes,
 }
 
 impl Envelope {
@@ -58,11 +61,16 @@ impl Envelope {
     pub fn is_end_stream(&self) -> bool { self.flags & Self::FLAG_END_STREAM != 0 }
     pub fn is_trailer(&self) -> bool { self.flags & Self::FLAG_TRAILER != 0 }
 
-    /// Encode envelope to bytes (5-byte header + data).
-    pub fn encode(&self) -> Vec<u8>;
+    /// Encode into a pooled buffer (write path, RS8): 5-byte header + data. The write path
+    /// deliberately stays on pooled `Vec<u8>` scratch — encoding produces new bytes anyway;
+    /// zero-copy matters on decode.
+    pub fn encode_into(&self, buf: &mut Vec<u8>);
 
-    /// Decode envelope from a byte stream. Returns None if not enough data.
-    pub fn decode(data: &[u8]) -> Result<(Envelope, usize), EnvelopeError>;
+    /// Decode one envelope from the head of `data`, slicing the payload **zero-copy**
+    /// (`Bytes::slice` — refcount bump, no memcpy). Partial input is handled by the
+    /// `IncrementalDecoder` wrapper (Decision 12 §11): state is retained and a short read
+    /// yields `Pending`, never an error.
+    pub fn decode(data: &Bytes) -> Result<(Envelope, usize), EnvelopeError>;
 }
 ```
 
@@ -72,12 +80,14 @@ impl Envelope {
 /// Reads envelopes from the body byte stream, handling decompression. **Frame-level only** —
 /// yields codec-encoded frame `Bytes`, never decodes messages: typed decode lives in the
 /// `MessageSource<Req>` facade (Decision 11), which holds the `Arc<dyn CodecFor<Req>>`
-/// (Decision 02). (Holding a codec here was a leftover of the pre-`CodecFor` sketch — typed
-/// methods are not reachable through `Arc<dyn Codec>`.)
+/// (Decision 02).
 pub struct EnvelopeReader {
     decompressor: Option<Arc<dyn Compressor>>,   // Decision 06 — one trait, `Compressor`
     read_max_bytes: usize,
-    buffer: Vec<u8>,
+    // Accumulation lives in the shared `IncrementalDecoder` state (Decision 12 §11); its
+    // buffer hands completed payloads out as `Bytes` slices (freeze/split), so
+    // de-enveloping never copies the message body. (Decompressed frames are new
+    // allocations by nature; identity frames stay zero-copy.)
 }
 
 impl EnvelopeReader {
@@ -352,17 +362,28 @@ pub(crate) trait ProtocolHandler: Send + Sync {
     /// Can this handler process the given request?
     fn can_handle(&self, request: &SimpleIncomingRequest) -> bool;
 
-    /// Create a handler connection, wired to the transport so the conn can `receive()` /
-    /// `send()` frames (Decision 11). The body source is fed by the reader task; the
-    /// responder is drained by the writer task.
+    /// Create the per-call exchange. The transport hands over BYTE-level body pipes (it
+    /// knows nothing of envelopes — Decision 11); this constructor is where `compression`
+    /// is consumed: it builds the protocol's de-envelope/decompress READER task + its
+    /// envelope/compress WRITER task AND the conn over the internal `FramePipe`s between
+    /// them. The dispatcher spawns the returned tasks on valtron.
+    // No codec parameter: the codec authority is the procedure's ProcedureCodecs table,
+    // resolved by the dispatcher (Decision 02) — there is no request-path codec registry.
     fn new_conn(
         &self,
         request: &SimpleIncomingRequest,
-        body: BodySource,          // de-enveloped/decompressed request frames in
-        responder: BodySink,       // response frames out (writer task drains)
-        codecs: &CodecRegistry,
+        body: ByteSource,          // wire request-body bytes (from the transport)
+        responder: ByteSink,       // wire response-body bytes (to the transport)
         compression: &CompressionRegistry,
-    ) -> ConnectResult<Box<dyn HandlerConn>>;
+    ) -> ConnectResult<HandlerExchange>;
+}
+
+/// What a protocol constructs per call (Decision 11 §who-owns-enveloping). The client
+/// mirror is `ClientExchange` (same shape over `ClientConn`).
+pub(crate) struct HandlerExchange {
+    pub conn: Box<dyn HandlerConn>,
+    pub reader_task: BoxedTask,  // bytes → de-envelope/decompress → request FramePipe
+    pub writer_task: BoxedTask,  // response FramePipe → envelope/compress → bytes, flush per frame
 }
 
 pub(crate) trait ProtocolClient: Send + Sync {
@@ -371,18 +392,20 @@ pub(crate) trait ProtocolClient: Send + Sync {
         &self,
         stream_type: StreamType,
         headers: &mut SimpleHeaders,
-        codec: &dyn Codec,
+        codec_name: &str,          // the wire token (Decision 02); the typed handle stays in the facade
         compression: Option<&str>,
     );
 
-    /// Create a client connection over a live transport exchange (`Transport::open`,
-    /// Decision 11) — `stream` carries the request sink + response source.
+    /// Create the per-call exchange over a live transport stream (`Transport::open`,
+    /// Decision 11) — `stream` carries BYTE-level pipes; this constructor builds the
+    /// protocol's reader/writer task pair + the conn (client mirror of `HandlerExchange`);
+    /// the framework spawns the tasks.
     fn new_conn(
         &self,
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
-    ) -> Box<dyn ClientConn>;
+    ) -> ClientExchange;   // { conn: Box<dyn ClientConn>, reader_task, writer_task }
 }
 ```
 
@@ -436,7 +459,7 @@ Behaviours to implement (own the code; folded in from the review):
   to request/response fields inside the `http2/` module (Decision 12 §6); handlers never
   see them.
 
-## Open Questions
+## Decided Details
 
 1. **gRPC-Web text mode — decided: Phase 1 (implement).** Support `application/grpc-web-text`
    (whole-body base64) alongside binary gRPC-Web from the start, for maximum browser reach
@@ -449,22 +472,19 @@ Behaviours to implement (own the code; folded in from the review):
    `google.rpc.Status` is **not** a WKT, so it is **generated from `google/rpc/status.proto`**
    via our buffa-codegen-based generator (Decision 10) and bundled in `foundation_connectrpc`.
    No hand-written wire types; matches Decision 03's "details available regardless of codec."
-3. **Trailer delivery on HTTP/1.1 — resolved.** No dependency on HTTP/1.1 *trailing* headers:
-   Connect uses `Trailer-`-prefixed **regular** response headers, and gRPC-Web uses **in-body**
-   trailer frames — both work on foundation_netio's HTTP/1.1 as-is. Real HTTP/2 trailing
-   HEADERS are only needed for binary gRPC and are provided by the owned `http2/` module +
-   the trailers response part (Decision 12 §3/§5). So the trailers surface is a response part,
-   not a new HTTP/1.1 capability.
-4. **Content-Type charset parameter — decided: normalize.** A `canonicalize_content_type`
+3. **Content-Type charset parameter — decided: normalize.** A `canonicalize_content_type`
    step strips the `charset` parameter and lowercases the media type **before** protocol/codec
    detection, so `application/json; charset=utf-8` is treated as `application/json` (connect-go
    parity). Required for browser/proxy interop — without it those requests would 415. Pairs
-   with Decision 02 P1 (dual JSON registration).
-5. **415 / 405 — decided: matched inside `ConnectRpcHandler` by parsed header.** foundation_http
+   with Decision 02 P1 (charset handled entirely by this canonicalization; the codec tables
+   key on bare wire names — no dual registration exists).
+4. **415 / 405 — decided: matched inside `ConnectRpcHandler` by parsed header.** foundation_http
    only prefix-routes to the handler; content-type negotiation is a plain header read + lookup
    because we already parse headers into `SimpleHeaders`. Inside the handler, after matching the
-   procedure path: read `Content-Type`, normalize it (OQ#4), and match against the procedure's
-   registered protocol handlers' accepted content-types. **No match → 415**; method not in the
+   procedure path: read `Content-Type`, normalize it (charset canonicalization above), and match against the procedure's
+   registered protocol handlers' accepted content-types — the codec-name segment is checked
+   against the procedure's `ProcedureCodecs.names()` (Decision 02; there is no global codec
+   registry). **No match → 415**; method not in the
    procedure's allowed set → **405** (+ `Accept-Post`). foundation_http never inspects RPC
    content-types (it can't distinguish 415 vs 405 vs a valid Connect GET). This is the same
    dispatch path as Decision 08.

@@ -37,32 +37,48 @@ Our platform has `foundation_auth` with:
 
 Build ConnectRPC authentication as middleware on top of foundation_auth. The connect-go authn pattern (AuthFunc + Middleware + helpers) translates directly, but we delegate actual credential verification to foundation_auth's existing infrastructure.
 
+### AuthInfo — the normalized principal contract (decided; fresh-review A6)
+
+Every authenticator produces, and the authz layer reads, **one concrete type** — no
+per-authenticator `Box<dyn Any>` guessing (the old sketch stored `VerifiedClaims`/sessions
+while the authz interceptor looked up `AuthContext` by `TypeId`, so every authenticated
+request would have been rejected). Because `AuthInfo` is concrete, the middleware stores it
+with a normal typed `extensions.insert::<AuthInfo>(info)` — no boxed-insertion API is
+needed (Decision 12 §13).
+
+```rust
+/// The single auth-result type. Authenticators NORMALIZE into it; authz reads it.
+pub struct AuthInfo {
+    /// foundation_auth principal — subject, scopes, roles; what Cedar/`has_scope` evaluate.
+    pub context: AuthContext,
+    /// Raw artifacts for handlers that want them, keyed by their own types:
+    /// `VerifiedClaims` (JWT), the session object, `PeerCertificates` (mTLS, R15), …
+    pub artifacts: Extensions,
+}
+```
+
 ### AuthFunc Trait
 
 ```rust
-/// Authentication function for ConnectRPC requests.
+/// Authentication function for ConnectRPC requests. ASYNC (fresh-review B2 — platform
+/// async-canonical norm): credential checks may hit a session store / key cache and must
+/// park, not block a worker. `BoxFuture` keeps the trait dyn-safe.
 /// Receives the raw HTTP request before deserialization/decompression.
-/// Returns authentication information on success, or ConnectError on failure.
 pub trait AuthFunc: Send + Sync + 'static {
-    /// Authenticate the request. Return Some(info) on success, or Err on failure.
-    /// If the request doesn't require authentication (e.g., health checks),
-    /// return Ok(None).
-    fn authenticate(
-        &self,
-        request: &SimpleIncomingRequest,
-    ) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>>;
+    /// Authenticate the request. `Ok(Some(info))` on success; `Ok(None)` when the request
+    /// doesn't require authentication (e.g. health checks); `Err` on failure.
+    fn authenticate<'a>(
+        &'a self,
+        request: &'a SimpleIncomingRequest,
+    ) -> BoxFuture<'a, ConnectResult<Option<AuthInfo>>>;
 }
 
-/// Implement AuthFunc for closures.
-impl<F> AuthFunc for F
+/// Implement AuthFunc for async closures / fns returning a future.
+impl<F, Fut> AuthFunc for F
 where
-    F: Fn(&SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>>
-        + Send + Sync + 'static,
-{
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
-        (self)(request)
-    }
-}
+    F: Fn(&SimpleIncomingRequest) -> Fut + Send + Sync + 'static,
+    Fut: Future<Output = ConnectResult<Option<AuthInfo>>> + Send + 'static,
+{ /* … */ }
 ```
 
 ### ConnectRPC Auth Middleware
@@ -77,26 +93,40 @@ pub struct AuthMiddleware<H> {
 }
 
 impl<H> AuthMiddleware<H> {
-    pub fn new(auth: Arc<dyn AuthFunc>, inner: H, options: HandlerOptions) -> Self;
+    pub fn new(auth: Arc<dyn AuthFunc>, inner: H) -> Self;
 }
+
+// `AuthFunc::authenticate` is async (B2); the middleware awaits it through the same
+// valtron `from_future` bridge everything else uses (Decision 00) — an authenticator
+// waiting on a session store parks instead of blocking the worker.
 
 // Implements foundation_http's handler/middleware trait:
 // 1. Call auth.authenticate(request)
 // 2. On error: error_writer.write(response, request, error) → return error response
-// 3. On success: attach auth info to request extensions
+// 3. On success: insert the auth info into `SimpleIncomingRequest.extensions` (plain &mut —
+//    the request is owned here; the carrier already exists in netio). Dispatch later MOVES
+//    that map into the `RequestContext` it builds (`take()`, zero-copy, no lock) — the
+//    Decision 04 §Extensions travel pathway.
 // 4. Forward to inner handler
 ```
 
 Auth info is stored in the request's `Extensions` type-map and accessed via:
 
 ```rust
-/// Retrieve authentication information from the per-call context (Decision 04 §Ctx).
-pub fn get_auth_info<T: 'static>(ctx: &Ctx) -> Option<&T> {
-    ctx.request.extensions.get::<T>()
+/// Retrieve the normalized auth info from the per-call context (Decision 04 §Ctx).
+/// Always keyed by the ONE concrete `AuthInfo` type (A6) — no per-authenticator guessing.
+pub fn get_auth_info(ctx: &Ctx) -> Option<&AuthInfo> {
+    ctx.request.extensions.get::<AuthInfo>()
 }
 
-/// Strip authentication information (runs during dispatch, before the RequestContext is
-/// frozen into the shared Ctx — extensions are written middleware-side, read handler-side).
+/// Raw artifacts (`VerifiedClaims`, the session object, `PeerCertificates`, …) by their type.
+pub fn get_auth_artifact<T: 'static>(ctx: &Ctx) -> Option<&T> {
+    get_auth_info(ctx)?.artifacts.get::<T>()
+}
+
+/// Strip authentication information. Runs during dispatch, while the extensions map is
+/// still being assembled (before `Ctx` construction — Decision 04 §Extensions pathway).
+/// Post-construction removal would be a COW rebuild, like any other post-construction write.
 pub fn without_auth_info(ctx: &mut RequestContext) {
     ctx.extensions.remove::<AuthInfo>();
 }
@@ -140,12 +170,13 @@ pub fn infer_procedure(url: &SimpleUrl) -> Option<String> {
 /// Extract bearer token from Authorization header (case-insensitive "Bearer " prefix).
 pub fn bearer_token(request: &SimpleIncomingRequest) -> Option<&str> {
     let auth = request.headers().get("authorization")?;
-    let prefix = "Bearer ";
-    if auth.len() < prefix.len() {
-        return None;
-    }
-    if auth[..prefix.len()].eq_ignore_ascii_case(prefix) {
-        Some(&auth[prefix.len()..])
+    const PREFIX: &[u8] = b"Bearer ";
+    // Byte-wise compare (fresh-review-2): string slicing `auth[..7]` would PANIC on a
+    // header whose multi-byte char spans byte 7; after an ASCII prefix match, byte 7 is
+    // guaranteed to be a char boundary, so `get` always succeeds.
+    let bytes = auth.as_bytes();
+    if bytes.len() >= PREFIX.len() && bytes[..PREFIX.len()].eq_ignore_ascii_case(PREFIX) {
+        auth.get(PREFIX.len()..)
     } else {
         None
     }
@@ -180,14 +211,18 @@ impl JwtAuthenticator {
 }
 
 impl AuthFunc for JwtAuthenticator {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
+    // async (BoxFuture per the trait); body shown as the async flow:
+    async fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<AuthInfo>> {
         let token = bearer_token(request)
             .ok_or_else(|| unauthenticated("missing bearer token"))?;
 
-        let claims = self.verifier.verify(token)
+        let claims = self.verifier.verify(token)          // CPU-only, sync is fine here
             .map_err(|e| unauthenticated(format!("invalid token: {e}")))?;
 
-        Ok(Some(Box::new(claims)))  // VerifiedClaims stored in extensions
+        // NORMALIZE (A6): principal into AuthContext, raw claims as an artifact.
+        let mut info = AuthInfo::from_claims(&claims);    // maps sub/scopes → AuthContext
+        info.artifacts.insert(claims);                    // VerifiedClaims retrievable by type
+        Ok(Some(info))
     }
 }
 ```
@@ -206,14 +241,19 @@ impl SessionAuthenticator {
 }
 
 impl AuthFunc for SessionAuthenticator {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
+    async fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<AuthInfo>> {
         let token = extract_session_token(request, &self.cookie_name)
             .ok_or_else(|| unauthenticated("missing session cookie"))?;
 
-        let session = self.session_manager.validate(&token)
+        // TRUE async validation (decided, B2): session lookup hits a store — this awaits a
+        // genuinely async SessionManager (foundation_auth enabler below), never a sync
+        // call wrapped in block_on.
+        let session = self.session_manager.validate(&token).await
             .map_err(|e| unauthenticated(format!("invalid session: {e}")))?;
 
-        Ok(Some(Box::new(session)))
+        let mut info = AuthInfo::from_session(&session);  // maps identity → AuthContext
+        info.artifacts.insert(session);                   // session retrievable by type
+        Ok(Some(info))
     }
 }
 ```
@@ -221,7 +261,10 @@ impl AuthFunc for SessionAuthenticator {
 #### Composite Authenticator
 
 ```rust
-/// Try multiple authenticators in order. First success wins.
+/// Try multiple authenticators in order. First `Ok(Some(info))` wins; `Ok(None)` ("no
+/// opinion / no credentials I recognize") CONTINUES the chain — it never short-circuits
+/// (fresh-review-2 #12). All-`None` → `Ok(None)`; failures only surface if nothing
+/// succeeded.
 pub struct CompositeAuthenticator {
     authenticators: Vec<Arc<dyn AuthFunc>>,
 }
@@ -231,15 +274,19 @@ impl CompositeAuthenticator {
 }
 
 impl AuthFunc for CompositeAuthenticator {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
+    async fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<AuthInfo>> {
         let mut last_err = None;
         for auth in &self.authenticators {
-            match auth.authenticate(request) {
-                Ok(info) => return Ok(info),
+            match auth.authenticate(request).await {
+                Ok(Some(info)) => return Ok(Some(info)),
+                Ok(None) => continue,   // no opinion — try the next authenticator
                 Err(e) => last_err = Some(e),
             }
         }
-        Err(last_err.unwrap_or_else(|| unauthenticated("no authentication method succeeded")))
+        match last_err {
+            Some(e) => Err(e),          // something tried and failed
+            None => Ok(None),           // nobody claimed the request — unauthenticated pass-through
+        }
     }
 }
 ```
@@ -265,7 +312,7 @@ impl PerProcedureAuth {
 }
 
 impl AuthFunc for PerProcedureAuth {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
+    async fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<AuthInfo>> {
         let procedure = infer_procedure(request.url());
 
         if let Some(proc) = &procedure {
@@ -273,12 +320,12 @@ impl AuthFunc for PerProcedureAuth {
                 return Ok(None);
             }
             if let Some(auth) = self.procedure_auth.get(proc.as_str()) {
-                return auth.authenticate(request);
+                return auth.authenticate(request).await;
             }
         }
 
         if let Some(default) = &self.default_auth {
-            return default.authenticate(request);
+            return default.authenticate(request).await;
         }
 
         Ok(None) // no auth configured
@@ -293,6 +340,7 @@ After comparing connect-go's authn with foundation_auth, these gaps need filling
 1. **`extract_bearer_token` in foundation_auth**: Already exists. Verify it does case-insensitive "Bearer " prefix matching per RFC 9110 Section 11.1.
 2. **Protocol-aware error writing**: foundation_auth's middleware returns generic HTTP errors. ConnectRPC needs protocol-aware errors (JSON for Connect, trailers for gRPC). The `ErrorWriter` integration handles this.
 3. **JWKS auto-refresh**: foundation_auth has `JwksManager` but verify it supports background key rotation for long-running servers.
+4. **Async `SessionManager` (decided, B2)**: session validation is a store lookup and `AuthFunc` is async — foundation_auth needs a **true async** `SessionManager::validate` (per the platform norm the async version holds the real logic; we do NOT wrap a sync call in `block_on`). If only a sync manager exists today, write the async version upstream; the sync surface can then wrap it for non-RPC callers.
 
 ### Scope Authorization (Post-Auth)
 
@@ -315,8 +363,9 @@ impl Interceptor for AuthzInterceptor {
             let policies = policies.clone();
             let next = next.clone();
             Box::pin(async move {
-                let principal = get_auth_info::<AuthContext>(&ctx)
+                let info = get_auth_info(&ctx)
                     .ok_or_else(|| ErrorTrace::new(ConnectError::unauthenticated("not authenticated")))?;
+                let principal = &info.context;   // the normalized AuthContext (A6 contract)
                 // Cedar: principal + action(=ctx.spec().procedure) + resource(from ctx) → allow/deny.
                 // Fast path for a basic scope gate is `has_scope(principal, &["scope"])` (R8 signature).
                 if !policies.is_allowed(principal, &ctx.spec().procedure, &ctx) {
@@ -336,7 +385,8 @@ impl Interceptor for AuthzInterceptor {
 - `ErrorWriter` ensures auth errors are formatted per the client's protocol
 - foundation_auth's JWT, session, and OAuth infrastructure is reused
 - `PerProcedureAuth` allows mixing public and authenticated endpoints
-- Auth info flows through `RequestContext.extensions` — handlers access it via `get_auth_info::<T>()`
+- Auth info flows through `RequestContext.extensions` as the one concrete `AuthInfo` —
+  handlers access it via `get_auth_info()` / raw artifacts via `get_auth_artifact::<T>()`
 - Scope/permission checks run as interceptors (after deserialization, per-RPC)
 - **Cedar policy authorization (decided, R14):** foundation_auth now supports **Cedar
   policies** — we lean on them for authorization. Scope/permission interceptors evaluate a
@@ -361,9 +411,10 @@ bridge only where a sync/async boundary genuinely forces it (R13).
 - **R12 — dependency (settled):** the auth middleware lives in `foundation_connectrpc`
   behind an **`auth` feature flag (off by default)** — no separate crate; enabling it pulls
   `foundation_auth` (and transitively `foundation_db`) only for servers that use it.
-- **R13 — JWKS (sync bridge):** `JwtVerifier::from_config` only; `JwksManager` is async.
-  The synchronous middleware uses a pre-fetched / cached JWK set refreshed out-of-band,
-  rather than fetching inside the request path.
+- **R13 — JWKS (updated for async `AuthFunc`):** the old sync-bridge constraint is gone —
+  `AuthFunc` is async (B2), so `JwksManager` is usable directly. The *latency* rule stands:
+  keys are served from the cached set and refreshed out-of-band/background; a cache-miss
+  fetch inside the request path is allowed but never the steady state.
 - **T10 — iroh identity:** add a `PublicKeyAuthenticator`; `Peer` carries the Ed25519
   public key when the connection is iroh-based.
 - **R14 — Cedar authorization:** evaluate foundation_auth Cedar policies in the
@@ -389,8 +440,3 @@ bridge only where a sync/async boundary genuinely forces it (R13).
   (or add a Connect-aware preset) if it doesn't. Runs at the HTTP layer, outside the seam
   interceptors (Decision 08 ordering).
 
-## Open Questions
-
-*Resolved — the former open questions are now decided items R15–R18 (mTLS, OAuth
-introspection, rate limiting, CORS) in Review-Gap Coverage above, and R14 (Cedar) in
-Consequences. No open questions remain for this decision.*

@@ -71,7 +71,8 @@ impl dyn Transport {
 ```
 
 Implementations: foundation_netio HTTP client (HTTP/1.1 today; HTTP/2/3 via the new
-modules), WASM Fetch (unary + server-streaming only — `Duplex::None`), custom. The client
+modules), WASM Fetch (unary + server-streaming only — `request_streaming: false`,
+Decision 11 capability matching), custom. The client
 request/response types are the **existing** netio ones: `PreparedRequest` (out, converts to
 `SimpleIncomingRequest` for rendering) and `SimpleResponse<SendSafeBody>` (in);
 `RequestDescriptor` is the head-only request the streaming seam takes. There is **no**
@@ -123,12 +124,16 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
 pub struct ClientConfig {
     pub url: String,
     pub protocol: ProtocolSelection,         // Connect (default), gRPC, gRPC-Web
-    pub codec: Arc<dyn Codec>,              // default: ProtoCodec
+    pub codec_name: String,                 // SEND-codec wire token, resolved in the
+                                            // ProcedureCodecs table (Decision 02); default: "proto"
     pub compression: CompressionRegistry,
     pub send_compression: Option<String>,    // compress outgoing requests with this algorithm
     pub limits: SizeLimits,
     pub interceptors: Vec<Arc<dyn Interceptor>>,
     pub default_timeout: Option<Duration>,
+    pub get_url_max_bytes: usize,            // GET→POST fallback threshold; default 8 KiB (P14)
+    pub get_use_fallback: bool,              // retry as POST when a GET attempt fails; default true
+    pub preferred_http_version: Option<Proto>, // T12; enforced by capability matching (Decision 11)
 }
 
 pub enum ProtocolSelection {
@@ -150,7 +155,11 @@ impl ClientOptions {
     pub fn with_grpc(self) -> Self;
     pub fn with_grpc_web(self) -> Self;
     pub fn with_proto_json(self) -> Self;
-    pub fn with_codec(self, codec: Arc<dyn Codec>) -> Self;
+    /// NAME selection among the client's installed ProcedureCodecs entries (it becomes the
+    /// emitted Content-Type; the response arrives in the same codec per spec). Options can
+    /// only SELECT — installation is registration-time via `<Service>Client::new_with_codec`
+    /// (Decisions 02/10). Unknown name → error at `Client::new`.
+    pub fn with_codec(self, name: &str) -> Self;
     pub fn with_send_gzip(self) -> Self;
     pub fn with_send_compression(self, name: &str) -> Self;
     pub fn with_accept_compression(self, name: &str, compressor: Arc<dyn Compressor>) -> Self;
@@ -161,8 +170,44 @@ impl ClientOptions {
     pub fn with_timeout(self, timeout: Duration) -> Self;
     pub fn with_idempotency(self, level: IdempotencyLevel) -> Self;
     pub fn with_http_get(self) -> Self;  // enable GET for idempotent unary RPCs
+    pub fn with_get_url_max_bytes(self, n: usize) -> Self;      // P14 (default 8 KiB)
+    pub fn with_get_fallback(self, enabled: bool) -> Self;       // GET→POST fallback
+    pub fn with_preferred_http_version(self, v: Proto) -> Self;  // T12
+    pub fn with_pipe_depth(self, n: usize) -> Self;              // seam pipe depth (Decision 11; default 4)
 }
 ```
+
+### Client-side `Ctx` contract (decided; resolves C2)
+
+**Pass the ctx you're standing in.** The canonical call site is a handler making a
+downstream RPC with the server-side `Ctx` it already has — that one habit is what makes
+deadlines shrink hop-by-hop, cancellation sweep the whole call tree, and the `bag` reach
+client interceptors unchanged. The division of ownership: the **client owns everything
+call-mechanical** (transport, protocol, codecs, URL/peer, per-call `Spec`); the **ctx
+carries only the caller's circumstances** — remaining deadline, cancellation, extensions,
+bag. Top-level code with no inbound context (main, CLIs, tests, wasm entry) mints the base
+case — `Ctx::client(bag)` / `Ctx::background()`, the `context.Background()` analog: a
+one-line starting point, not a concept anyone manages — optionally derived via
+`with_deadline` / `with_extension` / `with_cancellation` (Decision 04 §Ctx).
+
+For every RPC the **`Client` derives a fresh per-call `Ctx`**, and *that* context flows
+through the client interceptor chain — so interceptors always see an accurate `Spec`. One
+inbound/root ctx is reusable across all calls and methods.
+
+| field | source |
+|---|---|
+| `deadline` | caller — merged as **min**(caller deadline, `ClientOptions.default_timeout`); becomes the wire timeout header + local enforcement |
+| cancellation | caller — the per-call signal is `CancelSignal::linked(&caller_signal)` (Decision 04 rules): the caller's cancel stops the call; a call-local cancel/deadline never propagates up to the root |
+| `extensions` | caller — shallow-cloned into the call; visible to client interceptors; never sent on the wire |
+| `bag` | caller |
+| `spec` | **Client, per call** (procedure, stream type, idempotency) — any caller value is overwritten |
+| `peer` | **Client** (from URL / transport) |
+| headers | **not from `Ctx`** — outbound headers ride `Request<T>.headers` / `request_headers_mut()` |
+
+Deadline enforcement fires the **per-call** signal only — that is exactly why the link is
+one-way down (opt-in `linked`, never an implicit tree). This per-call context, plus
+`.spec()`/`.peer()` on the stream handles (C3), *is* the C2 "client-context mechanism";
+response headers/trailers are read from the stream handles / `Response<T>`.
 
 ### Unary Call Flow
 
@@ -182,8 +227,10 @@ impl ClientOptions {
 
 These are the **lower-level** handles that the async `Client` methods above are built on —
 exposed for callers who want manual control (drop a level). Each is a thin typed facade over
-a `ClientConn` (Decision 11) obtained from `Transport::open`: outgoing messages go to the
-conn's `MessageSink<Req>`, incoming to its `MessageSource<Res>`. They do **not** embed `EnvelopeReader`/`EnvelopeWriter` directly, and
+the **split halves** of a `ClientConn` (Decision 11 — `split()` yields independently-owned
+`ClientSender`/`ClientReceiver`) obtained from `Transport::open`: outgoing messages go
+through the sender half (`MessageSink<Req>`), incoming through the receiver half
+(`MessageSource<Res>`). They do **not** embed `EnvelopeReader`/`EnvelopeWriter` directly, and
 the half-duplex (HTTP/1.1) vs full-duplex (HTTP/2/3) difference is handled by the transport
 scheduling the conn's pipes — the API is identical.
 
@@ -193,44 +240,69 @@ scheduling the conn's pipes — the API is identical.
 // convenience wrappers (valtron block_on) exist for off-pool callers only. Typed
 // encode/decode goes through the handle's `Arc<dyn CodecFor<…>>` (Decision 02).
 
-/// Client's view of a server streaming RPC (one request, many responses).
-pub struct ServerStream<Res> { conn: Box<dyn ClientConn>, codec: Arc<dyn CodecFor<Res>> }
+/// Client's view of a server streaming RPC (one request, many responses). Holds only the
+/// receiver half — the sender was consumed at open (request sent, then `close_send`).
+pub struct ServerStream<Res> { recv: Box<dyn ClientReceiver>, codec: Arc<dyn CodecFor<Res>> }
 impl<Res: Send + 'static> ServerStream<Res> {
     pub async fn receive(&mut self) -> ConnectResult<Option<Res>>; // None at end of stream
-    pub fn response_headers(&self) -> &SimpleHeaders;              // available immediately
-    pub async fn response_trailers(&self) -> ConnectResult<&SimpleHeaders>; // after end
+    /// Sync OK: `server_stream()` awaited the response head before returning this handle
+    /// (`ClientReceiver::response_headers` itself is async, Decision 11).
+    pub fn response_headers(&self) -> &SimpleHeaders;
+    pub async fn response_trailers(&mut self) -> ConnectResult<&SimpleHeaders>; // after end
+    // (&mut: delegates to the seam's `&mut self` method and may drive the conn to EOS)
     /// Non-blocking close of the receive side (connection reuse).
     pub fn close(self);
 }
 
 /// Client's view of a client streaming RPC (many requests, one response).
 pub struct ClientStream<Req, Res> {
-    conn: Box<dyn ClientConn>,
+    send: Box<dyn ClientSender>,
+    recv: Box<dyn ClientReceiver>,
     req_codec: Arc<dyn CodecFor<Req>>,
     res_codec: Arc<dyn CodecFor<Res>>,
 }
 impl<Req: Send + 'static, Res: Send + 'static> ClientStream<Req, Res> {
-    pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders; // before first send
+    /// Delegates to the SENDER half (`ClientSender::request_headers_mut`, Decision 11) —
+    /// valid before the first send.
+    pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders;
     pub async fn send(&mut self, msg: &Req) -> ConnectResult<()>;
     pub async fn close_and_receive(self) -> ConnectResult<Response<Res>>;
 }
 
 /// Client's view of a bidirectional streaming RPC.
 pub struct BidiStream<Req, Res> {
-    conn: Box<dyn ClientConn>,
+    send: Box<dyn ClientSender>,
+    recv: Box<dyn ClientReceiver>,
     req_codec: Arc<dyn CodecFor<Req>>,
     res_codec: Arc<dyn CodecFor<Res>>,
 }
 impl<Req: Send + 'static, Res: Send + 'static> BidiStream<Req, Res> {
+    /// Delegates to the SENDER half (valid before the first send — Decision 11).
     pub fn request_headers_mut(&mut self) -> &mut SimpleHeaders;
     pub async fn send(&mut self, msg: &Req) -> ConnectResult<()>;
-    /// Header-only send (no body) is `send_headers` then proceed (C5).
+    /// Header-only send (no body) — `ClientSender::flush_headers` (C5, Decision 11).
     pub async fn send_headers(&mut self) -> ConnectResult<()>;
     pub async fn close_request(&mut self) -> ConnectResult<()>;
     pub async fn receive(&mut self) -> ConnectResult<Option<Res>>;
-    pub fn response_headers(&self) -> &SimpleHeaders;
-    pub async fn response_trailers(&self) -> ConnectResult<&SimpleHeaders>;
+    /// Bidi: the head arrives whenever the server sends it — awaiting may park
+    /// (async-canonical; over `ClientReceiver::response_headers`, Decision 11).
+    pub async fn response_headers(&mut self) -> ConnectResult<&SimpleHeaders>;
+    pub async fn response_trailers(&mut self) -> ConnectResult<&SimpleHeaders>;
+
+    /// CONCURRENT send/receive (fresh-review A2): split into independently-owned typed
+    /// halves so one task sends while another receives — required for deadlock-freedom on
+    /// bounded pipes (a server that fills its response pipe while not draining requests
+    /// would otherwise deadlock a client that can only alternate). connect-go parity
+    /// (its Send/Receive may be called concurrently).
+    pub fn split(self) -> (BidiSender<Req>, BidiReceiver<Res>);
 }
+
+/// The typed halves `BidiStream::split` yields — each wraps its seam half + codec handle
+/// (exactly `ClientStream`'s two field pairs, separated):
+pub struct BidiSender<Req>   { send: Box<dyn ClientSender>,   codec: Arc<dyn CodecFor<Req>> }
+pub struct BidiReceiver<Res> { recv: Box<dyn ClientReceiver>, codec: Arc<dyn CodecFor<Res>> }
+// BidiSender: send / send_headers(flush) / close_request;  BidiReceiver: receive /
+// response_headers / response_trailers — same semantics as the unsplit methods.
 ```
 
 Over HTTP/1.1 `send` buffers into the bounded request pipe and the response side becomes
@@ -245,13 +317,13 @@ When `IdempotencyLevel::NoSideEffects` and `with_http_get()` is enabled:
 fn build_get_request(&self, request: &Request<Req>) -> ConnectResult<PreparedRequest> {
     // GET encodes the message into the query via the stable codec — no separate marshal.
     let mut query_params = vec![
-        format!("encoding={}", self.config.codec.name()),
+        format!("encoding={}", self.config.codec_name),
     ];
 
-    // `marshal_stable` is on `CodecFor<Req>` (Decision 02) — dyn-callable, no name-match
-    // needed: the ProcedureCodecs table already holds the selected codec as
-    // `Arc<dyn CodecFor<Req>>`.
-    let codec = self.codecs.for_request(self.config.codec.name())?; // Arc<dyn CodecFor<Req>>
+    // `marshal_stable` is on `CodecFor<Req>` (Decision 02) — dyn-callable; `Codec` is its
+    // supertrait, so `is_binary` is reachable through the same handle. Resolved once from
+    // the ProcedureCodecs table (the only codec authority — no registry).
+    let codec = self.codecs.for_request(&self.config.codec_name)?; // Arc<dyn CodecFor<Req>>
     let stable = codec.marshal_stable(&request.msg)?;
 
     // Compression is applied BEFORE query encoding — the compressed bytes are what ride the
@@ -267,7 +339,7 @@ fn build_get_request(&self, request: &Request<Req>) -> ConnectResult<PreparedReq
         _ => (stable, false),
     };
 
-    if self.config.codec.is_binary() || compressed {
+    if codec.is_binary() || compressed {
         query_params.push(format!("message={}", base64url_encode(&payload)));
         query_params.push("base64=1".to_string());
     } else {
@@ -282,7 +354,13 @@ fn build_get_request(&self, request: &Request<Req>) -> ConnectResult<PreparedReq
 
 ### GET Fallback
 
-connect-go supports falling back to POST if GET fails (URL too long, server rejects). Implement this:
+Fallback to POST triggers in exactly two DETERMINISTIC cases (fresh-review-2 #11) — never
+on transport errors, which would risk double-executing a request that may already have run:
+
+1. **URL too long** — pre-flight length check against `get_url_max_bytes` (never sent).
+2. **Server rejected the GET without executing it** — a `405`/`415` response (a server
+   without GET support), retried as POST once iff `get_use_fallback` (safe: rejection
+   precedes execution). Any other response — including errors — is processed normally.
 
 ```rust
 async fn call_unary_with_get_fallback(
@@ -292,14 +370,17 @@ async fn call_unary_with_get_fallback(
 ) -> ConnectResult<Response<Res>> {
     let get_request = self.build_get_request(&request)?;
 
-    // Check URL length against configured max (default: 8KiB)
+    // Case 1: pre-flight URL length check (default max: 8 KiB).
     if get_request.url().len() > self.config.get_url_max_bytes {
         return self.call_unary_post(ctx, request).await;
     }
 
     match self.transport.round_trip(get_request).await {
+        // Case 2: GET rejected before execution → safe single retry as POST.
+        Ok(r) if self.config.get_use_fallback && matches!(r.status(), 405 | 415) =>
+            self.call_unary_post(ctx, request).await,
         Ok(response) => self.process_unary_response(response),
-        Err(_) if self.config.get_use_fallback => self.call_unary_post(ctx, request).await,
+        // Transport errors are NOT retried (the GET may have executed — no double-send).
         Err(e) => Err(ConnectError::from(e).into()),
     }
 }
@@ -322,32 +403,24 @@ folded in:
 
 - **C1 — simple call variants:** add `call_client_stream_simple` / `call_bidi_stream_simple`
   that send headers immediately and return unwrapped types (simple codegen mode).
-- **C2 — client context:** provide a client-context mechanism to set request headers and
-  read response headers/trailers without the `Request`/`Response` wrappers.
+- **C2 — client context:** resolved by §Client-side `Ctx` contract above (per-call derived
+  `Ctx` + stream-handle accessors).
 - **C3 — Spec/Peer on streams:** expose `.spec()` / `.peer()` on all client stream types.
 - **C4 — `ServerStream::close`:** non-blocking close of the receive side (connection
   reuse).
 - **C5 — header-only send:** allow sending headers with no body (Decision 11
-  `MessageSink::set_headers` + `close`).
+  `ClientSender::flush_headers` — the client-side header op; `MessageSink::set_headers`
+  is the server-side counterpart).
 - **C6 — default gzip accept:** the client accepts gzip by default.
 - **C7 — default codecs:** proto + JSON registered by default (see Decisions 02 / 08).
 - **T12 — version selection (decided):** `ClientOptions::with_preferred_http_version()`;
   Connect and gRPC-Web prefer the highest available version, gRPC requires ≥ HTTP/2 —
   enforced by Decision 11's capability matching.
 
-## Open Questions
+## Decided Details
 
-1. **Client request/response types — resolved (verified in foundation_netio).** No new types:
-   the client builds a **`PreparedRequest`** `{method, url, headers, body: SendSafeBody,
-   extensions}` (which converts to the universal `SimpleIncomingRequest` for rendering) and
-   reads a **`SimpleResponse<SendSafeBody>`** (`send_async`'s return; streaming via
-   `IncomingResponseParts`). The streaming seam's head-only request is netio's existing
-   **`RequestDescriptor`**; the response head is **`SimpleResponse<()>`**. `SimpleOutgoingRequest`
-   / `SimpleIncomingResponse` do **not** exist and are not needed.
-2. **Client streaming body — resolved:** no in-memory accumulation; the request body streams via chunked transfer-encoding over the pushable `SendSafeBody::Stream` (Decision 12 §7).
-3. **Connection reuse — resolved (verified in foundation_netio):** no new pooling in connectrpc; reuse is split by protocol.
+- **Connection reuse — decided (verified in foundation_netio):** no new pooling in connectrpc; reuse is split by protocol.
    - **HTTP/1.1:** foundation_netio's `HttpConnectionPool` (`client/native/pool.rs` + `connection.rs`) already provides keep-alive reuse — per-`host:port` LIFO checkout/checkin of exclusive `SharedByteBufferStream<RawStream>`s, `max_per_host` cap, `max_idle_time` staleness eviction. The client uses it transparently: on response drop the stream is drained and returned to the pool, honoring `Connection: close` (`FinalizedResponse::drop`). The connectrpc client gets this for free through the Decision 11 transport seam.
    - **HTTP/2 / HTTP/3:** this pool does **not** apply — its exclusive one-request-per-connection ownership model is inherently HTTP/1.1. h2/h3 reuse is multiplexing many concurrent streams over **one shared connection per origin**, owned by the Decision 12 multiplexer (`http2/` / `http3/`); h3 has no `RawStream` to pool at all (QUIC endpoint owns the connection). Not a gap — the standard split (cf. hyper: h1 idle pool vs. shared h2 connection per origin).
    - **Caveat (h1 streaming):** a long-lived streaming RPC over HTTP/1.1 holds its connection exclusively for the stream's entire lifetime (inherent to h1, not a pool flaw). Heavy h1 streaming workloads need `max_per_host` headroom; truly concurrent streaming belongs on h2.
    - Netio follow-up (not a connectrpc concern): the pool self-describes as conservative (`Arc<Mutex<…>>`, sync); background cleanup / async-aware primitives are noted for a later phase.
-4. **Bidi over HTTP/1.1 — resolved:** rejected with `505` (capability matching, Decision 11), matching connect-go. Only client/server-streaming are half-duplex on HTTP/1.1.

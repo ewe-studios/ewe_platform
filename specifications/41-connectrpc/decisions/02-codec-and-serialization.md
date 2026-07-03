@@ -44,7 +44,10 @@ Define a `Codec` trait in foundation_connectrpc that mirrors connect-go's interf
 // trait cannot declare `marshal<M: Message>` while impls narrow `M` to `buffa::Message` /
 // `ToArrow`, and there is no unified `Message` trait. Split by role:
 
-/// Object-safe metadata + negotiation handle. The registry/configs hold `Arc<dyn Codec>`.
+/// Object-safe metadata supertrait. `name()` is the WIRE TOKEN carried in Content-Type
+/// (`application/{name}`, `application/connect+{name}`, GET `?encoding={name}`) — not an
+/// internal registry key; it is reached through the table's `CodecFor` entries (supertrait),
+/// and there is NO free-standing `Arc<dyn Codec>` registry handle (see ProcedureCodecs).
 pub trait Codec: Send + Sync + 'static {
     /// Wire name used in Content-Type headers ("proto"|"json"|"arrow").
     fn name(&self) -> &str;
@@ -90,21 +93,16 @@ per family (`buffa::OwnedView<V>` / Arc-backed `RecordBatch` / owned `M`), so it
 into its signature (Decision 10), so the generated facade dispatches view decode statically
 against the concrete codec. (S4/RS2 unchanged in substance.)
 
-**Two-layer use (this is why `Arc<dyn Codec>` remains valid everywhere):**
-- **Negotiation / metadata** goes through `Arc<dyn Codec>` (`name`/`is_binary`/content-type) —
-  the registry and configs hold codecs this way.
-- **Typed encode/decode** goes through `Arc<dyn CodecFor<M>>`, built **at registration time**:
-  the generated register fn / client constructor (where `Req`/`Res` are concrete) builds a
-  per-procedure table `ProcedureCodecs<Req, Res>` — codec name →
-  `(Arc<dyn CodecFor<Req>>, Arc<dyn CodecFor<Res>>)` — covering the default codecs plus any
-  user-supplied custom codec (bound `C: CodecFor<Req> + CodecFor<Res>` on the registration
-  fn). At request time negotiation resolves the name and the facade looks up the typed
-  handles — no name-matching on hot paths.
-
-So content-type negotiation stays runtime (via `dyn Codec`), while message serialization is
-fully typed via `dyn CodecFor<M>` — **no `dyn Any` message ever exists**, and the
-`Arc<dyn Codec>` fields in Decisions 05/07/08/11 are the negotiation handle; the typed-marshal
-path is the per-procedure `CodecFor` table.
+**Single authority (decided): the handler-owned `ProcedureCodecs` table.** The codec is
+chosen by the **client, per request, on the wire** (Content-Type) — that is the
+ConnectRPC/gRPC contract, so a procedure owns a *set* of codecs keyed by the wire token,
+not exactly one. There is **no request-time codec registry**: extracting the name from a
+content-type is mechanical string parsing (the `application/(connect+){name}` /
+`application/grpc(-web)+{name}` grammar is fixed — Decision 05), and "is this codec
+supported *here*" is answered by the procedure's own table. Metadata (`name`/`is_binary`)
+rides the `Codec` supertrait of each table entry; typed encode/decode goes through
+`Arc<dyn CodecFor<M>>` — **no `dyn Any` message ever exists**, and no name-matching sits on
+hot paths (the typed pair is resolved once at dispatch).
 
 ### Proto Codec (buffa)
 
@@ -233,22 +231,70 @@ from the Arc-backed frame `Bytes` (`arrow_buffer::Buffer`) rather than `&[u8]`+c
 write reuse the batch's buffers — otherwise the current `encode_ipc`/`decode_ipc(&[u8])`
 path still does an IPC framing copy.
 
-### Codec Registry
+### ProcedureCodecs — the single codec authority (normative; replaces the registry)
 
-Mirrors connect-go's `readOnlyCodecs`:
+> connect-go's `readOnlyCodecs` registry is **not ported**. Its two request-time jobs —
+> name extraction and supported-lookup — are string mechanics plus this handler-owned table.
 
 ```rust
-pub struct CodecRegistry {
-    codecs: HashMap<String, Arc<dyn Codec>>,
-}
+/// Per-procedure, built at registration where `Req`/`Res` are concrete, then FROZEN —
+/// nothing installs codecs after registration. Owned by the HandlerEntry (server) /
+/// Client (client). Map: wire name → (Arc<dyn CodecFor<Req>>, Arc<dyn CodecFor<Res>>).
+pub struct ProcedureCodecs<Req, Res> { /* … */ }
 
-impl CodecRegistry {
-    pub fn new() -> Self { /* proto + json by default */ }
-    pub fn register(&mut self, codec: Arc<dyn Codec>) { /* add by name */ }
-    pub fn get(&self, name: &str) -> Option<&Arc<dyn Codec>> { /* lookup */ }
-    pub fn protobuf(&self) -> &Arc<dyn Codec> { /* fallback to ProtoCodec */ }
-    pub fn names(&self) -> Vec<&str> { /* registered codec names */ }
+impl<Req, Res> ProcedureCodecs<Req, Res> {
+    /// The interop default (what codegen emits): proto + json, per the Connect spec —
+    /// callable by connect-go / connect-es / curl / browsers. METHOD-LEVEL BOUNDS
+    /// (fresh-review-2 #7): building the entries coerces `Arc<ProtoCodec>`/`Arc<JsonCodec>`
+    /// into `Arc<dyn CodecFor<…>>`, which requires the proto-family blanket impls — an
+    /// Arrow-only `ToArrow`/`FromArrow` type CANNOT use `defaults()` (it can't serve the
+    /// proto+json conformance it would claim) and uses `only(ArrowCodec)` instead.
+    pub fn defaults() -> Self
+    where
+        Req: buffa::Message + Default,
+        Res: buffa::Message + Default;
+    /// Single-codec endpoint: exactly one entry; every other content-type → 415.
+    /// NOTE: a proto-less/json-less procedure is NOT Connect-conformant — intended for
+    /// our-stack extension endpoints (e.g. arrow bulk feeds), never the codegen default.
+    pub fn only<C>(codec: C) -> Self
+        where C: CodecFor<Req> + CodecFor<Res>;
+    /// Add a custom codec — a concrete VALUE with a generic bound (never a name string or
+    /// `Arc<dyn Codec>` handle); the wire name comes from `Codec::name()`.
+    pub fn with_codec<C>(self, codec: C) -> Self
+        where C: CodecFor<Req> + CodecFor<Res>;
+    /// Request-time resolution (O(1); the only lookup that exists — a miss is a 415 on the
+    /// server / a constructor error on the client, never a silent fallback).
+    pub fn for_request(&self, name: &str)  -> ConnectResult<Arc<dyn CodecFor<Req>>>;
+    pub fn for_response(&self, name: &str) -> ConnectResult<Arc<dyn CodecFor<Res>>>;
+    pub fn names(&self) -> impl Iterator<Item = &str>;   // Accept-Post construction
 }
+```
+
+**Full flow (construction → request):**
+
+```
+registration (codegen; Req/Res concrete)
+  ProcedureCodecs::<Req,Res>::defaults()          ← proto + json (interop default)
+      [.with_codec(MyCodec)]                      ← via generated *_with_codec entry points
+      [ProcedureCodecs::only(ArrowCodec)]         ← single-codec extension endpoints
+        │ frozen; owned by HandlerEntry (server) / Client (client)
+        ▼
+request time (server)
+  Content-Type ──canonicalize (Decision 05 P6)──► codec NAME     ← string mechanics, no registry
+        ──► THIS procedure's table.for_request(name) / for_response(name)
+              ├─ hit  ─► typed pair ─► facade encode/decode
+              └─ miss ─► 415 (+ Accept-Post from table.names())       ← defined; no silent fallback
+client selection
+  ClientOptions::with_codec(name) picks the SEND codec among the client's installed entries
+  (it becomes the emitted Content-Type; the response arrives in the same codec per spec);
+  unknown name → error at Client::new. Custom codecs install via <Svc>Client::new_with_codec.
+```
+
+Registration reads as directly as it sounds — the wrapping handler construct owns exactly
+the codecs it supports, and nothing else exists:
+
+```rust
+router.register("/v1/analytics.Feed/Batches", ProcedureCodecs::only(ArrowCodec), handler);
 ```
 
 ### Content-Type Mapping
@@ -269,7 +315,9 @@ For gRPC/gRPC-Web protocols:
 ## Consequences
 
 - **Three first-class codecs**: proto (buffa), json (serde_json), arrow (foundation_arrow)
-- **Extensible**: Custom codecs register via `CodecRegistry::register`
+- **Extensible**: custom codecs enter as concrete values via `ProcedureCodecs::with_codec` /
+  `::only` (generated `*_with_codec` entry points hide the plumbing); there is **no
+  request-time codec registry**
 - **No message type-erasure**: typed dispatch is `dyn CodecFor<M>` (message type on the
   trait; blanket impls per family over `buffa::Message` / `ToArrow`+`FromArrow`); the
   framework's generic seam is byte-level `Bytes` (Decision 11) and the typed handles live in
@@ -282,13 +330,15 @@ For gRPC/gRPC-Web protocols:
 
 Decided items folded in from the review (we own the code; implement directly):
 
-- **P1 — dual JSON registration:** register the JSON codec under both `json` and
-  `json; charset=utf-8`, and canonicalize content-types (Decision 05 P6) so
-  `application/json; charset=utf-8` is accepted rather than 415'd.
+- **P1 — JSON charset acceptance:** `application/json; charset=utf-8` is accepted rather
+  than 415'd via content-type canonicalization (Decision 05 P6): the `charset` parameter is
+  stripped **before** the name is resolved in the procedure's table, which keys on bare wire
+  names — no dual registration (that was a registry-era workaround; the registry is gone).
 - **P16 — zero-length JSON:** reject zero-length JSON payloads with `invalid_argument`
   ("zero-length payload is not a valid JSON object").
-- **RS7 — frozen registries:** `CodecRegistry` / `CompressionRegistry` are built then
-  frozen (builder → `Arc`); no `&mut register` after handlers hold references.
+- **RS7 — frozen registries:** `ProcedureCodecs` / `CompressionRegistry` are built then
+  frozen (builder → `Arc`); no `&mut register` after handlers hold references. (The former
+  global `CodecRegistry` is deleted — see §ProcedureCodecs.)
 - **RS8 — `MarshalAppend`:** `marshal_append(&self, buf: &mut Vec<u8>, m: &M)` is on
   `CodecFor<M>` (see trait section) for pooled-buffer reuse on hot paths.
 - **RS9 — Send/Sync:** moot — with monomorphic codecs there is no erased `MessageRef`/
@@ -302,6 +352,12 @@ Decided items folded in from the review (we own the code; implement directly):
   refcount on the frame `Bytes`). For the **Arrow** codec the message is an Arc-backed
   `RecordBatch`, inherently `'static`/`Send`/zero-copy. So zero-copy is a supported codegen
   variant (owned-decode is the default); it just isn't a borrowed `MessageView<'a>`.
+  **View-typed procedures are single-codec by construction** (fresh-review A5):
+  `OwnedView<V>`/`RecordBatch` satisfy no `CodecFor` family bound, so no generic
+  `ProcedureCodecs` table exists for them — codegen emits the zero-copy variant with one
+  fixed concrete codec (proto → `OwnedView`, arrow → `RecordBatch`), statically dispatched
+  via the inherent view method; any other content-type → 415. Same non-conformance caveat
+  class as `only(...)` endpoints.
 - **Q5 — JSON semantics (decided):** protobuf messages serialize via canonical
   protobuf-JSON (lowerCamelCase, string enums, omit-zero). Arbitrary serde types are a
   documented **platform extension** that is *not* protobuf-JSON-canonical and is not
@@ -311,7 +367,7 @@ Decided items folded in from the review (we own the code; implement directly):
   extension under a distinct name) — never silently under `application/json` for protobuf
   services. The codec name on the wire is what selects canonical vs extension behaviour.
 
-## Open Questions
+## Decided Details
 
 1. **buffa JSON support — resolved (verified).** buffa's `json` feature emits **canonical
    protobuf-JSON** (verified in source: `buffa/Cargo.toml` `json` feature + `DESIGN.md`
@@ -323,9 +379,9 @@ Decided items folded in from the review (we own the code; implement directly):
    for streaming the handler/client choose rows-per-batch and the framework carries each
    `RecordBatch` through as **one enveloped message, unchanged** — this preserves Arrow's
    bulk/columnar strength (no framework-imposed batch size). DoS safety still comes from
-   `read_max_bytes` (Decision 06) bounding total decoded size, not from a row cap. We should also intelligently pass this to the mesage batcher so it knows whats the max bytes allowed and can ensure mesasge envelop never go past it.
+   `read_max_bytes` (Decision 06) bounding total decoded size, not from a row cap — noting
+   it is opt-in protection (the default is connect-go-parity unlimited, Decision 06 P17). The size
+   caps also govern the WS batch framing: per-envelope `read_max_bytes`/`send_max_bytes`
+   apply unchanged inside a batch, and the assembler's `max_message_size` bounds the whole
+   WS message (rule recorded in Decision 13 §Framing).
 
-<!-- Resolved and removed:
- • Type-erasure cost — MOOT and now eliminated: codecs are monomorphic over concrete Req/Res
-   (facade owns the concrete codec, Decision 10/11); no dyn Any messages, no MessageRef/MessageMut.
- • Zero-copy deserialization — resolved via buffa::OwnedView<V> / Arc-backed RecordBatch (RS2). -->

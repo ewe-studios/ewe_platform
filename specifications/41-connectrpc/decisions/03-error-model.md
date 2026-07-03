@@ -306,10 +306,14 @@ type ConnectResult<T> = Result<T, ErrorTrace<ConnectError>>;
 // Domain errors flow in as custom contexts and change_context to ConnectError at the seam.
 ```
 
-**Normative (decided — swept through all docs):** `ConnectResult<T>` is the error type of
-**every public signature** — handlers, interceptor fn-types, seam traits
-(`HandlerConn`/`ClientConn`), the client surface, and generated traits/clients (Decisions
-04/05/07/08/10/11 use it). Bare `Result<_, ConnectError>` appears nowhere in the public API;
+**Normative (decided — swept through all docs; scope precise per fresh-review A11):**
+`ConnectResult<T>` is the error type of every public **RPC-surface** signature — handlers,
+interceptor fn-types, the seam traits (`HandlerConn`/`ClientConn` and their halves), the
+client surface, and generated traits/clients (Decisions 04/05/07/08/10/11 use it).
+**Domain layers below the RPC surface keep their own typed errors** and feed in via
+`From`/`change_context` at the boundary: `CodecError` (codecs, `ErrorWriter`),
+`CompressionError` (compressors), `EnvelopeError` (wire framing, Decision 05),
+`TransportError` (transports — defined with its `Code` mapping in Decision 11). Bare `Result<_, ConnectError>` appears nowhere in the public API;
 `ConnectError → ErrorTrace<ConnectError>` has a `From` impl (same pattern as foundation_http's
 `ServeError`) so constructors compose with `?`/`.into()`. Pure flow-control signals (bounded
 pipe `Full`, `Pending`) are not errors and stay outside this type (Decision 11).
@@ -319,11 +323,13 @@ pipe `Full`, `Pending`) are not errors and stay outside this type (Decision 11).
 Mirrors connect-go's `ErrorWriter` — writes errors in the correct protocol format from middleware (before handler dispatch):
 
 ```rust
-/// Per H17: holds only a buffer pool + the single protobuf codec needed to encode
-/// `google.rpc.Status` details for gRPC trailers — NOT the full `CodecRegistry`
-/// (Connect errors are always JSON; gRPC-Web trailers are text).
+/// Per H17: holds only the single protobuf codec needed to encode `google.rpc.Status`
+/// details for gRPC trailers (Connect errors are always JSON; gRPC-Web trailers are text;
+/// there is no request-path codec registry — Decision 02). It does NOT own a `BufferPool`:
+/// it is one shared instance across worker threads, so scratch comes from the current
+/// worker's thread-local pool via the `with_worker_buffer(|buf| …)` accessor
+/// (Decision 06 §Buffer Pool — owning a `&mut`-API pool here would force a Mutex).
 pub struct ErrorWriter {
-    buffers: BufferPool,       // thread-local per worker (Decision 06 RS6)
     status_codec: ProtoCodec,  // encodes google.rpc.Status for grpc-status-details-bin
 }
 
@@ -355,7 +361,7 @@ impl ErrorWriter {
 - JSON error serialization matches the Connect protocol spec exactly
 - **Error details always available (decided):** `google.protobuf.Any` is **reused from
   `buffa-types`** (existing WKT) and `google.rpc.Status` is **generated from its `.proto`** and
-  bundled (Decision 05 OQ#2), so structured error details work **regardless of the service's
+  bundled (Decision 05 §Decided Details — gRPC Status protobuf), so structured error details work **regardless of the service's
   codec** (JSON/Arrow-only services still emit protobuf-`Any` details, connect-go interop).
 - **Errors are foundation_errstacks `ErrorTrace<C>` (decided):** `ConnectError` is the context
   type; domain errors are custom contexts mapped in via `From`/`change_context`. errstacks'
@@ -373,21 +379,24 @@ impl ErrorWriter {
   for unary errors; `EndStreamResponse.error` embeds it (documented in the JSON shapes
   above).
 - **P15 — 304 Not Modified:** add `ConnectError::not_modified()` / `is_not_modified()`
-  for conditional GET.
+  for conditional GET. Representation (fresh-review-2 #9): the 16-code enum has no 304
+  member, so — connect-go parity — it carries `Code::Unknown` plus a **private
+  `not_modified` sentinel flag** that `is_not_modified()` checks. It is a *signaling*
+  error, GET-only: `ErrorWriter` renders it as HTTP **304 with headers (ETag) and no
+  body**, never as a wire error payload; it is invalid outside conditional GET handling.
 - **H11 — error wrapping:** add `wrap_if_uncoded`, `wrap_if_context`, `wrap_if_rst`,
   `wrap_if_h2c` helpers that map arbitrary errors to a `Code`.
 - **H12 — `code_of`:** free fn `code_of(&dyn Error) -> Code` (downcast to `ConnectError`,
   else `Unknown`).
 - **H13 — chain traversal:** document the downcast pattern — walk `Error::source()` and
   `downcast_ref::<ConnectError>()` — for interceptors checking nested errors.
-- **H17 — `ErrorWriter`:** holds only a buffer pool + a single protobuf codec (for gRPC
-  status details), not the full `CodecRegistry`.
+- **H17 — `ErrorWriter`:** holds only the single protobuf codec for gRPC status details;
+  scratch buffers are borrowed from the worker thread's pool via `with_worker_buffer`
+  (Decision 06 RS6) — it owns no pool and no codec table.
 
-<!-- Open Questions resolved: (1) details always available via bundled google.rpc.Status/Any
-regardless of codec; (2) no separate debug field — errstacks structured JSON is the debug form;
-(3) errors ARE errstacks ErrorTrace<C> with ConnectError as context + custom domain contexts.
-See "Error representation" and Consequences above. -->
 
 ## Cross-References
 
-- Wire encodings: Decision 05. Auth error writing: Decision 09. Codec registry: Decision 02.
+- Wire encodings: Decision 05. Auth error writing: Decision 09. Codec tables
+  (`ProcedureCodecs` — there is no codec registry): Decision 02. `TransportError` → `Code`
+  mapping: Decision 11.

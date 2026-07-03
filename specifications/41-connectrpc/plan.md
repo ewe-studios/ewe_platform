@@ -18,11 +18,11 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 
 1. **Independent implementation** — not a wrapper around connect-rust. connect-go is the sole design reference.
 2. **Port to foundation types** — Replace tower/hyper/tokio with foundation_http handlers, foundation_netio HTTP types, valtron execution.
-3. **Abstract codec system (`CodecFor<M>`)** — Three first-class codecs: buffa (protobuf), serde_json (JSON), foundation_arrow (Arrow IPC). Message type on the trait (`dyn CodecFor<M>` object-safe); registration-time per-procedure `ProcedureCodecs` tables; no unified `Message` trait, no `dyn Any` (Decision 02).
+3. **Abstract codec system (`CodecFor<M>`)** — Three first-class codecs: buffa (protobuf), serde_json (JSON), foundation_arrow (Arrow IPC). Message type on the trait (`dyn CodecFor<M>` object-safe); registration-time per-procedure `ProcedureCodecs` tables as the **single codec authority** — no request-time `CodecRegistry`, codec names are the Content-Type wire tokens, options select by name only (`ProcedureCodecs::only(...)` covers single-codec extension endpoints); no unified `Message` trait, no `dyn Any` (Decision 02).
 4. **Auth on foundation_auth** — Port authn-go's middleware pattern, delegate verification to foundation_auth's JWT/OAuth/session infrastructure.
-5. **errstacks everywhere** — every public signature returns `ConnectResult<T> = Result<T, ErrorTrace<ConnectError>>`; domain errors are custom contexts mapped in via `change_context` (Decision 03).
-6. **`Ctx` context handle** — Arc-backed, by-value in all four RPC kinds; bundles foundation_http's `ContextBag` (app-scoped shared deps) + `Arc<RequestContext>` (per-RPC state) (Decision 04).
-7. **Async-canonical surfaces** — client stream handles, `Transport::open`, and the response head are async; sync wraps via valtron off-pool (Decisions 07/11; platform norm).
+5. **errstacks everywhere** — every public **RPC-surface** signature returns `ConnectResult<T> = Result<T, ErrorTrace<ConnectError>>`; domain layers below the surface keep typed errors (`CodecError`/`CompressionError`/`TransportError`) mapped in via `change_context`/`From` at the boundary (Decisions 03/11).
+6. **`Ctx` context handle** — owned + cheap-`Clone` (Arc-backed internals; write = COW `with_*` rebuild-and-move, read = share), by-value in all four RPC kinds; bundles foundation_http's `ContextBag` (app-scoped shared deps) + `RequestContext` (per-RPC state) + `CancelSignal` (a clone shares the call's signal; detach/link is explicit, never an implicit tree) (Decision 04).
+7. **Async-canonical surfaces** — client stream handles, `Transport::open`, the response head, **and the seam itself** (`HandlerConn`/`ClientConn` via dyn-safe `BoxFuture`; `MessageSink`/`MessageSource` as async fns) are async; flow control is **awaited** (two-sided pipe wake, Decision 00 L1b/00-F4), never surfaced as an error; sync wraps via valtron off-pool (Decisions 00/03/07/11; platform norm).
 
 ## Design Documents
 
@@ -62,11 +62,12 @@ backends/foundation_connectrpc/          # Runtime library
 #   - a binary in              backends/foundation_netio/  exposes it (CLI / protoc plugin)
 ```
 
-## Open Questions (Aggregated)
+## Resolution Record (Aggregated) & Implementation-Time Tunables
 
 **All design-blocking questions are resolved.** Each decision doc records its resolutions
-inline (the Review-Gap Coverage and Open Questions sections are retained as resolution
-records) — the questions that used to be listed here (netio HTTP/2 support, buffa canonical
+inline (the Review-Gap Coverage and **Resolution Records** sections — no doc has an "Open
+Questions" section anymore; anything so titled would be a regression) — the questions that
+used to be listed here (netio HTTP/2 support, buffa canonical
 JSON, zero-copy views, error details/debug, sync-vs-async handlers, cancellation, bidi,
 gRPC-Web text mode, `google.rpc.Status`, HTTP/1.1 trailers, client types/pooling/streaming
 bodies, prefix routing, middleware ordering, mTLS/introspection/CORS, unified codegen,
@@ -75,11 +76,33 @@ A second cross-consistency pass (2026-07) additionally settled: `CodecFor<M>` ty
 dispatch, the `ConnectResult` error sweep, the `Ctx` handle, async-canonical client
 surfaces, R1 leading-slash paths, R11 `grpc-web` naming, R12 auth feature-gating, the
 frame-level `EnvelopeReader`/`Writer`, and `ConnectionContext` plumbing (Decision 12 §13).
+A third pass (2026-07) settled: async seam traits (`HandlerConn`/`ClientConn` via dyn-safe
+`BoxFuture`), producer-side pipe wake (`QueueVacancyReadiness` + two-sided waker hooks,
+Decision 00 L1b/00-F4), owned-`Clone` `Ctx` with `with_*` COW derivations + `CancelSignal`
+(clone shares; detach/link explicit), the Extensions travel pathway (move at dispatch;
+Arc-valued netio `Extensions`, Decision 12 §13), the client-side `Ctx` contract (Decision 07),
+`ProcedureCodecs` as the single codec authority (request-time `CodecRegistry` deleted;
+`only()`/`with_codec` value installation; options select by name), zero-copy `Bytes`
+envelope decode, the buffer-pool ownership model incl. `freeze`/`PooledFrame` origin-lane
+recycling (Decision 06), and the BE batch header (Decision 13).
+A fourth pass (2026-07, driven by a cold-context review agent) settled: **split conn
+halves** (`ConnReceiver`/`ConnSender`, `ClientSender`/`ClientReceiver` — concurrent
+read/write, deadlock-free on bounded pipes), **`Frame`-typed pipes + the named `FramePipe`
+primitive** (enveloping/compression owned by the transport tasks only; normalized
+`EndStream`), the **per-stream-type capability remodel**
+(`request_streaming`/`full_duplex`/`h2_trailers` replace the `Duplex` lattice), the erased
+`ProcedureMeta` dispatch view, proto/arrow-only zero-copy variants, the **async `AuthFunc`
++ concrete `AuthInfo` contract** (true async `SessionManager` upstream), `TransportError` +
+its `Code` mapping, the `ConnectResult` norm scoped to RPC surfaces, `UnaryCall.codec_name`
+threading, cancel-composed pipe parking, and the missing client GET/version options.
 
 Remaining implementation-time tunables (not design blockers; revisit inside the named
 feature):
-- Whether the **owned-decode** path reuses a buffer pool (Decision 11 OQ#3) — tune during
-  implementation.
+- Whether the **owned-decode** scratch path reuses the buffer pool (Decision 06 §Buffer Pool) —
+  write-path frame recycling is already decided (`pool.freeze` → `PooledFrame` origin
+  return lane, Decision 06); decode scratch can adopt the same primitive if profiling
+  wants it.
 - HTTP/2 **flow-control tuning** (Decision 12 §5, phase 3 of the http2 module).
-- WASM Fetch **bridge-surface confirmation** (Decision 11 OQ#4) — a foundation_wasm
-  implementation detail; capabilities are already fixed (`Duplex::None`, no trailers).
+- WASM Fetch **bridge-surface confirmation** (Decision 11 §Decided Details) — a foundation_wasm
+  implementation detail; capabilities are already fixed (`request_streaming: false`,
+  `full_duplex: false`, `h2_trailers: false`).

@@ -86,8 +86,8 @@ Generate:
 // Native async-fn-in-traits / RPITIT (static dispatch). Codegen emits the desugared
 // `-> impl Future + Send` / `-> impl Stream + Send` form to pin the pool's Send bound.
 pub trait GreetService: Send + Sync + 'static {
-    /// Unary — ctx BY VALUE (`Ctx` is the Arc-backed handle, Decision 04 §Ctx); errors are
-    /// `ConnectResult` (Decision 03).
+    /// Unary — ctx BY VALUE (`Ctx` is owned + cheap-`Clone`, Arc-backed internals,
+    /// Decision 04 §Ctx); errors are `ConnectResult` (Decision 03).
     async fn greet(&self, ctx: Ctx, request: Request<GreetRequest>)
         -> ConnectResult<Response<GreetResponse>>;
 
@@ -317,8 +317,16 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
   mocking/testing).
 - **R5 — `WithSchema`:** propagate the method descriptor/schema to generated handler and
   client constructors.
-- **R14 — `ClientOptions: Clone`:** provide an explicit `Clone` impl (it holds
-  `Vec<Arc<dyn Interceptor>>`), since generated constructors clone it.
+- **R19 — `ClientOptions: Clone`:** provide an explicit `Clone` impl (it holds
+  `Vec<Arc<dyn Interceptor>>`), since generated constructors clone it. *(Relabeled from
+  R14 — that label belongs to Decision 09's Cedar authorization; R-labels are global.)*
+- **Custom-codec entry points:** codegen also emits
+  `register_<service>_with_codec::<S, C>(router, service, codec)` and
+  `<Service>Client::new_with_codec::<C>(…)`, expanding the bound `C: CodecFor<M>` over
+  **every** request/response type in the service — the registration-time installation point
+  the Decision 02 `ProcedureCodecs` table requires. Options (`with_codec(name)`) only
+  *select* among installed entries; they never install. The macro hides the bound expansion,
+  so the user supplies one codec value.
 - **Handler shape (H1 / H2 / H3):** generated methods are **async fns / async `Stream`s**
   (Decision 04): unary `async fn(Req) -> Res`; server-stream `async fn(Req) -> impl Stream`;
   client-stream `async fn(impl Stream<Req>) -> Res`; bidi `async fn(impl Stream<Req>) -> impl
@@ -330,11 +338,19 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
   trait is static-dispatch (we don't need `dyn GreetService`; the generated `<Service>Client`
   trait, R4, covers mocking). Fall back to `#[async_trait]` (boxed futures, object-safe) only
   if a `dyn`-dispatch need appears.
+- **Default-body hidden types (codegen template constraint):** a defaulted stream-returning
+  method (`-> ConnectResult<impl Stream<…>>`) cannot have a body of bare `unimplemented!()`
+  or `Err(…)` — RPITIT needs a **nameable hidden type** inferred from the body, and a
+  diverging/`Err`-only body provides none. The generator therefore emits a typed error
+  return that pins one without boxing, e.g.
+  `let r: ConnectResult<futures::stream::Empty<ConnectResult<Res>>> =
+  Err(ConnectError::unimplemented(procedure::…).into()); r` (hidden type =
+  `stream::Empty<_>`). Unary defaults need no such pinning (`Response<Res>` is concrete).
 - **`'static` returned streams (S2):** a returned `-> impl Stream + Send` from an
   `async fn(&self, ctx: &Ctx, …)` would capture `&self`/`&ctx` and be **non-`'static`**, so
   `from_stream` (which needs `Send + 'static`) couldn't drive it. Resolved by the **by-value
-  `Ctx`** (Decision 04 §Ctx — Arc-backed, cheap clone, passed owned in **all four kinds**,
-  uniformly): the handler produces an **owning** stream (captures `Arc<Self>`/`Ctx` clones in
+  `Ctx`** (Decision 04 §Ctx — owned + cheap-`Clone` with Arc-backed internals, passed owned
+  in **all four kinds**, uniformly): the handler produces an **owning** stream (captures `Arc<Self>`/`Ctx` clones in
   an `async move`), and codegen emits the RPITIT return as `+ Send + 'static` with
   `use<>`-style capture control.
 
@@ -355,28 +371,11 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 - **Object-safety:** the generated service *handler* trait stays statically dispatched
   (not object-safe — acceptable); the separately generated `<Service>Client` trait (R4)
   covers mocking/testing where a trait object is wanted.
-- **Zero-copy variants (supported):** owned-decode is the default. For read-heavy services,
-  generate a zero-copy variant whose request type is `buffa::OwnedView<…>` (proto;
-  `'static + Send + Sync`, survives `.await`) or an Arc-backed `RecordBatch` (Arrow). A naked
-  borrowed `MessageView<'a>` is **not** generated (can't cross `.await`).
-
-## Open Questions
-
-*All four are resolved by decisions elsewhere in this doc / the codegen decision — retained as
-a resolution record.*
-
-1. **buffa-codegen integration — resolved.** One **unified generator** (in `foundation_macros`
-   + the `foundation_netio` binary, per the placement decision above) emits both the message
-   types and the service/client code in a single invocation — users run one codegen step.
-2. **Service trait object safety — resolved (static dispatch).** The generated service
-   *handler* trait is intentionally **not** object-safe and is statically dispatched
-   (Consequences → "Object-safety"); `Box<dyn GreetService>` is not a goal. The separately
-   generated `<Service>Client` trait (R4) is the object-safe surface for mocking/`dyn`.
-3. **Default implementations — decided (yes).** The generated service trait provides default
-   `unimplemented!()` bodies so services can be implemented incrementally — appropriate since
-   generated code is edited after generation. (Diverges from connect-go's "all methods
-   required," deliberately.)
-4. **View handlers — resolved / superseded.** We **do** generate zero-copy variants, but over
-   `buffa::OwnedView<…>` (proto) / Arc-backed `RecordBatch` (Arrow), **not** a borrowed
-   `MessageView<'a>` — a naked `MessageView<'a>` can't cross `.await` (see "Zero-copy variants"
-   above and Decision 02 RS2). So the borrowed-view idea is replaced by the owning-view one.
+- **Zero-copy variants (supported; single-codec by construction — fresh-review A5):**
+  owned-decode is the default. For read-heavy services, generate a zero-copy variant whose
+  request type is `buffa::OwnedView<…>` (proto; `'static + Send + Sync`, survives `.await`)
+  or an Arc-backed `RecordBatch` (Arrow). Because those types satisfy no `CodecFor` family
+  bound, the variant has **no generic `ProcedureCodecs` table**: codegen fixes one concrete
+  codec and dispatches its inherent view method statically; other content-types → 415
+  (documented non-conformant extension endpoint, like `only(...)`). A naked borrowed
+  `MessageView<'a>` is **not** generated (can't cross `.await`).

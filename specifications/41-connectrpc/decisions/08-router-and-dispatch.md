@@ -53,8 +53,10 @@ pub struct Router {
     /// clients send; generated constants match (Decision 10).
     handlers: HashMap<String, HandlerEntry>,
 
-    /// Shared codec registry for all handlers.
-    codecs: Arc<CodecRegistry>,
+    // NOTE: the router holds NO codec state — each procedure's ProcedureCodecs table (the
+    // single codec authority, Decision 02) lives inside its erased wrapper, and the entry
+    // exposes only the object-safe `ProcedureMeta` view for dispatch (see HandlerEntry).
+    // The former global CodecRegistry is deleted.
 
     /// Shared compression registry for all handlers.
     compression: Arc<CompressionRegistry>,
@@ -68,6 +70,19 @@ struct HandlerEntry {
     handler: HandlerKind,
     options: HandlerOptions,  // per-procedure options (merged with global)
     protocol_handlers: Vec<Box<dyn ProtocolHandler>>,
+    /// Erased, object-safe view of the procedure's codec metadata (fresh-review A4): the
+    /// generic `ProcedureCodecs<Req, Res>` itself lives INSIDE the erased wrapper closures
+    /// (it cannot sit in this non-generic struct) — this view is what the type-erased
+    /// dispatcher uses for the 415 membership check and Accept-Post construction.
+    codec_meta: Arc<dyn ProcedureMeta>,
+}
+
+/// Object-safe metadata surface the generic registration wrapper implements over its
+/// ProcedureCodecs table. Dispatch-time only — typed resolution never happens here.
+pub(crate) trait ProcedureMeta: Send + Sync {
+    fn has_codec(&self, name: &str) -> bool;              // 415 gate
+    fn codec_names(&self) -> Vec<&str>;                   // Accept-Post / error messages
+    fn is_binary(&self, name: &str) -> Option<bool>;      // GET query encoding (Decision 07)
 }
 
 enum HandlerKind {
@@ -85,12 +100,12 @@ enum HandlerKind {
 To store handlers of different `Req`/`Res` types in one `HashMap`, the router holds them
 **type-erased** — in two styles:
 
-- **Unary** erases to an **async** bytes function `(Ctx, Arc<dyn Codec>, Bytes) ->
+- **Unary** erases to an **async** bytes function `(Ctx, codec name, Bytes) ->
   BoxFuture<ConnectResult<(Bytes, headers, trailers)>>`. The generic registration wrapper
   owns the concrete types: it holds the per-procedure `ProcedureCodecs<Req, Res>` table
-  (Decision 02) built at registration, looks up the negotiated codec's
-  `Arc<dyn CodecFor<Req>>` / `Arc<dyn CodecFor<Res>>` by name, and runs decode → `.await`
-  the async handler → encode itself. Owned args keep the returned future `'static`; typed
+  (Decision 02) built at registration, resolves the request's codec name to its
+  `Arc<dyn CodecFor<Req>>` / `Arc<dyn CodecFor<Res>>` pair **before** building the future,
+  and runs decode → `.await` the async handler → encode itself. Owned args keep the returned future `'static`; typed
   marshal goes through `dyn CodecFor` — no `dyn Any` message.
 - **Streaming** erases to the `HandlerConn` seam (Decision 11), whose `send` / `receive`
   carry **codec-encoded frame bytes** — not `dyn Any` messages. The **codec is confined to
@@ -104,11 +119,20 @@ To store handlers of different `Req`/`Res` types in one `HashMap`, the router ho
 
 ```rust
 // Erased handlers are ASYNC (they wrap async handlers, Decision 04) — `handle` returns a
-// future the router drives via valtron `from_future` (Decision 00/11). The negotiated codec
-// is passed as the metadata handle (`Arc<dyn Codec>`); the wrapper resolves it to its typed
-// `Arc<dyn CodecFor<Req/Res>>` pair via its registration-time ProcedureCodecs table.
+// future the router drives via valtron `from_future` (Decision 00/11). The dispatcher
+// passes only the parsed codec NAME (the Content-Type wire token — Decision 05 string
+// mechanics; no registry, no `Arc<dyn Codec>` handle); the wrapper resolves its typed
+// `Arc<dyn CodecFor<Req/Res>>` pair from its registration-time ProcedureCodecs table
+// BEFORE building the returned future, so nothing borrowed is captured.
+//
+// COMPOSITION ORDER (fresh-review B3): the erased wrapper IS the innermost func
+// (decode → handler → encode); the interceptor chain is composed AROUND it once at
+// registration (Decision 04 §Decided Details OQ#3). `handle` invokes the pre-composed
+// chain, threading the per-call codec name through the call value — `UnaryCall.codec_name`
+// for unary, `StreamCall.codec_name` for all three streaming kinds (Decision 04) — the
+// chain itself is codec-agnostic and never rebuilt per call.
 pub(crate) trait ErasedUnaryHandler: Send + Sync {
-    fn handle(&self, ctx: Ctx, codec: Arc<dyn Codec>, body: Bytes)
+    fn handle(&self, ctx: Ctx, codec_name: &str, body: Bytes)
         -> BoxFuture<'static, ConnectResult<(Bytes, SimpleHeaders, SimpleHeaders)>>;
     // -> (encoded_response_bytes, response_headers, response_trailers)
 }
@@ -117,7 +141,7 @@ pub(crate) trait ErasedUnaryHandler: Send + Sync {
 /// (Decision 11): the erased handler is invoked with the conn and pushes/pulls
 /// codec-encoded message bytes through it.
 pub(crate) trait ErasedStreamHandler: Send + Sync {
-    fn handle(&self, ctx: Ctx, codec: Arc<dyn Codec>, conn: Box<dyn HandlerConn>)
+    fn handle(&self, ctx: Ctx, codec_name: &str, conn: Box<dyn HandlerConn>)
         -> BoxFuture<'static, ConnectResult<()>>;
 }
 ```
@@ -167,7 +191,9 @@ impl Router {
 ```rust
 pub struct HandlerOptions {
     pub interceptors: Vec<Arc<dyn Interceptor>>,
-    pub codecs: Option<Arc<CodecRegistry>>,            // override global
+    // No codec field: codecs are installed ONLY through the registration `ProcedureCodecs`
+    // parameter (Decision 02); options never install or select codecs server-side —
+    // the client picks per request via Content-Type.
     pub compression: Option<Arc<CompressionRegistry>>,  // override global
     pub limits: SizeLimits,
     pub idempotency: IdempotencyLevel,
@@ -180,8 +206,8 @@ impl HandlerOptions {
     pub fn with_read_max_bytes(self, n: usize) -> Self;
     pub fn with_send_max_bytes(self, n: usize) -> Self;
     pub fn with_idempotency(self, level: IdempotencyLevel) -> Self;
-    pub fn with_codec(self, codec: Arc<dyn Codec>) -> Self;
     pub fn with_compression(self, name: &str, compressor: Arc<dyn Compressor>) -> Self;
+    pub fn with_pipe_depth(self, n: usize) -> Self;   // seam pipe depth (Decision 11; default 4)
     pub fn with_recover<F>(self, handler: F) -> Self
     where
         F: Fn(&Ctx, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError + Send + Sync + 'static;
@@ -208,7 +234,9 @@ When an HTTP request arrives at the ConnectRPC handler:
    │
    4. Parse timeout from headers → create RequestContext with deadline
    5. Negotiate compression
-   6. Determine codec from Content-Type
+   6. Parse codec NAME from Content-Type (string mechanics, Decision 05) → membership
+      check via the entry's erased `ProcedureMeta` — miss → 415 (+ Accept-Post from
+      `codec_names()`); the TYPED pair is resolved inside the erased wrapper (Decision 02)
    │
    7. Branch on handler kind:
    │   ├── Unary:
@@ -326,26 +354,19 @@ pub fn register_greet_service<S: GreetServiceHandler>(router: &mut Router, servi
   `unimplemented` for every method (Decision 10).
 - **R6 — conditional options:** support per-procedure option customization via a
   callback that inspects each `Spec`.
-- **C7 — default codecs:** the router registers proto + JSON codecs by default.
+- **C7 — default codecs:** codegen emits `ProcedureCodecs::defaults()` (proto + json) per
+  procedure; the router itself holds no codec state (Decision 02).
 - **Q10 — consumption (decided):** `into_handler(self)` consumes and freezes the router;
   no post-build mutation. Documented.
 
-## Open Questions
+## Decided Details
 
 1. **Path prefix routing (decided):** register the `ConnectRpcHandler` as a **single prefix
    route** in foundation_http and sub-route internally via the `HashMap` (keyed on
-   `package.Service/Method`). Avoids mutating foundation_http's route tree per procedure and
+   `/package.Service/Method` — leading slash, matching R1). Avoids mutating foundation_http's route tree per procedure and
    matches our native multiplexing.
 2. **Middleware ordering (decided):** foundation_http middleware (CORS, TLS, transport
    logging) runs **outside** at the HTTP layer; ConnectRPC **seam interceptors** then
    **facade message-middleware** run **inside** the `ConnectRpcHandler`, closest to the
    handler. Order: `foundation_http mw → ConnectRpcHandler → seam interceptors → facade
    middleware → handler`.
-3. **Graceful shutdown (resolved — Decision 12 §10):** verified that foundation_http stops
-   accepting on shutdown but does **not** drain (no active-connection tracking, no
-   per-connection shutdown check between keep-alive requests, no join after the accept
-   loop). Decision 12 §10 specifies the drain feature to add — active-connection
-   `WaitGroup`, per-connection shutdown awareness, and a bounded drain phase.
-4. **Multiple services on one router (decided):** resolved natively — procedure paths embed
-   the full `package.Service`, so they're globally unique across services in the one
-   `HashMap`.
