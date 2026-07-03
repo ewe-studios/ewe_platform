@@ -2,7 +2,7 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use foundation_core::valtron::{
-    CancellableFutureTask, CancelOutcome, FuturePollState, Stream, TaskIterator, TaskStatus,
+    CancellableFutureTask, CancelOutcome, Stream, TaskIterator, TaskStatus,
 };
 
 // ============================================================================
@@ -46,9 +46,12 @@ fn pending_then_ready() {
     let cancel = Arc::new(AtomicBool::new(false));
     let mut task = CancellableFutureTask::new(PendingOnce(false), cancel);
 
+    // Pending now parks via Depends (composed with the not-set cancel signal).
     match task.next_status() {
-        Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
-        other => panic!("expected Pending, got {other:?}"),
+        Some(TaskStatus::Depends(signal)) => {
+            assert!(!signal.is_ready(None), "not cancelled + inner parked -> not ready");
+        }
+        other => panic!("expected Depends, got {other:?}"),
     }
 
     match task.next_status() {
@@ -88,12 +91,18 @@ fn cancel_after_pending() {
     let cancel = Arc::new(AtomicBool::new(false));
     let mut task = CancellableFutureTask::new(AlwaysPending, Arc::clone(&cancel));
 
-    match task.next_status() {
-        Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
-        other => panic!("expected Pending, got {other:?}"),
-    }
+    // The always-pending inner future parks via Depends; the composed signal is
+    // not ready while the cancel flag is unset.
+    let signal = match task.next_status() {
+        Some(TaskStatus::Depends(signal)) => signal,
+        other => panic!("expected Depends, got {other:?}"),
+    };
+    assert!(!signal.is_ready(None), "not cancelled -> parked signal not ready");
 
+    // Setting cancel makes the composed signal ready — the executor would re-run
+    // the task, which then observes the cancel flag before polling.
     cancel.store(true, Ordering::Release);
+    assert!(signal.is_ready(None), "cancel flips the composed signal ready");
 
     match task.next_status() {
         Some(TaskStatus::Ready(Err(CancelOutcome::Cancelled))) => {}

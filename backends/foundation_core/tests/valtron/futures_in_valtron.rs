@@ -1,4 +1,4 @@
-use foundation_core::valtron::{FutureTask, FuturePollState, TaskStatus, from_future};
+use foundation_core::valtron::{FutureTask, TaskStatus, from_future};
 use foundation_core::valtron::TaskIterator;
 
 /// WHY: `FutureTask` must poll and complete a simple future
@@ -18,8 +18,9 @@ fn test_future_task_immediate_ready() {
     assert!(task.next_status().is_none());
 }
 
-/// WHY: `FutureTask` must handle pending futures correctly
-/// WHAT: Future that returns Pending should yield Pending status
+/// WHY: `FutureTask` must park (not busy-poll) when the inner future is pending
+/// WHAT: A `Poll::Pending` yields `Depends(QueueReadiness)` so the executor parks;
+///       a later poll (after the drain) still completes to Ready (Decision 00-F1)
 #[test]
 fn test_future_task_pending() {
     use core::future::Future;
@@ -46,10 +47,16 @@ fn test_future_task_pending() {
     let future = PendingThenReady { polled: false };
     let mut task = FutureTask::new(future);
 
-    // First poll should be Pending
+    // First poll parks the task: Depends over an (empty) wake queue — the signal
+    // is NOT ready, so the executor would sleep instead of re-polling.
     match task.next_status() {
-        Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
-        other => panic!("Expected Pending, got {other:?}"),
+        Some(TaskStatus::Depends(signal)) => {
+            assert!(
+                !signal.is_ready(None),
+                "empty wake queue must report not-ready so the task actually parks"
+            );
+        }
+        other => panic!("Expected Depends(signal), got {other:?}"),
     }
 
     // Second poll should be Ready

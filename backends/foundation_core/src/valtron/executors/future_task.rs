@@ -12,7 +12,9 @@ use core::marker::PhantomData;
 use core::task::{RawWaker, RawWakerVTable, Waker};
 
 #[cfg(any(feature = "std", feature = "alloc"))]
-use crate::valtron::{NoAction, TaskIterator, TaskStatus};
+use crate::valtron::{NoAction, QueueReadiness, TaskIterator, TaskStatus};
+#[cfg(any(feature = "std", feature = "alloc"))]
+use concurrent_queue::ConcurrentQueue;
 #[cfg(any(feature = "std", feature = "alloc"))]
 use core::pin::Pin;
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -57,7 +59,11 @@ fn create_noop_waker() -> Waker {
 ///
 /// WHY: Reduce allocations on std by caching waker; `no_std` must create each time
 /// WHAT: Returns cached waker on std, new waker on `no_std`
-#[cfg(feature = "std")]
+// Only the single-threaded `FutureIterator` still drives a future with a no-op
+// waker (it re-polls inline via `Iterator::next`); the parking `FutureTask` /
+// `StreamTask` paths use `queue_waker` instead. Gate to non-`multi` so the helper
+// isn't dead code under `multi`.
+#[cfg(all(feature = "std", not(feature = "multi")))]
 fn get_noop_waker() -> Waker {
     thread_local! {
         static NOOP_WAKER: Waker = create_noop_waker();
@@ -65,9 +71,121 @@ fn get_noop_waker() -> Waker {
     NOOP_WAKER.with(std::clone::Clone::clone)
 }
 
-#[cfg(all(feature = "alloc", not(feature = "std")))]
+#[cfg(all(feature = "alloc", not(feature = "std"), not(feature = "multi")))]
 fn get_noop_waker() -> Waker {
     create_noop_waker()
+}
+
+// ============================================================================
+// Waker → QueueReadiness bridge (Decision 00, Level 1 / 00-F1)
+// ============================================================================
+
+/// Token pushed onto a future's wake queue when its `Waker` fires.
+///
+/// WHY: Bridges Rust's callback wake model (`Waker::wake()`) into valtron's
+/// poll-the-readiness model — a fired waker becomes "queue non-empty", which the
+/// executor already knows how to park/unpark on via [`QueueReadiness`].
+///
+/// WHAT: A `Copy` marker carrying an `id` that distinguishes wakers in
+/// multi-future combinators (default `0` for a single bridged future).
+///
+/// HOW: [`queue_waker`] builds a `Waker` whose `wake()`/`wake_by_ref()` push one
+/// of these onto the shared wake queue; the payload lets a woken task decide
+/// *which* sub-signal fired when several share a queue.
+///
+/// # Panics
+/// Never panics.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct WakeToken {
+    /// Distinguishes wakers when several feed the same queue (default `0`).
+    pub id: u64,
+}
+
+/// Internal `Waker` state: the shared wake queue plus this waker's token id.
+///
+/// Held behind an `Arc` as the `RawWaker` data pointer so cloning the `Waker`
+/// only bumps the strong count and `wake()` can recover both the queue and id.
+#[cfg(any(feature = "std", feature = "alloc"))]
+struct WakerState {
+    queue: Arc<ConcurrentQueue<WakeToken>>,
+    id: u64,
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+static QUEUE_WAKER_VTABLE: RawWakerVTable = RawWakerVTable::new(
+    queue_waker_clone,
+    queue_waker_wake,
+    queue_waker_wake_by_ref,
+    queue_waker_drop,
+);
+
+/// Clone: bump the `Arc<WakerState>` strong count, reuse the same data pointer.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<WakerState>` and is still
+/// live (the owning `Waker` holds a strong reference across this call).
+#[cfg(any(feature = "std", feature = "alloc"))]
+unsafe fn queue_waker_clone(data: *const ()) -> RawWaker {
+    Arc::increment_strong_count(data.cast::<WakerState>());
+    RawWaker::new(data, &QUEUE_WAKER_VTABLE)
+}
+
+/// Wake (by value): push this waker's token, then drop the owned strong ref.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<WakerState>`; `wake` consumes
+/// the `Waker`, so reclaiming ownership here balances the original `into_raw`.
+#[cfg(any(feature = "std", feature = "alloc"))]
+unsafe fn queue_waker_wake(data: *const ()) {
+    let state = Arc::from_raw(data.cast::<WakerState>());
+    // Unbounded queue: push only fails if closed, in which case the woken task
+    // has already gone away and dropping the token is the correct outcome.
+    let _ = state.queue.push(WakeToken { id: state.id });
+}
+
+/// Wake by reference: push this waker's token without consuming the strong ref.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<WakerState>` and is still
+/// live; `ManuallyDrop` prevents this borrowed reconstruction from decrementing
+/// the count owned by the caller's `Waker`.
+#[cfg(any(feature = "std", feature = "alloc"))]
+unsafe fn queue_waker_wake_by_ref(data: *const ()) {
+    let state = core::mem::ManuallyDrop::new(Arc::from_raw(data.cast::<WakerState>()));
+    let _ = state.queue.push(WakeToken { id: state.id });
+}
+
+/// Drop: reclaim and release one `Arc<WakerState>` strong reference.
+///
+/// # Safety
+/// `data` originates from `Arc::into_raw` of an `Arc<WakerState>` and this call
+/// balances exactly one outstanding strong reference.
+#[cfg(any(feature = "std", feature = "alloc"))]
+unsafe fn queue_waker_drop(data: *const ()) {
+    drop(Arc::from_raw(data.cast::<WakerState>()));
+}
+
+/// Build a `Waker` whose `wake()` pushes a [`WakeToken`] onto `queue`.
+///
+/// WHY: Lets a bridged `Future`/`Stream` park via [`QueueReadiness`] instead of
+/// busy-polling with a no-op waker (Decision 00 C1 fix).
+///
+/// WHAT: Returns a `Waker` backed by `Arc<`[`WakerState`]`>`; every `wake()` /
+/// `wake_by_ref()` enqueues `WakeToken { id }`, flipping the queue to non-empty.
+///
+/// HOW: Uses `RawWaker`/`RawWakerVTable` with the `Arc` pointer as the data slot
+/// — std/alloc only, no new dependency, mirroring [`create_noop_waker`].
+///
+/// # Panics
+/// Never panics.
+#[cfg(any(feature = "std", feature = "alloc"))]
+#[must_use]
+pub fn queue_waker(queue: Arc<ConcurrentQueue<WakeToken>>, id: u64) -> Waker {
+    let state = Arc::new(WakerState { queue, id });
+    let raw = RawWaker::new(Arc::into_raw(state).cast::<()>(), &QUEUE_WAKER_VTABLE);
+    // SAFETY: `raw` is built from a fresh `Arc<WakerState>` and the vtable
+    // functions uphold the `Arc` clone/drop contract described on each.
+    unsafe { Waker::from_raw(raw) }
 }
 
 // ============================================================================
@@ -97,6 +215,9 @@ where
 {
     future: Pin<Box<F>>,
     completed: bool,
+    /// Wake queue watched via [`QueueReadiness`]; the future's `Waker` pushes a
+    /// [`WakeToken`] here on `wake()`, so `Pending` parks instead of busy-polling.
+    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -108,6 +229,7 @@ where
         Self {
             future: Box::pin(future),
             completed: false,
+            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
         }
     }
 
@@ -116,6 +238,7 @@ where
         Self {
             future,
             completed: false,
+            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
         }
     }
 }
@@ -137,7 +260,12 @@ where
             return None;
         }
 
-        let waker = get_noop_waker();
+        // Drain stale tokens BEFORE polling so a prior turn's wake isn't mistaken
+        // for a fresh one — a wake that lands *after* this drain (the
+        // wake-before-park race) stays in the queue and keeps the readiness ready.
+        while self.wake_queue.pop().is_ok() {}
+
+        let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().poll(&mut cx) {
@@ -145,7 +273,11 @@ where
                 self.completed = true;
                 Some(TaskStatus::Ready(output))
             }
-            Poll::Pending => Some(TaskStatus::Pending(FuturePollState::Pending)),
+            // Park on the wake queue rather than re-polling every turn: the
+            // executor only re-runs us once `wake()` pushes a token.
+            Poll::Pending => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                self.wake_queue.clone(),
+            )))),
         }
     }
 }
@@ -166,7 +298,12 @@ where
             return None;
         }
 
-        let waker = get_noop_waker();
+        // Drain stale tokens BEFORE polling so a prior turn's wake isn't mistaken
+        // for a fresh one — a wake that lands *after* this drain (the
+        // wake-before-park race) stays in the queue and keeps the readiness ready.
+        while self.wake_queue.pop().is_ok() {}
+
+        let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
         match self.future.as_mut().poll(&mut cx) {
@@ -174,7 +311,11 @@ where
                 self.completed = true;
                 Some(TaskStatus::Ready(output))
             }
-            Poll::Pending => Some(TaskStatus::Pending(FuturePollState::Pending)),
+            // Park on the wake queue rather than re-polling every turn: the
+            // executor only re-runs us once `wake()` pushes a token.
+            Poll::Pending => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                self.wake_queue.clone(),
+            )))),
         }
     }
 }
@@ -207,6 +348,9 @@ where
 {
     stream: Pin<Box<S>>,
     exhausted: bool,
+    /// Wake queue watched via [`QueueReadiness`]; the stream's `Waker` pushes a
+    /// [`WakeToken`] here on `wake()`, so `Pending` parks instead of busy-polling.
+    wake_queue: Arc<ConcurrentQueue<WakeToken>>,
 }
 
 #[cfg(any(feature = "std", feature = "alloc"))]
@@ -218,6 +362,7 @@ where
         Self {
             stream: Box::pin(stream),
             exhausted: false,
+            wake_queue: Arc::new(ConcurrentQueue::unbounded()),
         }
     }
 }
@@ -238,7 +383,11 @@ where
             return None;
         }
 
-        let waker = get_noop_waker();
+        // Drain stale tokens BEFORE polling (see `FutureTask::next_status`): a
+        // wake that arrives after this drain survives to keep the readiness ready.
+        while self.wake_queue.pop().is_ok() {}
+
+        let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
         match self.stream.as_mut().poll_next(&mut cx) {
@@ -247,7 +396,10 @@ where
                 self.exhausted = true;
                 Some(TaskStatus::Ready(None))
             }
-            Poll::Pending => Some(TaskStatus::Pending(StreamPollState::Pending)),
+            // Park on the wake queue rather than re-polling every turn.
+            Poll::Pending => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                self.wake_queue.clone(),
+            )))),
         }
     }
 }
@@ -269,7 +421,11 @@ where
             return None;
         }
 
-        let waker = get_noop_waker();
+        // Drain stale tokens BEFORE polling (see `FutureTask::next_status`): a
+        // wake that arrives after this drain survives to keep the readiness ready.
+        while self.wake_queue.pop().is_ok() {}
+
+        let waker = queue_waker(self.wake_queue.clone(), 0);
         let mut cx = Context::from_waker(&waker);
 
         match self.stream.as_mut().poll_next(&mut cx) {
@@ -278,7 +434,10 @@ where
                 self.exhausted = true;
                 Some(TaskStatus::Ready(None))
             }
-            Poll::Pending => Some(TaskStatus::Pending(StreamPollState::Pending)),
+            // Park on the wake queue rather than re-polling every turn.
+            Poll::Pending => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(
+                self.wake_queue.clone(),
+            )))),
         }
     }
 }
@@ -291,6 +450,34 @@ where
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CancelOutcome {
     Cancelled,
+}
+
+/// Readiness that fires when the inner signal is ready **or** the cancel flag is
+/// set (Decision 00 L1b composition: "inner ready OR cancelled").
+///
+/// WHY: A parked [`CancellableFutureTask`] must be re-run when its cancel flag
+/// flips, otherwise a future that never wakes (e.g. an always-pending one) would
+/// park forever and the cancellation would never be observed.
+///
+/// WHAT: An [`EventReadiness`] that ORs the wrapped future's park signal with the
+/// `Arc<AtomicBool>` cancel flag.
+///
+/// HOW: `is_ready` short-circuits on the cancel flag before delegating to the
+/// inner signal, so setting cancel unparks the task immediately.
+///
+/// # Panics
+/// Never panics.
+#[cfg(any(feature = "std", feature = "alloc"))]
+struct CancelOrReadiness {
+    inner: Arc<dyn crate::valtron::EventReadiness>,
+    cancel: Arc<core::sync::atomic::AtomicBool>,
+}
+
+#[cfg(any(feature = "std", feature = "alloc"))]
+impl crate::valtron::EventReadiness for CancelOrReadiness {
+    fn is_ready(&self, dur: Option<core::time::Duration>) -> bool {
+        self.cancel.load(core::sync::atomic::Ordering::Acquire) || self.inner.is_ready(dur)
+    }
 }
 
 /// Wraps a [`FutureTask`] with an `Arc<AtomicBool>` cancel signal.
@@ -359,7 +546,12 @@ where
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
             Some(TaskStatus::Delayed(d)) => Some(TaskStatus::Delayed(d)),
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
-            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(r)),
+            // Compose the cancel flag into the park signal so a set cancel
+            // unparks the task even when the inner future never wakes.
+            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
+                inner: r,
+                cancel: self.cancel.clone(),
+            }))),
             Some(TaskStatus::Spread(items)) => {
                 use crate::valtron::TaskSpread;
                 Some(TaskStatus::Spread(
@@ -399,7 +591,12 @@ where
             Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
             Some(TaskStatus::Delayed(d)) => Some(TaskStatus::Delayed(d)),
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
-            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(r)),
+            // Compose the cancel flag into the park signal so a set cancel
+            // unparks the task even when the inner future never wakes.
+            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
+                inner: r,
+                cancel: self.cancel.clone(),
+            }))),
             Some(TaskStatus::Spread(items)) => {
                 use crate::valtron::TaskSpread;
                 Some(TaskStatus::Spread(
