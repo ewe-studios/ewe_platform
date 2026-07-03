@@ -111,7 +111,119 @@ impl<T> QueueReadiness<T> {
 
 impl<T: Send> EventReadiness for QueueReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
-        !self.0.is_empty()
+        // Closed-aware: a closed queue is "ready" so a parked consumer unparks to
+        // observe end-of-stream (its next `pop` drains any backlog then returns
+        // `Closed`) instead of sleeping forever.
+        !self.0.is_empty() || self.0.is_closed()
+    }
+}
+
+/// The **producer-side** readiness signal for a bounded `ConcurrentQueue<T>`.
+///
+/// WHY: `QueueReadiness` only covers the consumer direction (ready when
+/// non-empty). A producer parked on a *full* bounded pipe needs the symmetric
+/// signal, otherwise a full pipe degrades to bare `Pending` re-polling — the
+/// busy-poll Decision 00 exists to remove (Decision 00 Level 1b).
+///
+/// WHAT: An [`EventReadiness`] that is ready when the queue has spare capacity
+/// (i.e. is **not full**), so the executor unparks a producer task as soon as the
+/// consumer's `pop` frees a slot.
+///
+/// HOW: Wraps the same `Arc<ConcurrentQueue<T>>` the pipe owns and reports
+/// `!queue.is_full()`, plus a closed-queue override so a producer parked on a
+/// full-then-closed pipe is unparked (its next `push` observes `Closed` and
+/// errors out) rather than sleeping forever.
+///
+/// # Example
+///
+/// ```ignore
+/// // In a producer TaskIterator::next_status():
+/// match queue.push(item) {
+///     Ok(()) => Some(TaskStatus::Ready(())),
+///     Err(PushError::Full(_)) =>
+///         Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(queue.clone())))),
+///     Err(PushError::Closed(_)) => None,
+/// }
+/// ```
+pub struct QueueVacancyReadiness<T>(Arc<ConcurrentQueue<T>>);
+
+// Manual Clone — Arc::clone doesn't need T: Clone, derive would add that bound.
+impl<T> Clone for QueueVacancyReadiness<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl<T> QueueVacancyReadiness<T> {
+    /// Create a `QueueVacancyReadiness` that watches the given queue for capacity.
+    pub fn new(queue: Arc<ConcurrentQueue<T>>) -> Self {
+        Self(queue)
+    }
+
+    /// Get a clone of the underlying queue for external mutation (popping messages).
+    pub fn queue(&self) -> Arc<ConcurrentQueue<T>> {
+        self.0.clone()
+    }
+}
+
+impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
+        // Closed-aware: report ready when the queue closes so a producer parked on
+        // a full-then-closed pipe unparks to observe the close on its next push.
+        self.0.is_closed() || !self.0.is_full()
+    }
+}
+
+/// A composite [`EventReadiness`] that is ready when **any** child signal is ready.
+///
+/// WHY: A parked task returns exactly one `Depends`, but real waits are often
+/// disjunctive — "response pipe has vacancy **or** the call was cancelled"
+/// (Decision 00 Level 1b, Decision 11 §Cancellation). Composition happens inside
+/// the readiness object so the task still parks on a single signal.
+///
+/// WHAT: Holds a set of `Arc<dyn EventReadiness>` children and reports ready as
+/// soon as one of them is ready.
+///
+/// HOW: `is_ready` short-circuits on the first ready child. Children are checked
+/// in order, so cheaper/more-likely signals can be listed first.
+///
+/// # Panics
+/// Never panics.
+///
+/// # Example
+///
+/// ```ignore
+/// // Park on "pipe has vacancy OR the call was cancelled":
+/// let signal = AnyReadiness::new(vec![
+///     Arc::new(pipe.vacancy()) as Arc<dyn EventReadiness>,
+///     cancel_signal,
+/// ]);
+/// Some(TaskStatus::Depends(Arc::new(signal)))
+/// ```
+pub struct AnyReadiness(Vec<Arc<dyn EventReadiness>>);
+
+impl AnyReadiness {
+    /// Create an `AnyReadiness` over the given child signals.
+    pub fn new(children: Vec<Arc<dyn EventReadiness>>) -> Self {
+        Self(children)
+    }
+
+    /// Build from exactly two children (the common "event OR cancel" case).
+    pub fn either(a: Arc<dyn EventReadiness>, b: Arc<dyn EventReadiness>) -> Self {
+        Self(vec![a, b])
+    }
+
+    /// Add another child signal, returning `self` for chaining.
+    #[must_use]
+    pub fn with(mut self, child: Arc<dyn EventReadiness>) -> Self {
+        self.0.push(child);
+        self
+    }
+}
+
+impl EventReadiness for AnyReadiness {
+    fn is_ready(&self, dur: Option<time::Duration>) -> bool {
+        self.0.iter().any(|child| child.is_ready(dur))
     }
 }
 
