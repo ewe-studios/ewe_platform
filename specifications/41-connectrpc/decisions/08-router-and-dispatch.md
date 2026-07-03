@@ -49,7 +49,8 @@ The router matches on the full `/{service}/{method}` suffix.
 ```rust
 pub struct Router {
     /// Maps procedure path → registered handler entry.
-    /// Key: "package.Service/Method" (without leading slash)
+    /// Key: "/package.Service/Method" — WITH the leading slash (R1): the full path standard
+    /// clients send; generated constants match (Decision 10).
     handlers: HashMap<String, HandlerEntry>,
 
     /// Shared codec registry for all handlers.
@@ -84,13 +85,13 @@ enum HandlerKind {
 To store handlers of different `Req`/`Res` types in one `HashMap`, the router holds them
 **type-erased** — in two styles:
 
-- **Unary** erases to an **async** bytes function `(RequestContext, Arc<dyn Codec>, Bytes) ->
-  BoxFuture<Result<(Bytes, headers, trailers)>>`. The generic `router.unary::<Req, Res, H>`
-  wrapper owns the concrete types, so it resolves the negotiated `Arc<dyn Codec>` to its
-  concrete type (match on `codec.name()`, Decision 02) and runs it itself
-  (`unmarshal::<Req>(bytes)`, `.await` the async handler, `marshal::<Res>`). `Arc<dyn Codec>`
-  is owned so the returned future is `'static`; typed marshal is on the concrete codec — no
-  `dyn Any` message.
+- **Unary** erases to an **async** bytes function `(Ctx, Arc<dyn Codec>, Bytes) ->
+  BoxFuture<ConnectResult<(Bytes, headers, trailers)>>`. The generic registration wrapper
+  owns the concrete types: it holds the per-procedure `ProcedureCodecs<Req, Res>` table
+  (Decision 02) built at registration, looks up the negotiated codec's
+  `Arc<dyn CodecFor<Req>>` / `Arc<dyn CodecFor<Res>>` by name, and runs decode → `.await`
+  the async handler → encode itself. Owned args keep the returned future `'static`; typed
+  marshal goes through `dyn CodecFor` — no `dyn Any` message.
 - **Streaming** erases to the `HandlerConn` seam (Decision 11), whose `send` / `receive`
   carry **codec-encoded frame bytes** — not `dyn Any` messages. The **codec is confined to
   the typed `MessageSource<Req>` / `MessageSink<Res>` facade** the handler holds; the seam
@@ -103,11 +104,12 @@ To store handlers of different `Req`/`Res` types in one `HashMap`, the router ho
 
 ```rust
 // Erased handlers are ASYNC (they wrap async handlers, Decision 04) — `handle` returns a
-// future the router drives via valtron `from_future` (Decision 00/11). `CodecId` selects the
-// negotiated codec; the concrete codec + typed marshal live inside the wrapper.
+// future the router drives via valtron `from_future` (Decision 00/11). The negotiated codec
+// is passed as the metadata handle (`Arc<dyn Codec>`); the wrapper resolves it to its typed
+// `Arc<dyn CodecFor<Req/Res>>` pair via its registration-time ProcedureCodecs table.
 pub(crate) trait ErasedUnaryHandler: Send + Sync {
-    fn handle(&self, ctx: RequestContext, codec: Arc<dyn Codec>, body: Bytes)
-        -> BoxFuture<'static, Result<(Bytes, SimpleHeaders, SimpleHeaders), ConnectError>>;
+    fn handle(&self, ctx: Ctx, codec: Arc<dyn Codec>, body: Bytes)
+        -> BoxFuture<'static, ConnectResult<(Bytes, SimpleHeaders, SimpleHeaders)>>;
     // -> (encoded_response_bytes, response_headers, response_trailers)
 }
 
@@ -115,8 +117,8 @@ pub(crate) trait ErasedUnaryHandler: Send + Sync {
 /// (Decision 11): the erased handler is invoked with the conn and pushes/pulls
 /// codec-encoded message bytes through it.
 pub(crate) trait ErasedStreamHandler: Send + Sync {
-    fn handle(&self, ctx: RequestContext, codec: Arc<dyn Codec>, conn: Box<dyn HandlerConn>)
-        -> BoxFuture<'static, Result<(), ConnectError>>;
+    fn handle(&self, ctx: Ctx, codec: Arc<dyn Codec>, conn: Box<dyn HandlerConn>)
+        -> BoxFuture<'static, ConnectResult<()>>;
 }
 ```
 
@@ -130,45 +132,33 @@ HTTP/1.1 is rejected with `505` (H6).
 impl Router {
     pub fn new() -> Self;
 
-    pub fn unary<Req, Res, H>(
+    // There are NO user-facing handler traits (Decision 04) — registration takes async
+    // fns/closures of the Decision 04 shapes, plus the per-procedure typed codec table
+    // (`ProcedureCodecs<Req, Res>`, Decision 02) that the generated register fn builds.
+    // Unary shown in full; the three streaming registrations take the matching Decision 04
+    // async signatures (their `F` bounds follow the same pattern).
+    pub fn unary<Req, Res, F, Fut>(
         &mut self,
-        procedure: &str,
-        handler: H,
+        procedure: &str,                    // "/package.Service/Method" (R1, leading slash)
+        codecs: ProcedureCodecs<Req, Res>,  // codec name → typed CodecFor pair
+        handler: F,
         options: HandlerOptions,
     ) where
-        Req: Message + Default + 'static,
-        Res: Message + 'static,
-        H: UnaryHandler<Req, Res>;
+        Req: Send + 'static,
+        Res: Send + 'static,
+        F: Fn(Ctx, Request<Req>) -> Fut + Send + Sync + 'static,
+        Fut: Future<Output = ConnectResult<Response<Res>>> + Send + 'static;
 
-    pub fn server_stream<Req, Res, H>(
-        &mut self,
-        procedure: &str,
-        handler: H,
-        options: HandlerOptions,
-    ) where
-        Req: Message + Default + 'static,
-        Res: Message + 'static,
-        H: ServerStreamHandler<Req, Res>;
-
-    pub fn client_stream<Req, Res, H>(
-        &mut self,
-        procedure: &str,
-        handler: H,
-        options: HandlerOptions,
-    ) where
-        Req: Message + Default + 'static,
-        Res: Message + 'static,
-        H: ClientStreamHandler<Req, Res>;
-
-    pub fn bidi_stream<Req, Res, H>(
-        &mut self,
-        procedure: &str,
-        handler: H,
-        options: HandlerOptions,
-    ) where
-        Req: Message + Default + 'static,
-        Res: Message + 'static,
-        H: BidiStreamHandler<Req, Res>;
+    pub fn server_stream<Req, Res, F>(
+        /* async fn(Ctx, Request<Req>) -> ConnectResult<impl Stream<Item = ConnectResult<Res>> + Send + 'static> */
+    );
+    pub fn client_stream<Req, Res, F>(
+        /* async fn(Ctx, impl Stream<Item = ConnectResult<Req>>) -> ConnectResult<Response<Res>> */
+    );
+    pub fn bidi_stream<Req, Res, F>(
+        /* async fn(Ctx, impl Stream<Item = ConnectResult<Req>>)
+               -> ConnectResult<impl Stream<Item = ConnectResult<Res>> + Send + 'static> */
+    );
 }
 ```
 
@@ -194,7 +184,7 @@ impl HandlerOptions {
     pub fn with_compression(self, name: &str, compressor: Arc<dyn Compressor>) -> Self;
     pub fn with_recover<F>(self, handler: F) -> Self
     where
-        F: Fn(&RequestContext, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError + Send + Sync + 'static;
+        F: Fn(&Ctx, &Spec, &SimpleHeaders, Box<dyn Any + Send>) -> ConnectError + Send + Sync + 'static;
 }
 ```
 
@@ -290,22 +280,25 @@ Code generation produces registration helpers:
 ```rust
 // Generated per service — async fns / Streams (Decision 04/10; default `unimplemented` bodies):
 pub trait GreetServiceHandler: Send + Sync + 'static {
-    async fn greet(&self, ctx: &Ctx, req: Request<GreetRequest>)
-        -> Result<Response<GreetResponse>, ConnectError>;
+    async fn greet(&self, ctx: Ctx, req: Request<GreetRequest>)
+        -> ConnectResult<Response<GreetResponse>>;
     // client-streaming: an async Stream of requests in
-    async fn greet_group(&self, ctx: &Ctx, reqs: impl Stream<Item = Result<GreetRequest, ConnectError>>)
-        -> Result<Response<GreetGroupResponse>, ConnectError>;
+    async fn greet_group(&self, ctx: Ctx, reqs: impl Stream<Item = ConnectResult<GreetRequest>>)
+        -> ConnectResult<Response<GreetGroupResponse>>;
 }
 
-// Registration function (generated):
+// Registration function (generated) — paths carry the leading slash (R1); the generated fn
+// also builds each procedure's typed codec table (Decision 02):
 pub fn register_greet_service<S: GreetServiceHandler>(router: &mut Router, service: Arc<S>) {
     router.unary(
-        "connectrpc.greet.v1.GreetService/Greet",
+        "/connectrpc.greet.v1.GreetService/Greet",
+        ProcedureCodecs::<GreetRequest, GreetResponse>::defaults(),
         /* wrapper that delegates to service.greet() */,
         HandlerOptions::new().with_idempotency(IdempotencyLevel::NoSideEffects),
     );
     router.client_stream(
-        "connectrpc.greet.v1.GreetService/GreetGroup",
+        "/connectrpc.greet.v1.GreetService/GreetGroup",
+        ProcedureCodecs::<GreetRequest, GreetGroupResponse>::defaults(),
         /* wrapper that delegates to service.greet_group() */,
         HandlerOptions::new(),
     );

@@ -50,16 +50,16 @@ pub trait AuthFunc: Send + Sync + 'static {
     fn authenticate(
         &self,
         request: &SimpleIncomingRequest,
-    ) -> Result<Option<Box<dyn Any + Send + Sync>>, ConnectError>;
+    ) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>>;
 }
 
 /// Implement AuthFunc for closures.
 impl<F> AuthFunc for F
 where
-    F: Fn(&SimpleIncomingRequest) -> Result<Option<Box<dyn Any + Send + Sync>>, ConnectError>
+    F: Fn(&SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>>
         + Send + Sync + 'static,
 {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> Result<Option<Box<dyn Any + Send + Sync>>, ConnectError> {
+    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
         (self)(request)
     }
 }
@@ -90,12 +90,13 @@ impl<H> AuthMiddleware<H> {
 Auth info is stored in the request's `Extensions` type-map and accessed via:
 
 ```rust
-/// Retrieve authentication information from the request context.
-pub fn get_auth_info<T: 'static>(ctx: &RequestContext) -> Option<&T> {
-    ctx.extensions.get::<T>()
+/// Retrieve authentication information from the per-call context (Decision 04 §Ctx).
+pub fn get_auth_info<T: 'static>(ctx: &Ctx) -> Option<&T> {
+    ctx.request.extensions.get::<T>()
 }
 
-/// Strip authentication information from context (e.g., before forwarding to untrusted service).
+/// Strip authentication information (runs during dispatch, before the RequestContext is
+/// frozen into the shared Ctx — extensions are written middleware-side, read handler-side).
 pub fn without_auth_info(ctx: &mut RequestContext) {
     ctx.extensions.remove::<AuthInfo>();
 }
@@ -115,7 +116,7 @@ pub fn infer_protocol(request: &SimpleIncomingRequest) -> Option<&'static str> {
 
     match () {
         _ if method == SimpleMethod::Post && is_grpc_content_type(&content_type) => Some("grpc"),
-        _ if method == SimpleMethod::Post && is_grpc_web_content_type(&content_type) => Some("grpcweb"),
+        _ if method == SimpleMethod::Post && is_grpc_web_content_type(&content_type) => Some("grpc-web"), // hyphenated (R11)
         _ if method == SimpleMethod::Post && is_connect_content_type(&content_type) => Some("connect"),
         _ if method == SimpleMethod::Get && has_connect_query_params(request) => Some("connect"),
         _ => None,
@@ -179,7 +180,7 @@ impl JwtAuthenticator {
 }
 
 impl AuthFunc for JwtAuthenticator {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> Result<Option<Box<dyn Any + Send + Sync>>, ConnectError> {
+    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
         let token = bearer_token(request)
             .ok_or_else(|| unauthenticated("missing bearer token"))?;
 
@@ -205,7 +206,7 @@ impl SessionAuthenticator {
 }
 
 impl AuthFunc for SessionAuthenticator {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> Result<Option<Box<dyn Any + Send + Sync>>, ConnectError> {
+    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
         let token = extract_session_token(request, &self.cookie_name)
             .ok_or_else(|| unauthenticated("missing session cookie"))?;
 
@@ -230,7 +231,7 @@ impl CompositeAuthenticator {
 }
 
 impl AuthFunc for CompositeAuthenticator {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> Result<Option<Box<dyn Any + Send + Sync>>, ConnectError> {
+    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
         let mut last_err = None;
         for auth in &self.authenticators {
             match auth.authenticate(request) {
@@ -264,7 +265,7 @@ impl PerProcedureAuth {
 }
 
 impl AuthFunc for PerProcedureAuth {
-    fn authenticate(&self, request: &SimpleIncomingRequest) -> Result<Option<Box<dyn Any + Send + Sync>>, ConnectError> {
+    fn authenticate(&self, request: &SimpleIncomingRequest) -> ConnectResult<Option<Box<dyn Any + Send + Sync>>> {
         let procedure = infer_procedure(request.url());
 
         if let Some(proc) = &procedure {
@@ -309,17 +310,17 @@ pub struct AuthzInterceptor {
 impl Interceptor for AuthzInterceptor {
     fn wrap_unary(&self, next: UnaryFunc) -> UnaryFunc {
         let policies = self.policies.clone();
-        // UnaryFunc = Arc<dyn Fn(RequestContext, UnaryCall) -> BoxFuture<'static, Result<UnaryReply, ConnectError>>>
+        // UnaryFunc = Arc<dyn Fn(Ctx, UnaryCall) -> BoxFuture<'static, ConnectResult<UnaryReply>>>
         Arc::new(move |ctx, call| {
             let policies = policies.clone();
             let next = next.clone();
             Box::pin(async move {
                 let principal = get_auth_info::<AuthContext>(&ctx)
-                    .ok_or_else(|| ConnectError::unauthenticated("not authenticated"))?;
-                // Cedar: principal + action(=ctx.spec.procedure) + resource(from ctx) → allow/deny.
+                    .ok_or_else(|| ErrorTrace::new(ConnectError::unauthenticated("not authenticated")))?;
+                // Cedar: principal + action(=ctx.spec().procedure) + resource(from ctx) → allow/deny.
                 // Fast path for a basic scope gate is `has_scope(principal, &["scope"])` (R8 signature).
-                if !policies.is_allowed(principal, &ctx.spec.procedure, &ctx) {
-                    return Err(ConnectError::permission_denied("policy denied"));
+                if !policies.is_allowed(principal, &ctx.spec().procedure, &ctx) {
+                    return Err(ConnectError::permission_denied("policy denied").into());
                 }
                 next(ctx, call).await   // owned args; await the wrapped async call
             })
@@ -357,9 +358,9 @@ bridge only where a sync/async boundary genuinely forces it (R13).
 - **R10 — `extract_session_token`:** real API is `(cookies: &[&str], cookie_name: &str)`;
   adapt at the call site (pull cookies from `SimpleIncomingRequest`).
 - **R11 — protocol string:** use hyphenated `"grpc-web"` to match connect-go.
-- **R12 — dependency:** put the auth middleware behind a feature flag / in a separate
-  crate so `foundation_connectrpc` doesn't unconditionally pull `foundation_auth →
-  foundation_db`.
+- **R12 — dependency (settled):** the auth middleware lives in `foundation_connectrpc`
+  behind an **`auth` feature flag (off by default)** — no separate crate; enabling it pulls
+  `foundation_auth` (and transitively `foundation_db`) only for servers that use it.
 - **R13 — JWKS (sync bridge):** `JwtVerifier::from_config` only; `JwksManager` is async.
   The synchronous middleware uses a pre-fetched / cached JWK set refreshed out-of-band,
   rather than fetching inside the request path.

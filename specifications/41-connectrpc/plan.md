@@ -18,28 +18,31 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 
 1. **Independent implementation** — not a wrapper around connect-rust. connect-go is the sole design reference.
 2. **Port to foundation types** — Replace tower/hyper/tokio with foundation_http handlers, foundation_netio HTTP types, valtron execution.
-3. **Abstract codec trait** — Three first-class codecs: buffa (protobuf), serde_json (JSON), foundation_arrow (Arrow IPC).
+3. **Abstract codec system (`CodecFor<M>`)** — Three first-class codecs: buffa (protobuf), serde_json (JSON), foundation_arrow (Arrow IPC). Message type on the trait (`dyn CodecFor<M>` object-safe); registration-time per-procedure `ProcedureCodecs` tables; no unified `Message` trait, no `dyn Any` (Decision 02).
 4. **Auth on foundation_auth** — Port authn-go's middleware pattern, delegate verification to foundation_auth's JWT/OAuth/session infrastructure.
+5. **errstacks everywhere** — every public signature returns `ConnectResult<T> = Result<T, ErrorTrace<ConnectError>>`; domain errors are custom contexts mapped in via `change_context` (Decision 03).
+6. **`Ctx` context handle** — Arc-backed, by-value in all four RPC kinds; bundles foundation_http's `ContextBag` (app-scoped shared deps) + `Arc<RequestContext>` (per-RPC state) (Decision 04).
+7. **Async-canonical surfaces** — client stream handles, `Transport::open`, and the response head are async; sync wraps via valtron off-pool (Decisions 07/11; platform norm).
 
 ## Design Documents
 
 | # | Decision | Status |
 |---|---|---|
-| [00](decisions/00-valtron-async-readiness.md) | Valtron Async Readiness (foundation — async handlers park, not spin) | draft |
-| [01](decisions/01-transport-and-runtime.md) | Transport Layer & Runtime Model | draft |
-| [02](decisions/02-codec-and-serialization.md) | Codec System & Serialization | draft |
-| [03](decisions/03-error-model.md) | Error Model | draft |
-| [04](decisions/04-handler-and-interceptor-model.md) | Handler & Interceptor Model | draft |
-| [05](decisions/05-protocol-wire-formats.md) | Protocol Wire Formats | draft |
-| [06](decisions/06-compression.md) | Compression System | draft |
-| [07](decisions/07-client-architecture.md) | Client Architecture | draft |
-| [08](decisions/08-router-and-dispatch.md) | Router & Multi-Protocol Dispatch | draft |
-| [09](decisions/09-auth-middleware.md) | Authentication Middleware | draft |
-| [10](decisions/10-codegen.md) | Code Generation | draft |
-| [11](decisions/11-transport-seam.md) | Transport Seam & Streaming Handler Model | draft |
-| [12](decisions/12-foundation-enablement.md) | Foundation Enablement (Streaming, Trailers, HTTP/2) | draft |
-| [13](decisions/13-websocket-transport.md) | WebSocket Transport (Bidi over HTTP/1.1) — *deferred, implemented last* | draft |
-| [14](decisions/14-io-uring-reactor-backend.md) | io_uring Reactor Backend (Linux) — efficient fd listening for native parking | draft |
+| [00](decisions/00-valtron-async-readiness.md) | Valtron Async Readiness (foundation — async handlers park, not spin) | ready |
+| [01](decisions/01-transport-and-runtime.md) | Transport Layer & Runtime Model | ready |
+| [02](decisions/02-codec-and-serialization.md) | Codec System & Serialization | ready |
+| [03](decisions/03-error-model.md) | Error Model | ready |
+| [04](decisions/04-handler-and-interceptor-model.md) | Handler & Interceptor Model | ready |
+| [05](decisions/05-protocol-wire-formats.md) | Protocol Wire Formats | ready |
+| [06](decisions/06-compression.md) | Compression System | ready |
+| [07](decisions/07-client-architecture.md) | Client Architecture | ready |
+| [08](decisions/08-router-and-dispatch.md) | Router & Multi-Protocol Dispatch | ready |
+| [09](decisions/09-auth-middleware.md) | Authentication Middleware | ready |
+| [10](decisions/10-codegen.md) | Code Generation | ready |
+| [11](decisions/11-transport-seam.md) | Transport Seam & Streaming Handler Model | ready |
+| [12](decisions/12-foundation-enablement.md) | Foundation Enablement (Streaming, Trailers, HTTP/2) | ready |
+| [13](decisions/13-websocket-transport.md) | WebSocket Transport (Bidi over HTTP/1.1) — *deferred, implemented last* | ready |
+| [14](decisions/14-io-uring-reactor-backend.md) | io_uring Reactor Backend (Linux) — efficient fd listening for native parking | ready |
 
 ## Reference Material
 
@@ -61,48 +64,22 @@ backends/foundation_connectrpc/          # Runtime library
 
 ## Open Questions (Aggregated)
 
-Collected from all design docs — must be resolved before feature specs:
+**All design-blocking questions are resolved.** Each decision doc records its resolutions
+inline (the Review-Gap Coverage and Open Questions sections are retained as resolution
+records) — the questions that used to be listed here (netio HTTP/2 support, buffa canonical
+JSON, zero-copy views, error details/debug, sync-vs-async handlers, cancellation, bidi,
+gRPC-Web text mode, `google.rpc.Status`, HTTP/1.1 trailers, client types/pooling/streaming
+bodies, prefix routing, middleware ordering, mTLS/introspection/CORS, unified codegen,
+default `unimplemented` impls, view handler variants) are all decided in Decisions 00–14.
+A second cross-consistency pass (2026-07) additionally settled: `CodecFor<M>` typed-codec
+dispatch, the `ConnectResult` error sweep, the `Ctx` handle, async-canonical client
+surfaces, R1 leading-slash paths, R11 `grpc-web` naming, R12 auth feature-gating, the
+frame-level `EnvelopeReader`/`Writer`, and `ConnectionContext` plumbing (Decision 12 §13).
 
-### Transport & Runtime
-- Does foundation_netio have HTTP/2 frame-level support, or is it HTTP/1.1 only?
-- Does foundation_http handle chunked transfer encoding automatically for streaming responses?
-- What backpressure mechanism exists for streaming bodies?
-- Does foundation_http's worker model consume the full request body before dispatching?
-
-### Codec & Serialization
-- Does buffa's `json` feature produce canonical protobuf JSON (lowerCamelCase, string enums)?
-- Can we integrate buffa's zero-copy `MessageView<'a>` into the codec trait?
-- What batch size policy for Arrow IPC in streaming RPCs?
-
-### Error Model
-- Error details without protobuf: require buffa for details, or support JSON-only as extension?
-- Include `"debug"` JSON in error details: always, never, or configurable?
-
-### Handler & Interceptor
-- Sync handler traits vs valtron `Stream<D, P>` return for deferred execution?
-- How do long-running handlers check for context cancellation?
-- How does bidi streaming work on a single worker thread?
-
-### Protocol
-- gRPC-Web text mode (base64 body): implement in Phase 1 or defer?
-- `google.rpc.Status` protobuf: hand-write, generate, or well-known type?
-- Does foundation_netio support HTTP/1.1 trailing headers?
-
-### Client
-- What client types does foundation_netio provide for outgoing HTTP requests?
-- Connection pooling/reuse for HTTP/1.1?
-- Client streaming body accumulation: default buffer limit?
-
-### Router & Dispatch
-- Register per-procedure routes or single prefix route in foundation_http?
-- Middleware ordering: ConnectRPC interceptors inside or outside foundation_http middleware?
-
-### Auth
-- mTLS certificate extraction from foundation_netio TLS connections?
-- OAuth token introspection authenticator?
-- CORS headers for ConnectRPC-specific header names?
-
-### Codegen
-- Unified buffa+connectrpc codegen or separate steps?
-- Default `unimplemented` implementations for generated service traits?
-- Generate view handler variants for zero-copy deserialization?
+Remaining implementation-time tunables (not design blockers; revisit inside the named
+feature):
+- Whether the **owned-decode** path reuses a buffer pool (Decision 11 OQ#3) — tune during
+  implementation.
+- HTTP/2 **flow-control tuning** (Decision 12 §5, phase 3 of the http2 module).
+- WASM Fetch **bridge-surface confirmation** (Decision 11 OQ#4) — a foundation_wasm
+  implementation detail; capabilities are already fixed (`Duplex::None`, no trailers).

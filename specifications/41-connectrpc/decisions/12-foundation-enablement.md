@@ -282,6 +282,24 @@ This is additive (a trait impl, no behavior change) and is the single missing se
 `RegisteredFd` from any live `RawStream` and hand the task an `EventReadiness` to `Depends`
 on — no dependency inversion required.
 
+### 13. `ConnectionContext` on `SimpleIncomingRequest` (enabler for Decision 04 Q13)
+
+Decision 04 Q13 decides a typed `ConnectionContext` — peer identity via netcap `Endpoint<I>`
+(incl. the iroh Ed25519 key, T10), TLS/mTLS peer certificates (Decision 09 R15), negotiated
+ALPN / HTTP version, 0-RTT flag, QUIC connection id — that `SimpleIncomingRequest` carries
+and `RequestContext` references. The type and the carrying field are **netio changes**, so
+they are owned here as a foundation enabler:
+
+- define `ConnectionContext` in `foundation_netio` (netcap — it is transport-scoped, built
+  where the connection is accepted/negotiated);
+- each connection front end populates it **once per connection**: `simple_http/` at
+  accept/TLS-handshake time, `http2/`/`http3/` at connection setup (shared across that
+  connection's multiplexed requests; the per-request stream id stays request-scoped), and
+  the WebSocket upgrade path at `101` time (Decision 13);
+- `SimpleIncomingRequest` gains an `Arc<ConnectionContext>` field, defaulting to an empty
+  context for callers that construct requests directly (tests, wasm client rendering) —
+  additive, no behavior change for existing HTTP/1.1 tests.
+
 ## Open Questions
 
 1. **Per-part `Http11` variants — resolved.** Fine-grained parts *and* a combined head:

@@ -106,7 +106,7 @@ pub fn negotiate_compression(
     registry: &CompressionRegistry,
     request_encoding: Option<&str>,
     accept_encoding: Option<&str>,
-) -> Result<NegotiatedCompression, ConnectError> {
+) -> ConnectResult<NegotiatedCompression> {
     // 1. If request_encoding is set and not "identity", validate it's supported
     //    → Error CodeUnimplemented if not ("unsupported encoding X, supported: [gzip, ...]")
     // 2. If accept_encoding is set, find the first supported algorithm

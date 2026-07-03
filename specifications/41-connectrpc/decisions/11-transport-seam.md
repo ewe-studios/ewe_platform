@@ -64,23 +64,25 @@ user-facing (users write async fns/`Stream`s, Decision 04). They are the typed f
 holds the codec:
 
 ```rust
-/// INTERNAL. Producer adapter over the response queue.
-struct MessageSink<T> { /* producer onto Arc<ConcurrentQueue<Stream<Frame, ()>>> */ }
+/// INTERNAL. Producer adapter over the response queue. Owns the typed codec handle
+/// (`Arc<dyn CodecFor<T>>`, Decision 02) — the only place `T` is encoded.
+struct MessageSink<T> { /* producer onto Arc<ConcurrentQueue<Stream<Frame, ()>>> + Arc<dyn CodecFor<T>> */ }
 impl<T: Send + 'static> MessageSink<T> {
-    fn set_headers(&self, headers: SimpleHeaders) -> Result<(), ConnectError>;
+    fn set_headers(&self, headers: SimpleHeaders) -> ConnectResult<()>;
     /// Encode + push one frame. Returns `Err(Full)` when the bounded queue is full; the
     /// **bridging task** (not this call) translates that into `TaskStatus::Pending` so the
     /// executor reschedules — the `send` call itself never blocks or yields scheduler states.
-    fn send(&self, msg: T) -> Result<(), ConnectError>;
-    fn close(self, trailers: SimpleHeaders) -> Result<(), ConnectError>;
+    fn send(&self, msg: T) -> ConnectResult<()>;
+    fn close(self, trailers: SimpleHeaders) -> ConnectResult<()>;
 }
 
 /// INTERNAL. Consumer adapter over the request queue (a `ConcurrentQueueStreamIterator`).
-struct MessageSource<T> { /* consumer of Arc<ConcurrentQueue<Stream<Frame, ()>>> */ }
+/// Owns `Arc<dyn CodecFor<T>>` — the only place `T` is decoded.
+struct MessageSource<T> { /* consumer of Arc<ConcurrentQueue<Stream<Frame, ()>>> + Arc<dyn CodecFor<T>> */ }
 impl<T: Send + 'static> MessageSource<T> {
-    /// Next request message, owned-decoded (or an `OwnedView<T>` for the zero-copy variant —
+    /// Next request message, owned-decoded (or an `OwnedView<…>` for the zero-copy variant —
     /// see "Zero-copy" below). `Ok(None)` at end of stream.
-    fn receive(&mut self) -> Result<Option<T>, ConnectError>;
+    fn receive(&mut self) -> ConnectResult<Option<T>>;
     fn headers(&self) -> &SimpleHeaders;
 }
 ```
@@ -173,42 +175,44 @@ pub trait HandlerConn: Send {
     /// Next request **frame** as `Bytes` (codec-encoded, de-enveloped + decompressed), or
     /// `None` at end of stream. `Bytes` (not `Vec<u8>`) so the facade can build a zero-copy
     /// `OwnedView`/`RecordBatch` without a copy (S5; transport already yields `Bytes`).
-    fn receive(&mut self) -> Result<Option<Bytes>, ConnectError>;
+    fn receive(&mut self) -> ConnectResult<Option<Bytes>>;
 
     /// Send response headers (idempotent until the first frame/flush).
-    fn send_headers(&mut self, headers: SimpleHeaders) -> Result<(), ConnectError>;
+    fn send_headers(&mut self, headers: SimpleHeaders) -> ConnectResult<()>;
 
     /// Envelope + flush one already-encoded response **frame** to the transport.
-    fn send(&mut self, frame: Bytes) -> Result<(), ConnectError>;
+    fn send(&mut self, frame: Bytes) -> ConnectResult<()>;
 
     /// Finish: write trailers (Connect end-stream / gRPC-Web trailer frame /
     /// HTTP/2 trailing HEADERS) per protocol, then close.
-    fn close(self: Box<Self>, error: Option<ConnectError>, trailers: SimpleHeaders)
-        -> Result<(), ConnectError>;
+    fn close(self: Box<Self>, error: Option<ErrorTrace<ConnectError>>, trailers: SimpleHeaders)
+        -> ConnectResult<()>;
 }
 
 /// Client-side per-call seam, produced by ProtocolClient::new_conn over a Transport stream.
 pub trait ClientConn: Send {
     fn spec(&self) -> &Spec;
     fn request_headers_mut(&mut self) -> &mut SimpleHeaders;
-    fn send(&mut self, frame: Bytes) -> Result<(), ConnectError>;       // already-encoded frame
-    fn close_send(&mut self) -> Result<(), ConnectError>;
-    fn receive(&mut self) -> Result<Option<Bytes>, ConnectError>;       // encoded frame (Bytes), None at EOS
+    fn send(&mut self, frame: Bytes) -> ConnectResult<()>;       // already-encoded frame
+    fn close_send(&mut self) -> ConnectResult<()>;
+    fn receive(&mut self) -> ConnectResult<Option<Bytes>>;       // encoded frame (Bytes), None at EOS
     fn response_headers(&self) -> &SimpleHeaders;
-    fn response_trailers(&self) -> Result<&SimpleHeaders, ConnectError>;
+    fn response_trailers(&self) -> ConnectResult<&SimpleHeaders>;
 }
 ```
 
 ### Layering: typed facade vs byte seam
 
 `MessageSink<T>` / `MessageSource<T>` are the **typed, per-RPC facade** the handler sees.
-They own the `Arc<dyn Codec>` and are the only place the concrete `Req`/`Res` is known:
+They own the `Arc<dyn CodecFor<T>>` (Decision 02 — resolved by name from the per-procedure
+`ProcedureCodecs` table at dispatch) and are the only place the concrete `Req`/`Res` is known:
 
-- `MessageSink<Res>::send(res)` → run the facade's **message-middleware** → `codec.marshal::<Res>(&res)`
-  → push the frame into the bounded queue → `HandlerConn::send(frame)`.
+- `MessageSink<Res>::send(res)` → run the facade's **message-middleware** → `codec.marshal(&res)`
+  (via `dyn CodecFor<Res>`) → push the frame into the bounded queue → `HandlerConn::send(frame)`.
 - `MessageSource<Req>::receive()` → `HandlerConn::receive()?` (a `Bytes` frame) → run middleware
-  → `codec.unmarshal::<Req>(frame)` (or `unmarshal_owned_view::<Req>` for the zero-copy variant)
-  → `Some(req)`. Concrete codec + concrete type — no `dyn Any`, no `Default`+`&mut` erasure.
+  → `codec.unmarshal(frame)` (or the concrete codec's inherent `unmarshal_owned_view` for the
+  zero-copy variant — statically dispatched in the generated facade, Decision 02)
+  → `Some(req)`. Typed via `CodecFor` — no `dyn Any`, no `Default`+`&mut` erasure.
 
 The seam (`HandlerConn`/`ClientConn`) carries **only encoded frames + metadata** (no
 `dyn Any`). **Zero-copy (decided, supported):** the facade can decode into an owned message
@@ -249,24 +253,33 @@ pub trait Transport: Send + Sync + 'static {
 
     /// Open a streaming exchange: returns sinks/sources for the request and response
     /// bodies. Unary is the degenerate case (send one, close, receive one).
+    /// ASYNC (`BoxFuture` keeps the trait dyn-safe): connecting / pool checkout does I/O
+    /// and must park, not block a worker (async-canonical decision).
     /// `RequestDescriptor` is netio's existing head-only request (proto/url/headers/method);
     /// the body flows through the returned `TransportStream` (not in the head).
-    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
+    fn open(&self, request: RequestDescriptor)
+        -> BoxFuture<'static, Result<TransportStream, TransportError>>;
 }
 
 /// A live transport exchange. The protocol's ClientConn drives these.
 pub struct TransportStream {
     pub send_body: BodySink,                 // bounded; protocol writes envelope frames
-    // response head = netio's `SimpleResponse<()>` (status + headers, no body)
-    pub response: Box<dyn FnOnce() -> Result<SimpleResponse<()>, TransportError> + Send>,
+    // Response head = netio's `SimpleResponse<()>` (status + headers, no body).
+    // AWAITABLE (async-canonical): resolving the head may wait on the network and must
+    // park, not block a worker.
+    pub response: BoxFuture<'static, Result<SimpleResponse<()>, TransportError>>,
     pub recv_body: BodySource,               // bounded; protocol reads envelope frames
 }
+
+// `BodySink` / `BodySource` are the producer/consumer halves of the bounded frame pipes
+// (the same `ConcurrentQueue`-backed pipes defined above; items are envelope-level `Bytes`
+// frames). Named once here — `ProtocolHandler::new_conn` (Decision 05) takes the same pair.
 
 /// Convenience: unary round-trip is built on `open` for transports/callers that prefer it.
 /// Uses the existing netio client types — `PreparedRequest` in, `SimpleResponse<SendSafeBody>`
 /// out (no fictional `SimpleOutgoingRequest`/`SimpleIncomingResponse`; verified — Decision 07).
 impl dyn Transport {
-    pub fn round_trip(&self, req: PreparedRequest)
+    pub async fn round_trip(&self, req: PreparedRequest)
         -> Result<SimpleResponse<SendSafeBody>, TransportError> { /* open + send + close + read */ }
 }
 ```
@@ -299,7 +312,7 @@ pub struct ProtocolRequirements {
 
 /// `Ok` iff the transport can carry this protocol at this stream type.
 pub fn check_compatible(req: &ProtocolRequirements, cap: &TransportCapabilities)
-    -> Result<(), ConnectError>;
+    -> ConnectResult<()>;
 ```
 
 Examples this enforces with one rule: gRPC on HTTP/1.1 → rejected (needs HTTP/2 +
@@ -310,8 +323,8 @@ HTTP/2 → allowed.
 
 The transport pushes cancellation (connection close, `RST_STREAM`, QUIC stream reset)
 into `RequestContext.cancel()`. `MessageSource::receive` and `MessageSink::send` observe
-`RequestContext` and return `ConnectError { code: Canceled | DeadlineExceeded }` so the
-handler unwinds. This is the only cancellation mechanism handlers see, regardless of
+`RequestContext` and return a `Canceled` / `DeadlineExceeded` error (as
+`ErrorTrace<ConnectError>`, the ConnectResult norm) so the handler unwinds. This is the only cancellation mechanism handlers see, regardless of
 transport (closes Decision 04 Q4).
 
 ## Consequences
