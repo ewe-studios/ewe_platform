@@ -86,7 +86,7 @@ fn should_convert_to_get_request_header_without_body_for_descriptor() {
 
     assert_eq!(
         request.http_render_string().unwrap(),
-        "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\nX-VILLA: YES\r\n\r\n"
+        "GET / HTTP/1.1\r\ncontent-length: 5\r\ncontent-type: application/json\r\nhost: localhost:8000\r\nX-VILLA: YES\r\n\r\n"
     );
 }
 
@@ -106,7 +106,7 @@ fn should_convert_to_get_request_with_custom_header() {
 
     assert_eq!(
         request.http_render_string().unwrap(),
-        "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\nX-VILLA: YES\r\n\r\nHello"
+        "GET / HTTP/1.1\r\ncontent-length: 5\r\ncontent-type: application/json\r\nhost: localhost:8000\r\nX-VILLA: YES\r\n\r\nHello"
     );
 }
 
@@ -125,7 +125,7 @@ fn should_convert_to_get_request() {
 
     assert_eq!(
         request.http_render_string().unwrap(),
-        "GET / HTTP/1.1\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
+        "GET / HTTP/1.1\r\ncontent-length: 5\r\ncontent-type: application/json\r\nhost: localhost:8000\r\n\r\nHello"
     );
 }
 
@@ -143,7 +143,7 @@ fn should_convert_to_get_response() {
 
     assert_eq!(
         request.http_render_string().unwrap(),
-        "HTTP/1.1 200 Ok\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
+        "HTTP/1.1 200 Ok\r\ncontent-length: 5\r\ncontent-type: application/json\r\nhost: localhost:8000\r\n\r\nHello"
     );
 }
 
@@ -161,6 +161,6 @@ fn should_convert_to_get_response_with_custom_status() {
 
     assert_eq!(
         request.http_render_string().unwrap(),
-        "HTTP/1.1 666 Custom status\r\nCONTENT-LENGTH: 5\r\nCONTENT-TYPE: application/json\r\nHOST: localhost:8000\r\n\r\nHello"
+        "HTTP/1.1 666 Custom status\r\ncontent-length: 5\r\ncontent-type: application/json\r\nhost: localhost:8000\r\n\r\nHello"
     );
 }

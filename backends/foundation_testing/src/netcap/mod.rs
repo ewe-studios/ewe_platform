@@ -362,7 +362,7 @@ Hello world!";
         let mut response = String::new();
         t!(client.read_to_string(&mut response));
 
-        assert_eq!(response, "HTTP/1.1 200 Ok\r\nCONTENT-LENGTH: 39\r\n\r\n{\"name\": \"alex\", \"body\": Hello world! }");
+        assert_eq!(response, "HTTP/1.1 200 Ok\r\ncontent-length: 39\r\n\r\n{\"name\": \"alex\", \"body\": Hello world! }");
 
         test_server.close().expect("should close server");
 
@@ -444,7 +444,7 @@ Hello buster!";
 
         assert_eq!(
             response,
-            "HTTP/1.1 400 Bad Request\r\nCONTENT-LENGTH: 0\r\n\r\n"
+            "HTTP/1.1 400 Bad Request\r\ncontent-length: 0\r\n\r\n"
         );
         test_server.close().expect("should close server");
 

@@ -23,6 +23,7 @@ mod cookie_tests;
 mod dns_tests;
 mod eof_handling_tests;
 mod errors_tests;
+mod header_lowercase_tests;
 mod http11_response_parts_tests;
 mod http_redirect_edge_cases_tests;
 mod http_redirect_integration;
