@@ -11,7 +11,7 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::netcap::SocketAddr as NetcapSocketAddr;
-use foundation_core::synca::OnSignal;
+use foundation_core::synca::{OnSignal, WaitGroup};
 use foundation_netio::simple_http::shared::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
 };
@@ -161,6 +161,11 @@ pub struct ServerConfig {
     pub keep_alive: KeepAliveConfig,
     /// Maximum body size in bytes (default: 10 MB).
     pub max_body_bytes: usize,
+    /// Grace window for draining in-flight connections after shutdown is
+    /// signalled (Decision 12 §10). Once the accept loop stops, the server waits
+    /// up to this long for active connections to finish before force-closing
+    /// whatever remains. Default: 30s.
+    pub shutdown_grace: Duration,
     /// TLS acceptor for encrypted connections.
     #[cfg(any(
         feature = "ssl",
@@ -181,6 +186,7 @@ impl ServerConfig {
             timeout_calculator: TimeoutCalculator::default(),
             keep_alive: KeepAliveConfig::defaults(),
             max_body_bytes: 10 * 1024 * 1024, // 10 MB
+            shutdown_grace: Duration::from_secs(30),
             #[cfg(any(
                 feature = "ssl",
                 feature = "ssl-rustls",
@@ -280,6 +286,13 @@ impl ServerConfig {
     #[must_use]
     pub fn with_max_body_bytes(mut self, bytes: usize) -> Self {
         self.max_body_bytes = bytes;
+        self
+    }
+
+    /// Set the graceful-shutdown drain grace window (Decision 12 §10).
+    #[must_use]
+    pub fn with_shutdown_grace(mut self, dur: Duration) -> Self {
+        self.shutdown_grace = dur;
         self
     }
 
@@ -470,6 +483,12 @@ impl HttpServer {
         let would_block_sleep = self.config.would_block_sleep();
         let accept_error_sleep = self.config.accept_error_sleep();
         let keep_alive_config = self.config.keep_alive.clone();
+        let shutdown_grace = self.config.shutdown_grace;
+
+        // Tracks connections currently owned by a valtron handler task. Each
+        // handler holds a guard that decrements on completion, so the drain
+        // phase below can wait for in-flight connections (Decision 12 §10).
+        let active = WaitGroup::new();
 
         loop {
             if shutdown.probe() {
@@ -516,12 +535,17 @@ impl HttpServer {
                     let shared_stream = SharedByteBufferStream::rwrite(raw_stream);
                     let streams = HTTPStreams::new(shared_stream.clone());
 
+                    // Count this connection as active; the guard handed to the
+                    // handler decrements when its task completes (Decision 12 §10).
+                    active.add(1);
                     let handler = ConnectionHandler::new(
                         self.app.clone(),
                         streams,
                         shared_stream.clone(),
                         client_ip.clone(),
                         connection,
+                        shutdown.clone(),
+                        active.guard(),
                         &keep_alive_config,
                     );
 
@@ -551,6 +575,21 @@ impl HttpServer {
                     std::thread::sleep(accept_error_sleep);
                 }
             }
+        }
+
+        // Drain phase (Decision 12 §10): the accept loop has stopped. Handlers
+        // already saw the shutdown signal and stop taking new keep-alive requests
+        // at their idle checkpoint; wait up to the grace window for in-flight
+        // connections (including streaming) to finish. Past the deadline we stop
+        // waiting and return — leftover tasks will end at their next checkpoint.
+        tracing::info!(grace_ms = shutdown_grace.as_millis(), "Draining in-flight connections");
+        if active.wait_timeout(shutdown_grace) {
+            tracing::info!("All in-flight connections drained cleanly");
+        } else {
+            tracing::warn!(
+                grace_ms = shutdown_grace.as_millis(),
+                "Drain grace elapsed; force-closing remaining connections"
+            );
         }
 
         tracing::info!("Server stopped");

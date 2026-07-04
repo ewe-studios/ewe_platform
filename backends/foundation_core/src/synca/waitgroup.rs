@@ -86,6 +86,34 @@ impl WaitGroup {
         }
     }
 
+    /// Block until count reaches 0 or `timeout` elapses.
+    ///
+    /// Returns `true` if the count reached 0 within the deadline, `false` if it
+    /// timed out with work still outstanding. Used for bounded drains (e.g. a
+    /// graceful-shutdown grace window) where the caller force-closes whatever
+    /// remains past the deadline. The deadline is tracked absolutely so
+    /// spurious condvar wakeups shorten the remaining wait rather than resetting
+    /// it.
+    #[must_use]
+    pub fn wait_timeout(&self, timeout: std::time::Duration) -> bool {
+        let (lock, cond) = &*self.inner;
+        let deadline = std::time::Instant::now() + timeout;
+        let mut count = lock.lock().unwrap_or_else(|p| p.into_inner());
+        while *count != 0 {
+            let Some(remaining) = deadline.checked_duration_since(std::time::Instant::now()) else {
+                return false;
+            };
+            let (next, res) = cond
+                .wait_timeout(count, remaining)
+                .unwrap_or_else(|p| p.into_inner());
+            count = next;
+            if res.timed_out() && *count != 0 {
+                return false;
+            }
+        }
+        true
+    }
+
     /// Create a RAII guard that calls `done()` on drop.
     #[must_use]
     pub fn guard(&self) -> WaitGroupGuard {
@@ -112,6 +140,34 @@ impl Drop for WaitGroupGuard {
 mod tests {
     use super::*;
     use std::{sync::Arc, thread, time::Duration};
+
+    #[test]
+    fn test_waitgroup_wait_timeout_reaches_zero() {
+        let wg = WaitGroup::new();
+        wg.add(1);
+        let wg2 = wg.clone();
+        thread::spawn(move || {
+            thread::sleep(Duration::from_millis(50));
+            wg2.done();
+        });
+        // Generous window: the worker finishes well before the deadline.
+        assert!(wg.wait_timeout(Duration::from_secs(5)));
+    }
+
+    #[test]
+    fn test_waitgroup_wait_timeout_times_out() {
+        let wg = WaitGroup::new();
+        wg.add(1); // never completed
+        let start = std::time::Instant::now();
+        assert!(!wg.wait_timeout(Duration::from_millis(100)));
+        assert!(start.elapsed() >= Duration::from_millis(100));
+    }
+
+    #[test]
+    fn test_waitgroup_wait_timeout_zero_count_returns_immediately() {
+        let wg = WaitGroup::new();
+        assert!(wg.wait_timeout(Duration::from_secs(5)));
+    }
 
     #[test]
     fn test_waitgroup_basic() {

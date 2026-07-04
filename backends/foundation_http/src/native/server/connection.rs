@@ -13,6 +13,7 @@ use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
+use foundation_core::synca::{OnSignal, WaitGroupGuard};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::simple_http::shared::{
@@ -62,6 +63,15 @@ pub struct ConnectionHandler {
     /// Connection-scoped context (peer, TLS, ALPN, …) built once at accept and
     /// shared by every request read on this connection (Decision 12 §13).
     connection: Arc<ConnectionContext>,
+    /// Server shutdown signal, shared with every handler task. When set, the
+    /// handler stops taking *new* keep-alive requests at its idle checkpoint but
+    /// lets an in-flight request finish (cooperative, task-decided drain —
+    /// Decision 12 §10).
+    shutdown: Arc<OnSignal>,
+    /// Decrements the server's active-connection `WaitGroup` when this handler
+    /// task completes (on drop), so the drain phase can wait for in-flight
+    /// connections to finish (Decision 12 §10).
+    _drain_guard: WaitGroupGuard,
     /// Cloned calculator for computing expect-continue delays.
     timeout_calculator: TimeoutCalculator,
     max_expect_attempts: usize,
@@ -82,6 +92,8 @@ impl ConnectionHandler {
         conn: SharedByteBufferStream<RawStream>,
         client_ip: String,
         connection: Arc<ConnectionContext>,
+        shutdown: Arc<OnSignal>,
+        drain_guard: WaitGroupGuard,
         config: &super::KeepAliveConfig,
     ) -> Self {
         let max_expect_attempts = config
@@ -95,6 +107,8 @@ impl ConnectionHandler {
             conn,
             client_ip,
             connection,
+            shutdown,
+            _drain_guard: drain_guard,
             timeout_calculator: config.timeout_calculator.clone(),
             max_expect_attempts,
             max_continue_retries: 3,
@@ -178,6 +192,18 @@ impl ConnectionHandler {
     // ---- Idle state -------------------------------------------------------
 
     fn handle_idle(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        // Drain checkpoint (Decision 12 §10): if the server is shutting down and
+        // this connection is idle between requests, stop taking new keep-alive
+        // requests and end the task. An in-flight request is never interrupted
+        // here — the checkpoint only runs while idle, so the request being
+        // processed in another state always completes first.
+        if self.shutdown.probe() {
+            tracing::trace!(
+                client_ip = %self.client_ip,
+                "Idle: server draining, closing keep-alive connection"
+            );
+            return None;
+        }
         if self.idle_exceeded() {
             tracing::trace!(
                 client_ip = %self.client_ip,

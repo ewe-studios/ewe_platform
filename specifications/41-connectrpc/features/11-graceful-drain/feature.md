@@ -1,7 +1,7 @@
 ---
 feature: "Graceful shutdown / connection draining (D12 §10)"
 description: "Stop accepting, let in-flight RPCs finish within a grace window, then force-close"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 1
 depends_on: []
