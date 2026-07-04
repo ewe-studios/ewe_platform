@@ -32,6 +32,7 @@ impl RequestMiddleware for RejectMiddleware {
             status: Status::Unauthorized,
             headers: SimpleHeaders::new(),
             body: Some(SendSafeBody::Text("Unauthorized".into())),
+            trailers: SimpleHeaders::new(),
         })
     }
 }
@@ -148,6 +149,7 @@ fn test_middleware_short_circuit_forbidden_text() {
                 status: Status::Forbidden,
                 headers: SimpleHeaders::new(),
                 body: Some(SendSafeBody::Text("Access denied".into())),
+                trailers: SimpleHeaders::new(),
             })
         }
     }
@@ -173,6 +175,7 @@ fn test_middleware_short_circuit_bytes_body() {
                 status: Status::BadRequest,
                 headers: SimpleHeaders::new(),
                 body: Some(SendSafeBody::Bytes(vec![0x01, 0x02, 0x03])),
+                trailers: SimpleHeaders::new(),
             })
         }
     }
@@ -203,6 +206,7 @@ fn test_middleware_short_circuit_with_headers() {
                 status: Status::Unauthorized,
                 headers,
                 body: Some(SendSafeBody::Text("Unauthorized".into())),
+                trailers: SimpleHeaders::new(),
             })
         }
     }

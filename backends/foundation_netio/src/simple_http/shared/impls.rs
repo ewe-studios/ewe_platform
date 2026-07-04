@@ -1598,6 +1598,13 @@ pub struct SimpleOutgoingResponse {
     pub status: Status,
     pub headers: SimpleHeaders,
     pub body: Option<SendSafeBody>,
+    /// HTTP/1.1 trailers (chunked mode only). Empty by default; a writer emits a
+    /// trailers part iff `!trailers.is_empty()` (Decision 12 §3 / Decided Details
+    /// #2 — "no trailers" vs "empty trailers" is wire-indistinguishable, so a plain
+    /// `SimpleHeaders` rather than `Option`). Connect uses `Trailer-`-prefixed
+    /// headers and gRPC-Web an in-body `0x80` frame instead; this exists for
+    /// protocol completeness.
+    pub trailers: SimpleHeaders,
 }
 
 impl SimpleOutgoingResponse {
@@ -1626,6 +1633,7 @@ pub struct SimpleOutgoingResponseBuilder {
     status: Option<Status>,
     headers: Option<SimpleHeaders>,
     body: Option<SendSafeBody>,
+    trailers: Option<SimpleHeaders>,
 }
 
 pub type SimpleResponseResult<T> = std::result::Result<T, SimpleResponseError>;
@@ -1701,6 +1709,29 @@ impl SimpleOutgoingResponseBuilder {
         self
     }
 
+    /// Set the response trailers (chunked-mode HTTP/1.1). Emitted iff non-empty.
+    #[must_use]
+    pub fn with_trailers(mut self, trailers: SimpleHeaders) -> Self {
+        self.trailers = Some(trailers);
+        self
+    }
+
+    /// Append a single trailer value (chunked-mode HTTP/1.1).
+    #[must_use]
+    pub fn add_trailer<H: Into<SimpleHeader>, S: Into<String>>(mut self, key: H, value: S) -> Self {
+        let mut trailers = self.trailers.unwrap_or_default();
+
+        let actual_key = key.into();
+        if let Some(values) = trailers.get_mut(&actual_key) {
+            values.push(value.into());
+        } else {
+            trailers.insert(actual_key, vec![value.into()]);
+        }
+
+        self.trailers = Some(trailers);
+        self
+    }
+
     /// Builds the outgoing HTTP response.
     ///
     /// # Errors
@@ -1756,6 +1787,7 @@ impl SimpleOutgoingResponseBuilder {
             proto,
             status,
             headers,
+            trailers: self.trailers.unwrap_or_default(),
         })
     }
 }
@@ -2419,6 +2451,187 @@ impl Iterator for Http11RequestIterator {
     }
 }
 
+// ============================================================================
+// HTTP/1.1 response part rendering (Decision 12 §1–§3, Decided Details #1)
+//
+// Shared byte-level renderers so the atomic whole-response iterator and the
+// per-part iterators (streaming handlers) emit IDENTICAL wire bytes — the atomic
+// path is a composition of the same parts.
+// ============================================================================
+
+/// Render the status line: `HTTP/1.1 <code> <reason>\r\n`.
+fn render_status_line(status: &Status) -> Vec<u8> {
+    format!("HTTP/1.1 {}\r\n", status.status_line()).into_bytes()
+}
+
+/// Render a header block followed by the terminating CRLF. Multi-value headers
+/// join with `, ` (RFC 9110 field-combining).
+fn render_header_block(headers: &SimpleHeaders) -> Vec<u8> {
+    let mut encoded_headers: Vec<String> = headers
+        .iter()
+        .map(|(key, value)| {
+            let joined_value = value.join(", ");
+            format!("{key}: {joined_value}\r\n")
+        })
+        .collect();
+    // Terminating CRLF that ends the header block.
+    encoded_headers.push("\r\n".into());
+    encoded_headers.join("").into_bytes()
+}
+
+/// Render the last-chunk marker + trailer block + final CRLF for a chunked stream.
+/// With no trailers this is exactly the chunked terminator `0\r\n\r\n`.
+fn render_trailers(trailers: &SimpleHeaders) -> Vec<u8> {
+    let mut out = b"0\r\n".to_vec();
+    for (key, value) in trailers {
+        let joined_value = value.join(", ");
+        out.extend_from_slice(format!("{key}: {joined_value}\r\n").as_bytes());
+    }
+    out.extend_from_slice(b"\r\n");
+    out
+}
+
+/// One body chunk of a streaming HTTP/1.1 response.
+///
+/// WHY: The chunked wire framing (`{len:x}\r\n…\r\n`) lives in the part iterator,
+/// not in any protocol (Decision 12 §2 / B5c#3 — protocols never hand-roll HTTP/1.1
+/// wire format); a protocol only picks `Chunked` vs `Raw`.
+///
+/// WHAT: `Chunked` bytes get transfer-encoding framing; `Raw` bytes pass through
+/// (content-length / close-delimited).
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum Http11Chunk {
+    /// Framed with `{len:x}\r\n<data>\r\n` transfer-encoding syntax.
+    Chunked(Vec<u8>),
+    /// Emitted verbatim (content-length / close-delimited passthrough).
+    Raw(Vec<u8>),
+}
+
+impl Http11Chunk {
+    /// Render this chunk to its wire bytes.
+    #[must_use]
+    pub fn render(&self) -> Vec<u8> {
+        match self {
+            Http11Chunk::Raw(data) => data.clone(),
+            Http11Chunk::Chunked(data) => {
+                // {len:x}\r\n<data>\r\n — the last-chunk `0\r\n\r\n` is emitted by
+                // the trailers part, not here.
+                let mut out = format!("{:x}\r\n", data.len()).into_bytes();
+                out.extend_from_slice(data);
+                out.extend_from_slice(b"\r\n");
+                out
+            }
+        }
+    }
+}
+
+/// One-shot iterator emitting the status line part (`Http11::ResponseStatusLine`).
+pub struct Http11ResponseStatusLineIterator(Option<Status>);
+
+impl Http11ResponseStatusLineIterator {
+    #[must_use]
+    pub fn new(status: Status) -> Self {
+        Self(Some(status))
+    }
+}
+
+impl Iterator for Http11ResponseStatusLineIterator {
+    type Item = Result<Vec<u8>, Http11RenderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.take().map(|status| Ok(render_status_line(&status)))
+    }
+}
+
+/// One-shot iterator emitting the header block + terminating CRLF
+/// (`Http11::ResponseHeaders`). Header-less blocks (e.g. interim 1xx) render just
+/// the CRLF.
+pub struct Http11ResponseHeadersIterator(Option<SimpleHeaders>);
+
+impl Http11ResponseHeadersIterator {
+    #[must_use]
+    pub fn new(headers: SimpleHeaders) -> Self {
+        Self(Some(headers))
+    }
+}
+
+impl Iterator for Http11ResponseHeadersIterator {
+    type Item = Result<Vec<u8>, Http11RenderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.take().map(|headers| Ok(render_header_block(&headers)))
+    }
+}
+
+/// Two-part iterator emitting a full response head (status line + header block)
+/// from a `SimpleResponse<()>` (`Http11::ResponseHead`). Interim 1xx heads are the
+/// same shape emitted more than once before the final head.
+pub struct Http11ResponseHeadIterator(Option<SimpleResponse<()>>, bool);
+
+impl Http11ResponseHeadIterator {
+    #[must_use]
+    pub fn new(head: SimpleResponse<()>) -> Self {
+        // (head, emitted_status_line?)
+        Self(Some(head), false)
+    }
+}
+
+impl Iterator for Http11ResponseHeadIterator {
+    type Item = Result<Vec<u8>, Http11RenderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let head = self.0.as_ref()?;
+        if self.1 {
+            // Second call: header block, then done.
+            let bytes = render_header_block(&head.1);
+            self.0 = None;
+            Some(Ok(bytes))
+        } else {
+            // First call: status line.
+            self.1 = true;
+            Some(Ok(render_status_line(&head.0)))
+        }
+    }
+}
+
+/// One-shot iterator emitting a single body chunk (`Http11::ResponseBodyChunk`).
+pub struct Http11ChunkIterator(Option<Http11Chunk>);
+
+impl Http11ChunkIterator {
+    #[must_use]
+    pub fn new(chunk: Http11Chunk) -> Self {
+        Self(Some(chunk))
+    }
+}
+
+impl Iterator for Http11ChunkIterator {
+    type Item = Result<Vec<u8>, Http11RenderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.take().map(|chunk| Ok(chunk.render()))
+    }
+}
+
+/// One-shot iterator emitting the trailers part — last-chunk marker + trailer
+/// block + final CRLF (`Http11::ResponseTrailers`). With empty trailers this is
+/// the bare chunked terminator `0\r\n\r\n`.
+pub struct Http11TrailersIterator(Option<SimpleHeaders>);
+
+impl Http11TrailersIterator {
+    #[must_use]
+    pub fn new(trailers: SimpleHeaders) -> Self {
+        Self(Some(trailers))
+    }
+}
+
+impl Iterator for Http11TrailersIterator {
+    type Item = Result<Vec<u8>, Http11RenderError>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.take().map(|trailers| Ok(render_trailers(&trailers)))
+    }
+}
+
 /// State representing the varying rendering status of a http response into
 /// the final HTTP message.
 pub enum Http11ResState {
@@ -2464,12 +2677,12 @@ impl Iterator for Http11ResponseIterator {
             Http11ResState::Intro(response) => {
                 // switch state to headers
 
-                // generate HTTP 1.1 intro
-                let http_intro_string = format!("HTTP/1.1 {}\r\n", response.status.status_line());
+                // generate HTTP 1.1 intro (shared with the ResponseStatusLine part)
+                let intro = render_status_line(&response.status);
 
                 self.0 = Some(Http11ResState::Headers(response));
 
-                Some(Ok(http_intro_string.into_bytes()))
+                Some(Ok(intro))
             }
             Http11ResState::Headers(response) => {
                 // HTTP 1.1 normally requires at least 1 header — EXCEPT for
@@ -2488,25 +2701,13 @@ impl Iterator for Http11ResponseIterator {
                     return Some(Err(Http11RenderError::HeadersRequired));
                 }
 
-                let borrowed_headers = &response.headers;
-
-                let mut encoded_headers: Vec<String> = borrowed_headers
-                    .iter()
-                    .map(|(key, value)| {
-                        let joined_value = value.join(", ");
-                        format!("{key}: {joined_value}\r\n")
-                    })
-                    .collect();
-
-                // add CLRF for ending header
-                encoded_headers.push("\r\n".into());
+                // Header block + terminating CRLF (shared with the ResponseHeaders part).
+                let block = render_header_block(&response.headers);
 
                 // switch state to body rendering next
                 self.0 = Some(Http11ResState::Body(response));
 
-                // join all intermediate with CLRF (last element
-                // does not get it hence why we do it above)
-                Some(Ok(encoded_headers.join("").into_bytes()))
+                Some(Ok(block))
             }
             Http11ResState::Body(mut response) => {
                 if response.body.is_none() {
@@ -2684,7 +2885,22 @@ pub enum Http11 {
     Request(SimpleIncomingRequest),
     RequestDescriptor(RequestDescriptor),
     RequestBody(SimpleIncomingRequest),
+    /// Atomic whole-response — now composed from the per-part renderers below.
     Response(SimpleOutgoingResponse),
+
+    // ── per-part variants (Decision 12 §2 / Decided Details #1) — streaming
+    //    handlers compose these; a raw stream just ends, a chunked stream ends
+    //    with `ResponseTrailers` (which emits `0\r\n\r\n`). ──
+    /// The status line only: `HTTP/1.1 <code> <reason>\r\n`.
+    ResponseStatusLine(Status),
+    /// The header block + terminating CRLF.
+    ResponseHeaders(SimpleHeaders),
+    /// Status line + header block in one (interim 1xx = emitted more than once).
+    ResponseHead(SimpleResponse<()>),
+    /// One body chunk (chunked-framed or raw).
+    ResponseBodyChunk(Http11Chunk),
+    /// Last-chunk marker + trailer block + final CRLF.
+    ResponseTrailers(SimpleHeaders),
 }
 
 impl Http11 {
@@ -2707,6 +2923,31 @@ impl Http11 {
     pub fn response(res: SimpleOutgoingResponse) -> Self {
         Self::Response(res)
     }
+
+    #[must_use]
+    pub fn response_status_line(status: Status) -> Self {
+        Self::ResponseStatusLine(status)
+    }
+
+    #[must_use]
+    pub fn response_headers(headers: SimpleHeaders) -> Self {
+        Self::ResponseHeaders(headers)
+    }
+
+    #[must_use]
+    pub fn response_head(head: SimpleResponse<()>) -> Self {
+        Self::ResponseHead(head)
+    }
+
+    #[must_use]
+    pub fn response_body_chunk(chunk: Http11Chunk) -> Self {
+        Self::ResponseBodyChunk(chunk)
+    }
+
+    #[must_use]
+    pub fn response_trailers(trailers: SimpleHeaders) -> Self {
+        Self::ResponseTrailers(trailers)
+    }
 }
 
 impl RenderHttp for Http11 {
@@ -2722,6 +2963,17 @@ impl RenderHttp for Http11 {
             Http11::RequestBody(request) => Ok(Box::new(Http11RequestBodyIterator::new(request))),
             Http11::Request(request) => Ok(Box::new(Http11RequestIterator::new(request))),
             Http11::Response(response) => Ok(Box::new(Http11ResponseIterator::new(response))),
+            Http11::ResponseStatusLine(status) => {
+                Ok(Box::new(Http11ResponseStatusLineIterator::new(status)))
+            }
+            Http11::ResponseHeaders(headers) => {
+                Ok(Box::new(Http11ResponseHeadersIterator::new(headers)))
+            }
+            Http11::ResponseHead(head) => Ok(Box::new(Http11ResponseHeadIterator::new(head))),
+            Http11::ResponseBodyChunk(chunk) => Ok(Box::new(Http11ChunkIterator::new(chunk))),
+            Http11::ResponseTrailers(trailers) => {
+                Ok(Box::new(Http11TrailersIterator::new(trailers)))
+            }
         }
     }
 }

@@ -84,6 +84,7 @@ impl RequestMiddleware for RejectMiddleware {
             status: Status::Unauthorized,
             headers: SimpleHeaders::new(),
             body: Some(SendSafeBody::Text("Unauthorized".into())),
+            trailers: SimpleHeaders::new(),
         })
     }
 }
