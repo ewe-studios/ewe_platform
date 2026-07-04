@@ -1,7 +1,7 @@
 ---
 feature: "Ctx, RequestContext, CancelSignal, Extensions pathway (D04)"
 description: "The owned-Clone per-call context: COW with_* API, CancelSignal semantics, the extensions travel pathway"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["08-extensions-connection-context", "12-error-model"]

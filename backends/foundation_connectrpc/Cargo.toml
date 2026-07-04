@@ -12,6 +12,7 @@ keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_http = { path = "../foundation_http", version = "0.0.1" }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"

@@ -4081,6 +4081,7 @@ dependencies = [
  "flate2",
  "foundation_arrow",
  "foundation_errstacks",
+ "foundation_http",
  "foundation_netio",
  "serde",
  "serde_json",

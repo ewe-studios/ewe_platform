@@ -11,7 +11,12 @@
 
 pub mod codec;
 pub mod compression;
+pub mod context;
 pub mod error;
+
+pub use context::{
+    CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec, StreamType,
+};
 
 pub use codec::{Codec, CodecError, CodecFor, JsonCodec, ProcedureCodecs, ProtoCodec};
 pub use compression::{
