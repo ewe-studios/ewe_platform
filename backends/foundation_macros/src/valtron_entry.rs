@@ -168,17 +168,11 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         Ok(func) => func,
         Err(err) => return err.to_compile_error(),
     };
-    // The valtron engine is its own scheduler — an `async fn` here would imply a
-    // futures executor we are not providing. Reject loudly instead of producing
-    // a confusing type error inside the expansion.
-    if let Some(asyncness) = &func.sig.asyncness {
-        return syn::Error::new_spanned(
-            asyncness,
-            "#[valtron] functions are synchronous — the valtron engine schedules its own tasks \
-             (spawn(...).schedule() inside the body); remove `async`",
-        )
-        .to_compile_error();
-    }
+    // An `async fn` body is accepted (feature 00-F3): it is driven to completion
+    // via `block_on_future` (from_future + run-to-completion), so the body's
+    // `.await` points park on the valtron engine (Decision 00 Level 1). A sync fn
+    // keeps today's expansion byte-for-byte.
+    let is_async = func.sig.asyncness.is_some();
     if !func.sig.inputs.is_empty() {
         return syn::Error::new_spanned(
             &func.sig.inputs,
@@ -203,10 +197,34 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         .filter(|a| !a.path().is_ident("test"))
         .collect();
     let vis = &func.vis;
-    let sig = &func.sig;
+    // The emitted wrapper fn is ALWAYS synchronous — it owns the engine guard and
+    // drives the (possibly async) body to completion. Strip `async` from the
+    // signature we re-emit; the body handling below reintroduces the future.
+    let mut sig = func.sig.clone();
+    sig.asyncness = None;
     let block = &func.block;
     let output = &func.sig.output; // inner fn keeps the SAME return type
     let inner = format_ident!("__valtron_body_{}", func.sig.ident);
+
+    // Sync body: the original block moved into an inner fn (so `return`/`?` keep
+    // their exact meaning) which is called directly. Async body: no inner fn — the
+    // block becomes a future run to completion by `block_on_future`, so `.await`
+    // parks on the engine and `return`/`?` exit the future (whose output is the
+    // fn's return value).
+    let (inner_def, run_call) = if is_async {
+        (
+            quote! {},
+            quote! { #fc::valtron::block_on_future(async move #block) },
+        )
+    } else {
+        (
+            quote! {
+                #[allow(clippy::items_after_statements)]
+                fn #inner() #output #block
+            },
+            quote! { #inner() },
+        )
+    };
 
     // Seed: explicit expression, or a RandomState-derived u64 (no rand dep —
     // see the module docs). `hash_one` is BuildHasher's one-shot hashing API.
@@ -240,10 +258,9 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
     // wait with recv_timeout. Without timeout, direct call (no thread overhead).
     let body_with_timeout = if let Some(timeout_ms) = &args.timeout {
         quote! {
-            // The original body as an inner fn: `return`/`?` keep their exact
-            // meaning (they exit THIS fn), unlike a closure wrapper.
-            #[allow(clippy::items_after_statements)]
-            fn #inner() #output #block
+            // Sync: the original body as an inner fn (`return`/`?` keep their exact
+            // meaning). Async: empty — the body is driven via `run_call` below.
+            #inner_def
 
             let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
             let __timeout_start = std::time::Instant::now();
@@ -251,7 +268,7 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
             let (__sender, __receiver) = std::sync::mpsc::channel::<std::result::Result<_, __PanicPayload>>();
             std::thread::spawn(move || {
                 let panic_result = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
-                    #inner()
+                    #run_call
                 }));
                 let _ = __sender.send(panic_result);
             });
@@ -274,17 +291,18 @@ fn expand(attr: TokenStream, item: TokenStream, is_test: bool) -> TokenStream {
         }
     } else {
         quote! {
-            // The original body as an inner fn: `return`/`?` keep their exact
-            // meaning (they exit THIS fn), unlike a closure wrapper.
-            #[allow(clippy::items_after_statements)]
-            fn #inner() #output #block
+            // Sync: the original body as an inner fn (`return`/`?` keep their exact
+            // meaning). Async: empty — the body is driven via `run_call` below.
+            #inner_def
 
             // Engine up — the guard is a NAMED local so it provably lives across
             // the whole body (a `let _ =` would drop it immediately and kill the
             // pool before anything ran).
             let __valtron_guard = #fc::valtron::initialize_pool(#seed, #threads);
 
-            let __valtron_out = #inner();
+            // Sync: call the inner fn. Async: drive the body future to completion
+            // (`.await` points park on the engine — Decision 00).
+            let __valtron_out = #run_call;
 
             // Engine down — explicit, AFTER the body has fully returned, so the
             // shutdown ordering is visible rather than implied by scope.

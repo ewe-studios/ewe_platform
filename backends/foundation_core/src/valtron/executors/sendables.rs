@@ -664,6 +664,33 @@ where
     collect_one(stream).ok_or_else(|| "sync_collect_one: stream produced no result".into())
 }
 
+/// Block the calling thread until `future` completes, returning its output
+/// (multi-threaded executor variant — Decision 00 Level 3 / feature 00-F3).
+///
+/// WHY: `#[valtron] async fn` / `#[valtron_test] async fn` need a run-to-completion
+/// driver for the user's async body. This is the executor-agnostic entry the macro
+/// expands to; the pool must already be initialized (the macro does that first).
+///
+/// WHAT: Wraps `future` as a `FutureTask`, schedules it on the running pool, and
+/// blocks the caller until the single `Ready` result arrives.
+///
+/// HOW: `sync_collect_one(from_future(future))` — the pool workers poll the future,
+/// which **parks** on `Pending` (feature 00-F1) rather than busy-spinning, while the
+/// caller blocks on the result channel (no spin).
+///
+/// # Panics
+/// Panics if the future never yields a result — only possible if the pool was not
+/// initialized or was torn down before completion (a setup bug).
+pub fn block_on_future<F>(future: F) -> F::Output
+where
+    F: Future + Send + 'static,
+    F::Output: Send + 'static,
+{
+    sync_collect_one(from_future(future)).expect(
+        "block_on_future: the future produced no result (pool not initialized or torn down early)",
+    )
+}
+
 /// WHY: Provides an ergonomic sync escape hatch for executing a single task
 /// and blocking until all results are collected.
 ///

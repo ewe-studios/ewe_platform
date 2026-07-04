@@ -221,6 +221,37 @@ where
     drive_iterator(crate::valtron::from_future(future))
 }
 
+/// Block the calling thread until `future` completes, returning its output
+/// (single-threaded / wasm executor variant — Decision 00 Level 3 / feature 00-F3).
+///
+/// WHY: `#[valtron] async fn` / `#[valtron_test] async fn` need a run-to-completion
+/// driver for the user's async body. This is the executor-agnostic entry the macro
+/// expands to; the pool must already be initialized (the macro does that first).
+///
+/// WHAT: Wraps `future` as a `FutureTask` and cooperatively drives it — and any
+/// tasks the body spawned — to completion, returning the single `Ready` result.
+///
+/// HOW: Iterates [`drive_future`], whose `DrivenTaskIterator` advances the
+/// single-threaded executor (`run_until_next_state`) between polls. With feature
+/// 00-F1 a `Pending` poll parks (returns `Depends`); the driver advances the
+/// in-process producer that will wake it.
+///
+/// # Panics
+/// Panics if the future never yields a result (a genuinely non-waking future with
+/// no in-process producer — a task bug, per Decision 00).
+pub fn block_on_future<F>(future: F) -> F::Output
+where
+    F: Future + 'static,
+    F::Output: 'static,
+{
+    for status in drive_future(future) {
+        if let TaskStatus::Ready(output) = status {
+            return output;
+        }
+    }
+    panic!("block_on_future: the future produced no Ready value before the driver ended")
+}
+
 /// Wrap a future into a [`CancellableFutureTask`] (non-Send — for single-threaded / wasm).
 #[cfg(any(feature = "std", feature = "alloc"))]
 pub fn from_cancellable_future<F>(

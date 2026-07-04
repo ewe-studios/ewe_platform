@@ -14,6 +14,10 @@
 //! whichever pool the macro's `initialize_pool` brought up). A green run
 //! therefore proves the guard wiring under the active feature set.
 
+use core::future::Future;
+use core::pin::Pin;
+use core::task::{Context, Poll};
+
 use foundation_core::valtron::{sync_one, valtron, valtron_test, NoSpawner, TaskIterator, TaskStatus};
 
 /// Produces `max` ready values, one per executor iteration.
@@ -83,4 +87,61 @@ fn entry_point_style() -> Vec<usize> {
 #[test]
 fn valtron_entry_point_wraps_and_returns() {
     assert_eq!(entry_point_style(), vec![1, 2, 3]);
+}
+
+// ============================================================================
+// Feature 00-F3: `#[valtron]` / `#[valtron_test]` accept `async fn`
+// ============================================================================
+
+/// A future that yields once — it self-wakes on the first poll (`Pending`) and
+/// completes on the second. This exercises the park→wake path the async macro
+/// drives via `block_on_future` on both the single and multi executors.
+struct YieldOnce(bool);
+
+impl Future for YieldOnce {
+    type Output = u32;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        if self.0 {
+            Poll::Ready(7)
+        } else {
+            self.0 = true;
+            cx.waker().wake_by_ref(); // arrange the wake, then park
+            Poll::Pending
+        }
+    }
+}
+
+#[valtron_test]
+async fn async_body_awaits_and_completes() {
+    // The macro drives this async body to completion; `.await` on a parking
+    // future must resume (proves feature 00-F1 parking under the macro).
+    let ready = core::future::ready(41u32).await;
+    let yielded = YieldOnce(false).await;
+    assert_eq!(ready + yielded, 48);
+}
+
+#[valtron_test(seed = 9, threads = 3)]
+async fn async_body_preserves_question_and_return() -> Result<(), String> {
+    let v = YieldOnce(false).await;
+    if v != 7 {
+        // `return` exits the future, whose output is the fn's return value.
+        return Err("yield-once did not complete".into());
+    }
+    // `?` propagates through the async body to the fn's `Result` output.
+    let parsed: u32 = "3".parse().map_err(|_| "parse failed".to_string())?;
+    assert_eq!(parsed, 3);
+    Ok(())
+}
+
+/// `#[valtron]` (entry-point style) also accepts an `async fn` and returns the
+/// awaited value.
+#[valtron(seed = 5, threads = 3)]
+async fn async_entry_point() -> u32 {
+    YieldOnce(false).await + core::future::ready(1u32).await
+}
+
+#[test]
+fn valtron_async_entry_point_returns() {
+    assert_eq!(async_entry_point(), 8);
 }
