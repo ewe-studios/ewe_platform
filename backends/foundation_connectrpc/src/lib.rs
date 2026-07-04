@@ -10,9 +10,20 @@
 //! see [`error`].
 
 pub mod codec;
+pub mod compression;
 pub mod error;
 
 pub use codec::{Codec, CodecError, CodecFor, JsonCodec, ProcedureCodecs, ProtoCodec};
+pub use compression::{
+    negotiate_compression, with_worker_buffer, worker_freeze, BufferPool, CompressionError,
+    CompressionRegistry, Compressor, GzipCompressor, GzipStreamCompressor, NegotiatedCompression,
+    SizeLimits,
+};
+
+#[cfg(feature = "brotli")]
+pub use compression::BrotliCompressor;
+#[cfg(feature = "zstd")]
+pub use compression::ZstdCompressor;
 pub use error::{
     code_of, wrap_if_context, wrap_if_h2c, wrap_if_rst, wrap_if_uncoded, Code, ConnectError,
     ConnectResult, EndStreamResponse, ErrorDetail, WireError, WireErrorDetail, ERRSTACKS_TYPE_URL,

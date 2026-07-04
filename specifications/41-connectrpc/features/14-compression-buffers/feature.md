@@ -1,7 +1,7 @@
 ---
 feature: "Compression system + buffer pools (D06)"
 description: "Compressor trait, gzip/zstd/brotli, negotiation, size limits, per-worker BufferPool with freeze/PooledFrame"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["12-error-model"]

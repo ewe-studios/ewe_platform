@@ -18,6 +18,10 @@ bytes = "1.5"
 serde = { workspace = true }
 serde_json = { workspace = true }
 base64 = "0.22"
+concurrent-queue = "2.5"
+flate2 = "1.0"
+zstd = { version = "0.13", optional = true }
+brotli = { version = "8", optional = true }
 
 [dev-dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
@@ -31,3 +35,6 @@ foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
 default = []
 # Arrow columnar codec (platform extension) — pulls foundation_arrow.
 arrow = ["dep:foundation_arrow"]
+# Additional compressors (gzip is always available via flate2).
+zstd = ["dep:zstd"]
+brotli = ["dep:brotli"]
