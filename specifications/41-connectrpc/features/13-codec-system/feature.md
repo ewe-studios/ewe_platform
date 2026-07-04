@@ -1,7 +1,7 @@
 ---
 feature: "Codec system: CodecFor<M> + ProcedureCodecs authority (D02)"
 description: "Codec/CodecFor traits, Proto/Json/Arrow codecs, the handler-owned ProcedureCodecs table, CodecSet::of"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["12-error-model"]
@@ -35,3 +35,17 @@ The single codec authority: typed CodecFor<M> dispatch with the message type on 
 
 - defaults() rejects non-proto types at compile time; of((Proto, Json, Arrow)) compiles for a type in all three families
 - Table lookup is O(1) post-negotiation; canonical proto-JSON verified against buffa conformance vectors
+
+## Implementation notes
+
+- `buffa 0.8.1` wired from crates.io (feature `json` for canonical proto-JSON via
+  serde). `bytes` for `Bytes`; `foundation_arrow` behind the `arrow` feature.
+- `defaults()`'s compile-time rejection is enforced by its
+  `Req/Res: buffa::Message + Serialize + DeserializeOwned` bound; the tri-family
+  `of((Proto, Json, Arrow))` compile + resolve is covered by `arrow_codec_tests`
+  (a hand-written tri-family `Tri` type).
+- **Canonical proto-JSON vs buffa's conformance vectors** is exercised by the
+  codegen features (26/27), which emit the conformance message types with buffa's
+  serde derives; F13 verifies the JSON path via serde round-trips on a real
+  hand-written buffa `Message`. The codec *system* (all three codecs +
+  `ProcedureCodecs`) is complete here.

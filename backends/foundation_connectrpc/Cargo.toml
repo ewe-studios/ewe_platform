@@ -12,6 +12,9 @@ keywords = ["connectrpc", "grpc", "rpc", "foundation"]
 [dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
+buffa = { version = "0.8.1", features = ["json"] }
+bytes = "1.5"
 serde = { workspace = true }
 serde_json = { workspace = true }
 base64 = "0.22"
@@ -19,9 +22,12 @@ base64 = "0.22"
 [dev-dependencies]
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
 serde_json = { workspace = true }
+serde = { workspace = true }
+buffa = { version = "0.8.1", features = ["json"] }
+bytes = "1.5"
+foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
 
 [features]
 default = []
-# Protobuf-typed error details (ErrorDetail::from_message / decode). Deferred to
-# the codec system (spec-41 F13/F26) — enabling it wires buffa + CodecError.
-proto = []
+# Arrow columnar codec (platform extension) — pulls foundation_arrow.
+arrow = ["dep:foundation_arrow"]

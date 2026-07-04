@@ -9,9 +9,14 @@
 //! The first landed piece is the protocol-agnostic **error model** (Decision 03):
 //! see [`error`].
 
+pub mod codec;
 pub mod error;
 
+pub use codec::{Codec, CodecError, CodecFor, JsonCodec, ProcedureCodecs, ProtoCodec};
 pub use error::{
     code_of, wrap_if_context, wrap_if_h2c, wrap_if_rst, wrap_if_uncoded, Code, ConnectError,
     ConnectResult, EndStreamResponse, ErrorDetail, WireError, WireErrorDetail, ERRSTACKS_TYPE_URL,
 };
+
+#[cfg(feature = "arrow")]
+pub use codec::ArrowCodec;
