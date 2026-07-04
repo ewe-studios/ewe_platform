@@ -14,7 +14,13 @@ pub mod compression;
 pub mod context;
 pub mod envelope;
 pub mod error;
+pub mod interceptor;
 pub mod transport;
+
+pub use interceptor::{
+    Interceptor, InterceptorChain, RecoverInterceptor, StreamCall, StreamingClientFunc,
+    StreamingHandlerFunc, UnaryCall, UnaryFunc, UnaryInterceptorFunc, UnaryReply,
+};
 
 pub use transport::{
     check_compatible, requirements, CallRequirements, ClientConn, ConnReceiver, ConnSender,

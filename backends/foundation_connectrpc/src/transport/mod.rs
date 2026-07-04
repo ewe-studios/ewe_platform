@@ -26,6 +26,6 @@ pub use conn::{
     ClientConn, ClientConnEnds, ClientReceiver, ClientSender, ConnReceiver, ConnSender,
     HandlerConn, HandlerConnEnds, PipeClientConn, PipeHandlerConn,
 };
-pub use facade::{MessageSink, MessageSource};
+pub use facade::{FrameMiddleware, MessageSink, MessageSource, TypedMiddleware};
 pub use frame::{race, BoxFuture, Either, Frame, FramePipe, DEFAULT_PIPE_DEPTH};
 pub use transport::{ByteSink, ByteSource, Transport, TransportError, TransportStream};

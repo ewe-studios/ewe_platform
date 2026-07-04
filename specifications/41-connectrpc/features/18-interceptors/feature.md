@@ -1,7 +1,7 @@
 ---
 feature: "Interceptor system: chains, UnaryCall/StreamCall, recover (D04)"
 description: "Seam interceptors over bytes+metadata; composed once at registration; facade message-middleware hosting"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["16-ctx-request-context", "17-transport-seam"]
