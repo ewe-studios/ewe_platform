@@ -15,7 +15,14 @@ pub mod context;
 pub mod envelope;
 pub mod error;
 pub mod interceptor;
+pub mod protocol;
 pub mod transport;
+
+pub use protocol::{
+    canonicalize_content_type, parse_connect_content_type, ClientExchange, HandlerExchange,
+    ProtocolClient, ProtocolHandler,
+};
+pub use protocol::connect::{ConnectClient, ConnectHandler};
 
 pub use interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, StreamCall, StreamingClientFunc,

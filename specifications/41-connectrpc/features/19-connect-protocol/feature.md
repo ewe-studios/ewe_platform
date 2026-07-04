@@ -1,7 +1,7 @@
 ---
 feature: "Connect protocol handler + client (D05)"
 description: "Connect unary POST/GET + streaming: content-type mechanics, exchanges, EndStreamResponse, GET query encoding"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["15-envelope-framing", "17-transport-seam"]
