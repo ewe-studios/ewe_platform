@@ -336,7 +336,12 @@ random JavaScript globals. This gives teams a manageable contract.
 Route identity, screen identity, cache identity, and bridge message validity all
 flow through URL/page identity.
 
-## What Hotwire Native gives up
+## Architectural trade-offs
+
+Every architecture makes trade-offs. These are not reasons to reject Hotwire
+Native's approach — they are dimensions where we may want to blend in other
+patterns or extend the model further. We remain open to taking anything that
+proves useful.
 
 ### Offline-first is not the default architecture
 
@@ -382,21 +387,28 @@ as a bulk data transport.
 6. **Server-updatable route policy** — some presentation/cache/capability policy
    may come from the server, subject to local security limits.
 
-## What we should not blindly copy
+## What we should adapt to our context
 
-`foundation_platform` should not blindly copy:
+Hotwire Native was built for a Rails monolith with Swift/Kotlin shells. Our
+context — Rust/Tauri + `foundation_wasm_ui` — is different. These are areas to
+adapt, not reject. We may adopt patterns from each as they fit:
 
-1. **Server-only state** — our platform should support local-first and hybrid
-   state.
-2. **HTML-only update model** — `foundation_wasm_ui` can also use DomOps,
-   columnar protocol, custom binary batches, real Arrow IPC, and WASM signals.
-3. **Swift/Kotlin-first native capability implementation** — Tauri gives us a
-   Rust platform layer. Platform-specific code should be isolated to plugins or
-   narrow native bindings where required.
-4. **Assumption of online navigation** — route policy must include offline/cache
-   behavior.
-5. **Bridge as bulk data transport** — large data should remain in Rust/cache/data
-   lanes and expose renderable projections to the UI.
+1. **Server state + local-first hybrid state** — keep the server-driven model
+   where it shines, and add local-first state, caching, and offline mutation
+   queues so the app works without connectivity.
+2. **HTML updates + typed protocol streams** — keep HTML fragments as one update
+   path, and add DomOps, columnar protocol, custom binary batches, real Arrow
+   IPC, and WASM signals as additional update modes.
+3. **Rust-first native capability layer + platform bindings where needed** —
+   Tauri gives us a Rust platform layer for most capabilities. Use
+   Swift/Kotlin/native bindings only for capabilities that genuinely require
+   platform-specific APIs.
+4. **Online navigation + offline/cache behavior** — keep server-driven
+   navigation, and add route-level cache policy, offline replay, and stale
+   content handling.
+5. **Capability bridge + dedicated bulk data lanes** — keep the declarative
+   bridge for capability calls, and add dedicated Rust/cache/data lanes for
+   large payloads, exposing renderable projections to the UI.
 
 ## Mapping to a Tauri + `foundation_wasm_ui` platform
 

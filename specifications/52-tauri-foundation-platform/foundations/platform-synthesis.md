@@ -398,7 +398,7 @@ Recommended stance:
 - use custom protocol/fetch or runtime-specific binary paths for WebView delivery;
 - measure before optimizing Tauri command IPC for binary payloads.
 
-## Adopt / reject / defer
+## Adopt / explore / defer
 
 ### Adopt now as architectural direction
 
@@ -411,15 +411,23 @@ Recommended stance:
 - Explicit communication lanes.
 - Page/session identity on bridge messages.
 
-### Reject as default assumptions
+### Explore and integrate as needed
 
-- Server-only state.
-- SPA-only frontend model.
-- HTML-only server-driven UI.
-- Native SwiftUI/Compose rendering as the default target.
-- Large data through JSON IPC.
-- Unscoped global native bridge calls.
-- Claims of direct native pointer sharing into WebView JS.
+These are areas where common defaults don't fit our context well. We are not
+rejecting them — we are exploring alternatives and keeping all options open.
+Nothing is off the table; we will add whatever proves useful.
+
+- Server-only state — we also want local-first and hybrid state.
+- SPA-only frontend model — we also want server-driven and multi-mode rendering.
+- HTML-only server-driven UI — we also want DomOps, columnar protocol, custom
+  binary batches, real Arrow IPC, and WASM signals as update paths.
+- Native SwiftUI/Compose rendering as the default target — we may use native
+  rendering for specific high-performance surfaces when it adds value.
+- Large data through JSON IPC — we explore Arrow, binary protocols, and custom
+  resource lanes for bulk data.
+- Unscoped global native bridge calls — we scope by route/session/page identity.
+- Claims of direct native pointer sharing into WebView JS — we evaluate actual
+  zero-copy and copy-minimized mechanisms as they become available.
 
 ### Defer until concrete need
 

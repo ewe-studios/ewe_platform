@@ -1,7 +1,7 @@
 ---
 feature: "Arc-valued Extensions + ConnectionContext on requests (D12 §13)"
 description: "Cheap-Clone Extensions for the COW Ctx model; typed per-connection context on SimpleIncomingRequest"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: []

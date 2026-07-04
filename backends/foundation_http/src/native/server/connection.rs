@@ -12,7 +12,7 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::RawStream;
+use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::simple_http::shared::{
@@ -59,6 +59,9 @@ pub struct ConnectionHandler {
     streams: HTTPStreams<RawStream>,
     conn: SharedByteBufferStream<RawStream>,
     client_ip: String,
+    /// Connection-scoped context (peer, TLS, ALPN, …) built once at accept and
+    /// shared by every request read on this connection (Decision 12 §13).
+    connection: Arc<ConnectionContext>,
     /// Cloned calculator for computing expect-continue delays.
     timeout_calculator: TimeoutCalculator,
     max_expect_attempts: usize,
@@ -78,6 +81,7 @@ impl ConnectionHandler {
         streams: HTTPStreams<RawStream>,
         conn: SharedByteBufferStream<RawStream>,
         client_ip: String,
+        connection: Arc<ConnectionContext>,
         config: &super::KeepAliveConfig,
     ) -> Self {
         let max_expect_attempts = config
@@ -90,6 +94,7 @@ impl ConnectionHandler {
             streams,
             conn,
             client_ip,
+            connection,
             timeout_calculator: config.timeout_calculator.clone(),
             max_expect_attempts,
             max_continue_retries: 3,
@@ -191,7 +196,7 @@ impl ConnectionHandler {
 
         tracing::trace!(client_ip = %self.client_ip, "Idle: attempting to read next request");
 
-        match read_next_request(&self.streams, &self.client_ip) {
+        match read_next_request(&self.streams, &self.client_ip, &self.connection) {
             Some(Ok(req)) => {
                 let should_close =
                     req.headers

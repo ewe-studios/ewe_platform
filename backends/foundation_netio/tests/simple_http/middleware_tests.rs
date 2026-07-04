@@ -31,6 +31,46 @@ fn test_extensions_get_mut() {
     assert_eq!(extensions.get::<u32>(), Some(&43u32));
 }
 
+/// WHY: The owned-`Clone` `Ctx` / copy-on-write model needs `Extensions` to be
+/// cheaply clonable — values are `Arc`-backed, so a clone shares them by
+/// refcount bump and both views observe the same stored value.
+/// WHAT: Cloning an `Extensions` yields a shallow copy that sees the same values.
+#[test]
+fn test_extensions_clone_is_shallow() {
+    use foundation_netio::simple_http::shared::Extensions;
+
+    let mut extensions = Extensions::new();
+    extensions.insert(7u32);
+
+    let cloned = extensions.clone();
+    // Both the original and the clone observe the same inserted value.
+    assert_eq!(extensions.get::<u32>(), Some(&7u32));
+    assert_eq!(cloned.get::<u32>(), Some(&7u32));
+}
+
+/// WHY: The copy-on-write contract forbids mutating a value shared with another
+/// clone — `get_mut` must only hand out `&mut` when the value is uniquely owned.
+/// WHAT: `get_mut` returns `None` while a clone still shares the value, and
+/// succeeds again once the sharing clone is dropped.
+#[test]
+fn test_extensions_get_mut_is_copy_on_write() {
+    use foundation_netio::simple_http::shared::Extensions;
+
+    let mut extensions = Extensions::new();
+    extensions.insert(1u32);
+
+    // Uniquely owned right after insert → mutation is allowed.
+    assert!(extensions.get_mut::<u32>().is_some());
+
+    let shared = extensions.clone();
+    // Value is now shared with `shared` → no in-place mutation.
+    assert!(extensions.get_mut::<u32>().is_none());
+
+    drop(shared);
+    // Sole owner again → mutation is allowed once more.
+    assert!(extensions.get_mut::<u32>().is_some());
+}
+
 /// WHY: Middleware trait must allow custom implementations
 /// WHAT: Test that a basic middleware can modify request headers
 #[test]

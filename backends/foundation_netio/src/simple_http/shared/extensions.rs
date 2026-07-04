@@ -5,6 +5,7 @@
 
 use std::any::{Any, TypeId};
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::readers::Data;
@@ -16,15 +17,23 @@ use crate::simple_http::shared::errors::Result;
 
 /// Type-safe extension storage for middleware data.
 ///
-/// WHY: Allows middleware to attach arbitrary typed data to requests
-/// without modifying the core request structure.
+/// WHY: Middleware attaches arbitrary typed data to requests without touching
+/// the core request structure. Values are `Arc`-backed so the whole map is
+/// **cheaply clonable** (refcount bumps only) — required by the connectrpc
+/// owned-`Clone` `Ctx` / copy-on-write write model, where a layer that adds an
+/// extension rebuilds the map by pointer bumps and hands a new context forward
+/// (Decision 04 / Decision 12 §13). The `Arc` value is transparent to callers:
+/// `insert`/`get`/`get_mut` behave exactly as before.
 ///
-/// WHAT: `HashMap` keyed by `TypeId`, storing boxed trait objects.
+/// WHAT: `HashMap` keyed by `TypeId`, storing `Arc<dyn Any + Send + Sync>`.
 ///
-/// HOW: `insert()` boxes the value, `get()/get_mut()` downcasts back to concrete type.
-#[derive(Default)]
+/// HOW: `insert()` wraps the value in `Arc::new`; `get()` downcasts a shared
+/// reference; `get_mut()` mutates in place only when the value is **uniquely
+/// owned** (`Arc::get_mut`) — a shared value returns `None`, matching the
+/// copy-on-write contract (mutate a private copy, never someone else's clone).
+#[derive(Default, Clone)]
 pub struct Extensions {
-    map: HashMap<TypeId, Box<dyn Any + Send + Sync>>,
+    map: HashMap<TypeId, Arc<dyn Any + Send + Sync>>,
 }
 
 impl Extensions {
@@ -38,7 +47,7 @@ impl Extensions {
 
     /// Inserts a value of type T into extensions.
     pub fn insert<T: Send + Sync + 'static>(&mut self, value: T) {
-        self.map.insert(TypeId::of::<T>(), Box::new(value));
+        self.map.insert(TypeId::of::<T>(), Arc::new(value));
     }
 
     /// Gets immutable reference to value of type T.
@@ -46,15 +55,21 @@ impl Extensions {
     pub fn get<T: 'static>(&self) -> Option<&T> {
         self.map
             .get(&TypeId::of::<T>())
-            .and_then(|boxed| boxed.downcast_ref::<T>())
+            .and_then(|shared| shared.downcast_ref::<T>())
     }
 
     /// Gets mutable reference to value of type T.
+    ///
+    /// Returns `None` when the stored value is shared with another clone of the
+    /// map — mutation is only permitted on a uniquely-owned value (copy-on-write
+    /// contract). Immediately after `insert` (or on a never-cloned map) the value
+    /// is unique, so this is a no-op difference for the common middleware case.
     #[must_use]
     pub fn get_mut<T: 'static>(&mut self) -> Option<&mut T> {
         self.map
             .get_mut(&TypeId::of::<T>())
-            .and_then(|boxed| boxed.downcast_mut::<T>())
+            .and_then(Arc::get_mut)
+            .and_then(|shared| shared.downcast_mut::<T>())
     }
 }
 

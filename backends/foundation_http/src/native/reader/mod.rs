@@ -10,6 +10,9 @@
 //! to the request reader iterator. It consumes parts until the iterator is
 //! exhausted, building the request along the way.
 
+use std::sync::Arc;
+
+use foundation_netio::netcap::ConnectionContext;
 use foundation_netio::simple_http::shared::{
     HTTPStreams, HttpReaderError, IncomingRequestParts, SimpleIncomingRequest,
 };
@@ -18,17 +21,23 @@ use crate::shared::client_ip::ClientIp;
 
 /// Read the next complete request from the stream.
 ///
+/// `connection` is the per-connection [`ConnectionContext`] (peer address, TLS,
+/// ALPN, …) built once at accept time; every request read on this connection
+/// carries a clone of it (a refcount bump), so handlers can reach connection
+/// facts via `req.connection` (Decision 12 §13 of spec 41-connectrpc).
+///
 /// Returns `None` when the connection is closed (no more data).
 /// Returns `Some(Err(_))` on parse errors.
 #[must_use]
-#[tracing::instrument(skip(streams))]
+#[tracing::instrument(skip(streams, connection))]
 pub fn read_next_request<T: std::io::Read + Send + 'static>(
     streams: &HTTPStreams<T>,
     client_ip: &str,
+    connection: &Arc<ConnectionContext>,
 ) -> Option<Result<SimpleIncomingRequest, HttpReaderError>> {
     let mut request_stream = streams.next_request();
 
-    let mut builder = SimpleIncomingRequest::builder();
+    let mut builder = SimpleIncomingRequest::builder().with_connection(connection.clone());
 
     let mut total_skips = 0;
     let mut seen_starter: bool = false;

@@ -12,6 +12,7 @@ use foundation_core::valtron::{
     BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
     StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
+use crate::netcap::ConnectionContext;
 use crate::simple_http::client::shared::body_reader::AsyncSendSafeBody;
 use crate::simple_http::shared::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
 use crate::simple_http::shared::errors::{
@@ -1851,6 +1852,12 @@ pub struct SimpleIncomingRequest {
     pub headers: SimpleHeaders,
     pub method: SimpleMethod,
     pub extensions: Option<ClientExtensions>,
+    /// Connection-scoped metadata (peer, TLS, ALPN, …) shared across every
+    /// request on the connection. Populated once per connection by the front
+    /// end at accept/handshake time; an empty default for directly-built
+    /// requests (tests, wasm client rendering) — additive, no behavior change
+    /// (Decision 12 §13 of spec 41-connectrpc).
+    pub connection: Arc<ConnectionContext>,
 }
 
 impl SimpleIncomingRequest {
@@ -1880,6 +1887,7 @@ pub struct SimpleIncomingRequestBuilder {
     method: Option<SimpleMethod>,
     headers: Option<SimpleHeaders>,
     extensions: Option<ClientExtensions>,
+    connection: Option<Arc<ConnectionContext>>,
 }
 
 impl SimpleIncomingRequestBuilder {
@@ -2007,6 +2015,14 @@ impl SimpleIncomingRequestBuilder {
         self
     }
 
+    /// Attaches the connection-scoped context (peer, TLS, ALPN, …) the front
+    /// end built at accept/handshake time. Omitting it yields an empty default.
+    #[must_use]
+    pub fn with_connection(mut self, connection: Arc<ConnectionContext>) -> Self {
+        self.connection = Some(connection);
+        self
+    }
+
     /// Builds the incoming HTTP request.
     ///
     /// # Errors
@@ -2066,6 +2082,7 @@ impl SimpleIncomingRequestBuilder {
             method,
             headers,
             extensions: self.extensions,
+            connection: self.connection.unwrap_or_default(),
         })
     }
 }

@@ -12,6 +12,9 @@ pub use errors::*;
 mod core;
 pub use core::*;
 
+pub mod context;
+pub use context::*;
+
 #[cfg(not(target_family = "wasm"))]
 pub mod connection;
 

@@ -9,7 +9,8 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::RawStream;
+use foundation_netio::netcap::{ConnectionContext, RawStream};
+use foundation_netio::netcap::SocketAddr as NetcapSocketAddr;
 use foundation_core::synca::OnSignal;
 use foundation_netio::simple_http::shared::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
@@ -489,6 +490,17 @@ impl HttpServer {
                     let client_ip = addr.ip().to_string();
                     let wrap_clone = wrap_stream.clone();
 
+                    // Build the connection-scoped context once at accept time;
+                    // every request read on this connection shares a clone of it
+                    // (Decision 12 §13). TLS/ALPN/QUIC fields stay at their empty
+                    // defaults here — the HTTP/1.1 accept path knows only the peer
+                    // address; richer fields are populated by the TLS/h2/h3 front
+                    // ends as those transports land.
+                    let connection = Arc::new(ConnectionContext {
+                        peer_addr: Some(NetcapSocketAddr::Tcp(addr)),
+                        ..ConnectionContext::default()
+                    });
+
                     // Perform connection setup (TLS handshake if any) in the
                     // accept loop before submitting to valtron.
                     let raw_stream = match wrap_clone(tcp) {
@@ -509,6 +521,7 @@ impl HttpServer {
                         streams,
                         shared_stream.clone(),
                         client_ip.clone(),
+                        connection,
                         &keep_alive_config,
                     );
 
