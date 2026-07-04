@@ -37,6 +37,7 @@ mod intro_tests;
 mod middleware_tests;
 mod pool_drain_tests;
 mod pool_tests;
+mod pushable_body_tests;
 mod proxy_tests;
 mod request_tests;
 mod response_reader_tests;
