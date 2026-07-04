@@ -4080,6 +4080,7 @@ dependencies = [
  "concurrent-queue",
  "flate2",
  "foundation_arrow",
+ "foundation_core",
  "foundation_errstacks",
  "foundation_http",
  "foundation_netio",

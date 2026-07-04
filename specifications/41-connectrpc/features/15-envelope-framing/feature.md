@@ -1,7 +1,7 @@
 ---
 feature: "Envelope framing + gRPC timeout codec (D05 shared layer)"
 description: "5-byte envelope encode/decode (zero-copy Bytes), EnvelopeReader/Writer over IncrementalDecoder, grpc-timeout"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["04-incremental-decoder", "13-codec-system", "14-compression-buffers"]

@@ -12,7 +12,13 @@
 pub mod codec;
 pub mod compression;
 pub mod context;
+pub mod envelope;
 pub mod error;
+
+pub use envelope::{
+    decode_grpc_timeout, encode_grpc_timeout, Envelope, EnvelopeError, EnvelopeReader,
+    EnvelopeWriter,
+};
 
 pub use context::{
     CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec, StreamType,
