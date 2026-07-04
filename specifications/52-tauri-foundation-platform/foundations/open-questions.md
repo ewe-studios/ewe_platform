@@ -100,141 +100,69 @@ foundation crates, and provides the native-side session impl.
 
 ### 7. Native capability contract: the Rust API surface
 
-**Answer:** Capabilities are `foundation_wasm_ui` primitives, not Basecamp-style
-HTML-injected bridge components. Rendering is owned by the runtime. Capabilities
-are declared in Rust, registered with the platform, and invoked through the
-session backbone.
-
-**Open design questions:**
-- What does a capability declaration look like in Rust? `#[platform_capability]`
-  proc macro on a function? A `Capability` trait? A registry builder pattern?
-- How are permissions declared and enforced?
-- Wire format is clear (capability name, action, typed payload, route/session
-  scope, stale-page guard) — the Rust API for declaring and registering them
-  is what needs design.
-- How do capability results re-enter `foundation_wasm_ui`? (Event, signal,
-  DomOp, command response, resource update?)
-- Testing: we have `foundation_testbed` as precedent, and Tauri's Android/web
-  test coverage. iOS strategy needs definition.
+**Resolved.** See `decisions/18-native-capability-contract.md`.
+`Capability` trait + `#[platform_capability]` proc macro + registry builder.
+Same three-API pattern as route handlers. Native bridges (Swift/Kotlin) for
+where Tauri falls short — same trait, platform-specific impl. Wire format
+in `foundation_ui_traits`: `CapabilityRequest`/`CapabilityResponse` with
+`PageIdentity` scoping. All capability responses re-enter the rendering loop
+through the session backbone.
 
 ### 8. Remote UI security
 
-**Answer:** We define permissions and privileges explicitly. Local compiled
-policy is the final authority. Server policy can request capabilities but
-cannot grant new ones that local policy denies.
-
-**Important architectural note:** Tauri's capability/permission model is
-primarily build-time (configured in `tauri.conf.json`). If we want per-route,
-per-session capability decisions modifiable at runtime (e.g., server-suggested
-policy adjustments), we are building a capability mediation layer *on top of*
-Tauri's model, not just wrapping it. This should be explicit in the design.
-
-**What's needed:**
-- How does the platform layer runtime capability decisions on top of Tauri's
-  build-time model?
-- What surface does the platform expose for defining capabilities and their
-  permission boundaries?
-- How are tokens stored and scoped? Can remote UI load third-party scripts?
+**Resolved.** See `decisions/19-remote-ui-security-red-team.md`.
+Six defense layers (transport, profile sandboxing, capability gating, data
+isolation, navigation security, runtime integrity). 8 red-team attacks
+enumerated with mitigations. Server-instructed configuration model: server
+can request/reduce privileges, never grant new ones. Local compiled policy
+is the final authority. The platform is an explicit capability mediation layer
+on top of Tauri's build-time security, not a Tauri wrapper.
 
 ### 9. Testing strategy
 
-**Answer:** Follow the precedent: `foundation_testbed`, `foundation_wasm`,
-and `foundation_wasm_ui` already make browser/WebView testing work via test
-macros. We integrate deeply with Tauri's test infrastructure and extend the
-same pattern into `foundation_testbed` or `foundation_platform` — making a
-mobile app or web page testable as simply as a test function with a macro
-on top, matching the existing browser test experience.
-
-**What's needed:** Design the platform test harness once implementation
-surface is clearer. This is not blocking architecture decisions.
+**Resolved.** See `decisions/20-testing-strategy.md`.
+`#[platform_test]` proc macro with 5 targets: in-process Tauri WebView
+(fast, unit-test-like), Chromium via CDP (full rendering), Android emulator
+via ADB, iOS simulator via simctl, Firefox/BiDi (future). Follows
+`foundation_browser`'s Harness pattern: deterministic setup/teardown,
+panic-safe, screenshot on failure. `PlatformTestSession` API for route
+inspection, capability mocking, cache inspection, event capture, lifecycle
+simulation. CI: in-process on every commit, browser on PR, mobile on merge.
 
 ### 10. Communication lanes: all v1, shell owns it
 
-**Answer:** We build all communication lanes and align with Tauri. Every app
-ships with the shell regardless of deployment model (shell + compiled app code
-as static lib, shell + WASM, or shell that loads a remote app). The shell owns
-communication — between WebView and native APIs, between the app and remote
-servers, between IPC peers — via Tauri's primitives and whatever custom code
-we write.
+**Resolved.** See `decisions/04-transport-lanes.md` and API surface docs
+(decisions 09-13). All 7 transport lanes are v1. Every app ships with the
+shell. The shell owns communication regardless of deployment model.
 
-**Resolved.** No further design discussion needed. Implementation will follow
-the lane taxonomy already defined in `platform-synthesis.md`.
-
-## Deferred items: v1 or v2?
-
-These were listed as deferred but challenged in discussion. Each needs a
-decision on whether it's v1, v2, or explicitly out of scope.
+## Deferred items: resolved
 
 ### UniFFI / direct native wrapper lane
 
-Originally deferred ("not a v1 requirement"). Challenged: "why not support it?"
-
-UniFFI requires generating Swift/Kotlin bindings, maintaining UDL files, and
-testing against two mobile platforms. It's real engineering, not just a feature
-flag. It's valuable (zero-copy Arrow across Rust↔Native in same process), but
-it's a separate concern from the core platform APIs.
-
-**Options:**
-- **v1:** We build UniFFI integration into the platform from the start.
-- **Tier 2:** Supported, documented, but not blocking v1. The platform's Rust
-  API surface works the same whether the backend is a UniFFI-wrapped library
-  or WASM in the native shell.
-
-**Needs decision.**
+**Resolved.** See `decisions/07-native-integration-model.md` and
+`decisions/18-native-capability-contract.md`. Native bridges are supported
+as a capability implementation option when Tauri plugins are insufficient.
+UniFFI is the recommended path for iOS native bindings; JNI for Android.
+Not deferred — it's part of the native integration model. The platform's
+Rust API surface is the same regardless of whether the backend is a
+UniFFI-wrapped library, WASM in the shell, or a Tauri plugin.
 
 ### Multi-WebView native-stack simulation
 
-Originally deferred. Challenged: "doesn't Basecamp already do this? Does Tauri
-make it impossible?"
-
-Basecamp does it by moving a shared `WKWebView` between view controllers and
-using screenshots for inactive screens. Tauri doesn't make it impossible, but
-it doesn't provide it out of the box — Tauri's model is one WebView per window
-(or per child webview). Multi-WebView stack simulation requires managing
-WebView lifecycle, screenshot caching, and navigation state ourselves.
-
-It's non-trivial but important for native-feeling navigation. For simple
-single-screen apps it's unnecessary. For production apps, you want it.
-
-**Options:**
-- **v1:** We design the session backbone to support multiple WebView contexts
-  from the start, even if v1 ships with single-WebView default.
-- **v2:** Single WebView for v1, multi-WebView stack simulation when needed.
-
-**Needs decision.**
+**Resolved.** See `decisions/21-multi-webview-stack.md`. This is v1. The
+session backbone is designed for multiple WebView contexts from the start.
+Single-WebView is the default. The stack manager provides: screenshot-swap
+for instant perceived responsiveness, WebView pool for reuse, background
+preloading, stale content detection, and native back-gesture integration.
+Inspired by Basecamp's shared-WebView + screenshot pattern but extended
+for Tauri's multi-WebView capabilities.
 
 ### Mobile background sync services
 
-Originally deferred ("platform-constrained, focus on foreground + active-app
-work first"). Challenged: "does Tauri not make this possible?"
-
-Tauri gives us Rust async tasks. Mobile OSes (iOS especially) aggressively
-kill background work. Tauri v2 has some plugin support for platform-specific
-background APIs (BGTaskScheduler on iOS, WorkManager on Android), but it's not
-a first-class primitive. We can build it, but it's platform-specific work that
-requires per-OS testing.
-
-**Options:**
-- **v1:** We design the sync/cache layer to be background-aware from the start.
-- **v2:** Foreground sync + active-app work for v1. Background sync when
-  needed, using Tauri's plugin surface.
-
-**Needs decision.**
-
-## Summary
-
-| # | Question | Status |
-|---|----------|--------|
-| 1 | App mode boundaries | Design doc needed: mode-by-mode analysis to find common abstractions |
-| 2 | Route policy API | Design doc needed: interception + dispatch trait surface |
-| 3 | WebView profiles | Decision doc needed: options with trade-offs |
-| 4 | Custom protocol adapter | Design doc needed: Tauri transport adapter surface |
-| 5 | Bootstrap / packaging | Design needed: entry point annotations, Tauri packaging alignment |
-| 6 | Crate boundaries | Decision needed: where shared session types live |
-| 7 | Capability contract | Design needed: Rust API for declaring/registering capabilities |
-| 8 | Remote UI security | Design needed: capability mediation layer on top of Tauri's model |
-| 9 | Testing | Follow precedent; design once implementation surface is clearer |
-| 10 | Communication lanes | **Resolved:** all v1, shell owns communication |
-| 11a | UniFFI | **Needs decision:** v1, tier 2, or out of scope? |
-| 11b | Multi-WebView stacks | **Needs decision:** design for it in v1, or defer to v2? |
-| 11c | Background sync | **Needs decision:** background-aware design in v1, or defer to v2? |
+**Resolved.** See `decisions/22-background-sync.md`. Three-tier design: Tier 1
+(foreground sync, v1, trivial), Tier 2 (background-aware: periodic fetch,
+push-triggered refresh, deferred downloads, v1 with platform caveats),
+Tier 3 (full background services, v2, Android foreground service only).
+Offline mutation queue with order-preserving idempotent replay. Same
+`#[platform_worker]` code runs across all tiers with different execution
+constraints.
