@@ -1,7 +1,7 @@
 ---
 feature: "ErrorWriter + bundled google.rpc.Status/Any (D03/D05)"
 description: "Protocol-aware error responses from middleware; Status generated from proto, Any reused from buffa-types"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["13-codec-system", "15-envelope-framing"]

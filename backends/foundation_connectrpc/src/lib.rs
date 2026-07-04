@@ -14,7 +14,10 @@ pub mod compression;
 pub mod context;
 pub mod envelope;
 pub mod error;
+pub mod error_writer;
 pub mod interceptor;
+
+pub use error_writer::ErrorWriter;
 pub mod protocol;
 pub mod transport;
 
