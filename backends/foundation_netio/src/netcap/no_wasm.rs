@@ -91,6 +91,47 @@ impl core::fmt::Debug for RawStream {
     }
 }
 
+/// `AsRawFd`/`AsFd` reach through the `BufferedReader<BufferedWriter<…>>` wrapper
+/// to the underlying socket's file descriptor, so the ConnectRPC layer (above
+/// `netio`) can register a live `RawStream` with the `foundation_nativeapis`
+/// reactor and obtain a `RegisteredFd: EventReadiness` to park on (Decision 12
+/// §12). TLS variants delegate to the fd of the wrapped TCP socket — readiness
+/// is a socket property, not a TLS-layer one. Unix-only (native-socket); wasm
+/// parks via the browser instead.
+#[cfg(unix)]
+impl std::os::unix::io::AsRawFd for RawStream {
+    fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
+        match self {
+            RawStream::AsPlain(inner, _) => inner.get_core_ref().as_raw_fd(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            RawStream::AsServerTls(inner, _) => inner.get_core_ref().as_raw_fd(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            RawStream::AsClientTls(inner, _) => inner.get_core_ref().as_raw_fd(),
+        }
+    }
+}
+
+#[cfg(unix)]
+impl std::os::unix::io::AsFd for RawStream {
+    fn as_fd(&self) -> std::os::unix::io::BorrowedFd<'_> {
+        // SAFETY: the fd is owned by the wrapped socket and stays open for the
+        // borrow's lifetime; `BorrowedFd` does not close it.
+        unsafe {
+            std::os::unix::io::BorrowedFd::borrow_raw(
+                <Self as std::os::unix::io::AsRawFd>::as_raw_fd(self),
+            )
+        }
+    }
+}
+
 // -- Basic constructors
 
 impl RawStream {

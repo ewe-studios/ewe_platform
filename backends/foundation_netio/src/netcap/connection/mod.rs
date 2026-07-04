@@ -732,6 +732,40 @@ impl From<unix_net::UnixStream> for Connection {
     }
 }
 
+/// `AsRawFd`/`AsFd` expose the connection's underlying socket file descriptor so
+/// it can be registered with the `foundation_nativeapis` reactor from above
+/// `netio` (Decision 12 §12 of spec 41-connectrpc). Readiness is a property of
+/// the socket, not the TLS layer, so TLS connections delegate to the fd of the
+/// TCP socket the TLS session wraps. Native-socket only (Unix); wasm has no fd.
+#[cfg(unix)]
+impl std::os::unix::io::AsRawFd for Connection {
+    fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
+        match self {
+            Self::Tcp(stream) => stream.as_raw_fd(),
+            Self::Unix(stream) => stream.as_raw_fd(),
+            #[cfg(any(
+                feature = "ssl-rustls",
+                feature = "ssl-openssl",
+                feature = "ssl-native-tls"
+            ))]
+            Self::Tls(stream) => stream.as_raw_fd(),
+        }
+    }
+}
+
+#[cfg(unix)]
+impl std::os::unix::io::AsFd for Connection {
+    fn as_fd(&self) -> std::os::unix::io::BorrowedFd<'_> {
+        // SAFETY: the fd is owned by `self` and stays open for the borrow's
+        // lifetime; `BorrowedFd` does not close it.
+        unsafe {
+            std::os::unix::io::BorrowedFd::borrow_raw(
+                <Self as std::os::unix::io::AsRawFd>::as_raw_fd(self),
+            )
+        }
+    }
+}
+
 #[cfg(feature = "ssl-rustls")]
 impl From<crate::netcap::ssl::rustls::RustTlsClientStream> for Connection {
     fn from(s: crate::netcap::ssl::rustls::RustTlsClientStream) -> Self {

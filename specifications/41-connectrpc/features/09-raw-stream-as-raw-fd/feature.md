@@ -1,7 +1,7 @@
 ---
 feature: "AsRawFd on netcap RawStream/Connection (D12 §12)"
 description: "Reactor prerequisite: the raw fd reachable from above netio for RegisteredFd parking"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: []

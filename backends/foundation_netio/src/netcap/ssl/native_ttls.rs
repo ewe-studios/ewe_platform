@@ -21,6 +21,31 @@ pub use native_tls::{Identity, TlsConnector, TlsStream};
 #[derive(Clone)]
 pub struct NativeTlsStream(Arc<Mutex<native_tls::TlsStream<Connection>>>);
 
+/// Expose the fd of the TCP socket the TLS session wraps so the connection can
+/// be registered with the reactor (Decision 12 §12). Readiness lives on the
+/// socket, not the TLS layer. Unix-only (native-socket).
+#[cfg(unix)]
+impl std::os::unix::io::AsRawFd for NativeTlsStream {
+    fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
+        // Reading the fd only touches the socket handle; recover from a poisoned
+        // lock rather than panic (the fd is still valid).
+        let guard = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        guard.get_ref().as_raw_fd()
+    }
+}
+
+#[cfg(unix)]
+impl std::os::unix::io::AsFd for NativeTlsStream {
+    fn as_fd(&self) -> std::os::unix::io::BorrowedFd<'_> {
+        // SAFETY: the fd is owned by the wrapped socket and outlives the borrow.
+        unsafe {
+            std::os::unix::io::BorrowedFd::borrow_raw(
+                <Self as std::os::unix::io::AsRawFd>::as_raw_fd(self),
+            )
+        }
+    }
+}
+
 impl NativeTlsStream {
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         let guard = self.0.lock().map_err(|e| {

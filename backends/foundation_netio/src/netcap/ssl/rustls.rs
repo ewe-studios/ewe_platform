@@ -85,6 +85,31 @@ pub fn default_client_config() -> Arc<ClientConfig> {
 #[derive(Debug)]
 pub struct RustlsStream<T>(Arc<Mutex<rustls::StreamOwned<T, Connection>>>);
 
+/// Expose the fd of the TCP socket the TLS session wraps so the connection can
+/// be registered with the reactor (Decision 12 §12). Readiness lives on the
+/// socket, not the TLS layer. Unix-only (native-socket).
+#[cfg(unix)]
+impl<T> std::os::unix::io::AsRawFd for RustlsStream<T> {
+    fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
+        // Reading the fd only touches the socket handle; recover from a poisoned
+        // lock rather than panic (the fd is still valid).
+        let guard = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        guard.sock.as_raw_fd()
+    }
+}
+
+#[cfg(unix)]
+impl<T> std::os::unix::io::AsFd for RustlsStream<T> {
+    fn as_fd(&self) -> std::os::unix::io::BorrowedFd<'_> {
+        // SAFETY: the fd is owned by the wrapped socket and outlives the borrow.
+        unsafe {
+            std::os::unix::io::BorrowedFd::borrow_raw(
+                <Self as std::os::unix::io::AsRawFd>::as_raw_fd(self),
+            )
+        }
+    }
+}
+
 impl<T> RustlsStream<T> {
     pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
         let guard = self
