@@ -14,6 +14,13 @@ pub mod compression;
 pub mod context;
 pub mod envelope;
 pub mod error;
+pub mod transport;
+
+pub use transport::{
+    check_compatible, requirements, CallRequirements, ClientConn, ConnReceiver, ConnSender,
+    Frame, HandlerConn, MessageSink, MessageSource, ProtocolKind, Transport, TransportCapabilities,
+    TransportError,
+};
 
 pub use envelope::{
     decode_grpc_timeout, encode_grpc_timeout, Envelope, EnvelopeError, EnvelopeReader,

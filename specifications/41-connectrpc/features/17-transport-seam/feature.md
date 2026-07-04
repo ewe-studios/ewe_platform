@@ -1,7 +1,7 @@
 ---
 feature: "Transport seam: Frame, split conns, facades, capability matching (D11)"
 description: "HandlerConn/ClientConn + halves, MessageSink/Source, Frame pipes, Transport trait, TransportError, check_compatible"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["02-pipe-primitive", "13-codec-system", "16-ctx-request-context"]
