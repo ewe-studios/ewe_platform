@@ -1,7 +1,7 @@
 ---
 feature: "Error model: Code, ConnectError, ErrorTrace, details (D03)"
 description: "The full errstacks-based error model: Code enum, ConnectError context, ErrorDetail, wire shapes"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: []

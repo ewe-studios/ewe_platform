@@ -1,0 +1,27 @@
+[package]
+name = "foundation_connectrpc"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "ConnectRPC for the EWE platform — Connect/gRPC/gRPC-Web on foundation crates"
+keywords = ["connectrpc", "grpc", "rpc", "foundation"]
+
+[dependencies]
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+base64 = "0.22"
+
+[dev-dependencies]
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
+serde_json = { workspace = true }
+
+[features]
+default = []
+# Protobuf-typed error details (ErrorDetail::from_message / decode). Deferred to
+# the codec system (spec-41 F13/F26) — enabling it wires buffa + CodecError.
+proto = []

@@ -1,0 +1,17 @@
+//! `foundation_connectrpc` — ConnectRPC for the EWE platform.
+//!
+//! An independent Rust port of the Connect protocol (connect-go is the design
+//! reference), built on the platform's foundation crates: `foundation_errstacks`
+//! for the error model, `foundation_netio` for HTTP/wire types, and valtron for
+//! execution.
+//!
+//! This crate is being built feature-by-feature (see `specifications/41-connectrpc`).
+//! The first landed piece is the protocol-agnostic **error model** (Decision 03):
+//! see [`error`].
+
+pub mod error;
+
+pub use error::{
+    code_of, wrap_if_context, wrap_if_h2c, wrap_if_rst, wrap_if_uncoded, Code, ConnectError,
+    ConnectResult, EndStreamResponse, ErrorDetail, WireError, WireErrorDetail, ERRSTACKS_TYPE_URL,
+};
