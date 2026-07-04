@@ -453,6 +453,191 @@ Before implementation, decisions should be written around these seams:
 9. mobile lifecycle constraints;
 10. testing strategy.
 
+## Design principles for `foundation_platform`
+
+These principles are about how the three foundations (`foundation_wasm_ui`,
+Tauri, Hotwire Native lessons) bind together. They are platform design
+decisions, not facts about what any single foundation already provides.
+
+### Central backbone: the platform session as the coordination spine
+
+Hotwire Native's Session pattern (verified against iOS `Session.swift` and
+Android `Session.kt`) is an inspiration, not gospel. The key idea is a central
+coordination backbone that spans both sides of the platform — the WebView/web
+side and the native/Rust side — and everything plugs into it.
+
+This backbone should be designed into both crates, not bolted on later:
+
+**Tauri already provides the raw primitives, not the coordination model.**
+Verified against the Tauri source (`manager/mod.rs`, `state.rs`, `app.rs`):
+
+- `AppManager` — the central "god struct" that owns `WindowManager`,
+  `WebviewManager`, `PluginStore`, `StateManager`, `Listeners`, `ResourceTable`,
+  `Config`. It handles window/webview lifecycle, event emit/listen, asset
+  serving + CSP, plugin init, state management, and IPC dispatch.
+- `StateManager` — a type-indexed global container (`HashMap<TypeId, Pin<Box<dyn
+  Any>>>`). Any `Send + Sync + 'static` type can be inserted once via
+  `manage<T>()`. Commands access it as `State<T>`. It's a dependency injection
+  container, not a session coordinator — no lifecycle, no route scoping, no
+  message routing.
+- `Listeners` / event system — typed pub-sub with target scoping (`EventTarget::Any`,
+  `Window { label }`, `Webview { label }`). Global and per-window/webview
+  listeners. The raw event bus, nothing more.
+
+What Tauri does NOT provide: route/navigation policy, session lifecycle
+management, capability registry with permission scoping, bridge component
+message routing, cache/offline policy, page/screen identity tracking. These are
+what `foundation_platform` builds on top of Tauri's raw primitives.
+
+**Web side (`foundation_wasm_ui`).** The existing JS runtime already has a
+dispatch loop, protocol framing, event routing, and DOM operation application.
+The platform session extends this — it becomes the central bus that routes
+navigation intents, bridge messages, capability requests, cache lookups, and
+rendering updates. `foundation_wasm_ui` provides the web-side half of the
+backbone, making its existing capabilities (DomOps, morphing, signals,
+templates, event runtime) available through a single coordination surface.
+
+**Native side (`foundation_platform`).** The platform crate provides the
+native-side half — route policy, capability registry, custom protocol serving,
+cache integration, native stack navigation, and the bridge to Swift/Kotlin
+when native code is needed. It plugs into Tauri's `AppManager` (state, events,
+IPC, custom protocols) but wraps them in the session coordination model that
+Tauri itself does not provide.
+
+**Both sides connect through the session.** The web-side session and
+native-side session are peers in the same coordination graph. A user action
+on the web side (link click, form submit, bridge component call) flows into
+the session backbone. The session decides: is this a local WASM response, a
+cached replay, an IPC call to the native shell, a remote server fetch, or a
+native stack push? The decision flows back to the web side through the
+rendering lane.
+
+**Subsystems plug in as peers.** Rendering, networking, caching, native
+capabilities, and custom protocols don't talk directly to each other. They
+register with the session backbone and communicate through it. A cache hit
+doesn't bypass the session to inject HTML into the DOM — it tells the session
+"I have cached content for this route," and the session routes it through the
+rendering lane. A native capability result doesn't call back into JS directly —
+it returns to the session, which delivers it scoped to the correct route/page.
+
+**Enhancing what's already there.** This doesn't replace any of
+`foundation_wasm_ui`'s capabilities. It wraps them in a coordination model
+that makes them composable with the platform services `foundation_platform`
+provides. The existing protocol layer, rendering modes, morphing engine, event
+runtime, and server-driven hooks remain exactly as they are — they just gain a
+central bus that other things can plug into for their various needs.
+
+Basecamp's Session/Navigator split is a useful reference point, but our design
+is our own: a Rust-and-WASM-native backbone, not a Swift/Kotlin shell around
+a Turbo web app. The web side runs in `foundation_wasm_ui`. The native side
+runs in `foundation_platform`. The session is the seam between them.
+
+### State ownership is simple and already decided
+
+`foundation_wasm_ui` has a clean model that `foundation_platform` should
+preserve, not complicate:
+
+- **The server owns all state.** "Server" here means wherever the application
+  logic runs: it could be WASM in the WebView, Rust in the native shell, an IPC
+  process on the device, a local embedded server, or a remote HTTP server.
+  Whatever it is, it owns state. The platform does not decide where state
+  lives — the application does.
+- **Communication model is the user's choice.** `foundation_wasm_ui` only
+  dictates how changes are streamed to the frontend for rendering (DomOps,
+  HTML fragments, Arrow/JSON payloads, morph patches). Users are free to
+  decide how and what they wish to communicate: RPC, WebSocket, HTTP, IPC,
+  SSE, or whatever fits their application. The platform provides the tooling,
+  constructs, and capabilities to make each option pain-free — if users want
+  IPC, the platform builds a resilient and efficient IPC process; if they
+  want WebSocket, the platform makes that straightforward. The platform does
+  not decide the communication model; it ensures each one works well.
+- **The platform's job** is to provide the transports and caching. It does not
+  own the state machine, conflict resolution, or sync protocol — those are the
+  backend's domain. Nothing stops users from bringing whatever they want:
+  state machines, sync protocols, CRDTs, event sourcing — they're additional
+  tools layered on top of the platform. A native integrated system for state
+  and sync may come later, but for now the focus is on getting the core
+  platform correct. The backend (WASM, Rust, server) decides how state,
+  storage, and sync work — whether via libsql/Turso, SQLite, mmap, or
+  something else.
+
+### Offline: local WASM execution is the foundation
+
+Offline support is more than caching rendered pages. Because `foundation_wasm_ui`
+compiles to WASM, it can run on-device in many places:
+
+- **WebView** — WASM bundled with the app, runs locally in the WebView.
+- **Native shell** — WASM loaded by the native shell, runs in-process with
+  zero-copy Arrow access.
+- **IPC process** — WASM in a local Rust process on the device.
+- **Mobile backend service** — WASM running as an on-device background service.
+
+In all of these, the WASM is local. There is no network round-trip. The WASM
+generates responses, renders pages, handles state, processes actions — entirely
+on-device. Offline is not a fallback; it's the default when WASM runs locally.
+This covers the full application without any additional effort beyond deploying
+the WASM to the device.
+
+For remote backends (WASM or server running elsewhere), the platform adds
+rendered page caching:
+
+1. The platform caches rendered pages in a local SQLite database, indexed by
+   route.
+2. When offline, the platform serves the cached page instantly (fast perceived
+   response).
+3. Once connectivity returns, the backend does whatever it needs: full replace
+   of the page, or incremental diffing/updating of elements.
+
+The platform should provide simple, fast APIs to store and retrieve cached
+rendered content indexed by route. The backend owns the update strategy. The
+platform just makes both paths — full replace and surgical update — possible.
+
+### Navigation: study then decide
+
+Navigation in a hybrid web/native app is worth getting right. Rather than
+leaving it as an open question or pre-deciding an abstraction, the approach is:
+
+1. Study how Basecamp Hotwire Native maps URLs to native navigation stacks.
+2. Survey Tauri-specific approaches (window management, WebView history, custom
+   protocol routing, event-driven navigation).
+3. Create a decision document with the options and trade-offs.
+4. Decide.
+
+Until then, the platform defaults to single-WebView browser-style navigation
+and adds structured route metadata incrementally.
+
+### Protocols over transports: already decided
+
+The protocol layer (custom binary, columnar v1, JSON, Arrow IPC, HTML
+fragments) is defined by `foundation_wasm_ui`. `foundation_platform` does not
+re-litigate this. It adds the **transports** that matter for Tauri and mobile:
+
+- Tauri command IPC (control lane);
+- Tauri events (notification lane);
+- Tauri custom protocol (resource lane);
+- native shell IPC (zero-copy data lane, same process);
+- local embedded server in the mobile app (WebSocket/HTTP lane);
+- SSE/WebSocket to remote servers;
+- browser fetch (standard web resource loading).
+
+Protocol decisions stay in `foundation_wasm_ui`. Transport decisions are the
+platform's job.
+
+### Background workers: provide options, don't pick one
+
+Native background workers can be implemented several ways:
+
+- Pure Rust/Tauri async tasks for foreground and active-app work.
+- Tauri plugins for wrapped platform APIs.
+- UniFFI-style direct native wrappers for high-performance or platform-specific
+  background services.
+
+`foundation_platform` should provide APIs that make each option possible, show
+how each works and what it's best for, and let application developers choose the
+right one for their context. Nothing should be an either/or. Each has a
+place — the platform documents the trade-offs and provides the integration
+surface.
+
 ## Summary
 
 The solid architecture is a layered hybrid:

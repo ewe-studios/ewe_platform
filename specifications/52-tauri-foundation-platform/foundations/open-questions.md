@@ -2,237 +2,239 @@
 
 ## Purpose
 
-This document lists architectural questions that should be answered before
-`foundation_platform` implementation decisions are finalized. These questions are
-not blockers to every small prototype, but they are blockers to a solid spec.
+This document tracks architectural questions for `foundation_platform`.
+Resolved answers with full rationale live in the `decisions/` directory.
+The foundation documents (`platform-synthesis.md`, `foundation-wasm-ui.md`)
+provide synthesis and capability context, not decision rationale.
 
-## 1. What is the first supported application mode?
+Current decision docs:
+- `decisions/01-platform-architecture.md` — create foundation_platform, Tauri host
+- `decisions/02-route-policy-model.md` — RouteHandler trait + three composable APIs
+- `decisions/03-session-backbone.md` — central coordinator spanning both crates
+- `decisions/04-transport-lanes.md` — protocols vs transports, all lanes v1
+- `decisions/05-offline-model.md` — two-tier: local WASM + rendered page caching
+- `decisions/06-state-and-communication-model.md` — server owns state, user chooses comms
+- `decisions/07-native-integration-model.md` — hybrid webview+native, native shell+WASM
+- `decisions/08-arrow-and-data-model.md` — Arrow for data, not UI; zero-copy directions
 
-Possible starting modes:
+## Status: answers given, design work needed
 
-1. bundled local `foundation_wasm_ui` app;
-2. server-rendered HTML app in Tauri;
-3. hybrid local shell + remote content;
-4. offline-first cached app;
-5. server-driven DomOps stream.
+These questions have direction from discussion but need design documents
+before they become implementation decisions.
 
-Recommended decision: choose one primary v1 mode and treat the others as explicit
-extensions. The architecture can support all, but implementation should not try
-to ship all at once.
+### 1. Application mode API surfaces
 
-## 2. What is the route policy shape?
+**Direction:** Regardless of whether the application logic is WASM-driven or
+compiled as a native static library, the platform always provides a Rust shell.
+The shell is universal. Each API surface gets its own `main()` entrypoint —
+just like `foundation_wasm_ui` uses deployment target macros to define where
+code runs. The shell supplies whatever that function needs to operate in that
+surface.
 
-We need to define the route policy model:
+**What's needed:** A decision doc for each API surface, exploring in depth:
+- What does the shell provide for this entrypoint? (transports, session handle,
+  capabilities, cache, IPC channel, protocol encoders)
+- How does the user's `main()` wire up? What does the platform invoke and when?
+- How does this surface work independently?
+- How does it compose with other surfaces (e.g., local WASM + remote fallback)?
+- What transports carry the protocol payloads?
+- What does caching/offline look like?
 
-- route matching syntax;
-- source policy;
-- presentation policy;
-- render mode policy;
-- offline/cache policy;
-- capability/security policy;
-- auth policy;
-- whether policy can be server-provided;
-- how server-provided policy is constrained by local app policy.
+**API surfaces to design (each gets its own decision doc):**
+1. **Bundled WASM in WebView** — WASM compiled into the app, runs in WebView;
+   talks to native shell over IPC. The "offline-first" surface.
+2. **Native static library** — User compiles Rust as `.a`/`.so`; shell links
+   it and calls directly over FFI. Zero-copy, same process. The "maximum
+   performance" surface.
+3. **Shell + WASM (native-side WASM runtime)** — User compiles to WASM; shell
+   embeds a WASM runtime. Same-process zero-copy Arrow. The "best of both"
+   surface.
+4. **Remote server-driven** — User's WASM runs on a remote server; shell
+   streams responses over SSE/WS/fetch. The "app-store bypass" surface.
+5. **Cached/offline replay** — Shell serves from local SQLite cache when
+   connectivity is absent; reconnects and merges when available.
 
-Key question:
+**Goal:** Each surface designed to work well independently, and to compose with
+others. The shell provides the common substrate. The entrypoints define what
+the user wires up for each deployment target.
 
-> Is route policy a Rust type only, a serializable config document, or both?
+### 2. Route policy: what does the platform provide vs what does the user implement?
 
-## 3. What navigation semantics do we want in Tauri?
+**Resolved.** See `decisions/02-route-policy-model.md`.
 
-Hotwire Native maps URLs to native stacks. Tauri does not provide this out of the
-box.
+### 3. WebView profiles: options needed
 
-Questions:
+**Resolved.** See `decisions/14-webview-profiles.md`.
+Five profiles (`app`, `trustedRemote`, `untrustedRemote`, `auth`, `devtools`)
+with per-service access gates for all platform services (`foundation_db`,
+`foundation_auth`, `foundation_nativeapis`, `foundation_http`, etc.) and
+bidirectional Tauri integration. Runtime mediation layer on top of Tauri's
+build-time security model.
 
-- Do we model push/pop inside one WebView history?
-- Do we model push/pop in Rust and drive WebView loads?
-- Do modals become Tauri windows, in-DOM overlays, or platform-specific sheets?
-- Do desktop and mobile share one navigation abstraction?
-- Do we need screenshots/snapshots for native-feeling transitions?
-- Do we preserve one WebView or create multiple WebViews?
+### 4. Custom protocol transport adapter
 
-## 4. What is the WebView profile model?
+**Resolved.** See `decisions/15-custom-protocol-model.md`.
+`ewe://` scheme with sub-schemes (`ewe+ipc://`, `ewe+ws://`, `ewe+http://`).
+URI structure maps routes through session backbone. Protocol selection per
+response (columnar, Arrow IPC, JSON, HTML). Binary streaming via chunked
+transfer and WebSocket upgrade. Full Tauri `UriSchemeProtocol` integration.
 
-Different content needs different trust levels.
+### 5. Bootstrap, packaging, and entry points
 
-Questions:
+**Resolved.** See `decisions/16-entrypoint-model.md`.
+Unified mode taxonomy extends `#[wasm_bin]`/`#[wasm_worker]`/`#[wasm_service]`
+with `#[platform_bin]`/`#[platform_worker]`/`#[platform_service]`. Web modes
+map to platform behavior via deep Tauri integration (service worker → in-process
+HTTP server, web worker → background thread). `PlatformBundleGenerator` discovers
+all six modes and compiles for the target platform.
 
-- What profiles exist? `app`, `remoteTrusted`, `remoteUntrusted`, `auth`,
-  `external`, `dev`?
-- Which profiles can invoke native capabilities?
-- Which profiles can access local custom protocols?
-- Which profiles share cookies/storage?
-- How do we configure CSP/origin behavior?
-- How do we isolate cached remote HTML from privileged local app UI?
+### 6. Crate boundaries
 
-## 5. What is the custom protocol model?
+**Resolved.** See `decisions/17-crate-boundaries.md`.
+Shared session types (`SessionId`, `PageIdentity`, `RouteDecision`,
+`NavigationIntent`, `CapabilityRequest`/`Response`, `Profile`, `CachePolicy`,
+etc.) live in `foundation_ui_traits` — the existing dependency-free shared
+boundary layer. `foundation_wasm_ui` imports them for the web-side session.
+`foundation_platform` ties everything together, depends on Tauri + all
+foundation crates, and provides the native-side session impl.
 
-Questions:
+### 7. Native capability contract: the Rust API surface
 
-- Which protocol names/schemes do we use?
-- Do we serve over custom scheme or HTTPS-like scheme?
-- How are MIME types resolved?
-- How are cache headers represented?
-- How do we prevent arbitrary filesystem exposure?
-- How do we map routes to resources?
-- How do we stream large binary resources?
-- How do we authenticate resource requests without exposing secrets?
+**Answer:** Capabilities are `foundation_wasm_ui` primitives, not Basecamp-style
+HTML-injected bridge components. Rendering is owned by the runtime. Capabilities
+are declared in Rust, registered with the platform, and invoked through the
+session backbone.
 
-## 6. How does `foundation_wasm_ui` bootstrap inside Tauri?
+**Open design questions:**
+- What does a capability declaration look like in Rust? `#[platform_capability]`
+  proc macro on a function? A `Capability` trait? A registry builder pattern?
+- How are permissions declared and enforced?
+- Wire format is clear (capability name, action, typed payload, route/session
+  scope, stale-page guard) — the Rust API for declaring and registering them
+  is what needs design.
+- How do capability results re-enter `foundation_wasm_ui`? (Event, signal,
+  DomOp, command response, resource update?)
+- Testing: we have `foundation_testbed` as precedent, and Tauri's Android/web
+  test coverage. iOS strategy needs definition.
 
-Questions:
+### 8. Remote UI security
 
-- Are runtimes embedded at build time or served from app resources?
-- Is application WASM embedded, loaded from disk, or fetched/cached?
-- Who generates the boot HTML?
-- How does dev mode differ from production mode?
-- How do we version runtime JS and WASM together?
-- What integrity checks are applied to remote/cached runtime assets?
+**Answer:** We define permissions and privileges explicitly. Local compiled
+policy is the final authority. Server policy can request capabilities but
+cannot grant new ones that local policy denies.
 
-## 7. Which communication lanes are v1?
+**Important architectural note:** Tauri's capability/permission model is
+primarily build-time (configured in `tauri.conf.json`). If we want per-route,
+per-session capability decisions modifiable at runtime (e.g., server-suggested
+policy adjustments), we are building a capability mediation layer *on top of*
+Tauri's model, not just wrapping it. This should be explicit in the design.
 
-Candidate lanes:
+**What's needed:**
+- How does the platform layer runtime capability decisions on top of Tauri's
+  build-time model?
+- What surface does the platform expose for defining capabilities and their
+  permission boundaries?
+- How are tokens stored and scoped? Can remote UI load third-party scripts?
 
-- Tauri command IPC;
-- Tauri events;
-- custom protocol resources;
-- WebView fetch/SSE/WebSocket;
-- `foundation_wasm_ui` runtime protocol;
-- Rust storage/cache service;
-- future native plugin/FFI lane.
+### 9. Testing strategy
 
-Questions:
+**Answer:** Follow the precedent: `foundation_testbed`, `foundation_wasm`,
+and `foundation_wasm_ui` already make browser/WebView testing work via test
+macros. We integrate deeply with Tauri's test infrastructure and extend the
+same pattern into `foundation_testbed` or `foundation_platform` — making a
+mobile app or web page testable as simply as a test function with a macro
+on top, matching the existing browser test experience.
 
-- Which are required for v1?
-- Which are explicitly deferred?
-- What payload sizes are allowed on command IPC?
-- Which lane carries server-driven UI updates?
-- Which lane carries large Arrow/data payloads?
+**What's needed:** Design the platform test harness once implementation
+surface is clearer. This is not blocking architecture decisions.
 
-## 8. What exactly does “Arrow for both lanes” mean?
+### 10. Communication lanes: all v1, shell owns it
 
-The prior discussion expressed a desire to use Arrow broadly. We need precision.
+**Answer:** We build all communication lanes and align with Tauri. Every app
+ships with the shell regardless of deployment model (shell + compiled app code
+as static lib, shell + WASM, or shell that loads a remote app). The shell owns
+communication — between WebView and native APIs, between the app and remote
+servers, between IPC peers — via Tauri's primitives and whatever custom code
+we write.
 
-Questions:
+**Resolved.** No further design discussion needed. Implementation will follow
+the lane taxonomy already defined in `platform-synthesis.md`.
 
-- Is Arrow required for UI DOM operations, or only for data payloads?
-- Do we mean real Arrow IPC or the wasm-loop columnar v1 layout?
-- Which crates own Arrow encoding/decoding?
-- How does Arrow reach WebView JS: custom protocol, fetch, WASM memory, command
-  IPC, or another lane?
-- Is zero-copy required, or is copy-minimized binary transfer acceptable?
-- How do small payload overheads affect control messages?
+## Deferred items: v1 or v2?
 
-Recommended stance until decided: use existing `foundation_wasm_ui` protocols for
-UI operations and real Arrow IPC for structured data payloads where it is useful.
+These were listed as deferred but challenged in discussion. Each needs a
+decision on whether it's v1, v2, or explicitly out of scope.
 
-## 9. What is the offline/cache model?
+### UniFFI / direct native wrapper lane
 
-Questions:
+Originally deferred ("not a v1 requirement"). Challenged: "why not support it?"
 
-- What gets cached: HTML, DomOps, data, route policy, WASM, JS, CSS, media?
-- Is cache key route-based, URL-based, content-addressed, or hybrid?
-- What invalidates cached content?
-- How are stale states represented in UI?
-- Are offline mutations allowed for all routes or only selected routes?
-- What is the mutation queue format?
-- What conflict model do we choose: last-write-wins, server reconciliation,
-  event sourcing, CRDTs, app-defined?
-- How does auth expiration affect cached screens?
+UniFFI requires generating Swift/Kotlin bindings, maintaining UDL files, and
+testing against two mobile platforms. It's real engineering, not just a feature
+flag. It's valuable (zero-copy Arrow across Rust↔Native in same process), but
+it's a separate concern from the core platform APIs.
 
-## 10. What belongs in `foundation_platform` vs other crates?
+**Options:**
+- **v1:** We build UniFFI integration into the platform from the start.
+- **Tier 2:** Supported, documented, but not blocking v1. The platform's Rust
+  API surface works the same whether the backend is a UniFFI-wrapped library
+  or WASM in the native shell.
 
-Potential ownership boundaries:
+**Needs decision.**
 
-- `foundation_platform`: Tauri host, routes, WebView profiles, protocol serving,
-  bridge/capability registry.
-- `foundation_wasm_ui`: UI runtime and DOM operations.
-- `foundation_http`: HTTP/SSE server/client helpers.
-- `foundation_db`: database/cache primitives.
-- `foundation_arrow`: real Arrow IPC.
-- `foundation_nativeapis`: native API wrappers.
-- `foundation_packager` / build tools: packaging and asset generation.
+### Multi-WebView native-stack simulation
 
-Questions:
+Originally deferred. Challenged: "doesn't Basecamp already do this? Does Tauri
+make it impossible?"
 
-- Does `foundation_platform` depend directly on Tauri?
-- Do we create a trait abstraction so other hosts can exist later?
-- Which crate owns route policy types?
-- Which crate owns capability definitions?
-- Which crate owns offline sync abstractions?
+Basecamp does it by moving a shared `WKWebView` between view controllers and
+using screenshots for inactive screens. Tauri doesn't make it impossible, but
+it doesn't provide it out of the box — Tauri's model is one WebView per window
+(or per child webview). Multi-WebView stack simulation requires managing
+WebView lifecycle, screenshot caching, and navigation state ourselves.
 
-## 11. What native capability contract do we want?
+It's non-trivial but important for native-feeling navigation. For simple
+single-screen apps it's unnecessary. For production apps, you want it.
 
-Questions:
+**Options:**
+- **v1:** We design the session backbone to support multiple WebView contexts
+  from the start, even if v1 ships with single-WebView default.
+- **v2:** Single WebView for v1, multi-WebView stack simulation when needed.
 
-- Is the bridge component model declarative in HTML attributes, custom elements,
-  Rust APIs, or all of the above?
-- How are permissions declared?
-- How are route/session/page identities attached?
-- How are progress/cancellation represented?
-- How do native capability results re-enter `foundation_wasm_ui`: event, signal,
-  DomOp, command response, or resource update?
-- How do we test capabilities without actual devices?
+**Needs decision.**
 
-## 12. How much native mobile code do we accept?
+### Mobile background sync services
 
-Tauri hides much but not all platform detail.
+Originally deferred ("platform-constrained, focus on foreground + active-app
+work first"). Challenged: "does Tauri not make this possible?"
 
-Questions:
+Tauri gives us Rust async tasks. Mobile OSes (iOS especially) aggressively
+kill background work. Tauri v2 has some plugin support for platform-specific
+background APIs (BGTaskScheduler on iOS, WorkManager on Android), but it's not
+a first-class primitive. We can build it, but it's platform-specific work that
+requires per-OS testing.
 
-- Are platform plugins acceptable in v1?
-- Do we require Swift/Kotlin for selected capabilities?
-- Do we isolate platform-specific code behind `foundation_nativeapis`?
-- Is UniFFI part of v1, experimental, or out of scope?
-- What is the rule for background execution APIs?
+**Options:**
+- **v1:** We design the sync/cache layer to be background-aware from the start.
+- **v2:** Foreground sync + active-app work for v1. Background sync when
+  needed, using Tauri's plugin surface.
 
-## 13. How do we handle remote UI security?
-
-If the app can load server-rendered or server-driven UI, security policy becomes
-central.
-
-Questions:
-
-- Can remote HTML invoke native capabilities?
-- If yes, through what allowlist?
-- Can server-provided route policy grant privileges, or only request privileges
-  allowed by local policy?
-- How are CSP and origins configured?
-- How are injected scripts protected?
-- How are tokens stored and scoped?
-- Can remote UI load arbitrary third-party scripts?
-
-Recommended stance: remote policy can reduce or request capabilities, but local
-compiled policy must be the final authority.
-
-## 14. What is the testing strategy?
-
-Questions:
-
-- How do we test route policy without launching Tauri?
-- How do we test custom protocol responses?
-- How do we test WebView bootstrap?
-- How do we test mobile lifecycle behavior?
-- How do we test offline/cache replay deterministically?
-- Do we need browser/WebView integration tests in addition to Rust unit tests?
-- How do we test security denials and stale page identity checks?
-
-## 15. What is deferred explicitly?
-
-Likely deferrals unless requirements demand otherwise:
-
-- native SwiftUI/Compose renderer for `foundation_wasm_ui`;
-- direct pointer sharing from Rust native memory to WebView JavaScript;
-- UniFFI/native background lane;
-- CRDT conflict model;
-- multi-WebView native-stack simulation;
-- app-store remote executable-code policy;
-- full mobile background sync services.
+**Needs decision.**
 
 ## Summary
 
-The foundations point to a strong architecture, but the spec should answer these
-questions before implementation. The most important early decisions are route
-policy, WebView/security profiles, custom protocol/resource serving,
-communication lanes, and offline/cache ownership.
+| # | Question | Status |
+|---|----------|--------|
+| 1 | App mode boundaries | Design doc needed: mode-by-mode analysis to find common abstractions |
+| 2 | Route policy API | Design doc needed: interception + dispatch trait surface |
+| 3 | WebView profiles | Decision doc needed: options with trade-offs |
+| 4 | Custom protocol adapter | Design doc needed: Tauri transport adapter surface |
+| 5 | Bootstrap / packaging | Design needed: entry point annotations, Tauri packaging alignment |
+| 6 | Crate boundaries | Decision needed: where shared session types live |
+| 7 | Capability contract | Design needed: Rust API for declaring/registering capabilities |
+| 8 | Remote UI security | Design needed: capability mediation layer on top of Tauri's model |
+| 9 | Testing | Follow precedent; design once implementation surface is clearer |
+| 10 | Communication lanes | **Resolved:** all v1, shell owns communication |
+| 11a | UniFFI | **Needs decision:** v1, tier 2, or out of scope? |
+| 11b | Multi-WebView stacks | **Needs decision:** design for it in v1, or defer to v2? |
+| 11c | Background sync | **Needs decision:** background-aware design in v1, or defer to v2? |

@@ -376,8 +376,10 @@ The transport defines how those bytes move. Examples:
 
 Zero-copy depends on where memory lives and which runtime can view it. A format
 being columnar or Arrow-like does not automatically make it zero-copy across all
-boundaries. There are two distinct crossing directions, with very different
-characteristics.
+boundaries. There are two fundamental crossing directions — native↔native
+(Rust in the same process, easy) and native→WebView (cross-process, harder) —
+plus the native shell + WASM hybrid that turns the harder direction into the
+easier one.
 
 **Rust ↔ Native platform (iOS/Android/Desktop): the easy case**
 
@@ -429,8 +431,9 @@ Native Shell (compiled static library, shipped once)
         │
         │ loads and executes
         ▼
-User WASM module (same artifact that runs in the WebView)
+User WASM module (may also run in the WebView, or only on the backend)
 ```
+
 
 Because the shell is compiled as a static library, it runs in the **same
 process** as the native app. The embedded WASM runtime allocates linear memory
@@ -440,28 +443,45 @@ as a raw pointer — same process, shared memory, zero copy.
 
 This has powerful implications:
 
-- **One artifact, two runtimes.** The same WASM module that powers the WebView
-  UI also serves as the native-side data engine. No separate native compilation
-  step, no per-platform FFI binding generation. The user compiles to WASM once.
-- **Zero-copy Arrow across WASM ↔ native.** The WASM module writes Arrow
-  `RecordBatch`es into its linear memory. The native shell reads those bytes
-  directly (same process, same address space). Arrow's columnar layout IS the
-  in-memory format — no serialization, no copy, no JSON bridge.
+- **User WASM runs anywhere; runtime lives in the WebView.** The user's
+  application WASM does not need to be deployed to the WebView at all. The
+  WebView already embeds `foundation-wasm-ui`'s own WASM-based runtime
+  (signals, templates, DomOps, morphing, event handling). The user's WASM can
+  run in the native shell, in an IPC process, on a local server, or on a
+  remote server — wherever it runs, it streams responses, updates, and actions
+  to the runtime in the WebView. The runtime renders them. The user CAN also
+  deploy their WASM to the frontend if they want local execution, but they are
+  not forced to. Where the WASM runs is an architectural choice, not a platform
+  constraint.
+
+- **Zero-copy Arrow across WASM ↔ native.** When the user's WASM runs in the
+  native shell, Arrow `RecordBatch`es are written into WASM linear memory. The
+  native shell reads those bytes directly (same process, same address space).
+  Arrow's columnar layout IS the in-memory format — no serialization, no copy,
+  no JSON bridge. When the WASM runs elsewhere (IPC, server), the data
+  streams in over the appropriate transport and is delivered to the WebView
+  runtime via the platform's resource lane.
+
 - **Safe by construction.** WASM's sandbox model means the module cannot access
   arbitrary native memory, only its linear memory. The native shell controls
   what capabilities are exposed (filesystem, network, database APIs). This is
   safer than raw FFI from an opaque native library.
+
 - **App-store update advantage.** WASM modules are data, not native code. They
-  can be downloaded and hot-swapped without app-store review. The native shell
-  is versioned once and updated rarely. Most application logic changes ship as
-  WASM updates.
-- **Shell-owned update lifecycle.** The native shell can own the entire WASM
-  update process: it knows how to fetch the latest version, talk to an update
-  service or local update process, validate integrity, and hot-swap the WASM
-  module. The app code and the user never think about updates — the shell
-  handles version resolution, download, rollback on failure, and cache
-  management. Zero-friction updates: the shell just gets the latest WASM and
-  the app runs it.
+  can be downloaded and hot-swapped without app-store review. Beyond WASM, the
+  entire frontend shell — `index.html`, CSS, images, static assets — can also
+  be downloaded and hot-swapped by the shell. The app's entire presentation
+  layer can be updated on the fly without rebuilding or republishing through
+  the app store. The native shell is versioned once and updated rarely; most
+  application logic and UI changes ship as data.
+
+- **Shell-owned update lifecycle.** The native shell owns the entire update
+  process: it knows how to fetch the latest WASM modules, frontend shell
+  assets, and static resources from an update service; validates integrity;
+  hot-swaps without restart; rolls back on failure; manages the cache. The app
+  code and the user never think about updates — the shell handles version
+  resolution, download, rollback, and cache management. Zero-friction updates:
+  the shell just gets the latest artifacts and the app runs them.
 
 This means `foundation_platform` can offer users two tiers of native
 integration, both with zero-copy Arrow semantics:
@@ -482,21 +502,12 @@ WebView), the WebView runs in a **separate OS process** — zero-copy across thi
 boundary is fundamentally limited by process sandboxing. The goal is to minimize
 copies, not eliminate them at all costs.
 
-**WebView-internal (WASM ↔ JS)**
+**WebView-internal (WASM ↔ JS)** is the one bright spot here: it's already solved.
+Aligned buffers and TypedArray views give true zero-copy inside the WebView's
+single memory domain. WASM writes into its linear memory, JS reads from the same
+`ArrayBuffer`. This path is already built into `foundation_wasm`.
 
-Solved. Aligned buffers and TypedArray views give true zero-copy inside the
-WebView's single memory domain. WASM writes into its linear memory, JS reads
-from the same `ArrayBuffer`. This path is already built into `foundation_wasm`.
-
-**Rust native → WebView: the boundary problem**
-
-On desktop, native Rust and the WebView run in the same process and can
-potentially share memory. On mobile (iOS WKWebView, Android WebView), the
-WebView runs in a separate OS process — zero-copy across this boundary is
-fundamentally limited by process sandboxing. The goal is to minimize copies, not
-eliminate them at all costs.
-
-**Concrete mechanisms, ordered by cost:**
+**Concrete mechanisms for Rust native → WebView, ordered by cost:**
 
 1. **WASM memory as the shared buffer** — the Rust native side writes data
    directly into WASM linear memory (which the JS host already has access to).
@@ -532,7 +543,20 @@ eliminate them at all costs.
    not as a bulk data transport. The copy cost is acceptable for command-sized
    payloads but not for large data tables.
 
-6. **Disk-based handoff (mmap)** — on desktop, the Rust side writes Arrow data
+6. **WebSocket to a local Rust process** — when the Rust backend runs as a local
+   server or background process inside the mobile app (rather than in-process
+   via the native shell), the WebView can connect to it over WebSocket. This is
+   a standard web protocol that works everywhere without custom platform
+   integration. It is useful for bidirectional streaming (server-pushed updates,
+   live DomOps streams, Arrow IPC over binary frames) and for talking to Rust
+   processes that speak web protocols. However, for same-device communication on
+   mobile, local IPC (Tauri commands, custom protocol) is generally faster —
+   WebSocket still crosses the WebView process boundary and incurs TCP/IP stack
+   overhead even on localhost. On mobile, the OS may also throttle or block
+   local socket connections. Its what users may want than say must always be via 
+  websocket, we just provide the capability to make this possible.
+
+7. **Disk-based handoff (mmap)** — on desktop, the Rust side writes Arrow data
    to a memory-mapped file and serves it via custom protocol. The OS may share
    pages rather than copying. On mobile, process sandboxing typically forces a
    copy. Use this only when data is too large to buffer in memory.
@@ -608,16 +632,39 @@ responsibilities:
 5. Integrate native capabilities using explicit permissions and typed contracts.
 6. Keep protocol choices pluggable: custom binary, columnar, JSON, Arrow IPC,
    HTML fragments, and future protocols.
+7. Integrate with libsql and turso for sqlite database support
 
 It should not:
 
-- create a second UI framework;
-- replace the JS DOM applicator with native UI mappings as a default path;
-- assume all apps are SPAs;
-- assume all server-driven UI is HTML-only;
-- force all data through Tauri JSON IPC;
+- create a second UI framework.
+- assume all apps are SPAs.
+- assume all server-driven UI is HTML-only.
+- force all data through Tauri JSON IPC.
 - claim direct native-memory zero-copy into WebView JavaScript without a proven
   mechanism.
+
+Native UI integration is additive, not a replacement. Hybrid by design:
+the platform uses webview for content, native for chrome and capabilities,
+and Rust as the shared bridge between them. Hotwire Native's ability
+to sync into native navigation stacks, tab bars, and platform chrome is a net
+benefit that `foundation_platform` should embrace. The JS DOM applicator remains
+the primary rendering surface for web content, but the platform should freely
+integrate with native UI where it adds value:
+
+- **Use Tauri's built-in capabilities** where they meet our needs (window
+  management, native menus, platform plugins).
+- **Build native Swift/Kotlin bridges** where Tauri falls short — native
+  navigation controllers, tab bars, sheets, biometric flows, platform-specific
+  media APIs, background services, and hardware integration.
+- **Sync between web and native** — the platform should let Rust/JS content drive
+  native UI state (e.g., update a native tab badge from a server stream) and let
+  native UI events feed back into the web runtime (e.g., a native back gesture
+  routing through the platform navigation policy).
+
+This is hybrid by design: webview for content, native for chrome and
+capabilities, Rust as the shared bridge between them. The DOM applicator isn't
+replaced — it's augmented with native UI lanes that the route policy and
+capability registry can target when appropriate.
 
 ## Candidate integration lanes
 
@@ -678,17 +725,10 @@ UI declarative request -> platform capability registry -> Tauri/plugin/native AP
 ```
 
 This is where Hotwire Bridge Component ideas can be adapted without copying the
-Swift/Kotlin-only implementation model.
-
-## Open cautions for later decisions
-
-- Decide where app state lives per app mode: local WASM, Rust platform service,
-  remote server, or a hybrid.
-- Decide how navigation maps to Tauri windows/WebViews/history.
-- Decide which protocols are supported over which transports.
-- Decide how offline cache invalidation and mutation replay work.
-- Decide whether native background workers are pure Rust/Tauri tasks, platform
-  plugin code, or future UniFFI-style direct native wrappers.
+Swift/Kotlin-only implementation model. Writing native Swift/Kotlin code is
+perfectly fine when it adds value — native navigation, biometrics, media, and
+hardware APIs are legitimate targets. The bridge model unifies the contract;
+platform code implements it.
 
 ## Summary
 
