@@ -16,6 +16,7 @@
 //! (via `from_future`); `BoxedTask` is their boxed form.
 
 pub mod connect;
+pub mod grpc_web;
 
 use std::time::Duration;
 

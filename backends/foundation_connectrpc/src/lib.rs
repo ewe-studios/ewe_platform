@@ -23,6 +23,7 @@ pub use protocol::{
     ProtocolClient, ProtocolHandler,
 };
 pub use protocol::connect::{ConnectClient, ConnectHandler};
+pub use protocol::grpc_web::{GrpcWebClient, GrpcWebHandler};
 
 pub use interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, StreamCall, StreamingClientFunc,

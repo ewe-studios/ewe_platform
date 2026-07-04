@@ -1,7 +1,7 @@
 ---
 feature: "gRPC-Web protocol handler + client incl. text mode (D05)"
 description: "gRPC-Web over HTTP/1.1: in-body 0x80 trailers, trailers-only responses, whole-body base64 text mode"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["15-envelope-framing", "17-transport-seam"]
