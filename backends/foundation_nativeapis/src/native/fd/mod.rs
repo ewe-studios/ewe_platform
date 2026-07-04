@@ -10,6 +10,35 @@
 /// - [`ReadyGuard`] — returned by `poll_readable()`/`poll_writable()`, must be
 ///   explicitly handled to clear readiness
 /// - [`Ready`] — bitmask of readiness states (READABLE, WRITABLE, READ_CLOSED, WRITE_CLOSED, ERROR)
+///
+/// ## Parking a transport task on fd readiness (spec-41 F10 / Decision 00 L2)
+///
+/// A native leaf task that waits on a real socket **parks** on the reactor rather
+/// than re-polling every scheduler turn. Because [`RegisteredFd<T>`] already
+/// implements [`foundation_core::valtron::EventReadiness`], the whole path reuses
+/// the executor's existing `TaskStatus::Depends(Arc<dyn EventReadiness>)` seam —
+/// **there is no `ReadinessSource` trait or global registration slot to build**
+/// (the Level-2 sketch in Decision 00 is superseded by this reactor).
+///
+/// The pattern a transport task follows:
+///
+/// 1. **Obtain a reactor `Registry`.** Today each task owns its selector:
+///    `let poll = `[`Poll::new`](crate::native::poll::Poll::new)`()?; let registry = poll.registry();`.
+///    (A process-shared reactor — one `Poll` for all connections — is the
+///    io_uring/shared-reactor work in spec-41 features 40–43; the seam here is
+///    unchanged by it.)
+/// 2. **Register the connection's fd.** The fd comes from `netcap::RawStream`
+///    via `AsRawFd` (spec-41 F09 / Decision 12 §12), reachable from above netio:
+///    `let fd = Arc::new(`[`RegisteredFd::new`]`(stream, &registry, token)?);`.
+/// 3. **Park on it.** When the socket is not ready, the task's
+///    [`TaskIterator::next_status`](foundation_core::valtron::TaskIterator::next_status)
+///    returns `TaskStatus::Depends(fd.clone() as Arc<dyn EventReadiness>)`; the
+///    executor parks the task and re-runs it only when `fd.is_ready(..)` — i.e.
+///    when epoll/kqueue signals the fd. Compose with a cancel/stop signal via a
+///    composite `EventReadiness` (see `FdMonitorTask`) to also unpark on cancel.
+///
+/// `foundation_core` never touches the fd or gains an OS dependency: the bridge
+/// is realized entirely through the `EventReadiness` impl on `RegisteredFd`.
 
 pub mod guard;
 pub mod error;

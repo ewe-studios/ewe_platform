@@ -1,7 +1,7 @@
 ---
 feature: "Native fd parking via the nativeapis reactor (00-F2)"
 description: "Sockets park on Depends(RegisteredFd) instead of cooperative re-poll; epoll today, io_uring later"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["01-waker-queue-bridge", "09-raw-stream-as-raw-fd"]
