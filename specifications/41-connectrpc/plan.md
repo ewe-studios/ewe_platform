@@ -98,6 +98,21 @@ primitive** (enveloping/compression owned by the transport tasks only; normalize
 its `Code` mapping, the `ConnectResult` norm scoped to RPC surfaces, `UnaryCall.codec_name`
 threading, cancel-composed pipe parking, and the missing client GET/version options.
 
+A fifth pass (2026-07, driven by a connection-ownership review) settled the **connection
+owner** contract, previously implicit: the seam's `ByteSink`/`ByteSource` are only bounded
+queues, so the component owning the raw fd must **explicitly spawn the byte pump** that holds
+the socket-facing pipe halves and moves bytes ⇄ fd (the caller keeps only `send_body`/`recv_body`).
+On the **client** this is `Transport::open` (it spawns the pump — the driven
+`ClientRequest::send_async` task — before returning; a lazy drive inside the `response` future
+deadlocks a request larger than the pipe depth). On the **server** it is the per-connection task
+the listener spawns on `accept` (netio `Serve`/`ServeWriter`). This is the valtron (pull-based)
+materialization of what connect-go got for free from `net/http`'s per-request goroutine; the pump
+is distinct from the protocol reader/writer tasks. Recorded in Decision 11 (§Connection
+ownership), Decision 07 (client), Decision 08 (server §0). It also motivates a **walking-skeleton
+feature** — one unary + one streaming RPC over a real loopback socket, both sides — to be built
+before finishing the transport/client breadth, so every layer slots into a proven end-to-end spine
+(the `PushableRequestBody::into_sender()` netio addition lands here).
+
 Remaining implementation-time tunables (not design blockers; revisit inside the named
 feature):
 - Whether the **owned-decode** scratch path reuses the buffer pool (Decision 06 §Buffer Pool) —

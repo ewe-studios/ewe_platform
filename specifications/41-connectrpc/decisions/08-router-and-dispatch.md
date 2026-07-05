@@ -359,6 +359,15 @@ pub fn register_greet_service<S: GreetServiceHandler>(router: &mut Router, servi
 - **Q10 — consumption (decided):** `into_handler(self)` consumes and freezes the router;
   no post-build mutation. Documented.
 
+0. **Server connection owner (decided — Decision 11 §Connection ownership):** the thing that
+   owns the raw connection is the **per-connection task the listener spawns on `accept`**
+   (foundation_netio `Serve`/`ServeWriter`, holding the `RawStream`). That task — not the
+   dispatcher — creates the byte pipes, **spawns the byte pump** holding the socket-facing halves
+   (parked on the foundation_nativeapis reactor for fd readiness), and invokes
+   `ConnectRpcHandler` dispatch with the caller-facing halves; on return it streams the response
+   bytes back through its pump. The dispatcher and protocol layers never touch the fd. (The pump
+   is the transport's own task, distinct from the protocol reader/writer tasks — Decision 11
+   §who-owns-enveloping.) This is the server mirror of `Transport::open` spawning the client pump.
 1. **Path prefix routing (decided):** register the `ConnectRpcHandler` as a **single prefix
    route** in foundation_http and sub-route internally via the `HashMap` (keyed on
    `/package.Service/Method` — leading slash, matching R1). Avoids mutating foundation_http's route tree per procedure and

@@ -414,6 +414,16 @@ async fn call_unary_with_get_fallback(
   Connect and gRPC-Web prefer the highest available version, gRPC requires ≥ HTTP/2 —
   enforced by Decision 11's capability matching.
 
+- **Connection ownership / who spawns the pump — decided (Decision 11 §Connection ownership):**
+  `Transport::open` **is** the client connection owner and **spawns the byte pump** (valtron)
+  before returning the `TransportStream`; the pump holds the socket-facing pipe halves, the caller
+  gets `send_body`/`recv_body`. Over foundation_netio the pump is the driven
+  `ClientRequest::send_async` task — its request-receiver half is the pushable body
+  (`PushableRequestBody::into_sender()` → `send_body`), and it copies the returned lazy response
+  stream into `recv_body`. Not a lazy drive inside the `response` future (that deadlocks a request
+  larger than the pipe depth — the push loop parks while the only drainer sits behind the
+  un-awaited head). This is the valtron materialization of connect-go's implicit `net/http`
+  request goroutine.
 - **Connection reuse — decided (verified in foundation_netio):** no new pooling in connectrpc; reuse is split by protocol.
    - **HTTP/1.1:** foundation_netio's `HttpConnectionPool` (`client/native/pool.rs` + `connection.rs`) already provides keep-alive reuse — per-`host:port` LIFO checkout/checkin of exclusive `SharedByteBufferStream<RawStream>`s, `max_per_host` cap, `max_idle_time` staleness eviction. The client uses it transparently: on response drop the stream is drained and returned to the pool, honoring `Connection: close` (`FinalizedResponse::drop`). The connectrpc client gets this for free through the Decision 11 transport seam.
    - **HTTP/2 / HTTP/3:** this pool does **not** apply — its exclusive one-request-per-connection ownership model is inherently HTTP/1.1. h2/h3 reuse is multiplexing many concurrent streams over **one shared connection per origin**, owned by the Decision 12 multiplexer (`http2/` / `http3/`); h3 has no `RawStream` to pool at all (QUIC endpoint owns the connection). Not a gap — the standard split (cf. hyper: h1 idle pool vs. shared h2 connection per origin).

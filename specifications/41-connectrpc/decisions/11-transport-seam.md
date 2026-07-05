@@ -407,6 +407,51 @@ impl dyn Transport {
 This reconciles Decision 05 (`ClientConn`) and Decision 07 (`round_trip`): `round_trip`
 becomes a unary convenience over `open`. Closes T7, Q6, B6.
 
+### Connection ownership — who spawns the byte pump (decided)
+
+The seam speaks in `ByteSink`/`ByteSource` (`Pipe<Bytes>` halves); **a pipe is only a bounded
+queue.** Something must move bytes between those pipes and the raw connection. That something is
+the **connection owner** — the component that holds the fd (or netio's abstraction over it) — and
+it is **explicitly responsible for spawning the read/write pump** that holds the **socket-facing**
+pipe halves. The caller receives only the **caller-facing** halves. (This was implicit before:
+the original layering borrowed connect-go's `io.Pipe` + `net/http`, where `net/http` spawns a
+goroutine per request so the body drains concurrently *for free*. On valtron — a cooperative,
+**pull-based** runtime — concurrency is never free: nothing drains a pipe until a task is polled,
+so the connection owner must spawn that task. A `response` future that lazily drives the send
+deadlocks the moment a request exceeds the pipe depth — the push loop parks on a full pipe while
+the only drainer sits behind the not-yet-awaited head.)
+
+Pipe orientation is identical on both sides:
+
+| pipe | caller-facing half (returned) | socket-facing half (kept by the connection owner's pump) |
+|---|---|---|
+| request  | `send_body: PipeSender<Bytes>`   | `PipeReceiver<Bytes>` → drain → **write** the connection |
+| response | `recv_body: PipeReceiver<Bytes>` | `PipeSender<Bytes>` ← **read** the connection ← push |
+
+- **Client** — the connection owner is `Transport::open`. It **spawns (valtron) the pump before
+  returning** `TransportStream`. Over foundation_netio the pump *is* the driven
+  `ClientRequest::send_async` task: the request-receiver half is netio's pushable body
+  (`PushableRequestBody::into_sender()` yields the matching `send_body`), and the pump copies
+  `send_async`'s returned **lazy** response stream into `recv_body`'s sender half. The head is
+  delivered to the `response` future via a 1-slot pipe; dropping `FinalizedResponse` returns the
+  connection to `HttpConnectionPool` (reuse — Decision 07).
+- **Server** — the connection owner is the **per-connection task the listener spawns on `accept`**
+  (foundation_netio `Serve`/`ServeWriter`, holding the `RawStream`). It creates the byte pipes,
+  spawns the pump holding the socket-facing halves (parked on the foundation_nativeapis reactor
+  for fd readiness), and calls the dispatcher (Decision 08) with the caller-facing halves. The
+  dispatcher and protocol layers never touch the fd.
+
+Half-duplex (HTTP/1.1, §Duplex table above) falls out of the pump: the request pump completes
+(body closed) → head → response pump. Full-duplex (HTTP/2+) runs both pump directions
+concurrently. **The connection-owner pump is the transport's own task and is distinct from the
+protocol reader/writer tasks** (§who-owns-enveloping): protocol tasks bridge `Frame` ⇄ bytes; the
+connection-owner pump bridges bytes ⇄ fd. End to end the ownership is:
+
+```text
+fd  ⇄  [connection-owner pump]  ⇄  ByteSink/ByteSource  ⇄  [protocol reader/writer tasks]
+    ⇄  FramePipes  ⇄  conn halves  ⇄  typed facade  ⇄  handler
+```
+
 ### Capability matching (makes "any protocol on any transport" precise)
 
 A protocol declares what it needs; a transport declares what it offers. The router

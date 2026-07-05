@@ -74,6 +74,19 @@ impl PushableRequestBody {
     pub fn is_closed(&self) -> bool {
         self.sender.is_closed()
     }
+
+    /// Consume the producer and return its raw [`PipeSender<Bytes>`].
+    ///
+    /// WHY: a byte-level transport seam (spec 41 Decision 11 §Connection ownership) wants the
+    /// pushable body's producer pipe to *be* its `send_body: PipeSender<Bytes>` directly — the
+    /// caller pushes wire request bytes into `send_body`, and the connection-owner pump drains the
+    /// paired receiver (this body's `SendSafeBody::Stream`) with no intermediate bridge task or
+    /// copy. `push`/`try_push`/`close` are exactly `PipeSender::send`/`try_send`/`close`, so
+    /// handing out the sender loses nothing.
+    #[must_use]
+    pub fn into_sender(self) -> PipeSender<Bytes> {
+        self.sender
+    }
 }
 
 /// Consumer iterator that drains the pipe into `Data` batches for the request

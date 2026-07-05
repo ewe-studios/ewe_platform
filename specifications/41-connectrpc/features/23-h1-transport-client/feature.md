@@ -22,9 +22,16 @@ The first Transport implementation: HTTP/1.1 over the existing netio client and 
 ## Scope
 
 - Transport impl over netio h1 client: open → TransportStream (byte pipes + awaitable head); PreparedRequest/RequestDescriptor/SimpleResponse types (verified, no new types)
-- HttpConnectionPool reuse (checkout/checkin, Connection: close honor) — transparent via the seam
+- **Connection-owner pump (Decision 11 §Connection ownership):** `open` **spawns** the byte pump (valtron) before returning — the driven `ClientRequest::send_async` task holds the socket-facing halves (request-receiver = pushable body; response-sender copies the lazy response stream into `recv_body`); head delivered via a 1-slot pipe. **Not** a lazy drive inside the `response` future (deadlocks a request > pipe depth). Requires the netio addition `PushableRequestBody::into_sender() -> PipeSender<Bytes>` so its pipe *is* `send_body`.
+- HttpConnectionPool reuse (checkout/checkin, Connection: close honor) — transparent via the seam (`FinalizedResponse::drop`)
 - TransportCapabilities: h1 = request_streaming yes (chunked), full_duplex no; Fetch = request_streaming/full_duplex/h2_trailers false
 - round_trip convenience over open
+
+## Depends on the walking skeleton
+
+Build **44-connection-owner-walking-skeleton** first — it establishes the connection-owner pump
+contract end-to-end (server + client) over a real loopback socket, lands `into_sender`, and proves
+the spine this feature's `open` plugs into.
 
 ## Out of scope
 
