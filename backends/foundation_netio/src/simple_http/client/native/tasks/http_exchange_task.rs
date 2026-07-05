@@ -49,7 +49,10 @@ enum State {
         conn: Option<HttpClientConnection>,
         body_reader: Box<
             dyn Iterator<
-                    Item = Result<IncomingResponseParts, crate::simple_http::shared::HttpReaderError>,
+                    Item = Result<
+                        IncomingResponseParts,
+                        crate::simple_http::shared::HttpReaderError,
+                    >,
                 > + Send,
         >,
         /// Active chunk iterator for the current body payload.
@@ -140,7 +143,8 @@ impl TaskIterator for HttpExchangeTask {
                         Some(TaskStatus::Pending(HttpExchangePending::Waiting))
                     }
                     // Intermediate states — ask executor to re-poll us.
-                    None | Some(
+                    None
+                    | Some(
                         TaskStatus::Init
                         | TaskStatus::Ignore
                         | TaskStatus::Wait
@@ -212,7 +216,9 @@ impl TaskIterator for HttpExchangeTask {
                     }
                 }
             }
-            State::Failed(ref mut opt) => opt.take().map(|e| TaskStatus::Ready(HttpExchange::Failed(e))),
+            State::Failed(ref mut opt) => opt
+                .take()
+                .map(|e| TaskStatus::Ready(HttpExchange::Failed(e))),
             State::Done => None,
         }
     }
