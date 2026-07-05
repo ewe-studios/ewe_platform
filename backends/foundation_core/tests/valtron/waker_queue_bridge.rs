@@ -138,10 +138,11 @@ fn pending_future_parks_then_completes_on_wake() {
 
 /// A future that wakes itself during its first poll, then completes on the next.
 ///
-/// This reproduces the wake-before-park race: the `wake()` lands *between* the
-/// `Poll::Pending` and the executor parking. The token is already on the wake
-/// queue, so the returned `Depends` signal is immediately ready and the executor
-/// re-runs instead of sleeping — no lost wakeup.
+/// This reproduces the self-wake pattern used by stream-future bridges
+/// (e.g. `StreamReadyFuture`): the future calls `cx.waker().wake_by_ref()` during
+/// `poll()` and returns `Pending`. `FutureTask` detects the self-wake token and
+/// returns `Pending` (requeue) instead of `Depends` — the executor re-runs the task
+/// without ever parking. The wakeup is never lost (Decision 00 success criterion).
 struct SelfWakeOnceFuture {
     polled: bool,
 }
@@ -154,35 +155,37 @@ impl Future for SelfWakeOnceFuture {
             Poll::Ready(1)
         } else {
             self.polled = true;
-            cx.waker().wake_by_ref(); // wake races the park
+            cx.waker().wake_by_ref(); // self-wake: "re-poll me"
             Poll::Pending
         }
     }
 }
 
-/// WHY: A `wake()` racing the park must not be lost (Decision 00 success crit).
-/// WHAT: When the future wakes during its `Pending` poll, the emitted `Depends`
-///       signal is already ready, so the executor re-runs and the task completes.
-/// HOW: Stress the race many times over fresh tasks; each must report a ready
-///      signal on the first poll and complete on the second.
+/// WHY: A `wake()` produced *during* poll must not be lost (Decision 00 success
+///      criterion). The self-wake token triggers `Pending` (requeue) so the
+///      executor re-runs the task and completes without parking.
+/// WHAT: A future that self-wakes on its first poll completes in exactly two polls
+///       — no park, no `Depends-true`, no lost wakeup.
+/// HOW: Stress 2000 iterations; each fresh task must complete on the second poll.
 #[test]
 fn wake_before_park_is_never_lost() {
+    use foundation_core::valtron::FuturePollState;
+
     for iteration in 0..2000 {
         let mut task = FutureTask::new(SelfWakeOnceFuture { polled: false });
 
-        let signal = match task.next_status() {
-            Some(TaskStatus::Depends(signal)) => signal,
-            other => panic!("iter {iteration}: expected Depends, got {other:?}"),
+        // First poll: future self-wakes → Pending (requeue), not Depends.
+        match task.next_status() {
+            Some(TaskStatus::Pending(FuturePollState::Pending)) => {}
+            other => panic!("iter {iteration}: expected Pending(FuturePollState::Pending), got {other:?}"),
         };
-        assert!(
-            signal.is_ready(None),
-            "iter {iteration}: self-wake token must keep the signal ready (no lost wakeup)"
-        );
 
+        // Second poll: future returns Ready.
         match task.next_status() {
             Some(TaskStatus::Ready(1)) => {}
             other => panic!("iter {iteration}: expected Ready(1), got {other:?}"),
-        }
+        };
+
         assert!(task.next_status().is_none(), "iter {iteration}: complete");
     }
 }

@@ -25,6 +25,7 @@ use std::time::Instant;
 use bytes::Bytes;
 use foundation_core::valtron::Pipe;
 use foundation_http::shared::context::ContextBag;
+use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
 use foundation_netio::simple_http::shared::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
@@ -169,7 +170,7 @@ async fn dispatch_request(
 async fn run_unary(
     handler: Arc<dyn super::erased::ErasedUnaryHandler>,
     protocol: &dyn ProtocolHandler,
-    request: SimpleIncomingRequest,
+    mut request: SimpleIncomingRequest,
     codec_name: String,
     compression: &crate::compression::CompressionRegistry,
     ctx: Ctx,
@@ -180,7 +181,7 @@ async fn run_unary(
     // await — otherwise `&request` would be held across it and poison `Send`
     // (`SimpleIncomingRequest` is not `Sync`).
     let decoded = {
-        let body = read_body(&request);
+        let body = read_body(&mut request);
         protocol.decode_unary_request(&request, Bytes::from(body), compression)
     };
     let outcome: ConnectResult<UnaryOutcome> = match decoded {
@@ -219,7 +220,7 @@ async fn run_unary(
 async fn run_streaming(
     handler: Arc<dyn super::erased::ErasedStreamHandler>,
     protocol: &dyn ProtocolHandler,
-    request: SimpleIncomingRequest,
+    mut request: SimpleIncomingRequest,
     spec: Spec,
     codec_name: String,
     compression: &crate::compression::CompressionRegistry,
@@ -245,7 +246,7 @@ async fn run_streaming(
     } = exchange;
 
     // Feed the (buffered) request body into the transport byte pipe, then close.
-    let body = read_body(&request);
+    let body = read_body(&mut request);
     let feeder = async move {
         if !body.is_empty() {
             let _ = req_tx.send(Bytes::from(body)).await;
@@ -396,14 +397,15 @@ fn protocol_name(kind: ProtocolKind) -> &'static str {
     }
 }
 
-/// Read the (in-memory) request body into a byte vector. Iterator-backed bodies
-/// come only from a live transport (wired in a later feature); here they are
-/// treated as empty.
-fn read_body(request: &SimpleIncomingRequest) -> Vec<u8> {
-    match &request.body {
-        Some(SendSafeBody::Bytes(bytes)) => bytes.clone(),
-        Some(SendSafeBody::Text(text)) => text.clone().into_bytes(),
-        _ => Vec::new(),
+/// Take the request body and collect it into a byte vector. In-memory bodies
+/// (`Bytes`/`Text`) return directly; iterator-backed bodies (what the live server
+/// hands us for a sized/chunked request) are drained via `try_collect_bytes`.
+fn read_body(request: &mut SimpleIncomingRequest) -> Vec<u8> {
+    match request.body.take() {
+        None | Some(SendSafeBody::None) => Vec::new(),
+        Some(SendSafeBody::Bytes(bytes)) => bytes,
+        Some(SendSafeBody::Text(text)) => text.into_bytes(),
+        Some(other) => try_collect_bytes(other).unwrap_or_default(),
     }
 }
 

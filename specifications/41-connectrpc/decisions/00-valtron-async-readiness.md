@@ -120,7 +120,30 @@ fn next_status(&mut self) -> Option<TaskStatus<F::Output, FuturePollState, NoAct
     let mut cx = Context::from_waker(&waker);
     match self.future.as_mut().poll(&mut cx) {
         Poll::Ready(out) => { self.completed = true; Some(TaskStatus::Ready(out)) }
-        Poll::Pending    => Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(self.wake_queue.clone())))),
+        Poll::Pending    => {
+            // Two distinct `Pending` semantics (00-F1 self-wake detection):
+            //
+            // 1. **Self-wake**: the future called `cx.waker().wake_by_ref()` during poll,
+            //    pushing a token onto this queue. This is the stream-future pattern
+            //    (`StreamReadyFuture`, `StreamCollectFuture`, `StreamPendingFuture`) —
+            //    the underlying `StreamIterator` advanced one step but isn't ready yet;
+            //    the future wants another poll after other tasks run. Return `Pending`
+            //    (requeue) — NOT `Depends` (park), because the token was produced by
+            //    polling itself, not by an external event.
+            //
+            // 2. **External-wake**: no token was pushed during poll. The future stashed
+            //    the waker (e.g. `RecvFuture` waiting on a pipe) and an *external* entity
+            //    will fire it when data arrives. Return `Depends(queue)` to park until
+            //    that wake.
+            //
+            // Draining at the top guarantees the only token NOW on the queue is a
+            // self-wake token from *this* poll call.
+            if self.wake_queue.is_empty() {
+                Some(TaskStatus::Depends(Arc::new(QueueReadiness::new(self.wake_queue.clone()))))
+            } else {
+                Some(TaskStatus::Pending(FuturePollState::Pending))
+            }
+        }
     }
 }
 ```
@@ -297,6 +320,16 @@ where F: Future + Send + 'static, F::Output: Send + 'static;   // (single/wasm c
 
 - A `Pending` future parks via `Depends(QueueReadiness)` — no re-poll until a token lands
   (verified: turn-count flat while blocked).
+- A **self-waking** future (stream-future pattern: calls `wake_by_ref()` during poll, returns
+  `Pending`) produces `Pending(FuturePollState::Pending)` — requeued without parking. No
+  `Depends-true` violation. Verified by `test_self_wake_loop_no_depends_violations` (20-cycle
+  self-wake loop, every poll returns `Pending` not `Depends`).
+- An **externally-woken** future (pipe-future pattern: stashes waker, returns `Pending`, no
+  self-wake) produces `Depends(not-ready)` and parks. Verified by
+  `test_external_wake_makes_depends_ready`.
+- Mixed patterns (self-wake → external-wake) coexist in one `FutureTask`. Verified by
+  `test_mixed_self_wake_then_external_park`.
+- `StreamTask` (async `Stream`) implements the same self-wake detection as `FutureTask`.
 - A future woken via the context waker is re-scheduled promptly; no lost wakeup under a
   wake-before-park stress test.
 - A producer future awaiting a **full** bounded pipe parks and is woken by the consumer's

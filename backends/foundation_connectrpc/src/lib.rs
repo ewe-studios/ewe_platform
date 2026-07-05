@@ -19,12 +19,19 @@ pub mod interceptor;
 pub mod message;
 pub mod router;
 
+/// Native server connection-owner adapter (foundation_http `Serve`).
+#[cfg(not(target_family = "wasm"))]
+pub mod server;
+
 pub use error_writer::ErrorWriter;
 pub mod protocol;
 pub mod transport;
 
 pub use message::{Request, Response};
 pub use router::{ConnectRpcHandler, HandlerOptions, RequestStream, Router};
+
+#[cfg(not(target_family = "wasm"))]
+pub use server::ConnectRpcServe;
 
 pub use protocol::{
     canonicalize_content_type, parse_connect_content_type, ClientExchange, HandlerExchange,
@@ -43,6 +50,9 @@ pub use transport::{
     Frame, HandlerConn, MessageSink, MessageSource, ProtocolKind, Transport, TransportCapabilities,
     TransportError,
 };
+
+#[cfg(not(target_family = "wasm"))]
+pub use transport::h1::H1Transport;
 
 pub use envelope::{
     decode_grpc_timeout, encode_grpc_timeout, Envelope, EnvelopeError, EnvelopeReader,

@@ -1,7 +1,7 @@
 ---
 feature: "Connection-owner walking skeleton — end-to-end spine over a real socket (D11 §Connection ownership)"
 description: "Server per-connection pump (Serve adapter) + client open() pump + one unary and one streaming RPC over loopback TCP; lands PushableRequestBody::into_sender"
-status: "pending"
+status: "in-progress"
 priority: "critical"
 phase: 1
 depends_on: ["17-transport-seam", "22-router-dispatch", "07-pushable-request-body", "10-reactor-parking"]

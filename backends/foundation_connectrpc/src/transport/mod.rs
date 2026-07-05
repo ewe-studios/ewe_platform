@@ -12,13 +12,15 @@
 //! [`facade`] (the typed `MessageSink`/`MessageSource`), [`capabilities`]
 //! (capability matching), and [`transport`] (the client `Transport` trait).
 
+pub mod base;
 pub mod capabilities;
 pub mod conn;
 pub mod facade;
 pub mod frame;
-#[allow(clippy::module_inception)]
-pub mod transport;
+#[cfg(not(target_family = "wasm"))]
+pub mod h1;
 
+pub use base::{ByteSink, ByteSource, Transport, TransportError, TransportStream};
 pub use capabilities::{
     check_compatible, requirements, CallRequirements, ProtocolKind, TransportCapabilities,
 };
@@ -28,4 +30,3 @@ pub use conn::{
 };
 pub use facade::{FrameMiddleware, MessageSink, MessageSource, TypedMiddleware};
 pub use frame::{race, BoxFuture, Either, Frame, FramePipe, DEFAULT_PIPE_DEPTH};
-pub use transport::{ByteSink, ByteSource, Transport, TransportError, TransportStream};
