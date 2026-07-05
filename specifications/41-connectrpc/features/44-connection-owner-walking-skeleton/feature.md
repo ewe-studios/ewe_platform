@@ -12,7 +12,7 @@ created: 2026-07-05
 
 ## Why this exists (sequencing correction)
 
-Features 17–22 built the RPC middle (seam, protocols, router) as isolated units tested against
+Features 17-22 built the RPC middle (seam, protocols, router) as isolated units tested against
 **stubbed** connection owners (F22's `feeder`/`collector`, in-memory `block_on`). The **connection
 owner** — the component holding the raw fd that spawns the byte pump owning the socket-facing pipe
 halves — was never laid down as a first, load-bearing spine, so the ownership contract kept
@@ -28,18 +28,103 @@ F23/F24 and every later transport slot into a **proven** path.
 
 ## Scope
 
-- **netio addition:** `PushableRequestBody::into_sender(self) -> PipeSender<Bytes>` so the pushable
-  body's pipe *is* the seam `send_body` (no bridge task, no copy).
-- **Server connection owner:** a `Serve`/`ServeWriter` adapter for `ConnectRpcHandler`. `serve()`
-  owns the `RawStream`, creates the byte pipes, **spawns the byte pump** holding the socket-facing
-  halves (read fd → response... wait: server pump = read fd → `request` byte-pipe sender; drain
-  `response` byte-pipe receiver → write fd), parked on the nativeapis reactor; invokes dispatch
-  with the caller-facing halves; streams the response back. Replaces F22's `feeder`/`collector`.
-- **Client connection owner:** `Transport::open` over the netio h1 client spawns its pump
-  (driven `ClientRequest::send_async`) per Decision 11; returns `TransportStream`.
-- **One walking test each:** a unary RPC and a server-streaming RPC driven **over a real loopback
-  TCP socket**, server accept→dispatch→respond and client connect→send→receive, asserting the
-  decoded round-trip (not an in-memory pipe pump).
+- **netio addition 1 — `PushableRequestBody::into_sender(self) -> PipeSender<Bytes>`** so the pushable
+  body's pipe *is* the seam `send_body` (no bridge task, no copy). ✅ DONE
+
+- **netio addition 2 — `SendSafeBodyBytesIterator` in `body_reader.rs`** — an
+  `Iterator<Item = Stream<Bytes, BoxedError>>` that wraps a `SendSafeBody` and yields
+  `Stream::Next(Bytes)` chunks for each body variant (`Bytes` → one `Next`, `Text` → one `Next`,
+  `Stream` → each `Data::Bytes`, `ChunkedStream` → each `ChunkedData::Data`, `SseStream` →
+  each `Event::Message`, `LineFeedStream` → each `LineFeed::Line`). `Data::Retry` /
+  `ChunkedData::Trailers` / `Event::Comment` / `LineFeed::SKIP` → `Stream::Ignore`. Errors →
+  `Stream::Next(Err(…))`. Shared by both native and WASM paths.
+
+- **netio addition 3 — `HttpExchange` + `HttpExchangePending` in `client/shared/request_task.rs`** —
+  the `Ready` and `Pending` types that both platform `TaskIterator` impls yield. These live in
+  `shared/` so the transport pump (in connectrpc) only depends on shared types.
+
+  | Platform | Impl | Location | What it wraps |
+  |---|---|---|---|
+  | Native | `HttpExchangeTask` | `client/native/tasks/http_exchange_task.rs` | `SendRequestTask<R>` via `inlined_task`, polls child → `RequestIntro::Success` → takes `HttpClientConnection` and `HttpResponseReader` into task state → `HttpExchange::Head` + body via `SendSafeBodyBytesIterator`. **Cleanup:** `HttpClientConnection` is held in task state; on `Done`/`Failed`/`drop`, the connection goes back to `HttpConnectionPool` automatically via `HttpClientConnection`'s `Drop` impl. `HttpResponseReader`'s drop closes the underlying stream. Exports `new_http_exchange_task(request, pool, config)`. |
+  | WASM | `HttpExchangeTask` | `client/wasm/http_exchange_task.rs` | `build_web_request()` + `do_fetch()` (existing in `wasm/client.rs`) via `from_future` + `FutureTask`. On `Ready`: `web_sys_headers_to_simple()` → `HttpExchange::Head`. Body via `resp.text()` → `SendSafeBody::Text` → `SendSafeBodyBytesIterator` → `HttpExchange::BodyChunk`. Exports `new_http_exchange_task(request)`. |
+
+- **Server connection owner:** `ConnectRpcServe` implements foundation_http `Serve`. ✅ DONE
+
+- **Client connection owner — TransportPump:** a single `TaskIterator` that creates the platform
+  `HttpExchangeTask`, spawns it via `inlined_task` + `TaskStatus::Spawn`, then forwards
+  `HttpExchange::Head` → `head_tx` and `HttpExchange::BodyChunk` → `recv_tx`.
+  `open()` creates the pump and the three output pipes, spawns via `valtron::send()`, and
+  returns `TransportStream` **synchronously**.
+
+## H1Transport pump design (2026-07-05)
+
+### Shared types in `client/shared/request_task.rs`
+
+The `Ready` and `Pending` types live in `shared/`. Each platform provides its own
+`TaskIterator` impl in its own directory.
+
+```rust
+// backends/foundation_netio/src/simple_http/client/shared/request_task.rs
+
+/// Ready type shared by both platform impls.
+pub enum HttpExchange {
+    /// Response head. Exactly once per request. Uses the existing shared type.
+    Head(SimpleResponse<()>),
+    /// One chunk of response body bytes. Zero or more.
+    BodyChunk(Bytes),
+    /// The request failed before or during the response — no Head was produced.
+    Failed(BoxedError),
+}
+
+pub enum HttpExchangePending { Waiting }
+```
+
+### TransportPump (TaskIterator wrapping HttpExchangeTask)
+
+```text
+TransportPump state:
+  Init                    → create HttpExchangeTask, spawn via inlined_task
+  AwaitingChild(receiver) → poll receiver
+    → Stream::Next(HttpExchange::Head(head))
+      → head_tx.try_send(head)   // SimpleResponse<()> = status + headers
+    → Stream::Next(HttpExchange::BodyChunk(bytes))
+      → recv_tx.try_send(bytes)
+    → Stream::Next(HttpExchange::Failed(_))
+      → close both pipes, Done
+    → Stream::Pending(_) → Depends(QueueReadiness)
+    → None → close recv_tx, Done
+```
+
+The pump never touches `RequestIntro`, `HttpResponseReader`, `HttpClientConnection`,
+or any native-specific type. It only sees `HttpExchange`.
+
+### Output pipes returned to caller
+
+| pipe | type | direction |
+|---|---|---|
+| `send_body` | `PipeSender<Bytes>` | caller pushes request bytes → pushable body pipe drains to HTTP request |
+| `head` | `PipeReceiver<SimpleResponse<()>>` | pump pushes exactly one response head; `SimpleResponse<()>` is status + headers, no body |
+| `recv_body` | `PipeReceiver<Bytes>` | pump pushes body chunks via `SendSafeBodyBytesIterator` |
+
+### Complete data flow
+
+```
+caller                            TransportPump               HttpExchangeTask (child)
+──                                ───────────────────         ─────────────────────────
+send_body.try_send(envelope)      Spawn → HttpExchangeTask    Native: wraps SendRequestTask
+                                  ↓                           WASM: wraps fetch()
+                                  poll child receiver
+                                    HttpExchange::Head
+                                      → head_tx.try_send()
+                                    HttpExchange::BodyChunk
+                                      → recv_tx.try_send()
+                                    HttpExchangePending
+                                      → Depends
+                                    None → close recv_tx
+```
+
+**No `start()`, no `send_async()`, no `from_future` at the pump level, no `block_on`,
+no `BoxFuture`, no `std::thread::spawn`, no `try_collect_bytes` buffering.**
 
 ## Out of scope
 
@@ -48,11 +133,31 @@ F23/F24 and every later transport slot into a **proven** path.
 
 ## Acceptance criteria
 
-- `into_sender` lands; netio lib clean; existing pushable-body tests still pass.
-- Server `Serve` adapter: a per-connection task owns the fd and pumps; dispatch runs with the
-  caller-facing halves; response streams back through the pump (no full-response buffering for the
-  streaming case).
-- Client `open`: pump spawned before return; a request larger than the pipe depth does **not**
-  deadlock (regression guard for the lazy-drive trap).
-- End-to-end: unary + server-streaming RPC complete over a real loopback socket; `#[valtron_test]`,
-  `--profile uat`.
+- `SendSafeBodyBytesIterator` lands in `body_reader.rs` with tests in
+  `backends/foundation_netio/tests/simple_http/` covering all 6 body variants
+  (`Bytes`, `Text`, `Stream`, `ChunkedStream`, `SseStream`, `LineFeedStream`,
+  `None`) + error propagation.
+
+- `HttpExchange` + `HttpExchangePending` types land in `client/shared/request_task.rs`.
+
+- Native `HttpExchangeTask` in `client/native/tasks/http_exchange_task.rs` with tests in
+  `backends/foundation_netio/tests/simple_http/` covering:
+  - `Head` → `BodyChunk*` → exhaust (success path)
+  - `Failed` → no head, pipes closed (connect error, DNS failure)
+  - `HttpClientConnection` returned to pool on task completion/drop
+
+- WASM `HttpExchangeTask` in `client/wasm/http_exchange_task.rs` with a compile-time
+  smoke test (full browser integration stays in F23).
+
+- `Transport::open()` returns `Result<TransportStream, TransportError>` synchronously — no
+  `BoxFuture`. `TransportStream.head: PipeReceiver<SimpleResponse<()>>` replaces the old
+  `response: BoxFuture<…>` field. Uses `SimpleResponse<()>` (`no_body`) which is already a
+  shared type in `foundation_netio::simple_http::shared`.
+
+- Server: `ConnectRpcServe` per-connection task owns fd, dispatches, streams response. ✅ DONE
+
+- Client: `TransportPump` spawned via `valtron::send()`; three caller-facing pipe halves
+  (`send_body`, `head`, `recv_body`). The caller polls them directly — no `futures_lite::block_on`.
+
+- End-to-end over real loopback TCP: unary + server-stream + H1Transport client RPC.
+  `#[valtron_test]`, `--profile uat`, `--features multi`.
