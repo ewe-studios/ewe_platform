@@ -11,7 +11,7 @@
 
 use crate::simple_http::shared::{SimpleHeaders, Status};
 use bytes::Bytes;
-use foundation_core::extensions::result_ext::BoxedError;
+use foundation_core::extensions::result_ext::SendableBoxedError;
 
 /// What a platform HTTP request task yields on each poll.
 ///
@@ -27,7 +27,7 @@ pub enum HttpExchange {
     /// One chunk of response body bytes. Zero or more.
     BodyChunk(Bytes),
     /// The request or response failed. Exactly once; no `Head` was produced.
-    Failed(BoxedError),
+    Failed(SendableBoxedError),
 }
 
 /// Marker for the pending state — the task is waiting for I/O (DNS, TCP, TLS, or

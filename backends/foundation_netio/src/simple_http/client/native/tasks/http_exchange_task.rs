@@ -17,7 +17,7 @@
 use std::sync::Arc;
 
 use bytes::Bytes;
-use foundation_core::extensions::result_ext::BoxedError;
+use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{
     inlined_task, BoxedSendExecutionAction, InlineSendActionBehaviour, IntoBoxedSendExecutionAction,
     Stream, TaskIterator, TaskStatus,
@@ -52,7 +52,7 @@ enum State {
         >,
     },
     /// Failed before yielding Head.
-    Failed(Option<BoxedError>),
+    Failed(Option<SendableBoxedError>),
     /// All output yielded.
     Done,
 }
@@ -145,7 +145,7 @@ impl TaskIterator for HttpExchangeTask {
                         }
                         Some(TaskStatus::Spread(_)) => continue,
                         None => {
-                            let e: BoxedError = Box::new(std::io::Error::new(
+                            let e: SendableBoxedError = Box::new(std::io::Error::new(
                                 std::io::ErrorKind::UnexpectedEof,
                                 "SendRequestTask exhausted without producing RequestIntro",
                             ));
@@ -168,6 +168,11 @@ impl TaskIterator for HttpExchangeTask {
                                 }
                                 Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
                                     let _ = conn.take();
+                                    let e: SendableBoxedError =
+                                        Box::new(std::io::Error::new(
+                                            std::io::ErrorKind::Other,
+                                            e.to_string(),
+                                        ));
                                     Some(TaskStatus::Ready(HttpExchange::Failed(e)))
                                 }
                                 Some(Stream::Ignore) | None => continue,
@@ -185,7 +190,12 @@ impl TaskIterator for HttpExchangeTask {
                         )) => continue,
                         Some(Err(e)) => {
                             let _ = conn.take();
-                            Some(TaskStatus::Ready(HttpExchange::Failed(Box::new(e))))
+                            let se: SendableBoxedError =
+                                Box::new(std::io::Error::new(
+                                    std::io::ErrorKind::Other,
+                                    e.to_string(),
+                                ));
+                            Some(TaskStatus::Ready(HttpExchange::Failed(se)))
                         }
                         None => {
                             let _ = conn.take();
