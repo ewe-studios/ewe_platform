@@ -4084,6 +4084,7 @@ dependencies = [
  "foundation_errstacks",
  "foundation_http",
  "foundation_netio",
+ "futures",
  "serde",
  "serde_json",
  "zstd",

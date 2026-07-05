@@ -212,6 +212,7 @@ impl SizeLimits {
 
 /// Registry of compressors keyed by algorithm name (Decision 06). Built with
 /// gzip registered, then frozen behind an `Arc` (RS7).
+#[derive(Clone)]
 pub struct CompressionRegistry {
     compressors: HashMap<String, Arc<dyn Compressor>>,
     /// Supported names in registration order (for `Accept-Encoding`).

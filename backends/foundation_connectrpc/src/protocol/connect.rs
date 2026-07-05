@@ -23,7 +23,8 @@ use bytes::{Bytes, BytesMut};
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::simple_http::shared::{
-    SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SimpleOutgoingResponse, Status,
 };
 
 use crate::compression::{negotiate_compression, CompressionRegistry, Compressor};
@@ -35,7 +36,9 @@ use crate::transport::{
     TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
-use super::{BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler};
+use super::{
+    BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
+};
 
 /// Connect protocol constants (Decision 05).
 pub mod constants {
@@ -367,6 +370,10 @@ pub struct ConnectHandler;
 const ALLOWED_METHODS: [SimpleMethod; 2] = [SimpleMethod::POST, SimpleMethod::GET];
 
 impl ProtocolHandler for ConnectHandler {
+    fn kind(&self) -> crate::transport::ProtocolKind {
+        crate::transport::ProtocolKind::Connect
+    }
+
     fn allowed_methods(&self) -> &[SimpleMethod] {
         &ALLOWED_METHODS
     }
@@ -388,6 +395,15 @@ impl ProtocolHandler for ConnectHandler {
     }
 
     fn can_handle(&self, request: &SimpleIncomingRequest) -> bool {
+        // Unary GET carries the codec in the `encoding` query (no request body /
+        // Content-Type), so match a Connect GET on its query instead (Decision 05).
+        if request.method == SimpleMethod::GET {
+            return request
+                .request_url
+                .queries
+                .as_ref()
+                .is_some_and(|q| q.contains_key(constants::QUERY_ENCODING));
+        }
         request
             .headers
             .get(&SimpleHeader::CONTENT_TYPE)
@@ -396,9 +412,27 @@ impl ProtocolHandler for ConnectHandler {
             .is_some()
     }
 
+    fn codec_name(&self, request: &SimpleIncomingRequest) -> Option<String> {
+        if request.method == SimpleMethod::GET {
+            return request
+                .request_url
+                .queries
+                .as_ref()
+                .and_then(|q| q.get(constants::QUERY_ENCODING))
+                .cloned();
+        }
+        request
+            .headers
+            .get(&SimpleHeader::CONTENT_TYPE)
+            .and_then(|v| v.first())
+            .and_then(|ct| super::parse_connect_content_type(ct))
+            .map(|(codec, _)| codec)
+    }
+
     fn new_conn(
         &self,
         request: &SimpleIncomingRequest,
+        spec: Spec,
         body: ByteSource,
         responder: ByteSink,
         compression: &CompressionRegistry,
@@ -410,12 +444,6 @@ impl ProtocolHandler for ConnectHandler {
             accept_encoding.as_deref(),
         )?;
 
-        let spec = Spec {
-            stream_type: StreamType::BidiStream, // refined by the dispatcher (F22)
-            procedure: request.request_url.url.clone(),
-            is_client: false,
-            idempotency: crate::context::IdempotencyLevel::Unknown,
-        };
         let peer = request_peer(request);
 
         let (conn, ends) = PipeHandlerConn::new(
@@ -442,6 +470,137 @@ impl ProtocolHandler for ConnectHandler {
             writer_task: writer,
         })
     }
+
+    fn streaming_response_content_type(
+        &self,
+        _request: &SimpleIncomingRequest,
+        codec_name: &str,
+    ) -> String {
+        streaming_content_type(codec_name)
+    }
+
+    fn decode_unary_request(
+        &self,
+        request: &SimpleIncomingRequest,
+        body: Bytes,
+        compression: &CompressionRegistry,
+    ) -> ConnectResult<Bytes> {
+        // Connect unary GET carries the message in the query (Decision 05 §Unary GET).
+        if request.method == SimpleMethod::GET {
+            return decode_get_message(request, compression);
+        }
+        // Connect unary POST is a bare body, optionally compressed via Content-Encoding.
+        match header(&request.headers, "content-encoding") {
+            Some(name) if name != "identity" && !name.is_empty() => {
+                let c = compression.get(&name).ok_or_else(|| {
+                    ConnectError::unimplemented(format!("unsupported content-encoding {name:?}"))
+                })?;
+                Ok(Bytes::from(c.decompress(&body, 0)?))
+            }
+            _ => Ok(body),
+        }
+    }
+
+    fn encode_unary_response(
+        &self,
+        response: &mut SimpleOutgoingResponse,
+        request: &SimpleIncomingRequest,
+        codec_name: &str,
+        outcome: UnaryOutcome,
+        compression: &CompressionRegistry,
+    ) -> ConnectResult<()> {
+        response.status = Status::OK;
+
+        // Response compression is negotiated from the request's Accept-Encoding.
+        let accept = header(&request.headers, "accept-encoding");
+        let compressor = negotiate_compression(compression, None, accept.as_deref())?
+            .response_compressor;
+        let (body, encoding) = match compressor {
+            Some(c) if !outcome.frame.is_empty() => {
+                (c.compress(&outcome.frame)?, Some(c.name().to_string()))
+            }
+            _ => (outcome.frame.to_vec(), None),
+        };
+
+        let mut headers = outcome.headers;
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![unary_content_type(codec_name)]);
+        if let Some(enc) = encoding {
+            headers.insert(
+                SimpleHeader::from("content-encoding".to_string()),
+                vec![enc],
+            );
+        }
+        // Unary trailing metadata rides as `Trailer-`-prefixed response headers.
+        for (name, values) in unary_trailer_headers(&outcome.trailers) {
+            headers.insert(name, values);
+        }
+        response.headers = headers;
+        response.body = Some(SendSafeBody::Bytes(body));
+        Ok(())
+    }
+}
+
+/// First value of a request header (case-insensitive via `SimpleHeader`).
+fn header(headers: &SimpleHeaders, name: &str) -> Option<String> {
+    headers
+        .get(&SimpleHeader::from(name.to_string()))
+        .and_then(|v| v.first())
+        .cloned()
+}
+
+/// Decode the message from a Connect unary GET query (Decision 05 §Unary GET):
+/// `message` is base64url (`base64=1`) or percent-encoded, then decompressed if a
+/// `compression` param names an algorithm.
+fn decode_get_message(
+    request: &SimpleIncomingRequest,
+    compression: &CompressionRegistry,
+) -> ConnectResult<Bytes> {
+    let query = |key: &str| {
+        request
+            .request_url
+            .queries
+            .as_ref()
+            .and_then(|q| q.get(key))
+            .cloned()
+    };
+    let raw = query(constants::QUERY_MESSAGE).unwrap_or_default();
+    let is_base64 = query(constants::QUERY_BASE64).as_deref() == Some("1");
+    let bytes = if is_base64 {
+        URL_SAFE_NO_PAD
+            .decode(raw.as_bytes())
+            .map_err(|e| ConnectError::invalid_argument(format!("invalid base64 message: {e}")))?
+    } else {
+        percent_decode(raw.as_bytes())
+    };
+    match query(constants::QUERY_COMPRESSION) {
+        Some(name) if name != "identity" && !name.is_empty() => {
+            let c = compression.get(&name).ok_or_else(|| {
+                ConnectError::unimplemented(format!("unsupported compression {name:?}"))
+            })?;
+            Ok(Bytes::from(c.decompress(&bytes, 0)?))
+        }
+        _ => Ok(Bytes::from(bytes)),
+    }
+}
+
+/// Decode a percent-encoded byte string (inverse of [`percent_encode`]).
+fn percent_decode(bytes: &[u8]) -> Vec<u8> {
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            let hi = (bytes[i + 1] as char).to_digit(16);
+            let lo = (bytes[i + 2] as char).to_digit(16);
+            if let (Some(hi), Some(lo)) = (hi, lo) {
+                out.push((hi * 16 + lo) as u8);
+                i += 3;
+                continue;
+            }
+        }
+        out.push(bytes[i]);
+        i += 1;
+    }
+    out
 }
 
 /// The Connect protocol client.

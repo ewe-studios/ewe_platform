@@ -138,6 +138,32 @@ impl RequestContext {
         }
     }
 
+    /// Assemble a per-call state from the parts the dispatcher resolved
+    /// (Decision 08 dispatch flow / Decision 04 extensions travel pathway: the
+    /// extensions map is **moved** in from the owned request). The transport holds
+    /// a clone of `cancel` and fires it on RST/close/deadline.
+    #[must_use]
+    #[allow(clippy::too_many_arguments)]
+    pub fn for_dispatch(
+        spec: Spec,
+        peer: Peer,
+        headers: SimpleHeaders,
+        deadline: Option<Instant>,
+        extensions: Extensions,
+        connection: Arc<ConnectionContext>,
+        cancel: CancelSignal,
+    ) -> Self {
+        Self {
+            spec: Arc::new(spec),
+            peer: Arc::new(peer),
+            headers: Arc::new(headers),
+            deadline,
+            extensions,
+            connection,
+            cancel,
+        }
+    }
+
     /// Whether the call has been canceled (sync poll — escape hatch).
     #[must_use]
     pub fn is_canceled(&self) -> bool {

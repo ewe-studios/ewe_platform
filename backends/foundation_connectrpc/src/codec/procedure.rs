@@ -172,6 +172,20 @@ impl<Req: 'static, Res: 'static> ProcedureCodecs<Req, Res> {
         self.names.iter().map(String::as_str)
     }
 
+    /// Whether `name` is a registered request codec (the 415 membership gate — the
+    /// object-safe [`ProcedureMeta`](crate::router::ProcedureMeta) view exposes this).
+    #[must_use]
+    pub fn contains(&self, name: &str) -> bool {
+        self.request.contains_key(name)
+    }
+
+    /// Whether the codec named `name` is binary (base64 in GET query, Decision 07),
+    /// or `None` if it is not registered.
+    #[must_use]
+    pub fn is_binary(&self, name: &str) -> Option<bool> {
+        self.request.get(name).map(|c| c.is_binary())
+    }
+
     fn unsupported(&self, name: &str) -> ConnectError {
         ConnectError::unimplemented(format!(
             "unsupported codec {:?}, supported: [{}]",

@@ -180,7 +180,18 @@ fn streaming_roundtrip_normalizes_endstream() {
     let (resp_tx, resp_rx) = Pipe::<Bytes>::with_depth(8);
 
     let server = ConnectHandler
-        .new_conn(&streaming_request(), req_rx, resp_tx, &registry)
+        .new_conn(
+            &streaming_request(),
+            Spec {
+                stream_type: StreamType::BidiStream,
+                procedure: "svc.Svc/Echo".to_string(),
+                is_client: false,
+                idempotency: foundation_connectrpc::IdempotencyLevel::Unknown,
+            },
+            req_rx,
+            resp_tx,
+            &registry,
+        )
         .expect("server exchange");
     let client = ConnectClient
         .new_conn(

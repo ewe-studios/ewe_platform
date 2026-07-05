@@ -24,11 +24,12 @@ use bytes::{Bytes, BytesMut};
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::simple_http::shared::{
-    SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SimpleOutgoingResponse, Status,
 };
 
 use crate::compression::{negotiate_compression, CompressionRegistry, Compressor};
-use crate::context::{CancelSignal, IdempotencyLevel, Peer, Spec, StreamType};
+use crate::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::error::{Code, ConnectError, ConnectResult};
 use crate::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::transport::{
@@ -36,7 +37,9 @@ use crate::transport::{
     DEFAULT_PIPE_DEPTH,
 };
 
-use super::{BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler};
+use super::{
+    BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,
+};
 
 /// gRPC (and gRPC-Web) constants (Decision 05).
 pub mod constants {
@@ -517,6 +520,9 @@ pub struct GrpcWebHandler;
 const ALLOWED_METHODS: [SimpleMethod; 1] = [SimpleMethod::POST];
 
 impl ProtocolHandler for GrpcWebHandler {
+    fn kind(&self) -> crate::transport::ProtocolKind {
+        crate::transport::ProtocolKind::GrpcWeb
+    }
     fn allowed_methods(&self) -> &[SimpleMethod] {
         &ALLOWED_METHODS
     }
@@ -542,41 +548,31 @@ impl ProtocolHandler for GrpcWebHandler {
             .and_then(|ct| parse_content_type(ct))
             .is_some()
     }
-
-    fn new_conn(
-        &self,
-        request: &SimpleIncomingRequest,
-        body: ByteSource,
-        responder: ByteSink,
-        compression: &CompressionRegistry,
-    ) -> ConnectResult<HandlerExchange> {
-        let text = request
+    fn codec_name(&self, request: &SimpleIncomingRequest) -> Option<String> {
+        request
             .headers
             .get(&SimpleHeader::CONTENT_TYPE)
             .and_then(|v| v.first())
             .and_then(|ct| parse_content_type(ct))
-            .map(|(_, t)| t)
-            .unwrap_or(false);
+            .map(|(codec, _)| codec)
+    }
 
-        let get = |name: &str| {
-            request
-                .headers
-                .get(&SimpleHeader::from(name.to_string()))
-                .and_then(|v| v.first())
-                .cloned()
-        };
+    fn new_conn(
+        &self,
+        request: &SimpleIncomingRequest,
+        spec: Spec,
+        body: ByteSource,
+        responder: ByteSink,
+        compression: &CompressionRegistry,
+    ) -> ConnectResult<HandlerExchange> {
+        let text = is_text(request);
+
         let negotiated = negotiate_compression(
             compression,
-            get(constants::HEADER_ENCODING).as_deref(),
-            get(constants::HEADER_ACCEPT_ENCODING).as_deref(),
+            header(&request.headers, constants::HEADER_ENCODING).as_deref(),
+            header(&request.headers, constants::HEADER_ACCEPT_ENCODING).as_deref(),
         )?;
 
-        let spec = Spec {
-            stream_type: StreamType::BidiStream,
-            procedure: request.request_url.url.clone(),
-            is_client: false,
-            idempotency: IdempotencyLevel::Unknown,
-        };
         let peer = Peer {
             addr: request
                 .connection
@@ -617,6 +613,131 @@ impl ProtocolHandler for GrpcWebHandler {
             writer_task: writer,
         })
     }
+
+    fn streaming_response_content_type(
+        &self,
+        request: &SimpleIncomingRequest,
+        codec_name: &str,
+    ) -> String {
+        content_type(codec_name, is_text(request))
+    }
+
+    fn decode_unary_request(
+        &self,
+        request: &SimpleIncomingRequest,
+        body: Bytes,
+        compression: &CompressionRegistry,
+    ) -> ConnectResult<Bytes> {
+        // Text mode base64-encodes the whole body; decode it back to binary first.
+        let raw = if is_text(request) {
+            Bytes::from(STANDARD.decode(trim_ascii(&body)).map_err(|e| {
+                ConnectError::invalid_argument(format!("invalid grpc-web-text base64: {e}"))
+            })?)
+        } else {
+            body
+        };
+        if raw.is_empty() {
+            return Ok(Bytes::new());
+        }
+        if raw.len() < ENVELOPE_HEADER_LEN {
+            return Err(ConnectError::invalid_argument("truncated gRPC-Web frame").into());
+        }
+        let flags = raw[0];
+        let len = u32::from_be_bytes([raw[1], raw[2], raw[3], raw[4]]) as usize;
+        let end = (ENVELOPE_HEADER_LEN + len).min(raw.len());
+        let payload = raw.slice(ENVELOPE_HEADER_LEN..end);
+        if flags & Envelope::FLAG_COMPRESSED != 0 {
+            let name = header(&request.headers, constants::HEADER_ENCODING).unwrap_or_default();
+            let c = compression.get(&name).ok_or_else(|| {
+                ConnectError::unimplemented(format!("unsupported grpc-encoding {name:?}"))
+            })?;
+            Ok(Bytes::from(c.decompress(&payload, 0)?))
+        } else {
+            Ok(payload)
+        }
+    }
+
+    fn encode_unary_response(
+        &self,
+        response: &mut SimpleOutgoingResponse,
+        request: &SimpleIncomingRequest,
+        codec_name: &str,
+        outcome: UnaryOutcome,
+        compression: &CompressionRegistry,
+    ) -> ConnectResult<()> {
+        let text = is_text(request);
+        response.status = Status::OK; // gRPC-Web status rides the trailer frame.
+
+        let negotiated = negotiate_compression(
+            compression,
+            header(&request.headers, constants::HEADER_ENCODING).as_deref(),
+            header(&request.headers, constants::HEADER_ACCEPT_ENCODING).as_deref(),
+        )?;
+        let response_encoding = negotiated
+            .response_compressor
+            .as_ref()
+            .map(|c| c.name().to_string());
+        let writer = EnvelopeWriter::new(negotiated.response_compressor, 0, 0);
+
+        // Message envelope followed by the `0x80` trailer frame carrying grpc-status: 0.
+        let mut out = writer.write(outcome.frame)?;
+        let status_trailers = build_status_trailers(None, &outcome.trailers);
+        let trailer_body = render_trailer_frame_body(&status_trailers);
+        out.push(constants::TRAILER_FLAG);
+        out.extend_from_slice(&(trailer_body.len() as u32).to_be_bytes());
+        out.extend_from_slice(&trailer_body);
+
+        let body = if text {
+            let mut enc = Base64StreamEncoder::default();
+            let mut encoded = enc.feed(&out);
+            encoded.extend(enc.finish());
+            encoded
+        } else {
+            out
+        };
+
+        let mut headers = outcome.headers;
+        headers.insert(SimpleHeader::CONTENT_TYPE, vec![content_type(codec_name, text)]);
+        if let Some(enc) = response_encoding {
+            headers.insert(
+                SimpleHeader::from(constants::HEADER_ENCODING.to_string()),
+                vec![enc],
+            );
+        }
+        response.headers = headers;
+        response.body = Some(SendSafeBody::Bytes(body));
+        Ok(())
+    }
+}
+
+/// First value of a request header (case-insensitive via `SimpleHeader`).
+fn header(headers: &SimpleHeaders, name: &str) -> Option<String> {
+    headers
+        .get(&SimpleHeader::from(name.to_string()))
+        .and_then(|v| v.first())
+        .cloned()
+}
+
+/// Whether the request uses gRPC-Web **text** mode (base64 body).
+fn is_text(request: &SimpleIncomingRequest) -> bool {
+    request
+        .headers
+        .get(&SimpleHeader::CONTENT_TYPE)
+        .and_then(|v| v.first())
+        .and_then(|ct| parse_content_type(ct))
+        .map(|(_, t)| t)
+        .unwrap_or(false)
+}
+
+/// Trim ASCII whitespace from both ends of a byte slice (base64 bodies may carry
+/// trailing newlines).
+fn trim_ascii(bytes: &[u8]) -> &[u8] {
+    let start = bytes.iter().position(|b| !b.is_ascii_whitespace()).unwrap_or(bytes.len());
+    let end = bytes
+        .iter()
+        .rposition(|b| !b.is_ascii_whitespace())
+        .map_or(start, |p| p + 1);
+    &bytes[start..end]
 }
 
 /// The gRPC-Web protocol client.

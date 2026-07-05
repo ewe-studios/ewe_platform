@@ -1,7 +1,7 @@
 ---
 feature: "Router, ProcedureMeta, erased handlers, ConnectRpcHandler (D08)"
 description: "Path-keyed dispatch: 404/405/415/505 flow, erased unary/stream handlers, foundation_http integration"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["17-transport-seam", "18-interceptors", "19-connect-protocol"]

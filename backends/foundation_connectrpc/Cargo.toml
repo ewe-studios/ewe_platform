@@ -17,6 +17,7 @@ foundation_http = { path = "../foundation_http", version = "0.0.1" }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
+futures = "0.3"
 serde = { workspace = true }
 serde_json = { workspace = true }
 base64 = "0.22"

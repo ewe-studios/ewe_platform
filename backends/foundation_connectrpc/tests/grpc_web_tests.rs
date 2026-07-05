@@ -165,7 +165,18 @@ fn roundtrip(text: bool) {
     let (resp_tx, resp_rx) = Pipe::<Bytes>::with_depth(8);
 
     let server = GrpcWebHandler
-        .new_conn(&request(text), req_rx, resp_tx, &registry)
+        .new_conn(
+            &request(text),
+            Spec {
+                stream_type: StreamType::ServerStream,
+                procedure: "svc.Svc/Echo".to_string(),
+                is_client: false,
+                idempotency: IdempotencyLevel::Unknown,
+            },
+            req_rx,
+            resp_tx,
+            &registry,
+        )
         .expect("server exchange");
     let client = GrpcWebClient { text }
         .new_conn(

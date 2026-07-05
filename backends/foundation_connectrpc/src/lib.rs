@@ -16,10 +16,15 @@ pub mod envelope;
 pub mod error;
 pub mod error_writer;
 pub mod interceptor;
+pub mod message;
+pub mod router;
 
 pub use error_writer::ErrorWriter;
 pub mod protocol;
 pub mod transport;
+
+pub use message::{Request, Response};
+pub use router::{ConnectRpcHandler, HandlerOptions, RequestStream, Router};
 
 pub use protocol::{
     canonicalize_content_type, parse_connect_content_type, ClientExchange, HandlerExchange,
