@@ -9,7 +9,7 @@
 //! # Example
 //!
 //! ```
-//! use foundation_netio::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
+//! use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 //! use std::time::Duration;
 //!
 //! let calculator = TimeoutCalculator::new();
@@ -218,7 +218,7 @@ impl TimeoutContext {
     /// # Example
     ///
     /// ```
-    /// use foundation_netio::wire::simple_http::timeout::TimeoutContext;
+    /// use foundation_netio::simple_http::shared::timeout::TimeoutContext;
     /// use std::time::Duration;
     ///
     /// let ctx = TimeoutContext::with_size(1024)
@@ -247,7 +247,7 @@ impl TimeoutContext {
 /// # Example
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
+/// use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 /// use std::time::Duration;
 ///
 /// let calc = TimeoutCalculator::new();
@@ -575,7 +575,7 @@ impl TimeoutCalculator {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::simple_http::timeout::{TimeoutCalculator, TimeoutContext};
+    /// use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
     ///
     /// let calc = TimeoutCalculator::new();
     ///

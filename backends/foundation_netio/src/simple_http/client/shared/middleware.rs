@@ -30,8 +30,8 @@ use tracing::{debug, info};
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::{Middleware, PreparedRequest};
-/// use foundation_netio::wire::simple_http::{HttpClientError, SendSafeBody, SimpleHeader, SimpleResponse};
+/// use foundation_netio::simple_http::client::shared::{Middleware, PreparedRequest};
+/// use foundation_netio::simple_http::shared::{HttpClientError, SendSafeBody, SimpleHeader, SimpleResponse};
 ///
 /// struct HeaderMiddleware;
 ///
@@ -119,7 +119,7 @@ pub trait Middleware: Send + Sync {
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::{MiddlewareChain, PreparedRequest};
+/// use foundation_netio::simple_http::client::shared::{MiddlewareChain, PreparedRequest};
 ///
 /// let mut chain = MiddlewareChain::new();
 /// // chain.add(LoggingMiddleware::new());
@@ -249,7 +249,7 @@ impl std::fmt::Debug for MiddlewareChain {
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::{LoggingMiddleware, MiddlewareChain};
+/// use foundation_netio::simple_http::client::shared::{LoggingMiddleware, MiddlewareChain};
 ///
 /// let mut chain = MiddlewareChain::new();
 /// chain.add(LoggingMiddleware::new());
@@ -339,7 +339,7 @@ impl Middleware for LoggingMiddleware {
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::{TimingMiddleware, MiddlewareChain};
+/// use foundation_netio::simple_http::client::shared::{TimingMiddleware, MiddlewareChain};
 ///
 /// let mut chain = MiddlewareChain::new();
 /// chain.add(TimingMiddleware::new());
@@ -408,8 +408,8 @@ impl Middleware for TimingMiddleware {
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::{HeaderMiddleware, MiddlewareChain};
-/// use foundation_netio::wire::simple_http::SimpleHeader;
+/// use foundation_netio::simple_http::client::shared::{HeaderMiddleware, MiddlewareChain};
+/// use foundation_netio::simple_http::shared::SimpleHeader;
 ///
 /// let mut chain = MiddlewareChain::new();
 /// chain.add(
@@ -503,7 +503,7 @@ impl Middleware for HeaderMiddleware {
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::BackoffStrategy;
+/// use foundation_netio::simple_http::client::shared::BackoffStrategy;
 /// use std::time::Duration;
 ///
 /// let constant = BackoffStrategy::Constant {
@@ -583,7 +583,7 @@ impl BackoffStrategy {
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::RetryState;
+/// use foundation_netio::simple_http::client::shared::RetryState;
 ///
 /// let state = RetryState::new(3);
 /// assert_eq!(state.attempt, 0);
@@ -626,7 +626,7 @@ impl RetryState {
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::RetryMiddleware;
+/// use foundation_netio::simple_http::client::shared::RetryMiddleware;
 ///
 /// let retry = RetryMiddleware::new(3, vec![429, 502, 503, 504]);
 /// ```

@@ -16,7 +16,7 @@
 //! # Example
 //!
 //! ```
-//! use foundation_netio::wire::simple_http::client_classifier::ClientClassifier;
+//! use foundation_netio::simple_http::shared::client_classifier::ClientClassifier;
 //! use std::time::Duration;
 //!
 //! let classifier = ClientClassifier::new();

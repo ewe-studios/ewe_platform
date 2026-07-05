@@ -35,7 +35,7 @@ use brotli::Decompressor as BrotliDecoder;
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::ContentEncoding;
+/// use foundation_netio::simple_http::client::shared::ContentEncoding;
 ///
 /// let encoding = ContentEncoding::from_header("gzip");
 /// assert!(matches!(encoding, ContentEncoding::Gzip));
@@ -81,7 +81,7 @@ impl ContentEncoding {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::simple_http::client::ContentEncoding;
+    /// use foundation_netio::simple_http::client::shared::ContentEncoding;
     ///
     /// assert_eq!(ContentEncoding::from_header("gzip"), ContentEncoding::Gzip);
     /// assert_eq!(ContentEncoding::from_header("GZIP"), ContentEncoding::Gzip);
@@ -120,7 +120,7 @@ impl ContentEncoding {
 /// # Examples
 ///
 /// ```
-/// use foundation_netio::wire::simple_http::client::{CompressionConfig, ContentEncoding};
+/// use foundation_netio::simple_http::client::shared::{CompressionConfig, ContentEncoding};
 ///
 /// // Default config (compression enabled)
 /// let config = CompressionConfig::default();
@@ -201,7 +201,7 @@ impl CompressionConfig {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::simple_http::client::CompressionConfig;
+    /// use foundation_netio::simple_http::client::shared::CompressionConfig;
     ///
     /// let config = CompressionConfig::default();
     /// let header_value = config.accept_encoding_value();
@@ -289,7 +289,7 @@ enum DecompressorKind<R: Read> {
 /// # Examples
 ///
 /// ```ignore
-/// use foundation_netio::wire::simple_http::client::{DecompressingReader, ContentEncoding};
+/// use foundation_netio::simple_http::client::shared::{DecompressingReader, ContentEncoding};
 /// use std::io::Read;
 ///
 /// // Gzip decompression
@@ -331,7 +331,7 @@ impl<R: Read> DecompressingReader<R> {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::wire::simple_http::client::{DecompressingReader, ContentEncoding};
+    /// use foundation_netio::simple_http::client::shared::{DecompressingReader, ContentEncoding};
     /// use std::io::Cursor;
     ///
     /// let data = b"Hello, World!";

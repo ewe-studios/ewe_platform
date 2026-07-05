@@ -14,7 +14,7 @@
 //! # Example
 //!
 //! ```
-//! use foundation_netio::wire::simple_http::latency_tracker::LatencyTracker;
+//! use foundation_netio::simple_http::shared::latency_tracker::LatencyTracker;
 //! use std::time::Duration;
 //!
 //! let tracker = LatencyTracker::new();
