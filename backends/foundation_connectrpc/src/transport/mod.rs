@@ -20,7 +20,7 @@ pub mod frame;
 #[cfg(not(target_family = "wasm"))]
 pub mod h1;
 
-pub use base::{ByteSink, ByteSource, Transport, TransportError, TransportStream};
+pub use base::{ByteSink, ByteSource, HeadSource, Transport, TransportError, TransportStream};
 pub use capabilities::{
     check_compatible, requirements, CallRequirements, ProtocolKind, TransportCapabilities,
 };

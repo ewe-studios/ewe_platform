@@ -14,6 +14,7 @@ foundation_core = { path = "../foundation_core", version = "0.0.3" }
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1", features = ["to_structured"] }
 foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
+tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
@@ -33,11 +34,31 @@ serde = { workspace = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.1" }
+tracing-test = { version = "0.2", features = ["no-env-filter"] }
+futures-lite = "2"
 
 [features]
 default = []
+multi = ["foundation_core/multi"]
 # Arrow columnar codec (platform extension) — pulls foundation_arrow.
 arrow = ["dep:foundation_arrow"]
 # Additional compressors (gzip is always available via flate2).
 zstd = ["dep:zstd"]
 brotli = ["dep:brotli"]
+
+# Tests that use the valtron pool need the multi-threaded executor.
+[[test]]
+name = "server_socket_tests"
+required-features = ["multi"]
+
+[[test]]
+name = "router_dispatch_tests"
+required-features = ["multi"]
+
+[[test]]
+name = "connect_protocol_tests"
+required-features = ["multi"]
+
+[[test]]
+name = "grpc_web_tests"
+required-features = ["multi"]

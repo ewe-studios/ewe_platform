@@ -45,12 +45,15 @@ use std::net::TcpStream;
 use std::sync::Arc;
 use std::time::Duration;
 
+use tracing_test::traced_test;
+
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
 use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 use bytes::{Buf, BufMut, Bytes};
 
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
+use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
@@ -381,8 +384,7 @@ fn connect_with_retry(addr: std::net::SocketAddr) -> TcpStream {
 // ── H1Transport compile-time contract proof ──────────────────────────────────
 
 /// Prove `H1Transport` implements `Transport` with the correct capabilities at
-/// compile time (the real-socket end-to-end is exercised through the raw
-/// loopback tests above; `H1Transport` wraps the same netio client machinery).
+/// compile time.
 #[test]
 fn h1_transport_capabilities_are_correct() {
     use foundation_connectrpc::transport::Transport;
@@ -399,4 +401,124 @@ fn h1_transport_capabilities_are_correct() {
     assert!(!caps.h2_trailers);
     assert_eq!(caps.http_versions, &[Proto::HTTP11]);
     assert!(!caps.multiplexed);
+}
+
+// ── Style B: Client-spine proof (H1Transport) ───────────────────────────────
+//
+// This test uses `H1Transport::open()` over a real loopback socket — the client
+// pushes request body bytes into `send_body`, the valtron task inside `open()`
+// spawns the network I/O, and the caller reads response bytes from `recv_body`.
+// Proves the client connection-owner end-to-end (not a compile-time assertion).
+
+/// Prove the **client** connection owner over a real loopback TCP socket:
+///
+/// 1. Server: `ConnectRpcServe` handles an echo unary RPC.
+/// 2. Client: `H1Transport::open()` spawns the pump on the valtron pool and
+///    returns `TransportStream` synchronously — `send_body`, `head`, `recv_body`.
+/// 3. The caller pushes an enveloped Connect unary request into `send_body`,
+///    polls `head` for the response status, and drains `recv_body`.
+///
+/// No `BoxFuture`, no `futures_lite::block_on` — the caller is a valtron task,
+/// the pump is a valtron task, both on the same pool.
+#[valtron_test(timeout = 15000)]
+#[traced_test]
+fn h1_client_transport_over_real_socket() {
+    use foundation_connectrpc::envelope::EnvelopeWriter;
+    use foundation_connectrpc::transport::Transport;
+    use foundation_connectrpc::H1Transport;
+    use foundation_netio::simple_http::client::SimpleHttpClient;
+    use foundation_netio::simple_http::shared::{
+        Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
+    };
+    use foundation_core::url::Uri;
+
+    // Server.
+    let mut app = HttpApp::new_serve();
+    let serve = echo_serve();
+    app.router.add_route_any(PROCEDURE, &serve);
+
+    let shutdown = Arc::new(OnSignal::new());
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
+    let shutdown_thread = shutdown.clone();
+    std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
+
+    // Wait for server.
+    let _ = TcpStream::connect_timeout(&addr, Duration::from_secs(2)).expect("server ready");
+
+    // Client: H1Transport. `open()` is synchronous — spawns the pump on the pool
+    // and returns the three caller-facing pipe halves immediately.
+    let transport = H1Transport::new(SimpleHttpClient::from_system());
+
+    let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
+    let uri = Uri::parse(&url).expect("parse URL");
+
+    let descriptor = RequestDescriptor {
+        proto: Proto::HTTP11,
+        request_url: SimpleUrl::url_only(url.clone()),
+        request_uri: uri,
+        headers: {
+            let mut h = SimpleHeaders::new();
+            h.insert(
+                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
+                vec!["application/connect+json".to_string()],
+            );
+            h.insert(
+                foundation_netio::simple_http::shared::SimpleHeader::from(
+                    "connect-protocol-version".to_string(),
+                ),
+                vec!["1".to_string()],
+            );
+            h
+        },
+        method: SimpleMethod::POST,
+    };
+
+    let stream = transport.open(descriptor).expect("open");
+    // Move pipe halves into owned locals — block_on_future requires 'static.
+    let head = stream.head;
+    let recv_body = stream.recv_body;
+
+    // Push the enveloped request into send_body.
+    let msg = TestMsg {
+        id: 77,
+        name: "transport".to_string(),
+    };
+    let json = JsonCodec.marshal(&msg).expect("marshal");
+    let envelope = EnvelopeWriter::new(None, 0, 0)
+        .write(Bytes::from(json.to_vec()))
+        .expect("envelope");
+    stream
+        .send_body
+        .try_send(Bytes::from(envelope))
+        .expect("send request body");
+    // Drop send_body → body pipe closed, server sees EOF.
+
+    // Block test thread on the `head` pipe until the pump delivers the response head.
+    let (status, _headers) =
+        futures_lite::future::block_on(head.receive()).expect("response head");
+    assert_eq!(
+        status,
+        foundation_netio::simple_http::shared::Status::OK,
+        "H1Transport: response status is 200 OK"
+    );
+
+    // Block test thread on the `recv_body` pipe until response bytes arrive.
+    let body_bytes: Option<Bytes> =
+        futures_lite::future::block_on(recv_body.receive());
+    let body_bytes = body_bytes.expect("response body bytes");
+
+    // Decode the echoed message.
+    let echoed: TestMsg = JsonCodec.unmarshal(body_bytes).expect("decode echo");
+    assert_eq!(
+        echoed, msg,
+        "H1Transport: echoed message matches request over real socket"
+    );
+
+    shutdown.turn_on();
 }

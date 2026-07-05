@@ -4,31 +4,32 @@
 //! WHY: The `Transport` trait defines the byte-level client-seam contract. The
 //! HTTP/1.1 implementation is the first concrete transport — it proves the seam (the
 //! caller pushes request bytes into `send_body` and receives response bytes from
-//! `recv_body`) and is the client connection-owner: `open()` spawns the request-drive
-//! so the pushable request-body pipe is drained concurrently with the caller's pushes
-//! (half-duplex deadlock avoidance, Decision 11).
+//! `recv_body`) and is the client connection-owner: `open()` spawns the byte pump on
+//! the valtron pool and returns the three caller-facing pipe halves synchronously
+//! (Decision 11 §Connection ownership).
 //!
 //! WHAT: [`H1Transport`] — wraps a netio `SimpleHttpClient` and implements
-//! `Transport`.
+//! `Transport`. `open()` is synchronous — no `BoxFuture`, no `futures_lite::block_on`,
+//! no OS threads. The pump is a valtron task (`from_future` + `valtron::send()`).
 //!
-//! HOW: A spawned valtron task calls `ClientRequest::send_async()`, which internally
-//! spawns the network I/O, drives the intro + body streams to completion, and
-//! collects the full response. The task then feeds the response head into a oneshot
-//! pipe and drains the body into the recv-body pipe. The caller receives
-//! `TransportStream` immediately and can push body bytes concurrently.
+//! HOW: The pump task calls `ClientRequest::send_async()` (which internally uses
+//! `StreamReadyFuture` self-wake to drive the netio request/response streams). Once
+//! `send_async()` completes, the remaining work (`head_tx.send`, `drain_body_into_pipe`)
+//! all resolve in the same poll because the pipes have capacity. The caller receives
+//! three caller-facing `Pipe` halves and polls them directly.
 
 use std::sync::Arc;
 
 use bytes::Bytes;
-use foundation_core::valtron;
+use foundation_core::valtron::{self, from_future};
 use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_netio::simple_http::shared::{
     pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor, SendSafeBody,
-    SimpleHeaders, SimpleResponse, Status, DEFAULT_PUSHABLE_DEPTH,
+    SimpleHeaders, Status, DEFAULT_PUSHABLE_DEPTH,
 };
 
 use super::{
-    BoxFuture, ByteSink, ByteSource, Transport, TransportCapabilities, TransportError,
+    ByteSink, ByteSource, HeadSource, Transport, TransportCapabilities, TransportError,
     TransportStream,
 };
 
@@ -62,56 +63,62 @@ impl Transport for H1Transport {
     fn open(
         &self,
         request: RequestDescriptor,
-    ) -> BoxFuture<'static, Result<TransportStream, TransportError>> {
+    ) -> Result<TransportStream, TransportError> {
         let url_str = request_url_string(&request);
-        let client = self.client.clone();
         let method = request.method.clone();
         let headers = request.headers.clone();
 
-        Box::pin(async move {
-            // 1. Create pushable request body → extract sender as send_body.
-            let (pushable, body_stream) = pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
-            let send_body: ByteSink = pushable.into_sender();
+        // 1. Create pushable request body → extract sender as send_body.
+        let (pushable, body_stream) =
+            pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
+        let send_body: ByteSink = pushable.into_sender();
 
-            // 2. Build and send through the configured client (inherits its pool,
-            //    config, and middleware).
-            let builder = ClientRequestBuilder::new(method, &url_str)
-                .map_err(http_to_transport_error)?
-                .body(body_stream)
-                .headers(headers);
+        // 2. Build the client request.
+        let builder = ClientRequestBuilder::new(method, &url_str)
+            .map_err(http_to_transport_error)?
+            .body(body_stream)
+            .headers(headers);
 
-            let client_req = client.request(builder).map_err(http_to_transport_error)?;
+        let client_req = self
+            .client
+            .request(builder)
+            .map_err(http_to_transport_error)?;
 
-            // 3. Channels: a 1-element Pipe for the response head (oneshot), a
-            //    regular-depth Pipe for the response body.
-            let (head_tx, head_rx) =
-                foundation_core::valtron::Pipe::<(Status, SimpleHeaders)>::with_depth(1);
-            let (recv_tx, recv_body): (ByteSink, ByteSource) =
-                foundation_core::valtron::Pipe::with_depth(DEFAULT_PUSHABLE_DEPTH);
+        // 3. Channels: a 1-slot Pipe for the response head, a regular-depth
+        //    Pipe for the response body.
+        let (head_tx, head_rx): (
+            foundation_core::valtron::PipeSender<(Status, SimpleHeaders)>,
+            HeadSource,
+        ) = foundation_core::valtron::Pipe::with_depth(1);
+        let (recv_tx, recv_body): (ByteSink, ByteSource) =
+            foundation_core::valtron::Pipe::with_depth(DEFAULT_PUSHABLE_DEPTH);
 
-            // 4. Spawn valtron task: drive send_async() → drain head + body into
-            //    the pipes.
-            let drain = valtron::from_future(drive_and_drain(client_req, head_tx, recv_tx));
-            let _ = valtron::execute(drain, None);
+        // 4. Spawn the pump on the valtron pool. It drives send_async() →
+        //    feeds head and body into the pipes. Once send_async() completes,
+        //    the remaining work (head send + body drain) resolves in the same
+        //    poll because both pipes have capacity.
+        let pump = from_future(drive_and_drain(client_req, head_tx, recv_tx));
+        valtron::send(pump).map_err(|e| {
+            TransportError::Connect(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                e.to_string(),
+            )))
+        })?;
 
-            // 5. Return immediately — caller pushes body bytes while valtron task
-            //    drains the request in parallel.
-            Ok(TransportStream {
-                send_body,
-                response: Box::pin(async move {
-                    let (status, headers) = head_rx.receive().await.ok_or(TransportError::Reset)?;
-                    Ok(SimpleResponse::no_body(status, headers))
-                }),
-                recv_body,
-            })
+        // 5. Return immediately — caller holds the caller-facing pipe halves;
+        //    the pump task drains the socket-facing halves in parallel.
+        Ok(TransportStream {
+            send_body,
+            head: head_rx,
+            recv_body,
         })
     }
 }
 
-// ── valtron task ─────────────────────────────────────────────────────────────────
+// ── pump task ────────────────────────────────────────────────────────────────────
 
-/// Spawned valtron task: drive `send_async()` to completion, then feed the response
-/// head and body into their respective pipes.
+/// Valton task: drive `send_async()` to completion, then feed the response head and
+/// body into their respective pipes.
 async fn drive_and_drain(
     client_req: foundation_netio::simple_http::client::ClientRequest<
         foundation_netio::simple_http::client::shared::SystemDnsResolver,

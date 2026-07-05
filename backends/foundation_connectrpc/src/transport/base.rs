@@ -10,44 +10,65 @@
 //! exchange), [`ByteSink`]/[`ByteSource`], and [`TransportError`] with its
 //! `ConnectError` mapping. Concrete transports (HTTP/1.1, HTTP/2, WASM Fetch, …)
 //! implement this in their own features; this defines the contract they satisfy.
+//!
+//! ## Valton-native design (Decision 11 §Connection ownership)
+//!
+//! `open()` is synchronous — it spawns the byte pump on the valtron pool and
+//! returns the caller-facing pipe halves immediately. The caller pushes request
+//! bytes into `send_body` and receives responses via `recv_body`. The response
+//! head (status + headers) arrives through a 1-slot `head` pipe. No `BoxFuture`,
+//! no `futures_lite::block_on` — the pump task on the pool handles all the async
+//! I/O, and the caller is already in a valtron context (or uses the pipe's own
+//! `receive().await` / `try_recv()` + `readiness()` surface).
 
 use bytes::Bytes;
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::{RequestDescriptor, SimpleResponse};
+use foundation_netio::simple_http::shared::{RequestDescriptor, SimpleHeaders, Status};
 
 use crate::error::{Code, ConnectError};
 
 use super::capabilities::TransportCapabilities;
-use super::frame::BoxFuture;
 
 /// The wire-body byte sink (request bytes out).
 pub type ByteSink = PipeSender<Bytes>;
 /// The wire-body byte source (response bytes in).
 pub type ByteSource = PipeReceiver<Bytes>;
+/// Response-head source (status + headers, at most one item).
+pub type HeadSource = PipeReceiver<(Status, SimpleHeaders)>;
 
 /// HTTP transport abstraction — one implementation per transport.
 pub trait Transport: Send + Sync + 'static {
     /// What this transport can do (for capability matching before sending).
     fn capabilities(&self) -> TransportCapabilities;
 
-    /// Open a streaming exchange. Unary is the degenerate case (send one, close,
-    /// receive one). Async — connecting / pool checkout does I/O and must park.
-    fn open(
-        &self,
-        request: RequestDescriptor,
-    ) -> BoxFuture<'static, Result<TransportStream, TransportError>>;
+    /// Open a streaming exchange. Spawns the byte pump on the valtron pool and
+    /// returns the caller-facing pipe halves synchronously. Unary is the
+    /// degenerate case (send one, close, receive one).
+    ///
+    /// # Errors
+    ///
+    /// Returns `TransportError` if the pump task cannot be spawned (e.g. pool not
+    /// initialised) or if building the request fails synchronously.
+    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
 }
 
-/// A live transport exchange — **byte-level**. The response head resolves
-/// asynchronously (it may wait on the network).
+/// A live transport exchange — **byte-level**. The three caller-facing halves:
+/// push request bytes, await the response head, drain response body bytes.
+///
+/// All three are valtron [`Pipe`](foundation_core::valtron::Pipe) halves owned
+/// by the caller. The transport's pump task (spawned by `open()`) holds the
+/// socket-facing halves.
 pub struct TransportStream {
     /// Wire request-body bytes out.
     pub send_body: ByteSink,
-    /// The response head (status + headers, no body) — awaited.
-    pub response: BoxFuture<'static, Result<SimpleResponse<()>, TransportError>>,
-    /// Wire response-body bytes in.
+    /// The response head (status + headers) — at most one item. Once the head
+    /// arrives, `receive().await` yields it; the pipe then closes so the next
+    /// receive returns `None`.
+    pub head: HeadSource,
+    /// Wire response-body bytes in. Drained by the caller; the pump task pushes
+    /// response-body chunks.
     pub recv_body: ByteSource,
 }
 

@@ -25,9 +25,10 @@
 //! }
 //! ```
 
+use bytes::Bytes;
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
-use foundation_core::valtron::{BoxedSendableDataIterator, BoxedSendableIterator};
+use foundation_core::valtron::{BoxedSendableDataIterator, BoxedSendableIterator, Stream};
 use crate::event_source::shared::ParseResult;
 use crate::event_source::Event;
 use crate::simple_http::shared::{
@@ -1639,6 +1640,115 @@ pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
 pub fn try_collect_string(body: SendSafeBody) -> Result<String, BoxedError> {
     let bytes = try_collect_bytes(body)?;
     String::from_utf8(bytes).map_err(|e| Box::new(e) as BoxedError)
+}
+
+// ============================================================================
+// SendSafeBodyBytesIterator — streaming body chunk iterator
+// ============================================================================
+
+/// A chunk of body data or a stream error from [`SendSafeBodyBytesIterator`].
+///
+/// Used as the `D` in `Stream<D, ()>` — callers match `Next(Bytes)` for data
+/// or `Next(Error)` for stream failure.
+pub enum SendSafeBodyBytesItem {
+    Chunk(Bytes),
+    StreamError(BoxedError),
+}
+
+/// WHY: `try_collect_bytes` buffers the entire response body into a `Vec<u8>` —
+/// fine for small payloads but wasteful for streaming/large responses. Transport
+/// pumps need a chunk-at-a-time iterator wrapping any `SendSafeBody` variant.
+///
+/// WHAT: Wraps a `SendSafeBody` and yields `Stream<SendSafeBodyBytesItem, ()>`:
+/// `Next(Bytes)` per data chunk, `Next(Error)` for stream errors, `Ignore` for
+/// transient non-data items, `None` when exhausted. All six variants handled.
+///
+/// HOW: Takes ownership of the `SendSafeBody` — the body IS the state. On each
+/// `next()` call, matches the current variant and extracts the next chunk.
+pub struct SendSafeBodyBytesIterator(SendSafeBody);
+
+impl SendSafeBodyBytesIterator {
+    /// Wrap a `SendSafeBody`. Takes ownership — the body cannot be read again.
+    #[must_use]
+    pub fn new(body: SendSafeBody) -> Self {
+        Self(body)
+    }
+}
+
+impl Iterator for SendSafeBodyBytesIterator {
+    type Item = Stream<SendSafeBodyBytesItem, ()>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let item = SendSafeBodyBytesItem::Chunk;
+        let err_item = SendSafeBodyBytesItem::StreamError;
+        match &mut self.0 {
+            SendSafeBody::Bytes(v) => {
+                let bytes = std::mem::take(v);
+                if bytes.is_empty() {
+                    None
+                } else {
+                    Some(Stream::Next(item(Bytes::from(bytes))))
+                }
+            }
+            SendSafeBody::Text(t) => {
+                let text = std::mem::take(t);
+                if text.is_empty() {
+                    None
+                } else {
+                    Some(Stream::Next(item(Bytes::from(text.into_bytes()))))
+                }
+            }
+            SendSafeBody::None => None,
+            SendSafeBody::Stream(ref mut opt) => match opt {
+                Some(iter) => match iter.next() {
+                    Some(Ok(Data::Bytes(bytes))) => Some(Stream::Next(item(Bytes::from(bytes)))),
+                    Some(Ok(Data::Retry)) => Some(Stream::Ignore),
+                    Some(Err(e)) => Some(Stream::Next(err_item(e))),
+                    None => None,
+                },
+                None => None,
+            },
+            SendSafeBody::ChunkedStream(ref mut opt) => match opt {
+                Some(iter) => match iter.next() {
+                    Some(Ok(data)) => match data {
+                        ChunkedData::Data(bytes, _) => Some(Stream::Next(item(Bytes::from(bytes)))),
+                        ChunkedData::Trailers(_) | ChunkedData::DataEnded => Some(Stream::Ignore),
+                    },
+                    Some(Err(e)) => Some(Stream::Next(err_item(e))),
+                    None => None,
+                },
+                None => None,
+            },
+            SendSafeBody::LineFeedStream(ref mut opt) => match opt {
+                Some(iter) => match iter.next() {
+                    Some(Ok(data)) => match data {
+                        LineFeed::Line(line) => {
+                            let mut bytes = line.into_bytes();
+                            bytes.push(b'\n');
+                            Some(Stream::Next(item(Bytes::from(bytes))))
+                        }
+                        LineFeed::SKIP | LineFeed::END => Some(Stream::Ignore),
+                    },
+                    Some(Err(e)) => Some(Stream::Next(err_item(e))),
+                    None => None,
+                },
+                None => None,
+            },
+            SendSafeBody::SseStream(ref mut opt) => match opt {
+                Some(iter) => match iter.next() {
+                    Some(Ok(parse_result)) => match parse_result.event {
+                        Event::Message { data, .. } => {
+                            Some(Stream::Next(item(Bytes::from(data))))
+                        }
+                        Event::Comment(_) | Event::Reconnect => Some(Stream::Ignore),
+                    },
+                    Some(Err(e)) => Some(Stream::Next(err_item(e))),
+                    None => None,
+                },
+                None => None,
+            },
+        }
+    }
 }
 
 // ============================================================================

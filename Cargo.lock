@@ -4085,8 +4085,11 @@ dependencies = [
  "foundation_http",
  "foundation_netio",
  "futures",
+ "futures-lite",
  "serde",
  "serde_json",
+ "tracing",
+ "tracing-test",
  "zstd",
 ]
 
