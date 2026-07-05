@@ -9,27 +9,28 @@
 //! receiver, extracts the response head and body chunks, and holds the
 //! `HttpClientConnection` for pool return.
 //!
-//! HOW: `inlined_task(…, SendRequestTask::new(…))` spawns the child. The receiver
-//! yields `TaskStatus<RequestIntro, HttpRequestPending, …>`. On `Ready(Success)`,
-//! extract `(status, headers)` → `HttpExchange::Head`, wrap the body in a
-//! `SendSafeBodyBytesIterator` → `HttpExchange::BodyChunk` for each chunk.
+//! HOW: `inlined_task(…, SendRequestTask::new(…))` spawns the child. Each
+//! `next_status()` call does exactly one step — polls the child receiver or reads
+//! the next body chunk. No internal loop.
 
 use std::sync::Arc;
 
 use bytes::Bytes;
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{
-    inlined_task, BoxedSendExecutionAction, InlineSendActionBehaviour, IntoBoxedSendExecutionAction,
-    Stream, TaskIterator, TaskStatus,
+    inlined_task, BoxedSendExecutionAction, InlineSendActionBehaviour,
+    IntoBoxedSendExecutionAction, Stream, TaskIterator, TaskStatus,
 };
 
+use crate::simple_http::client::native::tasks::{
+    HttpRequestPending, RequestIntro, SendRequestTask,
+};
 use crate::simple_http::client::shared::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };
 use crate::simple_http::client::shared::request_task::{HttpExchange, HttpExchangePending};
 use crate::simple_http::client::shared::{ClientConfig, PreparedRequest, SystemDnsResolver};
-use crate::simple_http::client::{HttpConnectionPool, HttpClientConnection};
-use crate::simple_http::client::native::tasks::{HttpRequestPending, RequestIntro, SendRequestTask};
+use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
 use crate::simple_http::shared::{IncomingResponseParts, SimpleHeaders, Status};
 
 type Child = SendRequestTask<SystemDnsResolver>;
@@ -38,11 +39,12 @@ type ChildReceiver = foundation_core::valtron::DrivenRecvIterator<Child>;
 
 /// State for the HTTP exchange pump.
 enum State {
-    /// Haven't received the first result from the child yet.
-    AwaitingChild,
-    /// Awaiting the next `TaskStatus` from the spawned `SendRequestTask` child.
+    /// Awaiting the next result from the spawned `SendRequestTask` child.
     Polling(ChildReceiver),
-    /// Head received; draining the body from the `HttpResponseReader`.
+    /// Head received; draining the body from the `HttpResponseReader`.  The
+    /// sub-state tracks whether we are in the middle of iterating a single
+    /// `SizedBody`/`StreamedBody` payload — one `SendSafeBodyBytesIterator`
+    /// may produce several chunks across multiple `next_status()` calls.
     StreamingBody {
         conn: Option<HttpClientConnection>,
         body_reader: Box<
@@ -50,8 +52,10 @@ enum State {
                     Item = Result<IncomingResponseParts, crate::simple_http::shared::HttpReaderError>,
                 > + Send,
         >,
+        /// Active chunk iterator for the current body payload.
+        chunk_iter: Option<SendSafeBodyBytesIterator>,
     },
-    /// Failed before yielding Head.
+    /// Failed before yielding Head. Holds the error to yield once.
     Failed(Option<SendableBoxedError>),
     /// All output yielded.
     Done,
@@ -94,122 +98,122 @@ impl TaskIterator for HttpExchangeTask {
     type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
-        // First call: emit the Spawn so the executor runs the child.
+        // First call — emit the Spawn so the executor runs the child.
         if let Some(action) = self.spawn.take() {
             return Some(TaskStatus::Spawn(action));
         }
 
-        loop {
-            match &mut self.state {
-                State::AwaitingChild => unreachable!("spawn already emitted"),
-                State::Polling(ref mut rx) => {
-                    return match rx.next() {
-                        Some(TaskStatus::Ready(RequestIntro::Success {
-                            intro,
+        match &mut self.state {
+            State::Polling(ref mut rx) => {
+                match rx.next() {
+                    Some(TaskStatus::Ready(RequestIntro::Success {
+                        intro,
+                        headers,
+                        conn,
+                        stream,
+                    })) => {
+                        // intro: (Status, Proto, Option<String>)
+                        self.state = State::StreamingBody {
+                            conn: Some(conn),
+                            body_reader: Box::new(stream),
+                            chunk_iter: None,
+                        };
+                        Some(TaskStatus::Ready(HttpExchange::Head {
+                            status: intro.0,
                             headers,
-                            conn,
-                            stream,
-                        })) => {
-                            // intro: (Status, Proto, Option<String>)
-                            self.state = State::StreamingBody {
-                                conn: Some(conn),
-                                body_reader: Box::new(stream),
-                            };
-                            Some(TaskStatus::Ready(HttpExchange::Head {
-                                status: intro.0,
-                                headers,
-                            }))
-                        }
-                        Some(TaskStatus::Ready(RequestIntro::Failed(e))) => {
-                            self.state =
-                                State::Failed(Some(Box::new(std::io::Error::new(
-                                    std::io::ErrorKind::Other,
-                                    format!("{e}"),
-                                ))));
-                            continue;
-                        }
-                        Some(TaskStatus::Pending(_)) => {
-                            Some(TaskStatus::Pending(HttpExchangePending::Waiting))
-                        }
-                        Some(TaskStatus::Spawn(action)) => {
-                            Some(TaskStatus::Spawn(action))
-                        }
-                        Some(
-                            TaskStatus::Init
-                            | TaskStatus::Ignore
-                            | TaskStatus::Wait
-                            | TaskStatus::Delayed(_),
-                        ) => continue,
-                        Some(TaskStatus::Depends(_)) => {
-                            Some(TaskStatus::Pending(HttpExchangePending::Waiting))
-                        }
-                        Some(TaskStatus::Spread(_)) => continue,
-                        None => {
-                            let e: SendableBoxedError = Box::new(std::io::Error::new(
-                                std::io::ErrorKind::UnexpectedEof,
-                                "SendRequestTask exhausted without producing RequestIntro",
-                            ));
-                            self.state = State::Failed(Some(e));
-                            continue;
-                        }
-                    };
+                        }))
+                    }
+                    Some(TaskStatus::Ready(RequestIntro::Failed(e))) => {
+                        let err: SendableBoxedError = Box::new(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            format!("{e}"),
+                        ));
+                        self.state = State::Failed(Some(err));
+                        // Yield the error on the next call.
+                        Some(TaskStatus::Pending(HttpExchangePending::Waiting))
+                    }
+                    Some(TaskStatus::Pending(_)) => {
+                        Some(TaskStatus::Pending(HttpExchangePending::Waiting))
+                    }
+                    Some(TaskStatus::Spawn(action)) => Some(TaskStatus::Spawn(action)),
+                    Some(TaskStatus::Depends(_)) => {
+                        Some(TaskStatus::Pending(HttpExchangePending::Waiting))
+                    }
+                    // Intermediate states — ask executor to re-poll us.
+                    None | Some(
+                        TaskStatus::Init
+                        | TaskStatus::Ignore
+                        | TaskStatus::Wait
+                        | TaskStatus::Delayed(_)
+                        | TaskStatus::Spread(_),
+                    ) => Some(TaskStatus::Pending(HttpExchangePending::Waiting)),
                 }
-                State::StreamingBody {
-                    ref mut conn,
-                    ref mut body_reader,
-                } => {
-                    return match body_reader.next() {
-                        Some(Ok(IncomingResponseParts::SizedBody(body)))
-                        | Some(Ok(IncomingResponseParts::StreamedBody(body))) => {
-                            let mut iter = SendSafeBodyBytesIterator::new(body);
-                            match iter.next() {
-                                Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
-                                    Some(TaskStatus::Ready(HttpExchange::BodyChunk(bytes)))
-                                }
-                                Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
-                                    let _ = conn.take();
-                                    let e: SendableBoxedError =
-                                        Box::new(std::io::Error::new(
-                                            std::io::ErrorKind::Other,
-                                            e.to_string(),
-                                        ));
-                                    Some(TaskStatus::Ready(HttpExchange::Failed(e)))
-                                }
-                                Some(Stream::Ignore) | None => continue,
-                                _ => continue,
-                            }
-                        }
-                        Some(Ok(IncomingResponseParts::NoBody)) => {
-                            let _ = conn.take();
-                            None
-                        }
-                        Some(Ok(
-                            IncomingResponseParts::Intro(..)
-                            | IncomingResponseParts::Headers(..)
-                            | IncomingResponseParts::SKIP,
-                        )) => continue,
-                        Some(Err(e)) => {
-                            let _ = conn.take();
-                            let se: SendableBoxedError =
-                                Box::new(std::io::Error::new(
-                                    std::io::ErrorKind::Other,
-                                    e.to_string(),
-                                ));
-                            Some(TaskStatus::Ready(HttpExchange::Failed(se)))
-                        }
-                        None => {
-                            let _ = conn.take();
-                            None
-                        }
-                    };
-                }
-                State::Failed(ref mut opt) => {
-                    return opt
-                        .take()
-                        .map(|e| TaskStatus::Ready(HttpExchange::Failed(e)));
-                }
-                State::Done => return None,
             }
+            State::StreamingBody {
+                ref mut conn,
+                ref mut body_reader,
+                ref mut chunk_iter,
+            } => {
+                // 1. If we have an active chunk iterator, drain it first.
+                if let Some(ref mut iter) = chunk_iter {
+                    match iter.next() {
+                        Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
+                            return Some(TaskStatus::Ready(HttpExchange::BodyChunk(bytes)));
+                        }
+                        Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
+                            let se: SendableBoxedError = Box::new(std::io::Error::new(
+                                std::io::ErrorKind::Other,
+                                e.to_string(),
+                            ));
+                            let _ = conn.take();
+                            self.state = State::Failed(Some(se));
+                            return Some(TaskStatus::Pending(HttpExchangePending::Waiting));
+                        }
+                        Some(Stream::Ignore) | None => {
+                            // This payload exhausted — drop iterator, try next part.
+                            *chunk_iter = None;
+                            // Ask for a re-poll so we can read the next `IncomingResponseParts`.
+                            return Some(TaskStatus::Pending(HttpExchangePending::Waiting));
+                        }
+                        _ => {
+                            return Some(TaskStatus::Pending(HttpExchangePending::Waiting));
+                        }
+                    }
+                }
+
+                // 2. Read the next `IncomingResponseParts` from the body reader.
+                match body_reader.next() {
+                    Some(Ok(IncomingResponseParts::SizedBody(body)))
+                    | Some(Ok(IncomingResponseParts::StreamedBody(body))) => {
+                        *chunk_iter = Some(SendSafeBodyBytesIterator::new(body));
+                        Some(TaskStatus::Pending(HttpExchangePending::Waiting))
+                    }
+                    Some(Ok(IncomingResponseParts::NoBody)) => {
+                        let _ = conn.take();
+                        None
+                    }
+                    Some(Ok(
+                        IncomingResponseParts::Intro(..)
+                        | IncomingResponseParts::Headers(..)
+                        | IncomingResponseParts::SKIP,
+                    )) => Some(TaskStatus::Pending(HttpExchangePending::Waiting)),
+                    Some(Err(e)) => {
+                        let se: SendableBoxedError = Box::new(std::io::Error::new(
+                            std::io::ErrorKind::Other,
+                            e.to_string(),
+                        ));
+                        let _ = conn.take();
+                        self.state = State::Failed(Some(se));
+                        Some(TaskStatus::Pending(HttpExchangePending::Waiting))
+                    }
+                    None => {
+                        let _ = conn.take();
+                        None
+                    }
+                }
+            }
+            State::Failed(ref mut opt) => opt.take().map(|e| TaskStatus::Ready(HttpExchange::Failed(e))),
+            State::Done => None,
         }
     }
 }
