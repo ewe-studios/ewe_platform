@@ -2,72 +2,127 @@
 //! walking skeleton).
 //!
 //! WHY: `Transport` byte-level client-seam contract.
-//! WHAT: `open()` spawns an OS thread driving `client_req.send()` (sync), feeds
-//! head+body into pipes, returns three caller-facing halves synchronously.
+//! WHAT: `open()` creates an `HttpExchangeTask` (native: wraps `SendRequestTask` via
+//! `inlined_task`), maps its output into caller-facing pipes via `map_ready`, spawns on
+//! the valtron pool via `valtron::send()`, returns `TransportStream` synchronously.
+//! HOW: `PreparedRequest` → `HttpExchangeTask::new()` → `.map_ready(|item| match item {
+//! Head → head_tx, BodyChunk → recv_tx, Failed → done })` → `valtron::send()`.
 
 use std::sync::Arc;
 
-use bytes::Bytes;
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
-use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
+use foundation_core::url::Uri;
+use foundation_core::valtron::{self, TaskIteratorExt};
+use foundation_netio::simple_http::client::shared::request_task::HttpExchange;
+use foundation_netio::simple_http::client::shared::{PreparedRequest, SystemDnsResolver};
+use foundation_netio::simple_http::client::{HttpExchangeTask, SimpleHttpClient};
+use foundation_netio::simple_http::shared::Extensions;
 use foundation_netio::simple_http::shared::{
-    pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
-    SimpleHeaders, Status, DEFAULT_PUSHABLE_DEPTH,
+    pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor, SimpleHeaders,
+    SimpleMethod, Status, DEFAULT_PUSHABLE_DEPTH,
 };
 
-use super::{ByteSink, ByteSource, HeadSource, Transport, TransportCapabilities, TransportError, TransportStream};
+use super::{
+    ByteSink, ByteSource, HeadSource, Transport, TransportCapabilities, TransportError,
+    TransportStream,
+};
 
 #[derive(Clone)]
-pub struct H1Transport { client: Arc<SimpleHttpClient> }
+pub struct H1Transport {
+    client: Arc<SimpleHttpClient>,
+}
 
 impl H1Transport {
-    #[must_use] pub fn new(client: SimpleHttpClient) -> Self { Self { client: Arc::new(client) } }
+    #[must_use]
+    pub fn new(client: SimpleHttpClient) -> Self {
+        Self {
+            client: Arc::new(client),
+        }
+    }
 }
 
 impl Transport for H1Transport {
     fn capabilities(&self) -> TransportCapabilities {
-        TransportCapabilities { request_streaming: true, full_duplex: false, h2_trailers: false, http_versions: &[Proto::HTTP11], multiplexed: false }
+        TransportCapabilities {
+            request_streaming: true,
+            full_duplex: false,
+            h2_trailers: false,
+            http_versions: &[Proto::HTTP11],
+            multiplexed: false,
+        }
     }
 
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
+        let url_str = request_url_string(&request);
         let method = request.method.clone();
         let headers = request.headers.clone();
-        let url_str = request_url_string(&request);
 
         let (pushable, body_stream) = pushable_request_body_with_depth(DEFAULT_PUSHABLE_DEPTH);
         let send_body: ByteSink = pushable.into_sender();
 
-        let client_req = self.client.request(
-            ClientRequestBuilder::<foundation_netio::simple_http::client::shared::SystemDnsResolver>::new(method, &url_str)
-                .map_err(http_to_transport_error)?
-                .body(body_stream)
-                .headers(headers),
-        ).map_err(http_to_transport_error)?;
+        let uri = Uri::parse(&url_str).map_err(|e| {
+            http_to_transport_error(HttpClientError::Reason(format!("invalid URL: {e}")))
+        })?;
+        let prepared = PreparedRequest {
+            method,
+            url: uri,
+            headers,
+            body: body_stream,
+            extensions: Extensions::new(),
+        };
 
-        let (head_tx, head_rx): (foundation_core::valtron::PipeSender<(Status, SimpleHeaders)>, HeadSource) =
-            foundation_core::valtron::Pipe::with_depth(1);
+        let (head_tx, head_rx): (
+            foundation_core::valtron::PipeSender<(Status, SimpleHeaders)>,
+            HeadSource,
+        ) = foundation_core::valtron::Pipe::with_depth(1);
         let (recv_tx, recv_body): (ByteSink, ByteSource) =
             foundation_core::valtron::Pipe::with_depth(DEFAULT_PUSHABLE_DEPTH);
 
-        std::thread::spawn(move || {
-            match client_req.send() {
-                Ok(finalized) => {
-                    let (status, headers, body, _pool, _conn) = finalized.into_parts();
-                    let _ = head_tx.try_send((status, headers));
-                    if let Ok(bytes) = try_collect_bytes(body) {
-                        if !bytes.is_empty() { let _ = recv_tx.try_send(Bytes::from(bytes)); }
-                    }
-                }
-                Err(_) => {}
-            }
-        });
+        let pool = self.client.client_pool().ok_or_else(|| {
+            TransportError::Connect(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                "no connection pool configured",
+            )))
+        })?;
+        let config = self.client.client_config();
 
-        Ok(TransportStream { send_body, head: head_rx, recv_body })
+        let pump = HttpExchangeTask::new(prepared, config.max_redirects, pool, config).map_ready(
+            move |item| match item {
+                HttpExchange::Head { status, headers } => {
+                    let _ = head_tx.try_send((status, headers));
+                }
+                HttpExchange::BodyChunk(bytes) => {
+                    let _ = recv_tx.try_send(bytes);
+                }
+                HttpExchange::Failed(_) => {}
+            },
+        );
+
+        valtron::send(pump).map_err(|e| {
+            TransportError::Connect(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                e.to_string(),
+            )))
+        })?;
+
+        Ok(TransportStream {
+            send_body,
+            head: head_rx,
+            recv_body,
+        })
     }
 }
 
 fn request_url_string(req: &RequestDescriptor) -> String {
-    format!("http://{}:{}{}", req.request_uri.host_str().unwrap_or_else(|| "localhost".to_string()), req.request_uri.port_or_default(), req.request_uri.path())
+    format!(
+        "http://{}:{}{}",
+        req.request_uri
+            .host_str()
+            .unwrap_or_else(|| "localhost".to_string()),
+        req.request_uri.port_or_default(),
+        req.request_uri.path(),
+    )
 }
 
-fn http_to_transport_error(e: HttpClientError) -> TransportError { TransportError::Connect(Box::new(e)) }
+fn http_to_transport_error(e: HttpClientError) -> TransportError {
+    TransportError::Connect(Box::new(e))
+}
