@@ -420,11 +420,9 @@ fn h1_transport_capabilities_are_correct() {
 ///
 /// No `BoxFuture`, no `futures_lite::block_on` — the caller is a valtron task,
 /// the pump is a valtron task, both on the same pool.
-#[test]
+#[valtron_test(seed = 44, threads = 8)]
 #[traced_test]
-fn h1_client_transport_over_real_socket() {
-    let _guard = initialize_pool(44, Some(8));
-    eprintln!("[test] pool initialized, starting...");
+async fn h1_client_transport_over_real_socket() {
     use foundation_connectrpc::envelope::EnvelopeWriter;
     use foundation_connectrpc::transport::Transport;
     use foundation_connectrpc::H1Transport;
@@ -501,21 +499,10 @@ fn h1_client_transport_over_real_socket() {
         .expect("send request body");
     // Drop send_body → body pipe closed, server sees EOF.
 
-    // Block test thread on the `head` pipe until the pump delivers the response head.
-    eprintln!("[test] waiting for head...");
-    let (status, _headers) =
-        futures_lite::future::block_on(head.receive()).expect("response head");
-    eprintln!("[test] head received");
-    assert_eq!(
-        status,
-        foundation_netio::simple_http::shared::Status::OK,
-        "H1Transport: response status is 200 OK"
-    );
+    let (status, _headers) = head.receive().await.expect("response head");
+    assert_eq!(status, foundation_netio::simple_http::shared::Status::OK);
 
-    // Block test thread on the `recv_body` pipe until response bytes arrive.
-    let body_bytes: Option<Bytes> =
-        futures_lite::future::block_on(recv_body.receive());
-    let body_bytes = body_bytes.expect("response body bytes");
+    let body_bytes = recv_body.receive().await.expect("response body bytes");
 
     // Decode the echoed message.
     let echoed: TestMsg = JsonCodec.unmarshal(body_bytes).expect("decode echo");

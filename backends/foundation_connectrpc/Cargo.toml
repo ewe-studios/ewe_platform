@@ -38,7 +38,7 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 futures-lite = "2"
 
 [features]
-default = []
+default = ["multi"]
 multi = ["foundation_core/multi"]
 # Arrow columnar codec (platform extension) — pulls foundation_arrow.
 arrow = ["dep:foundation_arrow"]
@@ -61,4 +61,8 @@ required-features = ["multi"]
 
 [[test]]
 name = "grpc_web_tests"
+required-features = ["multi"]
+
+[[test]]
+name = "h1_transport_debug"
 required-features = ["multi"]

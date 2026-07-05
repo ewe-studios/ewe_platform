@@ -119,7 +119,7 @@ fn request_url_string(req: &RequestDescriptor) -> String {
             .host_str()
             .unwrap_or_else(|| "localhost".to_string()),
         req.request_uri.port_or_default(),
-        req.request_uri.path(),
+        req.request_uri.path()
     )
 }
 
