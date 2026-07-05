@@ -12,6 +12,7 @@ pub mod middleware;
 pub mod proxy;
 pub mod redirects;
 pub mod request;
+pub mod request_task;
 
 pub use config::{ClientConfig, RedirectConfig};
 pub use request::PreparedRequest;
