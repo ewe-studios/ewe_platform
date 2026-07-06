@@ -193,6 +193,15 @@ fn streaming_roundtrip_normalizes_endstream() {
             &registry,
         )
         .expect("server exchange");
+    // new_conn ignores the response head here; provide an open (empty) head
+    // receiver whose sender stays parked for the test's lifetime.
+    let (_client_head_tx, client_head_rx): (
+        foundation_core::valtron::PipeSender<(
+            foundation_netio::simple_http::shared::Status,
+            foundation_netio::simple_http::shared::SimpleHeaders,
+        )>,
+        foundation_connectrpc::transport::HeadSource,
+    ) = foundation_core::valtron::Pipe::with_depth(1);
     let client = ConnectClient
         .new_conn(
             &Spec {
@@ -204,10 +213,7 @@ fn streaming_roundtrip_normalizes_endstream() {
             SimpleHeaders::new(),
             TransportStream {
                 send_body: req_tx,
-                // new_conn ignores the response head here; provide a placeholder.
-                response: Box::pin(async {
-                    Err(foundation_connectrpc::transport::TransportError::Timeout)
-                }),
+                head: client_head_rx,
                 recv_body: resp_rx,
             },
         )

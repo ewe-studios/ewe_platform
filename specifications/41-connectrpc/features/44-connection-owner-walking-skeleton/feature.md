@@ -1,14 +1,50 @@
 ---
 feature: "Connection-owner walking skeleton — end-to-end spine over a real socket (D11 §Connection ownership)"
 description: "Server per-connection pump (Serve adapter) + client open() pump + one unary and one streaming RPC over loopback TCP; lands PushableRequestBody::into_sender"
-status: "in-progress"
+status: "spine-complete"
 priority: "critical"
 phase: 1
 depends_on: ["17-transport-seam", "22-router-dispatch", "07-pushable-request-body", "10-reactor-parking"]
 estimated_effort: "large"
 created: 2026-07-05
+updated: 2026-07-06
 ---
 # Feature 44-connection-owner-walking-skeleton: end-to-end spine over a real socket
+
+## Completion status (2026-07-06)
+
+**The walking-skeleton spine is complete and proven over a real loopback socket.**
+`H1Transport::open()` drives a unary Connect RPC end-to-end against `ConnectRpcServe`
+(`h1_client_transport_over_real_socket`, `#[valtron_test] --profile uat --features multi`),
+and the raw-socket unary + server-stream tests are green. All `foundation_connectrpc`
+tests pass (64 `foundation_core` executor tests green too).
+
+Blockers cleared to get here:
+- **Chunked upload framing + header** (netio): streaming request bodies now declare
+  `Transfer-Encoding: chunked` (builders + redirect send path); confirmed live — the
+  server reads the chunked body and the `Expect: 100-continue` handshake completes.
+- **Same-pool wake**: the client test runs test + pump on one valtron pool
+  (`#[valtron_test]`), so the pump's `consumer_waker` unparks the awaiting `FutureTask`
+  — no cross-executor `block_on`/`thread::park` bridge.
+- **Send-pipe EOF**: the caller must `close()` `send_body` after its final write so the
+  chunked renderer emits its terminator; documented in the test.
+- **Executor log noise**: removed the per-tick mechanical fluff logs from the valtron
+  local executor (work-retrieval / wake-sleepers / do-work / can-progress / task-count
+  heartbeats) that flooded the trace every spin; kept the meaningful lifecycle/state
+  events. Log for one run dropped from ~352k lines to ~3k.
+
+**Remaining before this feature is 100% (tracked, non-blocking for the spine):**
+1. **WASM `HttpExchangeTask`** (`client/wasm/http_exchange_task.rs`) + compile-time smoke
+   test — not yet written (native path complete).
+2. **Direct `SendSafeBodyBytesIterator` tests** covering all 6 body variants + `None` +
+   error propagation — currently exercised only indirectly via `HttpExchangeTask` tests.
+3. **`HttpClientConnection` pool-return assertion** on task completion/drop.
+4. **Incremental streaming `WriteBody`** (netio `request_redirect`): today `WriteBody`
+   uses the blocking `http_render_to_writer` drain, which is correct for buffered unary
+   bodies (write chunks + close → terminator) but **busy-spins on `Data::Retry` for a
+   genuinely slow/open streaming producer**. A true streaming upload needs a pull-one-
+   chunk-then-park form (`Depends(pipe-readiness)` composing cancel). Carried to
+   **F23 (h1-transport-client)** breadth; the spine's unary path does not hit it.
 
 ## Why this exists (sequencing correction)
 

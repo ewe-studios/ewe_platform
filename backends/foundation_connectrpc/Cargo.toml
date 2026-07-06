@@ -62,7 +62,3 @@ required-features = ["multi"]
 [[test]]
 name = "grpc_web_tests"
 required-features = ["multi"]
-
-[[test]]
-name = "h1_transport_debug"
-required-features = ["multi"]

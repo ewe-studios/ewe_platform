@@ -421,7 +421,6 @@ fn h1_transport_capabilities_are_correct() {
 #[valtron_test(seed = 44, threads = 8)]
 #[traced_test]
 async fn h1_client_transport_over_real_socket() {
-    use foundation_connectrpc::envelope::EnvelopeWriter;
     use foundation_connectrpc::transport::Transport;
     use foundation_connectrpc::H1Transport;
     use foundation_netio::simple_http::client::SimpleHttpClient;
@@ -461,16 +460,12 @@ async fn h1_client_transport_over_real_socket() {
         request_url: SimpleUrl::url_only(url.clone()),
         request_uri: uri,
         headers: {
+            // Connect *unary*: bare message body, `application/json` content-type
+            // (the enveloped `application/connect+json` form is for streaming).
             let mut h = SimpleHeaders::new();
             h.insert(
                 foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
-                vec!["application/connect+json".to_string()],
-            );
-            h.insert(
-                foundation_netio::simple_http::shared::SimpleHeader::from(
-                    "connect-protocol-version".to_string(),
-                ),
-                vec!["1".to_string()],
+                vec!["application/json".to_string()],
             );
             h
         },
@@ -482,20 +477,24 @@ async fn h1_client_transport_over_real_socket() {
     let head = stream.head;
     let recv_body = stream.recv_body;
 
-    // Push the enveloped request into send_body.
+    // Push the bare unary request message into send_body (no envelope).
     let msg = TestMsg {
         id: 77,
         name: "transport".to_string(),
     };
     let json = JsonCodec.marshal(&msg).expect("marshal");
-    let envelope = EnvelopeWriter::new(None, 0, 0)
-        .write(Bytes::from(json.to_vec()))
-        .expect("envelope");
     stream
         .send_body
-        .try_send(Bytes::from(envelope))
+        .try_send(Bytes::from(json.to_vec()))
         .expect("send request body");
-    // Drop send_body → body pipe closed, server sees EOF.
+    // Unary: one message then EOF. Close the send pipe immediately so the
+    // chunked request-body renderer emits its terminating `0\r\n\r\n` and the
+    // server finishes reading the request. Without this the pushable pipe stays
+    // open-but-empty (`Data::Retry` forever) and the upload never completes.
+    // (Dropping the sender would also close it, but `stream.head`/`recv_body`
+    // were partially moved out, so `stream.send_body` lives to end of scope —
+    // hence the explicit close here.)
+    stream.send_body.close();
 
     let (status, _headers) = head.receive().await.expect("response head");
     assert_eq!(status, foundation_netio::simple_http::shared::Status::OK);
