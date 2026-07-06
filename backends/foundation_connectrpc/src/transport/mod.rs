@@ -19,6 +19,7 @@ pub mod facade;
 pub mod frame;
 #[cfg(not(target_family = "wasm"))]
 pub mod h1;
+pub mod wasm;
 
 pub use base::{ByteSink, ByteSource, HeadSource, Transport, TransportError, TransportStream};
 pub use capabilities::{

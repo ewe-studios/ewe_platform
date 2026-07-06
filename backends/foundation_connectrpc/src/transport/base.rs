@@ -132,3 +132,40 @@ impl From<TransportError> for ErrorTrace<ConnectError> {
         ErrorTrace::new(err).change_context(connect)
     }
 }
+
+/// Convenience: open a transport stream, push the complete request body, close
+/// the send side, await the response head, and collect all response body bytes.
+///
+/// This is the **sync** (valtron-native) equivalent of a unary RPC — useful for
+/// testing and for callers that already hold the complete request message.
+///
+/// The caller **must be in a valtron executor context** — `receive().await`
+/// parks via `Depends`; outside a valtron pool it will hang forever.
+pub async fn round_trip(
+    transport: &impl Transport,
+    request: RequestDescriptor,
+    body: Bytes,
+) -> Result<(Status, SimpleHeaders, Bytes), TransportError> {
+    let stream = transport.open(request)?;
+    if !body.is_empty() {
+        stream
+            .send_body
+            .try_send(body)
+            .map_err(|e| TransportError::Io(std::io::Error::new(
+                std::io::ErrorKind::BrokenPipe,
+                format!("{e:?}"),
+            )))?;
+    }
+    stream.send_body.close();
+    let (status, headers) = stream.head.receive().await.ok_or_else(|| {
+        TransportError::Io(std::io::Error::new(
+            std::io::ErrorKind::ConnectionReset,
+            "response head pipe closed before yielding",
+        ))
+    })?;
+    let mut body_bytes = Vec::new();
+    while let Some(chunk) = stream.recv_body.receive().await {
+        body_bytes.extend_from_slice(&chunk);
+    }
+    Ok((status, headers, Bytes::from(body_bytes)))
+}
