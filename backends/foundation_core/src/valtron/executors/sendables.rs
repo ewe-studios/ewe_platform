@@ -879,7 +879,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::trace!("Run: run_until_next_state");
 
             let next_value = task_iterator.next_status();
 
@@ -943,7 +942,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::trace!("Run: run_until_next_state");
 
             let next_value = task_iterator.next();
 
@@ -1006,7 +1004,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::trace!("Run: run_until_next_state");
 
             let next_value = task_iterator.next();
 

@@ -1001,7 +1001,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::trace!("Run: run_until_next_state");
             // execute the execution engine until the next state is ready.
             run_until_next_state();
 
@@ -1103,7 +1102,6 @@ where
 
     fn next(&mut self) -> Option<Self::Item> {
         if let Some(mut task_iterator) = self.0.take() {
-            tracing::trace!("Run: run_until_next_state");
 
             // execute the execution engine until the next state is ready.
             run_until_next_state();
