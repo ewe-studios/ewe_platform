@@ -193,4 +193,17 @@ impl ConnectionPool {
             map.clear();
         }
     }
+
+    /// Returns the number of pooled connections for `host:port`.
+    ///
+    /// WHY: Tests need to assert connections are returned to the pool after
+    /// `HttpExchangeTask` completion.
+    #[must_use]
+    pub fn connection_count(&self, host: &str, port: u16) -> usize {
+        let key = format!("{host}:{port}");
+        let Ok(map) = self.inner.lock() else {
+            return 0;
+        };
+        map.get(&key).map_or(0, |q| q.len())
+    }
 }

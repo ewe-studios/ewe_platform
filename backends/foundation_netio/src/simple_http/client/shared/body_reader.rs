@@ -2927,4 +2927,274 @@ mod tests {
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), b"bytes\n".to_vec());
     }
+
+    // ========================================================================
+    // Tests for SendSafeBodyBytesIterator
+    // ========================================================================
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_bytes() {
+        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Bytes(
+            b"hello".to_vec(),
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"hello"
+        ));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_bytes_empty() {
+        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Bytes(vec![]));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_text() {
+        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Text(
+            "world".into(),
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"world"
+        ));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_text_empty() {
+        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Text(String::new()));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_none() {
+        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::None);
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_stream_data_chunks() {
+        let data: Vec<Result<Data, SendableBoxedError>> = vec![
+            Ok(Data::Bytes(b"a".to_vec())),
+            Ok(Data::Retry),
+            Ok(Data::Bytes(b"b".to_vec())),
+        ];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<Data, BoxedError>> + Send,
+        > = Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::Stream(Some(send_iter)));
+
+        // Chunk "a"
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"a"
+        ));
+        // Retry → Ignore
+        assert!(matches!(iter.next(), Some(Stream::Ignore)));
+        // Chunk "b"
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"b"
+        ));
+        // Exhausted
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_stream_error() {
+        let data: Vec<Result<Data, SendableBoxedError>> = vec![
+            Ok(Data::Bytes(b"ok".to_vec())),
+            Err(make_sendable_error("boom")),
+        ];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<Data, BoxedError>> + Send,
+        > = Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::Stream(Some(send_iter)));
+
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"ok"
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(ref e))) if e.to_string() == "boom"
+        ));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_stream_none() {
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::Stream(None));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_chunked_stream() {
+        let data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
+            Ok(ChunkedData::Data(b"x".to_vec(), None)),
+            Ok(ChunkedData::Trailers(vec![])),
+            Ok(ChunkedData::DataEnded),
+        ];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send,
+        > = Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::ChunkedStream(Some(send_iter)));
+
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"x"
+        ));
+        assert!(matches!(iter.next(), Some(Stream::Ignore))); // Trailers
+        assert!(matches!(iter.next(), Some(Stream::Ignore))); // DataEnded
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_chunked_stream_error() {
+        let data: Vec<Result<ChunkedData, SendableBoxedError>> = vec![
+            Ok(ChunkedData::Data(b"ok".to_vec(), None)),
+            Err(make_sendable_error("fail")),
+        ];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ChunkedData, BoxedError>> + Send,
+        > = Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::ChunkedStream(Some(send_iter)));
+
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"ok"
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(ref e))) if e.to_string() == "fail"
+        ));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_linefeed_stream() {
+        let data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
+            Ok(LineFeed::Line("hello".into())),
+            Ok(LineFeed::SKIP),
+            Ok(LineFeed::END),
+        ];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send,
+        > = Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::LineFeedStream(Some(send_iter)));
+
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"hello\n"
+        ));
+        assert!(matches!(iter.next(), Some(Stream::Ignore))); // SKIP
+        assert!(matches!(iter.next(), Some(Stream::Ignore))); // END
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_linefeed_stream_error() {
+        let data: Vec<Result<LineFeed, SendableBoxedError>> = vec![
+            Ok(LineFeed::Line("a".into())),
+            Err(make_sendable_error("fail")),
+        ];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<LineFeed, BoxedError>> + Send,
+        > = Box::new(data.into_iter().map(|r| r.map_err(|e| e as BoxedError)));
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::LineFeedStream(Some(send_iter)));
+
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"a\n"
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(ref e))) if e.to_string() == "fail"
+        ));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_sse_stream() {
+        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![
+            Ok(ParseResult::new(
+                Event::Message {
+                    id: None,
+                    event_type: None,
+                    data: "payload".to_string(),
+                    retry: None,
+                },
+                None,
+            )),
+            Ok(ParseResult::new(
+                Event::Comment("ignore".to_string()),
+                None,
+            )),
+            Ok(ParseResult::new(Event::Reconnect, None)),
+        ];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
+        > = Box::new(data.into_iter());
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::SseStream(Some(send_iter)));
+
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"payload"
+        ));
+        assert!(matches!(iter.next(), Some(Stream::Ignore))); // Comment
+        assert!(matches!(iter.next(), Some(Stream::Ignore))); // Reconnect
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_sse_stream_error() {
+        let data: Vec<Result<ParseResult, SendableBoxedError>> = vec![
+            Ok(ParseResult::new(
+                Event::Message {
+                    id: None,
+                    event_type: None,
+                    data: "msg".to_string(),
+                    retry: None,
+                },
+                None,
+            )),
+            Err(make_sendable_error("fail")),
+        ];
+        let send_iter: Box<
+            dyn Iterator<Item = Result<ParseResult, SendableBoxedError>> + Send,
+        > = Box::new(data.into_iter());
+        let mut iter =
+            SendSafeBodyBytesIterator::new(SendSafeBody::SseStream(Some(send_iter)));
+
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(ref b))) if b.as_ref() == b"msg"
+        ));
+        assert!(matches!(
+            iter.next(),
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(ref e))) if e.to_string() == "fail"
+        ));
+        assert!(iter.next().is_none());
+    }
+
+    #[test]
+    fn test_send_safe_body_bytes_iterator_exhaust_is_idempotent() {
+        let mut iter = SendSafeBodyBytesIterator::new(SendSafeBody::Bytes(
+            b"once".to_vec(),
+        ));
+        assert!(iter.next().is_some()); // chunk
+        assert!(iter.next().is_none()); // exhausted
+        assert!(iter.next().is_none()); // idempotent
+        assert!(iter.next().is_none()); // still idempotent
+    }
 }

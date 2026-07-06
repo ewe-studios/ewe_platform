@@ -64,6 +64,8 @@ pub struct HttpExchangeTask {
     state: State,
     /// The spawn action, returned once on the first `next_status()` call.
     spawn: Option<BoxedSendExecutionAction>,
+    /// Pool reference for returning the connection when the exchange completes.
+    pool: Arc<HttpConnectionPool<SystemDnsResolver>>,
 }
 
 impl HttpExchangeTask {
@@ -75,6 +77,7 @@ impl HttpExchangeTask {
         pool: Arc<HttpConnectionPool<SystemDnsResolver>>,
         config: ClientConfig,
     ) -> Self {
+        let pool_for_conn = Arc::clone(&pool);
         let child = SendRequestTask::new(request, max_redirects, pool, config);
         let (action, receiver) = inlined_task(
             InlineSendActionBehaviour::LiftWithParent,
@@ -85,8 +88,10 @@ impl HttpExchangeTask {
         Self {
             state: State::Polling(receiver),
             spawn: Some(action.into_box_send_execution_action()),
+            pool: pool_for_conn,
         }
     }
+
 }
 
 impl TaskIterator for HttpExchangeTask {
@@ -169,8 +174,12 @@ impl TaskIterator for HttpExchangeTask {
                                 std::io::ErrorKind::Other,
                                 e.to_string(),
                             ));
-                            let _ = conn.take();
+                            let taken_conn = conn.take();
                             self.state = State::Failed(Some(se));
+                            if let Some(mut c) = taken_conn {
+                                c.drain_stream();
+                                self.pool.return_to_pool(c);
+                            }
                             return Some(TaskStatus::Pending(HttpExchangePending::Waiting));
                         }
                         Some(Stream::Ignore) | None => {
@@ -193,7 +202,11 @@ impl TaskIterator for HttpExchangeTask {
                         Some(TaskStatus::Pending(HttpExchangePending::Waiting))
                     }
                     Some(Ok(IncomingResponseParts::NoBody)) => {
-                        let _ = conn.take();
+                        let taken_conn = conn.take();
+                        if let Some(mut c) = taken_conn {
+                            c.drain_stream();
+                            self.pool.return_to_pool(c);
+                        }
                         None
                     }
                     Some(Ok(
@@ -206,12 +219,20 @@ impl TaskIterator for HttpExchangeTask {
                             std::io::ErrorKind::Other,
                             e.to_string(),
                         ));
-                        let _ = conn.take();
+                        let taken_conn = conn.take();
                         self.state = State::Failed(Some(se));
+                        if let Some(mut c) = taken_conn {
+                            c.drain_stream();
+                            self.pool.return_to_pool(c);
+                        }
                         Some(TaskStatus::Pending(HttpExchangePending::Waiting))
                     }
                     None => {
-                        let _ = conn.take();
+                        let taken_conn = conn.take();
+                        if let Some(mut c) = taken_conn {
+                            c.drain_stream();
+                            self.pool.return_to_pool(c);
+                        }
                         None
                     }
                 }

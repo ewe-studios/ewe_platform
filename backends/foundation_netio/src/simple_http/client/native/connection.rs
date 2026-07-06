@@ -642,6 +642,12 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
         self.pool.clear();
     }
 
+    /// Returns the number of pooled connections for `host:port`.
+    #[must_use]
+    pub fn connection_count(&self, host: &str, port: u16) -> usize {
+        self.pool.connection_count(host, port)
+    }
+
     /// Establishes HTTP CONNECT tunnel through HTTP proxy.
     ///
     /// WHY: HTTP proxies use CONNECT method to tunnel HTTPS connections.

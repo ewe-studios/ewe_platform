@@ -236,3 +236,36 @@ fn map_ready_receives_both_head_and_body() {
     let b = recv_body.try_recv().expect("body data");
     assert_eq!(String::from_utf8_lossy(&b), "map ready data");
 }
+
+/// Test: after `HttpExchangeTask` completes, the connection is returned to the
+/// pool (not dropped/leaked).
+#[test]
+fn test_connection_returned_to_pool_after_exchange() {
+    let _guard = foundation_core::valtron::initialize_pool(85, Some(4));
+    let addr = raw_http_serve(200, "pool return test");
+    let url = format!("http://127.0.0.1:{}/test", addr.port());
+    let (pool, config) = default_pool_and_config();
+
+    let host = "127.0.0.1";
+    let port = addr.port() as u16;
+    assert_eq!(
+        pool.connection_count(host, port),
+        0,
+        "pool should be empty before request"
+    );
+
+    let task = HttpExchangeTask::new(
+        request_to(SimpleMethod::GET, &url),
+        config.max_redirects,
+        pool.clone(),
+        config,
+    );
+    let mut stream = valtron::execute(task, None).expect("execute");
+    while stream.next().is_some() {}
+
+    assert_eq!(
+        pool.connection_count(host, port),
+        1,
+        "connection should be returned to pool after exchange completes"
+    );
+}
