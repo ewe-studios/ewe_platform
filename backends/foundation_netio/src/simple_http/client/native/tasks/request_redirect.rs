@@ -203,9 +203,16 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
                     } else {
                         tracing::debug!("Removing EXPECT: 100-continue header for request without body");
-                        // Drop any inherited/stale Expect header when not negotiating.
                         descriptor.headers.remove(&SimpleHeader::EXPECT);
                     }
+
+                    // TODO: RFC 7230 §3.3.1 — streaming bodies without
+                    // Content-Length need Transfer-Encoding: chunked + the body
+                    // renderer (Http11RequestBodyIterator) must frame each chunk
+                    // as chunked transfer encoding (hex size + CRLF + data + CRLF,
+                    // terminated by 0 + CRLF + CRLF). Both BodyStreaming and
+                    // LineFeedStreaming currently output raw bytes with no framing.
+                    // Fix the renderer first, then add the header here.
 
                     tracing::debug!("Rendering and sending request");
                     // 2. Render and send request

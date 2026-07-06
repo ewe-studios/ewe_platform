@@ -1,5 +1,13 @@
 #![allow(clippy::type_complexity)]
 
+use crate::netcap::ConnectionContext;
+use crate::simple_http::client::shared::body_reader::AsyncSendSafeBody;
+use crate::simple_http::shared::errors::{
+    ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
+    SimpleHttpResult, SimpleRequestError, StringHandlingError,
+};
+use crate::simple_http::shared::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
+use derive_more::From;
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::extensions::strings_ext::{TryIntoString, TryIntoStringError};
 use foundation_core::io::ioutils::{self, ByteBufferPointer, SharedByteBufferStream};
@@ -8,19 +16,11 @@ use foundation_core::io::readers::LimitedBatchStreamReader;
 use foundation_core::io::readers::LimitedEOFStreamReader;
 use foundation_core::io::readers::{BatchReader, Data, DataBytesIterator};
 use foundation_core::io::ubytes;
+use foundation_core::url::Uri;
 use foundation_core::valtron::{
     BoxedResultIterator, BoxedSendableDataIterator, BoxedSendableIterator, CloneableFn,
     StringBoxedIterator, TransformIterator, VecBoxedIterator,
 };
-use crate::netcap::ConnectionContext;
-use crate::simple_http::client::shared::body_reader::AsyncSendSafeBody;
-use crate::simple_http::shared::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
-use crate::simple_http::shared::errors::{
-    ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
-    SimpleHttpResult, SimpleRequestError, StringHandlingError,
-};
-use foundation_core::url::Uri;
-use derive_more::From;
 use regex::{self, Regex};
 use std::collections::HashSet;
 use std::io::Cursor;
@@ -317,9 +317,7 @@ pub enum SendSafeBody {
     ///
     /// NOTE: The iterator wraps an `SseParser` that reads lines and yields parsed SSE events.
     /// This allows the HTTP layer to return a complete SSE body handler to the caller.
-    SseStream(
-        Option<BoxedSendableIterator<crate::event_source::ParseResult, SendableBoxedError>>,
-    ),
+    SseStream(Option<BoxedSendableIterator<crate::event_source::ParseResult, SendableBoxedError>>),
 }
 
 impl Eq for SendSafeBody {}
@@ -2306,28 +2304,26 @@ impl Iterator for Http11RequestBodyIterator {
                                 )));
 
                                 match inner {
-                                    LineFeed::Line(content) => Some(Ok(content.into_bytes())),
+                                    LineFeed::Line(content) => {
+                                        Some(Ok(Http11Chunk::Chunked(content.into_bytes()).render()))
+                                    }
                                     LineFeed::SKIP => Some(Ok(b"".to_vec())),
                                     LineFeed::END => {
-                                        // tell the iterator we want it to end
                                         self.0 = Some(Http11RequestBodyState::End);
-                                        None
+                                        Some(Ok(b"0\r\n\r\n".to_vec()))
                                     }
                                 }
                             }
                             Err(err) => {
-                                // tell the iterator we want it to end
                                 self.0 = Some(Http11RequestBodyState::End);
                                 Some(Err(err.into()))
                             }
                         }
                     } else {
-                        // tell the iterator we want it to end
                         self.0 = Some(Http11RequestBodyState::End);
-                        Some(Ok(b"".to_vec()))
+                        Some(Ok(b"0\r\n\r\n".to_vec()))
                     }
                 } else {
-                    // tell the iterator we want it to end
                     self.0 = Some(Http11RequestBodyState::End);
                     Some(Ok(b"".to_vec()))
                 }
@@ -2336,25 +2332,41 @@ impl Iterator for Http11RequestBodyIterator {
                 if let Some(mut body_iterator) = container {
                     if let Some(collected) = body_iterator.next() {
                         match collected {
-                            Ok(mut inner) => {
-                                self.0 = Some(Http11RequestBodyState::ChunkedBodyStreaming(Some(
-                                    body_iterator,
-                                )));
-                                Some(Ok(inner.into_bytes()))
+                            Ok(inner) => {
+                                match inner {
+                                    ChunkedData::Data(bytes, ext) => {
+                                        self.0 = Some(
+                                            Http11RequestBodyState::ChunkedBodyStreaming(Some(
+                                                body_iterator,
+                                            )),
+                                        );
+                                        let exts = ext.unwrap_or_default();
+                                        Some(Ok(Http11Chunk::ChunkedExt(bytes, exts).render()))
+                                    }
+                                    ChunkedData::Trailers(_) => {
+                                        self.0 = Some(
+                                            Http11RequestBodyState::ChunkedBodyStreaming(Some(
+                                                body_iterator,
+                                            )),
+                                        );
+                                        Some(Ok(b"".to_vec()))
+                                    }
+                                    ChunkedData::DataEnded => {
+                                        self.0 = Some(Http11RequestBodyState::End);
+                                        Some(Ok(b"0\r\n\r\n".to_vec()))
+                                    }
+                                }
                             }
                             Err(err) => {
-                                // tell the iterator we want it to end
                                 self.0 = Some(Http11RequestBodyState::End);
                                 Some(Err(err.into()))
                             }
                         }
                     } else {
-                        // tell the iterator we want it to end
                         self.0 = Some(Http11RequestBodyState::End);
-                        Some(Ok(b"".to_vec()))
+                        Some(Ok(b"0\r\n\r\n".to_vec()))
                     }
                 } else {
-                    // tell the iterator we want it to end
                     self.0 = Some(Http11RequestBodyState::End);
                     Some(Ok(b"".to_vec()))
                 }
@@ -2367,28 +2379,25 @@ impl Iterator for Http11RequestBodyIterator {
                                 self.0 = Some(Http11RequestBodyState::BodyStreaming(Some(
                                     body_iterator,
                                 )));
-                                Some(Ok(inner))
+                                Some(Ok(Http11Chunk::Chunked(inner).render()))
                             }
                             Ok(Data::Retry) => {
-                                // Transient retry — yield empty and continue
                                 self.0 = Some(Http11RequestBodyState::BodyStreaming(Some(
                                     body_iterator,
                                 )));
                                 Some(Ok(b"".to_vec()))
                             }
                             Err(err) => {
-                                // tell the iterator we want it to end
                                 self.0 = Some(Http11RequestBodyState::End);
                                 Some(Err(err.into()))
                             }
                         }
                     } else {
-                        // tell the iterator we want it to end
+                        // Inner exhausted — emit terminating chunk.
                         self.0 = Some(Http11RequestBodyState::End);
-                        Some(Ok(b"".to_vec()))
+                        Some(Ok(b"0\r\n\r\n".to_vec()))
                     }
                 } else {
-                    // tell the iterator we want it to end
                     self.0 = Some(Http11RequestBodyState::End);
                     Some(Ok(b"".to_vec()))
                 }
@@ -2559,6 +2568,10 @@ fn render_trailers(trailers: &SimpleHeaders) -> Vec<u8> {
 pub enum Http11Chunk {
     /// Framed with `{len:x}\r\n<data>\r\n` transfer-encoding syntax.
     Chunked(Vec<u8>),
+    /// Framed with `{len:x};ext…\r\n<data>\r\n` — carries chunk-ext
+    /// key=value pairs per RFC 7230 §4.1.1. Empty vec means no extensions
+    /// (same wire output as `Chunked`).
+    ChunkedExt(Vec<u8>, Extensions),
     /// Emitted verbatim (content-length / close-delimited passthrough).
     Raw(Vec<u8>),
 }
@@ -2570,12 +2583,25 @@ impl Http11Chunk {
         match self {
             Http11Chunk::Raw(data) => data.clone(),
             Http11Chunk::Chunked(data) => {
-                // {len:x}\r\n<data>\r\n — the last-chunk `0\r\n\r\n` is emitted by
-                // the trailers part, not here.
                 let mut out = format!("{:x}\r\n", data.len()).into_bytes();
                 out.extend_from_slice(data);
                 out.extend_from_slice(b"\r\n");
                 out
+            }
+            Http11Chunk::ChunkedExt(data, exts) => {
+                let mut header = format!("{:x}", data.len()).into_bytes();
+                for (name, value) in exts {
+                    header.push(b';');
+                    header.extend_from_slice(name.as_bytes());
+                    if let Some(val) = value {
+                        header.push(b'=');
+                        header.extend_from_slice(val.as_bytes());
+                    }
+                }
+                header.extend_from_slice(b"\r\n");
+                header.extend_from_slice(data);
+                header.extend_from_slice(b"\r\n");
+                header
             }
         }
     }
@@ -2615,7 +2641,9 @@ impl Iterator for Http11ResponseHeadersIterator {
     type Item = Result<Vec<u8>, Http11RenderError>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        self.0.take().map(|headers| Ok(render_header_block(&headers)))
+        self.0
+            .take()
+            .map(|headers| Ok(render_header_block(&headers)))
     }
 }
 
@@ -4534,26 +4562,27 @@ impl LineFeed {
             continue;
         }
 
-        let line_feed_result =
-            match pointer.do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume_some) {
-                Some(value) => match String::from_utf8(value.clone()) {
-                    Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
-                        LineFeed::SKIP
-                    } else {
-                        tracing::trace!("Processing::LineFeed::Line: {:?} ", &converted_string);
+        let line_feed_result = match pointer
+            .do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume_some)
+        {
+            Some(value) => match String::from_utf8(value.clone()) {
+                Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
+                    LineFeed::SKIP
+                } else {
+                    tracing::trace!("Processing::LineFeed::Line: {:?} ", &converted_string);
 
-                        // We could process here but maybe instead process else where:
-                        // let trailers: Vec<(String, Option<String>)> = converted_string
-                        //     .split("\r\n")
-                        //     .filter(|item| !item.trim().is_empty())
-                        //     .collect();
+                    // We could process here but maybe instead process else where:
+                    // let trailers: Vec<(String, Option<String>)> = converted_string
+                    //     .split("\r\n")
+                    //     .filter(|item| !item.trim().is_empty())
+                    //     .collect();
 
-                        LineFeed::Line(converted_string)
-                    }),
-                    Err(err) => return Err(LineFeedError::InvalidUTF(err)),
-                },
-                None => Ok(LineFeed::END),
-            };
+                    LineFeed::Line(converted_string)
+                }),
+                Err(err) => return Err(LineFeedError::InvalidUTF(err)),
+            },
+            None => Ok(LineFeed::END),
+        };
 
         // eat all the space
         let () = Self::eat_space(pointer.clone())?;

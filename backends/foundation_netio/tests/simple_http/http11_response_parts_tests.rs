@@ -10,6 +10,7 @@
 //! bytes are exactly as written — independent of feature 06's known-variant
 //! lowercase rendering.
 
+use bytes::Bytes;
 use foundation_netio::simple_http::shared::*;
 
 /// Collect a single `Http11` part's rendered wire bytes into a `String`.
@@ -155,4 +156,137 @@ fn outgoing_response_carries_trailers_field() {
         with_trailers.trailers.get(&grpc_status),
         Some(&vec!["0".to_string()])
     );
+}
+
+// ── Http11Chunk wire-rendering tests ─────────────────────────────────────────
+//
+// NOTE: `shared::Extensions` resolves to the type-erased struct from
+// `shared/extensions.rs` via the glob-import, not the `Vec<(K, V)>` type alias
+// in `impls.rs`. Use the explicit type for chunk-ext values.
+
+#[test]
+fn chunked_with_extensions_renders_correctly() {
+    let chunk = Http11Chunk::ChunkedExt(
+        b"data".to_vec(),
+        vec![("key1".to_string(), Some("val1".to_string()))],
+    );
+    assert_eq!(
+        String::from_utf8(chunk.render()).unwrap(),
+        "4;key1=val1\r\ndata\r\n"
+    );
+}
+
+#[test]
+fn chunked_with_multiple_extensions() {
+    let exts: Vec<(String, Option<String>)> = vec![
+        ("a".into(), Some("1".into())),
+        ("b".into(), Some("2".into())),
+        ("c".into(), None),
+    ];
+    let chunk = Http11Chunk::ChunkedExt(b"hello".to_vec(), exts);
+    assert_eq!(
+        String::from_utf8(chunk.render()).unwrap(),
+        "5;a=1;b=2;c\r\nhello\r\n"
+    );
+}
+
+#[test]
+fn chunked_with_empty_extensions_renders_same_as_plain_chunked() {
+    let plain = Http11Chunk::Chunked(b"xyz".to_vec());
+    let with_ext = Http11Chunk::ChunkedExt(b"xyz".to_vec(), vec![]);
+    assert_eq!(plain.render(), with_ext.render());
+}
+
+#[test]
+fn chunked_ext_renders_hex_length() {
+    let data = vec![b'A'; 31];
+    let chunk = Http11Chunk::ChunkedExt(data, vec![]);
+    let rendered = String::from_utf8(chunk.render()).unwrap();
+    assert!(rendered.starts_with("1f\r\n"), "hex length is 1f: {rendered:?}");
+    assert!(rendered.ends_with("\r\n"), "terminated with CRLF");
+}
+
+// ── Http11 request body renderer tests ──────────────────────────────────────
+
+/// Build a basic `SimpleIncomingRequest` with a given body.
+fn request_with_body(body: SendSafeBody) -> SimpleIncomingRequest {
+    SimpleIncomingRequest::builder()
+        .with_method(SimpleMethod::POST)
+        .with_url(SimpleUrl::url_only("/test".to_string()))
+        .with_proto(Proto::HTTP11)
+        .with_some_body(Some(body))
+        .build()
+        .expect("build request")
+}
+
+/// Collect all chunks from a body renderer into a `Vec<u8>`.
+fn collect_body(renderer: Http11RequestBodyIterator) -> Vec<u8> {
+    let mut out = Vec::new();
+    for chunk in renderer {
+        out.extend_from_slice(&chunk.expect("render chunk"));
+    }
+    out
+}
+
+#[test]
+fn body_streaming_yields_chunked_framed_output() {
+    use foundation_core::valtron::PipeSender;
+    let (producer, body) = pushable_request_body_with_depth(4);
+    producer.try_push(bytes::Bytes::from_static(b"abc")).unwrap();
+    producer.try_push(bytes::Bytes::from_static(b"12345")).unwrap();
+    drop(producer); // close → consumer sees EOF
+
+    let request = request_with_body(body);
+    let output = collect_body(Http11RequestBodyIterator::new(request));
+
+    let text = String::from_utf8(output).expect("valid UTF-8");
+    assert_eq!(text, "3\r\nabc\r\n5\r\n12345\r\n0\r\n\r\n",
+        "Stream body must be rendered with chunked transfer encoding framing and terminating chunk");
+}
+
+#[test]
+fn body_streaming_empty_stream_yields_only_terminator() {
+    let (_producer, body) = pushable_request_body_with_depth(4);
+    drop(_producer); // close → consumer sees EOF immediately
+
+    let request = request_with_body(body);
+    let output = collect_body(Http11RequestBodyIterator::new(request));
+
+    assert_eq!(String::from_utf8(output).unwrap(), "0\r\n\r\n",
+        "empty Stream must yield just the terminating chunk");
+}
+
+#[test]
+fn body_streaming_with_retry_skips_empty() {
+    use foundation_core::valtron::PipeSender;
+    let (producer, body) = pushable_request_body_with_depth(4);
+    // No data yet — consumer gets Retry. Eventually push one chunk.
+    std::thread::sleep(std::time::Duration::from_millis(1));
+    producer.try_push(bytes::Bytes::from_static(b"ok")).unwrap();
+    drop(producer);
+
+    let request = request_with_body(body);
+    let output = collect_body(Http11RequestBodyIterator::new(request));
+
+    let text = String::from_utf8(output).unwrap();
+    assert_eq!(text, "2\r\nok\r\n0\r\n\r\n",
+        "body with data should get chunk framing + terminator");
+}
+
+#[test]
+fn body_non_stream_types_are_unframed() {
+    // Bytes body: no chunked framing.
+    let req = request_with_body(SendSafeBody::Bytes(b"raw".to_vec()));
+    let output = collect_body(Http11RequestBodyIterator::new(req));
+    assert_eq!(output, b"raw", "Bytes body should be rendered as-is, no framing");
+
+    // Text body: no chunked framing.
+    let req = request_with_body(SendSafeBody::Text("text".into()));
+    let output = collect_body(Http11RequestBodyIterator::new(req));
+    assert_eq!(output, b"text", "Text body should be rendered as-is, no framing");
+
+    // None body.
+    let req = request_with_body(SendSafeBody::None);
+    let output = collect_body(Http11RequestBodyIterator::new(req));
+    assert!(output.is_empty(), "None body should be empty");
 }
