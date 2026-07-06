@@ -912,6 +912,18 @@ impl ExecutorState {
         !self.global_tasks.is_empty()
     }
 
+    /// Whether this worker has real work to run on the current tick — an active
+    /// task, an in-flight (processing-queue) task, or a global task waiting to be
+    /// acquired.
+    ///
+    /// When this is `false` the worker is kept alive solely by sleeping tasks and
+    /// is busy-spinning `schedule_and_do_work` until one of them becomes ready.
+    #[inline]
+    #[must_use]
+    pub fn has_runnable_work(&self) -> bool {
+        self.has_active_tasks() || self.has_inflight_task() || self.has_incoming_global_tasks()
+    }
+
     /// Returns totla
     #[must_use]
     pub fn total_inprocess_tasks(&self) -> usize {
@@ -939,18 +951,9 @@ impl ExecutorState {
     pub fn total_active_tasks(&self) -> usize {
         let local_task_count = self.local_tasks.borrow().active_slots();
         let sleeping_task_count = self.sleepers.count();
-        let in_process_task_count = self.number_of_inprocess();
         // Use saturating_sub to prevent underflow when sleepers reference
         // entries that have been removed (stale sleeper entries).
-        let active_task_count = local_task_count.saturating_sub(sleeping_task_count);
-        tracing::debug!(
-            "Local TaskCount={} and SleepingTaskCount={}, InProcessTasks={}, ActiveTasks={}",
-            local_task_count,
-            sleeping_task_count,
-            in_process_task_count,
-            active_task_count,
-        );
-        active_task_count
+        local_task_count.saturating_sub(sleeping_task_count)
     }
 
     /// Removes any sleepers referencing the given entry.
@@ -1001,7 +1004,6 @@ impl ExecutorState {
         let span = tracing::trace_span!("LocalThreadExecutor::request_global_task");
         span.in_scope(|| {
             if self.has_active_tasks() {
-                tracing::debug!("Still have active tasks");
                 return ProgressIndicator::CanProgress(None);
             }
 
@@ -1012,9 +1014,8 @@ impl ExecutorState {
                 }
                 ScheduleOutcome::NoTaskRunningOrAcquired => {
                     if self.has_sleeping_tasks() {
-                        tracing::debug!(
-                            "No new tasks, but we have sleeping tasks, so we can make progress"
-                        );
+                        // Idle tick: only sleeping tasks keep this worker alive.
+                        // Deliberately silent — logging here fires every spin.
                         return ProgressIndicator::CanProgress(None);
                     }
 
@@ -1034,7 +1035,6 @@ impl ExecutorState {
     #[inline]
     #[tracing::instrument(skip(self, engine), fields(owner = %self.state_owner))]
     pub fn schedule_and_do_work(&self, engine: BoxedExecutionEngine) -> ProgressIndicator {
-        tracing::trace!("Running work retreival from global queue");
         match self.request_global_task() {
             ProgressIndicator::CanProgress(_) => {}
             ProgressIndicator::NoWork => {
@@ -1050,16 +1050,10 @@ impl ExecutorState {
             }
         }
 
-        tracing::trace!("Waking up sleepers");
         self.wakeup_ready_sleepers();
 
-        tracing::trace!("Calling do work with engine");
         match self.do_work(engine) {
-            ProgressIndicator::CanProgress(state) => {
-                tracing::debug!("Received CanProgress indicator from task: state={state:?}");
-                // TODO: I feel like I am missing something here
-                ProgressIndicator::CanProgress(state)
-            }
+            ProgressIndicator::CanProgress(state) => ProgressIndicator::CanProgress(state),
             ProgressIndicator::NoWork => {
                 tracing::debug!("[DoWork] Received NoWork indicator from task");
 
@@ -1134,23 +1128,12 @@ impl ExecutorState {
 
     #[tracing::instrument(skip(self), fields(owner = %self.state_owner))]
     pub fn check_processing_queue(&self) -> Option<ProgressIndicator> {
-        let total_sleepers = self.sleepers.count();
         let has_sleeping_tasks = self.has_sleeping_tasks();
         let handle = self.processing.borrow_mut();
-        let has_current_task = self.current_task.borrow().iter().len() > 0;
-
-        tracing::debug!(
-            "check_processing_queue: sleep_task: {} (total={}), processing_tasks: {} and has_current_task: {}",
-            has_sleeping_tasks,
-            total_sleepers,
-            handle.len(),
-            has_current_task,
-        );
 
         // if after wake up, no task still enters
         // the processing queue then no work is available
         if handle.is_empty() {
-            tracing::debug!("Task queue is empty: {:?}", handle.is_empty());
             if has_sleeping_tasks {
                 return Some(ProgressIndicator::CanProgress(None));
             }
@@ -1180,7 +1163,6 @@ impl ExecutorState {
                     return ProgressIndicator::NoWork;
                 }
                 ProgressIndicator::CanProgress(inner) => {
-                    tracing::trace!("Can progress from checking queue");
                     return ProgressIndicator::CanProgress(inner);
                 }
                 ProgressIndicator::SpinWait(_) => {
@@ -1194,22 +1176,9 @@ impl ExecutorState {
             }
         }
 
-        let active_tasks = self.total_active_tasks();
-        tracing::debug!(
-            "Processing entries: {:?} (active_tasks={})",
-            self.processing.borrow(),
-            active_tasks
-        );
-
         let top_entry = self.processing.borrow_mut().pop_front().unwrap();
 
         let remaining_tasks = self.processing.borrow().len();
-        tracing::debug!(
-            "do_work: Popped top entry: {:?} with remaining: {} (queue empty: {})",
-            top_entry,
-            remaining_tasks,
-            self.processing.borrow().is_empty()
-        );
 
         if self.is_packed(&top_entry) {
             tracing::debug!(
@@ -1220,20 +1189,7 @@ impl ExecutorState {
             return ProgressIndicator::CanProgress(None);
         }
 
-        tracing::debug!(
-            "Current top task = {:?} | processing: {:?}",
-            self.current_task.borrow(),
-            self.processing.borrow(),
-        );
-
         self.current_task.borrow_mut().replace(top_entry);
-
-        tracing::debug!(
-            "Current task with top: {:?} -> {:?} | processing: {:?}",
-            top_entry,
-            self.current_task.borrow(),
-            self.processing.borrow(),
-        );
 
         let iter_container = self.local_tasks.borrow_mut().park(&top_entry);
         assert!(
@@ -1580,11 +1536,6 @@ impl ExecutorState {
                 ProgressIndicator::CanProgress(Some(State::Progressed))
             }
             State::Pending(duration) => {
-                tracing::debug!(
-                    "Task indicates it is in pending state: State::Pending({:?})",
-                    &duration
-                );
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1621,17 +1572,10 @@ impl ExecutorState {
                     ProgressIndicator::SpinWait(inner)
                 } else {
                     // push back to top
-                    tracing::debug!("State::Pending(None): pushing entry {:?} back to front of processing queue (queue len before: {})", top_entry, self.processing.borrow().len());
                     self.processing.borrow_mut().push_front(top_entry);
-                    tracing::debug!(
-                        "State::Pending(None): entry {:?} pushed, queue len after: {}",
-                        top_entry,
-                        self.processing.borrow().len()
-                    );
                     ProgressIndicator::CanProgress(None)
                 };
 
-                tracing::debug!("Sending out state: {:?}", &final_state);
                 final_state
             }
             State::Reschedule => {
@@ -1974,6 +1918,13 @@ impl ReferencedExecutorState {
     #[must_use]
     pub fn has_inflight_task(&self) -> bool {
         self.inner.has_inflight_task()
+    }
+
+    /// See [`ExecutorState::has_runnable_work`].
+    #[inline]
+    #[must_use]
+    pub fn has_runnable_work(&self) -> bool {
+        self.inner.has_runnable_work()
     }
 
     #[must_use]
@@ -2619,10 +2570,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
         let span = tracing::trace_span!("LocalThreadExecutor::run_once");
         let _enter = span.enter();
 
-        tracing::debug!("Get local engine for work execution");
         let local_executor = self.state.local_engine();
-
-        tracing::debug!("run: ReferencedExecutorState::schedule_and_do_work with local executor");
         self.state.schedule_and_do_work(Box::new(local_executor))
     }
 
