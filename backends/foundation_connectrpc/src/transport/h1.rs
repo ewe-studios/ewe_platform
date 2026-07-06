@@ -77,6 +77,7 @@ impl Transport for H1Transport {
         let (recv_tx, recv_body): (ByteSink, ByteSource) =
             foundation_core::valtron::Pipe::with_depth(DEFAULT_PUSHABLE_DEPTH);
 
+        tracing::info!("GET request to {} and retrieving pool", url_str);
         let pool = self.client.client_pool().ok_or_else(|| {
             TransportError::Connect(Box::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
@@ -85,18 +86,24 @@ impl Transport for H1Transport {
         })?;
         let config = self.client.client_config();
 
+        tracing::info!("Creating HttpExchangeTask for {}", url_str);
         let pump = HttpExchangeTask::new(prepared, config.max_redirects, pool, config).map_ready(
             move |item| match item {
                 HttpExchange::Head { status, headers } => {
+                    tracing::info!("Received head: status={:?}, headers={:?}", status, headers);
                     let _ = head_tx.try_send((status, headers));
                 }
                 HttpExchange::BodyChunk(bytes) => {
+                    tracing::info!("Received body chunk: bytes={:?}", bytes);
                     let _ = recv_tx.try_send(bytes);
                 }
-                HttpExchange::Failed(_) => {}
+                HttpExchange::Failed(err) => {
+                    tracing::error!("Failed to send request: {err:?}");
+                }
             },
         );
 
+        tracing::info!("Sending task for {} for execution", url_str);
         valtron::send(pump).map_err(|e| {
             TransportError::Connect(Box::new(std::io::Error::new(
                 std::io::ErrorKind::Other,

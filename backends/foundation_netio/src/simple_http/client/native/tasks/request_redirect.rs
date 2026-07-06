@@ -15,15 +15,16 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use foundation_core::io::ioutils::ReadTimeoutOperations;
 use crate::netcap::RawStream;
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::simple_http::client::shared::{redirects, ClientConfig, DnsResolver};
 use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
 use crate::simple_http::shared::{
     Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
-    RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleHttpBody, SimpleIncomingRequest, Status,
+    RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHttpBody,
+    SimpleIncomingRequest, Status,
 };
+use foundation_core::io::ioutils::ReadTimeoutOperations;
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
 
@@ -178,11 +179,14 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     let Ok(mut connection) =
                         pool.create_connection_with_proxy(&descriptor.request_uri, proxy_config, None)
                     else {
+                        tracing::error!("Failed to connect with proxy");
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
                             HttpClientError::ConnectionError,
                         )));
                     };
+
+                    tracing::debug!("Retreived connection from pool");
 
                     // Only send Expect: 100-continue when the request has a body
                     // AND the handshake is enabled in config. Bodyless requests
@@ -190,7 +194,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     // from the server would otherwise be mistaken for the final
                     // response. The toggle lets callers disable the handshake for
                     // servers/CDNs that handle it poorly.
-                    let has_body = Self::request_has_body(&descriptor.headers);
+                    let has_body = !matches!(data.body, None | Some(SendSafeBody::None));
                     let use_expect = has_body && config.expect_continue_enabled;
                     if use_expect {
                         tracing::debug!("Adding EXPECT: 100-continue header for request with body");
@@ -198,14 +202,17 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             .headers
                             .insert(SimpleHeader::EXPECT, vec!["100-continue".into()]);
                     } else {
+                        tracing::debug!("Removing EXPECT: 100-continue header for request without body");
                         // Drop any inherited/stale Expect header when not negotiating.
                         descriptor.headers.remove(&SimpleHeader::EXPECT);
                     }
 
+                    tracing::debug!("Rendering and sending request");
                     // 2. Render and send request
                     let Ok(request_string) =
                         Http11::request_descriptor(descriptor.clone()).http_render_string()
                     else {
+                        tracing::error!("Failed to render request");
                         self.0 = Some(HttpRequestRedirectState::Done);
                         return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Error(
                             HttpClientError::InvalidState,
@@ -384,17 +391,17 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                             return Some(TaskStatus::Pending(HttpOperationState::Connecting));
                         }
 
-                        tracing::debug!("No redirect detected for no-body request");
+                        tracing::debug!("No redirect detected for no-body request — skipping WriteBody");
                         let intro = intro_result.and_then(std::result::Result::ok).expect("intro checked above");
                         let headers = headers_result.and_then(std::result::Result::ok).expect("headers checked above");
-                        self.0 = Some(HttpRequestRedirectState::WriteBody(Some(Box::new((
-                            Some([intro, headers]),
-                            data,
-                            pool,
+                        // No body to write — done. Caller gets the connection, reader, and
+                        // the intro+headers so it can read the response body.
+                        self.0 = Some(HttpRequestRedirectState::Done);
+                        return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
                             connection,
                             reader,
-                        )))));
-                        return Some(TaskStatus::Pending(HttpOperationState::Connecting));
+                            Box::new(Some([intro, headers])),
+                        )));
                     }
 
                     // Flattened: check intro and headers one by one, fallback to WriteBody if either missing
@@ -597,6 +604,18 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     if let Some(inner) = inner_opt.take() {
                         tracing::trace!("HttpRequestRedirectState::WriteBody: taking connection state data pointers");
                         let (optional_starters, data, _pool, mut connection, reader) = *inner;
+
+                        // Guard: no body to write — skip rendering and go straight to Done.
+                        if matches!(data.body, None | Some(SendSafeBody::None)) {
+                            tracing::trace!("HttpRequestRedirectState::WriteBody: no body, skipping write");
+                            self.0 = Some(HttpRequestRedirectState::Done);
+                            return Some(TaskStatus::Ready(HttpRequestRedirectResponse::Done(
+                                connection,
+                                reader,
+                                Box::new(optional_starters),
+                            )));
+                        }
+
                         let body_renderer = Http11::request_body(data);
                         tracing::trace!("HttpRequestRedirectState::WriteBody: creating body renderer and writing body to stream");
 
@@ -637,27 +656,3 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
     }
 }
 
-impl<R: DnsResolver + Send + 'static> GetHttpRequestRedirectTask<R> {
-    /// Check whether the request has a body based on Content-Length or Transfer-Encoding.
-    /// Only adds Expect: 100-continue when there is an actual body to send.
-    fn request_has_body(headers: &SimpleHeaders) -> bool {
-        if let Some(values) = headers.get(&SimpleHeader::CONTENT_LENGTH) {
-            if values
-                .iter()
-                .any(|v| v.trim().parse::<u64>().is_ok_and(|n| n > 0))
-            {
-                return true;
-            }
-        }
-        if let Some(values) = headers.get(&SimpleHeader::TRANSFER_ENCODING) {
-            if values.iter().any(|v| {
-                v.to_lowercase()
-                    .split(',')
-                    .any(|part| part.trim() == "chunked")
-            }) {
-                return true;
-            }
-        }
-        false
-    }
-}

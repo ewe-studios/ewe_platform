@@ -15,7 +15,6 @@
 
 use std::sync::Arc;
 
-use bytes::Bytes;
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{
     inlined_task, BoxedSendExecutionAction, InlineSendActionBehaviour,
@@ -31,10 +30,9 @@ use crate::simple_http::client::shared::body_reader::{
 use crate::simple_http::client::shared::request_task::{HttpExchange, HttpExchangePending};
 use crate::simple_http::client::shared::{ClientConfig, PreparedRequest, SystemDnsResolver};
 use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
-use crate::simple_http::shared::{IncomingResponseParts, SimpleHeaders, Status};
+use crate::simple_http::shared::IncomingResponseParts;
 
 type Child = SendRequestTask<SystemDnsResolver>;
-type ChildStatus = TaskStatus<RequestIntro, HttpRequestPending, BoxedSendExecutionAction>;
 type ChildReceiver = foundation_core::valtron::DrivenRecvIterator<Child>;
 
 /// State for the HTTP exchange pump.
@@ -60,8 +58,6 @@ enum State {
     },
     /// Failed before yielding Head. Holds the error to yield once.
     Failed(Option<SendableBoxedError>),
-    /// All output yielded.
-    Done,
 }
 
 /// Native HTTP exchange task — wraps `SendRequestTask<R>` and yields platform-
@@ -102,12 +98,17 @@ impl TaskIterator for HttpExchangeTask {
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // First call — emit the Spawn so the executor runs the child.
+        tracing::info!("calling next_status");
+
         if let Some(action) = self.spawn.take() {
+            tracing::info!("calling next_status, sending spawn action");
             return Some(TaskStatus::Spawn(action));
         }
 
+        tracing::info!("checking current state");
         match &mut self.state {
             State::Polling(ref mut rx) => {
+                tracing::info!("polling state from spawned task under State::Polling");
                 match rx.next() {
                     Some(TaskStatus::Ready(RequestIntro::Success {
                         intro,
@@ -158,6 +159,7 @@ impl TaskIterator for HttpExchangeTask {
                 ref mut body_reader,
                 ref mut chunk_iter,
             } => {
+                tracing::info!("polling state from spawned task under State::StreamingBody");
                 // 1. If we have an active chunk iterator, drain it first.
                 if let Some(ref mut iter) = chunk_iter {
                     match iter.next() {
@@ -216,10 +218,10 @@ impl TaskIterator for HttpExchangeTask {
                     }
                 }
             }
-            State::Failed(ref mut opt) => opt
-                .take()
-                .map(|e| TaskStatus::Ready(HttpExchange::Failed(e))),
-            State::Done => None,
+            State::Failed(ref mut opt) => {
+                opt.take()
+                    .map(|e| TaskStatus::Ready(HttpExchange::Failed(e)))
+            }
         }
     }
 }

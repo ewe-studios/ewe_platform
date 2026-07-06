@@ -418,8 +418,6 @@ fn h1_transport_capabilities_are_correct() {
 /// 3. The caller pushes an enveloped Connect unary request into `send_body`,
 ///    polls `head` for the response status, and drains `recv_body`.
 ///
-/// No `BoxFuture`, no `futures_lite::block_on` — the caller is a valtron task,
-/// the pump is a valtron task, both on the same pool.
 #[valtron_test(seed = 44, threads = 8)]
 #[traced_test]
 async fn h1_client_transport_over_real_socket() {
