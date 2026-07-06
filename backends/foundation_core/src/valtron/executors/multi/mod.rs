@@ -238,7 +238,6 @@ where
     let guard = initialize_pool(seed_from_rng, thread_num);
     let handle = get_pool();
     setup(handle);
-    tracing::debug!("Initialize and call WaitGroup::wait");
     guard.waitgroup().wait();
     guard
 }
@@ -274,9 +273,6 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
 
     let (task_threads, bg_threads) = split_thread_count(thread_num);
 
-    tracing::debug!(
-        "Splitting {thread_num} threads: {task_threads} for tasks, {bg_threads} for background jobs"
-    );
 
     let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
         seed_for_rng,
@@ -502,9 +498,7 @@ const THREADS_MAX: usize = (1 << THREADS_BITS) - 1;
 /// Panics if the desired thread count is zero.
 pub fn get_allocatable_thread_count() -> usize {
     let max_threads = get_max_threads();
-    tracing::debug!("Max available threads: {max_threads:}");
     let desired_threads = get_num_threads();
-    tracing::debug!("Desired thread count: {desired_threads:}");
 
     assert!(
         (desired_threads <= max_threads),
@@ -521,14 +515,6 @@ pub fn get_allocatable_thread_count() -> usize {
     if desired_threads == max_threads {
         return max_threads - 1;
     }
-
-    let rem_threads = max_threads - desired_threads;
-    tracing::debug!(
-        "Remaining threads {} from desired: {} and max: {}",
-        rem_threads,
-        desired_threads,
-        max_threads
-    );
 
     desired_threads
 }
@@ -615,35 +601,18 @@ impl ThreadYielders {
     }
 
     /// Register a yielder for interrupt tracking.
-    #[tracing::instrument(skip(self))]
     pub fn register(&self, yielder: Arc<ThreadYielder>) {
-        tracing::trace!("ThreadYielders::register() - registering yielder");
         let mut yielders = self.yielders.write().unwrap();
         yielders.push(yielder);
-        tracing::trace!(
-            "ThreadYielders::register() - done, {} yielders registered",
-            yielders.len()
-        );
     }
 
     /// Interrupt all registered yielders.
     /// Call this when new work arrives to wake threads waiting in yield_for.
-    #[tracing::instrument(skip(self))]
     pub fn interrupt_all(&self) {
-        tracing::trace!("ThreadYielders::interrupt_all() - acquiring read lock");
         let yielders = self.yielders.read().unwrap();
-        tracing::trace!(
-            "ThreadYielders::interrupt_all() - interrupting {} yielders",
-            yielders.len()
-        );
-        for (i, yielder) in yielders.iter().enumerate() {
-            tracing::trace!(
-                "ThreadYielders::interrupt_all() - interrupting yielder {}",
-                i
-            );
+        for yielder in yielders.iter() {
             yielder.interrupt();
         }
-        tracing::trace!("ThreadYielders::interrupt_all() - done");
     }
 }
 
@@ -707,16 +676,11 @@ impl ThreadYielder {
     /// This wakes threads waiting in yield_for() even if they're in the middle
     /// of a long sleep. The wait_timeout_while will check the predicate again
     /// after waking and return immediately since state != Waiting.
-    #[tracing::instrument(skip(self))]
     pub fn interrupt(&self) {
-        tracing::trace!("ThreadYielder::interrupt() - setting state to Notified");
         if let Ok(mut guard) = self.wait_state.lock() {
             *guard = WaitState::Notified;
-            tracing::trace!("ThreadYielder::interrupt() - state set to Notified");
         }
-        tracing::trace!("ThreadYielder::interrupt() - calling condvar.notify_all()");
         self.condvar.notify_all();
-        tracing::trace!("ThreadYielder::interrupt() - done");
     }
 }
 
@@ -751,37 +715,26 @@ impl ProcessController for ThreadYielder {
     /// We MUST use that returned guard directly to reset state.
     /// Attempting to acquire the lock again causes deadlock.
     fn yield_for(&self, dur: std::time::Duration) {
-        tracing::trace!("ThreadYielder::yield_for() - START, duration={:?}", dur);
         // Send parked notification
         self.sender
             .send(ThreadActivity::Parked(self.thread_id.clone()))
             .expect("should send event");
 
-        tracing::trace!("ThreadYielder::yield_for() - acquiring wait_state lock");
         let guard = self.wait_state.lock().unwrap();
 
-        tracing::trace!("ThreadYielder::yield_for() - calling wait_timeout_while");
         // Wait while not notified (spurious wakeups are handled by re-checking)
-        // The wait_timeout_while atomically:
-        // 1. Checks the predicate (returns immediately if false)
-        // 2. If predicate is true, unlocks mutex and waits
-        // 3. On wakeup, re-locks mutex and re-checks predicate
-        // This ensures we never miss a notification that arrives between check and wait
         let (mut guard, result) = self
             .condvar
             .wait_timeout_while(guard, dur, |state| *state == WaitState::Waiting)
             .unwrap();
         let _timed_out = result.timed_out();
-        tracing::trace!("ThreadYielder::yield_for() - wait_timeout_while returned");
 
         // CRITICAL: Reset state using the guard returned by wait_timeout_while.
-        // The guard is still locked - don't try to acquire again or deadlock!
         *guard = WaitState::Waiting;
 
         self.sender
             .send(ThreadActivity::Unparked(self.thread_id.clone()))
             .expect("should send event");
-        tracing::trace!("ThreadYielder::yield_for() - END");
     }
 }
 
@@ -1483,11 +1436,8 @@ impl ThreadRegistry {
     }
 
     /// Register a yielder for interrupt_all tracking.
-    #[tracing::instrument(skip(self))]
     pub fn register_yielder(&self, yielder: Arc<ThreadYielder>) {
-        tracing::trace!("ThreadRegistry::register_yielder() - registering yielder");
         self.yielders.register(yielder);
-        tracing::trace!("ThreadRegistry::register_yielder() - done");
     }
 
     /// Get the shared yielders registry.
@@ -1499,9 +1449,7 @@ impl ThreadRegistry {
     /// Interrupt all registered yielders.
     /// Call this during shutdown to wake threads waiting in yield_for.
     pub fn interrupt_all_yielders(&self) {
-        tracing::trace!("ThreadRegistry::interrupt_all_yielders() - calling interrupt_all");
         self.yielders.interrupt_all();
-        tracing::trace!("ThreadRegistry::interrupt_all_yielders() - done");
     }
 
     /// Shutdown the registry - signals kill and waits for all threads.

@@ -112,7 +112,6 @@ where
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
         if self.alive.is_none() {
-            tracing::debug!("Returning none going forward for consumer: {entry:?}");
 
             return None;
         }
@@ -122,12 +121,10 @@ where
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
-                    tracing::debug!("Channel still full, re-queueing pending message");
                     self.pending_msg = Some(msg);
                     return Some(State::Pending(None));
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     return Some(State::Done);
@@ -145,7 +142,6 @@ where
                     return Some(State::Pending(None));
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     return Some(State::Done);
@@ -204,12 +200,10 @@ where
             TaskStatus::Ignore => match self.channel.push(Stream::Ignore) {
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
-                    tracing::debug!("Channel full, storing Stream::Ignore for retry");
                     self.pending_msg = Some(Stream::Ignore);
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -218,12 +212,10 @@ where
             TaskStatus::Delayed(inner) => match self.channel.push(Stream::Delayed(inner)) {
                 Ok(()) => State::Pending(Some(inner)),
                 Err(PushError::Full(_)) => {
-                    tracing::debug!("Channel full, storing Stream::Delayed for retry");
                     self.pending_msg = Some(Stream::Delayed(inner));
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -232,12 +224,10 @@ where
             TaskStatus::Init => match self.channel.push(Stream::Init) {
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
-                    tracing::debug!("Channel full, storing Stream::Init for retry");
                     self.pending_msg = Some(Stream::Init);
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -246,12 +236,10 @@ where
             TaskStatus::Pending(inner) => match self.channel.push(Stream::Pending(inner)) {
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(msg)) => {
-                    tracing::debug!("Channel full, storing Stream::Pending for retry");
                     self.pending_msg = Some(msg);
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -260,12 +248,10 @@ where
             TaskStatus::Ready(inner) => match self.channel.push(Stream::Next(inner)) {
                 Ok(()) => State::ReadyValue(entry),
                 Err(PushError::Full(msg)) => {
-                    tracing::debug!("Channel full, storing Stream::Next for retry");
                     self.pending_msg = Some(msg);
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -278,7 +264,6 @@ where
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -302,7 +287,6 @@ where
                             State::Pending(None)
                         }
                         Err(PushError::Closed(_)) => {
-                            tracing::error!("Channel closed, terminating task");
                             self.channel.close();
                             self.alive.take();
                             State::Done
@@ -411,11 +395,8 @@ where
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
     fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-        tracing::debug!("ConsumingIter::next() called for entry: {:?}", entry);
-        tracing::debug!("Are ConsumingIter alive?: {:?} -> {:?}", &self.alive, entry);
 
         if self.alive.is_none() {
-            tracing::debug!("Returning none going forward for consumer: {entry:?}");
 
             return None;
         }
@@ -425,12 +406,10 @@ where
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
-                    tracing::debug!("Channel still full, re-queueing pending message");
                     self.pending_msg = Some(msg);
                     return Some(State::Pending(None));
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     return Some(State::Done);
@@ -448,7 +427,6 @@ where
                     return Some(State::Pending(None));
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     return Some(State::Done);
@@ -456,7 +434,6 @@ where
             }
         }
 
-        tracing::debug!("Get next value from consuming iter: {entry:?}");
         let task_response = match std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
             self.task.lock().unwrap().next_status()
         })) {
@@ -469,10 +446,6 @@ where
             }
         };
 
-        tracing::debug!(
-            "Response for next value: {entry:?} with value?: {}",
-            task_response.is_some()
-        );
 
         if task_response.is_none() {
             // close the queue
@@ -504,7 +477,6 @@ where
 
         Some(match previous_response.unwrap() {
             TaskStatus::Spawn(mut action) => {
-                tracing::debug!("Received spawned action: {entry:?}");
 
                 match action.apply(Some(entry), executor) {
                     Ok(info) => State::SpawnFinished(info),
@@ -515,16 +487,13 @@ where
                 }
             }
             TaskStatus::Delayed(inner) => {
-                tracing::debug!("Got  delayed: {entry:?}");
                 match self.channel.push(TaskStatus::Delayed(inner)) {
                     Ok(()) => State::Pending(Some(inner)),
                     Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, storing TaskStatus::Delayed for retry");
                         self.pending_msg = Some(TaskStatus::Delayed(inner));
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
                         self.channel.close();
                         self.alive.take();
                         State::Done
@@ -532,19 +501,15 @@ where
                 }
             }
             TaskStatus::Init => {
-                tracing::debug!("Got init: {entry:?}");
                 match self.channel.push(TaskStatus::Init) {
                     Ok(()) => {
-                        tracing::debug!("Written TaskStatus::Init into receiving channel");
                         State::Pending(None)
                     }
                     Err(PushError::Full(_)) => {
-                        tracing::debug!("Channel full, storing TaskStatus::Init for retry");
                         self.pending_msg = Some(TaskStatus::Init);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
                         self.channel.close();
                         self.alive.take();
                         State::Done
@@ -552,16 +517,13 @@ where
                 }
             }
             TaskStatus::Pending(inner) => {
-                tracing::debug!("Got pending value");
                 match self.channel.push(TaskStatus::Pending(inner)) {
                     Ok(()) => State::Pending(None),
                     Err(PushError::Full(msg)) => {
-                        tracing::debug!("Channel full, storing TaskStatus::Pending for retry");
                         self.pending_msg = Some(msg);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
                         self.channel.close();
                         self.alive.take();
                         State::Done
@@ -569,19 +531,15 @@ where
                 }
             }
             TaskStatus::Ready(inner) => {
-                tracing::debug!("Got ready value");
                 match self.channel.push(TaskStatus::Ready(inner)) {
                     Ok(()) => {
-                        tracing::debug!("Written TaskStatus::Ready into receiving channel");
                         State::ReadyValue(entry)
                     }
                     Err(PushError::Full(msg)) => {
-                        tracing::debug!("Channel full, storing TaskStatus::Ready for retry");
                         self.pending_msg = Some(msg);
                         State::Pending(None)
                     }
                     Err(PushError::Closed(_)) => {
-                        tracing::error!("Channel closed, terminating task");
                         self.channel.close();
                         self.alive.take();
                         State::Done
@@ -596,7 +554,6 @@ where
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -619,7 +576,6 @@ where
                             State::Pending(None)
                         }
                         Err(PushError::Closed(_)) => {
-                            tracing::error!("Channel closed, terminating task");
                             self.channel.close();
                             self.alive.take();
                             State::Done
@@ -734,12 +690,10 @@ where
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
-                    tracing::debug!("Channel still full, re-queueing pending message");
                     self.pending_msg = Some(msg);
                     return Some(State::Pending(None));
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     return Some(State::Done);
@@ -757,7 +711,6 @@ where
                     return Some(State::Pending(None));
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     return Some(State::Done);
@@ -818,12 +771,10 @@ where
             TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
                 Ok(()) => State::ReadyValue(entry),
                 Err(PushError::Full(msg)) => {
-                    tracing::debug!("Channel full, storing TaskStatus::Ready for retry");
                     self.pending_msg = Some(msg);
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -837,7 +788,6 @@ where
                     State::Pending(None)
                 }
                 Err(PushError::Closed(_)) => {
-                    tracing::error!("Channel closed, terminating task");
                     self.channel.close();
                     self.alive.take();
                     State::Done
@@ -860,7 +810,6 @@ where
                             State::Pending(None)
                         }
                         Err(PushError::Closed(_)) => {
-                            tracing::error!("Channel closed, terminating task");
                             self.channel.close();
                             self.alive.take();
                             State::Done
