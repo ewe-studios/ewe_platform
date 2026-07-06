@@ -589,6 +589,35 @@ pub trait TaskIterator {
     }
 }
 
+/// Newtype wrapper that exposes **only** the [`TaskIterator`] and
+/// [`TaskIteratorExt`] surface — standard `Iterator` methods (`.map`,
+/// `.filter`, `.collect`, `.next`) are intentionally absent so callers
+/// use the valtron-native combinators (`.map_ready`, `.map_pending`,
+/// `.filter_ready`, etc.) without ambiguity.
+///
+/// Construct via [`TaskIteratorExt::into_task_iter`].
+///
+/// # Why no `Iterator` impl?
+///
+/// The blanket `TaskIterator` impl (line 594) gives `TaskIterator` to
+/// anything that is `Iterator<Item = TaskStatus<…>>`.  That means every
+/// `TaskIterator` automatically carries the full `Iterator` method set.
+/// By wrapping in `TaskIter<T>` and implementing `TaskIterator`
+/// explicitly (coherence: a non-blanket impl on a concrete struct
+/// outranks the universal blanket), the chain is broken — no `Iterator`
+/// impl is generated.
+pub struct TaskIter<T: TaskIterator>(pub T);
+
+impl<T: TaskIterator> TaskIterator for TaskIter<T> {
+    type Ready = T::Ready;
+    type Pending = T::Pending;
+    type Spawner = T::Spawner;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.0.next_status()
+    }
+}
+
 // TaskIterator implementations for wrapper types
 //
 impl<M, R, P, S> TaskIterator for M

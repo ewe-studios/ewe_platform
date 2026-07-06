@@ -651,6 +651,31 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
 
     /// Count all items (any state).
     fn count_all(self) -> TCountAll<Self>;
+
+    /// Wrap the task in a [`TaskIter`](crate::valtron::TaskIter) — the valtron-native
+    /// entry point that removes standard `Iterator` method ambiguity.
+    fn into_task_iter(self) -> crate::valtron::TaskIter<Self>
+    where
+        Self: Sized,
+    {
+        crate::valtron::TaskIter(self)
+    }
+
+    /// Transform Ready values, terminating the task when the closure returns `None`.
+    ///
+    /// `Some(R)` → `Ready(R)`, `None` → task exhausts.
+    fn try_map_ready<F, R>(self, f: F) -> TTryMapReady<Self, R>
+    where
+        F: Fn(Self::Ready) -> Option<R> + Send + 'static,
+        R: Send + 'static;
+
+    /// Sync-boundary collector: drain the task to completion and return every
+    /// `Ready` value as a `Vec`. Non-`Ready` states are discarded.
+    fn collect_ready(self) -> Vec<Self::Ready>;
+
+    /// Sync-boundary collector: drain the task until the first `Ready`, returning
+    /// it. Returns `None` if the task exhausts without producing a `Ready`.
+    fn collect_one_ready(self) -> Option<Self::Ready>;
 }
 
 // Blanket implementation: anything implementing TaskIterator gets TaskIteratorExt
@@ -1139,6 +1164,107 @@ where
             count: 0,
             done: false,
         }
+    }
+
+    fn try_map_ready<F, R>(self, f: F) -> TTryMapReady<Self, R>
+    where
+        F: Fn(Self::Ready) -> Option<R> + Send + 'static,
+        R: Send + 'static,
+    {
+        TTryMapReady {
+            inner: self,
+            mapper: Box::new(f),
+            done: false,
+        }
+    }
+
+    fn collect_ready(self) -> Vec<Self::Ready> {
+        let mut out = Vec::new();
+        let mut inner = self.into_task_iter();
+        while let Some(status) = inner.next_status() {
+            if let TaskStatus::Ready(v) = status {
+                out.push(v);
+            }
+        }
+        out
+    }
+
+    fn collect_one_ready(self) -> Option<Self::Ready> {
+        let mut inner = self.into_task_iter();
+        while let Some(status) = inner.next_status() {
+            if let TaskStatus::Ready(v) = status {
+                return Some(v);
+            }
+        }
+        None
+    }
+}
+
+// ============================================================================
+// TTryMapReady — Ready → Option<R>, exhausts on None
+// ============================================================================
+
+/// Wrapper that maps Ready values through `Fn(Ready) -> Option<R>`.  When the
+/// closure returns `None`, the task terminates (exhausts).  `Some(R)`
+/// becomes `TaskStatus::Ready(R)`.
+///
+/// For `TaskStatus::Spread`, each `Ready` is mapped individually.  If any
+/// maps to `None`, the task exhausts on the next `next_status()` call
+/// (the current Spread is emitted with the successfully-mapped items).
+pub struct TTryMapReady<I: TaskIterator, R> {
+    inner: I,
+    mapper: Box<dyn Fn(I::Ready) -> Option<R> + Send>,
+    done: bool,
+}
+
+impl<I, R> Iterator for TTryMapReady<I, R>
+where
+    I: TaskIterator,
+    R: Send + 'static,
+{
+    type Item = TaskStatus<R, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        let status = self.inner.next_status()?;
+        Some(match status {
+            TaskStatus::Ready(v) => match (self.mapper)(v) {
+                Some(r) => TaskStatus::Ready(r),
+                None => {
+                    self.done = true;
+                    return None;
+                }
+            },
+            TaskStatus::Spread(items) => {
+                let mut any_none = false;
+                let mapped: Vec<_> = items
+                    .into_iter()
+                    .filter_map(|item| match item {
+                        TaskSpread::Ready(d) => match (self.mapper)(d) {
+                            Some(r) => Some(TaskSpread::Ready(r)),
+                            None => {
+                                any_none = true;
+                                None
+                            }
+                        },
+                        TaskSpread::Pending(p) => Some(TaskSpread::Pending(p)),
+                    })
+                    .collect();
+                if any_none {
+                    self.done = true;
+                }
+                TaskStatus::Spread(mapped)
+            },
+            TaskStatus::Pending(v) => TaskStatus::Pending(v),
+            TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
+            TaskStatus::Ignore => TaskStatus::Ignore,
+            TaskStatus::Init => TaskStatus::Init,
+            TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
+            TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::Depends(signal) => TaskStatus::Depends(signal),
+        })
     }
 }
 

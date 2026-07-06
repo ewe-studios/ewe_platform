@@ -562,6 +562,16 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
 
     /// Wrap into a `futures_core::Stream` that yields each `Stream<D, P>` item as-is.
     fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self>;
+
+    fn into_stream_iter(self) -> crate::valtron::StreamIter<Self>
+    where Self: Sized { crate::valtron::StreamIter(self) }
+
+    fn try_map_done<F, R>(self, f: F) -> TryMapDone<Self, R>
+    where F: Fn(Self::D) -> Option<R> + 'static, R: 'static;
+
+    fn collect_result(self) -> Vec<Self::D>;
+
+    fn collect_one(self) -> Option<Self::D>;
 }
 
 // Blanket implementation: anything implementing StreamIterator gets StreamIteratorExt
@@ -1017,6 +1027,73 @@ where
 
     fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self> {
         crate::valtron::StreamAsFutureStream::new(self)
+    }
+
+    fn try_map_done<F, R>(self, f: F) -> TryMapDone<Self, R>
+    where F: Fn(Self::D) -> Option<R> + 'static, R: 'static,
+    {
+        TryMapDone { inner: self, mapper: Box::new(f), done: false }
+    }
+
+    fn collect_result(self) -> Vec<Self::D> {
+        let mut out = Vec::new();
+        let mut inner = self.into_stream_iter();
+        while let Some(item) = inner.next() {
+            if let Stream::Next(v) = item { out.push(v); }
+        }
+        out
+    }
+
+    fn collect_one(self) -> Option<Self::D> {
+        let mut inner = self.into_stream_iter();
+        while let Some(item) = inner.next() {
+            if let Stream::Next(v) = item { return Some(v); }
+        }
+        None
+    }
+}
+
+// ============================================================================
+// TryMapDone — Stream::Next(D) → Option<R>, exhausts on None
+// ============================================================================
+
+pub struct TryMapDone<I: StreamIterator, R> {
+    inner: I,
+    mapper: Box<dyn Fn(I::D) -> Option<R>>,
+    done: bool,
+}
+
+impl<I, R> Iterator for TryMapDone<I, R>
+where I: StreamIterator, R: 'static,
+{
+    type Item = Stream<R, I::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done { return None; }
+        let item = self.inner.next()?;
+        Some(match item {
+            Stream::Next(d) => match (self.mapper)(d) {
+                Some(r) => Stream::Next(r),
+                None => { self.done = true; return None; }
+            },
+            Stream::Spread(items) => {
+                let mut any_none = false;
+                let mapped: Vec<_> = items.into_iter().filter_map(|sp| match sp {
+                    StreamSpread::Done(d) => match (self.mapper)(d) {
+                        Some(r) => Some(StreamSpread::Done(r)),
+                        None => { any_none = true; None }
+                    },
+                    StreamSpread::Pending(p) => Some(StreamSpread::Pending(p)),
+                }).collect();
+                if any_none { self.done = true; }
+                Stream::Spread(mapped)
+            },
+            Stream::Pending(p) => Stream::Pending(p),
+            Stream::Delayed(dur) => Stream::Delayed(dur),
+            Stream::Init => Stream::Init,
+            Stream::Ignore => Stream::Ignore,
+            Stream::Wait => Stream::Wait,
+        })
     }
 }
 

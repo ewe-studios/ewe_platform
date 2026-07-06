@@ -154,6 +154,24 @@ pub trait StreamIterator: Iterator<Item = Stream<Self::D, Self::P>> {
     type P;
 }
 
+/// Newtype wrapper that provides a clean entry point for chaining valtron
+/// [`StreamIteratorExt`] combinators.  Construct via
+/// [`StreamIteratorExt::into_stream_iter`].
+///
+/// `StreamIterator` requires `Iterator` as a supertrait, so this wrapper
+/// provides an `Iterator` impl that delegates to the inner value.  The
+/// value-add is ergonomic — `.into_stream_iter().map_done(…)` is
+/// unambiguously the valtron combinator.
+pub struct StreamIter<S: StreamIterator>(pub S);
+
+impl<S: StreamIterator> Iterator for StreamIter<S> {
+    type Item = Stream<S::D, S::P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.0.next()
+    }
+}
+
 // Blanket implementation for any compatible iterator (Send variant — multi-threaded)
 #[cfg(feature = "multi")]
 impl<M, D, P> StreamIterator for M

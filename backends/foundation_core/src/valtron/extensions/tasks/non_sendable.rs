@@ -648,6 +648,22 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
 
     /// Count all items (any state).
     fn count_all(self) -> TCountAll<Self>;
+
+    fn into_task_iter(self) -> crate::valtron::TaskIter<Self>
+    where
+        Self: Sized,
+    {
+        crate::valtron::TaskIter(self)
+    }
+
+    fn try_map_ready<F, R>(self, f: F) -> TTryMapReady<Self, R>
+    where
+        F: Fn(Self::Ready) -> Option<R> + 'static,
+        R: 'static;
+
+    fn collect_ready(self) -> Vec<Self::Ready>;
+
+    fn collect_one_ready(self) -> Option<Self::Ready>;
 }
 
 // Blanket implementation: anything implementing TaskIterator gets TaskIteratorExt
@@ -1138,6 +1154,85 @@ where
             count: 0,
             done: false,
         }
+    }
+
+    fn try_map_ready<F, R>(self, f: F) -> TTryMapReady<Self, R>
+    where
+        F: Fn(Self::Ready) -> Option<R> + 'static,
+        R: 'static,
+    {
+        TTryMapReady { inner: self, mapper: Box::new(f), done: false }
+    }
+
+    fn collect_ready(self) -> Vec<Self::Ready> {
+        let mut out = Vec::new();
+        let mut inner = self.into_task_iter();
+        while let Some(status) = inner.next_status() {
+            if let TaskStatus::Ready(v) = status {
+                out.push(v);
+            }
+        }
+        out
+    }
+
+    fn collect_one_ready(self) -> Option<Self::Ready> {
+        let mut inner = self.into_task_iter();
+        while let Some(status) = inner.next_status() {
+            if let TaskStatus::Ready(v) = status {
+                return Some(v);
+            }
+        }
+        None
+    }
+}
+
+// ============================================================================
+// TTryMapReady — Ready → Option<R>, exhausts on None
+// ============================================================================
+
+pub struct TTryMapReady<I: TaskIterator, R> {
+    inner: I,
+    mapper: Box<dyn Fn(I::Ready) -> Option<R>>,
+    done: bool,
+}
+
+impl<I, R> Iterator for TTryMapReady<I, R>
+where
+    I: TaskIterator,
+    R: 'static,
+{
+    type Item = TaskStatus<R, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        if self.done {
+            return None;
+        }
+        let status = self.inner.next_status()?;
+        Some(match status {
+            TaskStatus::Ready(v) => match (self.mapper)(v) {
+                Some(r) => TaskStatus::Ready(r),
+                None => { self.done = true; return None; }
+            },
+            TaskStatus::Spread(items) => {
+                let mut any_none = false;
+                let mapped: Vec<_> = items.into_iter().filter_map(|item| match item {
+                    TaskSpread::Ready(d) => match (self.mapper)(d) {
+                        Some(r) => Some(TaskSpread::Ready(r)),
+                        None => { any_none = true; None }
+                    },
+                    TaskSpread::Pending(p) => Some(TaskSpread::Pending(p)),
+                }).collect();
+                if any_none { self.done = true; }
+                TaskStatus::Spread(mapped)
+            },
+            TaskStatus::Pending(v) => TaskStatus::Pending(v),
+            TaskStatus::Delayed(d) => TaskStatus::Delayed(d),
+            TaskStatus::Ignore => TaskStatus::Ignore,
+            TaskStatus::Init => TaskStatus::Init,
+            TaskStatus::Spawn(s) => TaskStatus::Spawn(s),
+            TaskStatus::Wait => TaskStatus::Wait,
+            TaskStatus::Depends(signal) => TaskStatus::Depends(signal),
+        })
     }
 }
 
