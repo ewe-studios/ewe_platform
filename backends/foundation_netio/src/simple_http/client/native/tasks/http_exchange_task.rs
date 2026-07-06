@@ -21,9 +21,7 @@ use foundation_core::valtron::{
     IntoBoxedSendExecutionAction, Stream, TaskIterator, TaskStatus,
 };
 
-use crate::simple_http::client::native::tasks::{
-    HttpRequestPending, RequestIntro, SendRequestTask,
-};
+use crate::simple_http::client::native::tasks::{RequestIntro, SendRequestTask};
 use crate::simple_http::client::shared::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };

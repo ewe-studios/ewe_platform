@@ -1817,7 +1817,16 @@ impl SimpleOutgoingResponseBuilder {
                     headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
                 }
             }
-            _ => {}
+            // Only `ChunkedStream` is chunk-framed by the response renderer
+            // (`Http11ResState::ChunkedBodyStreaming`). `Stream`/`LineFeedStream`
+            // emit raw bytes delimited by connection close, and `SseStream` has
+            // its own event framing — none declare a Transfer-Encoding.
+            SendSafeBody::ChunkedStream(_) => {
+                ensure_chunked_transfer_encoding(&mut headers);
+            }
+            SendSafeBody::Stream(_)
+            | SendSafeBody::LineFeedStream(_)
+            | SendSafeBody::SseStream(_) => {}
         }
 
         Ok(SimpleOutgoingResponse {
@@ -1828,6 +1837,37 @@ impl SimpleOutgoingResponseBuilder {
             trailers: self.trailers.unwrap_or_default(),
         })
     }
+}
+
+/// Advertise chunked transfer-coding on a head whose body will be rendered with
+/// chunked framing.
+///
+/// WHY: the streaming request renderer (`Http11RequestBodyIterator`) always
+/// frames `Stream`/`ChunkedStream`/`LineFeedStream` bodies as chunked
+/// (`{len:x}\r\n…\r\n`, terminated by `0\r\n\r\n`). If the head advertises
+/// neither `Content-Length` nor `Transfer-Encoding`, a receiver treats the
+/// request as bodyless (see the request parser's fallthrough), drops the framed
+/// bytes, and mishandles the `Expect: 100-continue` handshake.
+///
+/// WHAT: ensures `Transfer-Encoding: chunked` is present (as the last coding)
+/// and removes any `Content-Length` — RFC 7230 §3.3.3 forbids both together.
+///
+/// HOW: idempotent — a head that already declares `chunked` is left untouched;
+/// a non-chunked `Transfer-Encoding` (e.g. `gzip`) gets `chunked` appended last.
+pub fn ensure_chunked_transfer_encoding(headers: &mut SimpleHeaders) {
+    headers.remove(&SimpleHeader::CONTENT_LENGTH);
+
+    let already_chunked = headers
+        .get(&SimpleHeader::TRANSFER_ENCODING)
+        .is_some_and(|values| values.iter().any(|v| v.eq_ignore_ascii_case(CHUNKED_VALUE)));
+    if already_chunked {
+        return;
+    }
+
+    headers
+        .entry(SimpleHeader::TRANSFER_ENCODING)
+        .or_default()
+        .push(CHUNKED_VALUE.to_string());
 }
 
 pub type SimpleRequestResult<T> = std::result::Result<T, SimpleRequestError>;
@@ -2069,7 +2109,16 @@ impl SimpleIncomingRequestBuilder {
                 // Always replace Content-Length - it must be a single value
                 headers.insert(SimpleHeader::CONTENT_LENGTH, vec![content_length]);
             }
-            _ => {}
+            // All three streaming request bodies are chunk-framed by
+            // `Http11RequestBodyIterator`, so the head must advertise it.
+            SendSafeBody::Stream(_)
+            | SendSafeBody::ChunkedStream(_)
+            | SendSafeBody::LineFeedStream(_) => {
+                ensure_chunked_transfer_encoding(&mut headers);
+            }
+            // SSE is a response-only body; the request renderer emits no
+            // framing for it, so no Transfer-Encoding is declared.
+            SendSafeBody::SseStream(_) => {}
         }
 
         Ok(SimpleIncomingRequest {

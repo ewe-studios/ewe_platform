@@ -19,9 +19,9 @@ use crate::netcap::RawStream;
 use crate::simple_http::client::shared::{redirects, ClientConfig, DnsResolver};
 use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
 use crate::simple_http::shared::{
-    Http11, HttpClientError, HttpResponseReader, IncomingResponseParts, RenderHttp,
-    RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHttpBody,
-    SimpleIncomingRequest, Status,
+    ensure_chunked_transfer_encoding, Http11, HttpClientError, HttpResponseReader,
+    IncomingResponseParts, RenderHttp, RequestDescriptor, SendSafeBody, SimpleHeader,
+    SimpleHttpBody, SimpleIncomingRequest, Status,
 };
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
@@ -206,13 +206,23 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                         descriptor.headers.remove(&SimpleHeader::EXPECT);
                     }
 
-                    // TODO: RFC 7230 §3.3.1 — streaming bodies without
-                    // Content-Length need Transfer-Encoding: chunked + the body
-                    // renderer (Http11RequestBodyIterator) must frame each chunk
-                    // as chunked transfer encoding (hex size + CRLF + data + CRLF,
-                    // terminated by 0 + CRLF + CRLF). Both BodyStreaming and
-                    // LineFeedStreaming currently output raw bytes with no framing.
-                    // Fix the renderer first, then add the header here.
+                    // RFC 7230 §3.3.1 — the body renderer frames all three
+                    // streaming variants (Stream/ChunkedStream/LineFeedStream) as
+                    // chunked transfer encoding, so the head MUST advertise
+                    // `Transfer-Encoding: chunked` (and carry no Content-Length).
+                    // Without it a receiver finds neither framing header, treats
+                    // the request as bodyless, drops the chunked bytes, and
+                    // mishandles the Expect: 100-continue handshake above. The
+                    // builders inject this too; do it here to cover descriptors
+                    // assembled by other paths.
+                    if matches!(
+                        data.body,
+                        Some(SendSafeBody::Stream(_))
+                            | Some(SendSafeBody::ChunkedStream(_))
+                            | Some(SendSafeBody::LineFeedStream(_))
+                    ) {
+                        ensure_chunked_transfer_encoding(&mut descriptor.headers);
+                    }
 
                     tracing::debug!("Rendering and sending request");
                     // 2. Render and send request

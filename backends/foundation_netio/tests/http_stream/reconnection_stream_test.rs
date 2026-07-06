@@ -1,5 +1,4 @@
 use foundation_netio::netcap::connection::Endpoint;
-use foundation_netio::netcap::ClientEndpoint;
 use foundation_netio::http_stream::ReconnectionError;
 use foundation_netio::http_stream::ReconnectingStream;
 use foundation_netio::http_stream::ReconnectionStatus;
@@ -8,8 +7,6 @@ use foundation_core::retries::SameBackoffDecider;
 use foundation_core::valtron::PoolGuard;
 use std::{net::TcpListener, result::Result, thread};
 use tracing;
-
-use futures_lite::StreamExt;
 
 #[test]
 fn successfully_connects_on_first_try() {

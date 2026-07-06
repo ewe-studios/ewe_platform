@@ -1,7 +1,6 @@
 //! Batch frame writer tests.
 
 use foundation_netio::websocket::{BatchFrameWriter, Opcode, WebSocketFrame};
-use std::time::Duration;
 
 fn text_frame(payload: &[u8], fin: bool) -> WebSocketFrame {
     WebSocketFrame {

@@ -113,7 +113,6 @@ fn test_with_max_retries() {
 #[test]
 #[traced_test]
 fn test_with_max_reconnect_duration() {
-    use std::time::Duration;
 
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -165,7 +164,6 @@ fn test_with_header() {
 #[test]
 #[traced_test]
 fn test_with_read_timeout() {
-    use std::time::Duration;
 
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -241,7 +239,6 @@ fn test_failing_connection_eventual_exhaust() {
 #[traced_test]
 fn test_builder_chain() {
     use foundation_netio::simple_http::shared::SimpleHeader;
-    use std::time::Duration;
 
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")

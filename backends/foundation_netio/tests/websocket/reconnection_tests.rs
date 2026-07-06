@@ -4,8 +4,6 @@
 //!
 //! Tests automatic reconnection with exponential backoff.
 
-use std::time::Duration;
-
 use foundation_core::valtron::{PoolGuard, TaskIterator, TaskStatus};
 use foundation_netio::simple_http::client::shared::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};

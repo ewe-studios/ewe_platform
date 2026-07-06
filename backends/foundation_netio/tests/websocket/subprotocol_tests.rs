@@ -7,7 +7,6 @@ use foundation_netio::simple_http::client::shared::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use serial_test::serial;
-use std::time::Duration;
 use tracing_test::traced_test;
 
 // All valtron pool tests use the same global serial lock to prevent PoolGuard interference
