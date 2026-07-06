@@ -43,6 +43,7 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 | [12](decisions/12-foundation-enablement.md) | Foundation Enablement (Streaming, Trailers, HTTP/2) | ready |
 | [13](decisions/13-websocket-transport.md) | WebSocket Transport (Bidi over HTTP/1.1) — *deferred, implemented last* | ready |
 | [14](decisions/14-io-uring-reactor-backend.md) | io_uring Reactor Backend (Linux) — efficient fd listening for native parking | ready |
+| [15](decisions/15-bounded-delivery-and-sequenced-lifting.md) | `sequenced` delivery is bounded (backpressured interleave); `lift` stays unbounded — narrow fix, realized in Feature 45 | ready |
 
 ## Reference Material
 
