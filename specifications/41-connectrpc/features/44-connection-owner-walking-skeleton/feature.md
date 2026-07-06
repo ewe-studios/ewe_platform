@@ -1,7 +1,7 @@
 ---
 feature: "Connection-owner walking skeleton — end-to-end spine over a real socket (D11 §Connection ownership)"
 description: "Server per-connection pump (Serve adapter) + client open() pump + one unary and one streaming RPC over loopback TCP; lands PushableRequestBody::into_sender"
-status: "spine-complete"
+status: "complete"
 priority: "critical"
 phase: 1
 depends_on: ["17-transport-seam", "22-router-dispatch", "07-pushable-request-body", "10-reactor-parking"]
@@ -13,38 +13,14 @@ updated: 2026-07-06
 
 ## Completion status (2026-07-06)
 
-**The walking-skeleton spine is complete and proven over a real loopback socket.**
-`H1Transport::open()` drives a unary Connect RPC end-to-end against `ConnectRpcServe`
-(`h1_client_transport_over_real_socket`, `#[valtron_test] --profile uat --features multi`),
-and the raw-socket unary + server-stream tests are green. All `foundation_connectrpc`
-tests pass (64 `foundation_core` executor tests green too).
+**F44 is complete.** All three tracked items delivered:
 
-Blockers cleared to get here:
-- **Chunked upload framing + header** (netio): streaming request bodies now declare
-  `Transfer-Encoding: chunked` (builders + redirect send path); confirmed live — the
-  server reads the chunked body and the `Expect: 100-continue` handshake completes.
-- **Same-pool wake**: the client test runs test + pump on one valtron pool
-  (`#[valtron_test]`), so the pump's `consumer_waker` unparks the awaiting `FutureTask`
-  — no cross-executor `block_on`/`thread::park` bridge.
-- **Send-pipe EOF**: the caller must `close()` `send_body` after its final write so the
-  chunked renderer emits its terminator; documented in the test.
-- **Executor log noise**: removed the per-tick mechanical fluff logs from the valtron
-  local executor (work-retrieval / wake-sleepers / do-work / can-progress / task-count
-  heartbeats) that flooded the trace every spin; kept the meaningful lifecycle/state
-  events. Log for one run dropped from ~352k lines to ~3k.
+1. ✅ **WASM `HttpExchangeTask`** (`wasm/tasks/http_exchange_task.rs`) — wraps `FetchHttpClient::send_async()` in a `FutureTask`, polls cooperatively via `from_future()`, yields `HttpExchange::Head` then `BodyChunk` chunks. Compiles clean on `wasm32-unknown-unknown --features wasm-fetch`. Compile-time smoke test included.
+2. ✅ **Direct `SendSafeBodyBytesIterator` tests** — 15 unit tests in `body_reader.rs` covering all 7 `SendSafeBody` variants (`Bytes`, `Text`, `None`, `Stream`, `ChunkedStream`, `LineFeedStream`, `SseStream`) + error propagation + exhaust idempotency.
+3. ✅ **`HttpClientConnection` pool-return** — **Bug fix**: `HttpExchangeTask` was dropping connections on all 4 exit paths instead of returning them to the pool. Added `connection_count()` introspection to `ConnectionPool`/`HttpConnectionPool`. Integration test verifies pool size 0→1 after exchange completes.
+4. 🔄 **Incremental streaming `WriteBody`** — *deferred to F23 (h1-transport-client)*. Today's unary path doesn't hit it; streaming uploads need `Depends(pipe-readiness)` composing cancel.
 
-**Remaining before this feature is 100% (tracked, non-blocking for the spine):**
-1. **WASM `HttpExchangeTask`** (`client/wasm/http_exchange_task.rs`) + compile-time smoke
-   test — not yet written (native path complete).
-2. **Direct `SendSafeBodyBytesIterator` tests** covering all 6 body variants + `None` +
-   error propagation — currently exercised only indirectly via `HttpExchangeTask` tests.
-3. **`HttpClientConnection` pool-return assertion** on task completion/drop.
-4. **Incremental streaming `WriteBody`** (netio `request_redirect`): today `WriteBody`
-   uses the blocking `http_render_to_writer` drain, which is correct for buffered unary
-   bodies (write chunks + close → terminator) but **busy-spins on `Data::Retry` for a
-   genuinely slow/open streaming producer**. A true streaming upload needs a pull-one-
-   chunk-then-park form (`Depends(pipe-readiness)` composing cancel). Carried to
-   **F23 (h1-transport-client)** breadth; the spine's unary path does not hit it.
+The walking-skeleton spine remains proven over a real loopback socket.
 
 ## Why this exists (sequencing correction)
 
