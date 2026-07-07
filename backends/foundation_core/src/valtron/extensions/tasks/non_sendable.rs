@@ -5,7 +5,10 @@ use concurrent_queue::ConcurrentQueue;
 use std::sync::Arc;
 
 use crate::valtron::branches::CollectionState;
-use crate::valtron::{ExecutionAction, Stream, TaskIterator, TaskShortCircuit, TaskSpread, TaskStatus};
+use crate::valtron::{
+    ExecutionAction, QueueVacancyReadiness, Stream, TaskIterator, TaskShortCircuit, TaskSpread,
+    TaskStatus,
+};
 
 /// Extension trait providing builder-style combinator methods for any `TaskIterator`.
 ///
@@ -745,6 +748,8 @@ where
             inner: self,
             queue,
             predicate: Box::new(predicate),
+            pending_push: None,
+            pending_forward: None,
         };
 
         (observer, continuation)
@@ -794,6 +799,9 @@ where
             inner: self,
             queue,
             predicate: Box::new(predicate),
+            pending_push: None,
+            pending_forward: None,
+            pending_close: false,
         };
 
         (observer, continuation)
@@ -827,6 +835,9 @@ where
             inner: self,
             queue,
             transform: Box::new(transform),
+            pending_push: None,
+            pending_forward: None,
+            pending_close: false,
         };
 
         (observer, continuation)
@@ -860,6 +871,8 @@ where
             inner: self,
             queue,
             transform: Box::new(transform),
+            pending_push: None,
+            pending_forward: None,
         };
 
         (observer, continuation)
@@ -1846,6 +1859,30 @@ where
 // Split Collector Combinators (Feature 07)
 // ============================================================================
 
+/// WHY: A split continuation must never drop a matched item on a full observer
+/// queue (Decision 00 §L1b: no `force_push` drop, no bare busy-spin). It also
+/// must not stall the whole stream when the observer branch has simply been
+/// dropped.
+///
+/// WHAT: Attempt to hand `item` to a split observer `queue`, reporting back
+/// whether the source has to park on the queue's vacancy.
+///
+/// HOW: On `Ok` the item is delivered; on `Closed` the observer is gone so we
+/// stop copying but let the source keep forwarding (returns `None` — proceed);
+/// on `Full` the item is returned in `Some(..)` so the caller can stash it and
+/// park the source on [`QueueVacancyReadiness`].
+///
+/// # Panics
+/// Never panics.
+#[inline]
+fn split_observer_push<T>(queue: &ConcurrentQueue<T>, item: T) -> Option<T> {
+    match queue.push(item) {
+        Ok(()) => None,
+        Err(concurrent_queue::PushError::Full(item)) => Some(item),
+        Err(concurrent_queue::PushError::Closed(_)) => None,
+    }
+}
+
 /// Observer branch from `split_collector()`.
 ///
 /// Receives copies of items matching the predicate via a `ConcurrentQueue`.
@@ -1882,6 +1919,16 @@ where
     }
 }
 
+impl<D, P> Drop for CollectorStreamIterator<D, P> {
+    /// WHY: A dropped observer must not leave the source parked forever on a full
+    /// queue (F45 Part C1 observer-dropped policy). WHAT/HOW: closing the shared
+    /// queue makes the continuation's next push observe `Closed`, so it stops
+    /// copying to this branch and keeps forwarding.
+    fn drop(&mut self) {
+        self.queue.close();
+    }
+}
+
 /// Continuation branch from `split_collector()`.
 ///
 /// Wraps the original iterator, copying matched items to the observer queue
@@ -1893,17 +1940,37 @@ pub struct SplitCollectorContinuation<I: TaskIterator> {
     queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
     /// Predicate to determine which items to copy
     predicate: Box<dyn Fn(&I::Ready) -> bool>,
+    /// A matched observer item that could not be delivered because the observer
+    /// queue was full; retried on the next `next()` before pulling new work
+    /// (F45 Part C1 backpressure).
+    pending_push: Option<Stream<I::Ready, I::Pending>>,
+    /// The source item held back while `pending_push` is being retried, forwarded
+    /// downstream only once the observer accepts the copy (keeps both branches in
+    /// lockstep).
+    pending_forward: Option<TaskStatus<I::Ready, I::Pending, I::Spawner>>,
 }
 
 impl<I> Iterator for SplitCollectorContinuation<I>
 where
     I: TaskIterator,
-    I::Ready: Clone,
-    I::Pending: Clone,
+    I::Ready: Clone + 'static,
+    I::Pending: Clone + 'static,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Retry a stashed observer push before pulling new work: a full observer
+        // parks the source on vacancy instead of dropping the item (F45 Part C1).
+        if let Some(stream_item) = self.pending_push.take() {
+            if let Some(stashed) = split_observer_push(&self.queue, stream_item) {
+                self.pending_push = Some(stashed);
+                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                    self.queue.clone(),
+                ))));
+            }
+            return self.pending_forward.take();
+        }
+
         let item = if let Some(item) = self.inner.next_status() {
             item
         } else {
@@ -1913,18 +1980,28 @@ where
             return None;
         };
 
-        // Copy matched items to observer queue
+        // Copy matched items to observer queue, parking on backpressure.
+        let mut park = false;
         if let TaskStatus::Ready(value) = &item {
             if (self.predicate)(value) {
-                let stream_item = Stream::Next(value.clone());
-                if let Err(e) = self.queue.force_push(stream_item) {
-                    tracing::error!("SplitCollectorContinuation: failed to push to queue: {}", e);
+                if let Some(stashed) = split_observer_push(&self.queue, Stream::Next(value.clone()))
+                {
+                    self.pending_push = Some(stashed);
+                    park = true;
                 } else {
                     tracing::trace!(
                         "SplitCollectorContinuation: copied matched item to observer queue"
                     );
                 }
             }
+        }
+
+        if park {
+            // Hold the source item back until the observer drains a slot.
+            self.pending_forward = Some(item);
+            return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                self.queue.clone(),
+            ))));
         }
 
         // Always forward to continuation
@@ -1984,6 +2061,14 @@ where
     }
 }
 
+impl<D, P> Drop for SplitUntilObserver<D, P> {
+    /// Close the shared queue on drop so a dropped observer never parks the
+    /// source on a full queue (F45 Part C1 observer-dropped policy).
+    fn drop(&mut self) {
+        self.queue.close();
+    }
+}
+
 /// Continuation branch from `split_collect_until()`.
 ///
 /// Wraps the original iterator, copying items to the observer queue
@@ -1996,17 +2081,39 @@ pub struct SplitUntilContinuation<I: TaskIterator> {
     queue: Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>,
     /// Predicate to determine when to close observer
     predicate: Box<dyn Fn(&I::Ready) -> CollectionState>,
+    /// A matched observer item awaiting a free slot (F45 Part C1 backpressure).
+    pending_push: Option<Stream<I::Ready, I::Pending>>,
+    /// The source item held back until the stashed copy is accepted.
+    pending_forward: Option<TaskStatus<I::Ready, I::Pending, I::Spawner>>,
+    /// Whether the observer queue must be closed once `pending_push` lands (the
+    /// `CollectionState::Close(true)` case parked on a full queue).
+    pending_close: bool,
 }
 
 impl<I> Iterator for SplitUntilContinuation<I>
 where
     I: TaskIterator,
-    I::Ready: Clone,
-    I::Pending: Clone,
+    I::Ready: Clone + 'static,
+    I::Pending: Clone + 'static,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Retry a stashed observer push before pulling new work (F45 Part C1).
+        if let Some(stream_item) = self.pending_push.take() {
+            if let Some(stashed) = split_observer_push(&self.queue, stream_item) {
+                self.pending_push = Some(stashed);
+                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                    self.queue.clone(),
+                ))));
+            }
+            if self.pending_close {
+                self.pending_close = false;
+                self.queue.close();
+            }
+            return self.pending_forward.take();
+        }
+
         let item = if let Some(item) = self.inner.next_status() {
             item
         } else {
@@ -2017,6 +2124,7 @@ where
         };
 
         // Handle items based on CollectionState from predicate
+        let mut park = false;
         if let TaskStatus::Ready(value) = &item {
             match (self.predicate)(value) {
                 CollectionState::Skip => {
@@ -2026,33 +2134,45 @@ where
                     );
                 }
                 CollectionState::Collect => {
-                    // Collect this item for the observer
-                    let stream_item = Stream::Next(value.clone());
-                    if let Err(e) = self.queue.force_push(stream_item) {
-                        tracing::error!("SplitUntilContinuation: failed to push to queue: {}", e);
+                    // Collect this item for the observer, parking on backpressure.
+                    if let Some(stashed) =
+                        split_observer_push(&self.queue, Stream::Next(value.clone()))
+                    {
+                        self.pending_push = Some(stashed);
+                        park = true;
                     } else {
                         tracing::trace!("SplitUntilContinuation: collected item for observer");
                     }
                 }
                 CollectionState::Close(collect_this) => {
-                    // Close the observer after optionally collecting this item
+                    // Close the observer after optionally collecting this item.
                     if collect_this {
-                        let stream_item = Stream::Next(value.clone());
-                        if let Err(e) = self.queue.force_push(stream_item) {
-                            tracing::error!(
-                                "SplitUntilContinuation: failed to push to queue: {}",
-                                e
-                            );
+                        if let Some(stashed) =
+                            split_observer_push(&self.queue, Stream::Next(value.clone()))
+                        {
+                            // Park now; close the queue once the final item lands.
+                            self.pending_push = Some(stashed);
+                            self.pending_close = true;
+                            park = true;
                         } else {
                             tracing::trace!("SplitUntilContinuation: collecting final item and closing observer queue");
                         }
                     } else {
                         tracing::trace!("SplitUntilContinuation: closing observer queue without collecting final item");
                     }
-                    self.queue.close();
-                    tracing::debug!("SplitUntilContinuation: observer queue closed after CollectionState::Close");
+                    if !park {
+                        self.queue.close();
+                        tracing::debug!("SplitUntilContinuation: observer queue closed after CollectionState::Close");
+                    }
                 }
             }
+        }
+
+        if park {
+            self.pending_forward = Some(item);
+            return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                self.queue.clone(),
+            ))));
         }
 
         // Always forward to continuation
@@ -2114,6 +2234,14 @@ where
     }
 }
 
+impl<D, P> Drop for SplitUntilObserverMap<D, P> {
+    /// Close the shared queue on drop so a dropped observer never parks the
+    /// source on a full queue (F45 Part C1 observer-dropped policy).
+    fn drop(&mut self) {
+        self.queue.close();
+    }
+}
+
 /// Continuation branch from `split_collect_until_map()`.
 ///
 /// Wraps the original iterator. The transform function returns
@@ -2126,17 +2254,38 @@ pub struct SplitUntilContinuationMap<I: TaskIterator, D> {
     queue: Arc<ConcurrentQueue<Stream<D, I::Pending>>>,
     /// Combined predicate + transform function
     transform: Box<dyn Fn(&I::Ready) -> (CollectionState, Option<D>)>,
+    /// A transformed observer item awaiting a free slot (F45 Part C1 backpressure).
+    pending_push: Option<Stream<D, I::Pending>>,
+    /// The source item held back until the stashed copy is accepted.
+    pending_forward: Option<TaskStatus<I::Ready, I::Pending, I::Spawner>>,
+    /// Whether the observer queue must be closed once `pending_push` lands.
+    pending_close: bool,
 }
 
 impl<I, D> Iterator for SplitUntilContinuationMap<I, D>
 where
     I: TaskIterator,
-    I::Pending: Clone,
+    I::Pending: Clone + 'static,
     D: Clone + 'static,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Retry a stashed observer push before pulling new work (F45 Part C1).
+        if let Some(stream_item) = self.pending_push.take() {
+            if let Some(stashed) = split_observer_push(&self.queue, stream_item) {
+                self.pending_push = Some(stashed);
+                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                    self.queue.clone(),
+                ))));
+            }
+            if self.pending_close {
+                self.pending_close = false;
+                self.queue.close();
+            }
+            return self.pending_forward.take();
+        }
+
         let item = if let Some(item) = self.inner.next_status() {
             item
         } else {
@@ -2147,6 +2296,7 @@ where
         };
 
         // Handle items based on (CollectionState, Option<D>) from transform
+        let mut park = false;
         if let TaskStatus::Ready(value) = &item {
             let (state, transformed) = (self.transform)(value);
             match state {
@@ -2157,29 +2307,28 @@ where
                     );
                 }
                 CollectionState::Collect => {
-                    // Collect this item for the observer (with transformation)
+                    // Collect this item for the observer (with transformation).
                     if let Some(transformed) = transformed {
-                        let stream_item = Stream::Next(transformed);
-                        if let Err(e) = self.queue.force_push(stream_item) {
-                            tracing::error!(
-                                "SplitUntilContinuationMap: failed to push to queue: {}",
-                                e
-                            );
+                        if let Some(stashed) =
+                            split_observer_push(&self.queue, Stream::Next(transformed))
+                        {
+                            self.pending_push = Some(stashed);
+                            park = true;
                         } else {
                             tracing::trace!("SplitUntilContinuationMap: collected transformed item for observer");
                         }
                     }
                 }
                 CollectionState::Close(collect_this) => {
-                    // Close the observer after optionally collecting this item
+                    // Close the observer after optionally collecting this item.
                     if collect_this {
                         if let Some(transformed) = transformed {
-                            let stream_item = Stream::Next(transformed);
-                            if let Err(e) = self.queue.force_push(stream_item) {
-                                tracing::error!(
-                                    "SplitUntilContinuationMap: failed to push to queue: {}",
-                                    e
-                                );
+                            if let Some(stashed) =
+                                split_observer_push(&self.queue, Stream::Next(transformed))
+                            {
+                                self.pending_push = Some(stashed);
+                                self.pending_close = true;
+                                park = true;
                             } else {
                                 tracing::trace!("SplitUntilContinuationMap: collecting final transformed item and closing observer queue");
                             }
@@ -2187,10 +2336,19 @@ where
                     } else {
                         tracing::trace!("SplitUntilContinuationMap: closing observer queue without collecting final item");
                     }
-                    self.queue.close();
-                    tracing::debug!("SplitUntilContinuationMap: observer queue closed after CollectionState::Close");
+                    if !park {
+                        self.queue.close();
+                        tracing::debug!("SplitUntilContinuationMap: observer queue closed after CollectionState::Close");
+                    }
                 }
             }
+        }
+
+        if park {
+            self.pending_forward = Some(item);
+            return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                self.queue.clone(),
+            ))));
         }
 
         // Always forward to continuation
@@ -2246,6 +2404,14 @@ where
     }
 }
 
+impl<M, P> Drop for SplitCollectorMapObserver<M, P> {
+    /// Close the shared queue on drop so a dropped observer never parks the
+    /// source on a full queue (F45 Part C1 observer-dropped policy).
+    fn drop(&mut self) {
+        self.queue.close();
+    }
+}
+
 /// Continuation branch from `split_collector_map()`.
 ///
 /// Wraps the original iterator. The transform function returns `(bool, Option<M>)`:
@@ -2260,17 +2426,32 @@ pub struct SplitCollectorMapContinuation<I: TaskIterator, M> {
     queue: Arc<ConcurrentQueue<Stream<M, I::Pending>>>,
     /// Combined predicate + transform function
     transform: Box<dyn Fn(&I::Ready) -> (bool, Option<M>)>,
+    /// A transformed observer item awaiting a free slot (F45 Part C1 backpressure).
+    pending_push: Option<Stream<M, I::Pending>>,
+    /// The source item held back until the stashed copy is accepted.
+    pending_forward: Option<TaskStatus<I::Ready, I::Pending, I::Spawner>>,
 }
 
 impl<I, M> Iterator for SplitCollectorMapContinuation<I, M>
 where
     I: TaskIterator,
-    I::Pending: Clone,
+    I::Pending: Clone + 'static,
     M: Clone + 'static,
 {
     type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Retry a stashed observer push before pulling new work (F45 Part C1).
+        if let Some(stream_item) = self.pending_push.take() {
+            if let Some(stashed) = split_observer_push(&self.queue, stream_item) {
+                self.pending_push = Some(stashed);
+                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                    self.queue.clone(),
+                ))));
+            }
+            return self.pending_forward.take();
+        }
+
         let item = if let Some(item) = self.inner.next_status() {
             item
         } else {
@@ -2279,16 +2460,16 @@ where
             return None;
         };
 
+        let mut park = false;
         if let TaskStatus::Ready(value) = &item {
             let (matched, transformed) = (self.transform)(value);
             if matched {
                 if let Some(transformed) = transformed {
-                    let stream_item = Stream::Next(transformed);
-                    if let Err(e) = self.queue.force_push(stream_item) {
-                        tracing::error!(
-                            "SplitCollectorMapContinuation: failed to push to queue: {}",
-                            e
-                        );
+                    if let Some(stashed) =
+                        split_observer_push(&self.queue, Stream::Next(transformed))
+                    {
+                        self.pending_push = Some(stashed);
+                        park = true;
                     } else {
                         tracing::trace!(
                             "SplitCollectorMapContinuation: copied transformed item to observer queue"
@@ -2296,6 +2477,13 @@ where
                     }
                 }
             }
+        }
+
+        if park {
+            self.pending_forward = Some(item);
+            return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                self.queue.clone(),
+            ))));
         }
 
         Some(item)

@@ -310,6 +310,50 @@ uses native fan-out instead of hand-rolled pipes:
 - The reactor / real-I/O parking (Decision 00 §L2, `foundation_nativeapis`).
 - HTTP/2/3/WS transports (they inherit the shrink once D lands for H1).
 
+## Resolutions ratified during implementation (2026-07-07)
+
+The plan review before Part D surfaced one genuine gap (consumer-side parking on
+the split channels) and three unratified details. Resolutions, agreed with the
+user:
+
+1. **Split channels are Pipe-backed (C1b — the consumer-side wake half C1
+   missed).** The task-split observer/continuation pairs share a
+   [`Pipe`](../../decisions/00-valtron-async-readiness.md) instead of a raw
+   `ConcurrentQueue`. Why: the task path parks natively on `EventReadiness` in
+   *both* directions with zero wake wiring (producer: `Depends(tx.vacancy())` =
+   C1 verbatim; consumer: `Depends(rx.readiness())`, sleeper re-check) — but the
+   **async path cannot**: a parked future is unparked only by its waker firing
+   (00-F1 bridge), and only a push-side waker stash can fire it (the 00-F4
+   pattern). Part D's consumers (`round_trip`, `read_response_frames`, grpc-web
+   reader) are async fns, so the waker must live in the split channel. Pipe is
+   the one wake-correct primitive; splits compose over it rather than
+   re-deriving half of it. Observers gain `readiness()` (task consumers) and
+   `receive().await` (async consumers); the manual observer `Drop` impls are
+   replaced by the pipe halves' own close-on-drop.
+2. **Stream splits folded into scope (kills the last `force_push`).** The
+   parallel `split_*` family in `extensions/streams/{sendable,non_sendable}.rs`
+   rides the same pipe-backed channel. Its continuation yields `Stream<D,P>`
+   (no `Depends` variant → cannot park), so on a full observer it stashes the
+   undelivered copy and returns **`Stream::Wait`** — the stream model's native
+   lossless cooperative yield (~4ms setTimeout on JS) — instead of the silent
+   `force_push` drop. Acceptance criterion upgraded: **zero `force_push`
+   anywhere in `extensions/`** (tasks and streams).
+3. **Split channel element type is the bare value.** Continuations only ever
+   push `Stream::Next(v)`, so the pipe carries `D`/`M` directly; observers keep
+   their `Iterator<Item = Stream<D, P>>` surface (synthesizing
+   `Next`/`Ignore`/`None`) and `receive().await` yields a clean `Option<D>`.
+4. **Clone bounds (closes Open Question 4 concretely).** `HttpExchange` is not
+   `Clone` (`Failed(SendableBoxedError)`), so Part D uses the `*_map` splits.
+   `TransportError` becomes `Clone` by Arc-wrapping its two non-Clone payloads
+   (`Io(Arc<std::io::Error>)`, `Connect(Arc<dyn Error + Send + Sync>)`), and
+   `HttpExchange::Failed` switches to `Arc<dyn Error + Send + Sync>` in netio so
+   a pre-head failure clones losslessly into **both** the head and body
+   branches (no stringify at the transform).
+5. **No double-buffering on the drive task.** After the two splits the final
+   continuation still yields the original `HttpExchange` values; it is
+   terminated with `.map_ready(|_| ())` before spawning so body chunks are not
+   buffered a second time into an undrained delivery queue.
+
 ## Open questions (resolve during implementation)
 
 1. **`NotifyQueue` producer wake for promptness — RESOLVED: gate on bounded.**

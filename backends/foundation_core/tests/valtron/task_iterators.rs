@@ -133,8 +133,13 @@ fn test_split_collector_map_transform_returns_none_skips() {
     assert_eq!(collected, vec![10u64]);
 }
 
+/// `split_collect_one_map` uses a depth-1 (queue_size = 1) observer queue. Since
+/// F45 Part C1 replaced `force_push` (drop-oldest) with a vacancy-park, a full
+/// queue backpressures the source instead of dropping — so the continuation and
+/// observer must be driven in lockstep, and every match is delivered (zero loss).
 #[test]
 fn test_split_collect_one_map() {
+    // TestTask pops in reverse, so this yields 20, 10, 3.
     let items = vec![
         TaskStatus::Ready(3),
         TaskStatus::Ready(10),
@@ -142,20 +147,32 @@ fn test_split_collect_one_map() {
     ];
     let task = TestTask::new(items);
 
-    let (observer, mut continuation) =
+    let (mut observer, mut continuation) =
         task.split_collect_one_map(|x| (*x > 5, Some(x.to_string())));
 
-    while Iterator::next(&mut continuation).is_some() {}
+    // Lockstep drive: drain the depth-1 queue between continuation steps so a
+    // parked source can advance.
+    let mut collected: Vec<String> = Vec::new();
+    loop {
+        while let Some(stream) = Iterator::next(&mut observer) {
+            match stream {
+                Stream::Next(v) => collected.push(v),
+                _ => break,
+            }
+        }
+        match Iterator::next(&mut continuation) {
+            Some(_) => {}
+            None => break,
+        }
+    }
+    for stream in &mut observer {
+        if let Stream::Next(v) = stream {
+            collected.push(v);
+        }
+    }
 
-    let collected: Vec<_> = observer
-        .filter_map(|item| match item {
-            Stream::Next(v) => Some(v),
-            _ => None,
-        })
-        .collect();
-
-    // Queue size 1, so only first match gets through
-    assert_eq!(collected.len(), 1);
+    // Both matches (20, 10) are delivered in order — zero loss.
+    assert_eq!(collected, vec!["20".to_string(), "10".to_string()]);
 }
 
 #[test]

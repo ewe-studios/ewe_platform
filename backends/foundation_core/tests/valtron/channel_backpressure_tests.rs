@@ -293,3 +293,129 @@ fn test_executor_ready_iter_no_message_loss() {
     assert!(final_results.contains(&400));
     assert!(final_results.contains(&500));
 }
+
+// ============================================================================
+// Fan-out (split) Backpressure Tests (Feature 45 Part C1)
+// ============================================================================
+
+/// Minimal in-order task iterator for the split backpressure tests.
+struct SeqTask {
+    items: std::vec::IntoIter<TaskStatus<u32, String, foundation_core::valtron::NoAction>>,
+}
+
+impl Iterator for SeqTask {
+    type Item = TaskStatus<u32, String, foundation_core::valtron::NoAction>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.items.next()
+    }
+}
+
+/// A split continuation parks on a FULL observer queue instead of dropping the
+/// matched item (Feature 45 Part C1 replaces the old `force_push` drop-oldest).
+///
+/// This is the fan-out analogue of the Decision 00 §L1b delivery rule: while the
+/// observer is full the source yields `TaskStatus::Depends` (park, turn-count
+/// flat) rather than a value; draining a slot unparks it and the stashed item
+/// lands — zero loss.
+#[test]
+#[traced_test]
+fn test_split_continuation_parks_on_full_observer_no_loss() {
+    use foundation_core::valtron::{Stream, TaskIteratorExt};
+
+    // Three matched items through a depth-1 (queue_size = 1) observer queue.
+    let task = SeqTask {
+        items: vec![
+            TaskStatus::Ready(10),
+            TaskStatus::Ready(20),
+            TaskStatus::Ready(30),
+        ]
+        .into_iter(),
+    };
+    let (mut observer, mut continuation) = task.split_collect_one(|_| true);
+
+    // Step 1: pushes 10 into the depth-1 queue and forwards Ready(10).
+    assert!(
+        matches!(continuation.next(), Some(TaskStatus::Ready(10))),
+        "first step forwards the source value and fills the observer queue"
+    );
+
+    // Steps 2 & 3: the queue is full, so the source PARKS on vacancy instead of
+    // dropping 10 — turn-count stays flat (repeated Depends, no value consumed).
+    assert!(
+        matches!(continuation.next(), Some(TaskStatus::Depends(_))),
+        "full observer queue parks the source rather than dropping"
+    );
+    assert!(
+        matches!(continuation.next(), Some(TaskStatus::Depends(_))),
+        "still parked while the observer stays full"
+    );
+
+    // Drain one slot: the stashed copy of 20 now lands and the source advances.
+    assert!(matches!(observer.next(), Some(Stream::Next(10))));
+    assert!(
+        matches!(continuation.next(), Some(TaskStatus::Ready(20))),
+        "draining a slot unparks the source and delivers the stashed item"
+    );
+
+    // Finish in lockstep and prove every matched item reached the observer.
+    let mut received = vec![10u32];
+    loop {
+        while let Some(stream) = observer.next() {
+            match stream {
+                Stream::Next(v) => received.push(v),
+                _ => break,
+            }
+        }
+        match continuation.next() {
+            Some(_) => {}
+            None => break,
+        }
+    }
+    for stream in &mut observer {
+        if let Stream::Next(v) = stream {
+            received.push(v);
+        }
+    }
+    received.sort_unstable();
+    assert_eq!(
+        received,
+        vec![10, 20, 30],
+        "backpressured fan-out loses zero items"
+    );
+}
+
+/// A DROPPED observer does not kill the stream: the continuation stops copying
+/// (observer queue closed) but keeps forwarding source values (Feature 45 Part
+/// C1 observer-dropped policy).
+#[test]
+#[traced_test]
+fn test_split_continuation_survives_dropped_observer() {
+    use foundation_core::valtron::TaskIteratorExt;
+
+    let task = SeqTask {
+        items: vec![
+            TaskStatus::Ready(1),
+            TaskStatus::Ready(2),
+            TaskStatus::Ready(3),
+        ]
+        .into_iter(),
+    };
+    let (observer, mut continuation) = task.split_collect_one(|_| true);
+
+    // Drop the observer immediately — its queue closes.
+    drop(observer);
+
+    // The continuation must keep forwarding every source value (no park, no panic).
+    let mut forwarded = Vec::new();
+    while let Some(status) = continuation.next() {
+        if let TaskStatus::Ready(v) = status {
+            forwarded.push(v);
+        }
+    }
+    assert_eq!(
+        forwarded,
+        vec![1, 2, 3],
+        "a dropped observer does not stall or kill the source stream"
+    );
+}
