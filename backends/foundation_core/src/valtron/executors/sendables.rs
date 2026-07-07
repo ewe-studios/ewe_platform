@@ -625,6 +625,31 @@ where
 // ===========================================
 
 // ===========================================
+// inline iterator creation methods
+// ===========================================
+
+/// Creates an `InlineAction` + `DrivenRecvIterator` pair — a convenience
+/// wrapper combining [`InlineAction::new`] + [`drive_receiver`].
+#[must_use]
+pub fn inlined_task<Done, Pending, Action, Task>(
+    behaviour: InlineActionBehaviour,
+    task: Task,
+    wait_cycle: std::time::Duration,
+) -> (
+    InlineAction<Done, Pending, Action, Task>,
+    DrivenRecvIterator<Task>,
+)
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
+    (task_action, drive_receiver(task_receiver))
+}
+
+// ===========================================
 // Iterator driver methods
 // ===========================================
 

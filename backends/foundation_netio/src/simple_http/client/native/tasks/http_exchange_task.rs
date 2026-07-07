@@ -17,8 +17,7 @@ use std::sync::Arc;
 
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{
-    drive_receiver, BoxedSendExecutionAction, InlineAction, InlineActionBehaviour,
-    Stream, TaskIterator, TaskStatus,
+    inlined_task, BoxedSendExecutionAction, InlineActionBehaviour, Stream, TaskIterator, TaskStatus,
 };
 
 use crate::simple_http::client::native::tasks::{RequestIntro, SendRequestTask};
@@ -79,18 +78,17 @@ impl HttpExchangeTask {
     ) -> Self {
         let pool_for_conn = Arc::clone(&pool);
         let child = SendRequestTask::new(request, max_redirects, pool, config);
-        let (action, raw_receiver) = InlineAction::new(
+        let (action, receiver) = inlined_task(
             InlineActionBehaviour::LiftWithParent,
             child,
             std::time::Duration::from_millis(0),
         );
         Self {
-            state: State::Polling(drive_receiver(raw_receiver)),
+            state: State::Polling(receiver),
             spawn: Some(Box::new(action)),
             pool: pool_for_conn,
         }
     }
-
 }
 
 impl TaskIterator for HttpExchangeTask {
@@ -236,10 +234,9 @@ impl TaskIterator for HttpExchangeTask {
                     }
                 }
             }
-            State::Failed(ref mut opt) => {
-                opt.take()
-                    .map(|e| TaskStatus::Ready(HttpExchange::Failed(e)))
-            }
+            State::Failed(ref mut opt) => opt
+                .take()
+                .map(|e| TaskStatus::Ready(HttpExchange::Failed(e))),
         }
     }
 }

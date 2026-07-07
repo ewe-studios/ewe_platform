@@ -230,6 +230,29 @@ where
     DrivenTaskIterator::new(incoming)
 }
 
+/// Creates an `InlineAction` + `DrivenRecvIterator` pair — a convenience
+/// wrapper combining [`InlineAction::new`] + [`drive_receiver`].
+///
+/// This is predominantly when you specifically do not want a Send action and receiver type.
+#[must_use]
+pub fn inlined_task<Done, Pending, Action, Task>(
+    behaviour: InlineActionBehaviour,
+    task: Task,
+    wait_cycle: std::time::Duration,
+) -> (
+    InlineAction<Done, Pending, Action, Task>,
+    DrivenRecvIterator<Task>,
+)
+where
+    Done: 'static,
+    Pending: 'static,
+    Action: ExecutionAction + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+{
+    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
+    (task_action, drive_receiver(task_receiver))
+}
+
 /// `from_future_stream` creates a new [`DrivenTaskIterator<StreamTask<S>>`]
 /// task iterator which will internally drive the state of the stream in single threaded
 /// environments or rely on the multi-threaded executor in multi-threaded environments.

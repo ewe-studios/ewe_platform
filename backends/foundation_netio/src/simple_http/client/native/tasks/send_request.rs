@@ -17,7 +17,7 @@
 
 use foundation_core::url::Uri;
 use foundation_core::valtron::{
-    drive_receiver, BoxedSendExecutionAction, DrivenRecvIterator, InlineAction,
+    drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineAction,
     TaskIterator, TaskStatus,
 };
 use crate::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
@@ -170,7 +170,7 @@ where
                     };
 
                     tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask task for sendrequest.");
-                    let (get_stream_action, raw_receiver) = InlineAction::new(
+                    let (get_stream_action, get_stream_receiver) = inlined_task(
                         foundation_core::valtron::InlineActionBehaviour::LiftWithParent,
                         GetHttpRequestRedirectTask::new(
                             into_incoming,
@@ -181,7 +181,7 @@ where
                         self.1.inline_processing_timeout,
                     );
 
-                    self.0 = Some(SendRequestState::Connecting(drive_receiver(raw_receiver)));
+                    self.0 = Some(SendRequestState::Connecting(get_stream_receiver));
 
                     tracing::debug!(
                         "SendRequestTask::Init: Spawned task to get HTTP request stream"
@@ -663,7 +663,7 @@ where
                                                 tracing::debug!("CheckRedirect: creating new request task for: {:?} with new request: {:?}", &parsed_uri_string, &newly_built_request);
 
                                                 tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask[2] task for sendrequest.");
-                                                let (get_stream_action, raw_receiver) = InlineAction::new(
+                                                let (get_stream_action, get_stream_receiver) = inlined_task(
                                                         foundation_core::valtron::InlineActionBehaviour::LiftWithParent,
                                                         GetHttpRequestRedirectTask::new(
                                                             newly_built_request,
@@ -675,7 +675,7 @@ where
                                                     );
 
                                                 self.0 = Some(SendRequestState::Connecting(
-                                                    drive_receiver(raw_receiver),
+                                                    get_stream_receiver,
                                                 ));
 
                                                 Some(TaskStatus::Spawn(Box::new(get_stream_action)))
