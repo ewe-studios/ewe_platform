@@ -2779,7 +2779,7 @@ mod test_local_thread_executor {
                         if let Some(inner) = items.take() {
                             let task = WrapTask::new(inner.into_iter());
 
-                            let (inline_action, receiver) = InlineAction::boxed_mapper(
+                            let (inline_action, receiver) = InlineAction::new(
                                 self.0,
                                 task,
                                 std::time::Duration::from_millis(100),
@@ -2856,7 +2856,7 @@ mod test_local_thread_executor {
         let item_list = vec![1, 2, 3];
         let task = WrapTask::new(item_list.into_iter());
 
-        let (mut inline_action, receiver) = InlineAction::boxed_mapper(
+        let (mut inline_action, receiver) = InlineAction::new(
             InlineActionBehaviour::Lift,
             task,
             std::time::Duration::from_millis(10),

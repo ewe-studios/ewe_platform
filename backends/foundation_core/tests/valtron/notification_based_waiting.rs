@@ -398,7 +398,7 @@ fn test_single_threaded_executor_with_notification_tasks() {
     // The timeout is critical - must be short for single-threaded
     let task = WrapTask::new(vec![10, 20, 30].into_iter());
 
-    let (mut inline_action, receiver) = InlineAction::boxed_mapper(
+    let (mut inline_action, receiver) = InlineAction::new(
         InlineActionBehaviour::Lift,
         task,
         // CRITICAL: Very short timeout for single-threaded mode
@@ -475,7 +475,7 @@ fn test_single_threaded_executor_pends_without_blocking() {
     let counter_clone = Arc::clone(&counter);
     let task = CountingTask(counter_clone);
 
-    let (mut inline_action, receiver) = InlineAction::boxed_mapper(
+    let (mut inline_action, receiver) = InlineAction::new(
         InlineActionBehaviour::Lift,
         task,
         // Very short timeout for single-threaded

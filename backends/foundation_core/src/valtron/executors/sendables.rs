@@ -63,24 +63,6 @@ where
         )
     }
 
-    pub fn boxed_mapper(
-        behaviour: InlineActionBehaviour,
-        task: Task,
-        wait_cycle: std::time::Duration,
-    ) -> (
-        Self,
-        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
-    ) {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(NotifyQueue::unbounded());
-        (
-            Self(Some((behaviour, task, iter_chan.clone()))),
-            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
-                iter_chan,
-                wait_cycle,
-            ),
-        )
-    }
     pub fn from_parts(
         behaviour: InlineActionBehaviour,
         task: Task,
@@ -641,31 +623,6 @@ where
 // ===========================================
 // inline iterator creation methods
 // ===========================================
-
-/// [`inlined_task`] creates an inlined task you can use within another task that
-/// lets you forward the task as a action your main task can send for execution
-/// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type.
-///
-/// You then are able to receive the output of that task from the returned
-/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
-pub fn inlined_task<Done, Pending, Action, Task>(
-    behaviour: InlineActionBehaviour,
-    task: Task,
-    wait_cycle: std::time::Duration,
-) -> (
-    InlineAction<Done, Pending, Action, Task>,
-    DrivenRecvIterator<Task>,
-)
-where
-    Done: Send + 'static,
-    Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-{
-    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
-    (task_action, drive_receiver(task_receiver))
-}
 
 // ===========================================
 // Iterator driver methods

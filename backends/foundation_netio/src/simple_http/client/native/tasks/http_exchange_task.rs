@@ -2,23 +2,23 @@
 //! `SendRequestTask<R>` child.
 //!
 //! WHY: The transport pump in connectrpc needs a platform-agnostic HTTP exchange
-//! shape. On native this wraps `SendRequestTask<R>` via `inlined_task` and
+//! shape. On native this wraps `SendRequestTask<R>` via `InlineAction::new` and
 //! translates `RequestIntro` into `HttpExchange` items.
 //!
 //! WHAT: [`HttpExchangeTask`] — a `TaskIterator` that owns a child `SendRequestTask`
 //! receiver, extracts the response head and body chunks, and holds the
 //! `HttpClientConnection` for pool return.
 //!
-//! HOW: `inlined_task(…, SendRequestTask::new(…))` spawns the child. Each
-//! `next_status()` call does exactly one step — polls the child receiver or reads
-//! the next body chunk. No internal loop.
+//! HOW: `InlineAction::new(…, SendRequestTask::new(…))` builds the deferred child
+//! action. Each `next_status()` call does exactly one step — polls the child
+//! receiver or reads the next body chunk. No internal loop.
 
 use std::sync::Arc;
 
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{
-    inlined_task, BoxedSendExecutionAction, InlineActionBehaviour,
-    IntoBoxedSendExecutionAction, Stream, TaskIterator, TaskStatus,
+    drive_receiver, BoxedSendExecutionAction, InlineAction, InlineActionBehaviour,
+    Stream, TaskIterator, TaskStatus,
 };
 
 use crate::simple_http::client::native::tasks::{RequestIntro, SendRequestTask};
@@ -79,14 +79,14 @@ impl HttpExchangeTask {
     ) -> Self {
         let pool_for_conn = Arc::clone(&pool);
         let child = SendRequestTask::new(request, max_redirects, pool, config);
-        let (action, receiver) = inlined_task(
+        let (action, raw_receiver) = InlineAction::new(
             InlineActionBehaviour::LiftWithParent,
             child,
             std::time::Duration::from_millis(0),
         );
         Self {
-            state: State::Polling(receiver),
-            spawn: Some(action.into_box_send_execution_action()),
+            state: State::Polling(drive_receiver(raw_receiver)),
+            spawn: Some(Box::new(action)),
             pool: pool_for_conn,
         }
     }
