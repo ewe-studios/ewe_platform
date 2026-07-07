@@ -41,7 +41,6 @@ use crate::valtron::{
     BoxedExecutionEngine, BoxedPanicHandler, BoxedSendExecutionIterator, ExecutionAction,
     ExecutorError, FnMutReady, FnReady, OnNext, PriorityOrder, ProcessController,
     ReadyConsumingIter, SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskStatus,
-    TaskStatusMapper,
 };
 
 use crate::valtron::{ThreadActivity, ThreadId};
@@ -173,7 +172,6 @@ impl LocalPoolHandle {
         Task::Ready,
         Task::Pending,
         Task::Spawner,
-        Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
         Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
         Task,
     >
@@ -187,17 +185,16 @@ impl LocalPoolHandle {
             .with_yielders(self.yielders.clone())
     }
 
-    /// Create a task builder with explicit Mapper and Resolver types.
+    /// Create a task builder with an explicit Resolver type.
     #[must_use]
-    pub fn spawn2<Task, Action, Mapper, Resolver>(
+    pub fn spawn2<Task, Action, Resolver>(
         &self,
-    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
+    ) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Resolver, Task>
     where
         Task::Ready: Send + 'static,
         Task::Pending: Send + 'static,
         Task: TaskIterator<Spawner = Action> + Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
         Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
     {
         ThreadPoolTaskBuilder::new(self.shared_tasks.clone(), self.latch.clone())
@@ -334,7 +331,6 @@ pub fn spawn<Task, Action>() -> ThreadPoolTaskBuilder<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
     Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
     Task,
 >
@@ -348,19 +344,18 @@ where
 }
 
 /// [`spawn2`] provides a builder which allows you to build out
-/// the underlying tasks with explicit Mapper and Resolver types.
+/// the underlying tasks with an explicit Resolver type.
 #[must_use]
-pub fn spawn2<Task, Action, Mapper, Resolver>(
-) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
+pub fn spawn2<Task, Action, Resolver>(
+) -> ThreadPoolTaskBuilder<Task::Ready, Task::Pending, Action, Resolver, Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + Send + 'static,
     Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + Send + 'static,
 {
-    get_pool().spawn2::<Task, Action, Mapper, Resolver>()
+    get_pool().spawn2::<Task, Action, Resolver>()
 }
 
 // ============================================================================
@@ -894,7 +889,6 @@ pub struct ThreadPoolTaskBuilder<
     Done: Send + 'static,
     Pending: Send + 'static,
     Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
     Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
 > {
@@ -904,7 +898,6 @@ pub struct ThreadPoolTaskBuilder<
     yielders: Option<SharedThreadYielders>,
     task: Option<Task>,
     resolver: Option<Resolver>,
-    mappers: Option<Vec<Mapper>>,
     panic_handler: Option<BoxedPanicHandler>,
     /// Channel capacity for bounded queues (None = unbounded)
     channel_capacity: Option<usize>,
@@ -915,10 +908,9 @@ impl<
         Done: Send + 'static,
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
         Resolver: TaskReadyResolver<Action, Done, Pending> + Send + 'static,
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, Resolver, Task>
+    > ThreadPoolTaskBuilder<Done, Pending, Action, Resolver, Task>
 {
     pub fn new(tasks: SharedTaskQueue, latch: Arc<LockSignal>) -> Self {
         Self {
@@ -926,7 +918,6 @@ impl<
             latch,
             yielders: None,
             task: None,
-            mappers: None,
             resolver: None,
             panic_handler: None,
             channel_capacity: None,
@@ -938,19 +929,6 @@ impl<
     #[must_use]
     pub fn with_yielders(mut self, yielders: SharedThreadYielders) -> Self {
         self.yielders = Some(yielders);
-        self
-    }
-
-    #[allow(clippy::return_self_not_must_use)]
-    pub fn with_mappers(mut self, mapper: Mapper) -> Self {
-        let mut mappers = if self.mappers.is_some() {
-            self.mappers.take().unwrap()
-        } else {
-            Vec::new()
-        };
-
-        mappers.push(mapper);
-        self.mappers = Some(mappers);
         self
     }
 
@@ -1008,10 +986,9 @@ impl<
             };
 
         let boxed_task = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (None, Some(mappers)) => ReadyConsumingIter::new(task, mappers, iter_chan.clone()),
-                (None, None) => ReadyConsumingIter::new(task, Vec::new(), iter_chan.clone()),
-                (_, _) => return Err(ExecutorError::NotSupported),
+            Some(task) => match self.resolver {
+                None => ReadyConsumingIter::new(task, iter_chan.clone()),
+                Some(_) => return Err(ExecutorError::NotSupported),
             },
             None => return Err(ExecutorError::TaskRequired),
         };
@@ -1086,10 +1063,9 @@ impl<
         };
 
         let boxed_task = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
-                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
-                (_, _) => return Err(ExecutorError::NotSupported),
+            Some(task) => match self.resolver {
+                None => StreamConsumingIter::new(task, iter_chan.clone()),
+                Some(_) => return Err(ExecutorError::NotSupported),
             },
             None => return Err(ExecutorError::TaskRequired),
         };
@@ -1135,10 +1111,9 @@ impl<
             };
 
         let boxed_task = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
-                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
-                (_, _) => return Err(ExecutorError::NotSupported),
+            Some(task) => match self.resolver {
+                None => ConsumingIter::new(task, iter_chan.clone()),
+                Some(_) => return Err(ExecutorError::NotSupported),
             },
             None => return Err(ExecutorError::TaskRequired),
         };
@@ -1167,29 +1142,21 @@ impl<
     /// be processed by the underlying thread pool.
     pub fn schedule(self) -> AnyResult<(), ExecutorError> {
         let task: BoxedSendExecutionIterator = match self.task {
-            Some(task) => match (self.resolver, self.mappers) {
-                (Some(resolver), Some(mappers)) => {
-                    let mut task_iter = OnNext::new(task, resolver, mappers);
+            Some(task) => match self.resolver {
+                Some(resolver) => {
+                    let mut task_iter = OnNext::new(task, resolver);
                     if let Some(panic_handler) = self.panic_handler {
                         task_iter = task_iter.with_panic_handler(panic_handler);
                     }
                     Box::new(task_iter)
                 }
-                (Some(resolver), None) => {
-                    let mut task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
-                    if let Some(panic_handler) = self.panic_handler {
-                        task_iter = task_iter.with_panic_handler(panic_handler);
-                    }
-                    Box::new(task_iter)
-                }
-                (None, None) => {
+                None => {
                     let mut task_iter = DoNext::new(task);
                     if let Some(panic_handler) = self.panic_handler {
                         task_iter = task_iter.with_panic_handler(panic_handler);
                     }
                     Box::new(task_iter)
                 }
-                (None, Some(_)) => return Err(ExecutorError::FailedToCreate),
             },
             None => return Err(ExecutorError::TaskRequired),
         };
@@ -1220,9 +1187,8 @@ impl<
         Done: Send + 'static,
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnReady<F, Action>, Task>
+    > ThreadPoolTaskBuilder<Done, Pending, Action, FnReady<F, Action>, Task>
 where
     F: Fn(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
 {
@@ -1236,9 +1202,8 @@ impl<
         Done: Send + 'static,
         Pending: Send + 'static,
         Action: ExecutionAction + Send + 'static,
-        Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-    > ThreadPoolTaskBuilder<Done, Pending, Action, Mapper, FnMutReady<F, Action>, Task>
+    > ThreadPoolTaskBuilder<Done, Pending, Action, FnMutReady<F, Action>, Task>
 where
     F: FnMut(TaskStatus<Done, Pending, Action>, BoxedExecutionEngine) + Send + 'static,
 {

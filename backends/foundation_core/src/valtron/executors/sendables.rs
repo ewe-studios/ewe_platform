@@ -9,7 +9,6 @@ use crate::valtron::FutureTask;
 use crate::valtron::ReadyValues;
 use crate::valtron::StreamConfig;
 use crate::valtron::StreamTask;
-use crate::valtron::TaskStatusMapper;
 use crate::valtron::ThreadedValue;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, GenericResult, NotificationItem,
@@ -511,53 +510,19 @@ where
 // inline iterator creation methods
 // ===========================================
 
-/// [`inlined_mapped_task`] creates an inlined task you can use within another task that
-/// lets you forward the task as a action your main task can send for execution
-/// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type or using `BoxedTaskAction`
-///
-/// You then are able to receive the output of that task from the returned
-/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
-pub fn inlined_mapped_task<Done, Pending, Action, Task, Mapper>(
-    behaviour: InlineSendActionBehaviour,
-    mappers: Vec<Mapper>,
-    task: Task,
-    wait_cycle: std::time::Duration,
-) -> (
-    InlineSendAction<Done, Pending, Action, Task, Mapper>,
-    DrivenRecvIterator<Task>,
-)
-where
-    Done: Send + 'static,
-    Pending: Send + 'static,
-    Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
-{
-    let (task_action, task_receiver) = InlineSendAction::new(behaviour, mappers, task, wait_cycle);
-    (task_action, drive_receiver(task_receiver))
-}
-
 /// [`inlined_task`] creates an inlined task you can use within another task that
 /// lets you forward the task as a action your main task can send for execution
 /// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type or using boxed [`TaskStatusMapper`].
+/// task in a specific type.
 ///
 /// You then are able to receive the output of that task from the returned
 /// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
 pub fn inlined_task<Done, Pending, Action, Task>(
     behaviour: InlineSendActionBehaviour,
-    mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>>,
     task: Task,
     wait_cycle: std::time::Duration,
 ) -> (
-    InlineSendAction<
-        Done,
-        Pending,
-        Action,
-        Task,
-        Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>,
-    >,
+    InlineSendAction<Done, Pending, Action, Task>,
     DrivenRecvIterator<Task>,
 )
 where
@@ -566,8 +531,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
 {
-    let (task_action, task_receiver) =
-        InlineSendAction::boxed_mapper(behaviour, mappers, task, wait_cycle);
+    let (task_action, task_receiver) = InlineSendAction::new(behaviour, task, wait_cycle);
     (task_action, drive_receiver(task_receiver))
 }
 

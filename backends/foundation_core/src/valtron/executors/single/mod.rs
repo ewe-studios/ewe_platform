@@ -12,9 +12,8 @@ use crate::valtron::{
         BACK_OFF_JITER, BACK_OFF_MAX_DURATION, BACK_OFF_MIN_DURATION, BACK_OFF_THREAD_FACTOR,
         DEFAULT_YIELD_WAIT_TIME, MAX_ROUNDS_IDLE_COUNT, MAX_ROUNDS_WHEN_SLEEPING_ENDS,
     },
-    ExecutionAction, ExecutionTaskIteratorBuilder, LocalThreadExecutor, PriorityOrder,
-    ProcessController, ProgressIndicator, SharedTaskQueue, TaskIterator, TaskReadyResolver,
-    TaskStatusMapper,
+    ExecutionAction, LocalThreadExecutor, PriorityOrder, ProcessController, ProgressIndicator,
+    SharedTaskQueue, TaskIterator, TaskReadyResolver, TaskSpawnConfig,
 };
 
 use crate::{
@@ -256,11 +255,10 @@ pub fn run_until_complete() {
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn<Task, Action>() -> ExecutionTaskIteratorBuilder<
+pub fn spawn<Task, Action>() -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
     Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
     Task,
 >
@@ -271,7 +269,7 @@ where
     Action: ExecutionAction + 'static,
 {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
-        Some(pool) => ExecutionTaskIteratorBuilder::new(pool.boxed_engine()),
+        Some(pool) => TaskSpawnConfig::new(pool.boxed_engine()),
         None => panic!("Thread pool not initialized, ensure to call initialize() first"),
     })
 }
@@ -279,7 +277,7 @@ where
 /// `spawn2` provides a builder which specifically allows you to build out
 /// the underlying tasks to be scheduled into the global queue.
 ///
-/// It expects you to provide types for both Mapper and Resolver.
+/// It expects you to provide the `Resolver` type explicitly.
 ///
 /// # Panics
 ///
@@ -289,18 +287,17 @@ where
 ///
 /// A builder for creating a task iterator
 #[must_use]
-pub fn spawn2<Task, Action, Mapper, Resolver>(
-) -> ExecutionTaskIteratorBuilder<Task::Ready, Task::Pending, Action, Mapper, Resolver, Task>
+pub fn spawn2<Task, Action, Resolver>(
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Action, Resolver, Task>
 where
     Task::Ready: 'static,
     Task::Pending: 'static,
     Task: TaskIterator<Spawner = Action> + 'static,
     Action: ExecutionAction + 'static,
-    Mapper: TaskStatusMapper<Task::Ready, Task::Pending, Action> + 'static,
     Resolver: TaskReadyResolver<Action, Task::Ready, Task::Pending> + 'static,
 {
     GLOBAL_LOCAL_EXECUTOR_ENGINE.with(|pool| match pool.get() {
-        Some(pool) => ExecutionTaskIteratorBuilder::new(pool.boxed_engine()),
+        Some(pool) => TaskSpawnConfig::new(pool.boxed_engine()),
         None => panic!("Thread pool not initialized, ensure to call initialize() first"),
     })
 }
@@ -382,7 +379,8 @@ mod single_threaded_tests {
             .with_resolver(Box::new(FnReady::new(|item, _| {
                 tracing::info!("Received next: {:?}", item)
             })))
-            .schedule()
+            .as_scheduled()
+            .spawn()
             .expect("should deliver task");
 
         assert_eq!(shared_list.borrow().len(), 0);
@@ -403,7 +401,8 @@ mod single_threaded_tests {
             .with_resolver(Box::new(FnReady::new(|item, _| {
                 tracing::info!("Received next: {:?}", item);
             })))
-            .schedule()
+            .as_scheduled()
+            .spawn()
             .expect("should deliver task");
 
         let handle = shared_list.clone();
@@ -432,7 +431,8 @@ mod single_threaded_tests {
             .with_resolver(Box::new(FnReady::new(|item, _| {
                 tracing::info!("Received next: {:?}", item)
             })))
-            .schedule()
+            .as_scheduled()
+            .spawn()
             .expect("should deliver task");
 
         run_until_complete();
@@ -452,7 +452,8 @@ mod single_threaded_tests {
 
         let iter = spawn()
             .with_task(counter)
-            .schedule_iter(std::time::Duration::from_nanos(50))
+            .as_scheduled()
+            .recv(std::time::Duration::from_nanos(50))
             .expect("should deliver task");
 
         run_until_complete();
@@ -482,7 +483,8 @@ mod single_threaded_tests {
 
         let iter = spawn()
             .with_task(counter)
-            .scheduled_stream_iter(std::time::Duration::from_nanos(50))
+            .as_scheduled()
+            .stream(std::time::Duration::from_nanos(50))
             .expect("should deliver task");
 
         run_until_complete();

@@ -81,7 +81,6 @@ impl HttpExchangeTask {
         let child = SendRequestTask::new(request, max_redirects, pool, config);
         let (action, receiver) = inlined_task(
             InlineSendActionBehaviour::LiftWithParent,
-            Vec::new(),
             child,
             std::time::Duration::from_millis(0),
         );

@@ -172,7 +172,6 @@ where
                     tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask task for sendrequest.");
                     let (get_stream_action, get_stream_receiver) = inlined_task(
                         foundation_core::valtron::InlineSendActionBehaviour::LiftWithParent,
-                        Vec::new(),
                         GetHttpRequestRedirectTask::new(
                             into_incoming,
                             send_request.pool.clone(),
@@ -421,7 +420,6 @@ where
                                 let (get_intro_stream_action, get_intro_receiver) =
                                     InlineSendAction::boxed_mapper(
                                         foundation_core::valtron::InlineSendActionBehaviour::LiftWithParent,
-                                        Vec::new(),
                                         GetRequestIntroTask::new(stream)
                                             .with_body_config(self.1.into_simple_http_body()),
                                         self.1.inline_processing_timeout,
@@ -447,7 +445,6 @@ where
                                 let (get_intro_stream_action, get_intro_receiver) =
                                     InlineSendAction::boxed_mapper(
                                         foundation_core::valtron::InlineSendActionBehaviour::LiftWithParent,
-                                        Vec::new(),
                                         GetRequestIntroTask::new(conn)
                                             .with_body_config(self.1.into_simple_http_body()),
                                         self.1.inline_processing_timeout,
@@ -674,7 +671,6 @@ where
                                                 tracing::info!("SendRequestTask: Creating GetHttpRequestRedirectTask[2] task for sendrequest.");
                                                 let (get_stream_action, get_stream_receiver) = inlined_task(
                                                         foundation_core::valtron::InlineSendActionBehaviour::LiftWithParent,
-                                                        Vec::new(),
                                                         GetHttpRequestRedirectTask::new(
                                                             newly_built_request,
                                                             self.2.clone(),

@@ -400,7 +400,6 @@ fn test_single_threaded_executor_with_notification_tasks() {
 
     let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
         InlineSendActionBehaviour::Lift,
-        Vec::new(),
         task,
         // CRITICAL: Very short timeout for single-threaded mode
         Duration::from_micros(50),
@@ -478,7 +477,6 @@ fn test_single_threaded_executor_pends_without_blocking() {
 
     let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
         InlineSendActionBehaviour::Lift,
-        Vec::new(),
         task,
         // Very short timeout for single-threaded
         Duration::from_micros(10),

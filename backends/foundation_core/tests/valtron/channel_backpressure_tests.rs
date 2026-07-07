@@ -202,7 +202,6 @@ fn test_executor_fast_producer_slow_consumer_no_loss() {
 
     let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
         InlineSendActionBehaviour::Lift,
-        Vec::new(),
         task,
         Duration::from_micros(50),
     );
@@ -265,7 +264,6 @@ fn test_executor_ready_iter_no_message_loss() {
 
     let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
         InlineSendActionBehaviour::Lift,
-        Vec::new(),
         task,
         Duration::from_micros(50),
     );

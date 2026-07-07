@@ -60,7 +60,6 @@ where
     }
 }
 
-#[cfg(feature = "multi")]
 #[allow(clippy::extra_unused_lifetimes)]
 #[allow(clippy::from_over_into)]
 impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>

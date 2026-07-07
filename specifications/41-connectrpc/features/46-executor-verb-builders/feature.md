@@ -189,25 +189,56 @@ fn stream_with_config(self, wait: Duration, max_turns: usize)
                                        -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError>;
 ```
 
+#### B2a — `Send` is confined to the delivery terminals, NOT the spawn form
+
+`ExecutionEngine::{schedule, lift, sequenced}` take a **non-`Send`**
+`BoxedExecutionIterator` in *both* cfgs; only `broadcast` takes the `Send`
+`GlobalTask`. And `Send` is *only ever* introduced by `State::Depends`: a delivery
+iterator (`recv`/`stream`) parks on `QueueVacancyReadiness<T>`, which under `multi`
+must coerce to the `Send + Sync` `EventReadinessPtr` ⇒ `T: Send`. The **spawn
+form** (`OnNext`/`DoNext`) never builds a readiness and never touches a delivery
+queue, so it needs **no `Send`, even under `multi`**. (`?Send` on the alias is not
+an option — auto traits are not relaxable, and the `multi` alias must stay
+`Send+Sync` for external crates that store readiness in `Send` iterators.)
+
+Therefore the impls are placed by *what actually needs `Send`*, not by verb:
+
+- **`mod.rs` (ungated, `'static` only):** `spawn()` for `ScheduleBuilder`,
+  `LiftBuilder`, `SequenceBuilder`. Callers of `…as_scheduled().spawn()` pay **no
+  `Send` tax** in either cfg — this is the common path and it stays free.
+- **`sendable.rs` (`#![cfg(multi)]`, `Send`) / `non_sendable.rs`
+  (`#![cfg(not multi)]`, no `Send`):** the delivery terminals `recv()` /
+  `stream()` / `stream_with_config()` for all four verb builders, **plus**
+  `BroadcastBuilder::spawn()` (multi = `engine.broadcast`; off = fallback per B3).
+
+This is still zero *per-function* `#[cfg]`: the split is per-**impl-block**, and
+those impl blocks live in the module-gated twin files. The verb-builder *structs*
+themselves are declared once (ungated) in `mod.rs`.
+
 - `spawn()` is the old `schedule()` / `lift()` / `sequenced()` / `broadcast()`.
 - `recv()` is the old `schedule_iter` / `lift_iter` / `sequenced_iter` /
   `broadcast_iter`.
 - `stream()` / `stream_with_config()` are the old `scheduled_stream_iter` /
   `stream_lift_iter` / `stream_sequenced_iter` / `stream_broadcast_iter`.
 
-Each verb builder is written **twice**:
+The verb-builder **structs** (`ScheduleBuilder`, `LiftBuilder`, `SequenceBuilder`,
+`BroadcastBuilder`) are declared **once**, ungated, in `builders/mod.rs`, together
+with the Send-free `spawn()` impls for the three local verbs (per B2a). Only the
+`Send`-diverging impls are written twice:
 
-- `builders/sendable.rs` — `#![cfg(feature = "multi")]`; all four verb builders
-  with `Done/Pending/Action/Resolver/Task: Send + 'static`. `BroadcastBuilder`
-  here is real (`engine.broadcast`).
-- `builders/non_sendable.rs` — `#![cfg(not(feature = "multi"))]`; the same four
-  verb builders with `…: 'static` (no `Send`). `BroadcastBuilder` here falls back
-  (B3).
+- `builders/sendable.rs` — `#![cfg(feature = "multi")]`; the delivery-terminal
+  impls (`recv`/`stream`/`stream_with_config`) for all four verb builders with
+  `Done/Pending/Action: Send + 'static`, **plus** `BroadcastBuilder::spawn()`
+  (real `engine.broadcast`).
+- `builders/non_sendable.rs` — `#![cfg(not(feature = "multi"))]`; the same
+  delivery-terminal impls with `…: 'static` (no `Send`), **plus**
+  `BroadcastBuilder::spawn()` fallback (B3).
 
-`builders/mod.rs` holds `TaskSpawnConfig`, the constructors, the `on_next` impls,
-and `pub use {sendable,non_sendable}::*;` under the matching `#[cfg]` (exactly as
-`executors/mod.rs` re-exports `sendables`/`non_sendables`). Identical method
-names in the two twins ⇒ portable call sites compile unchanged under both cfgs.
+`builders/mod.rs` also holds `TaskSpawnConfig`, the constructors, the `on_next`
+impls, and `pub use {sendable,non_sendable}::*;` under the matching `#[cfg]`
+(exactly as `executors/mod.rs` re-exports `sendables`/`non_sendables`). Identical
+method names in the two twins ⇒ portable call sites compile unchanged under both
+cfgs.
 
 #### B3 — Broadcast under `multi = off`
 

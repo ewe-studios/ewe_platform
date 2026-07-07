@@ -22,7 +22,6 @@ use crate::{
     valtron::{
         spawn_broadcaster, spawn_builder, BoxedExecutionEngine, ConsumingIter, ExecutionAction,
         ExecutorError, GenericResult, NoAction, SpawnInfo, SpawnType, TaskIterator, TaskStatus,
-        TaskStatusMapper,
     },
 };
 use std::{marker::PhantomData, sync::Arc};
@@ -176,7 +175,8 @@ where
             return spawn_builder(executor)
                 .maybe_parent(key)
                 .with_task(task)
-                .schedule()
+                .as_scheduled()
+                .spawn()
                 .map_err(std::convert::Into::into);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))
@@ -238,7 +238,8 @@ where
             return spawn_builder(executor)
                 .maybe_parent(key)
                 .with_task(task)
-                .lift()
+                .as_lifted()
+                .spawn()
                 .map_err(Into::into);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))
@@ -326,7 +327,8 @@ where
             return spawn_builder(executor)
                 .maybe_parent(key)
                 .with_task(task)
-                .schedule()
+                .as_scheduled()
+                .spawn()
                 .map_err(std::convert::Into::into);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))
@@ -354,30 +356,26 @@ pub enum InlineSendActionBehaviour {
 }
 
 #[allow(clippy::type_complexity)]
-pub struct InlineSendAction<Done, Pending, Action, Task, Mapper>(
+pub struct InlineSendAction<Done, Pending, Action, Task>(
     Option<(
         InlineSendActionBehaviour,
         Task,
-        Vec<Mapper>,
         Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     )>,
 )
 where
     Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static;
 
-impl<Done, Pending, Action, Task, Mapper> InlineSendAction<Done, Pending, Action, Task, Mapper>
+impl<Done, Pending, Action, Task> InlineSendAction<Done, Pending, Action, Task>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
     Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
 {
     pub fn new(
         behaviour: InlineSendActionBehaviour,
-        mappers: Vec<Mapper>,
         task: Task,
         wait_cycle: std::time::Duration,
     ) -> (
@@ -387,7 +385,7 @@ where
         let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
             Arc::new(NotifyQueue::unbounded());
         (
-            Self(Some((behaviour, task, mappers, iter_chan.clone()))),
+            Self(Some((behaviour, task, iter_chan.clone()))),
             crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
                 iter_chan,
                 wait_cycle,
@@ -397,13 +395,7 @@ where
 }
 
 impl<Done, Pending, Action, Task>
-    InlineSendAction<
-        Done,
-        Pending,
-        Action,
-        Task,
-        Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>,
-    >
+    InlineSendAction<Done, Pending, Action, Task>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
@@ -412,7 +404,6 @@ where
 {
     pub fn boxed_mapper(
         behaviour: InlineSendActionBehaviour,
-        mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>>,
         task: Task,
         wait_cycle: std::time::Duration,
     ) -> (
@@ -422,7 +413,7 @@ where
         let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
             Arc::new(NotifyQueue::unbounded());
         (
-            Self(Some((behaviour, task, mappers, iter_chan.clone()))),
+            Self(Some((behaviour, task, iter_chan.clone()))),
             crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
                 iter_chan,
                 wait_cycle,
@@ -431,13 +422,12 @@ where
     }
 }
 
-impl<Done, Pending, Action, Task, Mapper> ExecutionAction
-    for InlineSendAction<Done, Pending, Action, Task, Mapper>
+impl<Done, Pending, Action, Task> ExecutionAction
+    for InlineSendAction<Done, Pending, Action, Task>
 where
     Done: Send + 'static,
     Pending: Send + 'static,
     Action: ExecutionAction + Send + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
 {
     fn apply(
@@ -445,7 +435,7 @@ where
         key: Option<crate::synca::Entry>,
         executor: BoxedExecutionEngine,
     ) -> GenericResult<SpawnInfo> {
-        if let Some((behaviour, task, mappers, channel)) = self.0.take() {
+        if let Some((behaviour, task, channel)) = self.0.take() {
             match behaviour {
                 InlineSendActionBehaviour::Sequenced => {
                     tracing::debug!("Sequence action for InlineAction");
@@ -454,7 +444,7 @@ where
                         return Err(Box::new(ExecutorError::ParentMustBeSupplied));
                     };
 
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .sequenced(consuming_iter.into(), parent)
                         .map_err(Into::into)
@@ -466,26 +456,26 @@ where
                         return Err(Box::new(ExecutorError::ParentMustBeSupplied));
                     };
 
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .lift(consuming_iter.into(), Some(parent))
                         .map_err(Into::into)
                 }
                 InlineSendActionBehaviour::Lift => {
                     tracing::debug!("Lift action for InlineSendAction");
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .lift(consuming_iter.into(), key)
                         .map_err(Into::into)
                 }
                 InlineSendActionBehaviour::Schedule => {
                     tracing::debug!("Schedule action for InlineSendAction");
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor.schedule(consuming_iter.into()).map_err(Into::into)
                 }
                 InlineSendActionBehaviour::Broadcast => {
                     tracing::debug!("Broadcast action for InlineSendAction");
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .broadcast(consuming_iter.into())
                         .map_err(Into::into)
@@ -497,6 +487,12 @@ where
     }
 }
 
+// InlineAction dispatches a `ConsumingIter` onto the LOCAL queue
+// (sequence/lift/schedule). Under `multi`, `ConsumingIter: ExecutionIterator`
+// requires `Send` (its vacancy readiness must be `Send + Sync`), which the
+// non-`Send` `InlineAction` cannot supply — so it is `not(multi)`-only. The
+// `Send` variant `InlineSendAction` serves the `multi` build.
+#[cfg(not(feature = "multi"))]
 #[derive(Clone, Copy, Default)]
 pub enum InlineActionBehaviour {
     /// `Sequenced` indicates we wish to sequenced the task with a [`ConsumingIter`].
@@ -510,31 +506,29 @@ pub enum InlineActionBehaviour {
     Schedule,
 }
 
+#[cfg(not(feature = "multi"))]
 #[allow(clippy::type_complexity)]
-pub struct InlineAction<Done, Pending, Action, Task, Mapper>(
+pub struct InlineAction<Done, Pending, Action, Task>(
     Option<(
         InlineActionBehaviour,
         Task,
-        Vec<Mapper>,
         Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
     )>,
 )
 where
     Action: ExecutionAction,
-    Mapper: TaskStatusMapper<Done, Pending, Action>,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>;
 
-impl<Done, Pending, Action, Task, Mapper> InlineAction<Done, Pending, Action, Task, Mapper>
+#[cfg(not(feature = "multi"))]
+impl<Done, Pending, Action, Task> InlineAction<Done, Pending, Action, Task>
 where
     Done: 'static,
     Pending: 'static,
     Action: ExecutionAction + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
 {
     pub fn new(
         behaviour: InlineActionBehaviour,
-        mappers: Vec<Mapper>,
         task: Task,
         wait_cycle: std::time::Duration,
     ) -> (
@@ -544,7 +538,7 @@ where
         let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
             Arc::new(NotifyQueue::unbounded());
         (
-            Self(Some((behaviour, task, mappers, iter_chan.clone()))),
+            Self(Some((behaviour, task, iter_chan.clone()))),
             crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
                 iter_chan,
                 wait_cycle,
@@ -553,48 +547,13 @@ where
     }
 }
 
-impl<Done, Pending, Action, Task>
-    InlineAction<
-        Done,
-        Pending,
-        Action,
-        Task,
-        Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>,
-    >
+#[cfg(not(feature = "multi"))]
+impl<Done, Pending, Action, Task> ExecutionAction
+    for InlineAction<Done, Pending, Action, Task>
 where
     Done: 'static,
     Pending: 'static,
     Action: ExecutionAction + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
-{
-    pub fn boxed_mapper(
-        behaviour: InlineActionBehaviour,
-        mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>>,
-        task: Task,
-        wait_cycle: std::time::Duration,
-    ) -> (
-        Self,
-        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
-    ) {
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(NotifyQueue::unbounded());
-        (
-            Self(Some((behaviour, task, mappers, iter_chan.clone()))),
-            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
-                iter_chan,
-                wait_cycle,
-            ),
-        )
-    }
-}
-
-impl<Done, Pending, Action, Task, Mapper> ExecutionAction
-    for InlineAction<Done, Pending, Action, Task, Mapper>
-where
-    Done: 'static,
-    Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
 {
     fn apply(
@@ -602,7 +561,7 @@ where
         key: Option<crate::synca::Entry>,
         executor: BoxedExecutionEngine,
     ) -> GenericResult<SpawnInfo> {
-        if let Some((behaviour, task, mappers, channel)) = self.0.take() {
+        if let Some((behaviour, task, channel)) = self.0.take() {
             match behaviour {
                 InlineActionBehaviour::Sequenced => {
                     tracing::debug!("Sequence action for InlineAction");
@@ -611,7 +570,7 @@ where
                         return Err(Box::new(ExecutorError::ParentMustBeSupplied));
                     };
 
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .sequenced(consuming_iter.into(), parent)
                         .map_err(Into::into)
@@ -623,21 +582,21 @@ where
                         return Err(Box::new(ExecutorError::ParentMustBeSupplied));
                     };
 
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .lift(consuming_iter.into(), Some(parent))
                         .map_err(Into::into)
                 }
                 InlineActionBehaviour::Lift => {
                     tracing::debug!("Lift action for InlineAction");
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor
                         .lift(consuming_iter.into(), None)
                         .map_err(Into::into)
                 }
                 InlineActionBehaviour::Schedule => {
                     tracing::debug!("Schedule action for InlineAction");
-                    let consuming_iter = ConsumingIter::new(task, mappers, channel.clone());
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
                     executor.schedule(consuming_iter.into()).map_err(Into::into)
                 }
             }
@@ -745,7 +704,8 @@ where
             return spawn_broadcaster(executor)
                 .maybe_parent(key)
                 .with_task(task)
-                .broadcast()
+                .as_broadcast()
+                .spawn()
                 .map_err(std::convert::Into::into);
         }
         Ok(SpawnInfo::new(SpawnType::None, None, None))

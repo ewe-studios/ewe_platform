@@ -15,7 +15,8 @@ use core::task::{Context, Poll};
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::{
-    queue_waker, AnyReadiness, BoolSignal, EventReadiness, Pipe, TryRecvError, WakeToken,
+    queue_waker, AnyReadiness, BoolSignal, EventReadiness, EventReadinessPtr, Pipe, TryRecvError,
+    WakeToken,
 };
 
 /// Build a `Context` whose waker pushes an observable `WakeToken` onto `obs`.
@@ -173,8 +174,8 @@ fn any_readiness_fires_when_any_child_ready() {
     let cancel = BoolSignal::from_atomic(cancel_flag.clone());
 
     let any = AnyReadiness::either(
-        Arc::new(tx.vacancy()) as Arc<dyn EventReadiness>,
-        Arc::new(cancel) as Arc<dyn EventReadiness>,
+        Arc::new(tx.vacancy()) as EventReadinessPtr,
+        Arc::new(cancel) as EventReadinessPtr,
     );
     assert!(!any.is_ready(None), "full pipe + not cancelled -> not ready");
 

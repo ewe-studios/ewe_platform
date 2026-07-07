@@ -5,7 +5,6 @@ use super::single;
 use crate::valtron::InlineAction;
 use crate::valtron::InlineActionBehaviour;
 use crate::valtron::StreamConfig;
-use crate::valtron::TaskStatusMapper;
 use crate::valtron::DEFAULT_WAIT_CYCLE;
 use crate::valtron::{
     collect_one, collect_result, ExecutionAction, NotificationItem, NotifyQueueStreamIterator,
@@ -120,7 +119,7 @@ where
 /// [`inlined_task`] creates an inlined task you can use within another task that
 /// lets you forward the task as a action your main task can send for execution
 /// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type or using boxed [`TaskStatusMapper`].
+/// task in a specific type.
 ///
 /// You then are able to receive the output of that task from the returned
 /// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
@@ -129,17 +128,10 @@ where
 #[must_use]
 pub fn inlined_task<Done, Pending, Action, Task>(
     behaviour: InlineActionBehaviour,
-    mappers: Vec<Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>>,
     task: Task,
     wait_cycle: std::time::Duration,
 ) -> (
-    InlineAction<
-        Done,
-        Pending,
-        Action,
-        Task,
-        Box<dyn TaskStatusMapper<Done, Pending, Action> + 'static>,
-    >,
+    InlineAction<Done, Pending, Action, Task>,
     DrivenRecvIterator<Task>,
 )
 where
@@ -148,38 +140,7 @@ where
     Action: ExecutionAction + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
 {
-    let (task_action, task_receiver) =
-        InlineAction::boxed_mapper(behaviour, mappers, task, wait_cycle);
-    (task_action, drive_receiver(task_receiver))
-}
-
-/// [`inlined_mapped_task`] creates an inlined task you can use within another task that
-/// lets you forward the task as a action your main task can send for execution
-/// as part of it's process, allowing you to define the Spawner type for the parent
-/// task in a specific type or using `BoxedTaskAction`
-///
-/// You then are able to receive the output of that task from the returned
-/// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
-///
-/// This is predominantly when you specifically do not want a Send action and receiver type.
-#[must_use]
-pub fn inlined_mapped_task<Done, Pending, Action, Task, Mapper>(
-    behaviour: InlineActionBehaviour,
-    mappers: Vec<Mapper>,
-    task: Task,
-    wait_cycle: std::time::Duration,
-) -> (
-    InlineAction<Done, Pending, Action, Task, Mapper>,
-    DrivenRecvIterator<Task>,
-)
-where
-    Done: 'static,
-    Pending: 'static,
-    Action: ExecutionAction + 'static,
-    Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
-    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
-{
-    let (task_action, task_receiver) = InlineAction::new(behaviour, mappers, task, wait_cycle);
+    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
     (task_action, drive_receiver(task_receiver))
 }
 
@@ -387,7 +348,7 @@ where
     tracing::debug!("Executing as a single stream in wasm");
 
     // Schedule task and get iterator
-    single::spawn().with_task(task).schedule()?;
+    single::spawn().with_task(task).as_scheduled().spawn()?;
 
     Ok(())
 }
@@ -442,7 +403,8 @@ where
     // note: wait_cycle parameter is used as park_duration in concurrentqueuestreamiterator
     let iter = single::spawn()
         .with_task(task)
-        .scheduled_stream_iter_with_config(config.park_duration, config.max_turns)?;
+        .as_scheduled()
+        .stream_with_config(config.park_duration, config.max_turns)?;
 
     Ok(drive_stream(iter))
 }
@@ -529,7 +491,8 @@ where
     // Note: wait_cycle is not used directly; DEFAULT_PARK_DURATION is used for park_duration
     let iter = single::spawn()
         .with_task(task)
-        .scheduled_stream_iter_with_config(
+        .as_scheduled()
+        .stream_with_config(
             wait_cycle.unwrap_or(DEFAULT_PARK_DURATION),
             DEFAULT_MAX_TURNS,
         )?;
@@ -616,7 +579,8 @@ where
     // Schedule task and get iterator
     let iter = single::spawn()
         .with_task(task)
-        .schedule_iter(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
+        .as_scheduled()
+        .recv(wait_cycle.unwrap_or(DEFAULT_WAIT_CYCLE))?;
 
     Ok(drive_receiver(iter))
 }

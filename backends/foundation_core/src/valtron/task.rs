@@ -1271,7 +1271,8 @@ pub type BoxedSendTaskReadyResolver<S, D, P> = Box<dyn TaskReadyResolver<S, D, P
 /// perform final resolution of a task when the task emits
 /// the relevant `TaskStatus::Ready` enum state.
 ///
-/// Unlike `TaskStatusMapper` these implementing types do
+/// Unlike a per-status stream transform (use `TaskIteratorExt` combinators for
+/// that), these implementing types do
 /// not care about the varying states of a `TaskIterator`
 /// but about the final state of the task when it signals
 /// it's readiness via the `TaskStatus::Ready` state.
@@ -1403,139 +1404,6 @@ where
 {
     fn handle(&self, item: TaskStatus<D, P, S>, engine: BoxedExecutionEngine) {
         self.0(item, engine);
-    }
-}
-
-pub type BoxedTaskStatusMapper<Done, Pending, Action> =
-    Box<dyn TaskStatusMapper<Done, Pending, Action>>;
-
-pub type BoxedSendTaskStatusMapper<Done, Pending, Action> =
-    Box<dyn TaskStatusMapper<Done, Pending, Action> + Send + 'static>;
-
-/// [`TaskStatusMapper`] are types implementing this trait to
-/// perform unique operations on the underlying `TaskStatus`
-/// received, possibly generating a new `TaskStatus`.
-pub trait TaskStatusMapper<D, P, S: ExecutionAction> {
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>;
-}
-
-pub trait IntoBoxedSendTaskStatusMapper<D, P, S: ExecutionAction> {
-    fn into_box_send_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S> + Send + 'static>;
-}
-
-impl<F, S, D, P> IntoBoxedSendTaskStatusMapper<D, P, S> for F
-where
-    S: ExecutionAction,
-    F: TaskStatusMapper<D, P, S> + Send + 'static,
-{
-    fn into_box_send_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S> + Send + 'static> {
-        Box::new(self)
-    }
-}
-
-pub trait IntoBoxedTaskStatusMapper<D, P, S: ExecutionAction> {
-    fn into_box_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S>>;
-}
-
-impl<F, D, P, S> IntoBoxedTaskStatusMapper<D, P, S> for F
-where
-    S: ExecutionAction,
-    F: TaskStatusMapper<D, P, S> + Send + 'static,
-{
-    fn into_box_task_mapper(self) -> Box<dyn TaskStatusMapper<D, P, S>> {
-        Box::new(self)
-    }
-}
-
-#[derive(Default, Clone)]
-pub struct ZeroMapping<D, P, S: ExecutionAction>(PhantomData<(D, P, S)>);
-
-impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for ZeroMapping<D, P, S> {
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        item
-    }
-}
-
-#[allow(clippy::extra_unused_lifetimes)]
-#[allow(clippy::needless_lifetimes)]
-impl<'a, F, S, D, P> TaskStatusMapper<D, P, S> for &'a mut F
-where
-    S: ExecutionAction,
-    F: TaskStatusMapper<D, P, S>,
-{
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        (**self).map(item)
-    }
-}
-
-impl<F, S, D, P> TaskStatusMapper<D, P, S> for Box<F>
-where
-    S: ExecutionAction,
-    F: TaskStatusMapper<D, P, S> + ?Sized,
-{
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        (**self).map(item)
-    }
-}
-
-pub struct FnMapper<D, P, S: ExecutionAction>(
-    Box<dyn FnMut(TaskStatus<D, P, S>) -> Option<TaskStatus<D, P, S>>>,
-);
-
-impl<D, P, S: ExecutionAction> FnMapper<D, P, S> {
-    pub fn new<F>(f: F) -> Self
-    where
-        F: FnMut(TaskStatus<D, P, S>) -> Option<TaskStatus<D, P, S>> + 'static,
-    {
-        Self(Box::new(f))
-    }
-}
-
-impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for FnMapper<D, P, S> {
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        match item {
-            None => None,
-            Some(item) => self.0(item),
-        }
-    }
-}
-
-pub struct FnOptionMapper<D, P, S: ExecutionAction>(
-    Box<dyn FnMut(Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>>>,
-);
-
-impl<D, P, S: ExecutionAction> FnOptionMapper<D, P, S> {
-    pub fn new<F>(f: F) -> Self
-    where
-        F: FnMut(Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> + 'static,
-    {
-        Self(Box::new(f))
-    }
-}
-
-impl<D, P, S: ExecutionAction> TaskStatusMapper<D, P, S> for FnOptionMapper<D, P, S> {
-    fn map(&mut self, item: Option<TaskStatus<D, P, S>>) -> Option<TaskStatus<D, P, S>> {
-        self.0(item)
-    }
-}
-
-#[cfg(test)]
-mod test_fn_mapper {
-    use crate::valtron::TaskStatus;
-
-    use crate::valtron::{FnMapper, NoSpawner, TaskStatusMapper};
-
-    #[test]
-    fn test_can_create_fn_mapper_for_trait() {
-        let mut mapper = FnMapper::new(Box::new(|item: TaskStatus<usize, usize, NoSpawner>| {
-            Some(item)
-        }));
-
-        let instance = TaskStatus::Pending(1);
-        assert_eq!(mapper.map(Some(instance.clone())), Some(instance));
-
-        // validate we can meet expected trait type
-        let _: Box<dyn TaskStatusMapper<usize, usize, NoSpawner>> = Box::new(mapper);
     }
 }
 

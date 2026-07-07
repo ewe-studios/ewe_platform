@@ -31,9 +31,9 @@ use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 use crate::compati::Mutex;
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, ExecutionTaskIteratorBuilder,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, TaskSpawnConfig,
     ExecutorError, GlobalTask, ProcessController, SharedTaskQueue, SpawnInfo, SpawnType,
-    TaskReadyResolver, TaskStatusMapper,
+    TaskReadyResolver,
 };
 
 use crate::valtron::executors::constants::{
@@ -2583,11 +2583,10 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 #[must_use]
 pub fn typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
-) -> ExecutionTaskIteratorBuilder<
+) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
     Resolver,
     Task,
 >
@@ -2598,7 +2597,7 @@ where
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Resolver: TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static,
 {
-    ExecutionTaskIteratorBuilder::new(engine)
+    TaskSpawnConfig::new(engine)
 }
 
 /// `any_task` allows you to create a task builder with less restrictive type
@@ -2606,11 +2605,10 @@ where
 #[must_use]
 pub fn any_task<Task, Action>(
     engine: BoxedExecutionEngine,
-) -> ExecutionTaskIteratorBuilder<
+) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + 'static>,
     Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + 'static>,
     Task,
 >
@@ -2620,7 +2618,7 @@ where
     Task: TaskIterator<Spawner = Action> + Send + 'static,
     Action: ExecutionAction + Send + 'static,
 {
-    ExecutionTaskIteratorBuilder::new(engine)
+    TaskSpawnConfig::new(engine)
 }
 
 /// `send_any_task` will unlike [`any_task`] deliver the provided
@@ -2629,11 +2627,10 @@ where
 #[must_use]
 pub fn send_any_task<Task, Action>(
     engine: BoxedExecutionEngine,
-) -> ExecutionTaskIteratorBuilder<
+) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
     Box<dyn TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static>,
     Task,
 >
@@ -2643,7 +2640,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Task: TaskIterator<Spawner = Action> + Send + 'static,
 {
-    ExecutionTaskIteratorBuilder::new(engine)
+    TaskSpawnConfig::new(engine)
 }
 
 /// `send_typed_task` will unlike `type_task` deliver the provided
@@ -2652,11 +2649,10 @@ where
 #[must_use]
 pub fn send_typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
-) -> ExecutionTaskIteratorBuilder<
+) -> TaskSpawnConfig<
     Task::Ready,
     Task::Pending,
     Task::Spawner,
-    Box<dyn TaskStatusMapper<Task::Ready, Task::Pending, Task::Spawner> + Send + 'static>,
     Resolver,
     Task,
 >
@@ -2667,7 +2663,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Resolver: TaskReadyResolver<Task::Spawner, Task::Ready, Task::Pending> + Send + 'static,
 {
-    ExecutionTaskIteratorBuilder::new(engine)
+    TaskSpawnConfig::new(engine)
 }
 
 #[cfg(all(test, not(target_family = "wasm")))]
@@ -2749,7 +2745,6 @@ mod test_local_thread_executor {
 
                             let (inline_action, receiver) = InlineSendAction::boxed_mapper(
                                 self.0,
-                                Vec::new(),
                                 task,
                                 std::time::Duration::from_millis(100),
                             );
@@ -2827,7 +2822,6 @@ mod test_local_thread_executor {
 
         let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
             InlineSendActionBehaviour::Lift,
-            Vec::new(),
             task,
             std::time::Duration::from_millis(10),
         );
@@ -2883,7 +2877,8 @@ mod test_local_thread_executor {
                 InlineSendActionBehaviour::Lift,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
-            .schedule_iter(std::time::Duration::from_millis(100)));
+            .as_scheduled()
+            .recv(std::time::Duration::from_millis(100)));
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
@@ -2933,7 +2928,8 @@ mod test_local_thread_executor {
                 InlineSendActionBehaviour::LiftWithParent,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
-            .schedule_iter(std::time::Duration::from_millis(100)));
+            .as_scheduled()
+            .recv(std::time::Duration::from_millis(100)));
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
@@ -2983,7 +2979,8 @@ mod test_local_thread_executor {
                 InlineSendActionBehaviour::Sequenced,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
-            .schedule_iter(std::time::Duration::from_millis(100)));
+            .as_scheduled()
+            .recv(std::time::Duration::from_millis(100)));
 
         executor.run_until(|state| ProgressIndicator::NoWork == state);
 
@@ -3039,7 +3036,8 @@ mod test_local_thread_executor {
         panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(Counter("Counter1", 0, 3, 3))
             .on_next(move |next, _| count_clone.lock().unwrap().push(next))
-            .broadcast());
+            .as_broadcast()
+            .spawn());
 
         assert_eq!(
             executor.run_once(),
@@ -3090,8 +3088,7 @@ mod test_local_thread_executor {
         let count_clone = Arc::clone(&counts);
         let on_next = OnNext::on_next(
             Counter("Counter1", 0, 3, 3),
-            move |next, _engine| count_clone.lock().unwrap().push(next),
-            None,
+            move |next, _engine| count_clone.lock().unwrap().push(next)
         );
 
         panic_if_failed!(global.push(on_next.into()));
@@ -3144,7 +3141,8 @@ mod test_local_thread_executor {
         panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(Counter("Counter1", 0, 3, 3))
             .on_next(move |next, _| count_clone.lock().unwrap().push(next))
-            .broadcast());
+            .as_broadcast()
+            .spawn());
 
         assert_eq!(
             executor.run_once(),
@@ -3193,8 +3191,7 @@ mod test_local_thread_executor {
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             Counter("Counter1", 10, 20, 12),
-            move |next, _engine| { count_clone.lock().unwrap().push(next) },
-            None,
+            move |next, _engine| { count_clone.lock().unwrap().push(next) }
         ))));
 
         assert!(matches!(
@@ -3264,17 +3261,15 @@ mod test_local_thread_executor {
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             Counter("Counter1", 0, 4, 2),
-            move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-            None,
+            move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
         ))));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter2", 0, 20, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None,
-            )
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
+        )
             .into()
         ));
 
@@ -3421,9 +3416,8 @@ mod test_local_thread_executor {
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-                None
-            )
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
+        )
             .into()
         ));
 
@@ -3431,9 +3425,8 @@ mod test_local_thread_executor {
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None
-            )
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
+        )
             .into()
         ));
 
@@ -3588,7 +3581,8 @@ mod test_local_thread_executor {
                     match any_task(executor)
                         .maybe_parent(key)
                         .with_task(SimpleCounter("SubTask1", 0, 5))
-                        .lift()
+                        .as_lifted()
+            .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -3598,7 +3592,8 @@ mod test_local_thread_executor {
                     tracing::debug!("Spawning task as InThread");
                     match any_task(executor)
                         .with_task(SimpleCounter("SubTask2", 0, 5))
-                        .schedule()
+                        .as_scheduled()
+            .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -3608,7 +3603,8 @@ mod test_local_thread_executor {
                     tracing::debug!("Spawning task as OutOfThread");
                     match send_any_task(executor)
                         .with_task(SimpleCounter("SubTask3", 0, 5))
-                        .broadcast()
+                        .as_broadcast()
+            .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -3717,7 +3713,8 @@ mod test_local_thread_executor {
         panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(DaemonCounter(gen_state.clone()))
             .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
-            .broadcast());
+            .as_broadcast()
+            .spawn());
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
@@ -3817,7 +3814,8 @@ mod test_local_thread_executor {
         panic_if_failed!(send_typed_task(executor.boxed_engine())
             .with_task(DaemonCounter(gen_state.clone()))
             .on_next(move |next, _| count_clone.lock().unwrap().push(("DaemonCounter", next)))
-            .broadcast());
+            .as_broadcast()
+            .spawn());
 
         assert_eq!(executor.run_once(), ProgressIndicator::CanProgress(None));
 
@@ -3913,9 +3911,8 @@ mod test_local_thread_executor {
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-                None
-            )
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
+        )
             .into()
         ));
 
@@ -3923,9 +3920,8 @@ mod test_local_thread_executor {
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None
-            )
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
+        )
             .into()
         ));
 
@@ -3985,9 +3981,8 @@ mod test_local_thread_executor {
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-                None
-            )
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
+        )
             .into()
         ));
 
@@ -3995,9 +3990,8 @@ mod test_local_thread_executor {
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None
-            )
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
+        )
             .into()
         ));
 
@@ -4058,9 +4052,8 @@ mod test_local_thread_executor {
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next)),
-                None
-            )
+                move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
+        )
             .into()
         ));
 
@@ -4068,9 +4061,8 @@ mod test_local_thread_executor {
         panic_if_failed!(global.push(
             OnNext::on_next(
                 Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next)),
-                None
-            )
+                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
+        )
             .into()
         ));
 
@@ -4205,8 +4197,7 @@ mod test_local_thread_executor {
             DependsCounter::new(1, signal),
             move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {
                 // callback - we track via run_once return values
-            },
-            None,
+            }
         ))));
 
         // First run_once: task returns Depends(false), should register as sleeper
@@ -4251,8 +4242,7 @@ mod test_local_thread_executor {
 
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             DependsCounter::new(1, signal),
-            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
-            None,
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
         ))));
 
         // Run 1: Depends(false) → registered as sleeper
@@ -4296,8 +4286,7 @@ mod test_local_thread_executor {
 
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             DependsCounter::new(1, signal),
-            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
-            None,
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
         ))));
 
         // Depends(true) → violation, treated as Pending, pushed to back
@@ -4342,8 +4331,7 @@ mod test_local_thread_executor {
                 max: 3,
                 signal: signal.clone(),
             },
-            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
-            None,
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
         ))));
 
         // First run_once: Depends(false), registers as sleeper
@@ -4410,8 +4398,7 @@ mod test_local_thread_executor {
 
         panic_if_failed!(global.push(Box::new(OnNext::on_next(
             DependsCounter::new(1, signal.clone()),
-            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {},
-            None,
+            move |_next: TaskStatus<usize, time::Duration, NoSpawner>, _engine| {}
         ))));
 
         // Verify signal is initially false
