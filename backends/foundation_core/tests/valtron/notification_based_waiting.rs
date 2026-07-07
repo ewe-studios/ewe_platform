@@ -14,7 +14,7 @@ use foundation_core::valtron::{
     SharedTaskQueue, ExecutionAction, NoSpawner, TaskIterator, TaskStatus, WrapTask,
 };
 use foundation_core::valtron::{
-    InlineSendAction, InlineSendActionBehaviour, LocalThreadExecutor, NotifyQueue,
+    InlineAction, InlineActionBehaviour, LocalThreadExecutor, NotifyQueue,
     NotifyQueueStreamIterator, NotifyRecvIter, NotifyRecvIterator, PriorityOrder,
     NotificationItem,
 };
@@ -398,8 +398,8 @@ fn test_single_threaded_executor_with_notification_tasks() {
     // The timeout is critical - must be short for single-threaded
     let task = WrapTask::new(vec![10, 20, 30].into_iter());
 
-    let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
-        InlineSendActionBehaviour::Lift,
+    let (mut inline_action, receiver) = InlineAction::boxed_mapper(
+        InlineActionBehaviour::Lift,
         task,
         // CRITICAL: Very short timeout for single-threaded mode
         Duration::from_micros(50),
@@ -475,8 +475,8 @@ fn test_single_threaded_executor_pends_without_blocking() {
     let counter_clone = Arc::clone(&counter);
     let task = CountingTask(counter_clone);
 
-    let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
-        InlineSendActionBehaviour::Lift,
+    let (mut inline_action, receiver) = InlineAction::boxed_mapper(
+        InlineActionBehaviour::Lift,
         task,
         // Very short timeout for single-threaded
         Duration::from_micros(10),

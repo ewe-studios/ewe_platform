@@ -16,11 +16,14 @@ use std::{
 
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
-    valtron::{AnyResult, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State},
+    valtron::{
+        AnyResult, EventReadinessPtr, ExecutionEngine, ExecutionIterator, NoAction, State,
+        TaskIterator, TaskStatus,
+    },
 };
 use crate::{
     synca::{Timeable, Timing},
-    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask, TaskIterator},
+    valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask},
 };
 use foundation_compact::rng::ChaCha8Rng;
 use foundation_compact::rng::SeedableRng;
@@ -39,6 +42,39 @@ use crate::valtron::{
 use crate::valtron::executors::constants::{
     DEFAULT_KILL_SIGNAL_CHECK_INTERVAL, DEFAULT_NOTIFY_QUEUE_MAX_SPINS, DEFAULT_READINESS_WAIT,
 };
+
+/// Task that wraps an iterator of plain values and yields items as `TaskStatus::Ready`.
+///
+/// WHY: Allows standard iterators of plain values to be used as `TaskIterators`.
+/// WHAT: Each `next()` call wraps the iterator's item in `TaskStatus::Ready`.
+pub struct WrapTask<I, T>
+where
+    I: Iterator<Item = T>,
+{
+    iter: I,
+}
+
+impl<I, T> WrapTask<I, T>
+where
+    I: Iterator<Item = T>,
+{
+    pub fn new(iter: I) -> Self {
+        Self { iter }
+    }
+}
+
+impl<I, T> TaskIterator for WrapTask<I, T>
+where
+    I: Iterator<Item = T>,
+{
+    type Pending = ();
+    type Ready = T;
+    type Spawner = NoAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
+        self.iter.next().map(TaskStatus::Ready)
+    }
+}
 
 const MAX_YIELD_DURATION: time::Duration = time::Duration::from_millis(100);
 
@@ -2680,7 +2716,7 @@ mod test_local_thread_executor {
         synca::SleepyMan,
         valtron::{
             BoolSignal, BoxedSendExecutionAction, EventReadiness, ExecutionAction,
-            InlineSendAction, InlineSendActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner,
+            InlineAction, InlineActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner,
             OnNext, ProcessController, TaskIterator, TaskStatus, WrapTask,
         },
     };
@@ -2729,7 +2765,7 @@ mod test_local_thread_executor {
         Done,
     }
 
-    struct ListItems(InlineSendActionBehaviour, Option<ListItemInner>);
+    struct ListItems(InlineActionBehaviour, Option<ListItemInner>);
 
     impl TaskIterator for ListItems {
         type Ready = usize;
@@ -2743,7 +2779,7 @@ mod test_local_thread_executor {
                         if let Some(inner) = items.take() {
                             let task = WrapTask::new(inner.into_iter());
 
-                            let (inline_action, receiver) = InlineSendAction::boxed_mapper(
+                            let (inline_action, receiver) = InlineAction::boxed_mapper(
                                 self.0,
                                 task,
                                 std::time::Duration::from_millis(100),
@@ -2790,7 +2826,7 @@ mod test_local_thread_executor {
     }
 
     // ============================================================================
-    // PHASE 0: InlineAction and InlineSendAction tests
+    // PHASE 0: InlineAction and InlineAction tests
     // ============================================================================
 
     #[test]
@@ -2820,8 +2856,8 @@ mod test_local_thread_executor {
         let item_list = vec![1, 2, 3];
         let task = WrapTask::new(item_list.into_iter());
 
-        let (mut inline_action, receiver) = InlineSendAction::boxed_mapper(
-            InlineSendActionBehaviour::Lift,
+        let (mut inline_action, receiver) = InlineAction::boxed_mapper(
+            InlineActionBehaviour::Lift,
             task,
             std::time::Duration::from_millis(10),
         );
@@ -2874,7 +2910,7 @@ mod test_local_thread_executor {
 
         let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
             .with_task(ListItems(
-                InlineSendActionBehaviour::Lift,
+                InlineActionBehaviour::Lift,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
             .as_scheduled()
@@ -2925,7 +2961,7 @@ mod test_local_thread_executor {
 
         let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
             .with_task(ListItems(
-                InlineSendActionBehaviour::LiftWithParent,
+                InlineActionBehaviour::LiftWithParent,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
             .as_scheduled()
@@ -2976,7 +3012,7 @@ mod test_local_thread_executor {
 
         let receiver = panic_if_failed!(send_any_task(executor.boxed_engine())
             .with_task(ListItems(
-                InlineSendActionBehaviour::Sequenced,
+                InlineActionBehaviour::Sequenced,
                 Some(ListItemInner::List(Some(vec![1, 2, 3])))
             ))
             .as_scheduled()

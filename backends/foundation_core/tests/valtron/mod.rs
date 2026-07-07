@@ -1,4 +1,6 @@
 #[cfg(not(target_family = "wasm"))]
+mod builder_tests;
+#[cfg(not(target_family = "wasm"))]
 mod channel_backpressure_tests;
 mod flatten_combinators;
 mod cancellable_future;

@@ -17,7 +17,7 @@ use std::sync::Arc;
 
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{
-    inlined_task, BoxedSendExecutionAction, InlineSendActionBehaviour,
+    inlined_task, BoxedSendExecutionAction, InlineActionBehaviour,
     IntoBoxedSendExecutionAction, Stream, TaskIterator, TaskStatus,
 };
 
@@ -80,7 +80,7 @@ impl HttpExchangeTask {
         let pool_for_conn = Arc::clone(&pool);
         let child = SendRequestTask::new(request, max_redirects, pool, config);
         let (action, receiver) = inlined_task(
-            InlineSendActionBehaviour::LiftWithParent,
+            InlineActionBehaviour::LiftWithParent,
             child,
             std::time::Duration::from_millis(0),
         );

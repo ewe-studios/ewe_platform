@@ -21,7 +21,139 @@ use core::sync::atomic::AtomicBool;
 
 use crate::valtron::{DEFAULT_MAX_TURNS, DEFAULT_PARK_DURATION, DEFAULT_WAIT_CYCLE};
 
-use crate::valtron::{InlineSendAction, InlineSendActionBehaviour};
+use super::inline_action::InlineActionBehaviour;
+use crate::valtron::executors::local::NotifyQueue;
+use crate::valtron::{BoxedExecutionEngine, ConsumingIter, ExecutorError, SpawnInfo};
+
+#[allow(clippy::type_complexity)]
+pub struct InlineAction<Done, Pending, Action, Task>(
+    Option<(
+        InlineActionBehaviour,
+        Task,
+        Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+    )>,
+)
+where
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static;
+
+impl<Done, Pending, Action, Task> InlineAction<Done, Pending, Action, Task>
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    pub fn new(
+        behaviour: InlineActionBehaviour,
+        task: Task,
+        wait_cycle: std::time::Duration,
+    ) -> (
+        Self,
+        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+    ) {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
+        (
+            Self(Some((behaviour, task, iter_chan.clone()))),
+            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
+                iter_chan,
+                wait_cycle,
+            ),
+        )
+    }
+
+    pub fn boxed_mapper(
+        behaviour: InlineActionBehaviour,
+        task: Task,
+        wait_cycle: std::time::Duration,
+    ) -> (
+        Self,
+        crate::valtron::executors::local::NotifyRecvIterator<TaskStatus<Done, Pending, Action>>,
+    ) {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
+        (
+            Self(Some((behaviour, task, iter_chan.clone()))),
+            crate::valtron::executors::local::NotifyRecvIterator::from_notify_queue(
+                iter_chan,
+                wait_cycle,
+            ),
+        )
+    }
+    pub fn from_parts(
+        behaviour: InlineActionBehaviour,
+        task: Task,
+        channel: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>>,
+    ) -> Self {
+        Self(Some((behaviour, task, channel)))
+    }
+}
+
+impl<Done, Pending, Action, Task> ExecutionAction
+    for InlineAction<Done, Pending, Action, Task>
+where
+    Done: Send + 'static,
+    Pending: Send + 'static,
+    Action: ExecutionAction + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    fn apply(
+        &mut self,
+        key: Option<crate::synca::Entry>,
+        executor: BoxedExecutionEngine,
+    ) -> GenericResult<SpawnInfo> {
+        if let Some((behaviour, task, channel)) = self.0.take() {
+            match behaviour {
+                InlineActionBehaviour::Sequenced => {
+                    tracing::debug!("Sequence action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor
+                        .sequenced(consuming_iter.into(), parent)
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::LiftWithParent => {
+                    tracing::debug!("Lift action for InlineAction");
+
+                    let Some(parent) = key else {
+                        return Err(Box::new(ExecutorError::ParentMustBeSupplied));
+                    };
+
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), Some(parent))
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::Lift => {
+                    tracing::debug!("Lift action for InlineAction");
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor
+                        .lift(consuming_iter.into(), key)
+                        .map_err(Into::into)
+                }
+                InlineActionBehaviour::Schedule => {
+                    tracing::debug!("Schedule action for InlineAction");
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor.schedule(consuming_iter.into()).map_err(Into::into)
+                }
+                InlineActionBehaviour::Broadcast => {
+                    tracing::debug!("Broadcast action for InlineAction");
+                    let consuming_iter = ConsumingIter::new(task, channel.clone());
+                    executor
+                        .broadcast(consuming_iter.into())
+                        .map_err(Into::into)
+                }
+            }
+        } else {
+            Err("Action has being used up".into())
+        }
+    }
+}
 
 #[must_use]
 pub fn initialize_pool(
@@ -518,11 +650,11 @@ where
 /// You then are able to receive the output of that task from the returned
 /// channel [`RecvIterator<TaskStatus<Done, Pending, Action>>`].
 pub fn inlined_task<Done, Pending, Action, Task>(
-    behaviour: InlineSendActionBehaviour,
+    behaviour: InlineActionBehaviour,
     task: Task,
     wait_cycle: std::time::Duration,
 ) -> (
-    InlineSendAction<Done, Pending, Action, Task>,
+    InlineAction<Done, Pending, Action, Task>,
     DrivenRecvIterator<Task>,
 )
 where
@@ -531,7 +663,7 @@ where
     Action: ExecutionAction + Send + 'static,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
 {
-    let (task_action, task_receiver) = InlineSendAction::new(behaviour, task, wait_cycle);
+    let (task_action, task_receiver) = InlineAction::new(behaviour, task, wait_cycle);
     (task_action, drive_receiver(task_receiver))
 }
 
