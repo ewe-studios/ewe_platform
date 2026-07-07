@@ -14,7 +14,8 @@ use crate::valtron::{
     task::{TaskSpread, TaskStatus}, BoxedExecutionEngine, BoxedPanicHandler, ExecutionAction, TaskIterator,
 };
 use crate::valtron::{
-    BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionIterator, State, TaskStatusMapper,
+    BoxedExecutionIterator, BoxedSendExecutionIterator, ExecutionIterator,
+    QueueVacancyReadiness, State, TaskStatusMapper,
 };
 
 /// [`StreamConsumingIter`] provides an implementer of `ExecutionIterator` which is focused
@@ -77,6 +78,7 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
 impl<Mapper, Action, Task, Done: Send + 'static, Pending: Send + 'static>
     Into<BoxedSendExecutionIterator> for StreamConsumingIter<Mapper, Action, Task, Done, Pending>
@@ -90,6 +92,21 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
+#[allow(clippy::from_over_into)]
+impl<Mapper, Action, Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
+    for StreamConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    fn into(self) -> BoxedExecutionIterator {
+        Box::new(self)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
 #[allow(clippy::from_over_into)]
 impl<Mapper, Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
     for StreamConsumingIter<Mapper, Action, Task, Done, Pending>
@@ -103,26 +120,30 @@ where
     }
 }
 
-impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
-    for StreamConsumingIter<Mapper, Action, Task, Done, Pending>
+impl<Mapper, Action, Task, Done, Pending> StreamConsumingIter<Mapper, Action, Task, Done, Pending>
 where
     Action: ExecutionAction,
     Mapper: TaskStatusMapper<Done, Pending, Action>,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    /// Shared `next()` body.  `on_full` builds the `State::Depends(...)` for a
+    /// full delivery queue — the closure is constructed in the cfg-gated
+    /// `ExecutionIterator::next` wrappers so that the `Send` bounds needed under
+    /// `multi` (for `QueueVacancyReadiness` coercion into `EventReadinessPtr`)
+    /// are supplied by the wrapper's own bounds rather than leaking into this
+    /// inherent method.
+    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, on_full: impl FnOnce() -> State) -> Option<State> {
         if self.alive.is_none() {
-
             return None;
         }
 
-        // First, try to send any pending message from previous backpressure
+        // Retry stashed pending message from previous backpressure
         if let Some(msg) = self.pending_msg.take() {
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(State::Pending(None));
+                    return Some(on_full());
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -139,7 +160,7 @@ where
                 Ok(()) => return Some(State::Pending(None)),
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(State::Pending(None));
+                    return Some(on_full());
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -162,13 +183,8 @@ where
         };
 
         if task_response.is_none() {
-            // close the queue
             self.channel.close();
-
-            // set alive signal to empty.
             self.alive.take();
-
-            // send State::Done
             return Some(State::Done);
         }
 
@@ -179,13 +195,8 @@ where
         }
 
         if previous_response.is_none() {
-            // close the queue
             self.channel.close();
-
-            // set alive signal to empty.
             self.alive.take();
-
-            // send State::Done
             return Some(State::Done);
         }
 
@@ -201,7 +212,7 @@ where
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(Stream::Ignore);
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -213,7 +224,7 @@ where
                 Ok(()) => State::Pending(Some(inner)),
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(Stream::Delayed(inner));
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -225,7 +236,7 @@ where
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(Stream::Init);
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -237,7 +248,7 @@ where
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -249,7 +260,7 @@ where
                 Ok(()) => State::ReadyValue(entry),
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -261,7 +272,7 @@ where
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(Stream::Wait);
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -277,14 +288,13 @@ where
                         TaskSpread::Pending(p) => Stream::Pending(p),
                     })
                     .collect();
-                // Try to push the first item immediately
                 if !self.spread_items.is_empty() {
                     let item = self.spread_items.remove(0);
                     match self.channel.push(item) {
                         Ok(()) => State::Pending(None),
                         Err(PushError::Full(msg)) => {
                             self.pending_msg = Some(msg);
-                            State::Pending(None)
+                            on_full()
                         }
                         Err(PushError::Closed(_)) => {
                             self.channel.close();
@@ -298,6 +308,42 @@ where
             }
             TaskStatus::Depends(signal) => State::Depends(signal),
         })
+    }
+}
+
+#[cfg(feature = "multi")]
+impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
+    for StreamConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Done: Send + 'static,
+    Pending: Send + 'static,
+{
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        let queue = self.channel.queue_arc();
+        let on_full = move || {
+            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
+        };
+        self.drive(entry, executor, on_full)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
+    for StreamConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+{
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        let queue = self.channel.queue_arc();
+        let on_full = move || {
+            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
+        };
+        self.drive(entry, executor, on_full)
     }
 }
 
@@ -361,6 +407,7 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
 impl<Mapper, Action, Task, Done: Send + 'static, Pending: Send + 'static>
     Into<BoxedSendExecutionIterator> for ConsumingIter<Mapper, Action, Task, Done, Pending>
@@ -374,6 +421,21 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
+#[allow(clippy::from_over_into)]
+impl<Mapper, Action, Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
+    for ConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    fn into(self) -> BoxedExecutionIterator {
+        Box::new(self)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
 #[allow(clippy::from_over_into)]
 impl<Mapper, Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
     for ConsumingIter<Mapper, Action, Task, Done, Pending>
@@ -387,27 +449,24 @@ where
     }
 }
 
-impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
-    for ConsumingIter<Mapper, Action, Task, Done, Pending>
+impl<Mapper, Action, Task, Done, Pending> ConsumingIter<Mapper, Action, Task, Done, Pending>
 where
     Action: ExecutionAction,
     Mapper: TaskStatusMapper<Done, Pending, Action>,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
-
+    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, on_full: impl FnOnce() -> State) -> Option<State> {
         if self.alive.is_none() {
-
             return None;
         }
 
-        // First, try to send any pending message from previous backpressure
+        // Retry stashed pending message from previous backpressure
         if let Some(msg) = self.pending_msg.take() {
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(State::Pending(None));
+                    return Some(on_full());
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -424,7 +483,7 @@ where
                 Ok(()) => return Some(State::Pending(None)),
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(State::Pending(None));
+                    return Some(on_full());
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -446,15 +505,9 @@ where
             }
         };
 
-
         if task_response.is_none() {
-            // close the queue
             self.channel.close();
-
-            // set alive signal to empty.
             self.alive.take();
-
-            // send State::Done
             return Some(State::Done);
         }
 
@@ -465,33 +518,25 @@ where
         }
 
         if previous_response.is_none() {
-            // close the queue
             self.channel.close();
-
-            // set alive signal to empty.
             self.alive.take();
-
-            // send State::Done
             return Some(State::Done);
         }
 
         Some(match previous_response.unwrap() {
-            TaskStatus::Spawn(mut action) => {
-
-                match action.apply(Some(entry), executor) {
-                    Ok(info) => State::SpawnFinished(info),
-                    Err(err) => {
-                        tracing::error!("Failed to to spawn action: {:?}", err);
-                        State::SpawnFailed(entry)
-                    }
+            TaskStatus::Spawn(mut action) => match action.apply(Some(entry), executor) {
+                Ok(info) => State::SpawnFinished(info),
+                Err(err) => {
+                    tracing::error!("Failed to to spawn action: {:?}", err);
+                    State::SpawnFailed(entry)
                 }
-            }
+            },
             TaskStatus::Delayed(inner) => {
                 match self.channel.push(TaskStatus::Delayed(inner)) {
                     Ok(()) => State::Pending(Some(inner)),
                     Err(PushError::Full(_)) => {
                         self.pending_msg = Some(TaskStatus::Delayed(inner));
-                        State::Pending(None)
+                        on_full()
                     }
                     Err(PushError::Closed(_)) => {
                         self.channel.close();
@@ -500,58 +545,48 @@ where
                     }
                 }
             }
-            TaskStatus::Init => {
-                match self.channel.push(TaskStatus::Init) {
-                    Ok(()) => {
-                        State::Pending(None)
-                    }
-                    Err(PushError::Full(_)) => {
-                        self.pending_msg = Some(TaskStatus::Init);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            TaskStatus::Init => match self.channel.push(TaskStatus::Init) {
+                Ok(()) => State::Pending(None),
+                Err(PushError::Full(_)) => {
+                    self.pending_msg = Some(TaskStatus::Init);
+                    on_full()
                 }
-            }
-            TaskStatus::Pending(inner) => {
-                match self.channel.push(TaskStatus::Pending(inner)) {
-                    Ok(()) => State::Pending(None),
-                    Err(PushError::Full(msg)) => {
-                        self.pending_msg = Some(msg);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+                Err(PushError::Closed(_)) => {
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
                 }
-            }
-            TaskStatus::Ready(inner) => {
-                match self.channel.push(TaskStatus::Ready(inner)) {
-                    Ok(()) => {
-                        State::ReadyValue(entry)
-                    }
-                    Err(PushError::Full(msg)) => {
-                        self.pending_msg = Some(msg);
-                        State::Pending(None)
-                    }
-                    Err(PushError::Closed(_)) => {
-                        self.channel.close();
-                        self.alive.take();
-                        State::Done
-                    }
+            },
+            TaskStatus::Pending(inner) => match self.channel.push(TaskStatus::Pending(inner)) {
+                Ok(()) => State::Pending(None),
+                Err(PushError::Full(msg)) => {
+                    self.pending_msg = Some(msg);
+                    on_full()
                 }
-            }
+                Err(PushError::Closed(_)) => {
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
+            TaskStatus::Ready(inner) => match self.channel.push(TaskStatus::Ready(inner)) {
+                Ok(()) => State::ReadyValue(entry),
+                Err(PushError::Full(msg)) => {
+                    self.pending_msg = Some(msg);
+                    on_full()
+                }
+                Err(PushError::Closed(_)) => {
+                    self.channel.close();
+                    self.alive.take();
+                    State::Done
+                }
+            },
             TaskStatus::Ignore => State::Pending(None),
             TaskStatus::Wait => match self.channel.push(TaskStatus::Wait) {
                 Ok(()) => State::Pending(None),
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(TaskStatus::Wait);
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -573,7 +608,7 @@ where
                         Ok(()) => State::Pending(None),
                         Err(PushError::Full(msg)) => {
                             self.pending_msg = Some(msg);
-                            State::Pending(None)
+                            on_full()
                         }
                         Err(PushError::Closed(_)) => {
                             self.channel.close();
@@ -587,6 +622,42 @@ where
             }
             TaskStatus::Depends(signal) => State::Depends(signal),
         })
+    }
+}
+
+#[cfg(feature = "multi")]
+impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
+    for ConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Done: Send + 'static,
+    Pending: Send + 'static,
+{
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        let queue = self.channel.queue_arc();
+        let on_full = move || {
+            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
+        };
+        self.drive(entry, executor, on_full)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
+    for ConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+{
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        let queue = self.channel.queue_arc();
+        let on_full = move || {
+            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
+        };
+        self.drive(entry, executor, on_full)
     }
 }
 
@@ -649,6 +720,7 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
 impl<Mapper, Action, Task, Done: Send + 'static, Pending: Send + 'static>
     Into<BoxedSendExecutionIterator> for ReadyConsumingIter<Mapper, Action, Task, Done, Pending>
@@ -662,6 +734,21 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
+#[allow(clippy::from_over_into)]
+impl<Mapper, Action, Task, Done: Send + 'static, Pending: Send + 'static> Into<BoxedExecutionIterator>
+    for ReadyConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action> + Send + 'static,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
+{
+    fn into(self) -> BoxedExecutionIterator {
+        Box::new(self)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
 #[allow(clippy::from_over_into)]
 impl<Mapper, Action, Task, Done: 'static, Pending: 'static> Into<BoxedExecutionIterator>
     for ReadyConsumingIter<Mapper, Action, Task, Done, Pending>
@@ -675,23 +762,22 @@ where
     }
 }
 
-impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
-    for ReadyConsumingIter<Mapper, Action, Task, Done, Pending>
+impl<Mapper, Action, Task, Done, Pending> ReadyConsumingIter<Mapper, Action, Task, Done, Pending>
 where
     Action: ExecutionAction,
     Mapper: TaskStatusMapper<Done, Pending, Action>,
     Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
 {
-    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+    fn drive(&mut self, entry: Entry, executor: BoxedExecutionEngine, on_full: impl FnOnce() -> State) -> Option<State> {
         self.alive?;
 
-        // First, try to send any pending message from previous backpressure
+        // Retry stashed pending message from previous backpressure
         if let Some(msg) = self.pending_msg.take() {
             match self.channel.push(msg) {
                 Ok(()) => {}
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(State::Pending(None));
+                    return Some(on_full());
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -708,7 +794,7 @@ where
                 Ok(()) => return Some(State::Pending(None)),
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    return Some(State::Pending(None));
+                    return Some(on_full());
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -731,13 +817,8 @@ where
         };
 
         if task_response.is_none() {
-            // close the queue
             self.channel.close();
-
-            // set alive signal to empty.
             self.alive.take();
-
-            // send State::Done
             return Some(State::Done);
         }
 
@@ -748,13 +829,8 @@ where
         }
 
         if previous_response.is_none() {
-            // close the queue
             self.channel.close();
-
-            // set alive signal to empty.
             self.alive.take();
-
-            // send State::Done
             return Some(State::Done);
         }
 
@@ -772,7 +848,7 @@ where
                 Ok(()) => State::ReadyValue(entry),
                 Err(PushError::Full(msg)) => {
                     self.pending_msg = Some(msg);
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -785,7 +861,7 @@ where
                 Ok(()) => State::ReadyValue(entry),
                 Err(PushError::Full(_)) => {
                     self.pending_msg = Some(TaskStatus::Wait);
-                    State::Pending(None)
+                    on_full()
                 }
                 Err(PushError::Closed(_)) => {
                     self.channel.close();
@@ -798,7 +874,7 @@ where
                     .into_iter()
                     .filter_map(|item| match item {
                         TaskSpread::Ready(d) => Some(TaskStatus::Ready(d)),
-                        TaskSpread::Pending(_) => None, // ReadyConsumingIter only pushes Ready
+                        TaskSpread::Pending(_) => None,
                     })
                     .collect();
                 if !self.spread_items.is_empty() {
@@ -807,7 +883,7 @@ where
                         Ok(()) => State::ReadyValue(entry),
                         Err(PushError::Full(msg)) => {
                             self.pending_msg = Some(msg);
-                            State::Pending(None)
+                            on_full()
                         }
                         Err(PushError::Closed(_)) => {
                             self.channel.close();
@@ -821,5 +897,41 @@ where
             }
             TaskStatus::Depends(signal) => State::Depends(signal),
         })
+    }
+}
+
+#[cfg(feature = "multi")]
+impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
+    for ReadyConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction + Send + 'static,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+    Done: Send + 'static,
+    Pending: Send + 'static,
+{
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        let queue = self.channel.queue_arc();
+        let on_full = move || {
+            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
+        };
+        self.drive(entry, executor, on_full)
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<Mapper, Task, Done, Pending, Action> ExecutionIterator
+    for ReadyConsumingIter<Mapper, Action, Task, Done, Pending>
+where
+    Action: ExecutionAction,
+    Mapper: TaskStatusMapper<Done, Pending, Action>,
+    Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action>,
+{
+    fn next(&mut self, entry: Entry, executor: BoxedExecutionEngine) -> Option<State> {
+        let queue = self.channel.queue_arc();
+        let on_full = move || {
+            State::Depends(std::sync::Arc::new(QueueVacancyReadiness::new(queue)))
+        };
+        self.drive(entry, executor, on_full)
     }
 }

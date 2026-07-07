@@ -16,14 +16,14 @@ use std::{
 
 use crate::{
     synca::{mpp, DurationWaker, Entry, EntryList, IdleMan, OnSignal, Sleepers, Waiter},
-    valtron::{AnyResult, EventReadiness, ExecutionEngine, ExecutionIterator, State},
+    valtron::{AnyResult, EventReadinessPtr, ExecutionEngine, ExecutionIterator, State},
 };
 use crate::{
     synca::{Timeable, Timing},
     valtron::{DualSequeunceChildAndParentLinkedTask, FinishChildBeforeParentTask, TaskIterator},
 };
-use foundation_compact::rng::SeedableRng;
 use foundation_compact::rng::ChaCha8Rng;
+use foundation_compact::rng::SeedableRng;
 
 use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 
@@ -135,7 +135,7 @@ pub enum Sleepable {
 
     /// Readiness represents a task waiting on an arbitrary `EventReadiness`
     /// signal. The executor calls `is_ready(None)` to check without blocking.
-    Readiness(sync::Arc<dyn EventReadiness>, Entry),
+    Readiness(EventReadinessPtr, Entry),
 }
 
 impl core::fmt::Debug for Sleepable {
@@ -348,6 +348,16 @@ impl<T> NotifyQueue<T> {
     pub fn queue(&self) -> &ConcurrentQueue<T> {
         &self.queue
     }
+
+    /// Returns a clone of the `Arc` to the underlying queue.
+    ///
+    /// WHY: A producer parking on a full bounded delivery queue needs to hand the
+    /// executor a [`QueueVacancyReadiness`](crate::valtron::QueueVacancyReadiness)
+    /// over this same queue (Decision 00 §L1b / Feature 45 Part A), which owns an
+    /// `Arc<ConcurrentQueue<T>>` — not a borrow.
+    pub fn queue_arc(&self) -> Arc<ConcurrentQueue<T>> {
+        self.queue.clone()
+    }
 }
 
 /// `NotifyRecvIter` provides notification-based receiving for `NotifyQueue`.
@@ -530,7 +540,6 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
-
         // First try a quick non-blocking pop
         match self.chan.pop() {
             Ok(value) => {
@@ -544,9 +553,7 @@ impl<D, P> Iterator for NotifyQueueStreamIterator<D, P> {
 
         // Queue is empty - block efficiently until item is available
         match self.chan.wait_for_item(self.park_duration) {
-            Some(NotificationItem::Ready(value)) => {
-                Some(value)
-            }
+            Some(NotificationItem::Ready(value)) => Some(value),
             Some(NotificationItem::None) => {
                 // Queue open but empty after max_spins — signal executor to yield
                 Some(Stream::Wait)
@@ -807,7 +814,6 @@ impl ExecutorState {
     /// for the full stale sleeper lifecycle explanation.
     #[inline]
     pub fn wake_up(&self, target: Entry) {
-
         // Check if entry still exists in local_tasks
         if !self.local_tasks.borrow_mut().has(&target) {
             tracing::warn!(
@@ -969,8 +975,7 @@ impl ExecutorState {
     /// as the local queue had a task or no task was found.
     #[inline]
     pub fn schedule_next(&self) -> ScheduleOutcome {
-        if self.local_tasks.borrow().active_slots() > 0 && !self.processing.borrow().is_empty()
-        {
+        if self.local_tasks.borrow().active_slots() > 0 && !self.processing.borrow().is_empty() {
             return ScheduleOutcome::LocalTaskRunning;
         }
 
@@ -991,9 +996,7 @@ impl ExecutorState {
         }
 
         match self.schedule_next() {
-            ScheduleOutcome::GlobalTaskAcquired => {
-                ProgressIndicator::CanProgress(None)
-            }
+            ScheduleOutcome::GlobalTaskAcquired => ProgressIndicator::CanProgress(None),
             ScheduleOutcome::NoTaskRunningOrAcquired => {
                 if self.has_sleeping_tasks() {
                     return ProgressIndicator::CanProgress(None);
@@ -1026,7 +1029,6 @@ impl ExecutorState {
         match self.do_work(engine) {
             ProgressIndicator::CanProgress(state) => ProgressIndicator::CanProgress(state),
             ProgressIndicator::NoWork => {
-
                 if self.has_sleeping_tasks() {
                     if let Some(max_sleep_dur) = self.sleepers.max_duration() {
                         return ProgressIndicator::SpinWait(max_sleep_dur);
@@ -1044,7 +1046,6 @@ impl ExecutorState {
                 }
             }
             ProgressIndicator::SpinWait(duration) => {
-
                 if self.has_inflight_task() {
                     return ProgressIndicator::CanProgress(None);
                 }
@@ -1065,9 +1066,7 @@ impl ExecutorState {
                 // attempt to get global task else return
                 // duration as is.
                 match self.schedule_next() {
-                    ScheduleOutcome::GlobalTaskAcquired => {
-                        ProgressIndicator::CanProgress(None)
-                    }
+                    ScheduleOutcome::GlobalTaskAcquired => ProgressIndicator::CanProgress(None),
                     ScheduleOutcome::NoTaskRunningOrAcquired => {
                         ProgressIndicator::SpinWait(duration)
                     }
@@ -1076,9 +1075,7 @@ impl ExecutorState {
                     }
                 }
             }
-            ProgressIndicator::Wait => {
-                ProgressIndicator::Wait
-            }
+            ProgressIndicator::Wait => ProgressIndicator::Wait,
         }
     }
 
@@ -1148,7 +1145,6 @@ impl ExecutorState {
 
         // if result is none
         if next_result.is_none() {
-
             // remove task from queue
             self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1167,7 +1163,6 @@ impl ExecutorState {
 
         match next_result.unwrap() {
             State::SpawnFailed(parent_key) => {
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 // Clean up sleepers before removing the task
@@ -1184,7 +1179,6 @@ impl ExecutorState {
                 }
             }
             State::Panicked => {
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 // Clean up sleepers before removing the task
@@ -1210,7 +1204,6 @@ impl ExecutorState {
                     return match info.spawn_type() {
                         SpawnType::Lifted => {
                             let child_entry = info.parent().unwrap();
-
 
                             // get the parent task - i.e top_entry
                             let parent_task = self
@@ -1263,8 +1256,6 @@ impl ExecutorState {
                         let parent_entry = info.parent().unwrap();
                         let child_entry = info.child().unwrap();
 
-
-
                         // get the parent task - i.e top_entry
                         let parent_task = self
                             .local_tasks
@@ -1284,7 +1275,6 @@ impl ExecutorState {
 
                         // push entry back into processing mut
                         self.processing.borrow_mut().push_front(new_task_id);
-
 
                         // no need to push entry since it must have
                         ProgressIndicator::CanProgress(Some(State::SpawnFinished(SpawnInfo::new(
@@ -1326,7 +1316,6 @@ impl ExecutorState {
                         // push entry back into processing mut
                         self.processing.borrow_mut().push_front(new_task_id);
 
-
                         // no need to push entry since it must have
                         ProgressIndicator::CanProgress(Some(State::SpawnFinished(SpawnInfo::new(
                             SpawnType::Lifted,
@@ -1350,14 +1339,12 @@ impl ExecutorState {
                 }
             }
             State::Done => {
-
                 // now unpack and take entry out of local tasks
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
                 // Clean up sleepers before removing the task
                 self.remove_sleepers_for_entry(&top_entry);
 
                 self.local_tasks.borrow_mut().take(&top_entry);
-
 
                 // Task Iterator is really done
                 if remaining_tasks == 0 {
@@ -1396,7 +1383,6 @@ impl ExecutorState {
                 // the processing queue and gets registered with the
                 // sleepers (which monitors task that are sleeping).
                 let final_state = if let Some(inner) = duration {
-
                     // Store sleeper keyed by the task entry to avoid ID collisions
                     self.sleepers.insert(
                         top_entry,
@@ -1420,7 +1406,6 @@ impl ExecutorState {
                 final_state
             }
             State::Reschedule => {
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1430,7 +1415,6 @@ impl ExecutorState {
                 ProgressIndicator::CanProgress(Some(State::Reschedule))
             }
             State::Wait => {
-
                 // unpack the entry in the task list
                 self.local_tasks.borrow_mut().unpark(&top_entry, iter);
 
@@ -1549,8 +1533,6 @@ impl ExecutorState {
 
         let task_entry = self.local_tasks.borrow_mut().insert(task);
 
-
-
         Ok(SpawnInfo::new(
             SpawnType::Sequenced,
             Some(task_entry),
@@ -1594,7 +1576,6 @@ impl ExecutorState {
         }
 
         let task_entry = self.local_tasks.borrow_mut().insert(task);
-
 
         Ok(if parent.is_some() {
             SpawnInfo::new(SpawnType::LiftedWithParent, Some(task_entry), parent)
@@ -2733,7 +2714,6 @@ mod test_local_thread_executor {
             let old_count = self.1;
             let new_count = old_count + 1;
             self.1 = new_count;
-
 
             if new_count == self.2 {
                 return None;

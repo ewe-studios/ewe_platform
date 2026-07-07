@@ -55,6 +55,14 @@ pub const DEFAULT_KILL_SIGNAL_CHECK_INTERVAL: usize = 16;
 /// `DEFAULT_READINESS_WAIT` is the default duration to wait for a readiness signal before timing out.
 pub const DEFAULT_READINESS_WAIT: std::time::Duration = std::time::Duration::from_millis(10);
 
+/// `DEFAULT_DELIVERY_CAPACITY` is the bound for a `sequenced` task's delivery queue
+/// (Decision 15). `sequenced` interleaves the parent's drain with the child's
+/// production, so a small bound makes the child park on vacancy when it outruns
+/// the parent instead of buffering without limit. Kept small on purpose — a large
+/// bound is unbounded with extra steps. `lift` is unbounded (finish-before needs
+/// it) and is unaffected by this constant.
+pub const DEFAULT_DELIVERY_CAPACITY: usize = 8;
+
 pub const BACK_OFF_JITER: f32 = 0.75;
 pub const BACK_OFF_THREAD_FACTOR: u32 = 6;
 pub const BACK_OFF_MIN_DURATION: time::Duration = time::Duration::from_millis(1); // 2 http

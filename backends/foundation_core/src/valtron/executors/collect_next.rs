@@ -52,6 +52,7 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
 #[allow(clippy::from_over_into)]
 impl<'a: 'static, Action, Task, Done: Send + 'a, Pending: Send + 'a>
     Into<BoxedSendExecutionIterator> for CollectNext<'a, Action, Task, Done, Pending>

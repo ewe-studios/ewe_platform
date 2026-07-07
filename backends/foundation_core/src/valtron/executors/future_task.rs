@@ -33,6 +33,8 @@ use alloc::sync::Arc;
 #[cfg(all(feature = "std", feature = "multi"))]
 use crate::synca::mpp::{self, SenderError};
 
+use crate::valtron::EventReadinessPtr;
+
 // ============================================================================
 // No-Op Waker (no_std compatible)
 // ============================================================================
@@ -506,7 +508,7 @@ pub enum CancelOutcome {
 /// Never panics.
 #[cfg(any(feature = "std", feature = "alloc"))]
 struct CancelOrReadiness {
-    inner: Arc<dyn crate::valtron::EventReadiness>,
+    inner: EventReadinessPtr,
     cancel: Arc<core::sync::atomic::AtomicBool>,
 }
 
@@ -534,10 +536,7 @@ where
 
 #[cfg(any(feature = "std", feature = "alloc"))]
 impl<F: Future> CancellableFutureTask<F> {
-    pub fn new(
-        future: F,
-        cancel: Arc<core::sync::atomic::AtomicBool>,
-    ) -> Self {
+    pub fn new(future: F, cancel: Arc<core::sync::atomic::AtomicBool>) -> Self {
         Self {
             inner: FutureTask::new(future),
             cancel,
@@ -551,8 +550,7 @@ impl<F: Future> CancellableFutureTask<F> {
 
     #[must_use]
     pub fn is_cancelled(&self) -> bool {
-        self.cancel
-            .load(core::sync::atomic::Ordering::Acquire)
+        self.cancel.load(core::sync::atomic::Ordering::Acquire)
     }
 
     #[must_use]
@@ -585,10 +583,12 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             // Compose the cancel flag into the park signal so a set cancel
             // unparks the task even when the inner future never wakes.
-            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
-                inner: r,
-                cancel: self.cancel.clone(),
-            }))),
+            Some(TaskStatus::Depends(r)) => {
+                Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
+                    inner: r,
+                    cancel: self.cancel.clone(),
+                })))
+            }
             Some(TaskStatus::Spread(items)) => {
                 use crate::valtron::TaskSpread;
                 Some(TaskStatus::Spread(
@@ -630,10 +630,12 @@ where
             Some(TaskStatus::Spawn(s)) => Some(TaskStatus::Spawn(s)),
             // Compose the cancel flag into the park signal so a set cancel
             // unparks the task even when the inner future never wakes.
-            Some(TaskStatus::Depends(r)) => Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
-                inner: r,
-                cancel: self.cancel.clone(),
-            }))),
+            Some(TaskStatus::Depends(r)) => {
+                Some(TaskStatus::Depends(Arc::new(CancelOrReadiness {
+                    inner: r,
+                    cancel: self.cancel.clone(),
+                })))
+            }
             Some(TaskStatus::Spread(items)) => {
                 use crate::valtron::TaskSpread;
                 Some(TaskStatus::Spread(

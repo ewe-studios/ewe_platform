@@ -24,10 +24,12 @@ use crate::{
 
 /// A trait for types that can answer "is this task ready to run?"
 ///
-/// Implementors must be `Send + Sync` safe, as they will be shared
-/// between the task (which may mutate the signal) and the executor
-/// (which polls `is_ready`).
-pub trait EventReadiness: Send + Sync {
+/// Under `multi` the pointer type used by `State::Depends` requires
+/// `Send + Sync` on the trait object; under single-threaded / wasm it
+/// does not.  Concrete impls are always `Send + Sync` under `multi`
+/// (they already were) and the trait itself carries no supertraits so
+/// it can be implemented for `!Send` payload types under `not(multi)`.
+pub trait EventReadiness {
     /// Check if the task is ready to run.
     ///
     /// `dur`: Optional timeout. If `None`, check immediately without blocking.
@@ -36,6 +38,18 @@ pub trait EventReadiness: Send + Sync {
     /// Returns `true` if ready, `false` otherwise.
     fn is_ready(&self, dur: Option<time::Duration>) -> bool;
 }
+
+/// The pointer type that [`State::Depends`] and [`TaskStatus::Depends`] carry.
+///
+/// Under `multi` the trait object requires `Send + Sync` so that `State`
+/// itself is `Send` (the global task queue needs it).  Under
+/// `not(multi)` those bounds are dropped — `State` is `!Send`, but the
+/// single-threaded executor never crosses threads anyway.
+#[cfg(feature = "multi")]
+pub type EventReadinessPtr = Arc<dyn EventReadiness + Send + Sync>;
+
+#[cfg(not(feature = "multi"))]
+pub type EventReadinessPtr = Arc<dyn EventReadiness>;
 
 /// A simple readiness signal backed by an `Arc<AtomicBool>`.
 ///
@@ -109,11 +123,19 @@ impl<T> QueueReadiness<T> {
     }
 }
 
+#[cfg(feature = "multi")]
 impl<T: Send> EventReadiness for QueueReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         // Closed-aware: a closed queue is "ready" so a parked consumer unparks to
         // observe end-of-stream (its next `pop` drains any backlog then returns
         // `Closed`) instead of sleeping forever.
+        !self.0.is_empty() || self.0.is_closed()
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<T> EventReadiness for QueueReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         !self.0.is_empty() || self.0.is_closed()
     }
 }
@@ -166,10 +188,18 @@ impl<T> QueueVacancyReadiness<T> {
     }
 }
 
+#[cfg(feature = "multi")]
 impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
     fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         // Closed-aware: report ready when the queue closes so a producer parked on
         // a full-then-closed pipe unparks to observe the close on its next push.
+        self.0.is_closed() || !self.0.is_full()
+    }
+}
+
+#[cfg(not(feature = "multi"))]
+impl<T> EventReadiness for QueueVacancyReadiness<T> {
+    fn is_ready(&self, _dur: Option<time::Duration>) -> bool {
         self.0.is_closed() || !self.0.is_full()
     }
 }
@@ -200,22 +230,22 @@ impl<T: Send> EventReadiness for QueueVacancyReadiness<T> {
 /// ]);
 /// Some(TaskStatus::Depends(Arc::new(signal)))
 /// ```
-pub struct AnyReadiness(Vec<Arc<dyn EventReadiness>>);
+pub struct AnyReadiness(Vec<EventReadinessPtr>);
 
 impl AnyReadiness {
     /// Create an `AnyReadiness` over the given child signals.
-    pub fn new(children: Vec<Arc<dyn EventReadiness>>) -> Self {
+    pub fn new(children: Vec<EventReadinessPtr>) -> Self {
         Self(children)
     }
 
     /// Build from exactly two children (the common "event OR cancel" case).
-    pub fn either(a: Arc<dyn EventReadiness>, b: Arc<dyn EventReadiness>) -> Self {
+    pub fn either(a: EventReadinessPtr, b: EventReadinessPtr) -> Self {
         Self(vec![a, b])
     }
 
     /// Add another child signal, returning `self` for chaining.
     #[must_use]
-    pub fn with(mut self, child: Arc<dyn EventReadiness>) -> Self {
+    pub fn with(mut self, child: EventReadinessPtr) -> Self {
         self.0.push(child);
         self
     }
@@ -362,7 +392,7 @@ pub enum TaskStatus<D, P, S: ExecutionAction> {
     ///
     /// The signal must return `false` on first receipt. If `true`, treated as `Pending`.
     /// Any type implementing `EventReadiness` can be used.
-    Depends(Arc<dyn EventReadiness>),
+    Depends(EventReadinessPtr),
 }
 
 impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
@@ -806,7 +836,7 @@ pub enum State {
     ///
     /// The executor registers this as a `Sleepable::Readiness` sleeper.
     /// The signal must return `false` on first receipt; if `true`, treated as `Pending(None)`.
-    Depends(Arc<dyn EventReadiness>),
+    Depends(EventReadinessPtr),
 }
 
 impl core::fmt::Debug for State {

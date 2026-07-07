@@ -137,6 +137,7 @@ where
     }
 }
 
+#[cfg(feature = "multi")]
 #[allow(clippy::needless_lifetimes)]
 #[allow(clippy::from_over_into)]
 impl<'a: 'static, Action, Resolver, Mapper, Task, Done: Send + 'a, Pending: Send + 'a>

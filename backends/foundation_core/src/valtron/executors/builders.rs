@@ -204,7 +204,18 @@ impl<
             None => Err(ExecutorError::TaskRequired),
         }
     }
+}
 
+#[cfg(not(feature = "multi"))]
+impl<
+        Done: 'static,
+        Pending: 'static,
+        Action: ExecutionAction + 'static,
+        Mapper: TaskStatusMapper<Done, Pending, Action> + 'static,
+        Resolver: TaskReadyResolver<Action, Done, Pending> + 'static,
+        Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + 'static,
+    > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
+{
     /// `lift_iter` adds a task into execution queue but instead of depending
     /// on a [`TaskReadyResolver`] to process the final state instead allows you
     /// to get back a wrapper iterator that allows you synchronously receive those
@@ -315,8 +326,13 @@ impl<
             return Err(ExecutorError::ParentMustBeSupplied);
         };
 
-        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
-            Arc::new(NotifyQueue::unbounded());
+        // Decision 15: `sequenced` interleaves the parent's drain with the child's
+        // production, so its delivery queue is bounded — the child parks on vacancy
+        // (Feature 45 Part A) when it outruns the parent instead of buffering
+        // without limit. (`lift` stays unbounded; it can't drain until Done.)
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> = Arc::new(
+            NotifyQueue::bounded(crate::valtron::executors::DEFAULT_DELIVERY_CAPACITY),
+        );
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -364,8 +380,10 @@ impl<
             return Err(ExecutorError::ParentMustBeSupplied);
         };
 
-        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
-            Arc::new(NotifyQueue::unbounded());
+        // Decision 15: bounded `sequenced` delivery — see `sequenced_iter`.
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> = Arc::new(NotifyQueue::bounded(
+            crate::valtron::executors::DEFAULT_DELIVERY_CAPACITY,
+        ));
 
         let boxed_task = match self.task {
             Some(task) => match (self.resolver, self.mappers) {
@@ -522,6 +540,7 @@ impl<
     }
 }
 
+#[cfg(feature = "multi")]
 impl<
         Done: Send + 'static,
         Pending: Send + 'static,
@@ -531,10 +550,322 @@ impl<
         Task: TaskIterator<Pending = Pending, Ready = Done, Spawner = Action> + Send + 'static,
     > ExecutionTaskIteratorBuilder<Done, Pending, Action, Mapper, Resolver, Task>
 {
+    #[must_use]
+    pub fn new(engine: BoxedExecutionEngine) -> Self {
+        Self {
+            engine,
+            task: None,
+            parent: None,
+            mappers: None,
+            resolver: None,
+            panic_handler: None,
+            _marker: PhantomData,
+        }
+    }
+
+    #[must_use]
+    pub fn with_mappers(mut self, mapper: Mapper) -> Self {
+        if let Some(mappers) = &mut self.mappers {
+            mappers.push(mapper);
+        } else {
+            self.mappers = Some(vec![mapper]);
+        }
+        self
+    }
+
+    #[must_use]
+    pub fn with_panic_handler<T>(mut self, handler: T) -> Self
+    where
+        T: Fn(Box<dyn Any + Send>) + Send + Sync + 'static,
+    {
+        self.panic_handler = Some(Box::new(handler));
+        self
+    }
+
+    #[must_use]
+    pub fn maybe_parent(mut self, parent: Option<Entry>) -> Self {
+        self.parent = parent;
+        self
+    }
+
+    #[must_use]
+    pub fn with_parent(mut self, parent: Entry) -> Self {
+        self.parent = Some(parent);
+        self
+    }
+
+    #[must_use]
+    pub fn with_task(mut self, task: Task) -> Self {
+        self.task = Some(task);
+        self
+    }
+
+    #[must_use]
+    pub fn with_resolver(mut self, resolver: Resolver) -> Self {
+        self.resolver = Some(resolver);
+        self
+    }
+
+    pub fn scheduled_stream_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.scheduled_stream_iter_with_config(
+            wait_cycle,
+            crate::valtron::executors::DEFAULT_MAX_TURNS,
+        )
+    }
+
+    pub fn scheduled_stream_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
+            Arc::new(NotifyQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .schedule(boxed_task.into())
+            .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
+    }
+
+    pub fn schedule_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .schedule(boxed_task.into())
+            .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
+    }
+
+    pub fn schedule(self) -> AnyResult<SpawnInfo, ExecutorError> {
+        match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => {
+                    let task_iter = OnNext::new(task, resolver, mappers);
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (Some(resolver), None) => {
+                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (None, None) => {
+                    let task_iter = DoNext::new(task);
+                    self.engine.schedule(Box::new(task_iter))
+                }
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        }
+    }
+
+    pub fn lift_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> =
+            Arc::new(NotifyQueue::unbounded());
+
+        let parent = self.parent;
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .lift(boxed_task.into(), parent)
+            .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
+    }
+
+    pub fn stream_lift_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_lift_iter_with_config(wait_cycle, crate::valtron::executors::DEFAULT_MAX_TURNS)
+    }
+
+    pub fn stream_lift_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> =
+            Arc::new(NotifyQueue::unbounded());
+
+        let parent = self.parent;
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .lift(boxed_task.into(), parent)
+            .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
+    }
+
+    pub fn lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
+        let parent = self.parent;
+        match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => {
+                    let task_iter = OnNext::new(task, resolver, mappers);
+                    self.engine.lift(task_iter.into(), parent)
+                }
+                (Some(resolver), None) => {
+                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    self.engine.lift(Box::new(task_iter), parent)
+                }
+                (None, None) => {
+                    let task_iter = DoNext::new(task);
+                    self.engine.lift(Box::new(task_iter), parent)
+                }
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        }
+    }
+
+    pub fn sequenced_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyRecvIterator<TaskStatus<Done, Pending, Action>>, ExecutorError> {
+        let Some(parent) = self.parent else {
+            return Err(ExecutorError::ParentMustBeSupplied);
+        };
+
+        // Decision 15: `sequenced` interleaves the parent's drain with the child's
+        // production, so its delivery queue is bounded — the child parks on vacancy
+        // (Feature 45 Part A) when it outruns the parent instead of buffering
+        // without limit. (`lift` stays unbounded; it can't drain until Done.)
+        let iter_chan: Arc<NotifyQueue<TaskStatus<Done, Pending, Action>>> = Arc::new(
+            NotifyQueue::bounded(crate::valtron::executors::DEFAULT_DELIVERY_CAPACITY),
+        );
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => ConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => ConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .sequenced(boxed_task.into(), parent)
+            .map(|_| NotifyRecvIterator::from_notify_queue(iter_chan, wait_cycle))
+    }
+
+    /// Creates a stream from a sequenced task, allowing iteration to retrieve results.
+    ///
+    /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
+    pub fn stream_sequenced_iter(
+        self,
+        wait_cycle: time::Duration,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        self.stream_sequenced_iter_with_config(
+            wait_cycle,
+            crate::valtron::executors::DEFAULT_MAX_TURNS,
+        )
+    }
+
+    /// Creates a stream from a sequenced task with configurable polling behavior.
+    ///
+    /// # Arguments
+    ///
+    /// * `wait_cycle` - Thread park duration when queue is empty
+    /// * `max_turns` - Max poll attempts before yielding `Stream::Ignore`
+    ///
+    /// # Returns
+    ///
+    /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
+    pub fn stream_sequenced_iter_with_config(
+        self,
+        wait_cycle: time::Duration,
+        max_turns: usize,
+    ) -> AnyResult<NotifyQueueStreamIterator<Done, Pending>, ExecutorError> {
+        let Some(parent) = self.parent else {
+            return Err(ExecutorError::ParentMustBeSupplied);
+        };
+
+        // Decision 15: bounded `sequenced` delivery — see `sequenced_iter`.
+        let iter_chan: Arc<NotifyQueue<Stream<Done, Pending>>> = Arc::new(NotifyQueue::bounded(
+            crate::valtron::executors::DEFAULT_DELIVERY_CAPACITY,
+        ));
+
+        let boxed_task = match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (None, Some(mappers)) => StreamConsumingIter::new(task, mappers, iter_chan.clone()),
+                (None, None) => StreamConsumingIter::new(task, Vec::new(), iter_chan.clone()),
+                (_, _) => return Err(ExecutorError::NotSupported),
+            },
+            None => return Err(ExecutorError::TaskRequired),
+        };
+
+        self.engine
+            .sequenced(boxed_task.into(), parent)
+            .map(|_| NotifyQueueStreamIterator::new(iter_chan, max_turns, wait_cycle))
+    }
+
+    /// Places a task at the head of the thread-local execution queue with the given parent.
+    ///
+    /// Returns: The `SpawnInfo` for the result of the operation, or an error.
+    pub fn sequenced(self) -> AnyResult<SpawnInfo, ExecutorError> {
+        let Some(parent) = self.parent else {
+            return Err(ExecutorError::ParentMustBeSupplied);
+        };
+
+        match self.task {
+            Some(task) => match (self.resolver, self.mappers) {
+                (Some(resolver), Some(mappers)) => {
+                    let task_iter = OnNext::new(task, resolver, mappers);
+                    self.engine.sequenced(task_iter.into(), parent)
+                }
+                (Some(resolver), None) => {
+                    let task_iter = OnNext::new(task, resolver, Vec::<Mapper>::new());
+                    self.engine.sequenced(Box::new(task_iter), parent)
+                }
+                (None, None) => {
+                    let task_iter = DoNext::new(task);
+                    self.engine.sequenced(Box::new(task_iter), parent)
+                }
+                (None, Some(_)) => Err(ExecutorError::FailedToCreate),
+            },
+            None => Err(ExecutorError::TaskRequired),
+        }
+    }
+
     /// `broadcast_or_lift` dispatches a task based on the execution mode:
     /// - `multi=on`: broadcasts to the global queue so another worker picks it up
     /// - `multi=off`: lifts the task to the top of the local queue for priority execution
-    #[cfg(feature = "multi")]
     pub fn broadcast_or_lift(self) -> AnyResult<SpawnInfo, ExecutorError> {
         self.broadcast()
     }
@@ -543,7 +874,6 @@ impl<
     /// `NotifyRecvIterator` for synchronously receiving status values.
     ///
     /// Delegates to `broadcast_iter` in multi-threaded mode.
-    #[cfg(feature = "multi")]
     pub fn broadcast_or_lift_iter(
         self,
         wait_cycle: time::Duration,
@@ -557,7 +887,6 @@ impl<
     /// Delegates to `stream_broadcast_iter` in multi-threaded mode.
     ///
     /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
-    #[cfg(feature = "multi")]
     pub fn broadcast_or_lift_stream_iter(
         self,
         wait_cycle: time::Duration,
@@ -578,7 +907,6 @@ impl<
     /// # Returns
     ///
     /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
-    #[cfg(feature = "multi")]
     pub fn broadcast_or_lift_stream_iter_with_config(
         self,
         wait_cycle: time::Duration,
@@ -590,7 +918,6 @@ impl<
     /// `broadcast_or_sequence` dispatches a task based on the execution mode:
     /// - `multi=on`: broadcasts to the global queue so another worker picks it up
     /// - `multi=off`: sequences the task with the parent for single-threaded execution
-    #[cfg(feature = "multi")]
     pub fn broadcast_or_sequence(self) -> AnyResult<SpawnInfo, ExecutorError> {
         self.broadcast()
     }
@@ -599,7 +926,6 @@ impl<
     /// `NotifyRecvIterator` for synchronously receiving status values.
     ///
     /// Delegates to `broadcast_iter` in multi-threaded mode.
-    #[cfg(feature = "multi")]
     pub fn broadcast_or_sequence_iter(
         self,
         wait_cycle: time::Duration,
@@ -613,7 +939,6 @@ impl<
     /// Delegates to `stream_broadcast_iter` in multi-threaded mode.
     ///
     /// Uses default configuration: `DEFAULT_PARK_DURATION` for park duration and `DEFAULT_MAX_TURNS` for max turns.
-    #[cfg(feature = "multi")]
     pub fn broadcast_or_sequence_stream_iter(
         self,
         wait_cycle: time::Duration,
@@ -634,7 +959,6 @@ impl<
     /// # Returns
     ///
     /// Returns a `NotifyQueueStreamIterator` that yields `Stream<Done, Pending>` items.
-    #[cfg(feature = "multi")]
     pub fn broadcast_or_sequence_stream_iter_with_config(
         self,
         wait_cycle: time::Duration,
