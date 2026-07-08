@@ -756,6 +756,12 @@ impl<S: Read + Write> H2Connection<S> {
         &self.socket
     }
 
+    /// Mutable access to the write buffer (for external frame encoding via
+    /// [`H2Conn`](crate::http2::conn::H2Conn) / [`H2ConnectionHandler`]).
+    pub fn write_buf_mut(&mut self) -> &mut BytesMut {
+        &mut self.write_buf
+    }
+
     /// Consume this connection and return the inner socket.
     pub fn into_inner(self) -> S {
         self.socket

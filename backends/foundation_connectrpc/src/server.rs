@@ -22,6 +22,7 @@ use std::future::Future;
 use std::sync::Arc;
 use std::task::{Context, Poll, Wake, Waker};
 
+use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve};
@@ -96,7 +97,7 @@ fn ensure_content_length(response: &mut SimpleOutgoingResponse) {
 /// The dispatch future never spawns external tasks (Decision 08 — the streaming
 /// path joins its own sub-futures cooperatively), so polling it to completion is
 /// all that is required; no executor pool is involved.
-fn block_on<F: Future>(future: F) -> F::Output {
+pub(crate) fn block_on<F: Future>(future: F) -> F::Output {
     struct ThreadWaker(std::thread::Thread);
     impl Wake for ThreadWaker {
         fn wake(self: Arc<Self>) {

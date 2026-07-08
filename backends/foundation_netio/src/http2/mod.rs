@@ -25,6 +25,8 @@ pub mod settings;
 pub mod stream;
 pub mod connection;
 pub mod channel;
+pub mod conn;
+pub mod types;
 pub mod client;
 pub mod server;
 pub mod detect;

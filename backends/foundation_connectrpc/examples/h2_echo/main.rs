@@ -1,38 +1,46 @@
-//! HTTP/2 streaming echo — all 4 RPC modes over raw h2c.
-//! Each call opens a fresh connection (same pattern as unary_echo/server_streaming).
+//! ConnectRPC over HTTP/2 cleartext (h2c) — same Router/Client API as unary_echo.
 //!
 //! Run with: `cargo run -p foundation_connectrpc --example h2_echo`
+//!
+//! Server: OS thread, h2 accept loop, `Router::unary()`, `ConnectRpcHandler::dispatch()`.
+//! Client: `H2Transport` + typed `Client::unary()` under `#[valtron]`.
+//! Both over a real loopback TCP socket.
 
-use std::io::{self, Read, Write};
+use std::io;
 use std::net::{TcpListener, TcpStream};
+use std::sync::Arc;
 use std::thread;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_netio::http2::connection::{H2Connection, H2Request, H2Response};
+use foundation_core::synca::OnSignal;
+use foundation_core::valtron::valtron;
+use foundation_http::shared::context::ContextBag;
+use foundation_netio::http2::connection::{H2Connection, H2Response};
 use foundation_netio::http2::frame::*;
 use foundation_netio::http2::hpack;
+use foundation_netio::simple_http::shared::{
+    Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
+    SimpleOutgoingResponse, SimpleUrl, Status,
+};
+use foundation_netio::netcap::ConnectionContext;
 
-fn start_server(addr: std::net::SocketAddr) -> thread::JoinHandle<()> {
-    let listener = TcpListener::bind(addr).expect("bind");
-    listener.set_nonblocking(true).ok();
-    thread::spawn(move || loop {
-        match listener.accept() {
-            Ok((stream, _)) => {
-                let _ = thread::spawn(move || serve(stream));
-            }
-            Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                thread::sleep(Duration::from_millis(10));
-            }
-            Err(_) => break,
-        }
-    })
-}
+use foundation_connectrpc::router::ConnectRpcHandler;
+use foundation_connectrpc::transport::Transport;
+use foundation_connectrpc::{
+    block_on, Client, ClientOptions, Ctx, H2Transport, HandlerOptions,
+    JsonCodec, ProcedureCodecs, Request, Response, Router,
+};
 
-fn serve(stream: TcpStream) -> io::Result<()> {
-    stream.set_read_timeout(Some(Duration::from_secs(10)))?;
+#[derive(Clone, Default, Debug, serde::Serialize, serde::Deserialize)]
+struct EchoMsg { text: String }
+
+const ECHO_PATH: &str = "/echo.EchoService/Echo";
+
+fn serve_h2_conn(stream: impl io::Read + io::Write, handler: Arc<ConnectRpcHandler>) -> io::Result<()> {
     let mut c = H2Connection::new(stream, true);
     c.server_handshake()?;
+    let mut dec = hpack::Decoder::new();
 
     loop {
         c.flush()?;
@@ -42,104 +50,109 @@ fn serve(stream: TcpStream) -> io::Result<()> {
             Err(e) => return Err(e),
         };
         if head.kind != Kind::Headers { continue; }
+
         let hf = HeadersFrame::parse(&head, &payload)
             .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        let mut dec = hpack::Decoder::new();
-        let d = dec.decode(&hf.header_block).map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
-        let mut path = String::new();
-        for (n, v) in &d { if n.as_ref() == b":path" { path = String::from_utf8_lossy(v).into(); } }
-        let sid = head.stream_id;
-        let es = hf.flags & headers_flags::END_STREAM != 0;
-        println!("[server] stream={sid} path={path}");
+        let decoded = dec.decode(&hf.header_block)
+            .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
 
-        match path.as_str() {
-            "/echo/Echo" => {
-                c.send_response(sid, H2Response { status: 200, headers: vec![], body: Some(Bytes::from("ECHO")), end_stream: true })?; c.flush()?;
-            }
-            "/echo/Count" => {
-                c.send_headers_response(sid, 200, &[], false)?;
-                for i in 0..4 { c.send_data_frame(sid, format!("{i}").as_bytes(), i == 3)?; }
-            }
-            "/echo/Collect" => {
-                let mut parts: Vec<String> = Vec::new();
-                if !es { loop { match c.recv_data_frame()? { Some((_, d, e)) => { parts.push(String::from_utf8_lossy(&d).into()); if e { break; } } None => break, } } }
-                c.send_response(sid, H2Response { status: 200, headers: vec![], body: Some(Bytes::from(format!("[{parts:?}]"))), end_stream: true })?; c.flush()?;
-            }
-            "/echo/Chat" => {
-                c.send_headers_response(sid, 200, &[], false)?;
-                let mut seq = 0;
-                if !es { loop { match c.recv_data_frame()? { Some((_, d, e)) => { let t = String::from_utf8_lossy(&d); c.send_data_frame(sid, format!("r{seq}:{t}").as_bytes(), e)?; c.flush()?; seq += 1; if e { break; } } None => break, } } }
-            }
-            _ => {}
-        }
+        let req = hpack_to_request(&decoded);
+        let bag = Arc::new(ContextBag::default());
+        let response = block_on(handler.dispatch(bag, req));
+
+        let body: Option<Bytes> = match response.body {
+            Some(SendSafeBody::Bytes(b)) => Some(b),
+            Some(SendSafeBody::Vec(v)) => Some(Bytes::from(v)),
+            _ => None,
+        };
+        let has_body = body.as_ref().map_or(false, |b| !b.is_empty());
+        c.send_response(head.stream_id, H2Response {
+            status: status_code(response.status),
+            headers: vec![],
+            body,
+            end_stream: !has_body,
+        })?;
+        c.flush()?;
     }
     Ok(())
 }
 
-fn client_connect(addr: std::net::SocketAddr) -> H2Connection<TcpStream> {
-    let stream = TcpStream::connect_timeout(&addr, Duration::from_secs(5)).expect("connect");
-    stream.set_read_timeout(Some(Duration::from_secs(10))).ok();
-    let mut c = H2Connection::new(stream, false);
-    c.client_handshake().expect("handshake");
-    c
+fn hpack_to_request(headers: &[(Bytes, Bytes)]) -> SimpleIncomingRequest {
+    let mut method = SimpleMethod::POST;
+    let mut path = String::from("/");
+    let mut req_headers = SimpleHeaders::new();
+    for (name, value) in headers {
+        match name.as_ref() {
+            b":method" => {
+                if String::from_utf8_lossy(value).to_uppercase() == "GET" {
+                    method = SimpleMethod::GET;
+                }
+            }
+            b":path" => path = String::from_utf8_lossy(value).into_owned(),
+            b":authority" | b":scheme" | b":status" => {}
+            _ => {
+                req_headers
+                    .entry(SimpleHeader::from(String::from_utf8_lossy(name).to_string()))
+                    .or_default()
+                    .push(String::from_utf8_lossy(value).to_string());
+            }
+        }
+    }
+    SimpleIncomingRequest {
+        proto: Proto::HTTP20, request_uri: Default::default(), request_url: SimpleUrl::new(&path),
+        body: None, headers: req_headers, method, extensions: None,
+        connection: Arc::new(ConnectionContext::default()),
+    }
 }
 
-fn main() {
-    let addr = {
-        let l = TcpListener::bind("127.0.0.1:0").expect("bind");
-        let a = l.local_addr().expect("addr");
-        drop(l);
-        a
-    };
-    start_server(addr);
-    thread::sleep(Duration::from_millis(100));
+fn status_code(s: Status) -> u16 {
+    match s { Status::OK => 200, Status::NoContent => 204, Status::BadRequest => 400, Status::NotFound => 404, Status::InternalServerError => 500, _ => 500 }
+}
+
+#[valtron(seed = 1, threads = 4)]
+async fn main() {
+    let mut router = Router::new();
+    router.unary(
+        ECHO_PATH,
+        ProcedureCodecs::<EchoMsg, EchoMsg>::of((JsonCodec,)),
+        |_ctx: Ctx, req: Request<EchoMsg>| async move {
+            Ok(Response::new(EchoMsg { text: format!("ECHO: {}", req.msg.text) }))
+        },
+        HandlerOptions::new(),
+    );
+    let handler = Arc::new(router.into_handler());
+
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let shutdown = Arc::new(OnSignal::new());
+    let sd = shutdown.clone();
+
+    thread::spawn(move || {
+        for stream in listener.incoming() {
+            if sd.probe() { break; }
+            if let Ok(s) = stream {
+                s.set_read_timeout(Some(Duration::from_secs(30))).ok();
+                let h = handler.clone();
+                thread::spawn(move || { if let Err(e) = serve_h2_conn(s, h) { eprintln!("[server] error: {e}"); } });
+            }
+        }
+    });
+
+    while TcpStream::connect_timeout(&addr, Duration::from_millis(200)).is_err() {}
     println!("h2c server on {addr}");
 
-    let auth = Bytes::from(format!("{addr}"));
-    let req = |path: &str, es: bool| H2Request {
-        method: Bytes::from_static(b"GET"), scheme: Bytes::from_static(b"http"),
-        authority: auth.clone(), path: Bytes::copy_from_slice(path.as_bytes()),
-        headers: vec![], body: None, end_stream: es,
-    };
+    let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+    let url = format!("http://{addr}{ECHO_PATH}");
+    let client: Client<EchoMsg, EchoMsg> = Client::new(
+        transport, &url,
+        ProcedureCodecs::<EchoMsg, EchoMsg>::of((JsonCodec,)),
+        ClientOptions::new(),
+    ).expect("build client");
 
-    // 1. unary
-    println!("\n─── 1. unary ───");
-    let mut c = client_connect(addr);
-    c.send_request(req("/echo/Echo", true)).expect("send");
-    let (_, r) = c.recv_response().expect("recv").expect("resp");
-    let body = if !r.end_stream { match c.recv_data_frame().expect("recv data") { Some((_, d, _)) => String::from_utf8_lossy(&d).to_string(), None => String::new() } } else { String::new() };
-    println!("[client] unary: {body:?}");
-    assert_eq!(body, "ECHO");
-
-    // 2. server-stream
-    println!("\n─── 2. server-stream ───");
-    let mut c = client_connect(addr);
-    c.send_request(req("/echo/Count", true)).expect("send");
-    c.recv_response().expect("recv headers");
-    let mut chunks = Vec::new();
-    loop { match c.recv_data_frame().expect("recv") { Some((_, d, e)) => { chunks.push(String::from_utf8_lossy(&d).to_string()); if e { break; } } None => break, } }
-    println!("[client] server-stream: {chunks:?}");
-    assert_eq!(chunks, vec!["0","1","2","3"]);
-
-    // 3. client-stream
-    println!("\n─── 3. client-stream ───");
-    let mut c = client_connect(addr);
-    let sid = c.send_request(req("/echo/Collect", false)).expect("send");
-    c.send_data_frame(sid, b"a", false).unwrap(); c.send_data_frame(sid, b"b", false).unwrap(); c.send_data_frame(sid, b"c", true).unwrap();
-    let (_, r) = c.recv_response().expect("recv").expect("resp");
-    let body = if !r.end_stream { match c.recv_data_frame().expect("recv body") { Some((_, d, _)) => String::from_utf8_lossy(&d).to_string(), None => String::new() } } else { String::new() };
-    println!("[client] client-stream: {body}");
-    assert!(body.contains("a") && body.contains("b") && body.contains("c"));
-
-    // 4. bidi-stream
-    println!("\n─── 4. bidi-stream ───");
-    let mut c = client_connect(addr);
-    let sid = c.send_request(req("/echo/Chat", false)).expect("send");
-    c.recv_response().expect("recv headers");
-    for i in 0..3 {
-        c.send_data_frame(sid, format!("m{i}").as_bytes(), i == 2).unwrap();
-        match c.recv_data_frame().expect("recv echo") { Some((_, d, _)) => println!("[client]   echo: {}", String::from_utf8_lossy(&d)), None => break, }
-    }
-
-    println!("\n─── all 4 RPC modes verified ✓ ───");
+    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let resp = client.unary(ctx, Request::new(EchoMsg { text: "hello-h2".into() })).await.expect("unary");
+    println!("[client] response: {:?}", resp.msg.text);
+    assert_eq!(resp.msg.text, "ECHO: hello-h2");
+    println!("h2 round-trip verified ✓");
+    shutdown.turn_on();
 }
