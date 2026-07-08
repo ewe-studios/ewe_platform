@@ -1,0 +1,24 @@
+[package]
+name = "foundation_connectrpc_codegen"
+version = "0.0.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Build-time ConnectRPC code generation for foundation_connectrpc — protoc plugin + build.rs helper (Decision 10 Modes 1–2)"
+keywords = ["connectrpc", "codegen", "protoc", "prost", "grpc"]
+
+# Build-time companion to the `foundation_connectrpc` runtime crate — the
+# tonic/tonic-build split. The generator emits Rust *source strings* (the
+# generated code resolves `connectrpc::…` paths against the consumer's
+# `foundation_connectrpc` dependency), so this crate has no dependency edge back
+# to the runtime crate. Consumers add it under `[build-dependencies]`.
+[dependencies]
+prost = "0.12"
+prost-types = "0.12"
+prost-build = "0.12"
+
+# protoc plugin (Decision 10 Mode 2): `rpc-gen-proto --connect-ewe_out=. …`.
+[[bin]]
+name = "rpc-gen-proto"
