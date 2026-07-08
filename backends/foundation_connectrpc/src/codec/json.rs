@@ -6,15 +6,22 @@
 //! omit-zero, well-known-type formatting), so we serialize them with `serde_json`
 //! directly and never hand-roll the mapping.
 //!
-//! WHAT: [`JsonCodec`] with the [`CodecFor<M>`] blanket impl over a buffa message
-//! that is also serde-serializable/deserializable.
+//! WHAT: [`JsonCodec`] with the [`CodecFor<M>`] blanket impl over any
+//! serde-serializable/deserializable type.
+//!
+//! The bound is **serde only** — not `buffa::Message`. The JSON path never
+//! touches the protobuf methods, so requiring a proto schema would be spurious;
+//! keeping it serde-only is what lets a JSON-only route
+//! (`ProcedureCodecs::of((JsonCodec,))`) and a code-first `codecs(json)` service
+//! work with **no protobuf/buffa involvement at all**. (buffa's generated
+//! messages still qualify — they carry serde impls that emit canonical
+//! protobuf-JSON — so proto+JSON tables via `defaults()` are unchanged.)
 //!
 //! HOW: `serde_json::to_vec` / `from_slice`. Zero-length payloads are rejected
 //! (Decision 02 P16). `serde_json` output is already whitespace-free, so
 //! `marshal_stable` reuses `marshal`.
 
 use bytes::Bytes;
-use buffa::Message;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -37,7 +44,7 @@ impl Codec for JsonCodec {
 
 impl<M> CodecFor<M> for JsonCodec
 where
-    M: Message + Serialize + DeserializeOwned,
+    M: Serialize + DeserializeOwned,
 {
     fn marshal(&self, message: &M) -> Result<Bytes, CodecError> {
         let bytes = serde_json::to_vec(message).map_err(|e| CodecError::encode(NAME, e.to_string()))?;

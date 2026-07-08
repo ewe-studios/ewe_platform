@@ -466,6 +466,41 @@ fn make_default_body(
     syn::parse2(tokens).expect("connectrpc_service: failed to parse default body")
 }
 
+/// Desugar `async fn` trait methods to `fn … -> impl Future<Output = …> + Send`
+/// (Decision 10 §S2 / "codegen emits the desugared `+ Send` form").
+///
+/// WHY: `Router::{unary,server_stream,client_stream,bidi_stream}` bound the
+/// handler future as `Future<…> + Send + 'static`. A native `async fn` in a trait
+/// desugars to a bare `-> impl Future` with **no `Send` guarantee**, so
+/// `register_<svc>` (generic over `S: <Svc>`) cannot prove the bound and fails to
+/// compile with "future cannot be sent between threads safely". Pinning `+ Send`
+/// on the trait's return-position `impl Future` makes every implementation's
+/// future `Send` by contract (each impl's `async fn` is checked against it).
+///
+/// Runs AFTER `add_default_bodies`, so both the user's declarations and the
+/// generated `unimplemented` defaults are rewritten. A generated/user body block
+/// `{ … }` becomes `{ async move { … } }` so it still produces the future.
+fn desugar_async_methods_to_send(trait_def: &mut ItemTrait) {
+    for item in &mut trait_def.items {
+        if let TraitItem::Fn(method) = item {
+            // Only rewrite `async fn`; leave already-desugared / sync methods alone.
+            if method.sig.asyncness.take().is_none() {
+                continue;
+            }
+            let out_ty: TokenStream = match &method.sig.output {
+                ReturnType::Default => quote!(()),
+                ReturnType::Type(_, ty) => quote!(#ty),
+            };
+            method.sig.output = syn::parse_quote!(
+                -> impl ::core::future::Future<Output = #out_ty> + Send
+            );
+            if let Some(block) = method.default.take() {
+                method.default = Some(syn::parse_quote!({ async move #block }));
+            }
+        }
+    }
+}
+
 /// Add default bodies to trait methods that lack them.
 fn add_default_bodies(trait_def: &mut ItemTrait) {
     let items = std::mem::take(&mut trait_def.items);
@@ -558,6 +593,10 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
 
     // Add default bodies
     add_default_bodies(&mut input_trait);
+
+    // Desugar `async fn` → `-> impl Future + Send` so `register_<svc>` satisfies
+    // the Router's `Fut: Send` bound (Decision 10 §S2).
+    desugar_async_methods_to_send(&mut input_trait);
 
     // ── Identifiers for generated items ───────────────────────────────────
     let name_const_ident = Ident::new(&(svc_name.to_uppercase() + "_NAME"), crate_span);

@@ -56,11 +56,18 @@ Port ConnectRPC to Rust as `foundation_connectrpc`, built on top of the platform
 
 ```
 backends/foundation_connectrpc/          # Runtime library
+                                          #   features: `rpc` (full single-threaded surface),
+                                          #   `rpc_multi` (+ multi executor, default)
 
-# Codegen is NOT a separate crate (see Decision 10):
-#   - one unified generator (messages + service traits + clients) — no split tooling
-#   - generation logic lives in  backends/foundation_macros/
-#   - a binary in              backends/foundation_netio/  exposes it (CLI / protoc plugin)
+# Proto codegen (Decision 10 Modes 1–2) IS a separate build-time crate — the
+# tonic/tonic-build split; depends only on the prost toolchain, no edge back to
+# the runtime crate; consumed under [build-dependencies]:
+backends/foundation_connectrpc_codegen/  # generate_services + build.rs helper (Mode 1)
+                                          #   + rpc-gen-proto binary (Mode 2)
+
+# Code-first codegen (Decision 10 Mode 3):
+#   - #[connectrpc::service] / generate! proc-macros live in backends/foundation_macros/
+#     and are re-exported from foundation_connectrpc
 ```
 
 ## Resolution Record (Aggregated) & Implementation-Time Tunables

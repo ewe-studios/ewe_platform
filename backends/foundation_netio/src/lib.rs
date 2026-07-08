@@ -15,11 +15,9 @@ pub mod netcap;
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub mod http_stream;
 
-// ConnectRPC code generation (gated behind feature — requires prost deps).
-#[cfg(feature = "connectrpc-codegen")]
-pub mod connectrpc_codegen;
-#[cfg(feature = "connectrpc-codegen")]
-pub mod connectrpc_build;
+// ConnectRPC code generation moved to `foundation_connectrpc::codegen`
+// (behind its `codegen` feature) — the prost toolchain now lives with the
+// runtime crate rather than netio.
 
 #[cfg(all(feature = "ssl-native-tls", not(target_family = "wasm")))]
 extern crate native_tls;

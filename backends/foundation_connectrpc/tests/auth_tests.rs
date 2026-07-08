@@ -7,9 +7,9 @@
 //! protocol/procedure inference, JwtAuthenticator, CompositeAuthenticator,
 //! PerProcedureAuth, AuthzInterceptor, and authenticate_request.
 //!
-//! HOW: Feature-gated on `auth + multi`.
+//! HOW: Feature-gated on `auth + rpc_multi`.
 
-#![cfg(all(test, feature = "auth", feature = "multi"))]
+#![cfg(all(test, feature = "auth", feature = "rpc_multi"))]
 
 use foundation_auth::AuthContext;
 use foundation_connectrpc::{AuthInfo, AuthFunc, bearer_token, Interceptor};

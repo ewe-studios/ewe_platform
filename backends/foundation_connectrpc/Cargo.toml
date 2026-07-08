@@ -40,8 +40,14 @@ tracing-test = { version = "0.2", features = ["no-env-filter"] }
 futures-lite = "2"
 
 [features]
-default = ["multi"]
-multi = ["foundation_core/multi"]
+default = ["rpc_multi"]
+# `rpc` is the full single-threaded library surface: every codec, auth, and all
+# compressors. Consumers pick `rpc` (single-threaded) or `rpc_multi` (adds the
+# multi-threaded valtron executor); `default-features = false` + `rpc` keeps a
+# lean build. The individual flags below stay addressable for fine-grained use.
+rpc = ["arrow", "auth", "zstd", "brotli"]
+rpc_multi = ["rpc", "foundation_core/multi"]
+
 # Arrow columnar codec (platform extension) — pulls foundation_arrow.
 arrow = ["dep:foundation_arrow"]
 # Additional compressors (gzip is always available via flate2).
@@ -50,27 +56,27 @@ brotli = ["dep:brotli"]
 # Auth module — requires foundation_auth.
 auth = ["dep:foundation_auth"]
 
-# Tests that use the valtron pool need the multi-threaded executor.
+# Tests that use the valtron pool need the multi-threaded executor (`rpc_multi`).
 [[test]]
 name = "server_socket_tests"
-required-features = ["multi"]
+required-features = ["rpc_multi"]
 
 [[test]]
 name = "router_dispatch_tests"
-required-features = ["multi"]
+required-features = ["rpc_multi"]
 
 [[test]]
 name = "connect_protocol_tests"
-required-features = ["multi"]
+required-features = ["rpc_multi"]
 
 [[test]]
 name = "grpc_web_tests"
-required-features = ["multi"]
+required-features = ["rpc_multi"]
 
 [[test]]
 name = "conformance_tests"
-required-features = ["multi"]
+required-features = ["rpc_multi"]
 
 [[test]]
 name = "auth_tests"
-required-features = ["multi", "auth"]
+required-features = ["rpc_multi"]

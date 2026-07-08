@@ -22,21 +22,30 @@ We need to generate ConnectRPC service stubs that:
 
 ## Decision
 
-### Approach: one unified generator (no separate codegen crate)
+### Approach: one proto generator in a build-time companion crate
 
-> **Decided (see "Codegen scope" below).** Generation logic lives in **`foundation_macros`**
-> (the repo's central home for all proc/derive/codegen logic — see the macros-location rule);
-> a **binary in `foundation_netio`** exposes it as the CLI / protoc plugin. There is **no**
-> separate `connectrpc-codegen` / `connectrpc_build` crate, and the generator emits
-> **everything** (message types + service traits + clients) in **one pass** — no second manual
-> codegen step. The three integration modes below are surfaces over that single generator.
+> **Decided (revised 2026-07 — see "Codegen scope" below).** The **proto** generator
+> (Modes 1–2) lives in a dedicated **build-time crate `foundation_connectrpc_codegen`** —
+> the same runtime/codegen split the ecosystem uses (`tonic` / `tonic-build`,
+> `prost` / `prost-build`). It owns the `generate_services` generator, the
+> `connectrpc_codegen::build::Config` build.rs helper, and the `rpc-gen-proto`
+> plugin binary; it depends only on the prost toolchain and emits Rust *source strings*
+> (the generated code resolves `connectrpc::…` paths against the consumer's
+> `foundation_connectrpc` dep), so it has **no dependency edge back to the runtime crate**.
+> Consumers add it under **`[build-dependencies]`**.
+>
+> The **code-first** path (Mode 3) is unaffected: `#[connectrpc::service]` / `generate!`
+> are proc-macros in **`foundation_macros`** (the repo's central macro home) and re-exported
+> from `foundation_connectrpc`. This supersedes the earlier "no separate codegen crate /
+> generator lives in foundation_macros / binary in foundation_netio" sketch: the prost
+> toolchain does not belong in the runtime crate nor in `foundation_netio`.
 
 #### Mode 1: build.rs (Recommended)
 
 ```rust
-// build.rs — calls the foundation_macros generator via the foundation_netio build helper API
+// build.rs — `foundation_connectrpc_codegen` under [build-dependencies]
 fn main() {
-    foundation_netio::connectrpc_build::Config::new()
+    foundation_connectrpc_codegen::build::Config::new()
         .files(&["proto/greet.proto"])
         .includes(&["proto/"])
         .compile()
@@ -50,11 +59,15 @@ call, no separate buffa step.
 #### Mode 2: protoc plugin
 
 ```sh
-protoc --connect-ewe_out=. --plugin=protoc-gen-connect-ewe service.proto
+protoc --connect-ewe_out=. \
+       --plugin=protoc-gen-connect-ewe="$(command -v rpc-gen-proto)" \
+       service.proto
 ```
 
-The `protoc-gen-connect-ewe` **binary lives in `foundation_netio`** and drives the same
-`foundation_macros` generator; it emits message types + stubs together.
+The `rpc-gen-proto` **binary lives in `foundation_connectrpc_codegen`** and drives
+the same `generate_services` generator; it emits message types + stubs together.
+Because `rpc-gen-proto` is not a `protoc-gen-*` name, protoc's `--connect-ewe_out` is
+mapped to it explicitly via `--plugin=protoc-gen-<name>=<path>` (above).
 
 #### Mode 3: code-first — `#[connectrpc::service]` on a Rust trait (decided)
 
@@ -326,22 +339,29 @@ backends/foundation_connectrpc/          # Runtime library
 │       ├── middleware.rs
 │       └── helpers.rs
 
-# Codegen is NOT a separate crate. Generation logic lives in foundation_macros;
-# the CLI / protoc-plugin binary lives in foundation_netio (see "Codegen scope" below).
+# Code-first (Mode 3) proc-macros live in foundation_macros.
 backends/foundation_macros/
 ├── src/
-│   └── connectrpc/                      # unified generator: messages + service traits + clients
+│   └── connectrpc_service.rs            # #[service] + generate! (Mode 3)
 
-backends/foundation_netio/
+# Proto codegen (Modes 1–2) is a separate build-time crate — the tonic/tonic-build
+# split. It depends only on the prost toolchain; consumers add it as a build-dependency.
+backends/foundation_connectrpc_codegen/
 ├── src/
-│   └── connectrpc_build.rs              # build.rs helper API (Mode 1)
-└── src/bin/
-    └── protoc-gen-connect-ewe.rs        # protoc plugin binary (Mode 2)
+│   ├── generator.rs                     # generate_services: descriptors → Rust source
+│   ├── build.rs                         # build.rs helper API (Mode 1)
+│   └── bin/
+│       └──  rpc-gen-proto.rs             # protoc plugin binary (Mode 2)
 ```
 
-### Naming: `protoc-gen-connect-ewe`
+### Naming: `rpc-gen-proto`
 
-The protoc plugin binary (in `foundation_netio`) is named `protoc-gen-connect-ewe` to distinguish from the upstream `protoc-gen-connect-go` and third-party `protoc-gen-connect-rust`. This makes it clear it generates code for the ewe platform's ConnectRPC implementation.
+The plugin binary (in `foundation_connectrpc_codegen`) is named `rpc-gen-proto` — a
+platform-consistent codegen CLI name rather than the `protoc-gen-*` convention. Since it
+still implements the protoc plugin protocol (reads `CodeGeneratorRequest` from stdin), protoc
+invokes it via an explicit `--plugin=protoc-gen-connect-ewe=$(command -v rpc-gen-proto)`
+mapping. The mapped alias `rpc-gen-proto` distinguishes it from upstream
+`protoc-gen-connect-go` and third-party `protoc-gen-connect-rust`.
 
 ### Method Name Conversion
 
@@ -354,7 +374,7 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
 
 ## Consequences
 
-- **No separate codegen crate**: generation logic is in `foundation_macros`; the CLI / protoc-plugin binary is in `foundation_netio`. One generator emits message types **and** service/client stubs in a single pass (supersedes the `foundation_connectrpc_codegen`/`_build` sketch).
+- **Separate build-time codegen crate**: the proto generator, build.rs helper, and protoc-plugin binary live in `foundation_connectrpc_codegen` (the tonic/tonic-build split); it depends only on the prost toolchain, emits source strings, and is added as a `[build-dependencies]` entry. One generator emits message types **and** service/client stubs in a single pass. Code-first (Mode 3) proc-macros stay in `foundation_macros`.
 - **Code-first mode (Mode 3)**: services may be defined as plain Rust traits
   (`#[connectrpc::service]`); json/arrow codec tables are derived from the types' declared
   families, proto remains proto-first, and cross-crate generation works via the exported
@@ -414,16 +434,21 @@ Use the `heck` crate for conversion (already in buffa's dependencies).
   `use<>`-style capture control.
 
 **Codegen scope (decided — include it, fully built and ready):**
-- **One unified generator, no split tooling, no separate codegen crate.** We learn from
+- **One unified proto generator in a dedicated build-time crate.** We learn from
   buffa-codegen and connect-go's protoc plugin and build our own single generator that
   emits **everything** — message types + service traits + clients — in one pass (no second
-  manual codegen step). Placement:
-  - **generation logic** lives in **`foundation_macros`** (the repo's central home for all
-    proc/derive/codegen logic);
-  - **a binary in `foundation_netio`** exposes that capability as the CLI / protoc plugin.
+  manual codegen step). Placement (revised 2026-07):
+  - the **proto generator + build.rs helper + `rpc-gen-proto` binary** (Modes 1–2)
+    live in **`foundation_connectrpc_codegen`**, a build-time crate depending only on the
+    prost toolchain — the `tonic` / `tonic-build` split. It emits source strings and is
+    consumed as a `[build-dependencies]` entry;
+  - the **code-first `#[connectrpc::service]` / `generate!` proc-macros** (Mode 3) live in
+    **`foundation_macros`** (the repo's central macro home) and are re-exported from
+    `foundation_connectrpc`.
 
-  This supersedes the `foundation_connectrpc_codegen` / `foundation_connectrpc_build`
-  crates sketched in the plan — codegen is not its own crate.
+  This revises the earlier "no separate codegen crate / generator in foundation_macros /
+  binary in foundation_netio" note: the prost toolchain belongs in neither the runtime crate
+  nor `foundation_netio`.
 - **Default `unimplemented` impls:** the generated service trait provides default methods
   returning `unimplemented`, so a service can be implemented incrementally (tonic-style),
   rather than connect-go's all-methods-required.

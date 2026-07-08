@@ -30,6 +30,11 @@ pub use error_writer::ErrorWriter;
 pub mod protocol;
 pub mod transport;
 
+// Proto code generation (Decision 10 Modes 1–2) lives in the build-time
+// companion crate `foundation_connectrpc_codegen` (the tonic/tonic-build split)
+// — add it under `[build-dependencies]`. Code-first generation (Mode 3) is the
+// `service!`/`generate!` proc-macros re-exported below and stays in-crate.
+
 pub use message::{Request, Response};
 pub use router::{ConnectRpcHandler, HandlerOptions, RequestStream, Router};
 
@@ -37,8 +42,22 @@ pub use router::{ConnectRpcHandler, HandlerOptions, RequestStream, Router};
 /// Decision 10 Mode 3). See `foundation_macros::service` for docs.
 pub use foundation_macros::{generate, service};
 
+/// Re-export of the `buffa` protobuf crate as `foundation_connectrpc::buffa`.
+///
+/// Proto message types need a `buffa::Message` impl (normally emitted by
+/// codegen; there is no derive). Hand-writing one — or working with buffa
+/// messages directly — otherwise means adding a matching `buffa` dependency and
+/// keeping its version in lockstep with ours. Re-exporting it here means a
+/// consumer reaches the whole authoring surface through this crate:
+/// `foundation_connectrpc::buffa::{Message, DefaultInstance, SizeCache}`,
+/// `::buffa::encoding::{Tag, WireType, encode_varint, …}`, and even
+/// `::buffa::bytes::{Buf, BufMut}` (buffa re-exports `bytes`). Pure-JSON /
+/// code-first `codecs(json)` services need none of this — `JsonCodec` is bounded
+/// on serde alone.
+pub use buffa;
+
 /// Re-exported client types for generated code.
-pub use client::{BidiStream, Client, ClientStream, ServerStream};
+pub use client::{BidiStream, Client, ClientOptions, ClientStream, ServerStream};
 
 #[cfg(not(target_family = "wasm"))]
 pub use server::ConnectRpcServe;

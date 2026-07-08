@@ -20,7 +20,7 @@ The single generator: proto in, everything out — message types, RPITIT service
 
 ## Scope
 
-- Generator in foundation_macros (messages + traits + clients, one pass, learns from buffa-codegen); binary protoc-gen-connect-ewe + connectrpc_build helper in foundation_netio
+- Proto generator (messages + traits + clients, one pass, learns from buffa-codegen), `rpc-gen-proto` binary, and the `build::Config` build.rs helper all live in the dedicated build-time crate **`foundation_connectrpc_codegen`** (revised 2026-07 — the tonic/tonic-build split; depends only on the prost toolchain, consumed as a `[build-dependencies]` entry). Code-first Mode 3 macros stay in foundation_macros (feature 27).
 - Service traits: native RPITIT with explicit + Send (+ 'static via owned Ctx captures, S2); default unimplemented bodies with pinned hidden types (typed Err + stream::Empty)
 - procedure constants (R1 leading slash), register_<svc> + register_<svc>_with_codec::<S,C>, Unimplemented<Svc>Handler (R2), <Svc>Name (R3), <Svc>Client struct + trait (R4), new_with_codec, WithSchema (R5), idempotency from proto options
 - google.rpc.Status generation path (used by feature 21)
