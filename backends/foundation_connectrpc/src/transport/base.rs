@@ -21,9 +21,11 @@
 //! I/O, and the caller is already in a valtron context (or uses the pipe's own
 //! `receive().await` / `try_recv()` + `readiness()` surface).
 
+use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
+use futures::{Stream, StreamExt};
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::simple_http::shared::{RequestDescriptor, SimpleHeaders, Status};
@@ -34,10 +36,79 @@ use super::capabilities::TransportCapabilities;
 
 /// The wire-body byte sink (request bytes out).
 pub type ByteSink = PipeSender<Bytes>;
-/// The wire-body byte source (response bytes in).
+/// The wire-body byte source (response bytes in) — the pipe-backed variant still
+/// used by server-side readers and pipe-fed test harnesses.
 pub type ByteSource = PipeReceiver<Bytes>;
-/// Response-head source (status + headers, at most one item).
+/// Response-head source (status + headers, at most one item) — pipe-backed
+/// variant retained for pipe-fed test harnesses.
 pub type HeadSource = PipeReceiver<(Status, SimpleHeaders)>;
+
+/// The response head as an **awaitable stream** of header blocks or a transport
+/// error (F45 Part D, design D1).
+///
+/// WHY a stream, not a one-shot future: HTTP/2 and HTTP/3 can deliver *interim*
+/// heads (`100 Continue`, `103 Early Hints`) before the final response head, so a
+/// header channel is inherently multi-item — the pre-D `PipeReceiver` head was
+/// already repeatable. Modelling it as a `Stream` (symmetric with [`BodyStream`])
+/// keeps that capability and avoids an API change when an h2/h3 transport starts
+/// surfacing interim heads. RPC protocols emit exactly one head today, so their
+/// consumers simply take the first item (`head.next().await`).
+///
+/// WHY erased: `TransportStream` must not leak *how* a transport produces its head
+/// — h1 peels it with a split, WASM reads a Fetch response, a future h2 reads
+/// header frames. Any `StreamIterator` (or pipe) bridges into this one boxed
+/// `Stream`, so downstream code consumes uniformly. Each item is the head or a
+/// pre-head transport failure as `Err`.
+pub type HeadStream =
+    Pin<Box<dyn Stream<Item = Result<(Status, SimpleHeaders), TransportError>> + Send>>;
+
+/// The response body as an **awaitable stream** of byte chunks or a transport
+/// error (F45 Part D, design D1).
+///
+/// WHY: same erasure as [`HeadFuture`] — the concrete producer (a split observer,
+/// a Fetch body, a pipe) is hidden behind this boxed `Stream`, so a mid-body
+/// failure rides the payload as `Err` instead of being silently dropped, and the
+/// reader never learns what fed it. Each item is `Ok(bytes)` or `Err(transport)`.
+pub type BodyStream =
+    Pin<Box<dyn Stream<Item = Result<Bytes, TransportError>> + Send>>;
+
+/// Bridge a pipe-backed [`ByteSource`] into a [`BodyStream`] (F45 Part D).
+///
+/// WHY: server-side readers and test harnesses feed body bytes through a valtron
+/// `Pipe`, but the unified reader consumes a [`BodyStream`]. WHAT: wraps the pipe
+/// so each received chunk surfaces as `Ok`; a pipe has no error lane, so this
+/// bridge never yields `Err`. HOW: `futures::stream::unfold` over `receive()`.
+///
+/// # Panics
+/// Never panics.
+#[must_use]
+pub fn body_stream_from_pipe(rx: ByteSource) -> BodyStream {
+    Box::pin(futures::stream::unfold(rx, |rx| async move {
+        match rx.receive().await {
+            Some(bytes) => Some((Ok(bytes), rx)),
+            None => None,
+        }
+    }))
+}
+
+/// Bridge a pipe-backed head receiver into a [`HeadStream`] (F45 Part D).
+///
+/// WHY: pipe-fed test harnesses supply the head through a `Pipe`; the [`HeadStream`]
+/// contract needs a `Stream`. WHAT: each received head surfaces as `Ok`; a pipe has
+/// no error lane, so this bridge never yields `Err`, and the stream ends when the
+/// pipe closes. HOW: `futures::stream::unfold` over `receive()`.
+///
+/// # Panics
+/// Never panics.
+#[must_use]
+pub fn head_stream_from_pipe(rx: HeadSource) -> HeadStream {
+    Box::pin(futures::stream::unfold(rx, |rx| async move {
+        match rx.receive().await {
+            Some(head) => Some((Ok(head), rx)),
+            None => None,
+        }
+    }))
+}
 
 /// HTTP transport abstraction — one implementation per transport.
 pub trait Transport: Send + Sync + 'static {
@@ -55,22 +126,25 @@ pub trait Transport: Send + Sync + 'static {
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
 }
 
-/// A live transport exchange — **byte-level**. The three caller-facing halves:
-/// push request bytes, await the response head, drain response body bytes.
+/// A live transport exchange (F45 Part D, design D1). Three caller-facing halves:
+/// push request bytes, `.await` the response head, drain the response body.
 ///
-/// All three are valtron [`Pipe`](foundation_core::valtron::Pipe) halves owned
-/// by the caller. The transport's pump task (spawned by `open()`) holds the
-/// socket-facing halves.
+/// Only `send_body` is a valtron [`Pipe`](foundation_core::valtron::Pipe) — the
+/// caller→task **input** direction, which fan-out splits cannot express. The two
+/// **output** halves are erased [`HeadFuture`]/[`BodyStream`] handles, so the
+/// transport's internal mechanism (h1 splits, WASM Fetch, …) does not leak: a
+/// transport failure rides the payload as `Err` instead of a silent close.
 pub struct TransportStream {
-    /// Wire request-body bytes out.
+    /// Wire request-body bytes out (the one surviving `Pipe`).
     pub send_body: ByteSink,
-    /// The response head (status + headers) — at most one item. Once the head
-    /// arrives, `receive().await` yields it; the pipe then closes so the next
-    /// receive returns `None`.
-    pub head: HeadSource,
-    /// Wire response-body bytes in. Drained by the caller; the pump task pushes
-    /// response-body chunks.
-    pub recv_body: ByteSource,
+    /// The response head(s). RPC protocols emit exactly one, so consumers take the
+    /// first item (`head.next().await`); an h2/h3 transport may emit interim heads
+    /// (`1xx`) before the final one. Each item is `Ok(head)` or `Err(TransportError)`
+    /// (a pre-head failure); the stream closes once the head(s) are delivered.
+    pub head: HeadStream,
+    /// Wire response-body bytes in. Each `.next().await` yields `Ok(chunk)` or
+    /// `Err(TransportError)` (a mid-body failure), then `None` at end of stream.
+    pub recv_body: BodyStream,
 }
 
 /// A transport-layer failure — a failure where no RPC response exists at all
@@ -145,14 +219,18 @@ impl From<TransportError> for ErrorTrace<ConnectError> {
 /// This is the **sync** (valtron-native) equivalent of a unary RPC — useful for
 /// testing and for callers that already hold the complete request message.
 ///
-/// The caller **must be in a valtron executor context** — `receive().await`
-/// parks via `Depends`; outside a valtron pool it will hang forever.
+/// The caller **must be in a valtron executor context** — the awaits park via
+/// `Depends`; outside a valtron pool they will hang forever.
+///
+/// # Errors
+/// Returns `TransportError` if the exchange fails before the head (`head.await`),
+/// or on a mid-body failure (a `recv_body` chunk resolves to `Err`).
 pub async fn round_trip(
     transport: &impl Transport,
     request: RequestDescriptor,
     body: Bytes,
 ) -> Result<(Status, SimpleHeaders, Bytes), TransportError> {
-    let stream = transport.open(request)?;
+    let mut stream = transport.open(request)?;
     if !body.is_empty() {
         stream
             .send_body
@@ -165,15 +243,15 @@ pub async fn round_trip(
             })?;
     }
     stream.send_body.close();
-    let (status, headers) = stream.head.receive().await.ok_or_else(|| {
-        TransportError::Io(Arc::new(std::io::Error::new(
-            std::io::ErrorKind::ConnectionReset,
-            "response head pipe closed before yielding",
-        )))
-    })?;
+    // RPC has exactly one response head — take the first item off the head stream.
+    let (status, headers) = stream
+        .head
+        .next()
+        .await
+        .ok_or(TransportError::Reset)??;
     let mut body_bytes = Vec::new();
-    while let Some(chunk) = stream.recv_body.receive().await {
-        body_bytes.extend_from_slice(&chunk);
+    while let Some(chunk) = stream.recv_body.next().await {
+        body_bytes.extend_from_slice(&chunk?);
     }
     Ok((status, headers, Bytes::from(body_bytes)))
 }

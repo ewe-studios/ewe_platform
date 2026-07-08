@@ -11,17 +11,17 @@
 use std::sync::Arc;
 
 use foundation_core::url::Uri;
-use foundation_core::valtron::{self, TaskIteratorExt};
+use foundation_core::valtron::{self, CollectionState, StreamIteratorExt, TaskIteratorExt};
 use foundation_netio::simple_http::client::shared::request_task::HttpExchange;
 use foundation_netio::simple_http::client::shared::PreparedRequest;
 use foundation_netio::simple_http::client::{HttpExchangeTask, SimpleHttpClient};
 use foundation_netio::simple_http::shared::Extensions;
 use foundation_netio::simple_http::shared::{
-    pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor, SimpleHeaders, Status, DEFAULT_PUSHABLE_DEPTH,
+    pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor, DEFAULT_PUSHABLE_DEPTH,
 };
 
 use super::{
-    ByteSink, ByteSource, HeadSource, Transport, TransportCapabilities, TransportError,
+    BodyStream, ByteSink, HeadStream, Transport, TransportCapabilities, TransportError,
     TransportStream,
 };
 
@@ -69,13 +69,6 @@ impl Transport for H1Transport {
             extensions: Extensions::new(),
         };
 
-        let (head_tx, head_rx): (
-            foundation_core::valtron::PipeSender<(Status, SimpleHeaders)>,
-            HeadSource,
-        ) = foundation_core::valtron::Pipe::with_depth(1);
-        let (recv_tx, recv_body): (ByteSink, ByteSource) =
-            foundation_core::valtron::Pipe::with_depth(DEFAULT_PUSHABLE_DEPTH);
-
         let pool = self.client.client_pool().ok_or_else(|| {
             TransportError::Connect(Arc::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
@@ -84,31 +77,81 @@ impl Transport for H1Transport {
         })?;
         let config = self.client.client_config();
 
-        let pump = HttpExchangeTask::new(prepared, config.max_redirects, pool, config).map_ready(
-            move |item| match item {
-                HttpExchange::Head { status, headers } => {
-                    let _ = head_tx.try_send((status, headers));
-                }
-                HttpExchange::BodyChunk(bytes) => {
-                    let _ = recv_tx.try_send(bytes);
-                }
-                HttpExchange::Failed(_) => {}
+        let pump = HttpExchangeTask::new(prepared, config.max_redirects, pool, config);
+
+        // Peel the response head (or a *pre-head* failure) into an observer whose
+        // item is `Result<(Status, SimpleHeaders), TransportError>`, closing after
+        // the first; the continuation carries body chunks (F45 Part D). A `Failed`
+        // rides the payload as `Err` — no silent drop (the original F23 objection).
+        let (head_obs, head_cont) = pump.split_collect_until_map(
+            |item: &HttpExchange| match item {
+                HttpExchange::Head { status, headers } => (
+                    CollectionState::Close(true),
+                    Some(Ok((status.clone(), headers.clone()))),
+                ),
+                HttpExchange::Failed(err) => (
+                    CollectionState::Close(true),
+                    Some(Err(failed_to_transport_error(err))),
+                ),
+                HttpExchange::BodyChunk(_) => (CollectionState::Skip, None),
             },
+            1,
         );
 
-        valtron::send(pump).map_err(|e| {
+        // Body chunks (or a *mid-body* failure) into a second observer whose item
+        // is `Result<Bytes, TransportError>`.
+        let (body_obs, body_cont) = head_cont.split_collector_map(
+            |item: &HttpExchange| match item {
+                HttpExchange::BodyChunk(bytes) => (true, Some(Ok(bytes.clone()))),
+                HttpExchange::Failed(err) => (true, Some(Err(failed_to_transport_error(err)))),
+                HttpExchange::Head { .. } => (false, None),
+            },
+            DEFAULT_PUSHABLE_DEPTH,
+        );
+
+        // Drive task: the final continuation still yields the original `HttpExchange`
+        // values, so terminate it with `map_ready(|_| ())` before spawning — body
+        // chunks must not be buffered a second time into an undrained delivery queue
+        // (F45 Resolution 8). This is the only task spawned; the two observers are
+        // drained by the caller through the erased `HeadFuture`/`BodyStream`.
+        let drive = body_cont.map_ready(|_| ());
+        valtron::send(drive).map_err(|e| {
             TransportError::Connect(Arc::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 e.to_string(),
             )))
         })?;
 
+        // Bridge the split observers into the erased FutureStream handles. Any
+        // `StreamIterator` (a split observer here) becomes a `Stream` via the
+        // `StreamIteratorExt` adapters, so the split never leaks past
+        // `TransportStream` (F45 Part D, design D1). The head split's
+        // `CollectionState::Close(true)` closes the head observer once the head is
+        // delivered, so `head` yields the one head then ends.
+        let head: HeadStream = Box::pin(head_obs.into_next_stream());
+        let recv_body: BodyStream = Box::pin(body_obs.into_next_stream());
+
         Ok(TransportStream {
             send_body,
-            head: head_rx,
+            head,
             recv_body,
         })
     }
+}
+
+/// Map an `HttpExchange::Failed` payload into a [`TransportError`] (F45 Part D).
+///
+/// WHY: a request/response failure carries an arbitrary `dyn Error`; `Connect` is
+/// the only `TransportError` variant that preserves an arbitrary error object, and
+/// it maps to `Code::Unavailable` — the correct code for a transport-level failure.
+/// HOW: shares the `Arc` (no stringification, no detail lost).
+///
+/// # Panics
+/// Never panics.
+fn failed_to_transport_error(
+    err: &Arc<dyn std::error::Error + Send + Sync + 'static>,
+) -> TransportError {
+    TransportError::Connect(Arc::clone(err))
 }
 
 fn request_url_string(req: &RequestDescriptor) -> String {

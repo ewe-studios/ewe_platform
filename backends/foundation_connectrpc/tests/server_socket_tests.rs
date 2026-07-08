@@ -45,6 +45,7 @@ use std::net::TcpStream;
 use std::sync::Arc;
 use std::time::Duration;
 
+use futures::StreamExt;
 use tracing_test::traced_test;
 
 use buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
@@ -474,8 +475,8 @@ async fn h1_client_transport_over_real_socket() {
 
     let stream = transport.open(descriptor).expect("open");
     eprintln!("[test] open() returned");
-    let head = stream.head;
-    let recv_body = stream.recv_body;
+    let mut head = stream.head;
+    let mut recv_body = stream.recv_body;
 
     // Push the bare unary request message into send_body (no envelope).
     let msg = TestMsg {
@@ -496,10 +497,19 @@ async fn h1_client_transport_over_real_socket() {
     // hence the explicit close here.)
     stream.send_body.close();
 
-    let (status, _headers) = head.receive().await.expect("response head");
+    // F45 Part D: head and recv_body are both futures Streams; RPC takes the one head.
+    let (status, _headers) = head
+        .next()
+        .await
+        .expect("response head chunk")
+        .expect("response head ok");
     assert_eq!(status, foundation_netio::simple_http::shared::Status::OK);
 
-    let body_bytes = recv_body.receive().await.expect("response body bytes");
+    let body_bytes = recv_body
+        .next()
+        .await
+        .expect("response body chunk")
+        .expect("response body ok");
 
     // Decode the echoed message.
     let echoed: TestMsg = JsonCodec.unmarshal(body_bytes).expect("decode echo");

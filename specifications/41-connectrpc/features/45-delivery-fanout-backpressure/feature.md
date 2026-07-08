@@ -1,7 +1,7 @@
 ---
 feature: "Delivery & fan-out backpressure — enforce Decision 00 §L1b in valtron's own queues; N-way split; shrink Pipe"
 description: "Wire QueueVacancyReadiness into the executor's result-delivery iterators and the split combinators (no bare Pending / no force_push drop), add an N-way split, then migrate the transport seam off hand-rolled Pipes for the output/fan-out direction — Pipe survives only for caller→task input"
-status: "pending"
+status: "completed"
 priority: "high"
 phase: 1
 depends_on: ["00-valtron-async-readiness", "02-pipe-primitive", "17-transport-seam", "23-h1-transport-client"]
@@ -261,27 +261,104 @@ where Self::Ready: Clone, Self::Pending: Clone,
 - The existing 2-way `split_collector` becomes `split_n(2, …)`'s degenerate case
   (or stays as a thin wrapper for source/API stability).
 
-### Part D — Shrink Pipe in the transport seam (the payoff)
+### Part D — Shrink Pipe in the transport seam (the payoff) — **design D1**
 
 With A + C in place, rework the H1 pump (and the WASM pump) so the response side
-uses native fan-out instead of hand-rolled pipes:
+uses native fan-out instead of hand-rolled pipes. **The split is an internal
+detail of the transport; it does not leak through `TransportStream`.**
+
+#### The load-bearing idea: `TransportStream` speaks FutureStream, not splits
+
+The key realization (ratified 2026-07-08): **any `StreamIterator` bridges into a
+`futures_core::Stream`/`Future`** via the existing `StreamIteratorExt` adapters
+(`into_ready_future`, `into_next_stream` — blanket-implemented for *every*
+`StreamIterator`). So `TransportStream`'s output fields are typed as **erased,
+awaitable FutureStream handles**, not as the concrete `SplitCollectorMapObserver`
+types. Each transport fills them from whatever mechanism fits — h1 from splits,
+WASM from the Fetch body stream, a future h2 from its body — and none of that
+leaks past the boxed trait object. The `TransportStream` contract is
+"transport-agnostic, `.await`-friendly," exactly as Decision 11 intends.
+
+New `TransportStream` output shape (sendable/non_sendable cfg-twinned like the
+rest of valtron — h1/native boxes `+ Send`, WASM boxes without). **Both outputs
+are `Stream`s** — see "Why head is a stream, not a future" below:
+
+```rust
+pub type HeadStream = Pin<Box<dyn futures_core::Stream<
+    Item = Result<(Status, SimpleHeaders), TransportError>> + Send>>;
+pub type BodyStream = Pin<Box<dyn futures_core::Stream<
+    Item = Result<Bytes, TransportError>> + Send>>;
+
+pub struct TransportStream {
+    pub send_body: ByteSink,   // the ONE surviving Pipe (caller→task input)
+    pub head: HeadStream,      // .next().await → head(s) or transport error
+    pub recv_body: BodyStream, // .next().await → bytes chunk or transport error
+}
+```
+
+#### Why `head` is a stream, not a future
+
+The pre-D `head` was a `PipeReceiver<(Status, SimpleHeaders)>` whose `receive()` is
+**repeatable** — structurally a stream. HTTP/2 and HTTP/3 can deliver *interim*
+heads (`100 Continue`, `103 Early Hints`) before the final response head, so a
+header channel is inherently multi-item. Modelling `head` as a `Stream` (symmetric
+with `recv_body`) preserves that capability and avoids a public-API change when an
+h2/h3 transport starts surfacing interim heads. RPC protocols (Connect/gRPC/
+gRPC-Web) emit exactly one head today, so their consumers just take the first item
+(`head.next().await`); trailers are handled separately as `Frame::EndStream`, not
+on `head`. For h1 the head split's `CollectionState::Close(true)` closes the head
+observer the instant the head is delivered, so `head` yields the one head then ends.
+
+#### h1 pump internals (hidden behind the erased fields)
 
 - The pump task's `Ready` type is already `HttpExchange` (Head / BodyChunk /
-  Failed). **`split_collect_one(|x| matches!(x, HttpExchange::Head{..}))`** peels
-  the head into an observer; the continuation carries body chunks. No `head`
-  Pipe, no `recv_body` Pipe, no `map_ready` side-effect closure.
-- `TransportStream.head` / `.recv_body` become the split's observer / continuation
-  receivers (bounded via `queue_size`, backpressured via C1).
+  Failed). **`split_collect_until_map`** peels the head (or a *pre-head* `Failed`)
+  into an observer whose item is `Result<(Status, SimpleHeaders), TransportError>`
+  and closes after the first; the continuation carries body chunks.
+- **`split_collector_map`** on the continuation projects `BodyChunk → Ok(bytes)`
+  and a *mid-body* `Failed → Err(TransportError)` into a second observer whose
+  item is `Result<Bytes, TransportError>`.
+- Both observers are bridged with **`into_next_stream()`** and boxed into
+  `HeadStream`/`BodyStream` — head and body are handled identically (the head split
+  simply closes its observer after the first head, so its stream is length-1 today).
+- The final continuation still yields the original `HttpExchange` values; it is
+  terminated with **`.map_ready(|_| ())`** before `valtron::send` so body chunks
+  are not buffered a second time into an undrained delivery queue (Resolution 8).
+- No `head` Pipe, no `recv_body` Pipe, no `map_ready` side-effect routing closure.
+
+#### Invariants
+
 - **`Pipe` survives for exactly one role:** `send_body` — the **caller→task
-  input** channel (request bytes pushed into the running pump). Splits fan
-  *outputs* out; nothing here injects inputs, so this is the irreducible Pipe.
-- **Error propagation rides the payload** (this is where the earlier discussion
-  lands): the head observer item type is
-  `Result<(Status, SimpleHeaders), TransportError>` and the body continuation item
-  is `Result<Bytes, TransportError>`, so a `HttpExchange::Failed` (which can fire
-  **pre-head** *and* **mid-body**, per `http_exchange_task.rs:133,172,217`) is
-  delivered as `Err`, not a silent `None`. `send_body` stays plain `Bytes`
-  (caller→task; no back-flowing error).
+  input** channel. Splits fan *outputs* out; nothing here injects inputs, so this
+  is the irreducible Pipe.
+- **Error propagation rides the payload** (the whole point of Res 7's
+  `TransportError: Clone` + `HttpExchange::Failed: Arc`): a `Failed` that fires
+  **pre-head** is delivered as `Err` on `head`; one that fires **mid-body** is
+  delivered as `Err` on `recv_body` — never a silent `None`/dropped error (the
+  original F23 objection). `send_body` stays plain `Bytes` (no back-flowing error).
+- **Internals don't leak:** downstream code (`read_response_frames`, `round_trip`)
+  consumes `head`/`recv_body` purely through their `Stream` surface and cannot
+  observe whether a split, a pipe, or a Fetch body produced them.
+- **A pipe→stream bridge unifies producers.** `body_stream_from_pipe` /
+  `head_stream_from_pipe` (`transport/base.rs`) wrap a `PipeReceiver` as an
+  all-`Ok` `BodyStream`/`HeadStream`, so pipe-fed producers (server-side readers,
+  test harnesses) feed the *same* reader as split-fed transports — the concrete
+  demonstration that "any source → FutureStream."
+
+#### Consumer adaptation (the only protocol-layer churn)
+
+Exactly one **client-side** reader per protocol consumes the transport body:
+`read_response_frames` (`protocol/connect.rs`) and grpc_web's shared `read_frames`.
+They change from `body: ByteSource` + `body.receive().await → Option<Bytes>` to
+`body: BodyStream` + `body.next().await → Option<Result<Bytes, TransportError>>`
+(an `Err` chunk surfaces as a `ConnectError`, then closes). grpc_web's `read_frames`
+is shared by its client and server `new_conn`; the server path (pipe-fed) wraps its
+`ByteSource` with `body_stream_from_pipe`, so one reader serves both. The
+**server-side** `read_request_frames` (Connect, `connect.rs`) is fed by an internal
+`PipeReceiver`, never touches `TransportStream`, and is **unchanged** — proof the
+transport internals don't leak. `round_trip` (`transport/base.rs`) takes the one
+head via `stream.head.next().await` and drains the body via
+`while let Some(chunk) = stream.recv_body.next().await`.
 
 ## Scope
 
@@ -297,26 +374,37 @@ uses native fan-out instead of hand-rolled pipes:
 - Part C1: ✅ **done.** `force_push` → `Depends(QueueVacancyReadiness)` across
   the 4 task-split continuation types (both twins); observer `Drop` impls close
   queue; dropped-observer policy (stop copying, keep forwarding).
-- **C1b — Observer async compatibility (not in original spec):** all 10
-  observer structs yield `Stream::Wait` on empty-open instead of `Stream::Ignore`
-  (makes `into_ready_future()` / `into_pending_future()` work correctly over
-  observers). Add `fn readiness(&self) -> QueueReadiness<Stream<D, P>>` accessor
-  to every observer (enables `Depends(observer.readiness())` for task-path
-  consumers). See Resolutions 2, 3.
-- **C1c — Stream splits (not in original spec):** 4 stream-split continuation
-  types (both twins) replace `force_push` with stash + `Stream::Wait`
-  (cooperative yield). See Resolution 4.
-- **C1d — `into_next_stream()` adapter (not in original spec):** new
-  `futures_core::Stream<Item = D>` adapter on `StreamIteratorExt`, same
-  self-wake mechanics as existing bridges. See Resolution 5.
-- **Pre-D — Error Clone (Resolution 7):** `TransportError` gains `Clone` via
-  Arc-wrapped `Io` and `Connect` variants; `HttpExchange::Failed` switches to
-  `Arc<dyn Error + Send + Sync>` in `foundation_netio`.
-- Part D: migrate `H1Transport::open` (and WASM pump) to
-  `split_collect_until_map` (head peel) + `split_collector_map` (body
-  continuation) with `Result` payloads; consumers use `into_ready_future()`
-  (head) and `into_next_stream()` (body); keep `send_body` as the only `Pipe`.
-  Update `round_trip` + F44 transport tests.
+- **C1b — Observer async compatibility (Resolutions 2, 3):** ✅ **done.** All
+  split observer structs (task + stream twins) yield `Stream::Wait` on empty-open
+  instead of `Stream::Ignore` (makes `into_ready_future()` / `into_pending_future()`
+  / `into_next_stream()` work correctly over observers). `fn readiness(&self) ->
+  QueueReadiness<Stream<D, P>>` accessor added to every observer.
+- **C1c — Stream splits (Resolution 4):** ✅ **done.** The 3 stream-split
+  continuation types × 2 twins replace `force_push` with stash
+  (`pending_push`/`pending_forward`/`pending_close`) + `Stream::Wait` cooperative
+  yield; helper `sstream_observer_push`. **Zero `force_push` in `extensions/`.**
+- **C1d — `into_next_stream()` adapter (Resolution 5):** ✅ **done.** New
+  `StreamNextStream` (`futures_core::Stream<Item = D>`) in `stream_future.rs` +
+  `into_next_stream()` on both `StreamIteratorExt` twins, same self-wake mechanics
+  as the existing bridges.
+- **Pre-D — Error Clone (Resolution 7):** ✅ **done.** `TransportError` is `Clone`
+  via Arc-wrapped `Io`/`Connect`; `HttpExchange::Failed` carries
+  `Arc<dyn Error + Send + Sync>` in `foundation_netio` (boxed error `Arc::from`'d
+  at the public boundary).
+- Part D (**design D1**): ✅ **done.** `TransportStream.head`/`.recv_body` are
+  erased `Stream` handles (`HeadStream`/`BodyStream` = boxed `futures_core::Stream`
+  of `Result<(Status,SimpleHeaders), TransportError>` / `Result<Bytes, TransportError>`;
+  `+ Send` for h1/native). `head` is a stream (not a future) to preserve the pre-D
+  repeatable-receive capability and future-proof h2/h3 interim (`1xx`) heads.
+  `H1Transport::open` fills both from `split_collect_until_map` (head) +
+  `split_collector_map` (body), each bridged via `into_next_stream()`, with the
+  final continuation `.map_ready(|_| ())` (Res 8). `send_body` is the only `Pipe`.
+  Added `body_stream_from_pipe`/`head_stream_from_pipe` bridges so pipe-fed readers
+  and test harnesses feed the same reader. Consumers: client `read_response_frames`
+  (Connect) + shared `read_frames` (grpc_web) + `round_trip` adopt `.next().await`
+  with the `Err` lane surfacing as `ConnectError`; server `read_request_frames`
+  untouched. Protocol + real-socket F44 tests updated and green (full connectrpc
+  suite passes). WASM transport is an F24 stub — not wired here.
 
 ## Out of scope
 
@@ -510,10 +598,12 @@ spin).
 - `TransportError` is `Clone` (Arc-wrapped `Io` and `Connect` variants).
 - `HttpExchange::Failed` carries `Arc<dyn Error + Send + Sync>`.
 - `H1Transport::open` uses `split_collect_until_map` (head peel) +
-  `split_collector_map` (body continuation) with `Result` payloads; a pre-head
-  **and** a mid-body `HttpExchange::Failed` are observed as `Err` on the head /
-  body receiver respectively (no silent `None`). `send_body` is the only
-  remaining `Pipe` in the transport.
+  `split_collector_map` (body continuation) with `Result` payloads, each bridged
+  to an erased `Stream` via `into_next_stream()`; a pre-head **and** a mid-body
+  `HttpExchange::Failed` are observed as `Err` on the `head` / `recv_body` stream
+  respectively (no silent `None`). `TransportStream.head` is a `HeadStream`
+  (symmetric with `recv_body`, future-proofing h2/h3 interim heads), consumed via
+  `head.next().await`. `send_body` is the only remaining `Pipe` in the transport.
 - All existing valtron tests green on `single` (wasm) and `multi` (native);
   use `#[valtron_test]`, never `#[test]`/`#[serial]`.
 

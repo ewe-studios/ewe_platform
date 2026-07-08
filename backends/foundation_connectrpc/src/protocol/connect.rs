@@ -20,6 +20,7 @@ use std::time::Duration;
 use base64::engine::general_purpose::URL_SAFE_NO_PAD;
 use base64::Engine as _;
 use bytes::{Bytes, BytesMut};
+use futures::StreamExt;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::simple_http::shared::{
@@ -32,7 +33,7 @@ use crate::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireError};
 use crate::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::transport::{
-    ByteSink, ByteSource, Frame, PipeClientConn, PipeHandlerConn,
+    BodyStream, ByteSink, ByteSource, Frame, PipeClientConn, PipeHandlerConn,
     TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
@@ -255,7 +256,7 @@ async fn write_response_frames(
 /// Client/reader: de-envelope response bytes; a `0x02` end-stream frame parses to
 /// [`Frame::EndStream`] (Decision 11 normalization), everything else is a message.
 async fn read_response_frames(
-    body: ByteSource,
+    mut body: BodyStream,
     resp_tx: PipeSender<Frame>,
     decompressor: Option<Arc<dyn Compressor>>,
     read_max: usize,
@@ -289,8 +290,14 @@ async fn read_response_frames(
                 return Ok(());
             }
         }
-        match body.receive().await {
-            Some(chunk) => buf.extend_from_slice(&chunk),
+        match body.next().await {
+            Some(Ok(chunk)) => buf.extend_from_slice(&chunk),
+            // A mid-body transport failure now rides the payload as `Err` (F45
+            // Part D) — surface it instead of silently closing the stream.
+            Some(Err(err)) => {
+                resp_tx.close();
+                return Err(err.into());
+            }
             None => {
                 resp_tx.close();
                 return Ok(());

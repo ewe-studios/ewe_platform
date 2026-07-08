@@ -21,7 +21,10 @@ pub mod frame;
 pub mod h1;
 pub mod wasm;
 
-pub use base::{ByteSink, ByteSource, HeadSource, Transport, TransportError, TransportStream};
+pub use base::{
+    body_stream_from_pipe, head_stream_from_pipe, BodyStream, ByteSink, ByteSource, HeadSource,
+    HeadStream, Transport, TransportError, TransportStream,
+};
 pub use capabilities::{
     check_compatible, requirements, CallRequirements, ProtocolKind, TransportCapabilities,
 };

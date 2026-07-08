@@ -213,8 +213,10 @@ fn streaming_roundtrip_normalizes_endstream() {
             SimpleHeaders::new(),
             TransportStream {
                 send_body: req_tx,
-                head: client_head_rx,
-                recv_body: resp_rx,
+                // F45 Part D: TransportStream now speaks FutureStream; bridge the
+                // pipe-fed test harness through the pipe→FutureStream adapters.
+                head: foundation_connectrpc::transport::head_stream_from_pipe(client_head_rx),
+                recv_body: foundation_connectrpc::transport::body_stream_from_pipe(resp_rx),
             },
         )
         .expect("client exchange");

@@ -21,6 +21,7 @@ use std::time::Duration;
 use base64::engine::general_purpose::STANDARD;
 use base64::Engine as _;
 use bytes::{Bytes, BytesMut};
+use futures::StreamExt;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::simple_http::shared::{
@@ -33,8 +34,8 @@ use crate::context::{CancelSignal, Peer, Spec, StreamType};
 use crate::error::{Code, ConnectError, ConnectResult};
 use crate::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::transport::{
-    ByteSink, ByteSource, Frame, PipeClientConn, PipeHandlerConn, TransportStream,
-    DEFAULT_PIPE_DEPTH,
+    body_stream_from_pipe, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
+    PipeHandlerConn, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
@@ -378,7 +379,7 @@ pub fn parse_content_type(content_type: &str) -> Option<(String, bool)> {
 // ── reader/writer tasks ───────────────────────────────────────────────────────
 
 async fn read_frames(
-    body: ByteSource,
+    mut body: BodyStream,
     tx: PipeSender<Frame>,
     decompressor: Option<Arc<dyn Compressor>>,
     read_max: usize,
@@ -419,13 +420,18 @@ async fn read_frames(
                 return Ok(());
             }
         }
-        match body.receive().await {
-            Some(chunk) => {
+        match body.next().await {
+            Some(Ok(chunk)) => {
                 if text {
                     buf.extend_from_slice(&b64.feed(&chunk)?);
                 } else {
                     buf.extend_from_slice(&chunk);
                 }
+            }
+            // A mid-body transport failure rides the payload as `Err` (F45 Part D).
+            Some(Err(err)) => {
+                tx.close();
+                return Err(err.into());
             }
             None => {
                 tx.close();
@@ -592,7 +598,9 @@ impl ProtocolHandler for GrpcWebHandler {
         );
 
         let reader: BoxedTask = Box::pin(read_frames(
-            body,
+            // Server request body is pipe-fed; bridge it to the unified BodyStream
+            // (all-`Ok`, no transport error lane) — F45 Part D.
+            body_stream_from_pipe(body),
             ends.request_tx,
             negotiated.request_decompressor,
             0,
