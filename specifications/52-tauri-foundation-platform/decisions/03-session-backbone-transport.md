@@ -18,14 +18,16 @@ scheme, registered with Tauri's `UriSchemeProtocol`.
 ## Table of Contents
 
 1. [Session backbone](#session-backbone)
-2. [Protocol vs transport](#protocol-vs-transport)
-3. [All transport lanes](#all-transport-lanes)
-4. [Protocol selection per response](#protocol-selection-per-response)
-5. [The `ewe://` custom protocol](#the-ewe-custom-protocol)
-6. [Subsystem peer model](#subsystem-peer-model)
-7. [How it spans both crates](#how-it-spans-both-crates)
-8. [What Tauri already provides vs what we build](#what-tauri-already-provides-vs-what-we-build)
-9. [Design is our own](#design-is-our-own)
+2. [State ownership and communication model](#state-ownership-and-communication-model)
+3. [Protocol vs transport](#protocol-vs-transport)
+4. [All transport lanes](#all-transport-lanes)
+5. [Protocol selection per response](#protocol-selection-per-response)
+6. [The `ewe://` custom protocol](#the-ewe-custom-protocol)
+7. [Arrow IPC vs Columnar v1](#arrow-ipc-vs-columnar-v1-protocol-positioning)
+8. [How it spans both crates](#how-it-spans-both-crates)
+9. [Native UI integration tiers](#native-ui-integration-tiers)
+10. [What Tauri already provides vs what we build](#what-tauri-already-provides-vs-what-we-build)
+11. [Design is our own](#design-is-our-own)
 
 ---
 
@@ -133,6 +135,57 @@ App shutdown
   → Close transport connections
   → Tauri RunEvent::Exit
 ```
+
+### State ownership and communication model
+
+"Server" means wherever the application logic runs: WASM in the WebView, Rust
+in the native shell, an IPC process on the device, a local embedded server, or
+a remote HTTP server. Whatever it is, it owns state. The platform does not
+decide where state lives — the application does.
+
+- `foundation_wasm_ui` components do NOT own state by default. They receive
+  state from the Rust side and render it. Only `mount-data` and `mount-stream`
+  bindings explicitly declare "I need to send state to get state-backed
+  updates." This means the majority of the UI is stateless and cache-friendly.
+- Users define what state matters when building the app. Components can cache
+  state for performance, but it's deliberate, not forced.
+- The platform's job is transports and caching. It does not own state
+  machines, conflict resolution, or sync protocols. Those are the backend's
+  domain.
+
+Users can bring whatever they want — state machines, sync protocols, CRDTs,
+event sourcing — as additional tools layered on top of the platform. A native
+integrated system for state and sync may come later; for now the focus is
+getting the core platform correct.
+
+**Communication model:**
+
+`foundation_wasm_ui` only dictates how changes are **streamed to the frontend
+for rendering** (DomOps, HTML fragments, Arrow/JSON payloads, morph patches).
+Users are free to decide how and what they wish to communicate for everything
+else:
+
+- **RPC** — if users want request-response semantics, the platform provides
+  tooling for that over the appropriate transport.
+- **WebSocket** — bidirectional streaming; the platform makes it
+  straightforward.
+- **HTTP** — standard fetch/request; the platform's custom protocol and
+  resource lanes handle this.
+- **IPC** — for same-device communication to a local Rust process; the
+  platform builds a resilient and efficient IPC process.
+- **SSE** — unidirectional server-pushed streaming; already supported by
+  `foundation_wasm_ui`'s server module.
+
+The platform does not decide the communication model. It provides the tooling,
+constructs, and capabilities to make each option pain-free.
+
+**Why this separation:**
+
+`foundation_wasm_ui`'s existing model is clean: the Rust side executes, the UI
+renders. Adding state ownership or communication model decisions to the
+platform layer would constrain users unnecessarily. The platform is a host,
+not a framework — it provides the lanes, the user drives on them however they
+want.
 
 ---
 
@@ -571,6 +624,45 @@ fn handle_route_request(
   from the decision chain. Complex content negotiation (Accept headers, etc.)
   can be added later if needed.
 
+### Arrow IPC vs Columnar v1: protocol positioning
+
+Arrow IPC is for **structured data payloads**, NOT for UI DOM operations. The
+existing `foundation_wasm_ui` protocols handle UI operations. Arrow is used
+for data sets and analytics-style payloads where its columnar layout and
+zero-copy guarantees add real value.
+
+**What Arrow is for:**
+- Large structured data payloads (analytics, tables, sync logs).
+- High-throughput Rust↔native communication (same process, shared memory).
+- Data delivered to the WebView via custom protocol as binary `ArrayBuffer`
+  for Arrow JS to parse directly.
+
+**What Arrow is NOT for:**
+- UI DOM operations — those use the existing `DomOp` / columnar v1 / custom
+  binary / JSON / HTML fragment protocols from `foundation_wasm_ui`.
+- Every efficient batch operation — spec 39 corrected the naming:
+  **columnar v1** is the wasm-loop, no-std, TypedArray-friendly layout for
+  DOM operation batches. Real Apache Arrow IPC is for the data layer.
+
+**Terminology distinction:**
+- **Columnar v1** — wasm-loop, no-std, typed-array-friendly layout used for
+  efficient DOM operation batches. Owned by `foundation_wasm_ui`.
+- **Arrow IPC** — real Apache Arrow IPC, owned by `foundation_arrow`, used
+  where a std-capable Arrow path is appropriate (data sets, analytics,
+  native↔native communication).
+
+**Zero-copy directions:**
+
+| Direction | Mechanism | Zero-copy? |
+|---|---|---|
+| Rust ↔ Native platform (same process) | Arrow wire format IS in-memory format. Pointer write, not memory copy. | Yes |
+| Rust → WebView (cross-process on mobile) | Custom protocol binary response. Single copy (Rust buffer → fetch buffer). | Copy-minimized |
+| Native shell + WASM (same process) | WASM linear memory directly readable by native code. | Yes |
+
+This distinction is why `ProtocolHint` in `RouteDecision` separates
+`Columnar` from `ArrowIpc` — they serve different purposes and are routed
+through different encoders.
+
 ---
 
 ## How it spans both crates
@@ -634,6 +726,90 @@ primitives in the session coordination model. User code talks to the session.
 The session talks to Tauri. Tauri's primitives remain the authoritative source
 for window/webview/plugin/event state — the session just coordinates them.
 
+### Native UI integration tiers
+
+The JS DOM applicator remains the primary rendering surface for web content.
+Native UI (Swift/Kotlin) is additive, not a replacement. The platform also
+supports a native shell that embeds a WASM runtime for zero-copy Arrow
+communication between Rust and native code in the same process.
+
+Three tiers of native integration:
+
+**Tier 1 — Use Tauri's built-in capabilities** where they meet our needs:
+window management, native menus, platform plugins, filesystem APIs. These are
+wrapped in the platform's capability registry and called through the session
+backbone (see [decision 18](18-native-capability-contract.md)).
+
+**Tier 2 — Build native Swift/Kotlin bridges** where Tauri falls short:
+native navigation controllers, tab bars, sheets, biometric flows,
+platform-specific media APIs, background services, hardware integration. A
+`NativeBridge` capability wraps platform-specific code behind the same
+`Capability` trait:
+
+```rust
+#[platform_capability]
+struct BiometricAuth {
+    #[native(ios = "BiometricAuthIOS", android = "BiometricAuthAndroid")]
+    native_impl: NativeBinding,
+}
+// On iOS: the shell calls into a Swift class via UniFFI or raw FFI.
+// On Android: the shell calls into a Kotlin class via JNI.
+// On desktop: falls back to a Tauri plugin or pure-Rust implementation.
+// The capability contract is the same on all platforms.
+```
+
+**Tier 3 — Sync between web and native:** the session backbone lets Rust/JS
+content drive native UI state (e.g., update a native tab badge from a server
+stream) and lets native UI events feed back into the web runtime (e.g., a
+native back gesture routing through the session's navigation policy). This is
+Hotwire Native's ability to sync into native navigation stacks, tab bars, and
+platform chrome — a net benefit that `foundation_platform` embraces.
+
+Nothing is wrong with writing native code when it adds value. The platform
+provides the seam (the session backbone); native code hooks into it on one
+side, web code hooks into it on the other.
+
+**Native shell + WASM (same process):**
+
+A thin, pre-compiled static library that embeds a WASM runtime (wasmtime,
+wasm3, or wasmi) serves as an intermediary between native platform code and
+user-provided WASM modules:
+
+```
+Native app (Swift/Kotlin/C++)
+  │ same process, shared memory
+  ▼
+Native Shell (compiled static library, shipped once)
+  ├── Embedded WASM runtime
+  └── Arrow buffers in WASM linear memory
+  │ loads and executes
+  ▼
+User WASM module (may also run in the WebView, or only on the backend)
+```
+
+**Zero-copy Arrow across WASM ↔ native:** The WASM module writes Arrow
+`RecordBatch`es into its linear memory. The native shell reads those bytes
+directly (same process, same address space). Arrow's columnar layout IS the
+in-memory format — no serialization, no copy.
+
+**Two tiers of native deployment, both with zero-copy:**
+
+| Tier | What the user ships | Zero-copy? | App-store update? |
+|---|---|---|---|
+| Static library | Native `.a`/`.so` of Rust logic | Yes (same process) | Full review for logic changes |
+| Shell + WASM | Native shell (once) + WASM module | Yes (WASM linear memory) | WASM hot-swap, no review |
+
+**User WASM runs anywhere:** The WebView embeds `foundation-wasm-ui`'s own
+WASM-based runtime. The user's application WASM can run in the native shell,
+in an IPC process, on a local server, or on a remote server. Wherever it runs,
+it streams responses to the runtime in the WebView. Users CAN also deploy
+their WASM to the frontend for local execution — it's an architectural
+choice, not a platform constraint.
+
+Full deployment surface details (bundled WASM, native static lib, shell +
+WASM, remote server, cached replay) are in [decision
+04](04-deployment-surfaces.md).
+
 ---
 
 ## What Tauri already provides vs what we build
@@ -652,12 +828,12 @@ Verified against source (`manager/mod.rs`, `state.rs`, `app.rs`):
 - Session lifecycle management — this document
 - Capability registry — [decision 18](18-native-capability-contract.md)
 - Bridge component routing
-- Cache/offline policy — [decision 05](05-offline-model.md)
+- Cache/offline policy — [decision 05](05-offline-and-sync.md)
 - Page/screen identity tracking
 - `ewe://` custom protocol adapter — this document
 - WebView stack manager — [decision 21](21-multi-webview-stack.md)
 - WebView profiles — [decision 14](14-webview-profiles.md)
-- Background sync — [decision 22](22-background-sync.md)
+- Background sync — [decision 05](05-offline-and-sync.md)
 
 ---
 

@@ -9,7 +9,7 @@ Capabilities are `foundation_wasm_ui` primitives, not Basecamp-style HTML-inject
 bridge components. Rendering is owned by the runtime. Capabilities are declared
 in Rust, registered with the platform's capability registry, and invoked through
 the session backbone. The wire format is `CapabilityRequest`/`CapabilityResponse`
-(decision 17), living in `foundation_ui_traits`.
+(decision 01), living in `foundation_ui_traits`.
 
 Three API surfaces compose, same pattern as route handlers:
 

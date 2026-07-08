@@ -185,7 +185,7 @@ session.route("/remote/*", RouteDecision::remote_fetch());          // C
 ## The `RouteDecision` struct
 
 This is the canonical definition. Every field drives a specific execution step.
-The struct lives in `foundation_ui_traits` (per [decision 17](17-crate-boundaries.md));
+The struct lives in `foundation_ui_traits` (per [decision 01](01-platform-and-crates.md));
 the platform crate (`foundation_platform`) executes it.
 
 ```rust
@@ -1089,7 +1089,7 @@ Cross-profile isolation is enforced by the session backbone:
 
 The cache policy in the `RouteDecision` determines whether and how content is
 cached, and what happens when the network is unavailable. Full details in
-[decision 05](05-offline-model.md).
+[decision 05](05-offline-and-sync.md).
 
 | Policy | Cache behavior | Offline behavior | Best for |
 |---|---|---|---|
@@ -1156,7 +1156,7 @@ permission model) are in [decision 18](18-native-capability-contract.md).
 
 ## Where it lives: crate boundaries
 
-Per [decision 17](17-crate-boundaries.md), the types are split across two crates:
+Per [decision 01](01-platform-and-crates.md), the types are split across two crates:
 
 ### In `foundation_ui_traits` (dependency-free, shared by all crates)
 
