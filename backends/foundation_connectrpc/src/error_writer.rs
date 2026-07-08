@@ -29,7 +29,7 @@ use crate::envelope::EnvelopeWriter;
 use crate::protocol::grpc_web::{
     self, build_status_trailers, render_trailer_frame_body, Base64StreamEncoder,
 };
-use crate::protocol::{connect, parse_connect_content_type};
+use crate::protocol::{connect, grpc, parse_connect_content_type};
 
 /// Writes errors in the correct protocol format from pre-dispatch middleware
 /// (Decision 03). Stateless; one shared instance is used across worker threads.
@@ -75,6 +75,7 @@ impl ErrorWriter {
             Some(RequestKind::GrpcWeb { codec, text }) => {
                 self.write_grpc_web(response, &codec, text, error)
             }
+            Some(RequestKind::Grpc { codec }) => self.write_grpc(response, &codec, error),
             // Not a recognized RPC request — render a Connect-JSON error as a safe default.
             None => self.write_connect_unary(response, error),
         }
@@ -133,6 +134,20 @@ impl ErrorWriter {
         response.body = Some(SendSafeBody::Bytes(out));
         Ok(())
     }
+
+    fn write_grpc(
+        &self,
+        response: &mut SimpleOutgoingResponse,
+        codec: &str,
+        error: &ErrorTrace<ConnectError>,
+    ) -> ConnectResult<()> {
+        // gRPC: HTTP 200 always, error in grpc-status trailers, no body.
+        response.status = Status::OK;
+        set_content_type(response, &grpc::content_type(codec));
+        response.trailers = build_status_trailers(Some(error), &SimpleHeaders::new());
+        response.body = None;
+        Ok(())
+    }
 }
 
 /// The recognized error-writing shape of a request.
@@ -140,6 +155,7 @@ enum RequestKind {
     ConnectUnary,
     ConnectStreaming { codec: String },
     GrpcWeb { codec: String, text: bool },
+    Grpc { codec: String },
 }
 
 fn request_kind(request: &SimpleIncomingRequest) -> Option<RequestKind> {
@@ -149,6 +165,9 @@ fn request_kind(request: &SimpleIncomingRequest) -> Option<RequestKind> {
         .and_then(|v| v.first())?;
     if let Some((codec, text)) = grpc_web::parse_content_type(ct) {
         return Some(RequestKind::GrpcWeb { codec, text });
+    }
+    if let Some(codec) = grpc::parse_content_type(ct) {
+        return Some(RequestKind::Grpc { codec });
     }
     match parse_connect_content_type(ct)? {
         (codec, true) => Some(RequestKind::ConnectStreaming { codec }),

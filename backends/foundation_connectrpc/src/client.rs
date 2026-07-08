@@ -38,6 +38,7 @@ use crate::protocol::connect::constants as connect_consts;
 use crate::protocol::grpc_web::constants as grpc_web_consts;
 use crate::protocol::{ClientExchange, ProtocolClient};
 use crate::ConnectClient;
+use crate::GrpcClient;
 use crate::GrpcWebClient;
 use crate::transport::{
     capabilities::{check_compatible, requirements, ProtocolKind},
@@ -434,11 +435,7 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         // 3. Instantiate the protocol client.
         let protocol: Box<dyn ProtocolClient> = match config.protocol {
             ProtocolSelection::Connect => Box::new(ConnectClient),
-            ProtocolSelection::Grpc => {
-                return Err(
-                    ConnectError::unimplemented("gRPC requires HTTP/2, not yet available").into(),
-                );
-            }
+            ProtocolSelection::Grpc => Box::new(GrpcClient),
             ProtocolSelection::GrpcWeb => Box::new(GrpcWebClient { text: false }),
         };
 

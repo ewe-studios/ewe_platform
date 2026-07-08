@@ -34,7 +34,7 @@ use crate::interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, StreamingHandlerFunc, UnaryFunc,
 };
 use crate::message::{Request, Response};
-use crate::protocol::{connect::ConnectHandler, grpc_web::GrpcWebHandler, ProtocolHandler};
+use crate::protocol::{connect::ConnectHandler, grpc::GrpcHandler, grpc_web::GrpcWebHandler, ProtocolHandler};
 use crate::transport::DEFAULT_PIPE_DEPTH;
 
 use erased::{
@@ -398,6 +398,7 @@ impl Router {
 fn default_protocol_handlers() -> Vec<Box<dyn ProtocolHandler>> {
     vec![
         Box::new(ConnectHandler),
+        Box::new(GrpcHandler),
         Box::new(GrpcWebHandler),
     ]
 }

@@ -1,7 +1,7 @@
 ---
 feature: "gRPC protocol over HTTP/2 (D05 Protocol 2)"
 description: "Full gRPC: enveloped unary+streaming, trailing-HEADERS status, timeout header, status-details-bin"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 2
 depends_on: ["30-http2-multiplexers", "15-envelope-framing"]

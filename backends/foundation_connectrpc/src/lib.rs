@@ -67,6 +67,7 @@ pub use protocol::{
     ProtocolClient, ProtocolHandler,
 };
 pub use protocol::connect::{ConnectClient, ConnectHandler};
+pub use protocol::grpc::{GrpcClient, GrpcHandler};
 pub use protocol::grpc_web::{GrpcWebClient, GrpcWebHandler};
 
 pub use interceptor::{
