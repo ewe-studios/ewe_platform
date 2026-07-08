@@ -18,13 +18,13 @@ use std::io;
 
 use bytes::{Buf, BufMut, Bytes, BytesMut};
 
-use crate::http2::flow_control::{FlowControl, WindowSize};
+use crate::http2::flow_control::FlowControl;
 use crate::http2::frame::*;
 use crate::http2::hpack;
 use crate::http2::settings::SettingsStore;
 use crate::http2::stream::StreamState;
 
-use super::connection::{H2Request, H2Response, StreamHandler, StreamId, CLIENT_PREFACE, CLIENT_PREFACE_LEN};
+use super::connection::{H2Request, H2Response, CLIENT_PREFACE, CLIENT_PREFACE_LEN};
 
 /// Sentinel I/O error for "not enough data buffered — feed more".
 fn would_block() -> io::Error {
@@ -64,13 +64,13 @@ pub struct H2Channel {
     hpack_dec: hpack::Decoder,
     hpack_enc: hpack::Encoder,
 
-    conn_flow: FlowControl,
+    _conn_flow: FlowControl,
     remote_conn_window: i32,
 
     streams: BTreeMap<u32, StreamEntry>,
 
     next_outgoing_id: u32,
-    last_peer_stream_id: u32,
+    _last_peer_stream_id: u32,
 
     preface_sent: bool,
     preface_received: bool,
@@ -94,11 +94,11 @@ impl H2Channel {
             remote_settings: SettingsStore::default(),
             hpack_dec: hpack::Decoder::new(),
             hpack_enc,
-            conn_flow: FlowControl::new(),
+            _conn_flow: FlowControl::new(),
             remote_conn_window: 65535,
             streams: BTreeMap::new(),
             next_outgoing_id: if is_server { 2 } else { 1 },
-            last_peer_stream_id: 0,
+            _last_peer_stream_id: 0,
             preface_sent: false,
             preface_received: false,
             settings_sent: false,
@@ -128,17 +128,6 @@ impl H2Channel {
     /// True if the channel is waiting for input (read buffer empty or partial).
     pub fn wants_input(&self) -> bool {
         true // the caller should always feed available bytes
-    }
-
-    // ── Internal: read from buffer instead of socket ───────────────────
-
-    /// Try to read exactly `n` bytes from the buffer. Returns `WouldBlock` if
-    /// not enough data is available yet.
-    fn read_exact(&mut self, n: usize) -> io::Result<Bytes> {
-        if self.read_buf.remaining() < n {
-            return Err(would_block());
-        }
-        Ok(self.read_buf.split_to(n).freeze())
     }
 
     /// Try to read a 9-byte frame header + payload from the buffer.
@@ -182,9 +171,10 @@ impl H2Channel {
 
     // ── Handshake ──────────────────────────────────────────────────────
 
-    /// Run client handshake. Returns `WouldBlock` when it needs more bytes
-    /// fed in. Caller feeds, drains output, and retries until Ok(()).
-    pub fn client_handshake_step(&mut self) -> io::Result<bool> {
+    /// Run one client handshake step. Returns `Ok(())` when complete,
+    /// `Err(WouldBlock)` when more data needs to be fed. Caller drains output,
+    /// feeds input, and calls again until `Ok(())`.
+    pub fn client_handshake_step(&mut self) -> io::Result<()> {
         if !self.preface_sent {
             self.write_buf.put_slice(CLIENT_PREFACE);
             self.preface_sent = true;
@@ -198,40 +188,36 @@ impl H2Channel {
         }
 
         if self.waiting_for_settings_ack {
-            // Read SETTINGS + SETTINGS ACK from server
-            loop {
-                let (head, payload) = match self.read_frame() {
-                    Ok(v) => v,
-                    Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Err(e),
-                    Err(e) => return Err(e),
-                };
-                match head.kind {
-                    Kind::Settings => {
-                        if head.flag & settings_flags::ACK != 0 {
-                            self.waiting_for_settings_ack = false;
-                            self.preface_received = true;
-                            return Ok(true);
-                        }
-                        let sf = SettingsFrame::parse(&head, &payload).map_err(proto_err)?;
-                        self.remote_settings.apply(&sf.settings).map_err(proto_err)?;
-                        // ACK
-                        let ack = SettingsFrame::ack();
-                        let mut buf = BytesMut::new();
-                        ack.encode(&mut buf);
-                        self.write_buf.extend_from_slice(&buf);
+            let (head, payload) = match self.read_frame() {
+                Ok(v) => v,
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => return Err(e),
+                Err(e) => return Err(e),
+            };
+            match head.kind {
+                Kind::Settings => {
+                    if head.flag & settings_flags::ACK != 0 {
+                        self.waiting_for_settings_ack = false;
+                        self.preface_received = true;
+                        return Ok(());
                     }
-                    _ => return Err(io::Error::new(io::ErrorKind::InvalidData, "unexpected frame during handshake")),
+                    let sf = SettingsFrame::parse(&head, &payload).map_err(proto_err)?;
+                    self.remote_settings.apply(&sf.settings).map_err(proto_err)?;
+                    let ack = SettingsFrame::ack();
+                    let mut buf = BytesMut::new();
+                    ack.encode(&mut buf);
+                    self.write_buf.extend_from_slice(&buf);
                 }
+                _ => return Err(io::Error::new(io::ErrorKind::InvalidData, "unexpected frame during handshake")),
             }
         }
 
         self.preface_received = true;
-        Ok(true)
+        Ok(())
     }
 
-    /// Server handshake step. Returns `WouldBlock` when more data needed.
-    /// Handles the full sequence: read preface + client SETTINGS, send ACK + own SETTINGS, wait for client ACK.
-    pub fn server_handshake_step(&mut self) -> io::Result<bool> {
+    /// Run one server handshake step. Returns `Ok(())` when complete,
+    /// `Err(WouldBlock)` when more data needed.
+    pub fn server_handshake_step(&mut self) -> io::Result<()> {
         // 1. Read client preface
         if !self.preface_received {
             if self.read_buf.remaining() < CLIENT_PREFACE_LEN {
@@ -281,7 +267,7 @@ impl H2Channel {
             self.waiting_for_settings_ack = false;
         }
 
-        Ok(true)
+        Ok(())
     }
 
     // ── Request sender ─────────────────────────────────────────────────
@@ -496,12 +482,12 @@ impl H2Channel {
     // ── Helpers ────────────────────────────────────────────────────────
 
     fn build_response(&self, headers: &[(Bytes, Bytes)], end_stream: bool) -> H2Request {
-        let (mut st, mut met, mut sch, mut auth, mut path) = (0u16, Bytes::new(), Bytes::new(), Bytes::new(), Bytes::new());
+        let (_st, mut met, mut sch, mut auth, mut path) = (0u16, Bytes::new(), Bytes::new(), Bytes::new(), Bytes::new());
         let mut regular = Vec::new();
         for (name, value) in headers {
             match name.as_ref() {
                 b":status" => {
-                    if let Ok(c) = String::from_utf8_lossy(value).trim().parse() { st = c; }
+                    if let Ok(c) = String::from_utf8_lossy(value).trim().parse::<u16>() { let _ = c; }
                     regular.push((name.clone(), value.clone()));
                 }
                 b":method" => met = value.clone(),

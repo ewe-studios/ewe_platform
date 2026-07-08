@@ -22,17 +22,16 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::valtron::{
     self, BoxedSendExecutionAction, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
-    TryRecvError, TrySendError,
+    TryRecvError,
 };
 use foundation_netio::simple_http::shared::{
-    Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
+    Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
 };
 use foundation_netio::http2::channel::H2Channel;
-use foundation_netio::http2::connection::{H2Request, H2Response};
-use foundation_netio::http2::frame::{ErrorCode, HeadersFrame, Head, headers_flags, Kind};
+use foundation_netio::http2::connection::H2Request;
 
 use super::{
-    body_stream_from_pipe, head_stream_from_pipe, BodyStream, ByteSink, HeadStream,
+    body_stream_from_pipe, head_stream_from_pipe, BodyStream, HeadStream,
     Transport, TransportCapabilities, TransportError, TransportStream,
 };
 
@@ -82,7 +81,7 @@ impl Transport for H2Transport {
         // Feed nothing yet — the handshake starts by sending preface+SETTINGS
         loop {
             match channel.client_handshake_step() {
-                Ok(true) => break, // done
+                Ok(()) => break, // done
                 Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
                     // Drain output to socket, then read more
                     let out = channel.drain_output();
@@ -326,7 +325,7 @@ impl TaskIterator for H2Pump {
                             let out = self.channel.drain_output();
                             if !out.is_empty() {
                                 match self.stream.write(&out) {
-                                    Ok(_) => self.stream.flush().ok(),
+                                    Ok(_) => { self.stream.flush().ok(); }
                                     Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
                                     Err(_e) => {
                                         self.head_tx.close();

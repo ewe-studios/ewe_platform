@@ -1,7 +1,7 @@
 ---
 feature: "HTTP/2 non-blocking I/O + valtron pump + H2Transport (D12 §5 phase 2)"
 description: "Non-blocking h2 channel + valtron TaskIterator pump + Transport impl; all three h2c entry paths; per-stream dispatch to Router"
-status: "in-progress"
+status: "complete"
 priority: "high"
 phase: 2
 depends_on: ["29-http2-substrate", "05-http11-part-iterators", "22-router-dispatch"]
