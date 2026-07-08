@@ -1,17 +1,18 @@
 /// Valtron task: FdMonitorTask — wraps a RegisteredFd and invokes a callback
 /// when the fd becomes readable/writable.
-
 use std::io;
 use std::os::unix::io::AsRawFd;
 use std::sync::Arc;
 
-use foundation_core::valtron::{BoxedSendExecutionAction, EventReadiness, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    BoxedSendExecutionAction, EventReadiness, TaskIterator, TaskStatus,
+};
 
+use super::super::stop_signal::CompositeReadiness;
+use super::super::FdState;
+use super::super::StopSignal;
 use crate::native::fd::{PollResult, Ready, RegisteredFd};
 use crate::native::poll::Interest;
-use super::super::stop_signal::CompositeReadiness;
-use super::super::StopSignal;
-use super::super::FdState;
 
 /// A valtron task that monitors a RegisteredFd for readiness.
 ///
@@ -96,9 +97,10 @@ impl<T: AsRawFd + Send + Sync + 'static> TaskIterator for FdMonitorTask<T> {
                 let state = state.unwrap_or(FdState::Readable);
                 Some(TaskStatus::Ready(state))
             }
-            PollResult::NotReady => Some(TaskStatus::Depends(Arc::new(
-                CompositeReadiness::new(Arc::clone(&self.fd) as Arc<dyn EventReadiness>, Arc::new(self.stop.clone())),
-            ))),
+            PollResult::NotReady => Some(TaskStatus::Depends(Arc::new(CompositeReadiness::new(
+                Arc::clone(&self.fd) as Arc<dyn EventReadiness + Send + Sync>,
+                Arc::new(self.stop.clone()),
+            )))),
             PollResult::Error(e) => {
                 tracing::error!("FdMonitorTask poll error: {}", e);
                 None
