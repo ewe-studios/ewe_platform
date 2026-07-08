@@ -53,7 +53,7 @@ foundation_auth = { path = "../foundation_auth", version = "0.0.1", features = [
 
 # llamacpp — target-gated: builds on native + emscripten, excluded on wasm-unknown-unknown/wasi
 [target.'cfg(any(not(target_family = "wasm"), target_os = "emscripten"))'.dependencies]
-infrastructure_llama_cpp = { workspace = true, optional = true }
+infrastructure_llama_cpp = { path = "../../infrastructure/llama-cpp", version = "0.0.1", optional = true }
 
 # Candle ML framework (optional, behind feature flags)
 [dependencies.candle-core]
