@@ -26,7 +26,7 @@ use foundation_netio::simple_http::shared::{
 };
 
 use crate::compression::CompressionRegistry;
-use crate::context::{Spec, StreamType};
+use crate::context::{CancelSignal, Spec, StreamType};
 use crate::error::ConnectResult;
 use crate::transport::{
     BoxFuture, ByteSink, ByteSource, ClientConn, HandlerConn, ProtocolKind, TransportStream,
@@ -156,6 +156,11 @@ pub trait ProtocolClient: Send + Sync {
     );
     /// Build the per-call exchange over a live transport stream.
     ///
+    /// The `cancel` signal is linked into the conn's sender/receiver halves so
+    /// caller cancellation wakes parked pipe ops. The framework passes
+    /// `CancelSignal::linked(&caller_signal)` — tests and base contexts pass
+    /// `CancelSignal::new()`.
+    ///
     /// # Errors
     /// A trace on setup failure.
     fn new_conn(
@@ -163,6 +168,7 @@ pub trait ProtocolClient: Send + Sync {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
+        cancel: CancelSignal,
     ) -> ConnectResult<ClientExchange>;
 }
 

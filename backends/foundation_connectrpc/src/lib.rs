@@ -9,6 +9,7 @@
 //! The first landed piece is the protocol-agnostic **error model** (Decision 03):
 //! see [`error`].
 
+pub mod client;
 pub mod codec;
 pub mod compression;
 pub mod context;

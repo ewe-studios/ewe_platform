@@ -784,9 +784,10 @@ impl ProtocolClient for GrpcWebClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
+        cancel: CancelSignal,
     ) -> ConnectResult<ClientExchange> {
         let (conn, ends) =
-            PipeClientConn::new(spec.clone(), headers, CancelSignal::new(), DEFAULT_PIPE_DEPTH);
+            PipeClientConn::new(spec.clone(), headers, cancel, DEFAULT_PIPE_DEPTH);
 
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,

@@ -14,7 +14,7 @@ use foundation_netio::simple_http::shared::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
 
-use foundation_connectrpc::context::{IdempotencyLevel, Spec, StreamType};
+use foundation_connectrpc::context::{CancelSignal, IdempotencyLevel, Spec, StreamType};
 use foundation_connectrpc::protocol::grpc_web::{
     build_status_trailers, constants, content_type, parse_status_trailers, Base64StreamDecoder,
     Base64StreamEncoder, GrpcWebClient, GrpcWebHandler,
@@ -204,6 +204,7 @@ fn roundtrip(text: bool) {
                 head: foundation_connectrpc::transport::head_stream_from_pipe(client_head_rx),
                 recv_body: foundation_connectrpc::transport::body_stream_from_pipe(resp_rx),
             },
+            CancelSignal::new(),
         )
         .expect("client exchange");
 

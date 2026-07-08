@@ -652,9 +652,10 @@ impl ProtocolClient for ConnectClient {
         spec: &Spec,
         headers: SimpleHeaders,
         stream: TransportStream,
+        cancel: CancelSignal,
     ) -> ConnectResult<ClientExchange> {
         let (conn, ends) =
-            PipeClientConn::new(spec.clone(), headers, CancelSignal::new(), DEFAULT_PIPE_DEPTH);
+            PipeClientConn::new(spec.clone(), headers, cancel, DEFAULT_PIPE_DEPTH);
 
         // No compression on the client tasks here (negotiation resolves from the
         // response head in the client core, F24); identity by default.

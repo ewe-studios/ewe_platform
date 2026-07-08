@@ -15,7 +15,7 @@ use foundation_netio::simple_http::shared::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
 
-use foundation_connectrpc::context::{Spec, StreamType};
+use foundation_connectrpc::context::{CancelSignal, Spec, StreamType};
 use foundation_connectrpc::protocol::connect::{
     constants, encode_get_query, get_url_exceeds, streaming_content_type, unary_content_type,
     unary_error_body, unary_error_status, ConnectClient, ConnectHandler,
@@ -218,6 +218,7 @@ fn streaming_roundtrip_normalizes_endstream() {
                 head: foundation_connectrpc::transport::head_stream_from_pipe(client_head_rx),
                 recv_body: foundation_connectrpc::transport::body_stream_from_pipe(resp_rx),
             },
+            CancelSignal::new(),
         )
         .expect("client exchange");
 

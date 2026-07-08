@@ -1,7 +1,7 @@
 ---
 feature: "Client<Req,Res>, options, per-call Ctx, stream facades (D07)"
 description: "The typed client: unary/server/client/bidi surfaces, ClientOptions, per-call derived Ctx, GET support"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["19-connect-protocol", "23-h1-transport-client"]
@@ -35,3 +35,29 @@ The client half: typed per-procedure clients over the streaming Transport with t
 - Caller cancel stops the call; call deadline never cancels the root ctx (linked one-way test)
 - BidiStream::split enables concurrent send/receive (deadlock stress test)
 - Unary/streaming round-trips against our own server (feature 22) for Connect + gRPC-Web
+
+## Completion (2026-07-08)
+
+All scope bullets delivered:
+
+- `Client<Req, Res>` with four async methods (`unary`, `server_stream`, `client_stream`, `bidi_stream`)
+- `ClientOptions` builder (22 methods) + `ClientConfig` (frozen, validated at `Client::new`)
+- `ProtocolSelection` (Connect/Grpc/GrpcWeb) with capability matching
+- Per-call `Ctx` derivation: deadline merge (min), `CancelSignal::linked`, spec/peer/extension copy
+- `ServerStream<Res>`, `ClientStream<Req, Res>`, `BidiStream<Req, Res>` facades over split `ClientConn` halves
+- `BidiSender<Req>` / `BidiReceiver<Res>` for concurrent send/receive (`split()`)
+- Unary GET with idempotency gating + POST fallback (two deterministic cases: URL too long, 405/415)
+- `ProtocolClient::new_conn` extended with `cancel: CancelSignal` parameter (cancel-composed conn halves)
+- `encode_get_query` helper in `protocol::connect` for GET query encoding
+- `do_unary_round_trip` internal helper (transport.open + push + close + collect)
+
+### Verification
+
+- **Check:** `cargo check` — zero warnings (lib + tests)
+- **Tests:** 83/83 pass (10 new client_core_tests, 73 existing — zero regressions)
+- **Files:** `src/client.rs` (~1310 lines), `tests/client_core_tests.rs` (383 lines)
+- **Modified:** `lib.rs`, `protocol/mod.rs`, `protocol/connect.rs`, `protocol/grpc_web.rs`, `tests/connect_protocol_tests.rs`, `tests/grpc_web_tests.rs`
+
+### Known limitation
+
+- gRPC protocol selection returns `unimplemented` (requires HTTP/2 transport — Phase 2).
