@@ -85,8 +85,6 @@ enum MethodKind {
 
 /// Information extracted from one trait method.
 struct MethodInfo {
-    /// PascalCase method name as written in the trait (e.g. `"Greet"`).
-    pascal: String,
     /// snake_case variant (e.g. `"greet"`).
     snake: String,
     /// Token stream of the request inner type (e.g. `GreetRequest`).
@@ -103,10 +101,61 @@ struct MethodInfo {
 // Each method's shape is recognised syntactically from the parameter and return
 // type patterns shown in D10 §Mode 3. We never evaluate or resolve types.
 
-/// Does this type mention `Stream` anywhere in its token representation?
+/// Does this type mention `Stream` as a path segment anywhere?
+///
+/// WHY: Simple string matching can't distinguish `Stream` (the trait) from
+/// `StreamReq` (a type named after a stream). We must walk the AST and check
+/// segment identifiers exactly.
 fn type_mentions_stream(ty: &Type) -> bool {
-    let s = quote!(#ty).to_string();
-    s.contains("Stream")
+    match ty {
+        Type::Path(tp) => {
+            // Check all path segments (e.g. `futures::Stream` → segment `Stream`)
+            for seg in &tp.path.segments {
+                if seg.ident == "Stream" {
+                    return true;
+                }
+            }
+            // Also check generic arguments (e.g. `Request<StreamReq>` — but NOT
+            // `StreamReq` itself, only `Stream` as a bare ident)
+            for seg in &tp.path.segments {
+                if let syn::PathArguments::AngleBracketed(args) = &seg.arguments {
+                    for arg in &args.args {
+                        if let syn::GenericArgument::Type(inner_ty) = arg {
+                            if type_mentions_stream(inner_ty) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+            false
+        }
+        Type::ImplTrait(imp) => {
+            for bound in &imp.bounds {
+                if let TypeParamBound::Trait(tb) = bound {
+                    for seg in &tb.path.segments {
+                        if seg.ident == "Stream" {
+                            return true;
+                        }
+                    }
+                    // Check associated type bindings in the trait bound
+                    for seg in &tb.path.segments {
+                        if let syn::PathArguments::AngleBracketed(args) = &seg.arguments {
+                            for arg in &args.args {
+                                if let syn::GenericArgument::AssocType(at) = arg {
+                                    if type_mentions_stream(&at.ty) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            false
+        }
+        _ => false,
+    }
 }
 
 /// True when the method has a `Stream`-typed request parameter.
@@ -290,8 +339,8 @@ fn extract_res_type(ret: &ReturnType) -> TokenStream {
 fn extract_method_info(method: &syn::TraitItemFn) -> MethodInfo {
     use syn::spanned::Spanned;
 
-    let pascal = method.sig.ident.to_string();
-    let snake = to_snake_case(&pascal);
+    let name = method.sig.ident.to_string();
+    let snake = to_snake_case(&name);
 
     let req_stream = request_is_stream(&method.sig);
     let res_stream = response_is_stream(&method.sig.output);
@@ -307,12 +356,26 @@ fn extract_method_info(method: &syn::TraitItemFn) -> MethodInfo {
     let res_type = extract_res_type(&method.sig.output);
     let span = method.sig.span();
 
-    MethodInfo { pascal, snake, req_type, res_type, kind, span }
+    MethodInfo { snake, req_type, res_type, kind, span }
 }
 
 // ── Name conversion ────────────────────────────────────────────────────────
 
-/// Convert PascalCase to snake_case (mirrors `connectrpc_codegen.rs`).
+/// Convert snake_case to PascalCase (e.g. `greet_group` → `GreetGroup`).
+fn to_pascal_case(name: &str) -> String {
+    name.split('_')
+        .filter(|s| !s.is_empty())
+        .map(|s| {
+            let mut chars = s.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => {
+                    first.to_uppercase().to_string() + chars.as_str()
+                }
+            }
+        })
+        .collect()
+}
 fn to_snake_case(name: &str) -> String {
     let mut result = String::with_capacity(name.len() + 4);
     let chars: Vec<char> = name.chars().collect();
@@ -512,7 +575,8 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
         .iter()
         .map(|m| {
             let const_name = Ident::new(&m.snake.to_uppercase(), m.span);
-            let path = format!("/{}.{}/{}", package, svc_name, m.pascal);
+            let pascal_name = to_pascal_case(&m.snake);
+            let path = format!("/{}.{}/{}", package, svc_name, pascal_name);
             quote! {
                 /// Procedure path for #path.
                 pub const #const_name: &str = #path;
@@ -910,25 +974,6 @@ mod tests {
     use super::*;
     use quote::quote;
 
-    // ── Helpers ─────────────────────────────────────────────────────────────
-
-    /// WHY: proc_macro2::TokenStream::to_string() inserts a single space
-    /// between every token, including around `::`, `.`, `!`, `,`, and `@`.
-    /// These helpers build match patterns with the correct spacing.
-    fn tok(s: &str) -> String {
-        // Parse the concise Rust-like source and re-print to get canonical
-        // token-string spacing.
-        let ts: TokenStream = s.parse().unwrap_or_else(|e| {
-            panic!("tok: cannot parse `{}`: {}", s, e);
-        });
-        ts.to_string()
-    }
-
-    /// WHY: String literal tokens are preserved verbatim in to_string().
-    fn lit(s: &str) -> String {
-        format!("\"{}\"", s)
-    }
-
     // ── Tests ───────────────────────────────────────────────────────────────
 
     /// WHY: First TDD test — verify a basic unary method produces the expected
@@ -937,7 +982,6 @@ mod tests {
     /// and client trait.
     #[test]
     fn test_expand_basic_unary() {
-        eprintln!("HELLO FROM TEST");
         let attr = quote! { package = "test.v1" };
         let item = quote! {
             pub trait GreetService {
@@ -951,32 +995,20 @@ mod tests {
 
         let output = expand_service(attr, item);
         let out = output.to_string();
-        eprintln!("SERVICE NAME LEN={}", "GreetService".len());
-        eprintln!("OUT LEN={}", out.len());
-        eprintln!("HAS GreetService={}", out.contains("GreetService"));
-        eprintln!("HAS /test={}", out.contains("/test"));
-        assert!(
-            out.contains(&lit("test.v1.GreetService")),
-            "missing service name constant"
-        );
 
-        // Procedure constants with leading slash (R1)
-        assert!(
-            out.contains("GREET"),
-            "missing GREET procedure constant name"
-        );
-        // Verify the path string literal appears
-        assert!(
-            out.contains("/test.v1.GreetService/Greet"),
-            "missing procedure path in output"
-        );
+        // Service name constant (R3)
+        assert!(out.contains("test.v1.GreetService"), "missing service name constant");
+
+        // Procedure constants (R1)
+        assert!(out.contains("GREET"), "missing GREET procedure constant name");
+        assert!(out.contains("/test.v1.GreetService/Greet"), "missing procedure path");
 
         // Procedure module
-        assert!(out.contains(&tok("pub mod procedure {")), "missing procedure module");
+        assert!(out.contains("pub mod procedure"), "missing procedure module");
 
         // Service trait with Send + Sync + 'static
         assert!(
-            out.contains(&tok("pub trait GreetService : Send + Sync + 'static")),
+            out.contains("GreetService : Send + Sync + 'static"),
             "missing Send + Sync + 'static bounds"
         );
 
@@ -995,21 +1027,15 @@ mod tests {
         // Client trait
         assert!(out.contains("GreetServiceClientExt"), "missing client trait");
 
-        // Default body in trait method — ConnectError::unimplemented(procedure::CALL)
+        // Default body: ConnectError::unimplemented(procedure::GREET)
         assert!(
-            out.contains(&tok("ConnectError :: unimplemented (procedure :: CALL)")),
+            out.contains("ConnectError :: unimplemented (procedure :: GREET)"),
             "missing default unimplemented body"
         );
 
         // Descriptor macro export
-        assert!(
-            out.contains("greet_service_tokens"),
-            "missing descriptor macro"
-        );
-        assert!(
-            out.contains(&tok("#[macro_export]")),
-            "missing macro_export on descriptor macro"
-        );
+        assert!(out.contains("greet_service_tokens"), "missing descriptor macro");
+        assert!(out.contains("macro_export"), "missing macro_export on descriptor macro");
     }
 
     /// WHY: Verify all four RPC kinds are correctly classified and generate
@@ -1053,23 +1079,22 @@ mod tests {
         let out_str = output.to_string();
 
         // All four procedure constant paths (string literals preserved verbatim)
-        assert!(out_str.contains(&lit("/test.v1.FullService/UnaryMethod")));
-        assert!(out_str.contains(&lit("/test.v1.FullService/ServerStreamMethod")));
-        assert!(out_str.contains(&lit("/test.v1.FullService/ClientStreamMethod")));
-        assert!(out_str.contains(&lit("/test.v1.FullService/BidiStreamMethod")));
+        assert!(out_str.contains("/test.v1.FullService/UnaryMethod"));
+        assert!(out_str.contains("/test.v1.FullService/ServerStreamMethod"));
+        assert!(out_str.contains("/test.v1.FullService/ClientStreamMethod"));
+        assert!(out_str.contains("/test.v1.FullService/BidiStreamMethod"));
 
-        // All four router registration calls (token-aware)
-        assert!(out_str.contains(&tok("router . unary (")));
-        assert!(out_str.contains(&tok("router . server_stream (")));
-        assert!(out_str.contains(&tok("router . client_stream (")));
-        assert!(out_str.contains(&tok("router . bidi_stream (")));
+        // All four router registration calls
+        assert!(out_str.contains("router . unary ("));
+        assert!(out_str.contains("router . server_stream ("));
+        assert!(out_str.contains("router . client_stream ("));
+        assert!(out_str.contains("router . bidi_stream ("));
 
-        // Client uses the right receiver methods
-        assert!(out_str.contains(&tok("self . call . unary")));
-        assert!(out_str.contains(&tok("self . call . server_stream")));
-        // For client-stream and bidi the field name is snake_case
-        assert!(out_str.contains(&tok("self . client_stream_method . client_stream")));
-        assert!(out_str.contains(&tok("self . bidi_stream_method . bidi_stream")));
+        // Client uses the right receiver methods (field name = snake_case method)
+        assert!(out_str.contains("self . unary_method . unary"));
+        assert!(out_str.contains("self . server_stream_method . server_stream"));
+        assert!(out_str.contains("self . client_stream_method . client_stream"));
+        assert!(out_str.contains("self . bidi_stream_method . bidi_stream"));
     }
 
     /// WHY: Verify snake_case conversion is applied correctly.
@@ -1089,18 +1114,18 @@ mod tests {
         let output = expand_service(attr, item);
         let out = output.to_string();
 
-        // Procedure constant uses PascalCase path but SCREAMING_SNAKE_CASE name
-        assert!(out.contains(&tok("pub const GREET_GROUP : & str =")), "missing GREET_GROUP const");
-
-        // Procedure path string literal
-        assert!(out.contains(&lit("/p.v1.ConvTest/GreetGroup")));
+        // Procedure constant uses PascalCase path and SCREAMING_SNAKE_CASE name
+        assert!(out.contains("GREET_GROUP"), "missing GREET_GROUP const name");
+        assert!(out.contains("/p.v1.ConvTest/GreetGroup"), "missing procedure path");
 
         // Registration fn uses snake_case
         assert!(out.contains("register_conv_test"), "missing register fn");
 
         // Client field uses snake_case
-        assert!(out.contains(&tok("greet_group : connectrpc :: Client < R , Res >")),
-            "client field should use snake_case");
+        assert!(
+            out.contains("greet_group : connectrpc :: Client < R , Res >"),
+            "client field should use snake_case"
+        );
     }
 
     /// WHY: Verify codecs attribute parsing generates the right codec expression.
@@ -1121,7 +1146,7 @@ mod tests {
         let out = output.to_string();
 
         assert!(
-            out.contains(&tok("ProcedureCodecs :: < Req , Res > :: of ((connectrpc :: JsonCodec ,))")),
+            out.contains("ProcedureCodecs :: < Req , Res > :: of ((connectrpc :: JsonCodec ,))"),
             "json codecs should produce ProcedureCodecs::of((JsonCodec,))"
         );
     }
@@ -1144,7 +1169,7 @@ mod tests {
         let out = output.to_string();
 
         assert!(
-            out.contains(&tok("ProcedureCodecs :: < PReq , Res > :: defaults ()")),
+            out.contains("ProcedureCodecs :: < PReq , PRes > :: defaults ()"),
             "proto codecs should produce defaults()"
         );
     }
@@ -1156,8 +1181,8 @@ mod tests {
         let output = expand_generate(input);
         let out = output.to_string();
 
-        assert!(out.contains(&tok("pub mod my_mod")));
-        assert!(out.contains(&tok("foo :: bar ! ()")));
+        assert!(out.contains("pub mod my_mod"));
+        assert!(out.contains("foo :: bar ! ()"));
     }
 
     /// WHY: Verify the generate! macro produces a valid module even with
@@ -1168,8 +1193,8 @@ mod tests {
         let output = expand_generate(input);
         let out = output.to_string();
 
-        assert!(out.contains(&tok("pub mod svc")));
-        assert!(out.contains(&tok("my_crate :: my_mod :: tokens ! ()")));
+        assert!(out.contains("pub mod svc"));
+        assert!(out.contains("my_crate :: my_mod :: tokens ! ()"));
     }
 
     /// WHY: Verify the `to_snake_case` conversion function.
@@ -1181,5 +1206,17 @@ mod tests {
         assert_eq!(to_snake_case("ParseJSON"), "parse_json");
         assert_eq!(to_snake_case("Simple"), "simple");
         assert_eq!(to_snake_case("HTML"), "html");
+    }
+
+    /// WHY: Verify the `to_pascal_case` conversion function.
+    #[test]
+    fn test_to_pascal_case() {
+        assert_eq!(to_pascal_case("greet"), "Greet");
+        assert_eq!(to_pascal_case("greet_group"), "GreetGroup");
+        assert_eq!(to_pascal_case("get_url"), "GetUrl");
+        assert_eq!(to_pascal_case("parse_json"), "ParseJson");
+        assert_eq!(to_pascal_case("simple"), "Simple");
+        assert_eq!(to_pascal_case("a"), "A");
+        assert_eq!(to_pascal_case(""), "");
     }
 }

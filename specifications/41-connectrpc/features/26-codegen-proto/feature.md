@@ -1,7 +1,7 @@
 ---
 feature: "Unified proto codegen: generator + build.rs + protoc plugin (D10 Modes 1–2)"
 description: "One-pass generation of messages + service traits + registration + typed clients from .proto"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["13-codec-system", "22-router-dispatch", "24-client-core"]

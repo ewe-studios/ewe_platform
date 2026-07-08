@@ -68,5 +68,9 @@ name = "grpc_web_tests"
 required-features = ["multi"]
 
 [[test]]
+name = "conformance_tests"
+required-features = ["multi"]
+
+[[test]]
 name = "auth_tests"
 required-features = ["multi", "auth"]
