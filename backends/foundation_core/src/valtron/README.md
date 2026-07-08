@@ -257,6 +257,88 @@ Notes:
 
 ---
 
+## Threading model
+
+Valtron is **not** a futures/async runtime — it's a cooperative, iterator-based
+task engine. Tasks yield control by returning `Pending` / `Delayed` / `Depends`
+from `next_status()` rather than `.await`-ing. The executor interleaves tasks
+between `next_status()` calls; tasks never preempt each other. This shapes how
+valtron fits into different threading environments.
+
+### One hardware thread, many OS threads (`multi` feature)
+
+Enable the `multi` Cargo feature. The pool spawns N worker OS threads, each
+running a `LocalThreadExecutor`. A global `ConcurrentQueue` acts as the
+work-stealing channel — tasks sent via `broadcast()` land on another worker.
+
+On a single-core machine the OS preemptively time-slices across all pool
+threads, so work still makes progress (just serially, not in parallel). The
+design is honest about this: `NotifyQueue<T>` uses `CondVar` so idle workers
+park efficiently, and `Sleepable::Timable` lets the executor sleep until the
+next task deadline rather than busy-spinning.
+
+| Mechanism | Behaviour |
+|---|---|
+| `broadcast()` | Sends to the global queue; another worker thread picks it up |
+| `run_background_job()` | Submits to the `BackgroundJobRegistry` thread pool |
+| `broadcast_or_lift()` | Broadcasts to the pool |
+| `broadcast_or_sequence()` | Broadcasts to the pool |
+| `EventReadinessPtr` | `Arc<dyn EventReadiness + Send + Sync>` |
+| Task types | Require `Send` — enforced at the type level by `sendables.rs` |
+
+### One hardware thread, one OS thread (no `multi`)
+
+This is the **default** configuration and the model for WASM targets.
+Everything runs on the calling thread through a single `LocalThreadExecutor`.
+**You** are the event loop: after scheduling tasks, drive progress with
+`run_until_complete()`, `run_once()`, or `run_until_next_state()`. The
+`Driven*Iterator` wrappers call `run_until_next_state()` internally on each
+`next()`, so consuming a stream auto-drives the engine.
+
+Because there is nowhere to offload blocking work, several operations degrade
+gracefully:
+
+| Mechanism | Under `multi` | Under `not(multi)` (1 OS thread) |
+|---|---|---|
+| `broadcast()` | Global queue → another worker | Degrades to `schedule()` — runs locally |
+| `run_background_job()` | Background thread pool | Runs **inline** via `catch_unwind(job())` — blocks the event loop |
+| `broadcast_or_lift()` | Broadcasts | Lifts (prioritises locally) |
+| `broadcast_or_sequence()` | Broadcasts | Sequences (child→parent linked loop) |
+| Blocking work | Offloaded via `BackgroundJobRegistry` | **Blocks inline** — no offload possible |
+| `EventReadinessPtr` | `Arc<dyn … + Send + Sync>` | `Arc<dyn …>` (no `Send`/`Sync` bound) |
+| Task types | Require `Send` | `!Send` types allowed (`Rc`, `RefCell`, raw pointers, etc.) |
+| Internal state | `Arc<Mutex<…>>` / atomics | `Rc<RefCell<…>>` — single-threaded, no synchronisation overhead |
+
+The `!Send` support is structural: under `not(multi)` the executor state uses
+`Rc<RefCell<…>>` throughout (`ExecutorState`, `LocalThreadExecutor`), the
+`SharedTaskQueue` element type drops the `Send` bound, and the `InlineAction`
+broadcast arm degrades to a local `schedule()`. This means tasks can freely
+hold `Rc`, `RefCell`, `Cell`, raw pointers, or any other `!Send` data — the
+executor never crosses a thread boundary.
+
+### Why this works where async runtimes struggle
+
+Tokio's `current_thread` and smol's `LocalExecutor` still rely on futures with
+their `Pin`, waker vtable, and allocation-per-task overhead. Their
+`spawn_blocking` / background-thread offload requires **at least two OS
+threads** — one for the event loop, one for blocking work.
+
+Valtron sidesteps both constraints:
+
+1. **Tasks are iterators, not futures** — no `Pin`, no waker allocation per
+   poll, no `Box`-ing required (though boxing is available when dynamic
+   dispatch is needed).
+2. **Cooperative yielding** — tasks return `Pending`/`Delayed`/`Depends` to
+   yield; the executor interleaves other work. No OS preemption needed.
+3. **Futures interop is a bridge, not the foundation** — `from_future()` /
+   `run_future()` wrap a `Future` as a `TaskIterator`; valtron polls it
+   cooperatively. No separate async executor is required.
+4. **Distribution is opt-in** — `broadcast()` only exists under `multi`;
+   under `not(multi)` it degrades gracefully to local scheduling. No code
+   changes required at the call site.
+
+---
+
 ## Engine-specific surfaces (when you need them)
 
 `single::spawn()` / `multi::spawn()` expose builder-style scheduling with
@@ -295,6 +377,10 @@ for the canonical patterns: default init, explicit `seed`/`threads`,
 
 - [`executors/README.md`](./executors/README.md) — executor design: tasks,
   lift/schedule/distribute semantics, sleep/wake machinery.
+- [`docs/smart_notification_and_streams.md`](./docs/smart_notification_and_streams.md) —
+  why `TaskStatus::Depends` can park efficiently but `Stream::Wait` cannot, the
+  producer/consumer split, the WASM/JS exception, the `readiness()` bridge, and why
+  this is a deliberate architectural trade-off rather than a missing feature.
 - [`docs/`](./docs/) — focused design notes (thread locals, panic unwinding,
   static init, yield strategies, non-`Send` handling, …).
 - `foundation_macros::valtron_entry` — the macro implementation, written as a
