@@ -1,0 +1,1185 @@
+//! Code-first ConnectRPC service generation (Feature 27, Decision 10 Mode 3).
+//!
+//! WHY: Proto is not the only source of truth. A service may be defined as a
+//! plain Rust trait via `#[connectrpc::service(package = "…", codecs(…))]`, and
+//! the macro generates the same artifacts the proto codegen path does: procedure
+//! constants, registration fns, typed clients, and an `UnimplementedXxxHandler`.
+//!
+//! WHAT: Two proc-macro entry points:
+//!   - `#[service]` (attribute) — transforms a trait into the full set of
+//!     ConnectRPC service items, also emitting a `#[macro_export]` descriptor
+//!     macro for cross-crate generation.
+//!   - `generate!` (function-like) — syntactic sugar that expands a cross-crate
+//!     descriptor macro inside a module.
+//!
+//! HOW: The attribute macro parses the trait, classifies each method's stream
+//! shape by return type and argument pattern, then emits the service name
+//! constant, procedure module, trait (with default unimplemented bodies),
+//! registration fn, UnimplementedHandler, typed Client struct, ClientTrait,
+//! and the descriptor macro.
+
+use proc_macro2::TokenStream;
+use quote::{format_ident, quote};
+use syn::{
+    parse::{Parse, ParseStream},
+    parse2, FnArg, Ident, ItemTrait, LitStr, PatType, PathArguments, ReturnType, Token, TraitItem,
+    Type, TypeParamBound,
+};
+
+// ── Attribute argument parser ──────────────────────────────────────────────
+
+/// Parsed arguments to `#[service(package = "…", codecs(json, arrow))]`.
+struct ServiceAttr {
+    /// The protobuf-style package name (e.g. `"acme.greet.v1"`).
+    package: String,
+    /// Requested codec families — defaults to `["json"]`.
+    codecs: Vec<String>,
+}
+
+impl Parse for ServiceAttr {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let mut package = String::new();
+        let mut codecs = vec!["json".to_string()];
+
+        while !input.is_empty() {
+            let name: Ident = input.parse()?;
+            if name == "package" {
+                input.parse::<Token![=]>()?;
+                let lit: LitStr = input.parse()?;
+                package = lit.value();
+            } else if name == "codecs" {
+                let content;
+                syn::parenthesized!(content in input);
+                codecs.clear();
+                while !content.is_empty() {
+                    let c: Ident = content.parse()?;
+                    codecs.push(c.to_string());
+                    if !content.is_empty() {
+                        content.parse::<Token![,]>()?;
+                    }
+                }
+            }
+            if !input.is_empty() {
+                input.parse::<Token![,]>()?;
+            }
+        }
+
+        if package.is_empty() {
+            return Err(syn::Error::new(input.span(), "service: `package = \"…\"` is required"));
+        }
+
+        Ok(ServiceAttr { package, codecs })
+    }
+}
+
+// ── RPC method shape ───────────────────────────────────────────────────────
+
+/// The four ConnectRPC streaming shapes (Decision 04).
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum MethodKind {
+    Unary,
+    ServerStream,
+    ClientStream,
+    BidiStream,
+}
+
+/// Information extracted from one trait method.
+struct MethodInfo {
+    /// PascalCase method name as written in the trait (e.g. `"Greet"`).
+    pascal: String,
+    /// snake_case variant (e.g. `"greet"`).
+    snake: String,
+    /// Token stream of the request inner type (e.g. `GreetRequest`).
+    req_type: TokenStream,
+    /// Token stream of the response inner type (e.g. `GreetResponse`).
+    res_type: TokenStream,
+    /// Which RPC shape the method represents.
+    kind: MethodKind,
+    /// Span for error reporting.
+    span: proc_macro2::Span,
+}
+
+// ── Feature 27 / Decision 10 — stream classification ──────────────────────
+// Each method's shape is recognised syntactically from the parameter and return
+// type patterns shown in D10 §Mode 3. We never evaluate or resolve types.
+
+/// Does this type mention `Stream` anywhere in its token representation?
+fn type_mentions_stream(ty: &Type) -> bool {
+    let s = quote!(#ty).to_string();
+    s.contains("Stream")
+}
+
+/// True when the method has a `Stream`-typed request parameter.
+fn request_is_stream(sig: &syn::Signature) -> bool {
+    sig.inputs.iter().any(|arg| match arg {
+        FnArg::Typed(pt) => type_mentions_stream(&pt.ty),
+        _ => false,
+    })
+}
+
+/// True when the return type contains `Stream`.
+fn response_is_stream(ret: &ReturnType) -> bool {
+    match ret {
+        ReturnType::Type(_, ty) => type_mentions_stream(ty),
+        _ => false,
+    }
+}
+
+/// Extract the inner type from `OuterName<T, …>`.
+fn extract_type_arg<'a>(ty: &'a Type, outer_name: &str) -> Option<&'a Type> {
+    if let Type::Path(tp) = ty {
+        for seg in &tp.path.segments {
+            if seg.ident == outer_name {
+                if let PathArguments::AngleBracketed(args) = &seg.arguments {
+                    if let Some(syn::GenericArgument::Type(t)) = args.args.first() {
+                        return Some(t);
+                    }
+                }
+            }
+        }
+    }
+    None
+}
+
+/// Given `T = impl Stream<Item = ConnectResult<Inner>>`, extract `Inner`.
+///
+/// Walks: `impl Stream<Item = …>` → `Item` binding → first `ConnectResult<…>`
+/// type argument, or falls back to the whole item type.
+fn extract_stream_item_inner(stream_ty: &Type) -> TokenStream {
+    let item_ts = extract_stream_item_type(stream_ty);
+
+    if let Some(item) = &item_ts {
+        // Try to unwrap one layer of `ConnectResult<T>` → T
+        if let Ok(item_ty) = syn::parse2::<Type>(item.clone()) {
+            if let Some(inner) = extract_type_arg(&item_ty, "ConnectResult") {
+                return quote!(#inner);
+            }
+        }
+        return item.clone();
+    }
+
+    // Fallback: emit the whole stream type
+    quote!(#stream_ty)
+}
+
+/// Extract the `Item = …` type from `impl Stream<Item = T>`.
+fn extract_stream_item_type(ty: &Type) -> Option<TokenStream> {
+    // Helper: given an angle-bracketed arg list, find `Item = T` and return T.
+    let find_item = |args: &syn::AngleBracketedGenericArguments| -> Option<TokenStream> {
+        for arg in &args.args {
+            if let syn::GenericArgument::AssocType(at) = arg {
+                if at.ident == "Item" {
+                    return Some(quote!(#at.ty));
+                }
+            }
+        }
+        None
+    };
+
+    match ty {
+        Type::ImplTrait(imp) => {
+            for bound in &imp.bounds {
+                if let TypeParamBound::Trait(tb) = bound {
+                    for seg in &tb.path.segments {
+                        if seg.ident == "Stream" {
+                            if let PathArguments::AngleBracketed(args) = &seg.arguments {
+                                if let Some(result) = find_item(args) {
+                                    return Some(result);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            None
+        }
+        Type::Path(tp) => {
+            for seg in &tp.path.segments {
+                if seg.ident == "Stream" {
+                    if let PathArguments::AngleBracketed(args) = &seg.arguments {
+                        if let Some(result) = find_item(args) {
+                            return Some(result);
+                        }
+                    }
+                }
+            }
+            None
+        }
+        _ => None,
+    }
+}
+
+/// Extract the response type from `ConnectResult<Response<T>>`.
+fn extract_response_from_connect_result(ty: &Type) -> Option<TokenStream> {
+    // Walk: ConnectResult<T> → T, then check for Response<U> → U
+    if let Some(inner) = extract_type_arg(ty, "ConnectResult") {
+        // inner is Response<U> → extract U
+        if let Some(res) = extract_type_arg(inner, "Response") {
+            return Some(quote!(#res));
+        }
+        // Maybe inner itself is the response type (e.g. ConnectResult<MyRes>)
+        return Some(quote!(#inner));
+    }
+    None
+}
+
+/// Extract the request type from the method signature.
+///
+/// The request parameter is the second non-self param (after `ctx: Ctx`).
+/// It can be `Request<T>` (unary / server-stream) or
+/// `impl Stream<Item = ConnectResult<T>>` (client-stream / bidi).
+fn extract_req_type(sig: &syn::Signature) -> TokenStream {
+    let non_self: Vec<&FnArg> = sig
+        .inputs
+        .iter()
+        .filter(|a| !matches!(a, FnArg::Receiver(_)))
+        .collect();
+
+    // non_self[0] = ctx: Ctx, non_self[1] = request param
+    if non_self.len() < 2 {
+        return quote!(()); // Fallback
+    }
+
+    match non_self[1] {
+        FnArg::Typed(PatType { ty, .. }) => {
+            // Request<T> → T
+            if let Some(t) = extract_type_arg(ty, "Request") {
+                return quote!(#t);
+            }
+
+            // impl Stream<Item = ConnectResult<T>> → T
+            if type_mentions_stream(ty) {
+                return extract_stream_item_inner(ty);
+            }
+
+            // Fallback: emit the type as-is
+            quote!(#ty)
+        }
+        _ => quote!(()),
+    }
+}
+
+/// Extract the response type from the return type.
+///
+/// Patterns handled:
+/// - `ConnectResult<Response<T>>` → `T` (unary / client-stream)
+/// - `ConnectResult<impl Stream<Item = ConnectResult<T>>>` → `T` (server / bidi)
+fn extract_res_type(ret: &ReturnType) -> TokenStream {
+    match ret {
+        ReturnType::Type(_, ty) => {
+            // Unwrap ConnectResult<Response<T>>
+            if let Some(r) = extract_response_from_connect_result(ty) {
+                return r;
+            }
+
+            // Unwrap ConnectResult<impl Stream<Item = ConnectResult<T>>>
+            if let Some(inner) = extract_type_arg(ty, "ConnectResult") {
+                if type_mentions_stream(inner) {
+                    return extract_stream_item_inner(inner);
+                }
+            }
+
+            // Fallback
+            quote!(#ty)
+        }
+        _ => quote!(()),
+    }
+}
+
+/// Extract method information from a trait method.
+fn extract_method_info(method: &syn::TraitItemFn) -> MethodInfo {
+    use syn::spanned::Spanned;
+
+    let pascal = method.sig.ident.to_string();
+    let snake = to_snake_case(&pascal);
+
+    let req_stream = request_is_stream(&method.sig);
+    let res_stream = response_is_stream(&method.sig.output);
+
+    let kind = match (req_stream, res_stream) {
+        (false, false) => MethodKind::Unary,
+        (false, true) => MethodKind::ServerStream,
+        (true, false) => MethodKind::ClientStream,
+        (true, true) => MethodKind::BidiStream,
+    };
+
+    let req_type = extract_req_type(&method.sig);
+    let res_type = extract_res_type(&method.sig.output);
+    let span = method.sig.span();
+
+    MethodInfo { pascal, snake, req_type, res_type, kind, span }
+}
+
+// ── Name conversion ────────────────────────────────────────────────────────
+
+/// Convert PascalCase to snake_case (mirrors `connectrpc_codegen.rs`).
+fn to_snake_case(name: &str) -> String {
+    let mut result = String::with_capacity(name.len() + 4);
+    let chars: Vec<char> = name.chars().collect();
+    let len = chars.len();
+
+    for i in 0..len {
+        let c = chars[i];
+        if c.is_uppercase() {
+            if i > 0 {
+                let prev = chars[i - 1];
+                let next = chars.get(i + 1).copied();
+                let prev_lower = prev.is_lowercase() || prev.is_ascii_digit();
+                let next_lower = next.map_or(false, |n| n.is_lowercase());
+                if prev_lower || (next_lower && i + 1 < len) {
+                    if result.as_bytes().last() != Some(&b'_') {
+                        result.push('_');
+                    }
+                }
+            }
+            result.push(c.to_ascii_lowercase());
+        } else if c == '-' {
+            result.push('_');
+        } else {
+            result.push(c);
+        }
+    }
+    result
+}
+
+// ── Supertrait bounds ──────────────────────────────────────────────────────
+
+/// Ensure the trait has `Send + Sync + 'static` bounds, adding them if absent.
+fn ensure_send_sync_static(trait_def: &mut ItemTrait) {
+    let needs: Vec<&str> = {
+        let has = |name: &str| -> bool {
+            trait_def.supertraits.iter().any(|b| match b {
+                TypeParamBound::Trait(tb) => tb.path.is_ident(name),
+                _ => false,
+            })
+        };
+
+        let mut v = Vec::new();
+        if !has("Send") {
+            v.push("Send");
+        }
+        if !has("Sync") {
+            v.push("Sync");
+        }
+        if !has("static") {
+            v.push("static");
+        }
+        v
+    };
+
+    for name in needs {
+        if name == "static" {
+            trait_def.supertraits.push(syn::parse_quote!('static));
+        } else {
+            let id: Ident = Ident::new(name, proc_macro2::Span::call_site());
+            trait_def.supertraits.push(syn::parse_quote!(#id));
+        }
+    }
+}
+
+// ── Default method bodies ──────────────────────────────────────────────────
+
+/// Build a default unimplemented body for the given method kind and type info.
+fn make_default_body(
+    kind: MethodKind,
+    path_const: &Ident,
+    res_type: &TokenStream,
+) -> syn::Block {
+    let tokens = match kind {
+        MethodKind::Unary | MethodKind::ClientStream => {
+            quote! {{
+                Err(connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
+            }}
+        }
+        MethodKind::ServerStream | MethodKind::BidiStream => {
+            quote! {{
+                let r: connectrpc::ConnectResult<
+                    futures::stream::Empty<connectrpc::ConnectResult<#res_type>>
+                > = Err(connectrpc::ConnectError::unimplemented(procedure::#path_const).into());
+                r
+            }}
+        }
+    };
+    syn::parse2(tokens).expect("connectrpc_service: failed to parse default body")
+}
+
+/// Add default bodies to trait methods that lack them.
+fn add_default_bodies(trait_def: &mut ItemTrait) {
+    let items = std::mem::take(&mut trait_def.items);
+    for item in items {
+        let mut item = item;
+        if let TraitItem::Fn(method) = &mut item {
+            if method.default.is_some() {
+                // Method already has a default — preserve it.
+                trait_def.items.push(TraitItem::Fn(method.clone()));
+                continue;
+            }
+            if method.semi_token.is_none() {
+                // Neither body nor semicolon — shouldn't happen, but skip.
+                trait_def.items.push(TraitItem::Fn(method.clone()));
+                continue;
+            }
+
+            let info = extract_method_info(method);
+            let path_const = Ident::new(&info.snake.to_uppercase(), info.span);
+
+            method.default = Some(make_default_body(info.kind, &path_const, &info.res_type));
+            method.semi_token = None;
+        }
+        trait_def.items.push(item);
+    }
+}
+
+// ── Codec table expression ─────────────────────────────────────────────────
+
+/// Generate the `ProcedureCodecs::<Req, Res>::of(…)` expression for the
+/// requested codec families.
+fn codec_expr(codecs: &[String], req_type: &TokenStream, res_type: &TokenStream) -> TokenStream {
+    let has_proto = codecs.iter().any(|c| c == "proto");
+    let has_json = codecs.iter().any(|c| c == "json");
+    let has_arrow = codecs.iter().any(|c| c == "arrow");
+
+    if has_proto {
+        // proto always pairs with json
+        quote! { connectrpc::ProcedureCodecs::<#req_type, #res_type>::defaults() }
+    } else if has_arrow && !has_json {
+        // Arrow-only
+        quote! { connectrpc::ProcedureCodecs::<#req_type, #res_type>::only(connectrpc::ArrowCodec) }
+    } else if has_json && !has_arrow {
+        // Json-only
+        quote! { connectrpc::ProcedureCodecs::<#req_type, #res_type>::of((connectrpc::JsonCodec,)) }
+    } else {
+        // Both json + arrow (or default = json)
+        let inner = if has_arrow {
+            quote! { (connectrpc::JsonCodec, connectrpc::ArrowCodec) }
+        } else {
+            quote! { (connectrpc::JsonCodec,) }
+        };
+        quote! { connectrpc::ProcedureCodecs::<#req_type, #res_type>::of(#inner) }
+    }
+}
+
+// ── Main expansion ─────────────────────────────────────────────────────────
+
+/// Entry point for the `#[service]` attribute macro.
+/// Accepts `proc_macro2::TokenStream` (converted from `proc_macro::TokenStream`
+/// by the `#[proc_macro_attribute]` wrapper in `lib.rs`).
+pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let attr_args: ServiceAttr = match parse2(attr) {
+        Ok(a) => a,
+        Err(e) => return e.to_compile_error(),
+    };
+    let mut input_trait: ItemTrait = match parse2(item) {
+        Ok(t) => t,
+        Err(e) => return e.to_compile_error(),
+    };
+
+    let svc_ident = input_trait.ident.clone();
+    let svc_name = svc_ident.to_string();
+    let package = &attr_args.package;
+    let codecs = &attr_args.codecs;
+    let crate_span = proc_macro2::Span::call_site();
+
+    // Collect method infos
+    let methods: Vec<MethodInfo> = input_trait
+        .items
+        .iter()
+        .filter_map(|item| match item {
+            TraitItem::Fn(m) => Some(extract_method_info(m)),
+            _ => None,
+        })
+        .collect();
+
+    // Ensure Send + Sync + 'static bounds
+    ensure_send_sync_static(&mut input_trait);
+
+    // Add default bodies
+    add_default_bodies(&mut input_trait);
+
+    // ── Identifiers for generated items ───────────────────────────────────
+    let name_const_ident = Ident::new(&(svc_name.to_uppercase() + "_NAME"), crate_span);
+    let svc_snake = to_snake_case(&svc_name);
+    let register_fn_ident = format_ident!("register_{}", svc_snake);
+    let unimplemented_ident = format_ident!("Unimplemented{}Handler", svc_name);
+    let client_struct_ident = format_ident!("{}Client", svc_name);
+    let client_trait_ident = format_ident!("{}ClientExt", svc_name);
+    let descriptor_macro_ident = format_ident!("{}_tokens", svc_snake);
+
+    let qualified_name = format!("{}.{}", package, svc_name);
+
+    // ── Procedure constants ───────────────────────────────────────────────
+    let procedure_consts: Vec<TokenStream> = methods
+        .iter()
+        .map(|m| {
+            let const_name = Ident::new(&m.snake.to_uppercase(), m.span);
+            let path = format!("/{}.{}/{}", package, svc_name, m.pascal);
+            quote! {
+                /// Procedure path for #path.
+                pub const #const_name: &str = #path;
+            }
+        })
+        .collect();
+
+    // ── Registration function ─────────────────────────────────────────────
+    let registration_arms: Vec<TokenStream> = methods
+        .iter()
+        .map(|m| {
+            let path_const = Ident::new(&m.snake.to_uppercase(), m.span);
+            let req_type = &m.req_type;
+            let res_type = &m.res_type;
+            let method_name = Ident::new(&m.snake, m.span);
+            let codec = codec_expr(codecs, req_type, res_type);
+
+            let register_call = match m.kind {
+                MethodKind::Unary => quote! { router.unary },
+                MethodKind::ServerStream => quote! { router.server_stream },
+                MethodKind::ClientStream => quote! { router.client_stream },
+                MethodKind::BidiStream => quote! { router.bidi_stream },
+            };
+
+            let handler_args = match m.kind {
+                MethodKind::Unary | MethodKind::ServerStream => {
+                    quote! { move |ctx, req| { let svc = svc.clone(); async move { svc.#method_name(ctx, req).await } } }
+                }
+                MethodKind::ClientStream | MethodKind::BidiStream => {
+                    quote! { move |ctx, reqs| { let svc = svc.clone(); async move { svc.#method_name(ctx, reqs).await } } }
+                }
+            };
+
+            quote! {
+                {
+                    let svc = service.clone();
+                    #register_call(
+                        procedure::#path_const,
+                        #codec,
+                        #handler_args,
+                        connectrpc::HandlerOptions::new(),
+                    );
+                }
+            }
+        })
+        .collect();
+
+    // ── Client fields ─────────────────────────────────────────────────────
+    let client_fields: Vec<TokenStream> = methods
+        .iter()
+        .map(|m| {
+            let field = Ident::new(&m.snake, m.span);
+            let rt = &m.req_type;
+            let rst = &m.res_type;
+            quote! {
+                #field: connectrpc::Client<#rt, #rst>,
+            }
+        })
+        .collect();
+
+    // ── Client new() field initialisers ───────────────────────────────────
+    let client_new_fields: Vec<TokenStream> = methods
+        .iter()
+        .enumerate()
+        .map(|(i, m)| {
+            let field = Ident::new(&m.snake, m.span);
+            let path_const = Ident::new(&m.snake.to_uppercase(), m.span);
+            let rt = &m.req_type;
+            let rst = &m.res_type;
+            let codec = codec_expr(codecs, rt, rst);
+
+            // The last field uses `options` without `.clone()`
+            if i == methods.len() - 1 {
+                quote! {
+                    #field: connectrpc::Client::new(
+                        transport.clone(),
+                        &format!("{}{}", base_url, procedure::#path_const),
+                        #codec,
+                        options,
+                    )?,
+                }
+            } else {
+                quote! {
+                    #field: connectrpc::Client::new(
+                        transport.clone(),
+                        &format!("{}{}", base_url, procedure::#path_const),
+                        #codec,
+                        options.clone(),
+                    )?,
+                }
+            }
+        })
+        .collect();
+
+    // ── Client per-method accessors ───────────────────────────────────────
+    let client_methods: Vec<TokenStream> = methods
+        .iter()
+        .map(|m| {
+            let method_name = Ident::new(&m.snake, m.span);
+            let rt = &m.req_type;
+            let rst = &m.res_type;
+
+            match m.kind {
+                MethodKind::Unary => {
+                    quote! {
+                        /// Unary RPC.
+                        pub async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            request: connectrpc::Request<#rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>> {
+                            self.#method_name.unary(ctx, request).await
+                        }
+                    }
+                }
+                MethodKind::ServerStream => {
+                    quote! {
+                        /// Server-streaming RPC.
+                        pub async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            request: connectrpc::Request<#rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::ServerStream<#rst>> {
+                            self.#method_name.server_stream(ctx, request).await
+                        }
+                    }
+                }
+                MethodKind::ClientStream => {
+                    quote! {
+                        /// Client-streaming RPC.
+                        pub async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            reqs: impl futures::Stream<Item = #rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>> {
+                            self.#method_name.client_stream(ctx, reqs).await
+                        }
+                    }
+                }
+                MethodKind::BidiStream => {
+                    quote! {
+                        /// Bidirectional streaming RPC.
+                        pub async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            reqs: impl futures::Stream<Item = #rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::BidiStream<#rt, #rst>> {
+                            self.#method_name.bidi_stream(ctx, reqs).await
+                        }
+                    }
+                }
+            }
+        })
+        .collect();
+
+    // ── Client trait methods ──────────────────────────────────────────────
+    let client_trait_methods: Vec<TokenStream> = methods
+        .iter()
+        .map(|m| {
+            let method_name = Ident::new(&m.snake, m.span);
+            let rt = &m.req_type;
+            let rst = &m.res_type;
+
+            match m.kind {
+                MethodKind::Unary => {
+                    quote! {
+                        /// Unary RPC.
+                        async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            request: connectrpc::Request<#rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>>;
+                    }
+                }
+                MethodKind::ServerStream => {
+                    quote! {
+                        /// Server-streaming RPC.
+                        async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            request: connectrpc::Request<#rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::ServerStream<#rst>>;
+                    }
+                }
+                MethodKind::ClientStream => {
+                    quote! {
+                        /// Client-streaming RPC.
+                        async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            reqs: impl futures::Stream<Item = #rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>>;
+                    }
+                }
+                MethodKind::BidiStream => {
+                    quote! {
+                        /// Bidirectional streaming RPC.
+                        async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            reqs: impl futures::Stream<Item = #rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::BidiStream<#rt, #rst>>;
+                    }
+                }
+            }
+        })
+        .collect();
+
+    // ── Blanket impl methods for client trait ─────────────────────────────
+    let blanket_impl_methods: Vec<TokenStream> = methods
+        .iter()
+        .map(|m| {
+            let method_name = Ident::new(&m.snake, m.span);
+            let rt = &m.req_type;
+            let rst = &m.res_type;
+
+            match m.kind {
+                MethodKind::Unary => {
+                    quote! {
+                        async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            request: connectrpc::Request<#rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>> {
+                            self.#method_name.unary(ctx, request).await
+                        }
+                    }
+                }
+                MethodKind::ServerStream => {
+                    quote! {
+                        async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            request: connectrpc::Request<#rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::ServerStream<#rst>> {
+                            self.#method_name.server_stream(ctx, request).await
+                        }
+                    }
+                }
+                MethodKind::ClientStream => {
+                    quote! {
+                        async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            reqs: impl futures::Stream<Item = #rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>> {
+                            self.#method_name.client_stream(ctx, reqs).await
+                        }
+                    }
+                }
+                MethodKind::BidiStream => {
+                    quote! {
+                        async fn #method_name(
+                            &self,
+                            ctx: connectrpc::Ctx,
+                            reqs: impl futures::Stream<Item = #rt>,
+                        ) -> connectrpc::ConnectResult<connectrpc::BidiStream<#rt, #rst>> {
+                            self.#method_name.bidi_stream(ctx, reqs).await
+                        }
+                    }
+                }
+            }
+        })
+        .collect();
+
+    // ── Assemble everything ───────────────────────────────────────────────
+    let generated = quote! {
+        // ── Service name constant (R3) ────────────────────────────────────
+        /// Fully-qualified service name.
+        pub const #name_const_ident: &str = #qualified_name;
+
+        // ── Procedure path constants (R1) ─────────────────────────────────
+        /// Procedure path constants — leading slash included (R1).
+        pub mod procedure {
+            #(#procedure_consts)*
+        }
+
+        // ── Service trait ────────────────────────────────────────────────
+        #input_trait
+
+        // ── Registration function ─────────────────────────────────────────
+        /// Register a #svc_name implementation with a ConnectRPC router.
+        pub fn #register_fn_ident<S: #svc_ident>(
+            router: &mut connectrpc::Router,
+            service: std::sync::Arc<S>,
+        ) {
+            #(#registration_arms)*
+        }
+
+        // ── Unimplemented handler (R2) ────────────────────────────────────
+        /// An unimplemented #svc_name handler — all methods return
+        /// `unimplemented`.
+        pub struct #unimplemented_ident;
+        impl #svc_ident for #unimplemented_ident {}
+
+        // ── Typed client (R4) ─────────────────────────────────────────────
+        /// Typed client for #svc_name.
+        pub struct #client_struct_ident {
+            #(#client_fields)*
+        }
+
+        impl #client_struct_ident {
+            /// Build a new typed client.
+            pub fn new(
+                transport: std::sync::Arc<dyn connectrpc::Transport>,
+                base_url: &str,
+                options: connectrpc::ClientOptions,
+            ) -> connectrpc::ConnectResult<Self> {
+                Ok(Self {
+                    #(#client_new_fields)*
+                })
+            }
+
+            #(#client_methods)*
+        }
+
+        // ── Client trait (R4) ─────────────────────────────────────────────
+        /// Trait for #svc_name client behaviour (supports mocking/testing).
+        pub trait #client_trait_ident: Send + Sync + 'static {
+            #(#client_trait_methods)*
+        }
+
+        impl #client_trait_ident for #client_struct_ident {
+            #(#blanket_impl_methods)*
+        }
+    };
+
+    // ── Descriptor macro for cross-crate generation ───────────────────────
+    quote! {
+        #generated
+
+        #[macro_export]
+        macro_rules! #descriptor_macro_ident {
+            () => { #generated };
+        }
+    }
+}
+
+// ── generate! macro ────────────────────────────────────────────────────────
+
+/// Parsed input for `generate!(path => mod name { server, client })`.
+struct GenerateInput {
+    /// The path to the descriptor macro (e.g. `my_api::greet_service_tokens`).
+    _path: syn::Path,
+    /// The output module name.
+    module_name: Ident,
+    /// Artifact list (e.g. `server`, `client`) — reserved for future filtering.
+    #[allow(dead_code)]
+    artifacts: Vec<Ident>,
+}
+
+impl Parse for GenerateInput {
+    fn parse(input: ParseStream<'_>) -> syn::Result<Self> {
+        let path = input.parse::<syn::Path>()?;
+        input.parse::<Token![=>]>()?;
+        input.parse::<Token![mod]>()?;
+        let module_name = input.parse::<Ident>()?;
+        let content;
+        syn::braced!(content in input);
+        let mut artifacts = Vec::new();
+        while !content.is_empty() {
+            artifacts.push(content.parse::<Ident>()?);
+            if !content.is_empty() {
+                content.parse::<Token![,]>()?;
+            }
+        }
+        Ok(GenerateInput { _path: path, module_name, artifacts })
+    }
+}
+
+/// Entry point for the `connectrpc::generate!` function-like macro.
+/// Accepts `proc_macro2::TokenStream` (converted by `lib.rs`).
+pub fn expand_generate(input: TokenStream) -> TokenStream {
+    let gi: GenerateInput = match parse2(input) {
+        Ok(g) => g,
+        Err(e) => return e.to_compile_error(),
+    };
+    let mod_name = &gi.module_name;
+    let path = &gi._path;
+
+    // For now, always output the full descriptor macro body inside the module.
+    quote! {
+        pub mod #mod_name {
+            #path!();
+        }
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Tests
+// ═══════════════════════════════════════════════════════════════════════════
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use quote::quote;
+
+    // ── Helpers ─────────────────────────────────────────────────────────────
+
+    /// WHY: proc_macro2::TokenStream::to_string() inserts a single space
+    /// between every token, including around `::`, `.`, `!`, `,`, and `@`.
+    /// These helpers build match patterns with the correct spacing.
+    fn tok(s: &str) -> String {
+        // Parse the concise Rust-like source and re-print to get canonical
+        // token-string spacing.
+        let ts: TokenStream = s.parse().unwrap_or_else(|e| {
+            panic!("tok: cannot parse `{}`: {}", s, e);
+        });
+        ts.to_string()
+    }
+
+    /// WHY: String literal tokens are preserved verbatim in to_string().
+    fn lit(s: &str) -> String {
+        format!("\"{}\"", s)
+    }
+
+    // ── Tests ───────────────────────────────────────────────────────────────
+
+    /// WHY: First TDD test — verify a basic unary method produces the expected
+    /// generated items: service name constant, procedure module, trait with
+    /// default body, registration fn, UnimplementedHandler, client struct,
+    /// and client trait.
+    #[test]
+    fn test_expand_basic_unary() {
+        eprintln!("HELLO FROM TEST");
+        let attr = quote! { package = "test.v1" };
+        let item = quote! {
+            pub trait GreetService {
+                async fn greet(
+                    &self,
+                    ctx: connectrpc::Ctx,
+                    req: connectrpc::Request<GreetRequest>,
+                ) -> connectrpc::ConnectResult<connectrpc::Response<GreetResponse>>;
+            }
+        };
+
+        let output = expand_service(attr, item);
+        let out = output.to_string();
+        eprintln!("SERVICE NAME LEN={}", "GreetService".len());
+        eprintln!("OUT LEN={}", out.len());
+        eprintln!("HAS GreetService={}", out.contains("GreetService"));
+        eprintln!("HAS /test={}", out.contains("/test"));
+        assert!(
+            out.contains(&lit("test.v1.GreetService")),
+            "missing service name constant"
+        );
+
+        // Procedure constants with leading slash (R1)
+        assert!(
+            out.contains("GREET"),
+            "missing GREET procedure constant name"
+        );
+        // Verify the path string literal appears
+        assert!(
+            out.contains("/test.v1.GreetService/Greet"),
+            "missing procedure path in output"
+        );
+
+        // Procedure module
+        assert!(out.contains(&tok("pub mod procedure {")), "missing procedure module");
+
+        // Service trait with Send + Sync + 'static
+        assert!(
+            out.contains(&tok("pub trait GreetService : Send + Sync + 'static")),
+            "missing Send + Sync + 'static bounds"
+        );
+
+        // Unimplemented handler (R2)
+        assert!(
+            out.contains("UnimplementedGreetServiceHandler"),
+            "missing UnimplementedHandler"
+        );
+
+        // Registration function
+        assert!(out.contains("register_greet_service"), "missing register fn");
+
+        // Client struct (R4)
+        assert!(out.contains("GreetServiceClient"), "missing client struct");
+
+        // Client trait
+        assert!(out.contains("GreetServiceClientExt"), "missing client trait");
+
+        // Default body in trait method — ConnectError::unimplemented(procedure::CALL)
+        assert!(
+            out.contains(&tok("ConnectError :: unimplemented (procedure :: CALL)")),
+            "missing default unimplemented body"
+        );
+
+        // Descriptor macro export
+        assert!(
+            out.contains("greet_service_tokens"),
+            "missing descriptor macro"
+        );
+        assert!(
+            out.contains(&tok("#[macro_export]")),
+            "missing macro_export on descriptor macro"
+        );
+    }
+
+    /// WHY: Verify all four RPC kinds are correctly classified and generate
+    /// the right registration calls.
+    #[test]
+    fn test_all_four_rpc_kinds() {
+        let attr = quote! { package = "test.v1" };
+        let item = quote! {
+            pub trait FullService {
+                async fn unary_method(
+                    &self,
+                    ctx: connectrpc::Ctx,
+                    req: connectrpc::Request<UnaryReq>,
+                ) -> connectrpc::ConnectResult<connectrpc::Response<UnaryRes>>;
+
+                async fn server_stream_method(
+                    &self,
+                    ctx: connectrpc::Ctx,
+                    req: connectrpc::Request<StreamReq>,
+                ) -> connectrpc::ConnectResult<
+                    impl futures::Stream<Item = connectrpc::ConnectResult<StreamRes>>,
+                >;
+
+                async fn client_stream_method(
+                    &self,
+                    ctx: connectrpc::Ctx,
+                    reqs: impl futures::Stream<Item = connectrpc::ConnectResult<StreamReq>>,
+                ) -> connectrpc::ConnectResult<connectrpc::Response<StreamRes>>;
+
+                async fn bidi_stream_method(
+                    &self,
+                    ctx: connectrpc::Ctx,
+                    reqs: impl futures::Stream<Item = connectrpc::ConnectResult<StreamReq>>,
+                ) -> connectrpc::ConnectResult<
+                    impl futures::Stream<Item = connectrpc::ConnectResult<StreamRes>>,
+                >;
+            }
+        };
+
+        let output = expand_service(attr, item);
+        let out_str = output.to_string();
+
+        // All four procedure constant paths (string literals preserved verbatim)
+        assert!(out_str.contains(&lit("/test.v1.FullService/UnaryMethod")));
+        assert!(out_str.contains(&lit("/test.v1.FullService/ServerStreamMethod")));
+        assert!(out_str.contains(&lit("/test.v1.FullService/ClientStreamMethod")));
+        assert!(out_str.contains(&lit("/test.v1.FullService/BidiStreamMethod")));
+
+        // All four router registration calls (token-aware)
+        assert!(out_str.contains(&tok("router . unary (")));
+        assert!(out_str.contains(&tok("router . server_stream (")));
+        assert!(out_str.contains(&tok("router . client_stream (")));
+        assert!(out_str.contains(&tok("router . bidi_stream (")));
+
+        // Client uses the right receiver methods
+        assert!(out_str.contains(&tok("self . call . unary")));
+        assert!(out_str.contains(&tok("self . call . server_stream")));
+        // For client-stream and bidi the field name is snake_case
+        assert!(out_str.contains(&tok("self . client_stream_method . client_stream")));
+        assert!(out_str.contains(&tok("self . bidi_stream_method . bidi_stream")));
+    }
+
+    /// WHY: Verify snake_case conversion is applied correctly.
+    #[test]
+    fn test_method_name_conversion() {
+        let attr = quote! { package = "p.v1" };
+        let item = quote! {
+            pub trait ConvTest {
+                async fn greet_group(
+                    &self,
+                    ctx: connectrpc::Ctx,
+                    req: connectrpc::Request<R>,
+                ) -> connectrpc::ConnectResult<connectrpc::Response<Res>>;
+            }
+        };
+
+        let output = expand_service(attr, item);
+        let out = output.to_string();
+
+        // Procedure constant uses PascalCase path but SCREAMING_SNAKE_CASE name
+        assert!(out.contains(&tok("pub const GREET_GROUP : & str =")), "missing GREET_GROUP const");
+
+        // Procedure path string literal
+        assert!(out.contains(&lit("/p.v1.ConvTest/GreetGroup")));
+
+        // Registration fn uses snake_case
+        assert!(out.contains("register_conv_test"), "missing register fn");
+
+        // Client field uses snake_case
+        assert!(out.contains(&tok("greet_group : connectrpc :: Client < R , Res >")),
+            "client field should use snake_case");
+    }
+
+    /// WHY: Verify codecs attribute parsing generates the right codec expression.
+    #[test]
+    fn test_codec_json_expr() {
+        let attr = quote! { package = "test.v1", codecs(json) };
+        let item = quote! {
+            pub trait JsonSvc {
+                async fn call(
+                    &self,
+                    ctx: connectrpc::Ctx,
+                    req: connectrpc::Request<Req>,
+                ) -> connectrpc::ConnectResult<connectrpc::Response<Res>>;
+            }
+        };
+
+        let output = expand_service(attr, item);
+        let out = output.to_string();
+
+        assert!(
+            out.contains(&tok("ProcedureCodecs :: < Req , Res > :: of ((connectrpc :: JsonCodec ,))")),
+            "json codecs should produce ProcedureCodecs::of((JsonCodec,))"
+        );
+    }
+
+    /// WHY: Verify that protocol buffer codecs use defaults().
+    #[test]
+    fn test_codec_proto_expr() {
+        let attr = quote! { package = "test.v1", codecs(proto) };
+        let item = quote! {
+            pub trait ProtoSvc {
+                async fn call(
+                    &self,
+                    ctx: connectrpc::Ctx,
+                    req: connectrpc::Request<PReq>,
+                ) -> connectrpc::ConnectResult<connectrpc::Response<PRes>>;
+            }
+        };
+
+        let output = expand_service(attr, item);
+        let out = output.to_string();
+
+        assert!(
+            out.contains(&tok("ProcedureCodecs :: < PReq , Res > :: defaults ()")),
+            "proto codecs should produce defaults()"
+        );
+    }
+
+    /// WHY: Verify that the generate! macro produces the right module wrapper.
+    #[test]
+    fn test_generate_expansion() {
+        let input = quote! { foo::bar => mod my_mod { server, client } };
+        let output = expand_generate(input);
+        let out = output.to_string();
+
+        assert!(out.contains(&tok("pub mod my_mod")));
+        assert!(out.contains(&tok("foo :: bar ! ()")));
+    }
+
+    /// WHY: Verify the generate! macro produces a valid module even with
+    /// different path segments.
+    #[test]
+    fn test_generate_nested_path() {
+        let input = quote! { my_crate::my_mod::tokens => mod svc { server } };
+        let output = expand_generate(input);
+        let out = output.to_string();
+
+        assert!(out.contains(&tok("pub mod svc")));
+        assert!(out.contains(&tok("my_crate :: my_mod :: tokens ! ()")));
+    }
+
+    /// WHY: Verify the `to_snake_case` conversion function.
+    #[test]
+    fn test_to_snake_case() {
+        assert_eq!(to_snake_case("Greet"), "greet");
+        assert_eq!(to_snake_case("GreetGroup"), "greet_group");
+        assert_eq!(to_snake_case("GetURL"), "get_url");
+        assert_eq!(to_snake_case("ParseJSON"), "parse_json");
+        assert_eq!(to_snake_case("Simple"), "simple");
+        assert_eq!(to_snake_case("HTML"), "html");
+    }
+}

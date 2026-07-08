@@ -1,5 +1,6 @@
 use proc_macro::TokenStream;
 
+mod connectrpc_service;
 mod arrow_json_schema;
 mod arrow_schema;
 mod crate_paths;
@@ -702,5 +703,53 @@ pub fn wasm_worker(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_modes::wasm_service(attr.into(), item.into()).into()
+}
+
+// ── ConnectRPC code-first generation (Feature 27, Decision 10 Mode 3) ────
+
+/// `#[connectrpc::service]` — code-first ConnectRPC (Decision 10 Mode 3).
+///
+/// Transforms a Rust trait definition into a full ConnectRPC service:
+/// service name constant, procedure path constants (R1), the trait with
+/// default unimplemented bodies, registration fn, `UnimplementedXxxHandler`
+/// (R2), typed client (R4), and an exported descriptor macro for cross-crate
+/// generation via `connectrpc::generate!`.
+///
+/// # Attribute arguments
+///
+/// - `package = "pkg.name.v1"` — (required) protobuf-style package prefix.
+/// - `codecs(json, arrow, proto)` — (optional, default `json`) codec families.
+///
+/// # Example
+///
+/// ```ignore
+/// use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
+///
+/// #[service(package = "my.api.v1")]
+/// trait MyService {
+///     async fn unary(&self, ctx: Ctx, req: Request<MyReq>)
+///         -> ConnectResult<Response<MyRes>>;
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
+    connectrpc_service::expand_service(attr.into(), item.into()).into()
+}
+
+/// `connectrpc::generate!` — cross-crate ConnectRPC artifact generation.
+///
+/// Re-expands a descriptor macro exported by `#[connectrpc::service]` in
+/// another crate inside a new module.
+///
+/// # Example
+///
+/// ```ignore
+/// connectrpc::generate!(my_api::my_service_tokens => mod my_svc {
+///     server, client
+/// });
+/// ```
+#[proc_macro]
+pub fn generate(input: TokenStream) -> TokenStream {
+    connectrpc_service::expand_generate(input.into()).into()
 }
 

@@ -33,6 +33,13 @@ pub mod transport;
 pub use message::{Request, Response};
 pub use router::{ConnectRpcHandler, HandlerOptions, RequestStream, Router};
 
+/// Proc-macro for code-first ConnectRPC service generation (Feature 27,
+/// Decision 10 Mode 3). See `foundation_macros::service` for docs.
+pub use foundation_macros::{generate, service};
+
+/// Re-exported client types for generated code.
+pub use client::{BidiStream, Client, ClientStream, ServerStream};
+
 #[cfg(not(target_family = "wasm"))]
 pub use server::ConnectRpcServe;
 
