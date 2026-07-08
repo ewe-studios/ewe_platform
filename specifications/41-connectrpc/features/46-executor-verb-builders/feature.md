@@ -282,10 +282,21 @@ per method on one struct. Instead:
   `TaskSpawnConfig` + `as_*` transitions; four verb builders × two twins with
   `spawn/recv/stream/stream_with_config`; `#[cfg]` re-exports wired; both cfgs
   compile clean.
-- Part B4: **pending.** Fold `multi/mod.rs`'s `ThreadPoolTaskBuilder`/`spawn2`
-  onto the shared verb builders — `multi/mod.rs` still re-implements its own
-  dispatch methods (`schedule_iter`, `schedule`, `spawn`, etc.) rather than
-  routing through `builders/`.
+- Part B4: **deferred / carved out** (resolved 2026-07-08). `multi/mod.rs`'s
+  `ThreadPoolTaskBuilder` still exposes its own `schedule`/`schedule_iter`/
+  `stream_iter`/`ready_iter` dispatch, entered via the cfg-gated `spawn()`/`spawn2()`
+  twins (multi's `ThreadPoolTaskBuilder`, single's own) — already the blessed twin
+  pattern, so callers are cfg-portable. Folding it onto the shared verb builders is
+  **blocked by a substrate difference**: the verb builders dispatch through a
+  `BoxedExecutionEngine` (`e.schedule`/`e.lift`/…, and only `LocalExecutionEngine`
+  implements `ExecutionEngine`), whereas the pool builder **injects boxed tasks
+  directly into the pool's global `SharedTaskQueue`** with latch signalling
+  (`signal_one`/`signal_all`) and yielder interrupts — a distinct operation from a
+  thread-local engine `schedule`. Unifying them needs a new pool-injection
+  `ExecutionEngine` (or a substrate-generic builder) touching the hang-prone
+  latch/yielder path — low surface-unification value for real risk. Carved into a
+  follow-on; the pool builder already shares the substantive pieces
+  (`*ConsumingIter`/`OnNext`/`DoNext` wrappers and the Part A Mapper deletion).
 - Migration: ✅ **done.** In-tree call sites (`actions.rs`, test callers,
   `sendables.rs`/`non_sendables.rs` wrappers) updated to `as_<verb>().{spawn,
   recv, stream}` surface.
@@ -340,8 +351,10 @@ per method on one struct. Instead:
   `*ConsumingIter`s have no `mappers` field or application loop.
 - All existing valtron tests pass on both cfgs (`#[valtron_test]`, never
   `#[test]`/`#[serial]`); behaviour (dispatch, bounding, vacancy-park) unchanged.
-- `multi/mod.rs` no longer re-implements the builder dispatch; it routes through
-  the shared verb builders.
+- ~~`multi/mod.rs` no longer re-implements the builder dispatch; it routes through
+  the shared verb builders.~~ **Carved out (Part B4 deferred, 2026-07-08)** — the
+  pool builder keeps its own dispatch behind the cfg-gated `spawn`/`spawn2` twins;
+  see the Part B4 scope note for why (global-injection vs engine-dispatch substrate).
 
 ## Module references
 
