@@ -1,37 +1,45 @@
-//! Native HTTP/2 `Transport` implementation (Feature 30/31).
+//! Native HTTP/2 `Transport` implementation (Feature 30).
 //!
 //! WHY: `Transport` byte-level client-seam contract for HTTP/2 cleartext (h2c
-//! prior-knowledge). `open()` connects over TCP, runs the h2 handshake, spawns
-//! a pump OS-thread, and returns `TransportStream` synchronously.
+//! prior-knowledge). `open()` connects over TCP, negotiates the h2 handshake,
+//! spawns a valtron `TaskIterator` pump, and returns `TransportStream` synchronously.
 //!
-//! WHAT: [`H2Transport`] wraps nothing — it is a stateless factory. Each `open()`
-//! opens a fresh TCP connection, negotiates h2, and runs the entire exchange on
-//! a dedicated stdlib thread. The pump reads request bytes from the `send_body`
-//! pipe (via `try_recv` spin), frames them as h2 DATA, then reads h2 response
-//! frames and pushes HEADERS→head pipe, DATA→body pipe.
+//! WHAT: [`H2Transport`] wraps nothing — it is a stateless factory. The pump
+//! ([`H2Pump`]) is a [`TaskIterator`] that owns a non-blocking `TcpStream` and an
+//! [`H2Channel`]. Each poll: read fd bytes → feed channel → step → drain output →
+//! write fd. On `WouldBlock` it yields `TaskStatus::Delayed` so the valtron
+//! executor re-polls without busy-spinning.
 //!
-//! HOW: The h2 module uses blocking `Read + Write`; a thread-per-exchange pump
-//! is the natural model. A valtron-native non-blocking pump is deferred.
+//! HOW: Pattern matches `H1Transport` — `valtron::send(pump)` spawns the task
+//! on the pool; the caller gets `TransportStream { send_body, head, recv_body }`
+//! and drains response bytes from the pipe handles.
 
-use std::io;
+use std::io::{self, Read, Write};
 use std::net::TcpStream;
 use std::sync::Arc;
-use std::thread;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_core::valtron::{Pipe, PipeSender, PipeReceiver, TryRecvError};
+use foundation_core::valtron::{
+    self, BoxedSendExecutionAction, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
+    TryRecvError, TrySendError,
+};
 use foundation_netio::simple_http::shared::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
 };
-use foundation_netio::http2::connection::{H2Connection, H2Request};
+use foundation_netio::http2::channel::H2Channel;
+use foundation_netio::http2::connection::{H2Request, H2Response};
+use foundation_netio::http2::frame::{ErrorCode, HeadersFrame, Head, headers_flags, Kind};
 
 use super::{
     body_stream_from_pipe, head_stream_from_pipe, BodyStream, ByteSink, HeadStream,
     Transport, TransportCapabilities, TransportError, TransportStream,
 };
 
-const CONNECT_TIMEOUT: Duration = Duration::from_secs(10);
+const HANDSHAKE_TIMEOUT: Duration = Duration::from_secs(10);
+const POLL_DELAY: Duration = Duration::from_millis(10);
+
+// ── H2Transport ────────────────────────────────────────────────────────────
 
 /// HTTP/2 cleartext (h2c prior-knowledge) transport — one connection per call.
 #[derive(Clone, Default)]
@@ -54,41 +62,81 @@ impl Transport for H2Transport {
     }
 
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
-        let host = request.request_uri.host_str().map(|s| s.to_string()).unwrap_or_else(|| "localhost".into());
+        let host = request.request_uri.host_str()
+            .map(|s| s.to_string())
+            .unwrap_or_else(|| "localhost".into());
         let port = request.request_uri.port_or_default();
         let path = request.request_uri.path().to_string();
-        let scheme = "http".to_string();
         let method = request.method.clone();
         let req_headers = request.headers.clone();
 
+        // ── TCP connect (blocking — handshake must complete before pump starts) ──
         let addr = format!("{host}:{port}");
-        let stream = TcpStream::connect_timeout(
-            &addr.parse().unwrap(),
-            CONNECT_TIMEOUT,
+        let mut stream = TcpStream::connect_timeout(
+            &addr.parse().map_err(|e| TransportError::Connect(Arc::new(e)))?,
+            HANDSHAKE_TIMEOUT,
         ).map_err(|e| TransportError::Connect(Arc::new(e)))?;
 
-        // ── h2 handshake (synchronous, on caller's thread) ───────────────
-        let mut conn = H2Connection::new(stream, false);
-        conn.client_handshake().map_err(|e| {
-            TransportError::Connect(Arc::new(io::Error::new(io::ErrorKind::Other, e.to_string())))
-        })?;
+        // ── h2 handshake (blocking, on caller's thread) ────────────────────────
+        let mut channel = H2Channel::new(false); // is_server = false (client)
+        // Feed nothing yet — the handshake starts by sending preface+SETTINGS
+        loop {
+            match channel.client_handshake_step() {
+                Ok(true) => break, // done
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    // Drain output to socket, then read more
+                    let out = channel.drain_output();
+                    if !out.is_empty() {
+                        stream.write_all(&out).map_err(|e| TransportError::Connect(Arc::new(e)))?;
+                    }
+                    // Read bytes from socket, feed to channel
+                    let mut buf = [0u8; 8192];
+                    match stream.read(&mut buf) {
+                        Ok(0) => return Err(TransportError::Connect(Arc::new(io::Error::new(
+                            io::ErrorKind::UnexpectedEof, "connection closed during handshake"
+                        )))),
+                        Ok(n) => channel.feed_input(&buf[..n]),
+                        Err(e) => return Err(TransportError::Connect(Arc::new(e))),
+                    }
+                }
+                Err(e) => return Err(TransportError::Connect(Arc::new(e))),
+            }
+        }
+        // Flush any final output
+        let out = channel.drain_output();
+        if !out.is_empty() {
+            stream.write_all(&out).map_err(|e| TransportError::Connect(Arc::new(e)))?;
+        }
+        stream.flush().ok();
 
-        // ── Pipes (Pipe::new returns (sender, receiver)) ─────────────────
+        // ── Pipes ────────────────────────────────────────────────────────────
         let (send_tx, send_rx) = Pipe::<Bytes>::new();
         let (head_tx, head_rx) = Pipe::<(Status, SimpleHeaders)>::new();
         let (body_tx, body_rx) = Pipe::<Bytes>::new();
 
-        // ── Pump thread ──────────────────────────────────────────────────
-        thread::spawn(move || {
-            let result = run_pump(&mut conn, send_rx, &head_tx, &body_tx,
-                &method, &scheme, &host, port, &path, &req_headers);
-            if let Err(e) = result {
-                let _ = head_tx.try_send((Status::BadGateway, SimpleHeaders::new()));
-                let _ = body_tx.try_send(Bytes::from(format!("h2 pump error: {e}")));
-            }
-            head_tx.close();
-            body_tx.close();
-        });
+        // ── Spawn the valtron pump ────────────────────────────────────────────
+        let pump = H2Pump {
+            stream,
+            channel,
+            state: PumpPhase::SendingRequest,
+            send_rx,
+            head_tx,
+            body_tx,
+            method: method.to_string(),
+            host,
+            port,
+            path,
+            req_headers,
+            request_sent: false,
+            response_head_sent: false,
+        };
+
+        valtron::send(pump).map_err(|e| {
+            TransportError::Connect(Arc::new(io::Error::new(
+                io::ErrorKind::Other,
+                e.to_string(),
+            )))
+        })?;
 
         let head: HeadStream = head_stream_from_pipe(head_rx);
         let recv_body: BodyStream = body_stream_from_pipe(body_rx);
@@ -97,133 +145,275 @@ impl Transport for H2Transport {
     }
 }
 
-/// Map a u16 status code to a Status variant (best-effort).
-fn status_from_code(code: u16) -> Status {
+// ── H2Pump — valtron TaskIterator ──────────────────────────────────────────
+
+enum PumpPhase {
+    SendingRequest,
+    WaitingResponse,
+    Draining,
+    Done,
+}
+
+struct H2Pump {
+    stream: TcpStream,
+    channel: H2Channel,
+    state: PumpPhase,
+    send_rx: PipeReceiver<Bytes>,
+    head_tx: PipeSender<(Status, SimpleHeaders)>,
+    body_tx: PipeSender<Bytes>,
+    method: String,
+    host: String,
+    port: u16,
+    path: String,
+    req_headers: SimpleHeaders,
+    request_sent: bool,
+    response_head_sent: bool,
+}
+
+impl TaskIterator for H2Pump {
+    type Ready = ();
+    type Pending = ();
+    type Spawner = BoxedSendExecutionAction;
+
+    fn next_status(&mut self) -> Option<TaskStatus<(), (), BoxedSendExecutionAction>> {
+        // Set non-blocking
+        self.stream.set_nonblocking(true).ok();
+
+        loop {
+            // ── Read from socket, feed to channel ──────────────────────
+            let mut buf = [0u8; 8192];
+            match self.stream.read(&mut buf) {
+                Ok(0) => {
+                    // Connection closed
+                    self.head_tx.close();
+                    self.body_tx.close();
+                    return None;
+                }
+                Ok(n) => self.channel.feed_input(&buf[..n]),
+                Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    // No data — continue to process channel
+                }
+                Err(_e) => {
+                    self.head_tx.close();
+                    self.body_tx.close();
+                    return None;
+                }
+            }
+
+            match self.state {
+                PumpPhase::SendingRequest => {
+                    // ── Drain request body from pipe ──────────────────
+                    let mut body_bytes = Vec::new();
+                    loop {
+                        match self.send_rx.try_recv() {
+                            Ok(b) => body_bytes.extend_from_slice(&b),
+                            Err(TryRecvError::Closed) => break,
+                            Err(TryRecvError::Empty) => break,
+                        }
+                    }
+
+                    // ── Send the h2 request ───────────────────────────
+                    if !self.request_sent {
+                        let authority = Bytes::from(format!("{}:{}", self.host, self.port));
+                        let has_body = !body_bytes.is_empty();
+
+                        let mut h2_headers = Vec::new();
+                        for (k, vals) in &self.req_headers {
+                            for v in vals {
+                                h2_headers.push((
+                                    Bytes::copy_from_slice(k.to_string().as_bytes()),
+                                    Bytes::copy_from_slice(v.as_bytes()),
+                                ));
+                            }
+                        }
+
+                        let req = H2Request {
+                            method: Bytes::copy_from_slice(self.method.to_uppercase().as_bytes()),
+                            scheme: Bytes::from_static(b"http"),
+                            authority,
+                            path: Bytes::copy_from_slice(self.path.as_bytes()),
+                            headers: h2_headers,
+                            body: if has_body { Some(Bytes::from(body_bytes)) } else { None },
+                            end_stream: !has_body,
+                        };
+
+                        match self.channel.send_request(&req) {
+                            Ok(_sid) => self.request_sent = true,
+                            Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                                // Shouldn't happen — send_request doesn't read
+                            }
+                            Err(_e) => {
+                                let _ = self.head_tx.try_send((Status::BadGateway, SimpleHeaders::new()));
+                                self.head_tx.close();
+                                self.body_tx.close();
+                                return None;
+                            }
+                        }
+                    }
+
+                    // Flush output
+                    let out = self.channel.drain_output();
+                    if !out.is_empty() {
+                        match self.stream.write(&out) {
+                            Ok(_) => {}
+                            Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                                // Put bytes back? Just yield and retry.
+                                return Some(TaskStatus::Delayed(POLL_DELAY));
+                            }
+                            Err(_e) => {
+                                let _ = self.head_tx.try_send((Status::BadGateway, SimpleHeaders::new()));
+                                self.head_tx.close();
+                                self.body_tx.close();
+                                return None;
+                            }
+                        }
+                    }
+
+                    if self.request_sent {
+                        self.state = PumpPhase::WaitingResponse;
+                    }
+                }
+
+                PumpPhase::WaitingResponse => {
+                    // ── Try to read a response ─────────────────────────
+                    match self.channel.recv_response() {
+                        Ok(Some((_sid, resp))) => {
+                            // Extract pseudo-header :status from response headers
+                            let mut status = Status::OK;
+                            let mut resp_headers = SimpleHeaders::new();
+
+                            for (name, value) in &resp.headers {
+                                let n = String::from_utf8_lossy(name);
+                                if n == ":status" {
+                                    if let Ok(code) = String::from_utf8_lossy(value).trim().parse::<u16>() {
+                                        status = status_from_u16(code);
+                                    }
+                                } else {
+                                    resp_headers.entry(SimpleHeader::from(n.to_string()))
+                                        .or_default()
+                                        .push(String::from_utf8_lossy(value).to_string());
+                                }
+                            }
+
+                            let _ = self.head_tx.try_send((status, resp_headers));
+                            self.head_tx.close();
+                            self.response_head_sent = true;
+
+                            // Push body if present
+                            if let Some(body) = &resp.body {
+                                if !body.is_empty() {
+                                    let _ = self.body_tx.try_send(body.clone());
+                                }
+                            }
+
+                            if resp.end_stream {
+                                self.body_tx.close();
+                                self.state = PumpPhase::Done;
+                                return Some(TaskStatus::Pending(()));
+                            }
+
+                            self.state = PumpPhase::Draining;
+                        }
+                        Ok(None) => {
+                            // GOAWAY or connection closed
+                            let _ = self.head_tx.try_send((Status::BadGateway, SimpleHeaders::new()));
+                            self.head_tx.close();
+                            self.body_tx.close();
+                            return None;
+                        }
+                        Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                            // Need more data — flush writes, then yield
+                            let out = self.channel.drain_output();
+                            if !out.is_empty() {
+                                match self.stream.write(&out) {
+                                    Ok(_) => self.stream.flush().ok(),
+                                    Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {}
+                                    Err(_e) => {
+                                        self.head_tx.close();
+                                        self.body_tx.close();
+                                        return None;
+                                    }
+                                }
+                            }
+                            return Some(TaskStatus::Delayed(POLL_DELAY));
+                        }
+                        Err(_e) => {
+                            let _ = self.head_tx.try_send((Status::BadGateway, SimpleHeaders::new()));
+                            self.head_tx.close();
+                            self.body_tx.close();
+                            return None;
+                        }
+                    }
+                }
+
+                PumpPhase::Draining => {
+                    // Read more DATA frames
+                    match self.channel.recv_data_frame() {
+                        Ok(Some((_sid, data, end))) => {
+                            if !data.is_empty() {
+                                let _ = self.body_tx.try_send(data);
+                            }
+                            if end {
+                                self.body_tx.close();
+                                self.state = PumpPhase::Done;
+                                return Some(TaskStatus::Pending(()));
+                            }
+                        }
+                        Ok(None) => {
+                            self.body_tx.close();
+                            self.state = PumpPhase::Done;
+                            return Some(TaskStatus::Pending(()));
+                        }
+                        Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                            let out = self.channel.drain_output();
+                            if !out.is_empty() {
+                                let _ = self.stream.write(&out);
+                            }
+                            return Some(TaskStatus::Delayed(POLL_DELAY));
+                        }
+                        Err(_e) => {
+                            self.body_tx.close();
+                            return None;
+                        }
+                    }
+                }
+
+                PumpPhase::Done => {
+                    return Some(TaskStatus::Ready(()));
+                }
+            }
+
+            // Flush output
+            let out = self.channel.drain_output();
+            if !out.is_empty() {
+                match self.stream.write(&out) {
+                    Ok(_) => { self.stream.flush().ok(); }
+                    Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
+                        return Some(TaskStatus::Delayed(POLL_DELAY));
+                    }
+                    Err(_e) => {
+                        self.head_tx.close();
+                        self.body_tx.close();
+                        return None;
+                    }
+                }
+            }
+        }
+    }
+}
+
+fn status_from_u16(code: u16) -> Status {
     match code {
         200 => Status::OK,
         201 => Status::Created,
         204 => Status::NoContent,
-        301 => Status::MovedPermanently,
-        302 => Status::Found,
-        304 => Status::NotModified,
         400 => Status::BadRequest,
         401 => Status::Unauthorized,
         403 => Status::Forbidden,
         404 => Status::NotFound,
-        405 => Status::MethodNotAllowed,
-        408 => Status::RequestTimeout,
-        429 => Status::TooManyRequests,
         500 => Status::InternalServerError,
         502 => Status::BadGateway,
         503 => Status::ServiceUnavailable,
         _ => Status::InternalServerError,
     }
-}
-
-/// Run the h2 exchange on the pump thread.
-fn run_pump(
-    conn: &mut H2Connection<TcpStream>,
-    send_rx: PipeReceiver<Bytes>,
-    head_tx: &PipeSender<(Status, SimpleHeaders)>,
-    body_tx: &PipeSender<Bytes>,
-    method: &SimpleMethod,
-    scheme: &str,
-    host: &str,
-    port: u16,
-    path: &str,
-    req_headers: &SimpleHeaders,
-) -> io::Result<()> {
-    // ── Drain request body from pipe ─────────────────────────────────────
-    let mut body_buf = Vec::new();
-    loop {
-        match send_rx.try_recv() {
-            Ok(bytes) => body_buf.extend_from_slice(&bytes),
-            Err(TryRecvError::Closed) => break,
-            Err(TryRecvError::Empty) => {
-                std::thread::sleep(Duration::from_millis(1));
-            }
-        }
-    }
-
-    // ── Send h2 request ──────────────────────────────────────────────────
-    let method_str = method.to_string().to_uppercase();
-    let method_bytes = Bytes::copy_from_slice(method_str.as_bytes());
-    let authority_str = format!("{host}:{port}");
-    let authority_bytes = Bytes::copy_from_slice(authority_str.as_bytes());
-    let scheme_bytes = Bytes::copy_from_slice(scheme.as_bytes());
-    let path_bytes = Bytes::copy_from_slice(path.as_bytes());
-
-    let mut h2_headers: Vec<(Bytes, Bytes)> = Vec::new();
-    for (k, vals) in req_headers {
-        for v in vals {
-            h2_headers.push((
-                Bytes::copy_from_slice(k.to_string().as_bytes()),
-                Bytes::copy_from_slice(v.as_bytes()),
-            ));
-        }
-    }
-
-    let has_body = !body_buf.is_empty();
-    let req = H2Request {
-        method: method_bytes,
-        scheme: scheme_bytes,
-        authority: authority_bytes,
-        path: path_bytes,
-        headers: h2_headers,
-        body: if has_body { Some(Bytes::from(body_buf)) } else { None },
-        end_stream: !has_body,
-    };
-
-    conn.send_request(req).map_err(|e| io::Error::new(io::ErrorKind::Other, e))?;
-
-    // ── Read response ────────────────────────────────────────────────────
-    match conn.recv_response()? {
-        Some((_stream_id, response)) => {
-            let mut status = Status::OK;
-            let mut resp_headers = SimpleHeaders::new();
-
-            for (name, value) in &response.headers {
-                let n = String::from_utf8_lossy(name);
-                if n == ":status" {
-                    let s = String::from_utf8_lossy(value);
-                    if let Ok(code) = s.trim().parse::<u16>() {
-                        status = status_from_code(code);
-                    }
-                } else {
-                    let k = SimpleHeader::from(n.to_string());
-                    let v = String::from_utf8_lossy(value).to_string();
-                    resp_headers.entry(k).or_default().push(v);
-                }
-            }
-
-            head_tx.try_send((status, resp_headers)).ok();
-
-            // Push body if present
-            if let Some(body) = &response.body {
-                if !body.is_empty() {
-                    body_tx.try_send(body.clone()).ok();
-                }
-            }
-
-            // If not end_stream, read more DATA frames
-            if !response.end_stream {
-                loop {
-                    match conn.recv_data_frame()? {
-                        Some((_sid, data, end)) => {
-                            if !data.is_empty() {
-                                body_tx.try_send(data).ok();
-                            }
-                            if end { break; }
-                        }
-                        None => break,
-                    }
-                }
-            }
-        }
-        None => {
-            head_tx.try_send((Status::BadGateway, SimpleHeaders::new())).ok();
-        }
-    }
-
-    Ok(())
 }

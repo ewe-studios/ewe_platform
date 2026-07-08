@@ -24,6 +24,7 @@ pub mod hpack;
 pub mod settings;
 pub mod stream;
 pub mod connection;
+pub mod channel;
 pub mod client;
 pub mod server;
 pub mod detect;
