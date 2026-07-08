@@ -80,7 +80,7 @@ js-wasmbindgen = ["dep:wasm-bindgen", "dep:web-sys", "dep:js-sys", "dep:wasm-bin
 js-foundation-wasm = ["foundation_wasm/web"]
 
 # default flags
-default = ["standard", "std"]
+default = ["standard", "std", "alloc"]
 
 [build-dependencies]
 foundation_buildtools = { path = "../foundation_buildtools", version = "0.0.1" }

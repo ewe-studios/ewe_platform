@@ -274,21 +274,21 @@ per method on one struct. Instead:
 
 ## Scope
 
-- Part A: remove `Mapper` from `ExecutionTaskIteratorBuilder`,
-  `ThreadPoolTaskBuilder`, `spawn_builder`, `spawn_broadcaster`, `spawn2`; remove
-  the `mappers` field + application loop from the three `*ConsumingIter`s and
-  `OnNext`; drop `*ConsumingIter::new`'s mapper arg; delete `TaskStatusMapper` &
-  friends (`FnMapper`, `FnOptionMapper`, `ZeroMapping`, the `IntoBoxed*` and
-  `Boxed*` aliases) pending the removability audit.
-- Part B: introduce `builders/{mod,sendable,non_sendable}.rs` (convert
-  `builders.rs` → `builders/mod.rs`); `TaskSpawnConfig` + `as_*` transitions;
-  the four verb builders × two twins with `spawn/recv/stream/stream_with_config`;
-  wire `#[cfg]` re-exports; fold `multi/mod.rs`'s builder onto the shared path.
-- Migration: update the in-tree call sites (all in `foundation_core`:
-  `actions.rs` `spawn_broadcaster(…).broadcast()` → `…as_broadcast().spawn()`;
-  the `*_iter`/`stream_*_iter` test callers → `as_<verb>().recv()/stream()`), and
-  the `sendables.rs`/`non_sendables.rs` high-level wrappers (`execute`, `send`,
-  `collect_result`, …) that consume the builder.
+- Part A: ✅ **done.** `Mapper` removed from all builders; `mappers` field +
+  application loop removed from `*ConsumingIter`s and `OnNext`;
+  `TaskStatusMapper`, `FnMapper`, `FnOptionMapper`, `ZeroMapping`, and the
+  `IntoBoxed*`/`Boxed*` aliases deleted. Zero references remain.
+- Part B1-B3: ✅ **done.** `builders/{mod,sendable,non_sendable}.rs` created;
+  `TaskSpawnConfig` + `as_*` transitions; four verb builders × two twins with
+  `spawn/recv/stream/stream_with_config`; `#[cfg]` re-exports wired; both cfgs
+  compile clean.
+- Part B4: **pending.** Fold `multi/mod.rs`'s `ThreadPoolTaskBuilder`/`spawn2`
+  onto the shared verb builders — `multi/mod.rs` still re-implements its own
+  dispatch methods (`schedule_iter`, `schedule`, `spawn`, etc.) rather than
+  routing through `builders/`.
+- Migration: ✅ **done.** In-tree call sites (`actions.rs`, test callers,
+  `sendables.rs`/`non_sendables.rs` wrappers) updated to `as_<verb>().{spawn,
+  recv, stream}` surface.
 - Preserve behaviour: dispatch semantics, delivery-queue bounding (Feature 45
   Part B: `sequenced` bounded, `lift`/`schedule` unbounded), and the Feature 45
   Part A vacancy-park are all unchanged; this is a surface reshape, not a
@@ -297,7 +297,7 @@ per method on one struct. Instead:
 ## Out of scope
 
 - The Feature 45 delivery/fan-out **backpressure** semantics themselves (Part A
-  vacancy-park, Part C split parks, Part D Pipe-shrink) — 46 only reshapes the
+  vacancy-park, Part C split parks, Part D transport fan-out) — 46 only reshapes the
   builder that 45's delivery forms hang off, and fixes the `'static` bounds 45
   left on the `not(multi)` `*ConsumingIter` impls.
 - The `EventReadinessPtr` cfg-split design (ratified by Feature 45 / Decision 00);
