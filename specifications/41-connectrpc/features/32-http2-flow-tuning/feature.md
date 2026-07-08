@@ -1,7 +1,7 @@
 ---
 feature: "HTTP/2 flow-control tuning (D12 §5 phase 3)"
 description: "Window sizing/update strategy informed by profiling; the declared implementation-time tunable"
-status: "pending"
+status: "complete"
 priority: "low"
 phase: 2
 depends_on: ["30-http2-multiplexers"]
