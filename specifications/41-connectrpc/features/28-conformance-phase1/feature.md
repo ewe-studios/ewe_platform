@@ -1,7 +1,7 @@
 ---
 feature: "Conformance harness + Phase-1 suites (Connect/gRPC-Web on h1)"
 description: "Run the connectrpc conformance YAML suites against our server and client for the Phase-1 matrix"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["22-router-dispatch", "24-client-core", "26-codegen-proto"]
