@@ -10,7 +10,12 @@ description = "Central crate for all foundation crates for the ewe-platform proj
 keywords = ["foundations_core", "ewe-platform-core"]
 
 [lib]
-crate-type = ["cdylib", "rlib"]
+# rlib only: every consumer that needs a shared library (nodejs integrations,
+# examples, the wasm_tests harness) declares its OWN `crate-type = ["cdylib"]`
+# and depends on this crate as an rlib. Declaring `cdylib` here just emitted a
+# redundant, fixed-named `libfoundation_core.so` that collided with itself across
+# feature-variant builds (cargo#6313 "output filename collision").
+crate-type = ["rlib"]
 
 [dependencies]
 # Proc macros this crate re-exports (#[valtron], #[valtron_test] from
