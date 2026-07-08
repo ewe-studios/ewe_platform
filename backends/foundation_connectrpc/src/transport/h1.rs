@@ -1,12 +1,15 @@
 //! Native HTTP/1.1 `Transport` implementation (Decision 11 §Transport, Feature 44
-//! walking skeleton).
+//! walking skeleton; F45 Part D seam shrink).
 //!
 //! WHY: `Transport` byte-level client-seam contract.
-//! WHAT: `open()` creates an `HttpExchangeTask` (native: wraps `SendRequestTask` via
-//! `inlined_task`), maps its output into caller-facing pipes via `map_ready`, spawns on
-//! the valtron pool via `valtron::send()`, returns `TransportStream` synchronously.
-//! HOW: `PreparedRequest` → `HttpExchangeTask::new()` → `.map_ready(|item| match item {
-//! Head → head_tx, BodyChunk → recv_tx, Failed → done })` → `valtron::send()`.
+//! WHAT: `open()` creates an `HttpExchangeTask` (native: wraps `SendRequestTask`)
+//! and fans its `HttpExchange` output out with valtron's native splits — the head
+//! into a `HeadStream`, the body into a `BodyStream` — spawns the drive task on the
+//! valtron pool via `valtron::send()`, and returns `TransportStream` synchronously.
+//! HOW: `PreparedRequest` → `HttpExchangeTask::new()` →
+//! `.split_collect_until_map(head)` → `.split_collector_map(body)` →
+//! `body_cont.map_ready(|_| ())` → `valtron::send()`; each observer is bridged into
+//! its erased stream via `into_next_stream()`. `send_body` is the only `Pipe`.
 
 use std::sync::Arc;
 
@@ -17,7 +20,8 @@ use foundation_netio::simple_http::client::shared::PreparedRequest;
 use foundation_netio::simple_http::client::{HttpExchangeTask, SimpleHttpClient};
 use foundation_netio::simple_http::shared::Extensions;
 use foundation_netio::simple_http::shared::{
-    pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor, DEFAULT_PUSHABLE_DEPTH,
+    pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
+    DEFAULT_PUSHABLE_DEPTH,
 };
 
 use super::{
@@ -25,7 +29,7 @@ use super::{
     TransportStream,
 };
 
-#[derive(Clone)]
+#[derive(Clone, Default)]
 pub struct H1Transport {
     client: Arc<SimpleHttpClient>,
 }
@@ -113,7 +117,7 @@ impl Transport for H1Transport {
         // values, so terminate it with `map_ready(|_| ())` before spawning — body
         // chunks must not be buffered a second time into an undrained delivery queue
         // (F45 Resolution 8). This is the only task spawned; the two observers are
-        // drained by the caller through the erased `HeadFuture`/`BodyStream`.
+        // drained by the caller through the erased `HeadStream`/`BodyStream`.
         let drive = body_cont.map_ready(|_| ());
         valtron::send(drive).map_err(|e| {
             TransportError::Connect(Arc::new(std::io::Error::new(
