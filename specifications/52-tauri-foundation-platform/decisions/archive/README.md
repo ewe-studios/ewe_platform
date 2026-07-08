@@ -3,6 +3,21 @@
 These files have been merged into consolidated decision documents.
 They are preserved here for reference but are no longer canonical.
 
+## Current canonical docs (10 files, sequentially numbered)
+
+| # | File | Source |
+|---|---|---|
+| 01 | `01-platform-and-crates.md` | 01 + 17 |
+| 02 | `02-route-policy-model.md` | (rewritten in-place) |
+| 03 | `03-session-backbone-transport.md` | 03 + 04 + 15 + 06 + 07 + 08 |
+| 04 | `04-deployment-surfaces.md` | 09 + 10 + 11 + 12 + 13 + 16 |
+| 05 | `05-offline-and-sync.md` | 05 + 22 |
+| 06 | `06-webview-profiles.md` | 14 (renumbered) |
+| 07 | `07-native-capability-contract.md` | 18 (renumbered) |
+| 08 | `08-security-model.md` | 19 (renumbered) |
+| 09 | `09-testing-strategy.md` | 20 (renumbered) |
+| 10 | `10-multi-webview-stack.md` | 21 (renumbered) |
+
 ## Round 1 merges
 
 ### Merged into 02-route-policy-model.md (rewritten in-place)
@@ -38,14 +53,9 @@ They are preserved here for reference but are no longer canonical.
 ### Folded into 04-deployment-surfaces.md
 - `16-entrypoint-model.md` — entrypoint attributes, build pipeline
 
-## Current canonical docs (10 files)
-- `01-platform-and-crates.md` — architecture, dependency graph, type residency
-- `02-route-policy-model.md` — RouteHandler trait, RouteDecision, execution contract
-- `03-session-backbone-transport.md` — session backbone, all transport lanes, ewe://
-- `04-deployment-surfaces.md` — 5 deployment surfaces, entrypoint modes
-- `05-offline-and-sync.md` — offline model, cache tiers, background sync
-- `14-webview-profiles.md` — trust boundaries, profile taxonomy, service gates
-- `18-native-capability-contract.md` — capability trait, native bridges, permissions
-- `19-remote-ui-security-red-team.md` — security red team
-- `20-testing-strategy.md` — testing strategy
-- `21-multi-webview-stack.md` — WebView stack manager, screenshot swap
+### Renumbered (no content change)
+- `14-webview-profiles.md` → `06-webview-profiles.md`
+- `18-native-capability-contract.md` → `07-native-capability-contract.md`
+- `19-remote-ui-security-red-team.md` → `08-security-model.md`
+- `20-testing-strategy.md` → `09-testing-strategy.md`
+- `21-multi-webview-stack.md` → `10-multi-webview-stack.md`

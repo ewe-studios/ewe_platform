@@ -738,7 +738,7 @@ Three tiers of native integration:
 **Tier 1 — Use Tauri's built-in capabilities** where they meet our needs:
 window management, native menus, platform plugins, filesystem APIs. These are
 wrapped in the platform's capability registry and called through the session
-backbone (see [decision 18](18-native-capability-contract.md)).
+backbone (see [decision 18](07-native-capability-contract.md)).
 
 **Tier 2 — Build native Swift/Kotlin bridges** where Tauri falls short:
 native navigation controllers, tab bars, sheets, biometric flows,
@@ -826,13 +826,13 @@ Verified against source (`manager/mod.rs`, `state.rs`, `app.rs`):
 **What Tauri does NOT provide (we build these):**
 - Route/navigation policy — [decision 02](02-route-policy-model.md)
 - Session lifecycle management — this document
-- Capability registry — [decision 18](18-native-capability-contract.md)
+- Capability registry — [decision 18](07-native-capability-contract.md)
 - Bridge component routing
 - Cache/offline policy — [decision 05](05-offline-and-sync.md)
 - Page/screen identity tracking
 - `ewe://` custom protocol adapter — this document
-- WebView stack manager — [decision 21](21-multi-webview-stack.md)
-- WebView profiles — [decision 14](14-webview-profiles.md)
+- WebView stack manager — [decision 21](10-multi-webview-stack.md)
+- WebView profiles — [decision 14](06-webview-profiles.md)
 - Background sync — [decision 05](05-offline-and-sync.md)
 
 ---

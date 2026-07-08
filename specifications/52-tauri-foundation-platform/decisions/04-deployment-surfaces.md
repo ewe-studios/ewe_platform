@@ -55,7 +55,7 @@ adapts accordingly.
 - **Transport lanes** — all 7 lanes pre-wired and ready.
 - **WebView bootstrap** — `foundation-wasm-ui.js` loaded, runtime initialized.
 - **Capability registry** — native capabilities registered and permissioned
-  ([decision 18](18-native-capability-contract.md)).
+  ([decision 18](07-native-capability-contract.md)).
 - **Cache database** — SQLite, indexed by route, profile-gated.
 - **Lifecycle management** — app startup, shutdown, background/foreground
   events.

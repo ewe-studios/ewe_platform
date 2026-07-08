@@ -43,13 +43,13 @@ replace or circumvent Tauri — it extends Tauri's lifecycle with:
 - **Deployment surfaces** — 5 ways to ship application logic, from bundled
   WASM to remote server ([decision 04](04-deployment-surfaces.md)).
 - **WebView profiles** — runtime trust boundaries gating platform service
-  access per route ([decision 14](14-webview-profiles.md)).
+  access per route ([decision 06](06-webview-profiles.md)).
 - **Capability registry** — native capabilities (camera, biometrics, file
   picker) registered and permissioned per route
-  ([decision 18](18-native-capability-contract.md)).
+  ([decision 07](07-native-capability-contract.md)).
 - **WebView stack manager** — multi-WebView native-stack simulation with
   screenshot swap and background preload
-  ([decision 21](21-multi-webview-stack.md)).
+  ([decision 10](10-multi-webview-stack.md)).
 - **Offline and sync** — cache tiers, mutation queue, background sync
   ([decision 05](05-offline-and-sync.md)).
 

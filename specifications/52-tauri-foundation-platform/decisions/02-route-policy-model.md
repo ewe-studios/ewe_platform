@@ -280,7 +280,7 @@ The distinction between `presentation` and `render_mode`:
 
 - **`presentation`** controls the **navigation stack** — where the screen lives
   in the stack hierarchy, what transition plays, how the back button behaves.
-  It drives the WebView stack manager ([decision 21](21-multi-webview-stack.md)).
+  It drives the WebView stack manager ([decision 21](10-multi-webview-stack.md)).
 
 - **`render_mode`** controls the **content rendering pipeline** — what format
   the content is in, which rendering subsystem processes it, how it becomes
@@ -468,7 +468,7 @@ profile is specified, the platform defaults apply:
 | Auth path (`/auth/*` or configured) | `Auth` |
 
 Full profile details (service access gates, CSP, cross-profile isolation) are
-in [decision 14](14-webview-profiles.md). The profile is enforced by the session
+in [decision 14](06-webview-profiles.md). The profile is enforced by the session
 backbone at runtime — every platform service call checks the active profile
 before allowing access.
 
@@ -572,7 +572,7 @@ match decision.cache_policy {
 ### Step 4: Presentation execution
 
 The session hands the `RouteDecision.presentation` to the WebView stack
-manager ([decision 21](21-multi-webview-stack.md)):
+manager ([decision 21](10-multi-webview-stack.md)):
 
 ```
 Presentation::Morph    → stack manager stays on current screen,
@@ -1053,7 +1053,7 @@ At a high level:
 | `Devtools` | Full (dev only) | Full (dev only) | Full (dev only) | Full (dev only) | All (dev only) |
 
 The full per-service breakdown (CSP directives, storage isolation, cookie jar
-separation, navigation restrictions) is in [decision 14](14-webview-profiles.md).
+separation, navigation restrictions) is in [decision 14](06-webview-profiles.md).
 
 The profile is assigned in `RouteDecision.profile`. The session backbone
 enforces it:
@@ -1150,7 +1150,7 @@ session.route("/chat/*", RouteDecision::local_wasm()
 ```
 
 Full capability contract details (trait, proc macro, native bridges,
-permission model) are in [decision 18](18-native-capability-contract.md).
+permission model) are in [decision 18](07-native-capability-contract.md).
 
 ---
 
