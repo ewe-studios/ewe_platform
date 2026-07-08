@@ -17,6 +17,8 @@ pub mod envelope;
 pub mod error;
 pub mod error_writer;
 pub mod interceptor;
+#[cfg(feature = "auth")]
+pub mod auth;
 pub mod message;
 pub mod router;
 
@@ -44,6 +46,13 @@ pub use protocol::grpc_web::{GrpcWebClient, GrpcWebHandler};
 pub use interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, StreamCall, StreamingClientFunc,
     StreamingHandlerFunc, UnaryCall, UnaryFunc, UnaryInterceptorFunc, UnaryReply,
+};
+
+#[cfg(feature = "auth")]
+pub use auth::{
+    authenticate_request, bearer_token, get_auth_artifact, get_auth_info, infer_procedure,
+    infer_protocol, AuthFunc, AuthInfo, AuthzInterceptor, CompositeAuthenticator,
+    JwtAuthenticator, PerProcedureAuth,
 };
 
 pub use transport::{

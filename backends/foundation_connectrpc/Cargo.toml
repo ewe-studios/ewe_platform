@@ -16,6 +16,7 @@ foundation_netio = { path = "../foundation_netio", version = "0.0.1" }
 foundation_http = { path = "../foundation_http", version = "0.0.1" }
 tracing = "0.1"
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
+foundation_auth = { path = "../foundation_auth", version = "0.0.1", optional = true }
 buffa = { version = "0.8.1", features = ["json"] }
 bytes = "1.5"
 futures = "0.3"
@@ -45,6 +46,8 @@ arrow = ["dep:foundation_arrow"]
 # Additional compressors (gzip is always available via flate2).
 zstd = ["dep:zstd"]
 brotli = ["dep:brotli"]
+# Auth module — requires foundation_auth.
+auth = ["dep:foundation_auth"]
 
 # Tests that use the valtron pool need the multi-threaded executor.
 [[test]]
@@ -62,3 +65,7 @@ required-features = ["multi"]
 [[test]]
 name = "grpc_web_tests"
 required-features = ["multi"]
+
+[[test]]
+name = "auth_tests"
+required-features = ["multi", "auth"]
