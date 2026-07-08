@@ -1,7 +1,7 @@
 ---
 feature: "Code-first Mode 3: #[connectrpc::service] + cross-crate generate! (D10)"
 description: "Trait-driven service definition (json/arrow families) + descriptor-macro cross-crate generation"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 1
 depends_on: ["26-codegen-proto"]
