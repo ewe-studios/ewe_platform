@@ -141,7 +141,9 @@ impl TaskIterator for WasmHttpExchangeTask {
             },
             WasmExchangeState::Failed(ref mut opt) => opt
                 .take()
-                .map(|e| TaskStatus::Ready(HttpExchange::Failed(e))),
+                // Box → Arc at the public boundary (F45 Resolution 7): the error
+                // is fanned out to both split branches, so it must be clonable.
+                .map(|e| TaskStatus::Ready(HttpExchange::Failed(std::sync::Arc::from(e)))),
         }
     }
 }

@@ -285,21 +285,38 @@ uses native fan-out instead of hand-rolled pipes:
 
 ## Scope
 
-- Part A (+A0): audit **all** `ExecutionIterator` impls (the task wrappers) per
-  the discrimination rule; the only edits are the `PushError::Full` arms in
-  `StreamConsumingIter` / `ConsumingIter` / `ReadyConsumingIter` (native +
-  `non_sendable`) → `Depends(QueueVacancyReadiness)`; add `NotifyQueue::queue()`
-  Arc accessor. Confirm pass-throughs and `OnNext`/`DoNext`/`CollectNext` forward
-  `Depends` (no change); do **not** touch `Init`/`Ignore`/`Spread`/`Pending`.
-- Part B (Decision 15): `sequenced_iter` / `stream_sequenced_iter*` allocate
-  `NotifyQueue::bounded(DEFAULT_DELIVERY_CAPACITY)` instead of `unbounded()`; add
-  the const. `lift` and all other paths untouched.
-- Part C1: replace `force_push` with vacancy-park across the existing `split_*`
-  family; define observer-dropped behaviour (default = backpressure; drop is a
-  separate loud opt-in).
-- Part D: migrate `H1Transport::open` (and WASM pump) to `split_collect_one` for
-  head/body; `Result`-typed head/body payloads; keep `send_body` as the only
-  Pipe. Update `round_trip` + F44 transport tests accordingly.
+- Part A (+A0): ✅ **done.** Audit all `ExecutionIterator` impls per the
+  discrimination rule; `PushError::Full` arms in `StreamConsumingIter` /
+  `ConsumingIter` / `ReadyConsumingIter` (native + `non_sendable`) →
+  `Depends(QueueVacancyReadiness)`; `NotifyQueue::queue()` Arc accessor added.
+  Pass-throughs and `OnNext`/`DoNext`/`CollectNext` confirmed forwarding
+  `Depends`; `Init`/`Ignore`/`Spread`/`Pending` untouched.
+- Part B (Decision 15): ✅ **done.** `sequenced_iter` /
+  `stream_sequenced_iter*` allocate `NotifyQueue::bounded(DEFAULT_DELIVERY_CAPACITY)`;
+  `DEFAULT_DELIVERY_CAPACITY` const added; `lift` untouched.
+- Part C1: ✅ **done.** `force_push` → `Depends(QueueVacancyReadiness)` across
+  the 4 task-split continuation types (both twins); observer `Drop` impls close
+  queue; dropped-observer policy (stop copying, keep forwarding).
+- **C1b — Observer async compatibility (not in original spec):** all 10
+  observer structs yield `Stream::Wait` on empty-open instead of `Stream::Ignore`
+  (makes `into_ready_future()` / `into_pending_future()` work correctly over
+  observers). Add `fn readiness(&self) -> QueueReadiness<Stream<D, P>>` accessor
+  to every observer (enables `Depends(observer.readiness())` for task-path
+  consumers). See Resolutions 2, 3.
+- **C1c — Stream splits (not in original spec):** 4 stream-split continuation
+  types (both twins) replace `force_push` with stash + `Stream::Wait`
+  (cooperative yield). See Resolution 4.
+- **C1d — `into_next_stream()` adapter (not in original spec):** new
+  `futures_core::Stream<Item = D>` adapter on `StreamIteratorExt`, same
+  self-wake mechanics as existing bridges. See Resolution 5.
+- **Pre-D — Error Clone (Resolution 7):** `TransportError` gains `Clone` via
+  Arc-wrapped `Io` and `Connect` variants; `HttpExchange::Failed` switches to
+  `Arc<dyn Error + Send + Sync>` in `foundation_netio`.
+- Part D: migrate `H1Transport::open` (and WASM pump) to
+  `split_collect_until_map` (head peel) + `split_collector_map` (body
+  continuation) with `Result` payloads; consumers use `into_ready_future()`
+  (head) and `into_next_stream()` (body); keep `send_body` as the only `Pipe`.
+  Update `round_trip` + F44 transport tests.
 
 ## Out of scope
 
@@ -308,73 +325,114 @@ uses native fan-out instead of hand-rolled pipes:
   path keeps `unbounded`).
 - The Decision 11 seam `FramePipe` itself (00-F4 — already done for the seam).
 - The reactor / real-I/O parking (Decision 00 §L2, `foundation_nativeapis`).
-- HTTP/2/3/WS transports (they inherit the shrink once D lands for H1).
+- N-way broadcast / `split_n` / `broadcast_lossy` (carved to follow-on feature).
+- Embedding `Pipe` inside split combinators (explicitly rejected — the raw
+  `ConcurrentQueue` + `Wait` fix + existing bridges suffice).
 
 ## Resolutions ratified during implementation (2026-07-07)
 
-The plan review before Part D surfaced one genuine gap (consumer-side parking on
-the split channels) and three unratified details. Resolutions, agreed with the
-user:
+The initial design proposed embedding `Pipe` inside every split combinator and
+flattening the channel element type. The session reviewed both decisions and
+reversed them: the task path doesn't need Pipe (the executor's sleeper
+re-checks `EventReadiness::is_ready()` on its own cadence), the async path is
+already served by the existing `into_ready_future()`/`into_pending_future()`
+bridges, and `Stream<D, P>` carries real in-band data (`Pending`) that must not
+be silently discarded.
 
-1. **Split channels are Pipe-backed (C1b — the consumer-side wake half C1
-   missed).** The task-split observer/continuation pairs share a
-   [`Pipe`](../../decisions/00-valtron-async-readiness.md) instead of a raw
-   `ConcurrentQueue`. Why: the task path parks natively on `EventReadiness` in
-   *both* directions with zero wake wiring (producer: `Depends(tx.vacancy())` =
-   C1 verbatim; consumer: `Depends(rx.readiness())`, sleeper re-check) — but the
-   **async path cannot**: a parked future is unparked only by its waker firing
-   (00-F1 bridge), and only a push-side waker stash can fire it (the 00-F4
-   pattern). Part D's consumers (`round_trip`, `read_response_frames`, grpc-web
-   reader) are async fns, so the waker must live in the split channel. Pipe is
-   the one wake-correct primitive; splits compose over it rather than
-   re-deriving half of it. Observers gain `readiness()` (task consumers) and
-   `receive().await` (async consumers); the manual observer `Drop` impls are
-   replaced by the pipe halves' own close-on-drop.
-2. **Stream splits folded into scope (kills the last `force_push`).** The
-   parallel `split_*` family in `extensions/streams/{sendable,non_sendable}.rs`
-   rides the same pipe-backed channel. Its continuation yields `Stream<D,P>`
-   (no `Depends` variant → cannot park), so on a full observer it stashes the
-   undelivered copy and returns **`Stream::Wait`** — the stream model's native
-   lossless cooperative yield (~4ms setTimeout on JS) — instead of the silent
-   `force_push` drop. Acceptance criterion upgraded: **zero `force_push`
-   anywhere in `extensions/`** (tasks and streams).
-3. **Split channel element type is the bare value.** Continuations only ever
-   push `Stream::Next(v)`, so the pipe carries `D`/`M` directly; observers keep
-   their `Iterator<Item = Stream<D, P>>` surface (synthesizing
-   `Next`/`Ignore`/`None`) and `receive().await` yields a clean `Option<D>`.
-4. **Clone bounds (closes Open Question 4 concretely).** `HttpExchange` is not
-   `Clone` (`Failed(SendableBoxedError)`), so Part D uses the `*_map` splits.
-   `TransportError` becomes `Clone` by Arc-wrapping its two non-Clone payloads
-   (`Io(Arc<std::io::Error>)`, `Connect(Arc<dyn Error + Send + Sync>)`), and
-   `HttpExchange::Failed` switches to `Arc<dyn Error + Send + Sync>` in netio so
-   a pre-head failure clones losslessly into **both** the head and body
-   branches (no stringify at the transform).
-5. **No double-buffering on the drive task.** After the two splits the final
+The corrected architecture — **no Pipe in splits, no element-type flattening** —
+with the actual fixes needed:
+
+1. **Split channels stay on raw `ConcurrentQueue`; Pipe is NOT embedded.**
+   The task path parks natively via `Depends(QueueVacancyReadiness)` — the
+   executor's `Sleepers` re-checks `is_ready()` on its cadence; a `push()` that
+   fills a slot / a `pop()` that frees one flips the readiness, and the parked
+   task unparks on the next check. No waker, no Pipe, no wiring needed (this is
+   exactly what Decision 00 §L1b and Feature 00-F4 already describe for the task
+   path). The async path is served by the **existing** `into_ready_future()` /
+   `into_pending_future()` bridges (`stream_future.rs`) — those bridges already
+   implement the self-wake pattern that `FutureTask` sanctions (yield to
+   executor via `wake_by_ref()` + `Poll::Pending`). The only obstacle blocking
+   them from working over split observers was the observer signal choice
+   (Resolution 2). C1's `Depends(QueueVacancyReadiness)` park and the manual
+   observer `Drop` impls remain as landed.
+
+2. **Observer empty-open yields `Stream::Wait`, not `Stream::Ignore`.**
+   The `into_ready_future()` bridge loops on `Stream::Ignore` *inside* `poll()`
+   without yielding to the executor (`stream_future.rs:99`); it only yields on
+   `Wait`/`Pending`/`Delayed`/`Init` via `wake_by_ref()` + `Poll::Pending`. But
+   all 10 split observer structs (4 task + 2 stream × 2 twins) yield
+   `Stream::Ignore` when their queue is empty-but-open — so awaiting an observer
+   via `into_ready_future()` hard-spins inside poll and the pump task never gets
+   a turn. **Fix:** every observer yields `Stream::Wait` on empty-open, matching
+   `NotifyQueueStreamIterator`'s existing convention (`local.rs:595`). This
+   single-line change per observer makes the existing bridges work correctly
+   over observers — no new wrapper type, no Pipe, no refit.
+
+3. **Split observers gain a `readiness()` accessor.** Task-path consumers park
+   via `Depends(QueueReadiness)`. But the observer structs don't expose their
+   inner `Arc<ConcurrentQueue<Stream<D, P>>>`, so a consumer literally can't
+   construct the readiness. Add a trivial `fn readiness(&self) ->
+   QueueReadiness<Stream<D, P>>` to every observer. Zero wake wiring — the
+   executor's sleeper cadence handles it, exactly as Decision 00 §L1b describes.
+
+4. **Stream splits: `force_push` → stash + `Stream::Wait`.**
+   The 4 stream-split continuation types (2 twins × 4 sites = 8 call sites)
+   currently call `force_push` — silent drop on a full observer queue. `Stream`
+   has no `Depends` variant, so a stream continuation physically cannot park.
+   Fix: add `pending_item: Option<Stream<D,P>>` stash; on Full, stash +
+   return `Stream::Wait` (the stream model's native lossless cooperative yield,
+   ~4ms setTimeout on JS); retry stashed push on next `next()`. Acceptance
+   criterion: **zero `force_push` anywhere in `extensions/`** (tasks already
+   park via C1; streams get `Wait`; the count goes to zero in both families).
+
+5. **`into_next_stream()` adapter — a `futures_core::Stream<Item = D>`.**
+   `into_ready_future()` gives one value + remaining iterator — works for the
+   one-shot head but is ceremonial for body chunks (re-wrap loop).
+   `into_future_stream()` is a raw lens that yields items as-is (including
+   `Wait`) and never returns `Poll::Pending`, so it can't serve as an awaitable
+   stream. The new adapter: yields `Next(v)` as `Ready(Some(v))`, self-wakes on
+   `Wait`/`Pending`/`Delayed`/`Init`, and returns `Ready(None)` on exhaustion.
+   Same self-wake mechanics as the existing bridges. Enables clean
+   `while let Some(chunk) = body.next().await` body consumption in Part D.
+
+6. **Channel element type stays `Stream<D, P>`.** Earlier the design proposed
+   carrying bare `D`/`M` directly (since continuations only push
+   `Stream::Next(v)`). But `Pending` is in-band data in the stream family
+   (progress states, intermediate markers), and flattening the channel type
+   would silently delete that lane from every observer. The channel carries the
+   full `Stream<D, P>` item; observers keep their `Iterator<Item = Stream<D,
+   P>>` surface. The `*_map` variants project what crosses (Part D's head split
+   forwards only the head/error and never `Pending`), but the primitive never
+   discards.
+
+7. **Clone bounds — `TransportError` and `HttpExchange::Failed`.**
+   `TransportError` becomes `Clone` by Arc-wrapping its non-`Clone` payloads:
+   `Io(Arc<std::io::Error>)`, `Connect(Arc<dyn Error + Send + Sync>)`,
+   `Protocol(String)` (already `Clone`), others are unit variants.
+   `HttpExchange::Failed` switches from `SendableBoxedError` (`Box<dyn Error +
+   Send + Sync>`) to `Arc<dyn Error + Send + Sync>` in `foundation_netio`, so a
+   pre-head failure clones losslessly into **both** split branches without
+   stringification at the transform.
+
+8. **No double-buffering on the drive task.** After the two splits the final
    continuation still yields the original `HttpExchange` values; it is
    terminated with `.map_ready(|_| ())` before spawning so body chunks are not
    buffered a second time into an undrained delivery queue.
 
 ## Open questions (resolve during implementation)
 
-1. **`NotifyQueue` producer wake for promptness — RESOLVED: gate on bounded.**
-   Task-path parking re-checks `is_ready` on the sleeper cadence
-   (`DEFAULT_READINESS_WAIT` = **10ms**, `constants.rs:56`) — correct but a 10ms
-   worst-case unpark stall, which bites seam streaming. A naive "mirror the
-   consumer condvar" **does not work here**: the delivery producer is a *task*
-   parked in `Sleepers`, not a *thread* blocked on a condvar, so a producer
-   condvar wakes nothing. Instant wake instead requires `pop()` to interrupt the
-   producer's executor (`Sleepers::wake` / `yielders.interrupt_all`), which taxes
-   the **hot `pop` path** and adds a `NotifyQueue → executor` coupling edge.
-   **Resolution:** only **bounded** queues ever park a producer (unbounded's
-   `is_full()` is never true), so **gate the producer-wake on `bounded`**. The
-   `unbounded` default (the common path) takes the branch never and pays ~nothing;
-   bounded queues (opt-in, seam-critical) get instant unpark. "Only seam queues"
-   and "always" converge — bounded *is* the fireable set. Still land Part A's
-   correct-but-cadence-paced parking first; the wake is a latency optimization on
-   top, not a correctness requirement. **Default stance:** rely on
-   `QueueVacancyReadiness` alone; only add the bounded-gated producer wake if it
-   proves genuinely cost-free (unbounded never parks anyway, so nothing is lost by
-   deferring it).
+1. **`NotifyQueue` producer wake for promptness — RESOLVED: rely on sleeper
+   cadence.** Task-path parking re-checks `is_ready` on the sleeper cadence
+   (`DEFAULT_READINESS_WAIT` = **10ms**, `constants.rs:56`) — the executor's
+   `Sleepers` polls readiness on a bounded interval and unparks when the condition
+   flips true. This cadence is correct for the task path (Decision 00 §L1b already
+   describes it) and carries zero per-push tax. Instant producer wake via `pop()`
+   interrupting the executor would tax the hot `pop` path and add a `NotifyQueue →
+   executor` coupling edge. Since only **bounded** queues ever park a producer
+   (unbounded's `is_full()` is never true, so the vacancy-park is inert), and
+   bounded queues are opt-in, the 10ms cadence is acceptable for the common case.
+   If profiling shows it stalls seam streaming, a bounded-gated wake can be added
+   later — but it's a latency optimization, not a correctness requirement.
 2. **N-way park composition — RESOLVED: slowest gates, lockstep.** Semantics:
    **the slowest consumer blocks everyone** — every branch receives and delivers
    each value before the source advances; no straggler, all in sync. Mechanism:
@@ -390,20 +448,24 @@ user:
    (`broadcast_lossy` / `*_lossy`) whose docs state plainly that an observer may
    miss values if it can't keep up in sync. No silent drop anywhere in the default
    path.
-4. **`Result` payload vs. the split's `Clone` bound — RESOLVED: fix the bound.**
-   The head/body split requires `Ready: Clone`; carry `Result<…, TransportError>`
-   by making `TransportError: Clone`, or, if that's undesirable, project a
-   cloneable error subset via `split_collect_one_map`. Decide the exact route in
-   Part D; either way the error rides the payload.
+4. **`Result` payload vs. the split's `Clone` bound — RESOLVED: Arc-wrap the
+   non-`Clone` error payloads.** The split combinators (`split_collector_map`,
+   `split_collect_until_map`) require the mapped observer type `M: Clone`.
+   `TransportError::Io(std::io::Error)` and `Connect(SendableBoxedError)` are not
+   `Clone`. Resolution (see Resolution 7): Arc-wrap both —
+   `Io(Arc<std::io::Error>)`, `Connect(Arc<dyn Error + Send + Sync>)`. In netio,
+   `HttpExchange::Failed` switches from `SendableBoxedError` to `Arc<dyn Error +
+   Send + Sync>`, so a pre-head `Failed` clones losslessly into both split
+   branches. The error rides the payload; no stringification at the transform.
 
 ### Carve-out: N-way broadcast is its own feature
 
-Part D (the Pipe shrink) only needs the **existing 2-way** `split_collect_one`
-(head peel + body continue) plus Part C1's backpressure. The **N-way** broadcast
-(`split_n` and the two named policies below) has **no consumer in Part D** and is
-therefore carved into its own follow-on feature so 45 stays focused on
-"backpressure + shrink Pipe." The two policies that feature will expose, per the
-resolutions above:
+Part D only needs the **existing 2-way** `split_collect_until_map` (head peel) +
+`split_collector_map` (body continuation) plus the observer `Wait` fix (Resolution
+2) and `Clone` error types (Resolution 7). The **N-way** broadcast (`split_n` and
+the two named policies below) has **no consumer in Part D** and is therefore carved
+into its own follow-on feature so 45 stays focused on "backpressure + transport
+fan-out." The two policies that feature will expose, per the resolutions above:
 
 - **`broadcast(n, queue_size)`** — backpressured, zero loss, slowest gates
   (`queue_size = 1` = strict lockstep; `> 1` = buffered slack). The safe default.
@@ -433,24 +495,45 @@ spin).
 - A slow observer branch **backpressures the source and loses zero items**
   (replaces the `force_push` drop); a dropped observer does not kill the stream
   (source stops copying to it, keeps forwarding).
-- `H1Transport::open` uses `split_collect_one` for head/body; the only remaining
-  `Pipe` in the transport is `send_body`. A pre-head **and** a mid-body
-  `HttpExchange::Failed` are observed as `Err` on the head / body receiver
-  respectively (no silent `None`).
+- **Zero `force_push` calls anywhere in `extensions/`** — task splits park via
+  `Depends(QueueVacancyReadiness)` (C1); stream splits stash + yield
+  `Stream::Wait` (Resolution 4).
+- Split observers yield `Stream::Wait` on empty-open (not `Ignore`), so the
+  existing `into_ready_future()` / `into_pending_future()` bridges await
+  correctly over observers without busy-spinning.
+- Split observers expose a `fn readiness(&self) -> QueueReadiness<Stream<D,
+  P>>` accessor, so task-path consumers can park natively via
+  `Depends(observer.readiness())`.
+- `StreamIteratorExt` gains `fn into_next_stream(self) ->
+  impl futures_core::Stream<Item = Self::D>`, enabling clean
+  `while let Some(chunk) = body.next().await` body consumption.
+- `TransportError` is `Clone` (Arc-wrapped `Io` and `Connect` variants).
+- `HttpExchange::Failed` carries `Arc<dyn Error + Send + Sync>`.
+- `H1Transport::open` uses `split_collect_until_map` (head peel) +
+  `split_collector_map` (body continuation) with `Result` payloads; a pre-head
+  **and** a mid-body `HttpExchange::Failed` are observed as `Err` on the head /
+  body receiver respectively (no silent `None`). `send_body` is the only
+  remaining `Pipe` in the transport.
 - All existing valtron tests green on `single` (wasm) and `multi` (native);
   use `#[valtron_test]`, never `#[test]`/`#[serial]`.
 
 ## Module references
 
-- `backends/foundation_core/src/valtron/executors/task_iters.rs` — `*ConsumingIter` Full arms (Part A edits)
+- `backends/foundation_core/src/valtron/executors/task_iters.rs` — `*ConsumingIter` Full arms (Part A ✅ done)
 - `backends/foundation_core/src/valtron/executors/{on_next,do_next,collect_next}.rs` — audit only (already forward `Depends`)
-- `backends/foundation_core/src/valtron/executors/dependent_lift.rs` — linked-task wrappers (audit only; default policy = Decision 15)
-- `backends/foundation_core/src/valtron/task.rs` — pass-through `ExecutionIterator` impls (audit only)
+- `backends/foundation_core/src/valtron/executors/dependent_lift.rs` — linked-task wrappers (audit only)
+- `backends/foundation_core/src/valtron/task.rs` — pass-through `ExecutionIterator` impls (audit only); `QueueVacancyReadiness` (reused)
 - `backends/foundation_core/src/valtron/executors/local.rs` — `NotifyQueue` (`queue()` accessor), receiver
 - `backends/foundation_core/src/valtron/executors/multi/mod.rs` — `iter_chan` allocation, `channel_capacity`
-- `backends/foundation_core/src/valtron/extensions/tasks/sendable.rs` + `non_sendable.rs` — `split_*` family, `force_push` → park, `split_n` (Part C)
-- `backends/foundation_core/src/valtron/task.rs` — `QueueVacancyReadiness`, `AnyReadiness` (reused as-is)
-- `backends/foundation_connectrpc/src/transport/{base,h1,wasm}.rs` — Pipe shrink + `Result` payloads (Part D)
+- `backends/foundation_core/src/valtron/executors/builders/mod.rs` — `sequenced` bounded queue (Part B ✅ done)
+- `backends/foundation_core/src/valtron/executors/constants.rs` — `DEFAULT_DELIVERY_CAPACITY` (Part B ✅ done)
+- `backends/foundation_core/src/valtron/extensions/tasks/sendable.rs` + `non_sendable.rs` — split family: C1 park ✅ done; observer `Wait` fix + `readiness()` accessor (Resolutions 2, 3)
+- `backends/foundation_core/src/valtron/extensions/streams/sendable.rs` + `non_sendable.rs` — stream split family: `force_push` → stash+`Wait` (Resolution 4); observer `Wait` fix + `readiness()` (Resolutions 2, 3)
+- `backends/foundation_core/src/valtron/stream_future.rs` — existing `into_ready_future()`/`into_pending_future()` bridges (read-only); add `into_next_stream()` (Resolution 5)
+- `backends/foundation_netio/src/simple_http/client/shared/request_task.rs` — `HttpExchange::Failed` → `Arc<dyn Error>` (Resolution 7)
+- `backends/foundation_connectrpc/src/transport/base.rs` — `TransportError` → `Clone` (Resolution 7); `TransportStream`, `ByteSource`/`HeadSource` types
+- `backends/foundation_connectrpc/src/transport/h1.rs` — Part D: split-based head/body + `Result` payloads
+- `backends/foundation_connectrpc/src/transport/wasm.rs` — Part D: WASM pump (same split pattern)
 
 ## Language Stack
 

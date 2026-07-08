@@ -6,8 +6,8 @@ use std::sync::Arc;
 
 use crate::valtron::branches::CollectionState;
 use crate::valtron::{
-    ExecutionAction, QueueVacancyReadiness, Stream, TaskIterator, TaskShortCircuit, TaskSpread,
-    TaskStatus,
+    ExecutionAction, QueueReadiness, QueueVacancyReadiness, Stream, TaskIterator, TaskShortCircuit,
+    TaskSpread, TaskStatus,
 };
 
 /// Extension trait providing builder-style combinator methods for any `TaskIterator`.
@@ -1892,6 +1892,20 @@ pub struct CollectorStreamIterator<D, P> {
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
 }
 
+impl<D, P> CollectorStreamIterator<D, P> {
+    /// WHY: A task-path consumer parks on an observer natively via
+    /// `Depends(QueueReadiness)` (F45 Resolution 3), but the observer's queue is
+    /// private. WHAT: expose a [`QueueReadiness`] over the shared queue. HOW:
+    /// clones the `Arc<ConcurrentQueue<..>>` the observer reads from.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
+        QueueReadiness::new(self.queue.clone())
+    }
+}
+
 impl<D, P> Iterator for CollectorStreamIterator<D, P>
 where
     D: Clone + 'static,
@@ -1911,7 +1925,10 @@ where
                 if self.queue.is_closed() {
                     None
                 } else {
-                    Some(Stream::Ignore)
+                    // F45 Resolution 2: yield Wait (not Ignore) on empty-open so
+                    // `into_ready_future()`/`into_pending_future()` yield to the
+                    // executor instead of hard-spinning inside `poll()`.
+                    Some(Stream::Wait)
                 }
             }
             Err(concurrent_queue::PopError::Closed) => None,
@@ -2033,6 +2050,18 @@ pub struct SplitUntilObserver<D, P> {
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
 }
 
+impl<D, P> SplitUntilObserver<D, P> {
+    /// Expose a [`QueueReadiness`] over the shared queue so a task-path consumer
+    /// can park natively via `Depends` (F45 Resolution 3).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
+        QueueReadiness::new(self.queue.clone())
+    }
+}
+
 impl<D, P> Iterator for SplitUntilObserver<D, P>
 where
     D: Clone + 'static,
@@ -2050,7 +2079,10 @@ where
                 if self.queue.is_closed() {
                     None
                 } else {
-                    Some(Stream::Ignore)
+                    // F45 Resolution 2: yield Wait (not Ignore) on empty-open so
+                    // `into_ready_future()`/`into_pending_future()` yield to the
+                    // executor instead of hard-spinning inside `poll()`.
+                    Some(Stream::Wait)
                 }
             }
             Err(concurrent_queue::PopError::Closed) => {
@@ -2206,6 +2238,18 @@ pub struct SplitUntilObserverMap<D, P> {
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
 }
 
+impl<D, P> SplitUntilObserverMap<D, P> {
+    /// Expose a [`QueueReadiness`] over the shared queue so a task-path consumer
+    /// can park natively via `Depends` (F45 Resolution 3).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
+        QueueReadiness::new(self.queue.clone())
+    }
+}
+
 impl<D, P> Iterator for SplitUntilObserverMap<D, P>
 where
     D: Clone + 'static,
@@ -2223,7 +2267,10 @@ where
                 if self.queue.is_closed() {
                     None
                 } else {
-                    Some(Stream::Ignore)
+                    // F45 Resolution 2: yield Wait (not Ignore) on empty-open so
+                    // `into_ready_future()`/`into_pending_future()` yield to the
+                    // executor instead of hard-spinning inside `poll()`.
+                    Some(Stream::Wait)
                 }
             }
             Err(concurrent_queue::PopError::Closed) => {
@@ -2382,6 +2429,18 @@ pub struct SplitCollectorMapObserver<M, P> {
     queue: Arc<ConcurrentQueue<Stream<M, P>>>,
 }
 
+impl<M, P> SplitCollectorMapObserver<M, P> {
+    /// Expose a [`QueueReadiness`] over the shared queue so a task-path consumer
+    /// can park natively via `Depends` (F45 Resolution 3).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<Stream<M, P>> {
+        QueueReadiness::new(self.queue.clone())
+    }
+}
+
 impl<M, P> Iterator for SplitCollectorMapObserver<M, P>
 where
     M: Clone + 'static,
@@ -2396,7 +2455,10 @@ where
                 if self.queue.is_closed() {
                     None
                 } else {
-                    Some(Stream::Ignore)
+                    // F45 Resolution 2: yield Wait (not Ignore) on empty-open so
+                    // `into_ready_future()`/`into_pending_future()` yield to the
+                    // executor instead of hard-spinning inside `poll()`.
+                    Some(Stream::Wait)
                 }
             }
             Err(concurrent_queue::PopError::Closed) => None,

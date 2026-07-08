@@ -9,9 +9,10 @@
 //! type). Each platform provides its own `HttpExchangeTask` in its own directory,
 //! exported via `new_http_exchange_task(request, …)`.
 
+use std::sync::Arc;
+
 use crate::simple_http::shared::{SimpleHeaders, Status};
 use bytes::Bytes;
-use foundation_core::extensions::result_ext::SendableBoxedError;
 
 /// What a platform HTTP request task yields on each poll.
 ///
@@ -27,7 +28,11 @@ pub enum HttpExchange {
     /// One chunk of response body bytes. Zero or more.
     BodyChunk(Bytes),
     /// The request or response failed. Exactly once; no `Head` was produced.
-    Failed(SendableBoxedError),
+    ///
+    /// WHY `Arc` (F45 Resolution 7): a pre-head failure is fanned out to **both**
+    /// split branches (head observer as `Err`, body continuation as `Err`), so the
+    /// error payload must clone losslessly rather than being consumed once.
+    Failed(Arc<dyn std::error::Error + Send + Sync + 'static>),
 }
 
 /// Marker for the pending state — the task is waiting for I/O (DNS, TCP, TLS, or

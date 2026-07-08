@@ -5,7 +5,7 @@ use concurrent_queue::ConcurrentQueue;
 use std::sync::Arc;
 
 use crate::valtron::branches::CollectionState;
-use crate::valtron::{ShortCircuit, Stream, StreamIterator, StreamSpread};
+use crate::valtron::{QueueReadiness, ShortCircuit, Stream, StreamIterator, StreamSpread};
 
 /// Extension trait providing combinator methods for any `StreamIterator`.
 ///
@@ -563,6 +563,12 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     /// Wrap into a `futures_core::Stream` that yields each `Stream<D, P>` item as-is.
     fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self>;
 
+    /// Wrap into a `futures_core::Stream<Item = D>` that surfaces `Next` / `Spread`
+    /// `Done` payloads and self-wakes over in-band control states, enabling
+    /// `while let Some(chunk) = body.next().await` consumption (F45 Resolution 5).
+    #[cfg(any(feature = "std", feature = "alloc"))]
+    fn into_next_stream(self) -> crate::valtron::StreamNextStream<Self>;
+
     fn into_stream_iter(self) -> crate::valtron::StreamIter<Self>
     where Self: Sized { crate::valtron::StreamIter(self) }
 
@@ -676,6 +682,8 @@ where
             inner: self,
             queue,
             predicate: Box::new(predicate),
+            pending_push: None,
+            pending_forward: None,
         };
 
         (observer, continuation)
@@ -709,6 +717,9 @@ where
             inner: self,
             queue,
             predicate: Box::new(predicate),
+            pending_push: None,
+            pending_forward: None,
+            pending_close: false,
         };
 
         (observer, continuation)
@@ -757,6 +768,8 @@ where
             inner: self,
             queue,
             transform: Box::new(transform),
+            pending_push: None,
+            pending_forward: None,
         };
 
         (observer, continuation)
@@ -1027,6 +1040,11 @@ where
 
     fn into_future_stream(self) -> crate::valtron::StreamAsFutureStream<Self> {
         crate::valtron::StreamAsFutureStream::new(self)
+    }
+
+    #[cfg(any(feature = "std", feature = "alloc"))]
+    fn into_next_stream(self) -> crate::valtron::StreamNextStream<Self> {
+        crate::valtron::StreamNextStream::new(self)
     }
 
     fn try_map_done<F, R>(self, f: F) -> TryMapDone<Self, R>
@@ -1438,6 +1456,28 @@ where
 // Split Collector Combinators (Feature 07)
 // ============================================================================
 
+/// WHY: A stream split continuation must never drop a matched item on a full
+/// observer queue (F45 Resolution 4: zero `force_push` in `extensions/`), and the
+/// `Stream` model has no `Depends` variant to park on.
+///
+/// WHAT: Attempt to hand `item` to a split observer `queue`, reporting whether
+/// the source must yield `Stream::Wait` and retry.
+///
+/// HOW: On `Ok` the item is delivered; on `Closed` the observer is gone so we
+/// stop copying but keep forwarding (returns `None`); on `Full` the item is
+/// returned in `Some(..)` so the caller stashes it and yields `Stream::Wait`.
+///
+/// # Panics
+/// Never panics.
+#[inline]
+fn sstream_observer_push<T>(queue: &ConcurrentQueue<T>, item: T) -> Option<T> {
+    match queue.push(item) {
+        Ok(()) => None,
+        Err(concurrent_queue::PushError::Full(item)) => Some(item),
+        Err(concurrent_queue::PushError::Closed(_)) => None,
+    }
+}
+
 /// Observer branch from `split_collector()` for `StreamIterator`.
 ///
 /// Receives copies of items matching the predicate via a `ConcurrentQueue`.
@@ -1445,6 +1485,18 @@ where
 pub struct SCollectorStreamIterator<D, P> {
     /// Shared queue receiving copied items from the splitter
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
+}
+
+impl<D, P> SCollectorStreamIterator<D, P> {
+    /// Expose a [`QueueReadiness`] over the shared queue so a task-path consumer
+    /// can park natively via `Depends` (F45 Resolution 3).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
+        QueueReadiness::new(self.queue.clone())
+    }
 }
 
 impl<D, P> Iterator for SCollectorStreamIterator<D, P>
@@ -1466,8 +1518,8 @@ where
                 if self.queue.is_closed() {
                     None
                 } else {
-                    // Still waiting for items - return Ignore to signal still pending
-                    Some(Stream::Ignore)
+                    // F45 Resolution 2: yield Wait (not Ignore) on empty-open.
+                    Some(Stream::Wait)
                 }
             }
             Err(concurrent_queue::PopError::Closed) => None,
@@ -1489,6 +1541,10 @@ where
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
     /// Predicate to determine which items to copy
     predicate: Box<dyn Fn(&Stream<D, P>) -> bool>,
+    /// A matched observer copy awaiting a free slot (F45 Resolution 4 backpressure).
+    pending_push: Option<Stream<D, P>>,
+    /// The source item held back until the stashed copy is accepted (lockstep).
+    pending_forward: Option<Stream<D, P>>,
 }
 
 impl<I, D, P> Iterator for SSplitCollectorContinuation<I, D, P>
@@ -1500,6 +1556,17 @@ where
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Retry a stashed observer push before pulling new work: a full observer
+        // yields `Stream::Wait` and retries instead of dropping the item
+        // (F45 Resolution 4 — no `force_push`).
+        if let Some(stream_item) = self.pending_push.take() {
+            if let Some(stashed) = sstream_observer_push(&self.queue, stream_item) {
+                self.pending_push = Some(stashed);
+                return Some(Stream::Wait);
+            }
+            return self.pending_forward.take();
+        }
+
         let item = if let Some(item) = self.inner.next() {
             item
         } else {
@@ -1508,13 +1575,12 @@ where
             return None;
         };
 
-        // Copy matched items to observer queue
+        // Copy matched items to observer queue, yielding Wait on backpressure.
         if (self.predicate)(&item) {
-            if let Err(e) = self.queue.force_push(item.clone()) {
-                tracing::error!(
-                    "SSplitCollectorContinuation: failed to push to queue: {}",
-                    e
-                );
+            if let Some(stashed) = sstream_observer_push(&self.queue, item.clone()) {
+                self.pending_push = Some(stashed);
+                self.pending_forward = Some(item);
+                return Some(Stream::Wait);
             }
         }
 
@@ -1547,6 +1613,18 @@ pub struct SSplitUntilObserver<D, P> {
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
 }
 
+impl<D, P> SSplitUntilObserver<D, P> {
+    /// Expose a [`QueueReadiness`] over the shared queue so a task-path consumer
+    /// can park natively via `Depends` (F45 Resolution 3).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<Stream<D, P>> {
+        QueueReadiness::new(self.queue.clone())
+    }
+}
+
 impl<D, P> Iterator for SSplitUntilObserver<D, P>
 where
     D: Clone + 'static,
@@ -1561,7 +1639,8 @@ where
                 if self.queue.is_closed() {
                     None
                 } else {
-                    Some(Stream::Ignore)
+                    // F45 Resolution 2: yield Wait (not Ignore) on empty-open.
+                    Some(Stream::Wait)
                 }
             }
             Err(concurrent_queue::PopError::Closed) => None,
@@ -1581,6 +1660,13 @@ pub struct SSplitUntilContinuation<I: StreamIterator<D = D, P = P>, D, P> {
     queue: Arc<ConcurrentQueue<Stream<D, P>>>,
     /// Predicate to determine when to close observer
     predicate: Box<dyn Fn(&Stream<D, P>) -> CollectionState>,
+    /// A matched observer copy awaiting a free slot (F45 Resolution 4 backpressure).
+    pending_push: Option<Stream<D, P>>,
+    /// The source item held back until the stashed copy is accepted (lockstep).
+    pending_forward: Option<Stream<D, P>>,
+    /// Whether the observer queue must be closed once `pending_push` lands (the
+    /// `CollectionState::Close(true)` case that yielded on a full queue).
+    pending_close: bool,
 }
 
 impl<I, D, P> Iterator for SSplitUntilContinuation<I, D, P>
@@ -1592,6 +1678,19 @@ where
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Retry a stashed observer push before pulling new work (F45 Resolution 4).
+        if let Some(stream_item) = self.pending_push.take() {
+            if let Some(stashed) = sstream_observer_push(&self.queue, stream_item) {
+                self.pending_push = Some(stashed);
+                return Some(Stream::Wait);
+            }
+            if self.pending_close {
+                self.pending_close = false;
+                self.queue.close();
+            }
+            return self.pending_forward.take();
+        }
+
         let item = if let Some(item) = self.inner.next() {
             item
         } else {
@@ -1606,16 +1705,22 @@ where
                 // Skip this item - don't send to observer
             }
             CollectionState::Collect => {
-                // Collect this item for the observer
-                if let Err(e) = self.queue.force_push(item.clone()) {
-                    tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
+                // Collect this item for the observer, yielding Wait on backpressure.
+                if let Some(stashed) = sstream_observer_push(&self.queue, item.clone()) {
+                    self.pending_push = Some(stashed);
+                    self.pending_forward = Some(item);
+                    return Some(Stream::Wait);
                 }
             }
             CollectionState::Close(collect_this) => {
-                // Close the observer after optionally collecting this item
+                // Close the observer after optionally collecting this item.
                 if collect_this {
-                    if let Err(e) = self.queue.force_push(item.clone()) {
-                        tracing::error!("SSplitUntilContinuation: failed to push to queue: {}", e);
+                    if let Some(stashed) = sstream_observer_push(&self.queue, item.clone()) {
+                        // Yield now; close the queue once the final item lands.
+                        self.pending_push = Some(stashed);
+                        self.pending_forward = Some(item);
+                        self.pending_close = true;
+                        return Some(Stream::Wait);
                     }
                 }
                 self.queue.close();
@@ -1654,6 +1759,18 @@ pub struct SSplitCollectorMapObserver<DM, PM> {
     queue: Arc<ConcurrentQueue<Stream<DM, PM>>>,
 }
 
+impl<DM, PM> SSplitCollectorMapObserver<DM, PM> {
+    /// Expose a [`QueueReadiness`] over the shared queue so a task-path consumer
+    /// can park natively via `Depends` (F45 Resolution 3).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[must_use]
+    pub fn readiness(&self) -> QueueReadiness<Stream<DM, PM>> {
+        QueueReadiness::new(self.queue.clone())
+    }
+}
+
 impl<DM, PM> Iterator for SSplitCollectorMapObserver<DM, PM>
 where
     DM: Clone + 'static,
@@ -1668,7 +1785,8 @@ where
                 if self.queue.is_closed() {
                     None
                 } else {
-                    Some(Stream::Ignore)
+                    // F45 Resolution 2: yield Wait (not Ignore) on empty-open.
+                    Some(Stream::Wait)
                 }
             }
             Err(concurrent_queue::PopError::Closed) => None,
@@ -1691,6 +1809,10 @@ pub struct SSplitCollectorMapContinuation<I: StreamIterator<D = D, P = P>, D, P,
     queue: Arc<ConcurrentQueue<Stream<DM, PM>>>,
     /// Combined predicate + transform function
     transform: Box<dyn Fn(&Stream<D, P>) -> (bool, Option<Stream<DM, PM>>)>,
+    /// A transformed observer item awaiting a free slot (F45 Resolution 4 backpressure).
+    pending_push: Option<Stream<DM, PM>>,
+    /// The source item held back until the stashed copy is accepted (lockstep).
+    pending_forward: Option<Stream<D, P>>,
 }
 
 impl<I, D, P, DM, PM> Iterator for SSplitCollectorMapContinuation<I, D, P, DM, PM>
@@ -1704,6 +1826,15 @@ where
     type Item = Stream<D, P>;
 
     fn next(&mut self) -> Option<Self::Item> {
+        // Retry a stashed observer push before pulling new work (F45 Resolution 4).
+        if let Some(stream_item) = self.pending_push.take() {
+            if let Some(stashed) = sstream_observer_push(&self.queue, stream_item) {
+                self.pending_push = Some(stashed);
+                return Some(Stream::Wait);
+            }
+            return self.pending_forward.take();
+        }
+
         let item = if let Some(item) = self.inner.next() {
             item
         } else {
@@ -1714,11 +1845,10 @@ where
         let (matched, transformed) = (self.transform)(&item);
         if matched {
             if let Some(transformed) = transformed {
-                if let Err(e) = self.queue.force_push(transformed) {
-                    tracing::error!(
-                        "SSplitCollectorMapContinuation: failed to push to queue: {}",
-                        e
-                    );
+                if let Some(stashed) = sstream_observer_push(&self.queue, transformed) {
+                    self.pending_push = Some(stashed);
+                    self.pending_forward = Some(item);
+                    return Some(Stream::Wait);
                 }
             }
         }

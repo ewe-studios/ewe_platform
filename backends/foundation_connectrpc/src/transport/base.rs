@@ -21,8 +21,9 @@
 //! I/O, and the caller is already in a valtron context (or uses the pipe's own
 //! `receive().await` / `try_recv()` + `readiness()` surface).
 
+use std::sync::Arc;
+
 use bytes::Bytes;
-use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::simple_http::shared::{RequestDescriptor, SimpleHeaders, Status};
@@ -74,10 +75,15 @@ pub struct TransportStream {
 
 /// A transport-layer failure — a failure where no RPC response exists at all
 /// (Decision 11). The client maps it into [`ConnectError`] via `From`.
-#[derive(Debug)]
+///
+/// WHY `Clone` (F45 Resolution 7): a transport failure rides the split payload as
+/// `Result<_, TransportError>` and a pre-head `HttpExchange::Failed` must clone
+/// losslessly into **both** split branches (head observer + body continuation).
+/// The two non-`Clone` payloads are therefore `Arc`-wrapped rather than boxed.
+#[derive(Debug, Clone)]
 pub enum TransportError {
     /// Dial / TLS / pool-checkout failure.
-    Connect(SendableBoxedError),
+    Connect(Arc<dyn std::error::Error + Send + Sync + 'static>),
     /// Connect or response-head deadline elapsed.
     Timeout,
     /// `RST_STREAM` / QUIC reset / connection closed mid-exchange.
@@ -87,7 +93,7 @@ pub enum TransportError {
     /// Local cancellation (the call's `CancelSignal` fired).
     Canceled,
     /// An underlying I/O error.
-    Io(std::io::Error),
+    Io(Arc<std::io::Error>),
 }
 
 impl core::fmt::Display for TransportError {
@@ -151,17 +157,19 @@ pub async fn round_trip(
         stream
             .send_body
             .try_send(body)
-            .map_err(|e| TransportError::Io(std::io::Error::new(
-                std::io::ErrorKind::BrokenPipe,
-                format!("{e:?}"),
-            )))?;
+            .map_err(|e| {
+                TransportError::Io(Arc::new(std::io::Error::new(
+                    std::io::ErrorKind::BrokenPipe,
+                    format!("{e:?}"),
+                )))
+            })?;
     }
     stream.send_body.close();
     let (status, headers) = stream.head.receive().await.ok_or_else(|| {
-        TransportError::Io(std::io::Error::new(
+        TransportError::Io(Arc::new(std::io::Error::new(
             std::io::ErrorKind::ConnectionReset,
             "response head pipe closed before yielding",
-        ))
+        )))
     })?;
     let mut body_bytes = Vec::new();
     while let Some(chunk) = stream.recv_body.receive().await {

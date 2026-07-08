@@ -77,7 +77,7 @@ impl Transport for H1Transport {
             foundation_core::valtron::Pipe::with_depth(DEFAULT_PUSHABLE_DEPTH);
 
         let pool = self.client.client_pool().ok_or_else(|| {
-            TransportError::Connect(Box::new(std::io::Error::new(
+            TransportError::Connect(Arc::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 "no connection pool configured",
             )))
@@ -97,7 +97,7 @@ impl Transport for H1Transport {
         );
 
         valtron::send(pump).map_err(|e| {
-            TransportError::Connect(Box::new(std::io::Error::new(
+            TransportError::Connect(Arc::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
                 e.to_string(),
             )))
@@ -123,5 +123,5 @@ fn request_url_string(req: &RequestDescriptor) -> String {
 }
 
 fn http_to_transport_error(e: HttpClientError) -> TransportError {
-    TransportError::Connect(Box::new(e))
+    TransportError::Connect(Arc::new(e))
 }
