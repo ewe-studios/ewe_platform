@@ -1,4 +1,4 @@
-//! Code-first service definition with `#[connectrpc::service]` (Decision 10
+//! Code-first service definition with `#[service]` (Decision 10
 //! Mode 3, Feature 27) — round-tripped over a real loopback socket.
 //!
 //! Run with:
@@ -8,14 +8,15 @@
 //! ```
 //!
 //! Instead of a `.proto` file, the service is a plain Rust trait. The
-//! `#[connectrpc::service]` attribute generates, from that trait:
+//! `#[service]` attribute generates, from that trait:
 //!   - `procedure::GREET` — the procedure path constant,
 //!   - the `GreetService` trait (with default `unimplemented` bodies),
 //!   - `register_greet_service(&mut Router, Arc<S>)` — server registration,
 //!   - `GreetServiceClient` — a typed client with one async method per RPC.
 //!
-//! The generated code refers to the runtime crate as `connectrpc::…`, so the
-//! consuming module aliases it: `use foundation_connectrpc as connectrpc;`.
+//! The generated code refers to the runtime crate by its real name
+//! (`foundation_connectrpc::…`), so no crate alias is needed — just import the
+//! `service` macro and the types you use.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -26,11 +27,11 @@ use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_netio::simple_http::client::SimpleHttpClient;
 
-// The `#[service]` expansion emits `connectrpc::…` paths — bring the runtime
-// crate into scope under that name.
-use foundation_connectrpc as connectrpc;
-use connectrpc::transport::Transport;
-use connectrpc::{ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, Request, Response, Router};
+use foundation_connectrpc::transport::Transport;
+use foundation_connectrpc::{
+    service, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, Request, Response,
+    Router,
+};
 
 // ── Messages ─────────────────────────────────────────────────────────────────
 //
@@ -54,15 +55,15 @@ pub struct GreetResponse {
 
 // ── The service, defined code-first ──────────────────────────────────────────
 
-#[connectrpc::service(package = "demo.greet.v1", codecs(json))]
+#[service(package = "demo.greet.v1", codecs(json))]
 pub trait GreetService {
     // Param names are underscored here because the macro's generated default
     // (`unimplemented`) body ignores them; an implementor names them freely.
     async fn greet(
         &self,
-        _ctx: connectrpc::Ctx,
-        _req: connectrpc::Request<GreetRequest>,
-    ) -> connectrpc::ConnectResult<connectrpc::Response<GreetResponse>>;
+        _ctx: Ctx,
+        _req: Request<GreetRequest>,
+    ) -> ConnectResult<Response<GreetResponse>>;
 }
 
 /// An implementation of the generated trait.

@@ -707,13 +707,13 @@ pub fn wasm_service(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 // ── ConnectRPC code-first generation (Feature 27, Decision 10 Mode 3) ────
 
-/// `#[connectrpc::service]` — code-first ConnectRPC (Decision 10 Mode 3).
+/// `#[service]` — code-first ConnectRPC (Decision 10 Mode 3).
 ///
 /// Transforms a Rust trait definition into a full ConnectRPC service:
 /// service name constant, procedure path constants (R1), the trait with
 /// default unimplemented bodies, registration fn, `UnimplementedXxxHandler`
 /// (R2), typed client (R4), and an exported descriptor macro for cross-crate
-/// generation via `connectrpc::generate!`.
+/// generation via `generate!`.
 ///
 /// # Attribute arguments
 ///
@@ -736,15 +736,16 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
     connectrpc_service::expand_service(attr.into(), item.into()).into()
 }
 
-/// `connectrpc::generate!` — cross-crate ConnectRPC artifact generation.
+/// `generate!` — cross-crate ConnectRPC artifact generation.
 ///
-/// Re-expands a descriptor macro exported by `#[connectrpc::service]` in
+/// Re-expands a descriptor macro exported by `#[service]` in
 /// another crate inside a new module.
 ///
 /// # Example
 ///
 /// ```ignore
-/// connectrpc::generate!(my_api::my_service_tokens => mod my_svc {
+/// use foundation_connectrpc::generate;
+/// generate!(my_api::my_service_tokens => mod my_svc {
 ///     server, client
 /// });
 /// ```

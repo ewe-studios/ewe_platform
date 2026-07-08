@@ -1,4 +1,4 @@
-//! Code-first **server-streaming** service with `#[connectrpc::service]`
+//! Code-first **server-streaming** service with `#[service]`
 //! (Feature 27, Decision 10 Mode 3) — round-tripped over a real loopback socket.
 //!
 //! Run with:
@@ -25,9 +25,10 @@ use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_netio::simple_http::client::SimpleHttpClient;
 
-use foundation_connectrpc as connectrpc;
-use connectrpc::transport::Transport;
-use connectrpc::{ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, Request, Router};
+use foundation_connectrpc::transport::Transport;
+use foundation_connectrpc::{
+    service, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, Request, Router,
+};
 
 // Plain serde types — `codecs(json)`, no protobuf.
 #[derive(Clone, Default, Debug, serde::Serialize, serde::Deserialize)]
@@ -40,13 +41,13 @@ pub struct Tick {
     seq: i32,
 }
 
-#[connectrpc::service(package = "demo.tick.v1", codecs(json))]
+#[service(package = "demo.tick.v1", codecs(json))]
 pub trait TickService {
     async fn subscribe(
         &self,
-        _ctx: connectrpc::Ctx,
-        _req: connectrpc::Request<TickRequest>,
-    ) -> connectrpc::ConnectResult<impl futures::Stream<Item = connectrpc::ConnectResult<Tick>>>;
+        _ctx: Ctx,
+        _req: Request<TickRequest>,
+    ) -> ConnectResult<impl futures::Stream<Item = ConnectResult<Tick>>>;
 }
 
 struct Ticker;

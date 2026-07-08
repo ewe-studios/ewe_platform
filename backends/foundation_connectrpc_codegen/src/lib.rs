@@ -2,7 +2,7 @@
 //!
 //! WHY: `.proto` files are one source of truth for a ConnectRPC service. This
 //! crate turns proto file descriptors into the same artifacts the code-first
-//! `#[connectrpc::service]` macro emits — procedure constants, service traits,
+//! `#[service]` macro emits — procedure constants, service traits,
 //! registration functions, and typed clients — so proto-first and code-first
 //! users land on an identical runtime surface.
 //!
@@ -16,7 +16,7 @@
 //! HOW: This is the build-time companion to the `foundation_connectrpc` runtime
 //! crate — the same split as `tonic` / `tonic-build` and `prost` / `prost-build`.
 //! It depends only on the prost toolchain and emits Rust *source strings*; the
-//! generated code resolves its `connectrpc::…` paths against the consumer's
+//! generated code resolves its `foundation_connectrpc::…` paths against the consumer's
 //! `foundation_connectrpc` dependency, so there is no dependency edge back to
 //! the runtime crate. Add it under `[build-dependencies]`.
 //!

@@ -1,7 +1,7 @@
 //! Code-first ConnectRPC service generation (Feature 27, Decision 10 Mode 3).
 //!
 //! WHY: Proto is not the only source of truth. A service may be defined as a
-//! plain Rust trait via `#[connectrpc::service(package = "…", codecs(…))]`, and
+//! plain Rust trait via `#[foundation_connectrpc::service(package = "…", codecs(…))]`, and
 //! the macro generates the same artifacts the proto codegen path does: procedure
 //! constants, registration fns, typed clients, and an `UnimplementedXxxHandler`.
 //!
@@ -463,12 +463,12 @@ fn make_default_body(
     let tokens = match kind {
         MethodKind::Unary | MethodKind::ClientStream => {
             quote! {{
-                Err(connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
+                Err(foundation_connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
             }}
         }
         MethodKind::ServerStream | MethodKind::BidiStream => {
             quote! {{
-                Err(connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
+                Err(foundation_connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
             }}
         }
     };
@@ -518,9 +518,9 @@ fn desugar_async_methods_to_send(trait_def: &mut ItemTrait) {
                 MethodKind::ServerStream | MethodKind::BidiStream => {
                     let res = &info.res_type;
                     quote! {
-                        connectrpc::ConnectResult<
+                        foundation_connectrpc::ConnectResult<
                             ::core::pin::Pin<Box<
-                                dyn futures::Stream<Item = connectrpc::ConnectResult<#res>> + Send
+                                dyn futures::Stream<Item = foundation_connectrpc::ConnectResult<#res>> + Send
                             >>
                         >
                     }
@@ -574,21 +574,21 @@ fn codec_expr(codecs: &[String], req_type: &TokenStream, res_type: &TokenStream)
 
     if has_proto {
         // proto always pairs with json
-        quote! { connectrpc::ProcedureCodecs::<#req_type, #res_type>::defaults() }
+        quote! { foundation_connectrpc::ProcedureCodecs::<#req_type, #res_type>::defaults() }
     } else if has_arrow && !has_json {
         // Arrow-only
-        quote! { connectrpc::ProcedureCodecs::<#req_type, #res_type>::only(connectrpc::ArrowCodec) }
+        quote! { foundation_connectrpc::ProcedureCodecs::<#req_type, #res_type>::only(foundation_connectrpc::ArrowCodec) }
     } else if has_json && !has_arrow {
         // Json-only
-        quote! { connectrpc::ProcedureCodecs::<#req_type, #res_type>::of((connectrpc::JsonCodec,)) }
+        quote! { foundation_connectrpc::ProcedureCodecs::<#req_type, #res_type>::of((foundation_connectrpc::JsonCodec,)) }
     } else {
         // Both json + arrow (or default = json)
         let inner = if has_arrow {
-            quote! { (connectrpc::JsonCodec, connectrpc::ArrowCodec) }
+            quote! { (foundation_connectrpc::JsonCodec, foundation_connectrpc::ArrowCodec) }
         } else {
-            quote! { (connectrpc::JsonCodec,) }
+            quote! { (foundation_connectrpc::JsonCodec,) }
         };
-        quote! { connectrpc::ProcedureCodecs::<#req_type, #res_type>::of(#inner) }
+        quote! { foundation_connectrpc::ProcedureCodecs::<#req_type, #res_type>::of(#inner) }
     }
 }
 
@@ -691,7 +691,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         procedure::#path_const,
                         #codec,
                         #handler_args,
-                        connectrpc::HandlerOptions::new(),
+                        foundation_connectrpc::HandlerOptions::new(),
                     );
                 }
             }
@@ -706,7 +706,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
             let rt = &m.req_type;
             let rst = &m.res_type;
             quote! {
-                #field: connectrpc::Client<#rt, #rst>,
+                #field: foundation_connectrpc::Client<#rt, #rst>,
             }
         })
         .collect();
@@ -725,7 +725,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
             // The last field uses `options` without `.clone()`
             if i == methods.len() - 1 {
                 quote! {
-                    #field: connectrpc::Client::new(
+                    #field: foundation_connectrpc::Client::new(
                         transport.clone(),
                         &format!("{}{}", base_url, procedure::#path_const),
                         #codec,
@@ -734,7 +734,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                 }
             } else {
                 quote! {
-                    #field: connectrpc::Client::new(
+                    #field: foundation_connectrpc::Client::new(
                         transport.clone(),
                         &format!("{}{}", base_url, procedure::#path_const),
                         #codec,
@@ -759,9 +759,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Unary RPC.
                         pub async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
-                            request: connectrpc::Request<#rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>> {
+                            ctx: foundation_connectrpc::Ctx,
+                            request: foundation_connectrpc::Request<#rt>,
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>> {
                             self.#method_name.unary(ctx, request).await
                         }
                     }
@@ -771,9 +771,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Server-streaming RPC.
                         pub async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
-                            request: connectrpc::Request<#rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::ServerStream<#rst>> {
+                            ctx: foundation_connectrpc::Ctx,
+                            request: foundation_connectrpc::Request<#rt>,
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<#rst>> {
                             self.#method_name.server_stream(ctx, request).await
                         }
                     }
@@ -783,9 +783,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Client-streaming RPC.
                         pub async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
+                            ctx: foundation_connectrpc::Ctx,
                             reqs: impl futures::Stream<Item = #rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>> {
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>> {
                             self.#method_name.client_stream(ctx, reqs).await
                         }
                     }
@@ -795,9 +795,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Bidirectional streaming RPC.
                         pub async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
+                            ctx: foundation_connectrpc::Ctx,
                             reqs: impl futures::Stream<Item = #rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::BidiStream<#rt, #rst>> {
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>> {
                             self.#method_name.bidi_stream(ctx, reqs).await
                         }
                     }
@@ -820,9 +820,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Unary RPC.
                         async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
-                            request: connectrpc::Request<#rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>>;
+                            ctx: foundation_connectrpc::Ctx,
+                            request: foundation_connectrpc::Request<#rt>,
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>>;
                     }
                 }
                 MethodKind::ServerStream => {
@@ -830,9 +830,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Server-streaming RPC.
                         async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
-                            request: connectrpc::Request<#rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::ServerStream<#rst>>;
+                            ctx: foundation_connectrpc::Ctx,
+                            request: foundation_connectrpc::Request<#rt>,
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<#rst>>;
                     }
                 }
                 MethodKind::ClientStream => {
@@ -840,9 +840,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Client-streaming RPC.
                         async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
+                            ctx: foundation_connectrpc::Ctx,
                             reqs: impl futures::Stream<Item = #rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>>;
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>>;
                     }
                 }
                 MethodKind::BidiStream => {
@@ -850,9 +850,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                         /// Bidirectional streaming RPC.
                         async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
+                            ctx: foundation_connectrpc::Ctx,
                             reqs: impl futures::Stream<Item = #rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::BidiStream<#rt, #rst>>;
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>>;
                     }
                 }
             }
@@ -872,9 +872,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     quote! {
                         async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
-                            request: connectrpc::Request<#rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>> {
+                            ctx: foundation_connectrpc::Ctx,
+                            request: foundation_connectrpc::Request<#rt>,
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>> {
                             self.#method_name.unary(ctx, request).await
                         }
                     }
@@ -883,9 +883,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     quote! {
                         async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
-                            request: connectrpc::Request<#rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::ServerStream<#rst>> {
+                            ctx: foundation_connectrpc::Ctx,
+                            request: foundation_connectrpc::Request<#rt>,
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<#rst>> {
                             self.#method_name.server_stream(ctx, request).await
                         }
                     }
@@ -894,9 +894,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     quote! {
                         async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
+                            ctx: foundation_connectrpc::Ctx,
                             reqs: impl futures::Stream<Item = #rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::Response<#rst>> {
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<#rst>> {
                             self.#method_name.client_stream(ctx, reqs).await
                         }
                     }
@@ -905,9 +905,9 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
                     quote! {
                         async fn #method_name(
                             &self,
-                            ctx: connectrpc::Ctx,
+                            ctx: foundation_connectrpc::Ctx,
                             reqs: impl futures::Stream<Item = #rt>,
-                        ) -> connectrpc::ConnectResult<connectrpc::BidiStream<#rt, #rst>> {
+                        ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<#rt, #rst>> {
                             self.#method_name.bidi_stream(ctx, reqs).await
                         }
                     }
@@ -934,7 +934,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
         // ── Registration function ─────────────────────────────────────────
         /// Register a #svc_name implementation with a ConnectRPC router.
         pub fn #register_fn_ident<S: #svc_ident>(
-            router: &mut connectrpc::Router,
+            router: &mut foundation_connectrpc::Router,
             service: std::sync::Arc<S>,
         ) {
             #(#registration_arms)*
@@ -955,10 +955,10 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
         impl #client_struct_ident {
             /// Build a new typed client.
             pub fn new(
-                transport: std::sync::Arc<dyn connectrpc::Transport>,
+                transport: std::sync::Arc<dyn foundation_connectrpc::Transport>,
                 base_url: &str,
-                options: connectrpc::ClientOptions,
-            ) -> connectrpc::ConnectResult<Self> {
+                options: foundation_connectrpc::ClientOptions,
+            ) -> foundation_connectrpc::ConnectResult<Self> {
                 Ok(Self {
                     #(#client_new_fields)*
                 })
@@ -1021,7 +1021,7 @@ impl Parse for GenerateInput {
     }
 }
 
-/// Entry point for the `connectrpc::generate!` function-like macro.
+/// Entry point for the `foundation_connectrpc::generate!` function-like macro.
 /// Accepts `proc_macro2::TokenStream` (converted by `lib.rs`).
 pub fn expand_generate(input: TokenStream) -> TokenStream {
     let gi: GenerateInput = match parse2(input) {
@@ -1061,9 +1061,9 @@ mod tests {
             pub trait GreetService {
                 async fn greet(
                     &self,
-                    ctx: connectrpc::Ctx,
-                    req: connectrpc::Request<GreetRequest>,
-                ) -> connectrpc::ConnectResult<connectrpc::Response<GreetResponse>>;
+                    ctx: foundation_connectrpc::Ctx,
+                    req: foundation_connectrpc::Request<GreetRequest>,
+                ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>;
             }
         };
 
@@ -1121,30 +1121,30 @@ mod tests {
             pub trait FullService {
                 async fn unary_method(
                     &self,
-                    ctx: connectrpc::Ctx,
-                    req: connectrpc::Request<UnaryReq>,
-                ) -> connectrpc::ConnectResult<connectrpc::Response<UnaryRes>>;
+                    ctx: foundation_connectrpc::Ctx,
+                    req: foundation_connectrpc::Request<UnaryReq>,
+                ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<UnaryRes>>;
 
                 async fn server_stream_method(
                     &self,
-                    ctx: connectrpc::Ctx,
-                    req: connectrpc::Request<StreamReq>,
-                ) -> connectrpc::ConnectResult<
-                    impl futures::Stream<Item = connectrpc::ConnectResult<StreamRes>>,
+                    ctx: foundation_connectrpc::Ctx,
+                    req: foundation_connectrpc::Request<StreamReq>,
+                ) -> foundation_connectrpc::ConnectResult<
+                    impl futures::Stream<Item = foundation_connectrpc::ConnectResult<StreamRes>>,
                 >;
 
                 async fn client_stream_method(
                     &self,
-                    ctx: connectrpc::Ctx,
-                    reqs: impl futures::Stream<Item = connectrpc::ConnectResult<StreamReq>>,
-                ) -> connectrpc::ConnectResult<connectrpc::Response<StreamRes>>;
+                    ctx: foundation_connectrpc::Ctx,
+                    reqs: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<StreamReq>>,
+                ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<StreamRes>>;
 
                 async fn bidi_stream_method(
                     &self,
-                    ctx: connectrpc::Ctx,
-                    reqs: impl futures::Stream<Item = connectrpc::ConnectResult<StreamReq>>,
-                ) -> connectrpc::ConnectResult<
-                    impl futures::Stream<Item = connectrpc::ConnectResult<StreamRes>>,
+                    ctx: foundation_connectrpc::Ctx,
+                    reqs: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<StreamReq>>,
+                ) -> foundation_connectrpc::ConnectResult<
+                    impl futures::Stream<Item = foundation_connectrpc::ConnectResult<StreamRes>>,
                 >;
             }
         };
@@ -1179,9 +1179,9 @@ mod tests {
             pub trait ConvTest {
                 async fn greet_group(
                     &self,
-                    ctx: connectrpc::Ctx,
-                    req: connectrpc::Request<R>,
-                ) -> connectrpc::ConnectResult<connectrpc::Response<Res>>;
+                    ctx: foundation_connectrpc::Ctx,
+                    req: foundation_connectrpc::Request<R>,
+                ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<Res>>;
             }
         };
 
@@ -1197,7 +1197,7 @@ mod tests {
 
         // Client field uses snake_case
         assert!(
-            out.contains("greet_group : connectrpc :: Client < R , Res >"),
+            out.contains("greet_group : foundation_connectrpc :: Client < R , Res >"),
             "client field should use snake_case"
         );
     }
@@ -1210,9 +1210,9 @@ mod tests {
             pub trait JsonSvc {
                 async fn call(
                     &self,
-                    ctx: connectrpc::Ctx,
-                    req: connectrpc::Request<Req>,
-                ) -> connectrpc::ConnectResult<connectrpc::Response<Res>>;
+                    ctx: foundation_connectrpc::Ctx,
+                    req: foundation_connectrpc::Request<Req>,
+                ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<Res>>;
             }
         };
 
@@ -1220,7 +1220,7 @@ mod tests {
         let out = output.to_string();
 
         assert!(
-            out.contains("ProcedureCodecs :: < Req , Res > :: of ((connectrpc :: JsonCodec ,))"),
+            out.contains("ProcedureCodecs :: < Req , Res > :: of ((foundation_connectrpc :: JsonCodec ,))"),
             "json codecs should produce ProcedureCodecs::of((JsonCodec,))"
         );
     }
@@ -1233,9 +1233,9 @@ mod tests {
             pub trait ProtoSvc {
                 async fn call(
                     &self,
-                    ctx: connectrpc::Ctx,
-                    req: connectrpc::Request<PReq>,
-                ) -> connectrpc::ConnectResult<connectrpc::Response<PRes>>;
+                    ctx: foundation_connectrpc::Ctx,
+                    req: foundation_connectrpc::Request<PReq>,
+                ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<PRes>>;
             }
         };
 

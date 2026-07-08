@@ -48,7 +48,7 @@ const PROCEDURE: &str = "/demo.EchoService/Echo";
 //
 // In real use this is *generated* — either from a `.proto` by
 // `foundation_connectrpc_codegen`, or from a Rust trait by
-// `#[connectrpc::service]`. `JsonCodec: CodecFor<M>` is bounded on
+// `#[service]`. `JsonCodec: CodecFor<M>` is bounded on
 // `M: buffa::Message + Serialize + DeserializeOwned`, so we hand-write a minimal
 // `Message` impl here. The JSON wire path only touches the serde impls; the
 // protobuf methods below satisfy the bound and are exercised by the proto codec.

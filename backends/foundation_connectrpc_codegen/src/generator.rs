@@ -174,21 +174,21 @@ fn extract_idempotency(options: &Option<MethodOptions>) -> String {
     match options {
         Some(opts) => match opts.idempotency_level {
             Some(level) if level == method_options::IdempotencyLevel::NoSideEffects as i32 => {
-                "connectrpc::IdempotencyLevel::NoSideEffects".to_string()
+                "foundation_connectrpc::IdempotencyLevel::NoSideEffects".to_string()
             }
             Some(level) if level == method_options::IdempotencyLevel::Idempotent as i32 => {
-                "connectrpc::IdempotencyLevel::Idempotent".to_string()
+                "foundation_connectrpc::IdempotencyLevel::Idempotent".to_string()
             }
-            _ => "connectrpc::IdempotencyLevel::Unknown".to_string(),
+            _ => "foundation_connectrpc::IdempotencyLevel::Unknown".to_string(),
         },
-        None => "connectrpc::IdempotencyLevel::Unknown".to_string(),
+        None => "foundation_connectrpc::IdempotencyLevel::Unknown".to_string(),
     }
 }
 
 /// Get the handler-options suffix for the given idempotency expression.
 /// Returns `.with_idempotency(…)` if not Unknown, else empty.
 fn idempotency_suffix(expr: &str) -> String {
-    if expr == "connectrpc::IdempotencyLevel::Unknown" {
+    if expr == "foundation_connectrpc::IdempotencyLevel::Unknown" {
         String::new()
     } else {
         format!(".with_idempotency({expr})")
@@ -241,62 +241,62 @@ fn generate_service_trait(svc_name: &str, methods: &[MethodInfo], out: &mut Stri
         match ty {
             MethodKind::Unary => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, request: connectrpc::Request<{req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::Response<{res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
-                    "        Err(connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
+                    "        Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
                 ));
                 out.push_str("    }\n\n");
             }
             MethodKind::ServerStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, request: connectrpc::Request<{req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<impl futures::Stream<Item = connectrpc::ConnectResult<{res}>> + Send>\n"
+                    "        -> foundation_connectrpc::ConnectResult<impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>\n"
                 ));
                 // Return pinned hidden type with stream::Empty
                 out.push_str("    {\n");
                 out.push_str(&format!(
-                    "        let r: connectrpc::ConnectResult<futures::stream::Empty<connectrpc::ConnectResult<{res}>>> = \n"
+                    "        let r: foundation_connectrpc::ConnectResult<futures::stream::Empty<foundation_connectrpc::ConnectResult<{res}>>> = \n"
                 ));
                 out.push_str(&format!(
-                    "            Err(connectrpc::ConnectError::unimplemented(procedure::{path_const}).into());\n"
+                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into());\n"
                 ));
                 out.push_str("        r\n");
                 out.push_str("    }\n\n");
             }
             MethodKind::ClientStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, requests: impl futures::Stream<Item = connectrpc::ConnectResult<{req}>>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::Response<{res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
-                    "        Err(connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
+                    "        Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into())\n"
                 ));
                 out.push_str("    }\n\n");
             }
             MethodKind::BidiStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, requests: impl futures::Stream<Item = connectrpc::ConnectResult<{req}>>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, requests: impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{req}>>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<impl futures::Stream<Item = connectrpc::ConnectResult<{res}>> + Send>\n"
+                    "        -> foundation_connectrpc::ConnectResult<impl futures::Stream<Item = foundation_connectrpc::ConnectResult<{res}>> + Send>\n"
                 ));
                 // Return pinned hidden type with stream::Empty
                 out.push_str("    {\n");
                 out.push_str(&format!(
-                    "        let r: connectrpc::ConnectResult<futures::stream::Empty<connectrpc::ConnectResult<{res}>>> = \n"
+                    "        let r: foundation_connectrpc::ConnectResult<futures::stream::Empty<foundation_connectrpc::ConnectResult<{res}>>> = \n"
                 ));
                 out.push_str(&format!(
-                    "            Err(connectrpc::ConnectError::unimplemented(procedure::{path_const}).into());\n"
+                    "            Err(foundation_connectrpc::ConnectError::unimplemented(procedure::{path_const}).into());\n"
                 ));
                 out.push_str("        r\n");
                 out.push_str("    }\n\n");
@@ -317,7 +317,7 @@ fn generate_registration(svc_name: &str, methods: &[MethodInfo], out: &mut Strin
         "pub fn register_{}<S: {svc_name}>(\n",
         to_snake_case(svc_name)
     ));
-    out.push_str("    router: &mut connectrpc::Router,\n");
+    out.push_str("    router: &mut foundation_connectrpc::Router,\n");
     out.push_str("    service: std::sync::Arc<S>,\n");
     out.push_str(") {\n");
 
@@ -341,7 +341,7 @@ fn generate_registration(svc_name: &str, methods: &[MethodInfo], out: &mut Strin
         out.push_str(&format!("        router.{register_call}(\n"));
         out.push_str(&format!("            procedure::{path_const},\n"));
         out.push_str(&format!(
-            "            connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
+            "            foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
         ));
 
         match m.kind {
@@ -358,7 +358,7 @@ fn generate_registration(svc_name: &str, methods: &[MethodInfo], out: &mut Strin
         }
 
         out.push_str(&format!(
-            "            connectrpc::HandlerOptions::new(){idem_suffix},\n"
+            "            foundation_connectrpc::HandlerOptions::new(){idem_suffix},\n"
         ));
         out.push_str("        );\n");
         out.push_str("    }\n\n");
@@ -397,7 +397,7 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
         let req = &m.input_type;
         let res = &m.output_type;
         out.push_str(&format!(
-            "    {field_name}: connectrpc::Client<{req}, {res}>,\n"
+            "    {field_name}: foundation_connectrpc::Client<{req}, {res}>,\n"
         ));
     }
     out.push_str("}\n\n");
@@ -407,10 +407,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
 
     out.push_str("    /// Build a new typed client.\n");
     out.push_str("    pub fn new(\n");
-    out.push_str("        transport: std::sync::Arc<dyn connectrpc::Transport>,\n");
+    out.push_str("        transport: std::sync::Arc<dyn foundation_connectrpc::Transport>,\n");
     out.push_str("        base_url: &str,\n");
-    out.push_str("        options: connectrpc::ClientOptions,\n");
-    out.push_str("    ) -> connectrpc::ConnectResult<Self> {\n");
+    out.push_str("        options: foundation_connectrpc::ClientOptions,\n");
+    out.push_str("    ) -> foundation_connectrpc::ConnectResult<Self> {\n");
     out.push_str("        Ok(Self {\n");
 
     for (i, m) in methods.iter().enumerate() {
@@ -423,27 +423,27 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
 
         if !is_last {
             out.push_str(&format!(
-                "            {field_name}: connectrpc::Client::new(\n"
+                "            {field_name}: foundation_connectrpc::Client::new(\n"
             ));
             out.push_str("                transport.clone(),\n");
             out.push_str(&format!(
                 "                &format!(\"{{}}{{}}\", base_url, procedure::{path_const}),\n"
             ));
             out.push_str(&format!(
-                "                connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
+                "                foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
             ));
             out.push_str(&format!("                options.clone(){idem_suffix},\n"));
             out.push_str("            )?,\n");
         } else {
             out.push_str(&format!(
-                "            {field_name}: connectrpc::Client::new(\n"
+                "            {field_name}: foundation_connectrpc::Client::new(\n"
             ));
             out.push_str("                transport.clone(),\n");
             out.push_str(&format!(
                 "                &format!(\"{{}}{{}}\", base_url, procedure::{path_const}),\n"
             ));
             out.push_str(&format!(
-                "                connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
+                "                foundation_connectrpc::ProcedureCodecs::<{req}, {res}>::defaults(),\n"
             ));
             out.push_str(&format!("                options{idem_suffix},\n"));
             out.push_str("            )?,\n");
@@ -463,10 +463,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             MethodKind::Unary => {
                 out.push_str("    /// Unary RPC.\n");
                 out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: connectrpc::Ctx, request: connectrpc::Request<{req}>)\n"
+                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::Response<{res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
@@ -477,10 +477,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             MethodKind::ServerStream => {
                 out.push_str("    /// Server-streaming RPC.\n");
                 out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: connectrpc::Ctx, request: connectrpc::Request<{req}>)\n"
+                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::ServerStream<{res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
@@ -491,10 +491,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             MethodKind::ClientStream => {
                 out.push_str("    /// Client-streaming RPC.\n");
                 out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::Response<{res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
@@ -505,10 +505,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             MethodKind::BidiStream => {
                 out.push_str("    /// Bidirectional streaming RPC.\n");
                 out.push_str(&format!(
-                    "    pub async fn {method_name}(&self, ctx: connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    pub async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::BidiStream<{req}, {res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
@@ -537,34 +537,34 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
         match m.kind {
             MethodKind::Unary => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, request: connectrpc::Request<{req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::Response<{res}>>;\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>;\n"
                 ));
             }
             MethodKind::ServerStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, request: connectrpc::Request<{req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::ServerStream<{res}>>;\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>;\n"
                 ));
             }
             MethodKind::ClientStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::Response<{res}>>;\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>;\n"
                 ));
             }
             MethodKind::BidiStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::BidiStream<{req}, {res}>>;\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>;\n"
                 ));
             }
         }
@@ -585,10 +585,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
         match m.kind {
             MethodKind::Unary => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, request: connectrpc::Request<{req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::Response<{res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
@@ -598,10 +598,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             }
             MethodKind::ServerStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, request: connectrpc::Request<{req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, request: foundation_connectrpc::Request<{req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::ServerStream<{res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::ServerStream<{res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
@@ -611,10 +611,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             }
             MethodKind::ClientStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::Response<{res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<{res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
@@ -624,10 +624,10 @@ fn generate_client(svc_name: &str, methods: &[MethodInfo], out: &mut String) {
             }
             MethodKind::BidiStream => {
                 out.push_str(&format!(
-                    "    async fn {method_name}(&self, ctx: connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
+                    "    async fn {method_name}(&self, ctx: foundation_connectrpc::Ctx, reqs: impl futures::Stream<Item = {req}>)\n"
                 ));
                 out.push_str(&format!(
-                    "        -> connectrpc::ConnectResult<connectrpc::BidiStream<{req}, {res}>>\n"
+                    "        -> foundation_connectrpc::ConnectResult<foundation_connectrpc::BidiStream<{req}, {res}>>\n"
                 ));
                 out.push_str("    {\n");
                 out.push_str(&format!(
@@ -711,7 +711,7 @@ mod tests {
 
     /// WHY: Verify that idempotency level is extracted from method options.
     /// WHAT: A method with NO_SIDE_EFFECTS should produce
-    /// `.with_idempotency(connectrpc::IdempotencyLevel::NoSideEffects)`.
+    /// `.with_idempotency(foundation_connectrpc::IdempotencyLevel::NoSideEffects)`.
     #[test]
     fn test_idempotency_extraction() {
         let options = MethodOptions {
@@ -721,7 +721,7 @@ mod tests {
             ..Default::default()
         };
         let expr = extract_idempotency(&Some(options));
-        assert_eq!(expr, "connectrpc::IdempotencyLevel::NoSideEffects");
+        assert_eq!(expr, "foundation_connectrpc::IdempotencyLevel::NoSideEffects");
     }
 
     /// WHY: Verify idempotent level extraction.
@@ -735,7 +735,7 @@ mod tests {
             ..Default::default()
         };
         let expr = extract_idempotency(&Some(options));
-        assert_eq!(expr, "connectrpc::IdempotencyLevel::Idempotent");
+        assert_eq!(expr, "foundation_connectrpc::IdempotencyLevel::Idempotent");
     }
 
     /// WHY: Verify that missing idempotency level defaults to Unknown.
@@ -743,22 +743,22 @@ mod tests {
     #[test]
     fn test_default_idempotency() {
         let expr = extract_idempotency(&None);
-        assert_eq!(expr, "connectrpc::IdempotencyLevel::Unknown");
+        assert_eq!(expr, "foundation_connectrpc::IdempotencyLevel::Unknown");
     }
 
-    /// WHY: Verify generated code references `connectrpc::Client` properly.
+    /// WHY: Verify generated code references `foundation_connectrpc::Client` properly.
     /// WHAT: The client struct should contain `Client<Req,Res>` fields.
     #[test]
     fn test_client_struct_fields() {
         let file = make_greet_file();
         let code = generate_services(&[file]);
-        assert!(code.contains("greet: connectrpc::Client<GreetRequest, GreetResponse>"));
-        assert!(code.contains("greet_group: connectrpc::Client<GreetRequest, GreetGroupResponse>"));
+        assert!(code.contains("greet: foundation_connectrpc::Client<GreetRequest, GreetResponse>"));
+        assert!(code.contains("greet_group: foundation_connectrpc::Client<GreetRequest, GreetGroupResponse>"));
         assert!(code.contains(
-            "greet_individuals: connectrpc::Client<GreetRequest, GreetResponse>"
+            "greet_individuals: foundation_connectrpc::Client<GreetRequest, GreetResponse>"
         ));
         assert!(code.contains(
-            "converse: connectrpc::Client<ConverseRequest, ConverseResponse>"
+            "converse: foundation_connectrpc::Client<ConverseRequest, ConverseResponse>"
         ));
     }
 
