@@ -218,7 +218,10 @@ fn extract_stream_item_type(ty: &Type) -> Option<TokenStream> {
         for arg in &args.args {
             if let syn::GenericArgument::AssocType(at) = arg {
                 if at.ident == "Item" {
-                    return Some(quote!(#at.ty));
+                    // `&at.ty` — NOT `quote!(#at.ty)`, which would emit the whole
+                    // `Item = …` binding followed by literal `.ty` tokens.
+                    let item_ty = &at.ty;
+                    return Some(quote!(#item_ty));
                 }
             }
         }
@@ -316,16 +319,20 @@ fn extract_req_type(sig: &syn::Signature) -> TokenStream {
 fn extract_res_type(ret: &ReturnType) -> TokenStream {
     match ret {
         ReturnType::Type(_, ty) => {
-            // Unwrap ConnectResult<Response<T>>
-            if let Some(r) = extract_response_from_connect_result(ty) {
-                return r;
-            }
-
-            // Unwrap ConnectResult<impl Stream<Item = ConnectResult<T>>>
+            // Streaming FIRST: `ConnectResult<impl Stream<Item = ConnectResult<T>>>` → `T`.
+            // This must precede the `Response` unwrap: `extract_response_from_connect_result`
+            // falls back to returning the whole `ConnectResult` inner when it finds no
+            // `Response<…>`, which for a streaming method is the `impl Stream<…>` type —
+            // the wrong answer (and illegal nested `impl Trait` downstream).
             if let Some(inner) = extract_type_arg(ty, "ConnectResult") {
                 if type_mentions_stream(inner) {
                     return extract_stream_item_inner(inner);
                 }
+            }
+
+            // Unary / client-stream: `ConnectResult<Response<T>>` → `T`.
+            if let Some(r) = extract_response_from_connect_result(ty) {
+                return r;
             }
 
             // Fallback
@@ -443,10 +450,15 @@ fn ensure_send_sync_static(trait_def: &mut ItemTrait) {
 // ── Default method bodies ──────────────────────────────────────────────────
 
 /// Build a default unimplemented body for the given method kind and type info.
+///
+/// The body is a bare `Err(...)` for every kind: `desugar_async_methods_to_send`
+/// pins a concrete return type (`Response<Res>` for unary/client-stream, a boxed
+/// `Pin<Box<dyn Stream + Send>>` for server/bidi-stream), so the `Err` Ok-type
+/// infers with no annotation — no hidden `impl Stream` to pin.
 fn make_default_body(
     kind: MethodKind,
     path_const: &Ident,
-    res_type: &TokenStream,
+    _res_type: &TokenStream,
 ) -> syn::Block {
     let tokens = match kind {
         MethodKind::Unary | MethodKind::ClientStream => {
@@ -456,10 +468,7 @@ fn make_default_body(
         }
         MethodKind::ServerStream | MethodKind::BidiStream => {
             quote! {{
-                let r: connectrpc::ConnectResult<
-                    futures::stream::Empty<connectrpc::ConnectResult<#res_type>>
-                > = Err(connectrpc::ConnectError::unimplemented(procedure::#path_const).into());
-                r
+                Err(connectrpc::ConnectError::unimplemented(procedure::#path_const).into())
             }}
         }
     };
@@ -477,19 +486,45 @@ fn make_default_body(
 /// on the trait's return-position `impl Future` makes every implementation's
 /// future `Send` by contract (each impl's `async fn` is checked against it).
 ///
-/// Runs AFTER `add_default_bodies`, so both the user's declarations and the
-/// generated `unimplemented` defaults are rewritten. A generated/user body block
-/// `{ … }` becomes `{ async move { … } }` so it still produces the future.
+/// **Streaming return shape:** a server/bidi-stream method is authored as
+/// `-> ConnectResult<impl Stream<Item = …>>`, but `impl Trait` nested inside
+/// `ConnectResult<…>` (and again inside the `impl Future<Output = …>` we add) is
+/// illegal (`E0562`). So for streaming kinds we rewrite the `Output` to a **boxed
+/// stream** — `ConnectResult<Pin<Box<dyn Stream<Item = ConnectResult<Res>> + Send>>>`
+/// — a concrete type. Implementors return `Ok(Box::pin(stream))`; the box is
+/// `Stream + Send + 'static`, satisfying the Router's streaming bound.
+///
+/// Runs AFTER `add_default_bodies`, reading each method's kind/response type from
+/// its original signature before rewriting it. A generated/user body block `{ … }`
+/// becomes `{ async move { … } }` so it still produces the future.
 fn desugar_async_methods_to_send(trait_def: &mut ItemTrait) {
     for item in &mut trait_def.items {
         if let TraitItem::Fn(method) = item {
             // Only rewrite `async fn`; leave already-desugared / sync methods alone.
-            if method.sig.asyncness.take().is_none() {
+            if method.sig.asyncness.is_none() {
                 continue;
             }
-            let out_ty: TokenStream = match &method.sig.output {
-                ReturnType::Default => quote!(()),
-                ReturnType::Type(_, ty) => quote!(#ty),
+            // Read kind + response type from the *original* signature first.
+            let info = extract_method_info(method);
+            method.sig.asyncness = None;
+
+            let out_ty: TokenStream = match info.kind {
+                // Return type is concrete (`ConnectResult<Response<Res>>`) — keep verbatim.
+                MethodKind::Unary | MethodKind::ClientStream => match &method.sig.output {
+                    ReturnType::Default => quote!(()),
+                    ReturnType::Type(_, ty) => quote!(#ty),
+                },
+                // Box the stream so nothing is `impl Trait` but the outer future.
+                MethodKind::ServerStream | MethodKind::BidiStream => {
+                    let res = &info.res_type;
+                    quote! {
+                        connectrpc::ConnectResult<
+                            ::core::pin::Pin<Box<
+                                dyn futures::Stream<Item = connectrpc::ConnectResult<#res>> + Send
+                            >>
+                        >
+                    }
+                }
             };
             method.sig.output = syn::parse_quote!(
                 -> impl ::core::future::Future<Output = #out_ty> + Send
