@@ -108,7 +108,7 @@ one honest constraint: **proc-macros cannot reflect on foreign items** — a mac
 the tokens it is attached to. The bridge is token shipping:
 
 - `#[connectrpc::service]` additionally emits an exported **descriptor macro**
-  (`#[macro_export] macro_rules! greet_service_tokens`) carrying the trait's token shape —
+  (`#[macro_export] macro_rules! greet_service_rpc_definitions`) carrying the trait's token shape —
   the same callback/token-shipping pattern paste-style crates use.
 - A consuming crate re-expands those tokens with a **function-like** proc macro invoked at
   item position — no host struct/module needed (only *attribute* macros require an item to
@@ -116,7 +116,7 @@ the tokens it is attached to. The bridge is token shipping:
 
   ```rust
   // crate `my_server` — generate the chosen artifacts locally
-  connectrpc::generate!(my_api::greet_service_tokens => mod greet { server, client });
+  connectrpc::generate!(my_api::greet_service_rpc_definitions => mod greet { server, client });
   ```
 
 - **Limit stated plainly:** only traits annotated with `#[connectrpc::service]` are

@@ -745,7 +745,7 @@ pub fn service(attr: TokenStream, item: TokenStream) -> TokenStream {
 ///
 /// ```ignore
 /// use foundation_connectrpc::generate;
-/// generate!(my_api::my_service_tokens => mod my_svc {
+/// generate!(my_api::my_api_rpc_definitions => mod my_svc {
 ///     server, client
 /// });
 /// ```

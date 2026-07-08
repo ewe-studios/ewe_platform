@@ -640,7 +640,7 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
     let unimplemented_ident = format_ident!("Unimplemented{}Handler", svc_name);
     let client_struct_ident = format_ident!("{}Client", svc_name);
     let client_trait_ident = format_ident!("{}ClientExt", svc_name);
-    let descriptor_macro_ident = format_ident!("{}_tokens", svc_snake);
+    let descriptor_macro_ident = format_ident!("{}_rpc_definitions", svc_snake);
 
     let qualified_name = format!("{}.{}", package, svc_name);
 
@@ -916,22 +916,28 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
         })
         .collect();
 
-    // ── Assemble everything ───────────────────────────────────────────────
-    let generated = quote! {
-        // ── Service name constant (R3) ────────────────────────────────────
+    // ── Assemble artefacts per group ─────────────────────────────────────
+    //
+    // The items are split into three groups so that the cross-crate
+    // `generate!` macro can emit only what the consumer asked for:
+    //
+    //   common — always emitted (service name const + procedure paths)
+    //   server — trait + registration fn + Unimplemented*Handler
+    //   client — typed Client struct + ClientExt trait
+
+    let generated_common = quote! {
         /// Fully-qualified service name.
         pub const #name_const_ident: &str = #qualified_name;
 
-        // ── Procedure path constants (R1) ─────────────────────────────────
         /// Procedure path constants — leading slash included (R1).
         pub mod procedure {
             #(#procedure_consts)*
         }
+    };
 
-        // ── Service trait ────────────────────────────────────────────────
+    let generated_server = quote! {
         #input_trait
 
-        // ── Registration function ─────────────────────────────────────────
         /// Register a #svc_name implementation with a ConnectRPC router.
         pub fn #register_fn_ident<S: #svc_ident>(
             router: &mut foundation_connectrpc::Router,
@@ -940,13 +946,13 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
             #(#registration_arms)*
         }
 
-        // ── Unimplemented handler (R2) ────────────────────────────────────
         /// An unimplemented #svc_name handler — all methods return
         /// `unimplemented`.
         pub struct #unimplemented_ident;
         impl #svc_ident for #unimplemented_ident {}
+    };
 
-        // ── Typed client (R4) ─────────────────────────────────────────────
+    let generated_client = quote! {
         /// Typed client for #svc_name.
         pub struct #client_struct_ident {
             #(#client_fields)*
@@ -967,7 +973,6 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
             #(#client_methods)*
         }
 
-        // ── Client trait (R4) ─────────────────────────────────────────────
         /// Trait for #svc_name client behaviour (supports mocking/testing).
         pub trait #client_trait_ident: Send + Sync + 'static {
             #(#client_trait_methods)*
@@ -979,12 +984,26 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     // ── Descriptor macro for cross-crate generation ───────────────────────
+    //
+    // Arms: (common), (server), (client) — each emits one artefact group.
+    // The arm-less `()` form emits everything (backward compat when no
+    // artifact filter is given). `generate!` always emits `(common)` first,
+    // then conditionally emits `(server)` / `(client)` based on user input.
     quote! {
-        #generated
+        #generated_common
+        #generated_server
+        #generated_client
 
         #[macro_export]
         macro_rules! #descriptor_macro_ident {
-            () => { #generated };
+            (common) => { #generated_common };
+            (server) => { #generated_server };
+            (client) => { #generated_client };
+            () => {
+                #generated_common
+                #generated_server
+                #generated_client
+            };
         }
     }
 }
@@ -993,12 +1012,11 @@ pub fn expand_service(attr: TokenStream, item: TokenStream) -> TokenStream {
 
 /// Parsed input for `generate!(path => mod name { server, client })`.
 struct GenerateInput {
-    /// The path to the descriptor macro (e.g. `my_api::greet_service_tokens`).
-    _path: syn::Path,
+    /// The path to the descriptor macro (e.g. `my_api::greet_service_rpc_definitions`).
+    path: syn::Path,
     /// The output module name.
     module_name: Ident,
-    /// Artifact list (e.g. `server`, `client`) — reserved for future filtering.
-    #[allow(dead_code)]
+    /// Artifact list (e.g. `server`, `client`) — which groups to emit.
     artifacts: Vec<Ident>,
 }
 
@@ -1017,7 +1035,7 @@ impl Parse for GenerateInput {
                 content.parse::<Token![,]>()?;
             }
         }
-        Ok(GenerateInput { _path: path, module_name, artifacts })
+        Ok(GenerateInput { path, module_name, artifacts })
     }
 }
 
@@ -1029,12 +1047,32 @@ pub fn expand_generate(input: TokenStream) -> TokenStream {
         Err(e) => return e.to_compile_error(),
     };
     let mod_name = &gi.module_name;
-    let path = &gi._path;
+    let path = &gi.path;
 
-    // For now, always output the full descriptor macro body inside the module.
+    let has_server = gi.artifacts.iter().any(|a| a == "server");
+    let has_client = gi.artifacts.iter().any(|a| a == "client");
+
+    let mut invocations = TokenStream::new();
+
+    if has_server || has_client {
+        // Common artefacts (service name + procedure paths) are always needed
+        // when either group is requested.
+        invocations.extend(quote! { #path ! (common) ; });
+    }
+    if has_server {
+        invocations.extend(quote! { #path ! (server) ; });
+    }
+    if has_client {
+        invocations.extend(quote! { #path ! (client) ; });
+    }
+    // If neither was specified (empty `{}`), emit everything for backward compat.
+    if !has_server && !has_client {
+        invocations.extend(quote! { #path ! () ; });
+    }
+
     quote! {
         pub mod #mod_name {
-            #path!();
+            #invocations
         }
     }
 }
@@ -1108,7 +1146,7 @@ mod tests {
         );
 
         // Descriptor macro export
-        assert!(out.contains("greet_service_tokens"), "missing descriptor macro");
+        assert!(out.contains("greet_service_rpc_definitions"), "missing descriptor macro");
         assert!(out.contains("macro_export"), "missing macro_export on descriptor macro");
     }
 
@@ -1248,7 +1286,8 @@ mod tests {
         );
     }
 
-    /// WHY: Verify that the generate! macro produces the right module wrapper.
+    /// WHY: Verify that `generate!` with `{ server, client }` emits
+    /// (common), (server), and (client) arms.
     #[test]
     fn test_generate_expansion() {
         let input = quote! { foo::bar => mod my_mod { server, client } };
@@ -1256,19 +1295,54 @@ mod tests {
         let out = output.to_string();
 
         assert!(out.contains("pub mod my_mod"));
-        assert!(out.contains("foo :: bar ! ()"));
+        // Emits all three filtered arms, not the unfiltered `()` form.
+        assert!(out.contains("foo :: bar ! (common)"));
+        assert!(out.contains("foo :: bar ! (server)"));
+        assert!(out.contains("foo :: bar ! (client)"));
     }
 
-    /// WHY: Verify the generate! macro produces a valid module even with
-    /// different path segments.
+    /// WHY: Verify `generate!` with only `{ server }` emits common + server,
+    /// and not client or the unfiltered form.
     #[test]
-    fn test_generate_nested_path() {
+    fn test_generate_server_only() {
         let input = quote! { my_crate::my_mod::tokens => mod svc { server } };
         let output = expand_generate(input);
         let out = output.to_string();
 
         assert!(out.contains("pub mod svc"));
-        assert!(out.contains("my_crate :: my_mod :: tokens ! ()"));
+        assert!(out.contains("tokens ! (common)"));
+        assert!(out.contains("tokens ! (server)"));
+        assert!(!out.contains("tokens ! (client)"));
+        assert!(!out.contains("tokens ! ()"));
+    }
+
+    /// WHY: Verify `generate!` with only `{ client }` emits common + client,
+    /// not server.
+    #[test]
+    fn test_generate_client_only() {
+        let input = quote! { api::svc_rpc_definitions => mod cli { client } };
+        let output = expand_generate(input);
+        let out = output.to_string();
+
+        assert!(out.contains("pub mod cli"));
+        assert!(out.contains("svc_rpc_definitions ! (common)"));
+        assert!(!out.contains("svc_rpc_definitions ! (server)"));
+        assert!(out.contains("svc_rpc_definitions ! (client)"));
+    }
+
+    /// WHY: Verify empty `{}` falls back to the unfiltered `()` form
+    /// (backward compat).
+    #[test]
+    fn test_generate_empty_braces() {
+        let input = quote! { api::tokens => mod m {} };
+        let output = expand_generate(input);
+        let out = output.to_string();
+
+        assert!(out.contains("pub mod m"));
+        assert!(out.contains("api :: tokens ! ()"));
+        assert!(!out.contains("tokens ! (common)"));
+        assert!(!out.contains("tokens ! (server)"));
+        assert!(!out.contains("tokens ! (client)"));
     }
 
     /// WHY: Verify the `to_snake_case` conversion function.

@@ -354,7 +354,7 @@ in the same module where the trait is defined:
 | R5 | **Unimplemented handler** | `pub struct UnimplementedGreetServiceHandler;` + `impl GreetService for UnimplementedGreetServiceHandler {}` | A stub that returns `ConnectError::unimplemented` for every method — useful as a placeholder during development. |
 | R6 | **Typed client struct** | `pub struct GreetServiceClient { greet: Client<GreetReq, GreetResp>, ... }` | A client with one async method per RPC. Its `new(transport, base_url, options)` constructor builds one `Client<Req, Res>` per method. |
 | R7 | **Client trait** | `pub trait GreetServiceClientExt: Send + Sync + 'static { ... }` | A trait mirroring the client methods — enables mocking and dependency injection in tests. |
-| R8 | **Descriptor macro** | `#[macro_export] macro_rules! greet_service_tokens { () => { ... } }` | Captures the full expansion for cross-crate re-generation via `generate!`. |
+| R8 | **Descriptor macro** | `#[macro_export] macro_rules! greet_service_rpc_definitions { (common) => { ... }, (server) => { ... }, (client) => { ... } }` | Captures the expansion in filtered arms for cross-crate re-generation via `generate!`. |
 
 **Name derivation — every generated name follows mechanically from the trait's
 `Ident`.** There are three conversion rules, all standard Rust convention:
@@ -369,7 +369,7 @@ Where each convention is used:
 
 | Convention | Applied to |
 |---|---|
-| **snake_case** | Registration function (`register_greet_service`), descriptor macro (`greet_service_tokens`), client field names (`greet: Client<…>`) |
+| **snake_case** | Registration function (`register_greet_service`), descriptor macro (`greet_service_rpc_definitions`), client field names (`greet: Client<…>`) |
 | **PascalCase** | Trait name (unchanged), client struct (`GreetServiceClient`), client trait (`GreetServiceClientExt`), unimplemented handler (`UnimplementedGreetServiceHandler`) |
 | **SCREAMING_SNAKE_CASE** | Service name constant (`GREETSERVICE_NAME`), procedure path constants (`GREET`) |
 
@@ -453,15 +453,21 @@ pub trait MyApi {
 
 **What Crate A exports:** Alongside the trait and the in-crate generated items
 (see [the artifact table](#what-the-macro-generates)), the `#[service]`
-attribute also emits a hidden `#[macro_export]` descriptor macro:
+attribute also emits a hidden `#[macro_export]` descriptor macro with
+**filtered arms** so `generate!` only emits what you ask for:
 
 ```
 #[macro_export]
-macro_rules! my_api_tokens { () => { /* full expansion of all 8 artifacts */ }; }
+macro_rules! my_api_rpc_definitions {
+    (common) => { /* service name const + procedure paths */ };
+    (server) => { /* trait + register fn + unimplemented handler */ };
+    (client) => { /* typed client struct + client trait */ };
+    ()        => { /* everything — fallback for empty `{}` */ };
+}
 ```
 
 The macro name is derived from the trait name: `MyApi` → snake_case →
-`my_api` + `_tokens`. Crate B will call this macro through `generate!`.
+`my_api` + `_rpc_definitions`. Crate B will invoke it through `generate!`.
 
 **Step 2 — the server crate** depends on **both** `my-api` and
 `foundation_connectrpc`. Use `generate!` to re-expand the descriptor macro into a
@@ -472,10 +478,10 @@ module of your choosing:
 use foundation_connectrpc::generate;
 
 // Re-expand the service artifacts into a `my_svc` module.
-// `my_api::my_api_tokens` — the descriptor macro exported by Crate A.
+// `my_api::my_api_rpc_definitions` — the descriptor macro exported by Crate A.
 // `{ server, client }` — ask for both server-side and client-side artifacts
 // (see the note under "What the macro generates" above for what each label selects).
-generate!(my_api::my_api_tokens => mod my_svc {
+generate!(my_api::my_api_rpc_definitions => mod my_svc {
     server, client
 });
 ```
@@ -655,7 +661,7 @@ impl GreetServiceClientExt for GreetServiceClient { /* delegates to inner Client
 
 // ── R8: Descriptor macro (Mode 3 only) ────────────────────────────────────
 #[macro_export]
-macro_rules! greet_service_tokens { () => { /* full expansion */ }; }
+macro_rules! greet_service_rpc_definitions { (common) => { ... }; (server) => { ... }; (client) => { ... }; }
 ```
 
 > **Note:** The generated code uses the crate's **real path** as its prefix
