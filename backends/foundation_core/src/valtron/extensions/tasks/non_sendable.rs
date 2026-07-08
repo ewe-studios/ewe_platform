@@ -137,6 +137,67 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         Self::Pending: Clone,
         P: Fn(&Self::Ready) -> bool + 'static;
 
+    /// Fan each matched `Ready` value out to **N** observer branches (each gets a
+    /// clone), returning the `N` observers plus a continuation carrying the full
+    /// stream onward (F45 N-way broadcast follow-on).
+    ///
+    /// ## Semantics — zero loss, slowest-gates lockstep
+    ///
+    /// A matched value is delivered to **every** open branch. Backpressure composes
+    /// across all N: if **any** branch's queue is full the source parks on that
+    /// branch's [`QueueVacancyReadiness`] and delivers to no branch until **all**
+    /// have vacancy — so the slowest consumer gates the rest and **no value is
+    /// dropped**. `queue_size = 1` is strict lockstep; larger gives buffered slack.
+    /// A **dropped** observer closes its queue; the source stops copying to it but
+    /// keeps forwarding to the survivors (never a deadlock).
+    ///
+    /// ## Type Requirements
+    /// - `Ready` must be `Clone` (each branch gets a copy).
+    /// - `Pending` must be `Clone` (branch element type is `Stream<Ready, Pending>`).
+    ///
+    /// ## Panics
+    /// Never panics. (`queue_size` is clamped to at least 1.)
+    fn broadcast<P>(
+        self,
+        n: usize,
+        predicate: P,
+        queue_size: usize,
+    ) -> (
+        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
+        BroadcastContinuation<Self>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + 'static;
+
+    /// Like [`broadcast`](Self::broadcast) but a **full branch loses the item**
+    /// instead of backpressuring the source (F45 N-way broadcast follow-on).
+    ///
+    /// This is the **loud, explicit** lossy opt-in: the source never stalls on a
+    /// slow observer, so a branch that cannot keep up will **miss values**
+    /// (drop-oldest per branch). Use only when staleness is preferable to
+    /// backpressure (e.g. a best-effort metrics/observability tap). For zero-loss
+    /// delivery use [`broadcast`](Self::broadcast).
+    ///
+    /// ## Panics
+    /// Never panics. (`queue_size` is clamped to at least 1.)
+    fn broadcast_lossy<P>(
+        self,
+        n: usize,
+        predicate: P,
+        queue_size: usize,
+    ) -> (
+        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
+        BroadcastContinuation<Self>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + 'static;
+
     /// Split the iterator into an observer branch and a continuation branch,
     /// closing the observer when the predicate returns a close signal.
     ///
@@ -769,6 +830,42 @@ where
         P: Fn(&Self::Ready) -> bool + 'static,
     {
         self.split_collector(predicate, 1)
+    }
+
+    fn broadcast<P>(
+        self,
+        n: usize,
+        predicate: P,
+        queue_size: usize,
+    ) -> (
+        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
+        BroadcastContinuation<Self>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + 'static,
+    {
+        broadcast_build(self, n, Box::new(predicate), queue_size, false)
+    }
+
+    fn broadcast_lossy<P>(
+        self,
+        n: usize,
+        predicate: P,
+        queue_size: usize,
+    ) -> (
+        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
+        BroadcastContinuation<Self>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + 'static,
+    {
+        broadcast_build(self, n, Box::new(predicate), queue_size, true)
     }
 
     fn split_collect_until<P>(
@@ -2034,6 +2131,186 @@ where
         // Close the queue to signal that the source is done
         self.queue.close();
         tracing::debug!("SplitCollectorContinuation: dropped, queue closed");
+    }
+}
+
+// ============================================================================
+// N-way Broadcast Combinator (F45 N-way follow-on)
+// ============================================================================
+
+/// WHY: `broadcast`/`broadcast_lossy` share all wiring except the full-branch
+/// policy; a single builder keeps the two entry points a one-line difference.
+///
+/// WHAT: allocate `n` bounded branch queues, hand back `n`
+/// [`CollectorStreamIterator`] observers (reused from the 2-way split — they
+/// already yield `Stream::Wait` on empty-open and close their queue on drop) plus a
+/// [`BroadcastContinuation`] carrying the source onward with the chosen policy.
+///
+/// HOW: `queue_size` is clamped to at least 1 (a 0-capacity queue is invalid).
+///
+/// # Panics
+/// Never panics.
+fn broadcast_build<I>(
+    inner: I,
+    n: usize,
+    predicate: Box<dyn Fn(&I::Ready) -> bool>,
+    queue_size: usize,
+    lossy: bool,
+) -> (
+    Vec<CollectorStreamIterator<I::Ready, I::Pending>>,
+    BroadcastContinuation<I>,
+)
+where
+    I: TaskIterator,
+{
+    let cap = queue_size.max(1);
+    let mut observers = Vec::with_capacity(n);
+    let mut queues = Vec::with_capacity(n);
+    for _ in 0..n {
+        let queue = Arc::new(ConcurrentQueue::bounded(cap));
+        observers.push(CollectorStreamIterator {
+            queue: Arc::clone(&queue),
+        });
+        queues.push(queue);
+    }
+    tracing::debug!("broadcast: {n} branches, queue_size={cap}, lossy={lossy}");
+    let continuation = BroadcastContinuation {
+        inner,
+        queues,
+        predicate,
+        lossy,
+        pending_value: None,
+        pending_forward: None,
+    };
+    (observers, continuation)
+}
+
+/// Continuation branch from [`broadcast`](TaskIteratorExt::broadcast) /
+/// [`broadcast_lossy`](TaskIteratorExt::broadcast_lossy).
+///
+/// Wraps the source, fanning each matched `Ready` value out to every open branch
+/// queue while forwarding the full stream onward. See the trait methods for the
+/// zero-loss (slowest-gates lockstep) vs. lossy (drop-oldest per branch) semantics.
+pub struct BroadcastContinuation<I: TaskIterator> {
+    /// The wrapped source iterator.
+    inner: I,
+    /// One bounded queue per observer branch.
+    queues: Vec<Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>>,
+    /// Which `Ready` values to fan out.
+    predicate: Box<dyn Fn(&I::Ready) -> bool>,
+    /// `true` = a full branch drops (drop-oldest); `false` = a full branch parks.
+    lossy: bool,
+    /// A matched value awaiting delivery to all branches (zero-loss backpressure):
+    /// held until **every** open branch has vacancy, then broadcast in one shot.
+    pending_value: Option<I::Ready>,
+    /// The source item held back until `pending_value` is delivered (lockstep).
+    pending_forward: Option<TaskStatus<I::Ready, I::Pending, I::Spawner>>,
+}
+
+impl<I: TaskIterator> BroadcastContinuation<I> {
+    /// Index of the first branch that is **open and full** (the one that gates
+    /// delivery). Closed branches are skipped — a dropped observer never blocks the
+    /// source. Returns `None` when every open branch has vacancy.
+    fn first_full_branch(&self) -> Option<usize> {
+        self.queues
+            .iter()
+            .position(|q| !q.is_closed() && q.is_full())
+    }
+
+    /// Close every branch queue (source exhausted or continuation dropped).
+    fn close_all(&self) {
+        for queue in &self.queues {
+            queue.close();
+        }
+    }
+}
+
+impl<I> BroadcastContinuation<I>
+where
+    I: TaskIterator,
+    I::Ready: Clone,
+    I::Pending: Clone,
+{
+    /// Deliver one clone of `value` to every open branch. For zero-loss this is
+    /// only called once all open branches have vacancy, so each `push` succeeds; a
+    /// `Closed` race (observer dropped mid-flight) is skipped. For lossy, a full
+    /// branch drops its oldest via `force_push`.
+    fn deliver(&self, value: &I::Ready) {
+        for queue in &self.queues {
+            if queue.is_closed() {
+                continue;
+            }
+            if self.lossy {
+                // Loud lossy opt-in: drop-oldest so the source never stalls.
+                let _ = queue.force_push(Stream::Next(value.clone()));
+            } else {
+                let _ = queue.push(Stream::Next(value.clone()));
+            }
+        }
+    }
+}
+
+impl<I> Iterator for BroadcastContinuation<I>
+where
+    I: TaskIterator,
+    I::Ready: Clone + 'static,
+    I::Pending: Clone + 'static,
+{
+    type Item = TaskStatus<I::Ready, I::Pending, I::Spawner>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // Resume a parked broadcast (zero-loss only): deliver to all once every
+        // open branch has vacancy, otherwise re-park on the still-full branch.
+        if let Some(value) = self.pending_value.take() {
+            if let Some(idx) = self.first_full_branch() {
+                self.pending_value = Some(value);
+                return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                    self.queues[idx].clone(),
+                ))));
+            }
+            self.deliver(&value);
+            return self.pending_forward.take();
+        }
+
+        let item = if let Some(item) = self.inner.next_status() {
+            item
+        } else {
+            self.close_all();
+            tracing::debug!("BroadcastContinuation: source exhausted, branches closed");
+            return None;
+        };
+
+        if let TaskStatus::Ready(value) = &item {
+            if (self.predicate)(value) {
+                if self.lossy {
+                    // Never parks: drop-oldest on any full branch.
+                    self.deliver(value);
+                } else if let Some(idx) = self.first_full_branch() {
+                    // Slowest-gates lockstep: deliver to NO branch until all have
+                    // vacancy, so no branch is double-delivered on retry and none
+                    // is dropped. Hold the source item back until then.
+                    self.pending_value = Some(value.clone());
+                    self.pending_forward = Some(item);
+                    return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
+                        self.queues[idx].clone(),
+                    ))));
+                } else {
+                    self.deliver(value);
+                }
+            }
+        }
+
+        Some(item)
+    }
+}
+
+impl<I> Drop for BroadcastContinuation<I>
+where
+    I: TaskIterator,
+{
+    fn drop(&mut self) {
+        self.close_all();
+        tracing::debug!("BroadcastContinuation: dropped, branches closed");
     }
 }
 

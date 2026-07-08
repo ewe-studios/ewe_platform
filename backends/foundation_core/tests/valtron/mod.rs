@@ -1,4 +1,5 @@
 #[cfg(not(target_family = "wasm"))]
+mod broadcast_tests;
 mod builder_tests;
 #[cfg(not(target_family = "wasm"))]
 mod channel_backpressure_tests;
