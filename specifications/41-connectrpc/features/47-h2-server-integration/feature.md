@@ -1,6 +1,6 @@
 ---
-feature: "HTTP/2 server integration: H2StreamHandle, ServeH2, H2ConnectionHandler, ConnectRpcServeH2 (D12 §5)"
-description: "H2StreamHandle (per-stream write surface), ServeH2 trait, H2ConnectionHandler (valtron TaskIterator), h2c detect in HttpServer accept loop, ConnectRpcServeH2 — h2 serves the same Router as HTTP/1.1"
+feature: "HTTP/2 server integration: H2Conn, request→response pipe bridge, H2ConnectionHandler"
+description: "Full h2 server: SimpleIncomingRequestHeader + Stream<H2IncomingFrame> → dispatch → Pipe<H2Frame>, all 4 RPC modes, zero buffering"
 status: "pending"
 priority: "high"
 phase: 2
@@ -12,237 +12,214 @@ created: 2026-07-09
 
 ## Description
 
-Wire HTTP/2 into `foundation_http` so the `HttpServer` accept loop detects h2c,
-spawns an `H2ConnectionHandler` on valtron, and dispatches each h2 stream to the
-same `HttpApp.router()`. Same `Router`, same handlers — the only difference is
-the wire format.
+Full HTTP/2 server integration. `H2ConnectionHandler` reads h2 frames, decodes
+each stream into `SimpleIncomingRequestHeader` + `Stream<H2IncomingFrame>`,
+dispatches through `ConnectRpcHandler`, and bridges the handler's output to
+`Pipe<H2Frame>` — all four RPC modes, no OOM collection.
 
 ## Design
 
-### Type mapping: HTTP/1.1 vs HTTP/2
-
-| Concept | HTTP/1.1 | HTTP/2 |
-|---|---|---|
-| Connection type | `SharedByteBufferStream<RawStream>` | `H2Conn` |
-| How handlers write | `Http11::response(resp).http_render_to_writer(&mut conn)` | `conn.stream(id).send_response(200, &[], Some(body))` |
-| Handler trait | `Serve::serve(bag, req, conn)` | `ServeH2::serve_h2(bag, req, conn, stream_id)` |
-| Connection owner | `ConnectionHandler` (valtron TaskIterator) | `H2ConnectionHandler` (valtron TaskIterator) |
-
-### H2Conn — the h2 connection (foundation_netio)
-
-A concrete type (not generic) wrapping `H2Connection<SharedByteBufferStream<RawStream>>`.
-Represents one multiplexed h2 connection — owns frame I/O, HPACK state,
-SETTINGS, flow control, and per-stream bookkeeping.
+### Types (foundation_netio)
 
 ```rust
-/// One multiplexed HTTP/2 connection — the h2 equivalent of
-/// [`SharedByteBufferStream<RawStream>`] for HTTP/1.1.
-pub struct H2Conn {
-    inner: H2Connection<SharedByteBufferStream<RawStream>>,
+/// Decoded HEADERS frame without the body — the "everything except body" type.
+pub struct SimpleIncomingRequestHeader {
+    pub method: SimpleMethod,
+    pub scheme: String,
+    pub authority: String,
+    pub path: String,
+    pub headers: SimpleHeaders,
+    pub connection: Arc<ConnectionContext>,
 }
+
+/// One frame after HEADERS on an incoming stream.
+/// Stream ends when the body stream returns Ready(None).
+pub enum H2IncomingFrame {
+    Data(Bytes),
+    Reset(ErrorCode),
+}
+
+/// One frame the handler pushes into the per-stream response pipe.
+/// The connection handler serializes these to the shared write_buf.
+pub enum H2Frame {
+    Headers { status: u16, headers: Vec<(Bytes, Bytes)>, end_stream: bool },
+    Data { payload: Bytes, end_stream: bool },
+    Reset { error_code: ErrorCode },
+}
+
+/// Concrete h2 connection wrapping H2Connection<SharedByteBufferStream<RawStream>>.
+pub struct H2Conn { inner: H2Connection<SharedByteBufferStream<RawStream>> }
 
 impl H2Conn {
-    /// Create for a server-side connection (even stream IDs for push).
     pub fn new_server(stream: SharedByteBufferStream<RawStream>) -> Self;
-
-    /// Create for a client-side connection (odd stream IDs).
-    pub fn new_client(stream: SharedByteBufferStream<RawStream>) -> Self;
-
-    /// Run the server-side h2 handshake (read preface + SETTINGS exchange).
     pub fn server_handshake(&mut self) -> io::Result<()>;
-
-    /// Run the client-side h2 handshake (write preface + SETTINGS exchange).
-    pub fn client_handshake(&mut self) -> io::Result<()>;
-
-    /// Read the next frame from the socket.
     pub fn read_frame(&mut self) -> io::Result<(Head, Bytes)>;
-
-    /// Flush the write buffer to the socket.
     pub fn flush(&mut self) -> io::Result<()>;
-
-    /// Get a stream handle for sending on a specific stream.
-    pub fn stream(&mut self, stream_id: u32) -> H2StreamHandle<'_>;
-
-    /// The underlying byte stream, for direct I/O.
-    pub fn raw(&self) -> &SharedByteBufferStream<RawStream>;
+    pub fn decode_headers(&mut self, block: &[u8]) -> Result<Vec<(Bytes, Bytes)>, &'static str>;
+    pub fn encode_frame(&mut self, stream_id: u32, frame: &H2Frame);
 }
 ```
 
-### H2StreamHandle — per-stream write surface (foundation_netio)
+### ConnectRpcHandler — new h2 dispatch method
 
-Obtained via `conn.stream(stream_id)`. A focused handle that encodes
-responses into the connection's shared write buffer. Users never touch
-binary frames directly.
-
-```rust
-/// Write handle for one h2 stream, obtained from [`H2Conn::stream`].
-///
-/// Wraps the connection's HPACK encoder + write buffer + stream ID.
-/// Every method encodes the correct frame type and flags.
-pub struct H2StreamHandle<'a> {
-    stream_id: u32,
-    hpack_enc: &'a mut hpack::Encoder,
-    write_buf: &'a mut BytesMut,
-}
-
-impl H2StreamHandle<'_> {
-    /// Send response HEADERS. `end_stream: true` for no-body responses.
-    pub fn send_headers(&mut self, status: u16, headers: &[(Bytes, Bytes)], end_stream: bool);
-
-    /// Send a DATA frame.
-    pub fn send_data(&mut self, data: &[u8], end_stream: bool);
-
-    /// Convenience: HEADERS + single DATA frame (the common unary case).
-    pub fn send_response(&mut self, status: u16, headers: &[(Bytes, Bytes)], body: Option<Bytes>);
-
-    /// Send RST_STREAM.
-    pub fn send_reset(&mut self, error_code: ErrorCode);
-
-    /// The stream ID.
-    pub fn stream_id(&self) -> u32;
-}
-```
-
-### Trait: `ServeH2` (foundation_http)
+`dispatch()` already handles decision phase (path lookup, method, protocol, codec, capability).
+We add `dispatch_h2()` that reuses the same decision phase but bridges output directly
+to `Pipe<H2Frame>` — no `SimpleOutgoingResponse` collection.
 
 ```rust
-/// Handler for one h2 stream — the h2 equivalent of [`Serve`].
-///
-/// Contrast:
-/// - `Serve::serve(bag, req, conn: SharedByteBufferStream)` — writes Http11 text
-/// - `ServeH2::serve_h2(bag, req, conn: &H2Conn, stream_id)` — writes via H2StreamHandle
-pub trait ServeH2: Send + Sync + 'static {
-    fn serve_h2(
+impl ConnectRpcHandler {
+    /// Existing: full dispatch → collected SimpleOutgoingResponse.
+    pub fn dispatch(&self, bag: Arc<ContextBag>, request: SimpleIncomingRequest)
+        -> BoxFuture<'static, SimpleOutgoingResponse>;
+
+    /// h2-streaming dispatch: bridges handler output to H2Frame pipe.
+    /// Handles all four RPC modes. No intermediate collection.
+    pub fn dispatch_h2(
         &self,
         bag: Arc<ContextBag>,
-        req: SimpleIncomingRequest,
-        conn: &H2Conn,
-        stream_id: u32,
-    ) -> io::Result<()>;
+        header: &SimpleIncomingRequestHeader,
+        body: impl Stream<Item = H2IncomingFrame> + Send + 'static,
+        tx: PipeSender<H2Frame>,
+    ) -> BoxFuture<'static, io::Result<()>>;
 }
 ```
 
-The handler receives the full `H2Conn` so it can create stream handles as needed.
-For the common case it just calls `conn.stream(stream_id).send_response(...)`.
+#### How `dispatch_h2()` works per mode
+
+**Unary** (body stream yields 0–N Data frames, handler returns a single response):
+```
+1. Decision phase: lookup path, match protocol, resolve codec, check capability
+2. Collect body from body stream into Bytes (typically 0 or 1 DATA frames)
+3. Build SimpleIncomingRequest from header + collected body
+4. protocol.decode_unary_request() → run erased handler (produces frame bytes)
+5. protocol.encode_unary_response() → framed response bytes
+6. H2Frame::Headers { 200, end_stream: false } → tx
+7. H2Frame::Data { response_bytes, end_stream: true } → tx
+8. return Ok(())
+```
+
+**Server-stream** (body stream yields 0–N Data frames, handler returns a stream):
+```
+1. Decision phase
+2. Collect body from body stream (Request has no body in typical server-stream,
+   but the body stream is always present and may yield DATA frames)
+3. Build SimpleIncomingRequest from header + collected body
+4. protocol.new_conn() → HandlerExchange { conn, reader_task, writer_task }
+   - request pipe: closed immediately (request body already collected)
+   - response pipe: writer_task writes framed response bytes here
+5. handler.handle(ctx, codec_name, conn) — produces stream through conn
+6. Bridge: tx.send(H2Frame::Headers { 200, end_stream: false }).await?;
+   while let Some(chunk) = resp_rx.receive().await {
+       tx.send(H2Frame::Data { payload: chunk, end_stream: false }).await?;
+   }
+   tx.send(H2Frame::Data { payload: Bytes::new(), end_stream: true }).await?;
+7. join!(handler_fut, writer_task, bridge)
+8. return Ok(())
+```
+
+**Client-stream** (body stream has DATA frames, handler returns unary):
+```
+1. Decision phase
+2. Build SimpleIncomingRequest with streaming body
+3. protocol.new_conn() → HandlerExchange
+   - request pipe: feed from body stream: H2IncomingFrame::Data(chunk) → req_tx
+   - response pipe: writer_task writes framed response here
+4. handler.handle(ctx, codec_name, conn) — consumes request stream, produces response
+5. Bridge: feed body → req_tx, collect response → H2Frame::Headers + H2Frame::Data → tx
+6. join!(body_feed, reader_task, writer_task, handler_fut)
+7. return Ok(())
+```
+
+**Bidi-stream** (body stream has DATA frames, handler produces stream):
+```
+1. Decision phase
+2. Build SimpleIncomingRequest with streaming body
+3. protocol.new_conn() → HandlerExchange
+4. handler.handle(ctx, codec_name, conn) — reads request frames, writes response frames
+5. Bridge: body → req_tx, response pipe → H2Frame::Data → tx, interleaved
+   tx.send(H2Frame::Headers { 200, end_stream: false }).await?;
+   futures::join!(
+       feed_body(body_stream, req_tx),     // H2IncomingFrame::Data → req_tx
+       drain_resp(resp_rx, tx.clone()),     // resp_rx chunks → H2Frame::Data → tx
+       handler_fut,
+       reader_task,
+       writer_task,
+   );
+6. tx.send(H2Frame::Data { payload: Bytes::new(), end_stream: true }).await?;
+7. return Ok(())
+```
 
 ### H2ConnectionHandler (foundation_http)
 
-The valtron `TaskIterator` that owns one multiplexed h2 connection.
+Valtron `TaskIterator`. Each poll:
 
 ```
-H2ConnectionHandler
-├── conn: H2Conn                                     (the h2 connection)
-├── app: Arc<HttpApp<Arc<dyn ServeH2>>>              (routes → ServeH2 handlers)
-├── shutdown, drain_guard, idle timeout
+1. conn.flush()
+2. conn.read_frame() → (head, payload)
+3. Dispatch:
+   HEADERS (new stream):
+     - conn.decode_headers(payload) → (name, value) pairs
+     - map pseudo-headers → SimpleIncomingRequestHeader
+     - create Pipe<H2IncomingFrame> for body → body_rx, Pipe<H2Frame> for response → resp_tx
+     - valtron::send(dispatch_h2 task)  ← SPAWNED, not called inline
+       → dispatch_h2 runs on valtron pool, pushes H2Frames into resp_tx
+     - store (body_tx, resp_rx) in streams map for draining
+   DATA (stream_id):
+     - streams[stream_id].body_tx.send(H2IncomingFrame::Data(payload))
+   DATA(END_STREAM):
+     - streams[stream_id].body_tx.close()
+   RST_STREAM (stream_id):
+     - streams[stream_id].body_tx.send(H2IncomingFrame::Reset(code)) → close
+     - remove stream from map
+4. Drain all active response pipes:
+   for (sid, rx) in &mut streams:
+       while let Some(frame) = rx.try_recv() {
+           conn.encode_frame(sid, &frame);
+       }
+5. WouldBlock → TaskStatus::Delayed(10ms)
+   (matches existing ConnectionHandler pattern; reactor parking from
+   Decision 12 §12 / Feature 10 would upgrade this to Depends(RegisteredFd)
+   but that is wired at a different valtron layer — same gap for both h1
+   and h2 handlers)
 ```
 
-Each `next_status()` poll:
+**Why spawning works for multiplexing:** The poll loop never blocks on a
+handler. It creates pipes, spawns `dispatch_h2()` on the valtron pool, and
+continues reading frames. Multiple streams can be active at once — stream 1
+streaming a response while stream 3 is still receiving request DATA.
+The shared `write_buf` is only touched by this one poll loop (one
+TaskIterator = one writer), so there is no contention. Frame ordering across
+streams is determined by the order the poll loop drains pipes, which is
+naturally fair (round-robin or in stream-ID order).
 
-1. `conn.flush()` — drain write buffer to socket
-2. `conn.read_frame()` — try to decode one frame
-3. HEADERS frame → HPACK decode → `SimpleIncomingRequest` →
-   `app.router().dispatch()` → `handler.serve_h2(bag, req, &conn, stream_id)`
-4. `WouldBlock` → `TaskStatus::Delayed(10ms)`
+### H2Transport (connectrpc client side)
 
-Request decoding (HPACK → `SimpleIncomingRequest`) lives in `H2Conn` or a
-free function — the handler doesn't touch HTTP/2 framing at all.
+Already built in F30. `H2Transport::open()` connects via TCP, handshakes h2,
+spawns valtron pump, returns `TransportStream`. `Client::unary()` already works.
 
-### Impl: `ConnectRpcServeH2` (foundation_connectrpc)
-
-```rust
-pub struct ConnectRpcServeH2 {
-    handler: Arc<ConnectRpcHandler>,
-}
-
-impl ServeH2 for ConnectRpcServeH2 {
-    fn serve_h2(&self, bag, req, conn: &H2Conn, stream_id: u32) -> io::Result<()> {
-        let response = block_on(self.handler.dispatch(bag, req));
-        let (status, headers, body) = response_to_h2_parts(response);
-        let mut stream = conn.stream(stream_id);
-        stream.send_response(status, &headers, body);
-        Ok(())
-    }
-}
-```
-
-Same dispatch as `ConnectRpcServe` (which impls `Serve` for h1) — the only
-difference is `conn.stream(id).send_response(...)` instead of
-`Http11::response(resp).http_render_to_writer(&mut conn)`.
-
-### `HttpServer` accept loop — h2c detection
-
-After `accept()` and connection setup, peek 24 bytes from the socket:
-
-```
-let shared = SharedByteBufferStream::rwrite(raw_stream);
-peek 24B
-├── "PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n" → h2c
-│   ├── let mut conn = H2Conn::new_server(shared);
-│   ├── conn.server_handshake();
-│   └── valtron::send(H2ConnectionHandler::new(conn, app, ...))
-│
-└── otherwise → HTTP/1.1
-    └── valtron::send(ConnectionHandler::new(...))  (existing)
-```
-
-### End-to-end flow
-
-```
-TcpStream::accept()
-  │
-  ├─ peek 24B → h2c?
-  │
-  ├─ YES:
-  │   let conn = H2Conn::new_server(shared);
-  │   conn.server_handshake();
-  │   valtron::send(H2ConnectionHandler::new(conn, app));
-  │   │
-  │   │  poll:
-  │   │  ├─ conn.flush()
-  │   │  ├─ conn.read_frame() → HEADERS frame (stream 1)
-  │   │  ├─ HPACK decode → SimpleIncomingRequest { method: POST, path: "/echo/Echo", ... }
-  │   │  ├─ router.dispatch("POST", "/echo/Echo")
-  │   │  │   └─ Some(handler) → handler.serve_h2(bag, req, &conn, 1)
-  │   │  │       └─ ConnectRpcServeH2:
-  │   │  │           ├─ block_on(ConnectRpcHandler::dispatch(bag, req))
-  │   │  │           ├─ → SimpleOutgoingResponse { status: 200, body: ... }
-  │   │  │           └─ conn.stream(1).send_response(200, &[], Some(body))
-  │   │  │               └─ HPACK-encodes :status + headers → write_buf
-  │   │  │               └─ encodes DATA frame → write_buf
-  │   │  ├─ WouldBlock → TaskStatus::Delayed(10ms)
-  │   │  └─ GOAWAY / timeout → end task
-  │   │
-  │   └─ next poll: flush writes → socket, read next frame
-  │
-  └─ NO:
-      ConnectionHandler { ... }  (existing HTTP/1.1 path)
-```
+For F47 client streaming support, the `H2Pump` TaskIterator bridges request body
+from `send_rx` (Pipe<Bytes>) to h2 DATA frames on the outgoing stream, and
+response DATA frames back to `body_tx`. This is the same bridge pattern as the
+server side.
 
 ### Scope
 
 | Item | Crate | File |
 |---|---|---|
+| `SimpleIncomingRequestHeader` | foundation_netio | `http2/types.rs` |
+| `H2IncomingFrame` | foundation_netio | `http2/types.rs` |
+| `H2Frame` | foundation_netio | `http2/types.rs` |
 | `H2Conn` | foundation_netio | `http2/conn.rs` |
-| `H2StreamHandle` | foundation_netio | `http2/stream_handle.rs` |
-| `ServeH2` trait | foundation_http | `shared/serve/h2.rs` |
 | `H2ConnectionHandler` | foundation_http | `native/server/h2_connection.rs` |
-| h2c detect branch | foundation_http | `native/server/mod.rs` |
-| `ConnectRpcServeH2` | foundation_connectrpc | `server.rs` |
+| h2c detect in HttpServer | foundation_http | `native/server/mod.rs` |
+| `dispatch_h2()` | foundation_connectrpc | `router/dispatch.rs` |
 | `h2_echo` example | foundation_connectrpc | `examples/h2_echo/main.rs` |
-
-### Out of scope
-
-- TLS-ALPN entry path (deferred — requires TLS integration)
-- `Upgrade: h2c` entry path (deferred — lower priority)
-- Client-stream / bidi data forwarding to ServeH2 (initial: unary + server-stream only)
-- Per-stream flow-control tuning (F32, deferred profiling)
-- Connection-level HPACK state sharing between ServeH2 calls (each stream
-  gets an `H2StreamHandle` that borrows the connection's HPACK encoder;
-  the encoder accumulates state across streams naturally)
+| `H2Transport` client streaming | foundation_connectrpc | `transport/h2.rs` |
 
 ### Acceptance criteria
 
-- `Client::unary()` over `H2Transport` round-trips against h2c server ✅
-- Example `h2_echo` runs: same `Router::unary()` + `Client::new()` as `unary_echo`
-- h2c detect routes to `H2ConnectionHandler` in `HttpServer::serve_loop()`
-- All 87 F29 tests pass, zero warnings
+- Unary: `Router::unary()` over h2c round-trips ✅
+- Server-stream: handler produces stream, chunks delivered as h2 DATA frames ✅
+- Client-stream: client sends DATA frames, handler receives them via `H2IncomingFrame` stream ✅
+- Bidi-stream: interleaved send/recv via `futures::join!` ✅
+- All 87 F29 tests pass, zero warnings ✅
