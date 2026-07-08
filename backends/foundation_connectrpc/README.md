@@ -257,42 +257,57 @@ include!(concat!(env!("OUT_DIR"), "/connectrpc.greet.v1.rs"));
 
 ### Mode 2 — protoc plugin
 
-The binary `protoc-gen-connect-ewe` (from `foundation_connectrpc_codegen`) follows
-the standard `protoc-gen-*` naming convention, so **protoc discovers it
-automatically from PATH** — no `--plugin=` mapping needed:
+`protoc` can run multiple plugins in one invocation. The binary
+`protoc-gen-connect-ewe` generates *service* code; pair it with `--prost_out`
+(from prost-build's `protoc-gen-prost`) for *message* types, and you get both
+from a single command.
+
+Install the plugins once:
+
+```sh
+cargo install foundation_connectrpc_codegen   # provides protoc-gen-connect-ewe
+cargo install protoc-gen-prost                # provides protoc-gen-prost
+```
+
+Then run `protoc`:
 
 ```sh
 protoc \
-    --connect-ewe_out=. \
+    --prost_out=src/gen \
+    --connect-ewe_out=src/gen \
     --proto_path=proto \
     proto/greet.proto
 ```
 
-**How this works:**
+This one `protoc` call produces two files in `src/gen/`:
 
-1. `protoc` parses your `.proto` files and resolves imports using `--proto_path`.
-2. For `--connect-ewe_out`, protoc looks for a binary named `protoc-gen-connect-ewe`
-   on `PATH` and spawns it, piping the parsed file descriptors to its stdin.
-3. The plugin generates the service stubs and writes them back as a
-   `CodeGeneratorResponse` on stdout.
-4. `protoc` writes the generated file to the output directory (`.`) — by
-   default named `_connectrpc.rs`.
+| Plugin | Flag | Generates | Output file |
+|---|---|---|---|
+| `protoc-gen-prost` | `--prost_out` | Message structs with `buffa::Message` impls | `<proto-package>.rs` (e.g. `connectrpc.greet.v1.rs`) |
+| `protoc-gen-connect-ewe` | `--connect-ewe_out` | Service trait, client, registration, procedure constants | `_connectrpc.rs` |
 
-**You also need a separate step for message types.** This plugin only generates
-*service* code. Use `--prost_out` (from prost-build's protoc plugin) or a manual
-`prost-build` step for the message structs:
+Include both in your crate:
 
-```sh
-# Generate message types (prost) + service stubs (connect-ewe) in one command:
-protoc \
-    --prost_out=. \
-    --connect-ewe_out=. \
-    --proto_path=proto \
-    proto/greet.proto
+```rust
+// src/lib.rs
+pub mod gen {
+    // Service stubs.
+    pub mod _connectrpc;
+    // Message types — prost uses dots in filenames, which `mod` can't name
+    // directly, so use `include!` inside a module block.
+    pub mod connectrpc_greet_v1 {
+        include!("connectrpc.greet.v1.rs");
+    }
+}
 ```
 
-The generated `_connectrpc.rs` is identical to what Mode 1 produces — a
-standalone Rust source file you `include!` or add to your crate.
+> **Service-only:** If you already have message types from another source,
+> omit `--prost_out`:
+> ```sh
+> protoc --connect-ewe_out=src/gen --proto_path=proto proto/greet.proto
+> ```
+
+The generated `_connectrpc.rs` is identical to what Mode 1 produces.
 
 ---
 
@@ -380,12 +395,14 @@ See `examples/code_first_service.rs` for the full runnable version.
 #### Implementing the service — another crate (cross-crate)
 
 When the trait is defined in one crate (e.g. an API crate) and implemented in
-another (e.g. a server crate), use the `generate!` macro:
+another (e.g. a server crate), you need to re-materialise the generated
+artifacts in the consuming crate. This is what `generate!` does.
 
-**Crate A — the API crate** (depends on `foundation_connectrpc`):
+**Step 1 — the API crate** depends only on `foundation_connectrpc`. Annotate a
+`pub trait` with `#[connectrpc::service]`:
 
 ```rust
-// Crate A: src/lib.rs
+// my-api/src/lib.rs
 use foundation_connectrpc as connectrpc;
 
 #[connectrpc::service(package = "my.api.v1", codecs(json))]
@@ -398,35 +415,100 @@ pub trait MyApi {
 }
 ```
 
-The `#[service]` annotation exports a descriptor macro named
-`my_api_tokens` (derived from the snake_case trait name). Crate B invokes it
-with `generate!`:
+**What Crate A exports:** Alongside the trait and the in-crate generated items
+(see [the artifact table](#what-the-macro-generates)), the `#[service]`
+attribute also emits a hidden `#[macro_export]` descriptor macro:
 
-**Crate B — the server crate** (depends on crate A + `foundation_connectrpc`):
+```
+#[macro_export]
+macro_rules! my_api_tokens { () => { /* full expansion of all 8 artifacts */ }; }
+```
+
+The macro name is derived from the trait name: `MyApi` → snake_case →
+`my_api` + `_tokens`. Crate B will call this macro through `generate!`.
+
+**Step 2 — the server crate** depends on **both** `my-api` and
+`foundation_connectrpc`. Use `connectrpc::generate!` to re-expand the descriptor
+macro into a module of your choosing:
 
 ```rust
-// Crate B: src/server.rs
+// my-server/src/main.rs
 use foundation_connectrpc as connectrpc;
 
-// Re-expand the service artifacts inside a new module:
+// Re-expand all the service artifacts inside a new `my_svc` module.
+// The first argument is the path to Crate A's descriptor macro.
+// The `{ server, client }` block lists which artifact *groups* you'd
+// like — currently all are always emitted (filtering is reserved for
+// a future release).
 connectrpc::generate!(my_api::my_api_tokens => mod my_svc {
     server, client
 });
-
-// Now the generated items live in `my_svc`:
-use my_svc::{GreetService, GreetServiceClient, register_greet_service};
-
-struct MyServer;
-impl MyApi for MyServer { /* ... */ }
-
-let mut router = Router::new();
-register_greet_service(&mut router, Arc::new(MyServer));
 ```
 
-> **How this works internally:** `#[service]` wraps its entire expansion in a
-> `#[macro_export] macro_rules! <name>_tokens { () => { ... } }`. The
-> `generate!` macro invokes that descriptor macro inside a new `mod { ... }`
-> block. No files are written — it's all proc-macro expansion at compile time.
+**What lands in `my_svc`:** The same 8 items the `#[service]` attribute
+generates — re-expanded afresh, so the trait, client, registration fn, and
+procedure constants all resolve within the consuming crate's dependency context.
+Everything is namespaced under the module you chose (`my_svc`):
+
+| Item | Generated name (from trait `MyApi`) |
+|---|---|
+| Procedure constants | `my_svc::procedure::DO_THING` |
+| Service name constant | `my_svc::MYAPI_NAME` |
+| Service trait | `my_svc::MyApi` |
+| Registration function | `my_svc::register_my_api` |
+| Unimplemented handler | `my_svc::UnimplementedMyApiHandler` |
+| Typed client | `my_svc::MyApiClient` |
+| Client trait | `my_svc::MyApiClientExt` |
+
+> **Name derivation rule:** Every generated name is deterministic — it's the
+> trait name (`MyApi`) converted via standard Rust conventions:
+>   - snake_case (`to_snake_case("MyApi")` → `my_api`) for functions and the
+>     descriptor macro
+>   - PascalCase for struct/trait/enum names (`MyApi` + `Client` → `MyApiClient`)
+>   - SCREAMING_SNAKE_CASE for constants (`MYAPI_NAME`)
+>
+> You never guess these names; they follow mechanically from the trait's
+> `Ident`.
+
+**Step 3 — implement and wire up:**
+
+```rust
+// Continuing in my-server/src/main.rs
+
+use my_svc::{MyApi, MyApiClient, register_my_api};
+
+struct MyServer;
+
+impl MyApi for MyServer {
+    async fn do_thing(
+        &self,
+        ctx: connectrpc::Ctx,
+        req: connectrpc::Request<MyRequest>,
+    ) -> connectrpc::ConnectResult<connectrpc::Response<MyResponse>> {
+        // ...
+    }
+}
+
+// Server:
+let mut router = connectrpc::Router::new();
+register_my_api(&mut router, Arc::new(MyServer));
+
+// Client:
+let client = MyApiClient::new(transport, &base_url, ClientOptions::new().with_codec("json"))?;
+let resp = client.do_thing(ctx, Request::new(MyRequest { /* ... */ })).await?;
+```
+
+> **Why not just `use` the items from Crate A?** The descriptor macro approach
+> means Crate B *regenerates* the items rather than sharing them. This avoids
+> Crate A needing to re-export every generated artifact (which would pollute its
+> public API with client structs and registration fns it doesn't need), and
+> ensures the generated code's `connectrpc::` paths resolve against Crate B's
+> own dependency graph.
+>
+> Under the hood: `#[service]` wraps everything in a `macro_rules!` that
+> captures the full token stream. `generate!` invokes that macro inside a
+> `pub mod <name> { ... }` block. No files are touched — it's pure compile-time
+> proc-macro expansion.
 
 #### Streaming methods in code-first
 
