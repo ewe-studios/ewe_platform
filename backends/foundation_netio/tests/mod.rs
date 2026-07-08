@@ -4,3 +4,4 @@ mod netcap;
 mod simple_http;
 mod tcp_and_tls;
 mod websocket;
+mod http2;
