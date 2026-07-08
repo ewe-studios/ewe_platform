@@ -34,9 +34,8 @@ use concurrent_queue::{ConcurrentQueue, PopError, PushError};
 use crate::compati::Mutex;
 
 use crate::valtron::{
-    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, TaskSpawnConfig,
-    ExecutorError, GlobalTask, ProcessController, SharedTaskQueue, SpawnInfo, SpawnType,
-    TaskReadyResolver,
+    BoxedExecutionEngine, BoxedExecutionIterator, ExecutionAction, ExecutorError, GlobalTask,
+    ProcessController, SharedTaskQueue, SpawnInfo, SpawnType, TaskReadyResolver, TaskSpawnConfig,
 };
 
 use crate::valtron::executors::constants::{
@@ -501,7 +500,7 @@ use crate::valtron::iterators::Stream;
 /// It uses CondVar notification instead of spin-polling, significantly reducing CPU usage
 /// when waiting for stream values.
 ///
-/// The iterator polls the queue up to `max_turns` times, yielding `Stream::Ignore` if no
+/// The iterator polls the queue up to `max_turns` times, yielding `Stream::Wait` if no
 /// value is available. Between polls, it efficiently waits using CondVar notification.
 #[derive(Debug)]
 pub struct NotifyQueueStreamIterator<D, P> {
@@ -2619,13 +2618,7 @@ impl<T: ProcessController + Clone> LocalThreadExecutor<T> {
 #[must_use]
 pub fn typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Task::Spawner,
-    Resolver,
-    Task,
->
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Task::Spawner, Resolver, Task>
 where
     Task::Ready: Send,
     Task::Pending: Send,
@@ -2685,13 +2678,7 @@ where
 #[must_use]
 pub fn send_typed_task<Task, Action, Resolver>(
     engine: BoxedExecutionEngine,
-) -> TaskSpawnConfig<
-    Task::Ready,
-    Task::Pending,
-    Task::Spawner,
-    Resolver,
-    Task,
->
+) -> TaskSpawnConfig<Task::Ready, Task::Pending, Task::Spawner, Resolver, Task>
 where
     Task::Ready: Send + 'static,
     Task::Pending: Send + 'static,
@@ -2715,9 +2702,9 @@ mod test_local_thread_executor {
         retries::ExponentialBackoffDecider,
         synca::SleepyMan,
         valtron::{
-            BoolSignal, BoxedSendExecutionAction, EventReadiness, ExecutionAction,
-            InlineAction, InlineActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner,
-            OnNext, ProcessController, TaskIterator, TaskStatus, WrapTask,
+            BoolSignal, BoxedSendExecutionAction, EventReadiness, ExecutionAction, InlineAction,
+            InlineActionBehaviour, IntoBoxedSendExecutionAction, NoSpawner, OnNext,
+            ProcessController, TaskIterator, TaskStatus, WrapTask,
         },
     };
 
@@ -3122,10 +3109,9 @@ mod test_local_thread_executor {
         );
 
         let count_clone = Arc::clone(&counts);
-        let on_next = OnNext::on_next(
-            Counter("Counter1", 0, 3, 3),
-            move |next, _engine| count_clone.lock().unwrap().push(next)
-        );
+        let on_next = OnNext::on_next(Counter("Counter1", 0, 3, 3), move |next, _engine| {
+            count_clone.lock().unwrap().push(next)
+        });
 
         panic_if_failed!(global.push(on_next.into()));
 
@@ -3302,10 +3288,10 @@ mod test_local_thread_executor {
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 20, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
-        )
+            OnNext::on_next(Counter("Counter2", 0, 20, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -3450,19 +3436,19 @@ mod test_local_thread_executor {
 
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
-        )
+            OnNext::on_next(Counter("Counter1", 0, 4, 2), move |next, _| count_clone
+                .lock()
+                .unwrap()
+                .push(("Counter1", next)))
             .into()
         ));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
-        )
+            OnNext::on_next(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -3618,7 +3604,7 @@ mod test_local_thread_executor {
                         .maybe_parent(key)
                         .with_task(SimpleCounter("SubTask1", 0, 5))
                         .as_lifted()
-            .spawn()
+                        .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -3629,7 +3615,7 @@ mod test_local_thread_executor {
                     match any_task(executor)
                         .with_task(SimpleCounter("SubTask2", 0, 5))
                         .as_scheduled()
-            .spawn()
+                        .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -3640,7 +3626,7 @@ mod test_local_thread_executor {
                     match send_any_task(executor)
                         .with_task(SimpleCounter("SubTask3", 0, 5))
                         .as_broadcast()
-            .spawn()
+                        .spawn()
                     {
                         Ok(info) => Ok(info),
                         Err(err) => Err(Box::new(err)),
@@ -3945,19 +3931,19 @@ mod test_local_thread_executor {
 
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
-        )
+            OnNext::on_next(Counter("Counter1", 0, 4, 2), move |next, _| count_clone
+                .lock()
+                .unwrap()
+                .push(("Counter1", next)))
             .into()
         ));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
-        )
+            OnNext::on_next(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -4015,19 +4001,19 @@ mod test_local_thread_executor {
 
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
-        )
+            OnNext::on_next(Counter("Counter1", 0, 4, 2), move |next, _| count_clone
+                .lock()
+                .unwrap()
+                .push(("Counter1", next)))
             .into()
         ));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
-        )
+            OnNext::on_next(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
@@ -4086,19 +4072,19 @@ mod test_local_thread_executor {
 
         let count_clone = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter1", 0, 4, 2),
-                move |next, _| count_clone.lock().unwrap().push(("Counter1", next))
-        )
+            OnNext::on_next(Counter("Counter1", 0, 4, 2), move |next, _| count_clone
+                .lock()
+                .unwrap()
+                .push(("Counter1", next)))
             .into()
         ));
 
         let count_clone2 = Arc::clone(&counts);
         panic_if_failed!(global.push(
-            OnNext::on_next(
-                Counter("Counter2", 0, 5, 10),
-                move |next, _| count_clone2.lock().unwrap().push(("Counter2", next))
-        )
+            OnNext::on_next(Counter("Counter2", 0, 5, 10), move |next, _| count_clone2
+                .lock()
+                .unwrap()
+                .push(("Counter2", next)))
             .into()
         ));
 
