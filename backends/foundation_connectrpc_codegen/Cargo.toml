@@ -6,7 +6,7 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "Build-time ConnectRPC code generation for foundation_connectrpc — protoc plugin + build.rs helper (Decision 10 Modes 1–2)"
+description = "Build-time ConnectRPC code generation for foundation_connectrpc — protoc plugin (protoc-gen-connect-ewe) + build.rs helper (Decision 10 Modes 1–2)"
 keywords = ["connectrpc", "codegen", "protoc", "prost", "grpc"]
 
 # Build-time companion to the `foundation_connectrpc` runtime crate — the
@@ -19,6 +19,7 @@ prost = "0.12"
 prost-types = "0.12"
 prost-build = "0.12"
 
-# protoc plugin (Decision 10 Mode 2): `rpc-gen-proto --connect-ewe_out=. …`.
+# protoc plugin (Decision 10 Mode 2): follows the protoc-gen-* convention so
+# protoc auto-discovers it from PATH — just `protoc --connect-ewe_out=. …`.
 [[bin]]
-name = "rpc-gen-proto"
+name = "protoc-gen-connect-ewe"

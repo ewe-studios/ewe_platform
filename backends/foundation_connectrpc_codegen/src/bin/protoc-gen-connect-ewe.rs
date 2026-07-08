@@ -6,12 +6,12 @@
 //!    file descriptors.
 //! 3. Writes `CodeGeneratorResponse` to stdout (protobuf binary).
 //!
-//! Usage — the binary is `rpc-gen-proto`, which is not a `protoc-gen-*` name, so
-//! map it explicitly with `--plugin=protoc-gen-<name>=<path>`:
+//! The binary follows the `protoc-gen-*` naming convention so protoc discovers it
+//! automatically from PATH:
 //! ```sh
 //! protoc --connect-ewe_out=. \
-//!        --plugin=protoc-gen-connect-ewe="$(command -v rpc-gen-proto)" \
-//!        service.proto
+//!        --proto_path=proto \
+//!        proto/service.proto
 //! ```
 
 use std::io::{Read, Write};
