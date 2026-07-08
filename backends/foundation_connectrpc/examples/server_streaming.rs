@@ -1,4 +1,4 @@
-//! Server-streaming RPC over a real loopback socket.
+//! Server-streaming RPC over a real loopback socket — **JSON-only, no protobuf**.
 //!
 //! Run with:
 //!
@@ -9,16 +9,17 @@
 //! One request in, a *stream* of responses out. The handler returns any
 //! `futures::Stream<Item = ConnectResult<Res>>`; the client drains it with
 //! `stream.receive().await` until it yields `None`. On the wire this is the
-//! Connect streaming framing (5-byte enveloped frames + a terminating
-//! EndStream frame); the library handles all of that for you.
+//! Connect streaming framing (5-byte enveloped frames + a terminating EndStream
+//! frame); the library handles all of that for you.
+//!
+//! Because the route registers `ProcedureCodecs::of((JsonCodec,))` — a JSON-only
+//! table — the message types need **only serde** (`JsonCodec` is bounded on
+//! `Serialize + DeserializeOwned`, not `buffa::Message`). No buffa, no hand-written
+//! protobuf encoding, no `DefaultInstance` statics. The client must ask for `json`
+//! (the client's default wire codec is `proto`), which a JSON-only table lacks.
 
 use std::sync::Arc;
 use std::time::Duration;
-
-// buffa (and its `bytes` re-export) reached through foundation_connectrpc.
-use foundation_connectrpc::buffa::bytes::{Buf, BufMut};
-use foundation_connectrpc::buffa::encoding::{decode_varint, encode_varint, skip_field, Tag, WireType};
-use foundation_connectrpc::buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron;
@@ -30,104 +31,23 @@ use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_connectrpc::transport::Transport;
 use foundation_connectrpc::{
     Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, HandlerOptions,
-    ProcedureCodecs, Request, Router,
+    JsonCodec, ProcedureCodecs, Request, Router,
 };
 
 const PROCEDURE: &str = "/demo.CountService/Count";
 
-// ── Messages (normally generated — see `unary_echo.rs` for the note) ─────────
+// ── Messages — plain serde types, nothing else ──────────────────────────────
 
-#[derive(Clone, Default, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Default, Debug, serde::Serialize, serde::Deserialize)]
 struct CountRequest {
     /// How many items to stream back.
     count: i32,
 }
 
-#[derive(Clone, Default, PartialEq, Debug, serde::Serialize, serde::Deserialize)]
+#[derive(Clone, Default, Debug, serde::Serialize, serde::Deserialize)]
 struct CountItem {
     index: i32,
     label: String,
-}
-
-// Full `Message` impls for both types. NOTE: the default codec is **proto**
-// (`ProcedureCodecs::defaults()` installs `(ProtoCodec, JsonCodec)` and the
-// client defaults to `"proto"`), so these proto encodings are the ones on the
-// wire here — a stub impl would silently drop fields. Real services get these
-// from codegen; select JSON explicitly with `ClientOptions::new().with_codec("json")`.
-impl DefaultInstance for CountRequest {
-    fn default_instance() -> &'static Self {
-        static INST: std::sync::OnceLock<CountRequest> = std::sync::OnceLock::new();
-        INST.get_or_init(CountRequest::default)
-    }
-}
-impl Message for CountRequest {
-    fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
-    }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
-        Tag::new(1, WireType::Varint).encode(buf);
-        encode_varint(self.count as u64, buf);
-    }
-    fn merge_field(
-        &mut self,
-        tag: Tag,
-        buf: &mut impl Buf,
-        _c: DecodeContext<'_>,
-    ) -> Result<(), DecodeError> {
-        match tag.field_number() {
-            1 => {
-                self.count = decode_varint(buf)? as i32;
-                Ok(())
-            }
-            _ => skip_field(tag, buf),
-        }
-    }
-    fn clear(&mut self) {
-        *self = Self::default();
-    }
-}
-
-impl DefaultInstance for CountItem {
-    fn default_instance() -> &'static Self {
-        static INST: std::sync::OnceLock<CountItem> = std::sync::OnceLock::new();
-        INST.get_or_init(CountItem::default)
-    }
-}
-impl Message for CountItem {
-    fn compute_size(&self, _c: &mut SizeCache) -> u32 {
-        0
-    }
-    fn write_to(&self, _c: &mut SizeCache, buf: &mut impl BufMut) {
-        Tag::new(1, WireType::Varint).encode(buf);
-        encode_varint(self.index as u64, buf);
-        Tag::new(2, WireType::LengthDelimited).encode(buf);
-        encode_varint(self.label.len() as u64, buf);
-        buf.put_slice(self.label.as_bytes());
-    }
-    fn merge_field(
-        &mut self,
-        tag: Tag,
-        buf: &mut impl Buf,
-        _c: DecodeContext<'_>,
-    ) -> Result<(), DecodeError> {
-        match tag.field_number() {
-            1 => {
-                self.index = decode_varint(buf)? as i32;
-                Ok(())
-            }
-            2 => {
-                let len = decode_varint(buf)? as usize;
-                let mut b = vec![0u8; len];
-                buf.copy_to_slice(&mut b);
-                self.label = String::from_utf8(b).map_err(|_| DecodeError::InvalidUtf8)?;
-                Ok(())
-            }
-            _ => skip_field(tag, buf),
-        }
-    }
-    fn clear(&mut self) {
-        *self = Self::default();
-    }
 }
 
 // ── Server ───────────────────────────────────────────────────────────────────
@@ -136,8 +56,11 @@ fn count_serve() -> Arc<dyn Serve> {
     let mut router = Router::new();
     router.server_stream(
         PROCEDURE,
-        ProcedureCodecs::<CountRequest, CountItem>::defaults(),
+        // JSON-only codec table → serde-only message types, no protobuf.
+        ProcedureCodecs::<CountRequest, CountItem>::of((JsonCodec,)),
         |_ctx: Ctx, req: Request<CountRequest>| async move {
+            // `.max(0)` floors a negative `count` to 0 (stream nothing), rather
+            // than capping — it returns the larger of `count` and `0`.
             let n = req.msg.count.max(0);
             let items: Vec<ConnectResult<CountItem>> = (0..n)
                 .map(|i| Ok(CountItem { index: i, label: format!("item-{i}") }))
@@ -178,8 +101,10 @@ async fn main() {
     let client: Client<CountRequest, CountItem> = Client::new(
         transport,
         &url,
-        ProcedureCodecs::<CountRequest, CountItem>::defaults(),
-        ClientOptions::new(),
+        ProcedureCodecs::<CountRequest, CountItem>::of((JsonCodec,)),
+        // The client's default wire codec is `proto`; this route is JSON-only,
+        // so select `json` explicitly.
+        ClientOptions::new().with_codec("json"),
     )
     .expect("build client");
 
