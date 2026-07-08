@@ -53,7 +53,7 @@ use crate::valtron::{
     ConsumingIter, DoNext, StreamConsumingIter,
 };
 
-use crate::compati::{Condvar, CondVarMutex, Mutex, RwLock};
+use crate::compati::{CondVarMutex, Condvar, Mutex, RwLock};
 use foundation_nostd::comp::condvar_comp::{CondVar, CondVarMutex as CvMutex};
 
 use crate::valtron::{split_thread_count, BackgroundJobRegistry, GenericResult};
@@ -269,7 +269,6 @@ pub fn initialize_pool(seed_for_rng: u64, user_thread_num: Option<usize>) -> Poo
     };
 
     let (task_threads, bg_threads) = split_thread_count(thread_num);
-
 
     let registry = Arc::new(ThreadRegistry::with_seed_and_threads(
         seed_for_rng,

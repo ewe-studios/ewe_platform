@@ -1,7 +1,7 @@
 ---
 feature: "Executor verb-builders — decompose the monolithic task builder into per-verb builders (sendable/non_sendable twins) and drop the Mapper machinery"
 description: "Replace the single six-type-parameter ExecutionTaskIteratorBuilder (and multi's parallel ThreadPoolTaskBuilder) with a cfg-agnostic config stage plus one builder per ExecutionEngine verb (Schedule/Lift/Sequence/Broadcast), each defined once in sendable.rs (#![cfg(multi)]) and once in non_sendable.rs, presenting an identical spawn()/recv()/stream() surface with no per-function #[cfg]; and remove the Mapper/TaskStatusMapper type parameter entirely now that TaskIteratorExt combinators cover upstream transformation"
-status: "pending"
+status: "completed"
 priority: "high"
 phase: 1
 depends_on: ["00-valtron-async-readiness", "45-delivery-fanout-backpressure"]
