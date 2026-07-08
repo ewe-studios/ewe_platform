@@ -188,13 +188,24 @@ pub fn canonicalize_content_type(content_type: &str) -> String {
 /// The codec wire name + whether the content-type is a streaming one, parsed from
 /// a canonicalized Content-Type per the Connect grammar
 /// (`application/{codec}` unary, `application/connect+{codec}` streaming). Returns
-/// `None` for a non-`application/` type.
+/// `None` for a non-`application/` type or for content types that belong to other
+/// protocols (e.g. `application/grpc-web+{codec}`).
 #[must_use]
 pub fn parse_connect_content_type(content_type: &str) -> Option<(String, bool)> {
     let canonical = canonicalize_content_type(content_type);
     let rest = canonical.strip_prefix("application/")?;
     match rest.strip_prefix("connect+") {
         Some(codec) => Some((codec.to_string(), true)),
-        None => Some((rest.to_string(), false)),
+        None => {
+            let codec = rest.to_string();
+            // Reject compound content types (e.g. grpc-web+proto) that contain '+'
+            // but don't start with 'connect+' — those belong to other protocols such
+            // as gRPC-Web.
+            if codec.contains('+') {
+                None
+            } else {
+                Some((codec, false))
+            }
+        }
     }
 }

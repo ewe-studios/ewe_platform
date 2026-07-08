@@ -31,7 +31,7 @@ use foundation_netio::simple_http::shared::{
     SimpleOutgoingResponse, Status,
 };
 
-use crate::context::{CancelSignal, Ctx, Peer, RequestContext, Spec};
+use crate::context::{CancelSignal, Ctx, IdempotencyLevel, Peer, RequestContext, Spec};
 use crate::error::{ConnectError, ConnectResult};
 use crate::error_writer::ErrorWriter;
 use crate::protocol::{ProtocolHandler, UnaryOutcome};
@@ -295,10 +295,21 @@ fn extract_path(url: &str) -> String {
 }
 
 /// The union of HTTP methods any protocol on this entry accepts (for `Allow`).
+///
+/// Connect GET is only valid for idempotent/NoSideEffects procedures. When the
+/// procedure is not NoSideEffects, GET is excluded from the allowed list so that
+/// a GET to a POST-only endpoint correctly returns 405 (Decision 05 §Unary GET).
 fn allowed_methods(entry: &HandlerEntry) -> Vec<SimpleMethod> {
     let mut methods: Vec<SimpleMethod> = Vec::new();
+    let is_nosideeffects = entry.spec.idempotency == IdempotencyLevel::NoSideEffects;
     for protocol in &entry.protocol_handlers {
         for method in protocol.allowed_methods() {
+            // Filter out GET from Connect protocol when the procedure is not
+            // NoSideEffects — the protocol handler always advertises GET, but
+            // procedure-level idempotency restricts it (Decision 05 §Unary GET).
+            if !is_nosideeffects && method == &SimpleMethod::GET {
+                continue;
+            }
             if !methods.contains(method) {
                 methods.push(method.clone());
             }

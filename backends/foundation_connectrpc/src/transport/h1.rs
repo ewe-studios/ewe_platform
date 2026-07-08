@@ -159,13 +159,19 @@ fn failed_to_transport_error(
 }
 
 fn request_url_string(req: &RequestDescriptor) -> String {
+    let query = req
+        .request_uri
+        .query()
+        .map(|q| format!("?{q}"))
+        .unwrap_or_default();
     format!(
-        "http://{}:{}{}",
+        "http://{}:{}{}{}",
         req.request_uri
             .host_str()
             .unwrap_or_else(|| "localhost".to_string()),
         req.request_uri.port_or_default(),
-        req.request_uri.path()
+        req.request_uri.path(),
+        query,
     )
 }
 

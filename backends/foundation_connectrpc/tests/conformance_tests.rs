@@ -1263,18 +1263,22 @@ async fn error_end_stream() {
     );
 
     let mut stream = transport.open(desc).expect("open transport");
+
     stream.send_body.try_send(Bytes::from(envelope)).expect("send body");
+
     stream.send_body.close();
 
     let (status, _headers) = stream.head.next().await
         .expect("response head")
         .expect("head ok");
 
+
     assert_eq!(status, Status::OK, "error EndStream returns 200 (error rides payload)");
 
     let mut body_bytes = Vec::new();
     while let Some(chunk) = stream.recv_body.next().await {
-        body_bytes.extend_from_slice(&chunk.expect("body chunk"));
+        let chunk = chunk.expect("body chunk");
+        body_bytes.extend_from_slice(&chunk);
     }
 
     // Parse the stream: first data frame, then EndStream error frame.
@@ -1294,11 +1298,12 @@ async fn error_end_stream() {
         let payload = &body_bytes[start..stop];
         if flags & FLAG_END_STREAM != 0 {
             saw_error = true;
-            // The EndStream payload is JSON with code/message.
+            // The EndStream payload is JSON with nested error field:
+            // {"error":{"code":"internal",...},"metadata":{...}}
             if !payload.is_empty() {
                 let json: serde_json::Value =
                     serde_json::from_slice(payload).expect("valid EndStream JSON");
-                let code_str = json["code"].as_str().unwrap_or("unknown");
+                let code_str = json["error"]["code"].as_str().unwrap_or("unknown");
                 assert_eq!(code_str, "internal", "EndStream error code is 'internal'");
             }
         } else {
@@ -1306,6 +1311,7 @@ async fn error_end_stream() {
         }
         pos = stop;
     }
+
 
     assert!(data_frames >= 1, "at least one data frame before EndStream");
     assert!(saw_error, "EndStream error frame present");
