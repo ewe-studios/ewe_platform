@@ -4108,6 +4108,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_connectrpc_codegen"
+version = "0.0.1"
+dependencies = [
+ "prost 0.12.6",
+ "prost-build",
+ "prost-types",
+]
+
+[[package]]
 name = "foundation_core"
 version = "0.0.3"
 dependencies = [
@@ -4450,9 +4459,6 @@ dependencies = [
  "native-tls",
  "ntest",
  "openssl",
- "prost 0.12.6",
- "prost-build",
- "prost-types",
  "regex",
  "reqwest 0.12.24",
  "ring",

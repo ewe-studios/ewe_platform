@@ -40,7 +40,6 @@ keywords = ["ewe_platform", "ewestudios-platform", "ewestudios_platform"]
 
 
 [workspace.dependencies]
-
 derive_more = { version = ">=2.0", features = ["full"] }
 
 # core library dependencies
