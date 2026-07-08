@@ -3,6 +3,8 @@
 //! `Serve` (native-only): takes `SharedByteBufferStream<RawStream>` for TCP connections.
 //! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any writable stream.
 
+pub mod h2;
+
 #[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;
 
