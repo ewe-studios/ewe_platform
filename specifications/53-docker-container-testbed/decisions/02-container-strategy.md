@@ -1,0 +1,306 @@
+# 02 — Container Strategy per Platform
+
+**Date:** 2026-07-08
+**Status:** Resolved
+
+## Decision
+
+Use **native Docker containers** for Linux test environments, **dockurr/windows**
+as a Docker-wrapped QEMU escape hatch for Windows testing, and **retain the
+existing QEMU provider** for macOS guests. Each platform gets its own
+`ContainerProfile` that maps to the existing `VmProfile` concept, with a Docker
+image (or Dockerfile build context) as the backing artifact instead of a qcow2
+disk.
+
+## Table of Contents
+
+1. [Platform matrix](#platform-matrix)
+2. [Linux: native Docker containers](#linux-native-docker-containers)
+3. [Windows: dockurr/windows as a Docker interface](#windows-dockurrwindows-as-a-docker-interface)
+4. [macOS: retained QEMU/UTM](#macos-retained-qemuutm)
+5. [Container profile design](#container-profile-design)
+6. [dockurr internals and limitations](#dockurr-internals-and-limitations)
+7. [Why not dockurr for Linux](#why-not-dockurr-for-linux)
+
+---
+
+## Platform matrix
+
+| Platform | Backend | Isolation | Requires KVM? | Startup time | Image size |
+|----------|---------|-----------|---------------|-------------|------------|
+| **Linux** (build + test) | Native Docker container | cgroups + namespaces | No | ~1-3 seconds | ~500 MB-2 GB (Docker image) |
+| **Windows** (build + test) | dockurr/windows (QEMU in Docker) | Full VM inside container | Yes | ~30-90 seconds | ~6-8 GB (qcow2 in /storage) |
+| **macOS** (build + test) | Retained QEMU provider / UTM | Full VM | Yes (HVF on macOS) | ~30-90 seconds | ~15-25 GB (qcow2) |
+
+Key insight: native Docker containers are 10-30× faster to start than QEMU VMs
+and require no KVM. This alone makes Linux the "fast path" for iterative
+development — the test cycle drops from minutes to seconds.
+
+---
+
+## Linux: native Docker containers
+
+Linux testing is the primary use case and the biggest win. We define a set of
+Docker images (built from Dockerfiles in the crate) that match the existing
+VM profiles:
+
+### Profiles → Docker Images
+
+| Profile | Base Image | Purpose | Key packages |
+|---------|-----------|---------|-------------|
+| `linux-build` | `ubuntu:24.04` | Full build environment | build-essential, curl, pkg-config, libssl-dev, libgtk-3-dev, libwebkit2gtk-4.1-dev, libayatana-appindicator3-dev, librsvg2-dev |
+| `linux-test` | `ubuntu:24.04` (slim) | Binary execution + validation | Minimal; just the runtime deps of the built binary |
+
+### Container configuration (equivalent to QEMU args)
+
+```yaml
+# What QEMU does vs what Docker does for Linux
+
+QEMU:                                Docker equivalent:
+─────────────────────────────────────────────────────────────
+-enable-kvm                          (not needed; native)
+-cpu host                            (not needed; native)
+-m 4G                                --memory=4g
+-smp 4                               --cpus=4
+-drive file=disk.qcow2               FROM ubuntu:24.04 (image layers)
+-netdev user,hostfwd=...:22          -p 2222:22
+-virtfs .../mnt/project              -v ${PWD}:/mnt/project
+-vnc :0                              (no display; headless by default)
+```
+
+### SSH access
+
+We run an OpenSSH server inside the container so the existing SSH-based workflow
+(ssh2 crate → exec commands, scp files) works unchanged:
+
+```dockerfile
+RUN apt-get install -y openssh-server \
+    && mkdir /run/sshd \
+    && echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config \
+    && echo 'PasswordAuthentication yes' >> /etc/ssh/sshd_config
+# Inject the testbed SSH public key
+COPY testbed_key.pub /root/.ssh/authorized_keys
+CMD ["/usr/sbin/sshd", "-D"]
+```
+
+This preserves the SSH exec pattern from the QEMU provider — no API changes
+for callers.
+
+### Why SSH inside containers rather than `docker exec`
+
+The existing `Provider` trait and all callers (bootstrap, build, runner,
+screenshot) use SSH to communicate with guests. Replacing SSH with
+`docker exec` would require rewriting every guest-interaction module. Running
+SSH inside the container is a deliberate compatibility shim:
+
+- **Keep existing code working** — `src/vms/ssh/`, `src/vms/bootstrap/`,
+  `src/vms/build/`, `src/vms/runner/` all use `ssh2` and don't need to change.
+- **Unified interface** — Whether the "guest" is a QEMU VM or a Docker
+  container, it's always reachable via SSH on a known port.
+- **SSH key-based auth** — The same keypair works across all providers.
+
+The container's SSH port is mapped to a host port (e.g., 2422 for linux-build),
+exactly as QEMU's `hostfwd` does today.
+
+---
+
+## Windows: dockurr/windows as a Docker interface
+
+dockurr/windows runs a full Windows VM inside a Docker container using QEMU
+internally. It still requires `/dev/kvm`, but it provides a **Docker interface**
+for managing the VM — environment variables for configuration, `/storage`
+volume for the disk, port 8006 for web access, port 3389 for RDP.
+
+### What dockurr gives us that raw QEMU doesn't
+
+1. **Pre-configured QEMU args** — No need to figure out OVMF firmware paths,
+   `-cpu host`, SATA vs virtio, Apple SMC, etc. dockurr has tested these
+   across hundreds of thousands of pulls and dozens of Windows versions.
+2. **ISO auto-download** — Set `VERSION=11` and dockurr downloads the correct
+   Windows ISO from Microsoft's servers. No Vagrant Cloud dependency.
+3. **Automatic driver installation** — VirtIO drivers, networking, RDP are
+   installed during Windows setup automatically.
+4. **Web viewer on port 8006** — For debugging when SSH/WinRM isn't working.
+5. **Standard Docker volume for disk** — `-v ./windows:/storage` persists the
+   VM disk. Much simpler than figuring out qcow2 paths.
+
+### Integration approach
+
+For the bollard path:
+
+```rust
+let config = bollard::container::Config {
+    image: Some("dockurr/windows"),
+    env: Some(vec![
+        "VERSION=11",
+        "RAM_SIZE=12G",
+        "CPU_CORES=4",
+        "DISK_SIZE=80G",
+        "USERNAME=vagrant",
+        "PASSWORD=vagrant",
+    ]),
+    host_config: Some(bollard::container::HostConfig {
+        devices: Some(vec![
+            DeviceMapping { path_on_host: Some("/dev/kvm".into()), .. },
+            DeviceMapping { path_on_host: Some("/dev/net/tun".into()), .. },
+        ]),
+        cap_add: Some(vec!["NET_ADMIN".into()]),
+        port_bindings: Some(hashmap! {
+            "3389/tcp" => vec![PortBinding { host_port: Some("3389".into()), .. }],
+            "8006/tcp" => vec![PortBinding { host_port: Some("8006".into()), .. }],
+        }),
+        binds: Some(vec![
+            format!("{}:/storage", windows_disk_dir),
+        ]),
+        ..Default::default()
+    }),
+    ..Default::default()
+};
+```
+
+For the Compose path:
+
+```yaml
+services:
+  windows:
+    image: dockurr/windows
+    container_name: windows-build
+    environment:
+      VERSION: "11"
+      RAM_SIZE: "12G"
+      CPU_CORES: "4"
+      DISK_SIZE: "80G"
+      USERNAME: "vagrant"
+      PASSWORD: "vagrant"
+    devices:
+      - /dev/kvm
+      - /dev/net/tun
+    cap_add:
+      - NET_ADMIN
+    ports:
+      - "3389:3389"
+      - "8006:8006"
+    volumes:
+      - ./windows:/storage
+    stop_grace_period: 2m
+```
+
+### SSH into dockurr Windows
+
+Once the dockurr Windows VM boots, we need SSH access (matching the existing
+`VmProfile` port-forwarding pattern). dockurr doesn't expose SSH natively, so
+we use a two-phase approach:
+
+1. **First boot**: dockurr starts the Windows VM. We connect via RDP (port 3389)
+   or the web viewer (port 8006) as a fallback for debugging.
+2. **Bootstrap phase**: Once RDP is available, we use the existing WinRM
+   bootstrap flow (install OpenSSH, configure keys) — exactly as the current
+   Windows QEMU bootstrap does. This works because dockurr's Windows is a real
+   Windows VM, reachable on the host's ports.
+
+This means the **existing Windows bootstrap code is fully reused** — only the
+VM launch mechanism changes (QEMU args → dockurr container config).
+
+### dockurr limitations
+
+- **Requires KVM** — Does not eliminate the KVM dependency for Windows testing.
+  This is a fundamental constraint of running Windows on Linux.
+- **No SSH by default** — Still needs the two-phase WinRM→SSH bootstrap.
+- **Large image** — The Windows disk image is 6-8 GB, downloaded on first run.
+- **Not a true container** — It's QEMU inside Docker. The value is the Docker
+  *interface*, not container-level isolation.
+
+---
+
+## macOS: retained QEMU/UTM
+
+Docker cannot virtualize macOS. dockurr/macos exists but has the same
+limitations as the existing QEMU macOS support (requires KVM/HVF, complex
+OpenCore setup). We retain the existing `QemuProvider` and `UtmProvider` for
+macOS guests without change.
+
+The `Provider` trait already abstracts this — callers don't know or care which
+backend is used.
+
+---
+
+## Container profile design
+
+`ContainerProfile` maps 1:1 to the existing `VmProfile` concept:
+
+```rust
+/// Mirrors VmProfile but for Docker containers.
+pub struct ContainerProfile {
+    /// Profile name (e.g. "linux-build", "windows-build")
+    pub name: String,
+    /// Target guest OS
+    pub guest_os: GuestOs,
+    /// Docker image (e.g. "testbed/linux-build:latest" or "dockurr/windows")
+    pub image: String,
+    /// Or: path to a Dockerfile build context
+    pub dockerfile: Option<PathBuf>,
+    /// Memory limit
+    pub memory: ByteSize,
+    /// CPU count
+    pub cpus: u32,
+    /// SSH port on the host
+    pub ssh_port: u16,
+    /// Additional port mappings
+    pub ports: Vec<PortMapping>,
+    /// Volume mounts (host → container)
+    pub volumes: Vec<VolumeMount>,
+    /// Environment variables
+    pub env: Vec<(String, String)>,
+    /// Requires KVM (/dev/kvm device)?
+    pub needs_kvm: bool,
+    /// Docker network to attach to
+    pub network: Option<String>,
+    /// Bootstrap mode
+    pub bootstrap_mode: BootstrapMode,
+}
+```
+
+### Profile definitions (embedded in code, overridable via testbed.toml):
+
+```rust
+const LINUX_BUILD_PROFILE: ContainerProfile = ContainerProfile {
+    name: "linux-build",
+    guest_os: GuestOs::Linux,
+    image: "testbed/linux-build:latest",  // built from Dockerfile.linux-build
+    dockerfile: Some("docker/linux-build/Dockerfile"),
+    memory: ByteSize::gb(4),
+    cpus: 4,
+    ssh_port: 2422,
+    ports: vec![("2422", "22")],
+    volumes: vec![
+        ("${PROJECT_DIR}", "/mnt/project"),  // bind mount (replaces 9p)
+        ("linux-build-cargo", "/root/.cargo"),  // named volume (persistent cache)
+    ],
+    env: vec![],
+    needs_kvm: false,
+    network: Some("testbed-net"),
+    bootstrap_mode: BootstrapMode::SshOnly,
+};
+```
+
+---
+
+## Why not dockurr for Linux
+
+dockurr does not provide a Linux image. Their focus is OSes that cannot run
+natively in containers (Windows, macOS, ChromeOS). For Linux, a native Docker
+container is strictly superior:
+
+| Property | dockurr Linux (hypothetical) | Native Docker container |
+|----------|------------------------------|------------------------|
+| Isolation | QEMU VM | cgroups + namespaces |
+| KVM required | Yes | No |
+| Startup time | 30-90 seconds | 1-3 seconds |
+| Memory overhead | Full VM (~1 GB base) | Process-level (~50 MB base) |
+| Filesystem sharing | 9p/virtiofs (brittle) | bind mounts (kernel-level, reliable) |
+| Networking | User-mode port forwarding | Native bridge networking |
+| Image size | Full disk image (multi-GB) | Layered Docker image (MBs of delta) |
+
+The whole point of this spec is to move away from QEMU's overhead for Linux
+testing. Wrapping QEMU in Docker (which is what dockurr does) doesn't solve
+that for Linux — it adds another layer.
