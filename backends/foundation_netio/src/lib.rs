@@ -11,6 +11,7 @@ pub mod event_source;
 pub mod simple_http;
 pub mod websocket;
 pub mod netcap;
+pub mod http2;
 
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub mod http_stream;

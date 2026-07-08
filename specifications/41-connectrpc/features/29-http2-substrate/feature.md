@@ -1,7 +1,7 @@
 ---
 feature: "HTTP/2 substrate: frame codec, HPACK, SETTINGS, flow-control math (D12 §5)"
 description: "Direction-neutral h2 building blocks, tokio-free, replicated from h2 as reference"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 2
 depends_on: ["04-incremental-decoder"]
