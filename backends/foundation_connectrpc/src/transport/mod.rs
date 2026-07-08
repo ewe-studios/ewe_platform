@@ -19,6 +19,8 @@ pub mod facade;
 pub mod frame;
 #[cfg(not(target_family = "wasm"))]
 pub mod h1;
+#[cfg(not(target_family = "wasm"))]
+pub mod h2;
 pub mod wasm;
 
 pub use base::{

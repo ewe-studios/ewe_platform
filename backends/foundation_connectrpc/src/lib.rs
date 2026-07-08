@@ -90,6 +90,8 @@ pub use transport::{
 
 #[cfg(not(target_family = "wasm"))]
 pub use transport::h1::H1Transport;
+#[cfg(not(target_family = "wasm"))]
+pub use transport::h2::H2Transport;
 
 pub use envelope::{
     decode_grpc_timeout, encode_grpc_timeout, Envelope, EnvelopeError, EnvelopeReader,

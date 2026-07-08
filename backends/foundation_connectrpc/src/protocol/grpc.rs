@@ -22,7 +22,6 @@ use std::time::Duration;
 
 use bytes::{Bytes, BytesMut};
 use foundation_core::valtron::{PipeReceiver, PipeSender};
-use foundation_errstacks::ErrorTrace;
 use foundation_netio::simple_http::shared::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
@@ -38,9 +37,7 @@ use crate::transport::{
     PipeHandlerConn, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
-use super::grpc_web::{
-    build_status_trailers, percent_decode_message, parse_status_trailers,
-};
+use super::grpc_web::build_status_trailers;
 
 use super::{
     BoxedTask, ClientExchange, HandlerExchange, ProtocolClient, ProtocolHandler, UnaryOutcome,

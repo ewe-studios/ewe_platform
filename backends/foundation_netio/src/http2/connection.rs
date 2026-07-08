@@ -252,8 +252,9 @@ impl<S: Read + Write> H2Connection<S> {
 
     // ── Frame I/O ──────────────────────────────────────────────────────
 
-    /// Read a single frame from the socket, returning `(head, payload_bytes)`.
-    fn read_frame(&mut self) -> io::Result<(Head, Bytes)> {
+    /// Public: read a raw frame from the socket, returning `(head, payload_bytes)`.
+    /// Useful for manual frame-processing loops (streaming servers, etc.).
+    pub fn read_frame(&mut self) -> io::Result<(Head, Bytes)> {
         // Read the 9-byte header
         let mut header = [0u8; 9];
         self.socket.read_exact(&mut header)?;
@@ -642,6 +643,79 @@ impl<S: Read + Write> H2Connection<S> {
         Ok(stream_id)
     }
 
+    /// Send response HEADERS on the given stream without a body, for streaming.
+    /// The caller follows up with [`send_data_frame`] calls and ends with
+    /// `send_data_frame(stream_id, data, true)` or an empty
+    /// `send_data_frame(stream_id, &[], true)`.
+    pub fn send_headers_response(&mut self, stream_id: u32, status: u16, headers: &[(Bytes, Bytes)], end_stream: bool) -> io::Result<()> {
+        let mut header_block = BytesMut::new();
+        let status_bytes = status.to_string();
+        self.hpack_enc.encode_header_no_index(b":status", status_bytes.as_bytes(), &mut header_block);
+        for (name, value) in headers {
+            self.hpack_enc.encode_header(name, value, &mut header_block);
+        }
+
+        let mut flags = headers_flags::END_HEADERS;
+        if end_stream { flags |= headers_flags::END_STREAM; }
+
+        let hf = HeadersFrame { stream_id, flags, header_block: header_block.freeze(), pad_len: None, priority: None };
+        let mut buf = BytesMut::new();
+        hf.encode(&mut buf);
+        self.write_buf.put_slice(&buf);
+
+        if let Some(entry) = self.streams.get_mut(&stream_id) {
+            entry.state.send_headers(end_stream).ok();
+        }
+        self.flush_write()?;
+        Ok(())
+    }
+
+    /// Send a DATA frame on an already-open stream.
+    /// The first call after `send_headers_response` or `send_request` must have
+    /// `end_stream: false` for multi-frame streaming; the final frame sets
+    /// `end_stream: true`.
+    pub fn send_data_frame(&mut self, stream_id: u32, data: &[u8], end_stream: bool) -> io::Result<()> {
+        let df = DataFrame {
+            stream_id,
+            flags: if end_stream { data_flags::END_STREAM } else { 0 },
+            data: Bytes::copy_from_slice(data),
+            pad_len: None,
+        };
+        let mut buf = BytesMut::new();
+        df.encode(&mut buf);
+        self.write_buf.put_slice(&buf);
+
+        if let Some(entry) = self.streams.get_mut(&stream_id) {
+            entry.state.send_data(end_stream).ok();
+        }
+        self.flush_write()?;
+        Ok(())
+    }
+
+    /// Read the next frame, returning `Some((stream_id, data, end_stream))` for a
+    /// DATA frame, or `Ok(None)` for non-DATA frames (SETTINGS/PING/etc handled
+    /// internally). Call in a loop until `end_stream` is true.
+    pub fn recv_data_frame(&mut self) -> io::Result<Option<(u32, Bytes, bool)>> {
+        loop {
+            let (head, payload) = self.read_frame()?;
+            match head.kind {
+                Kind::Data => {
+                    let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
+                    let end_stream = df.flags & data_flags::END_STREAM != 0;
+                    return Ok(Some((head.stream_id, df.data, end_stream)));
+                }
+                Kind::Settings => self.handle_settings(head, &payload)?,
+                Kind::WindowUpdate => self.handle_window_update(head, &payload)?,
+                Kind::Ping => self.handle_ping(head, &payload)?,
+                Kind::GoAway => { self.goaway_received = true; return Ok(None); }
+                Kind::Reset => { /* pass through */ return Ok(None); }
+                Kind::Headers => { /* unexpected — pass through */ return Ok(None); }
+                _ => {}
+            }
+            self.flush_write()?;
+        }
+    }
+
     /// Read the next incoming frame, returning `Some(response)` if it's a
     /// response HEADERS frame for a stream we initiated.
     pub fn recv_response(&mut self) -> io::Result<Option<(u32, H2Request)>> {
@@ -680,6 +754,11 @@ impl<S: Read + Write> H2Connection<S> {
     /// Reference to the underlying socket (for tests/inspection).
     pub fn socket_ref(&self) -> &S {
         &self.socket
+    }
+
+    /// Consume this connection and return the inner socket.
+    pub fn into_inner(self) -> S {
+        self.socket
     }
 
     /// Build an H2Request from decoded HPACK headers.
