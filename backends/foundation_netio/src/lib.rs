@@ -15,5 +15,11 @@ pub mod netcap;
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub mod http_stream;
 
+// ConnectRPC code generation (gated behind feature — requires prost deps).
+#[cfg(feature = "connectrpc-codegen")]
+pub mod connectrpc_codegen;
+#[cfg(feature = "connectrpc-codegen")]
+pub mod connectrpc_build;
+
 #[cfg(all(feature = "ssl-native-tls", not(target_family = "wasm")))]
 extern crate native_tls;
