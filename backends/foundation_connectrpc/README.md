@@ -24,11 +24,12 @@ end-to-end today, over a real loopback socket:
 | Codecs: protobuf (buffa), JSON, Arrow | ✅ working |
 | Compression: gzip (+ optional zstd, brotli) | ✅ working |
 | Auth middleware (`auth` feature) | ✅ working |
-| Code generation: proto (build.rs / protoc) + code-first macro | ✅ unary proven; ⚠️ streaming code-first pending |
+| Code generation: proto (build.rs / protoc) + code-first macro | ✅ working (unary + streaming, both proven) |
 | gRPC protocol / HTTP/2, HTTP/3, WebSocket transports | ⏳ pending (needs the HTTP/2 substrate) |
 
-The `examples/` directory holds runnable, self-contained programs for the first
-three rows — each stands up a server and calls it over a real TCP socket.
+The [`examples/`](examples/) directory holds runnable, self-contained programs —
+each in its own subdirectory with a deep `README.md`, each standing up a server
+and calling it over a real TCP socket.
 
 ## Quick start
 
@@ -65,7 +66,7 @@ HTTP/1.1.
 ## Server
 
 Register procedures on a `Router`, freeze it into a `ConnectRpcServe`, and serve
-it from a `foundation_http` server. See `examples/unary_echo.rs` for the full
+it from a `foundation_http` server. See `examples/unary_echo/` for the full
 runnable version.
 
 ```rust
@@ -174,7 +175,7 @@ proto-first and code-first users converge on identical server and client code.
 |---|---|---|---|
 | **1 — build.rs** | `.proto` files | `build.rs` helper (prost-build + codegen) | `.rs` file in `OUT_DIR` |
 | **2 — protoc plugin** | `.proto` files | `protoc` with `--plugin=protoc-gen-connect-ewe` | `.rs` file on disk |
-| **3 — code-first** | Rust trait | `#[connectrpc::service]` proc macro | In-file expansion (no separate file) |
+| **3 — code-first** | Rust trait | `#[service]` proc macro | In-file expansion (no separate file) |
 
 The proto codegen (Modes 1–2) lives in the **build-time companion crate**
 [`foundation_connectrpc_codegen`](../foundation_connectrpc_codegen) — the same
@@ -239,12 +240,9 @@ include!(concat!(env!("OUT_DIR"), "/_connectrpc.rs"));
 include!(concat!(env!("OUT_DIR"), "/connectrpc.greet.v1.rs"));
 ```
 
-> **Note:** The generated code references runtime types as `connectrpc::Ctx`,
-> `connectrpc::Router`, etc. Your crate must have `foundation_connectrpc` as a
-> regular dependency and alias it:
-> ```rust
-> use foundation_connectrpc as connectrpc;
-> ```
+> **Note:** The generated code references runtime types by their real crate path
+> (`foundation_connectrpc::Ctx`, `foundation_connectrpc::Router`, …), so your crate
+> just needs `foundation_connectrpc` as a regular dependency — **no alias**.
 
 > **How to find the prost-build filename:** If you're unsure what prost-build
 > named its output, run `cargo build` once then list the directory:
@@ -314,20 +312,24 @@ The generated `_connectrpc.rs` is identical to what Mode 1 produces.
 ### Mode 3 — code-first (proc macro)
 
 No `.proto` file at all. Define your service as a plain Rust trait and annotate
-it with `#[connectrpc::service]`. The macro expands **in the same file** — it
-does not write a separate `.rs` file. Everything is generated at compile time as
-part of normal proc-macro expansion.
+it with `#[service]`. The macro expands **in the same file** — it does not write a
+separate `.rs` file. Everything is generated at compile time as part of normal
+proc-macro expansion.
+
+The generated code refers to the runtime crate by its **real name**
+(`foundation_connectrpc::…`) — so there is **no crate alias**. Import the `service`
+macro and the types you use:
 
 ```rust
-use foundation_connectrpc as connectrpc;
+use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
 
-#[connectrpc::service(package = "demo.greet.v1", codecs(json))]
+#[service(package = "demo.greet.v1", codecs(json))]
 pub trait GreetService {
     async fn greet(
         &self,
-        _ctx: connectrpc::Ctx,
-        _req: connectrpc::Request<GreetRequest>,
-    ) -> connectrpc::ConnectResult<connectrpc::Response<GreetResponse>>;
+        _ctx: Ctx,
+        _req: Request<GreetRequest>,
+    ) -> ConnectResult<Response<GreetResponse>>;
 }
 ```
 
@@ -353,6 +355,40 @@ in the same module where the trait is defined:
 | R6 | **Typed client struct** | `pub struct GreetServiceClient { greet: Client<GreetReq, GreetResp>, ... }` | A client with one async method per RPC. Its `new(transport, base_url, options)` constructor builds one `Client<Req, Res>` per method. |
 | R7 | **Client trait** | `pub trait GreetServiceClientExt: Send + Sync + 'static { ... }` | A trait mirroring the client methods — enables mocking and dependency injection in tests. |
 | R8 | **Descriptor macro** | `#[macro_export] macro_rules! greet_service_tokens { () => { ... } }` | Captures the full expansion for cross-crate re-generation via `generate!`. |
+
+**Name derivation — every generated name follows mechanically from the trait's
+`Ident`.** There are three conversion rules, all standard Rust convention:
+
+| Trait name | → snake_case | → PascalCase composition | → SCREAMING_SNAKE_CASE |
+|---|---|---|---|
+| `GreetService` | `greet_service` | `GreetService` + `Client` → `GreetServiceClient` | `GREETSERVICE_NAME` |
+| `MyApi` | `my_api` | `MyApi` + `ClientExt` → `MyApiClientExt` | `MYAPI_NAME` |
+| `GetURL` | `get_url` | `GetURL` + `Handler` → `UnimplementedGetURLHandler` | `GETURL_NAME` |
+
+Where each convention is used:
+
+| Convention | Applied to |
+|---|---|
+| **snake_case** | Registration function (`register_greet_service`), descriptor macro (`greet_service_tokens`), client field names (`greet: Client<…>`) |
+| **PascalCase** | Trait name (unchanged), client struct (`GreetServiceClient`), client trait (`GreetServiceClientExt`), unimplemented handler (`UnimplementedGreetServiceHandler`) |
+| **SCREAMING_SNAKE_CASE** | Service name constant (`GREETSERVICE_NAME`), procedure path constants (`GREET`) |
+
+> **`{ server, client }` in `generate!` — what these labels mean:**
+>
+> The `generate!` macro was designed so that a consuming crate could ask for
+> *only* the artifacts it needs rather than always getting all 8. The labels
+> map to the R1-R8 items from the table above:
+>
+> | Label | Artifacts it selects | Typical consumer |
+> |---|---|---|
+> | `server` | R1 (procedure constants), R2 (name), R3 (trait), R4 (registration fn), R5 (unimplemented handler) | The crate that implements the service |
+> | `client` | R1 (procedure constants), R6 (typed client struct), R7 (client trait) | A crate that only calls the service |
+>
+> **Today's behavior:** Filtering is not yet implemented. The macro parses
+> `{ server, client }` but always emits every artifact regardless. The
+> recommended practice is to write `{ server, client }` when you need both
+> sides, or just `{ server }` / `{ client }` when your crate only plays one
+> role — that way your intent is recorded for when filtering lands.
 
 #### Implementing the service — same crate
 
@@ -390,7 +426,7 @@ let client = GreetServiceClient::new(
 let resp = client.greet(ctx, Request::new(GreetRequest { name: "world".into() })).await?;
 ```
 
-See `examples/code_first_service.rs` for the full runnable version.
+See `examples/code_first_service/` for the full runnable version.
 
 #### Implementing the service — another crate (cross-crate)
 
@@ -399,19 +435,19 @@ another (e.g. a server crate), you need to re-materialise the generated
 artifacts in the consuming crate. This is what `generate!` does.
 
 **Step 1 — the API crate** depends only on `foundation_connectrpc`. Annotate a
-`pub trait` with `#[connectrpc::service]`:
+`pub trait` with `#[service]`:
 
 ```rust
 // my-api/src/lib.rs
-use foundation_connectrpc as connectrpc;
+use foundation_connectrpc::{service, Ctx, Request, Response, ConnectResult};
 
-#[connectrpc::service(package = "my.api.v1", codecs(json))]
+#[service(package = "my.api.v1", codecs(json))]
 pub trait MyApi {
     async fn do_thing(
         &self,
-        ctx: connectrpc::Ctx,
-        req: connectrpc::Request<MyRequest>,
-    ) -> connectrpc::ConnectResult<connectrpc::Response<MyResponse>>;
+        ctx: Ctx,
+        req: Request<MyRequest>,
+    ) -> ConnectResult<Response<MyResponse>>;
 }
 ```
 
@@ -428,19 +464,18 @@ The macro name is derived from the trait name: `MyApi` → snake_case →
 `my_api` + `_tokens`. Crate B will call this macro through `generate!`.
 
 **Step 2 — the server crate** depends on **both** `my-api` and
-`foundation_connectrpc`. Use `connectrpc::generate!` to re-expand the descriptor
-macro into a module of your choosing:
+`foundation_connectrpc`. Use `generate!` to re-expand the descriptor macro into a
+module of your choosing:
 
 ```rust
 // my-server/src/main.rs
-use foundation_connectrpc as connectrpc;
+use foundation_connectrpc::generate;
 
-// Re-expand all the service artifacts inside a new `my_svc` module.
-// The first argument is the path to Crate A's descriptor macro.
-// The `{ server, client }` block lists which artifact *groups* you'd
-// like — currently all are always emitted (filtering is reserved for
-// a future release).
-connectrpc::generate!(my_api::my_api_tokens => mod my_svc {
+// Re-expand the service artifacts into a `my_svc` module.
+// `my_api::my_api_tokens` — the descriptor macro exported by Crate A.
+// `{ server, client }` — ask for both server-side and client-side artifacts
+// (see the note under "What the macro generates" above for what each label selects).
+generate!(my_api::my_api_tokens => mod my_svc {
     server, client
 });
 ```
@@ -482,15 +517,15 @@ struct MyServer;
 impl MyApi for MyServer {
     async fn do_thing(
         &self,
-        ctx: connectrpc::Ctx,
-        req: connectrpc::Request<MyRequest>,
-    ) -> connectrpc::ConnectResult<connectrpc::Response<MyResponse>> {
+        ctx: foundation_connectrpc::Ctx,
+        req: foundation_connectrpc::Request<MyRequest>,
+    ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<MyResponse>> {
         // ...
     }
 }
 
 // Server:
-let mut router = connectrpc::Router::new();
+let mut router = foundation_connectrpc::Router::new();
 register_my_api(&mut router, Arc::new(MyServer));
 
 // Client:
@@ -502,7 +537,7 @@ let resp = client.do_thing(ctx, Request::new(MyRequest { /* ... */ })).await?;
 > means Crate B *regenerates* the items rather than sharing them. This avoids
 > Crate A needing to re-export every generated artifact (which would pollute its
 > public API with client structs and registration fns it doesn't need), and
-> ensures the generated code's `connectrpc::` paths resolve against Crate B's
+> ensures the generated code's `foundation_connectrpc::` paths resolve against Crate B's
 > own dependency graph.
 >
 > Under the hood: `#[service]` wraps everything in a `macro_rules!` that
@@ -516,7 +551,7 @@ All four RPC kinds are supported. The macro classifies each method by inspecting
 its parameter and return types syntactically:
 
 ```rust
-#[connectrpc::service(package = "demo.v1", codecs(json))]
+#[service(package = "demo.v1", codecs(json))]
 pub trait StreamingService {
     // Unary: Request<T> → ConnectResult<Response<T>>
     async fn unary(&self, ctx: Ctx, req: Request<Req>) -> ConnectResult<Response<Res>>;
@@ -535,11 +570,10 @@ pub trait StreamingService {
 }
 ```
 
-> **⚠️ Streaming limitation:** The code-first macro currently box-stream-rewrites
-> server/bidi-streaming signatures to `Pin<Box<dyn Stream + Send>>` return types
-> (to satisfy `Send` bounds on Router's handler futures). This rewrite has a
-> known issue (E0562) that is being resolved — streaming code-first is marked
-> **pending** in the status table. Unary code-first is fully proven.
+> **Note:** For server-streaming and bidi-streaming methods the code-first macro
+> rewrites `impl Stream` return types to `Pin<Box<dyn Stream + Send>>` to satisfy
+> `Send` bounds on the Router's handler futures. Your impl returns
+> `Ok(Box::pin(stream))` — see the `code_first_streaming` example.
 
 #### Codec selection in code-first
 
@@ -574,14 +608,14 @@ pub const GREETSERVICE_NAME: &str = "demo.greet.v1.GreetService";
 pub trait GreetService: Send + Sync + 'static {
     async fn greet(
         &self,
-        ctx: connectrpc::Ctx,
-        req: connectrpc::Request<GreetRequest>,
-    ) -> connectrpc::ConnectResult<connectrpc::Response<GreetResponse>>;
+        ctx: foundation_connectrpc::Ctx,
+        req: foundation_connectrpc::Request<GreetRequest>,
+    ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>;
 }
 
 // ── R4: Registration function ─────────────────────────────────────────────
 pub fn register_greet_service<S: GreetService>(
-    router: &mut connectrpc::Router,
+    router: &mut foundation_connectrpc::Router,
     service: std::sync::Arc<S>,
 ) {
     // Calls router.unary(procedure::GREET, codecs, handler, opts) for each method
@@ -593,29 +627,29 @@ impl GreetService for UnimplementedGreetServiceHandler {}
 
 // ── R6: Typed client ──────────────────────────────────────────────────────
 pub struct GreetServiceClient {
-    greet: connectrpc::Client<GreetRequest, GreetResponse>,
+    greet: foundation_connectrpc::Client<GreetRequest, GreetResponse>,
 }
 impl GreetServiceClient {
     pub fn new(
-        transport: Arc<dyn connectrpc::Transport>,
+        transport: Arc<dyn foundation_connectrpc::Transport>,
         base_url: &str,
-        options: connectrpc::ClientOptions,
-    ) -> connectrpc::ConnectResult<Self>;
+        options: foundation_connectrpc::ClientOptions,
+    ) -> foundation_connectrpc::ConnectResult<Self>;
 
     pub async fn greet(
         &self,
-        ctx: connectrpc::Ctx,
-        request: connectrpc::Request<GreetRequest>,
-    ) -> connectrpc::ConnectResult<connectrpc::Response<GreetResponse>>;
+        ctx: foundation_connectrpc::Ctx,
+        request: foundation_connectrpc::Request<GreetRequest>,
+    ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>;
 }
 
 // ── R7: Client trait ──────────────────────────────────────────────────────
 pub trait GreetServiceClientExt: Send + Sync + 'static {
     async fn greet(
         &self,
-        ctx: connectrpc::Ctx,
-        request: connectrpc::Request<GreetRequest>,
-    ) -> connectrpc::ConnectResult<connectrpc::Response<GreetResponse>>;
+        ctx: foundation_connectrpc::Ctx,
+        request: foundation_connectrpc::Request<GreetRequest>,
+    ) -> foundation_connectrpc::ConnectResult<foundation_connectrpc::Response<GreetResponse>>;
 }
 impl GreetServiceClientExt for GreetServiceClient { /* delegates to inner Client */ }
 
@@ -624,12 +658,9 @@ impl GreetServiceClientExt for GreetServiceClient { /* delegates to inner Client
 macro_rules! greet_service_tokens { () => { /* full expansion */ }; }
 ```
 
-> **Important:** The generated code uses `connectrpc::` as a path prefix
-> throughout (e.g. `connectrpc::Ctx`, `connectrpc::Router`). Your crate must
-> bring the runtime crate into scope under that exact name:
-> ```rust
-> use foundation_connectrpc as connectrpc;
-> ```
+> **Note:** The generated code uses the crate's **real path** as its prefix
+> throughout (`foundation_connectrpc::Ctx`, `foundation_connectrpc::Router`, …), so
+> the consuming crate just needs `foundation_connectrpc` as a dependency — no alias.
 
 ---
 
