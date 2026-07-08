@@ -1,7 +1,7 @@
 ---
 feature: "HTTP/2 server + client multiplexers, ALPN/h2c×3 (D12 §5 phase 2)"
 description: "Both multiplexers in one phase; all three h2 entry paths; ConnectionHandler branch; per-stream dispatch to the Router"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 2
 depends_on: ["29-http2-substrate", "05-http11-part-iterators", "22-router-dispatch"]
