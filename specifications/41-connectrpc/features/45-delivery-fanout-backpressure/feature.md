@@ -414,8 +414,9 @@ head via `stream.head.next().await` and drains the body via
 - The Decision 11 seam `FramePipe` itself (00-F4 — already done for the seam).
 - The reactor / real-I/O parking (Decision 00 §L2, `foundation_nativeapis`).
 - ~~N-way broadcast / `split_n` / `broadcast_lossy` (carved to follow-on feature).~~
-  **Now implemented** on both `TaskIteratorExt` twins — see "N-way broadcast" below.
-  (A `StreamIteratorExt` parity twin remains a possible follow-on.)
+  **Now implemented** on both `TaskIteratorExt` **and** `StreamIteratorExt` (all
+  twins), with three policies (`broadcast` / `broadcast_lossy` / `broadcast_latest`)
+  — see "N-way broadcast" below.
 - Embedding `Pipe` inside split combinators (explicitly rejected — the raw
   `ConcurrentQueue` + `Wait` fix + existing bridges suffice).
 
@@ -553,32 +554,45 @@ with the actual fixes needed:
 Part D itself only needs the **existing 2-way** `split_collect_until_map` (head
 peel) + `split_collector_map` (body continuation). The **N-way** broadcast had no
 Part-D consumer, so it was originally carved to a follow-on — but it has since been
-**built and tested** (both `TaskIteratorExt` twins) even without a consumer, on
-request. It reuses the 2-way `CollectorStreamIterator` as the branch observer (so it
-inherits the Resolution 2 `Wait` + Resolution 3 `readiness()` behaviour) plus a new
-`BroadcastContinuation` holding `Vec<Arc<ConcurrentQueue<Stream<Ready,Pending>>>>`.
-Two policies:
+**built and tested on both families** (`TaskIteratorExt` and `StreamIteratorExt`,
+each in its `sendable`/`non_sendable` twin) even without a consumer, on request. It
+reuses the 2-way branch observer (`CollectorStreamIterator` for tasks,
+`SCollectorStreamIterator` for streams — inheriting the Resolution 2 `Wait` +
+Resolution 3 `readiness()` behaviour) plus a new `BroadcastContinuation` /
+`SBroadcastContinuation` holding `Vec<Arc<ConcurrentQueue<Stream<..>>>>`.
 
-- **`broadcast(n, predicate, queue_size)`** — backpressured, zero loss, slowest
-  gates. Mechanism: **all-or-nothing** — a matched value is delivered to *no* branch
-  until **every** open branch has vacancy (checked via `is_full`); if any is full the
-  source parks on that branch's `QueueVacancyReadiness` and holds the value +
-  source item back, so there is no double-delivery on resume and nothing is dropped.
-  `queue_size = 1` = strict lockstep; `> 1` = buffered slack. The safe default.
-- **`broadcast_lossy(n, predicate, queue_size)`** — explicit, loud opt-in; a full
-  branch loses its oldest (`force_push`) so the source never stalls on a slow
-  observer. The one sanctioned `force_push`, confined to this loudly-named variant.
+Fan-out arity is orthogonal to the **full-branch policy**, factored into a shared
+[`BroadcastPolicy`] enum (`valtron::branches`). Three methods, one per policy:
+
+- **`broadcast(n, predicate, queue_size)`** — [`BroadcastPolicy::Backpressure`]:
+  zero loss, slowest gates. Mechanism: **all-or-nothing** — a matched value is
+  delivered to *no* branch until **every** open branch has vacancy (`is_full`
+  check); if any is full the source stalls (task path parks on
+  `QueueVacancyReadiness`; stream path yields `Stream::Wait`, since `Stream` has no
+  `Depends`) and holds the value + source item back, so there is no double-delivery
+  on resume and nothing is dropped. `queue_size = 1` = strict lockstep. The default.
+- **`broadcast_lossy(n, predicate, queue_size)`** — [`BroadcastPolicy::DropNewest`]:
+  never stalls; a full branch drops the **incoming** value (keeps its backlog). A
+  slow consumer holds its older items and falls off the *live* edge until it drains.
+- **`broadcast_latest(n, predicate, queue_size)`** — [`BroadcastPolicy::DropOldest`]:
+  never stalls; a full branch evicts its **oldest** (`force_push`) so every consumer
+  is guaranteed the **latest** — never kicked off the live edge, only intermediate
+  history is lost. Ideal for live feeds / "latest wins". The one sanctioned
+  `force_push`, confined to this policy.
 
 A **dropped** observer closes its branch queue; the continuation skips it
 (`first_full_branch` / `deliver` ignore closed queues) but keeps forwarding and
-delivering to survivors — never a deadlock. Tests:
-`tests/valtron/broadcast_tests.rs` (9 tests, green on both cfgs): fan-out to all,
-predicate filter, zero-loss lockstep, deterministic park+resume (no double-deliver),
-dropped-observer, lossy-never-stalls, `n=0` passthrough, `queue_size=0` clamp.
+delivering to survivors — never a deadlock. (This required adding the F45
+observer-drop `Drop` impl to the stream observer `SCollectorStreamIterator`, which
+the task side already had — without it a dropped stream branch parked the source
+forever.) Tests: `tests/valtron/broadcast_tests.rs` (16 tests, green on both cfgs) —
+task + stream: fan-out to all, predicate filter, zero-loss lockstep, deterministic
+park/`Wait`+resume (no double-deliver), dropped-observer, `broadcast_lossy`
+drop-newest (keeps oldest), `broadcast_latest` drop-oldest (keeps latest), `n=0`
+passthrough, `queue_size=0` clamp.
 
 Active **eviction** (removing a branch after K misses) is still deferred — dropping
-the receiver already gives a clean manual opt-out. A `StreamIteratorExt` (stream
-family) twin of `broadcast` is a natural parity follow-on (not yet built).
+the receiver already gives a clean manual opt-out.
 
 ### Related decision
 

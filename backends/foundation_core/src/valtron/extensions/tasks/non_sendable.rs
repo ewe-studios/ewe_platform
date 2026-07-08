@@ -4,7 +4,7 @@ use concurrent_queue::ConcurrentQueue;
 
 use std::sync::Arc;
 
-use crate::valtron::branches::CollectionState;
+use crate::valtron::branches::{BroadcastPolicy, CollectionState};
 use crate::valtron::{
     ExecutionAction, QueueReadiness, QueueVacancyReadiness, Stream, TaskIterator, TaskShortCircuit,
     TaskSpread, TaskStatus,
@@ -172,18 +172,46 @@ pub trait TaskIteratorExt: TaskIterator + Sized {
         Self::Pending: Clone,
         P: Fn(&Self::Ready) -> bool + 'static;
 
-    /// Like [`broadcast`](Self::broadcast) but a **full branch loses the item**
-    /// instead of backpressuring the source (F45 N-way broadcast follow-on).
+    /// Like [`broadcast`](Self::broadcast) but the source **never stalls** — a full
+    /// branch drops the **incoming (newest)** value ([`BroadcastPolicy::DropNewest`]).
     ///
-    /// This is the **loud, explicit** lossy opt-in: the source never stalls on a
-    /// slow observer, so a branch that cannot keep up will **miss values**
-    /// (drop-oldest per branch). Use only when staleness is preferable to
-    /// backpressure (e.g. a best-effort metrics/observability tap). For zero-loss
-    /// delivery use [`broadcast`](Self::broadcast).
+    /// A branch that cannot keep up holds onto its buffered backlog and stops seeing
+    /// new values until it drains — it falls off the *live* edge of the stream. Use
+    /// when a slow consumer should process what it already has rather than the
+    /// freshest data. For "always latest" semantics use
+    /// [`broadcast_latest`](Self::broadcast_latest); for zero loss use
+    /// [`broadcast`](Self::broadcast).
     ///
     /// ## Panics
     /// Never panics. (`queue_size` is clamped to at least 1.)
     fn broadcast_lossy<P>(
+        self,
+        n: usize,
+        predicate: P,
+        queue_size: usize,
+    ) -> (
+        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
+        BroadcastContinuation<Self>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + 'static;
+
+    /// Like [`broadcast`](Self::broadcast) but the source **never stalls** and every
+    /// branch is guaranteed the **latest** values — a full branch evicts its
+    /// **oldest** ([`BroadcastPolicy::DropOldest`], via `force_push`).
+    ///
+    /// No receiver is ever kicked off the live edge: whatever a consumer reads is
+    /// always the freshest available; only intermediate history is lost under
+    /// pressure. Ideal for live feeds, telemetry, "latest wins" fan-out. For zero
+    /// loss use [`broadcast`](Self::broadcast); to instead keep the backlog and drop
+    /// new values use [`broadcast_lossy`](Self::broadcast_lossy).
+    ///
+    /// ## Panics
+    /// Never panics. (`queue_size` is clamped to at least 1.)
+    fn broadcast_latest<P>(
         self,
         n: usize,
         predicate: P,
@@ -847,7 +875,13 @@ where
         Self::Pending: Clone,
         P: Fn(&Self::Ready) -> bool + 'static,
     {
-        broadcast_build(self, n, Box::new(predicate), queue_size, false)
+        broadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::Backpressure,
+        )
     }
 
     fn broadcast_lossy<P>(
@@ -865,7 +899,37 @@ where
         Self::Pending: Clone,
         P: Fn(&Self::Ready) -> bool + 'static,
     {
-        broadcast_build(self, n, Box::new(predicate), queue_size, true)
+        broadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::DropNewest,
+        )
+    }
+
+    fn broadcast_latest<P>(
+        self,
+        n: usize,
+        predicate: P,
+        queue_size: usize,
+    ) -> (
+        Vec<CollectorStreamIterator<Self::Ready, Self::Pending>>,
+        BroadcastContinuation<Self>,
+    )
+    where
+        Self: Sized,
+        Self::Ready: Clone,
+        Self::Pending: Clone,
+        P: Fn(&Self::Ready) -> bool + 'static,
+    {
+        broadcast_build(
+            self,
+            n,
+            Box::new(predicate),
+            queue_size,
+            BroadcastPolicy::DropOldest,
+        )
     }
 
     fn split_collect_until<P>(
@@ -2155,7 +2219,7 @@ fn broadcast_build<I>(
     n: usize,
     predicate: Box<dyn Fn(&I::Ready) -> bool>,
     queue_size: usize,
-    lossy: bool,
+    policy: BroadcastPolicy,
 ) -> (
     Vec<CollectorStreamIterator<I::Ready, I::Pending>>,
     BroadcastContinuation<I>,
@@ -2173,12 +2237,12 @@ where
         });
         queues.push(queue);
     }
-    tracing::debug!("broadcast: {n} branches, queue_size={cap}, lossy={lossy}");
+    tracing::debug!("broadcast: {n} branches, queue_size={cap}, policy={policy}");
     let continuation = BroadcastContinuation {
         inner,
         queues,
         predicate,
-        lossy,
+        policy,
         pending_value: None,
         pending_forward: None,
     };
@@ -2198,8 +2262,8 @@ pub struct BroadcastContinuation<I: TaskIterator> {
     queues: Vec<Arc<ConcurrentQueue<Stream<I::Ready, I::Pending>>>>,
     /// Which `Ready` values to fan out.
     predicate: Box<dyn Fn(&I::Ready) -> bool>,
-    /// `true` = a full branch drops (drop-oldest); `false` = a full branch parks.
-    lossy: bool,
+    /// How a full branch is handled (park / drop-newest / drop-oldest).
+    policy: BroadcastPolicy,
     /// A matched value awaiting delivery to all branches (zero-loss backpressure):
     /// held until **every** open branch has vacancy, then broadcast in one shot.
     pending_value: Option<I::Ready>,
@@ -2231,20 +2295,26 @@ where
     I::Ready: Clone,
     I::Pending: Clone,
 {
-    /// Deliver one clone of `value` to every open branch. For zero-loss this is
-    /// only called once all open branches have vacancy, so each `push` succeeds; a
-    /// `Closed` race (observer dropped mid-flight) is skipped. For lossy, a full
-    /// branch drops its oldest via `force_push`.
+    /// Deliver one clone of `value` to every open branch per [`BroadcastPolicy`].
+    ///
+    /// `Backpressure` is only called once all open branches have vacancy, so its
+    /// `push` always succeeds; `DropNewest` lets a full-branch `push` fail and drops
+    /// the value; `DropOldest` evicts the oldest via `force_push`. A `Closed` race
+    /// (observer dropped mid-flight) is skipped in every case.
     fn deliver(&self, value: &I::Ready) {
         for queue in &self.queues {
             if queue.is_closed() {
                 continue;
             }
-            if self.lossy {
-                // Loud lossy opt-in: drop-oldest so the source never stalls.
-                let _ = queue.force_push(Stream::Next(value.clone()));
-            } else {
-                let _ = queue.push(Stream::Next(value.clone()));
+            match self.policy {
+                // Drop-oldest: evict to make room for the newest (keep latest).
+                BroadcastPolicy::DropOldest => {
+                    let _ = queue.force_push(Stream::Next(value.clone()));
+                }
+                // Backpressure (room pre-checked) / DropNewest (full → dropped).
+                BroadcastPolicy::Backpressure | BroadcastPolicy::DropNewest => {
+                    let _ = queue.push(Stream::Next(value.clone()));
+                }
             }
         }
     }
@@ -2282,20 +2352,24 @@ where
 
         if let TaskStatus::Ready(value) = &item {
             if (self.predicate)(value) {
-                if self.lossy {
-                    // Never parks: drop-oldest on any full branch.
-                    self.deliver(value);
-                } else if let Some(idx) = self.first_full_branch() {
-                    // Slowest-gates lockstep: deliver to NO branch until all have
-                    // vacancy, so no branch is double-delivered on retry and none
-                    // is dropped. Hold the source item back until then.
-                    self.pending_value = Some(value.clone());
-                    self.pending_forward = Some(item);
-                    return Some(TaskStatus::Depends(Arc::new(QueueVacancyReadiness::new(
-                        self.queues[idx].clone(),
-                    ))));
-                } else {
-                    self.deliver(value);
+                match self.policy {
+                    BroadcastPolicy::Backpressure => {
+                        if let Some(idx) = self.first_full_branch() {
+                            // Slowest-gates lockstep: deliver to NO branch until all
+                            // have vacancy, so no branch is double-delivered on retry
+                            // and none is dropped. Hold the source item back.
+                            self.pending_value = Some(value.clone());
+                            self.pending_forward = Some(item);
+                            return Some(TaskStatus::Depends(Arc::new(
+                                QueueVacancyReadiness::new(self.queues[idx].clone()),
+                            )));
+                        }
+                        self.deliver(value);
+                    }
+                    // Never parks: drop-newest / drop-oldest handled in `deliver`.
+                    BroadcastPolicy::DropNewest | BroadcastPolicy::DropOldest => {
+                        self.deliver(value);
+                    }
                 }
             }
         }

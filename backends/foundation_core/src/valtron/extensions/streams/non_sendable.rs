@@ -4,7 +4,7 @@ use concurrent_queue::ConcurrentQueue;
 
 use std::sync::Arc;
 
-use crate::valtron::branches::CollectionState;
+use crate::valtron::branches::{BroadcastPolicy, CollectionState};
 use crate::valtron::{QueueReadiness, ShortCircuit, Stream, StreamIterator, StreamSpread};
 
 /// Extension trait providing combinator methods for any `StreamIterator`.
@@ -140,6 +140,73 @@ pub trait StreamIteratorExt: StreamIterator + Sized {
     {
         self.split_collector(predicate, 1)
     }
+
+    /// Fan each matched `Stream` item out to **N** observer branches (each gets a
+    /// clone), returning the `N` observers plus a continuation carrying the full
+    /// stream onward (F45 N-way broadcast). Zero loss, slowest-gates: if any branch
+    /// is full the source yields `Stream::Wait` and retries until every open branch
+    /// has vacancy, so no item is dropped. A dropped observer closes its branch and
+    /// is skipped. See [`BroadcastPolicy::Backpressure`].
+    ///
+    /// ## Panics
+    /// Never panics. (`queue_size` is clamped to at least 1.)
+    fn broadcast<Pred>(
+        self,
+        n: usize,
+        predicate: Pred,
+        queue_size: usize,
+    ) -> (
+        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
+        SBroadcastContinuation<Self, Self::D, Self::P>,
+    )
+    where
+        Self: Sized,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static;
+
+    /// Like [`broadcast`](Self::broadcast) but the source **never stalls** — a full
+    /// branch drops the **incoming (newest)** item ([`BroadcastPolicy::DropNewest`]);
+    /// a slow branch keeps its backlog and falls off the live edge.
+    ///
+    /// ## Panics
+    /// Never panics. (`queue_size` is clamped to at least 1.)
+    fn broadcast_lossy<Pred>(
+        self,
+        n: usize,
+        predicate: Pred,
+        queue_size: usize,
+    ) -> (
+        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
+        SBroadcastContinuation<Self, Self::D, Self::P>,
+    )
+    where
+        Self: Sized,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static;
+
+    /// Like [`broadcast`](Self::broadcast) but the source **never stalls** and every
+    /// branch always holds the **latest** — a full branch evicts its **oldest**
+    /// ([`BroadcastPolicy::DropOldest`], via `force_push`). No receiver is kicked off
+    /// the live edge; only intermediate history is lost under pressure.
+    ///
+    /// ## Panics
+    /// Never panics. (`queue_size` is clamped to at least 1.)
+    fn broadcast_latest<Pred>(
+        self,
+        n: usize,
+        predicate: Pred,
+        queue_size: usize,
+    ) -> (
+        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
+        SBroadcastContinuation<Self, Self::D, Self::P>,
+    )
+    where
+        Self: Sized,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static;
 
     /// Split the iterator into an observer branch and a continuation branch,
     /// closing the observer when the predicate signals close.
@@ -687,6 +754,60 @@ where
         };
 
         (observer, continuation)
+    }
+
+    fn broadcast<Pred>(
+        self,
+        n: usize,
+        predicate: Pred,
+        queue_size: usize,
+    ) -> (
+        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
+        SBroadcastContinuation<Self, Self::D, Self::P>,
+    )
+    where
+        Self: Sized,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static,
+    {
+        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::Backpressure)
+    }
+
+    fn broadcast_lossy<Pred>(
+        self,
+        n: usize,
+        predicate: Pred,
+        queue_size: usize,
+    ) -> (
+        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
+        SBroadcastContinuation<Self, Self::D, Self::P>,
+    )
+    where
+        Self: Sized,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static,
+    {
+        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::DropNewest)
+    }
+
+    fn broadcast_latest<Pred>(
+        self,
+        n: usize,
+        predicate: Pred,
+        queue_size: usize,
+    ) -> (
+        Vec<SCollectorStreamIterator<Self::D, Self::P>>,
+        SBroadcastContinuation<Self, Self::D, Self::P>,
+    )
+    where
+        Self: Sized,
+        Self::D: Clone,
+        Self::P: Clone,
+        Pred: Fn(&Stream<Self::D, Self::P>) -> bool + 'static,
+    {
+        sbroadcast_build(self, n, Box::new(predicate), queue_size, BroadcastPolicy::DropOldest)
     }
 
     fn split_collect_until<Pred>(
@@ -1527,6 +1648,17 @@ where
     }
 }
 
+impl<D, P> Drop for SCollectorStreamIterator<D, P> {
+    /// WHY: a dropped observer must not leave a broadcast/split source parked on a
+    /// full branch forever (F45 observer-dropped policy — mirrors the task-side
+    /// `CollectorStreamIterator`). WHAT/HOW: closing the shared queue makes the
+    /// continuation's `is_full`/`push` observe `Closed`, so it stops copying to this
+    /// branch and keeps forwarding to the survivors.
+    fn drop(&mut self) {
+        self.queue.close();
+    }
+}
+
 /// Continuation branch from `split_collector()` for `StreamIterator`.
 ///
 /// Wraps the original iterator, copying matched items to the observer queue
@@ -1597,6 +1729,176 @@ where
         // Close the queue to signal that the source is done
         self.queue.close();
         tracing::debug!("SSplitCollectorContinuation: dropped, queue closed");
+    }
+}
+
+// ============================================================================
+// N-way Broadcast Combinator (F45 N-way follow-on)
+// ============================================================================
+
+/// Build the N branch queues + observers + a [`SBroadcastContinuation`] for the
+/// stream broadcast family. `queue_size` is clamped to at least 1.
+///
+/// # Panics
+/// Never panics.
+fn sbroadcast_build<I, D, P>(
+    inner: I,
+    n: usize,
+    predicate: Box<dyn Fn(&Stream<D, P>) -> bool>,
+    queue_size: usize,
+    policy: BroadcastPolicy,
+) -> (
+    Vec<SCollectorStreamIterator<D, P>>,
+    SBroadcastContinuation<I, D, P>,
+)
+where
+    I: StreamIterator<D = D, P = P>,
+{
+    let cap = queue_size.max(1);
+    let mut observers = Vec::with_capacity(n);
+    let mut queues = Vec::with_capacity(n);
+    for _ in 0..n {
+        let queue = Arc::new(ConcurrentQueue::bounded(cap));
+        observers.push(SCollectorStreamIterator {
+            queue: Arc::clone(&queue),
+        });
+        queues.push(queue);
+    }
+    tracing::debug!("stream broadcast: {n} branches, queue_size={cap}, policy={policy}");
+    let continuation = SBroadcastContinuation {
+        inner,
+        queues,
+        predicate,
+        policy,
+        pending_value: None,
+        pending_forward: None,
+    };
+    (observers, continuation)
+}
+
+/// Continuation branch from the stream [`broadcast`](StreamIteratorExt::broadcast)
+/// family. Fans each matched `Stream` item out to every open branch, forwarding the
+/// full stream onward. Streams have no `Depends`, so zero-loss backpressure yields
+/// `Stream::Wait` (F45 Resolution 4) until every open branch has vacancy.
+pub struct SBroadcastContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+{
+    /// The wrapped source iterator.
+    inner: I,
+    /// One bounded queue per observer branch.
+    queues: Vec<Arc<ConcurrentQueue<Stream<D, P>>>>,
+    /// Which `Stream` items to fan out.
+    predicate: Box<dyn Fn(&Stream<D, P>) -> bool>,
+    /// How a full branch is handled (Wait / drop-newest / drop-oldest).
+    policy: BroadcastPolicy,
+    /// A matched item awaiting delivery to all branches (zero-loss backpressure).
+    pending_value: Option<Stream<D, P>>,
+    /// The source item held back until `pending_value` is delivered (lockstep).
+    pending_forward: Option<Stream<D, P>>,
+}
+
+impl<I, D, P> SBroadcastContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+{
+    /// Index of the first branch that is **open and full** (gates delivery). Closed
+    /// branches are skipped. `None` when every open branch has vacancy.
+    fn first_full_branch(&self) -> Option<usize> {
+        self.queues
+            .iter()
+            .position(|q| !q.is_closed() && q.is_full())
+    }
+
+    /// Close every branch queue (source exhausted or continuation dropped).
+    fn close_all(&self) {
+        for queue in &self.queues {
+            queue.close();
+        }
+    }
+}
+
+impl<I, D, P> SBroadcastContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+    D: Clone,
+    P: Clone,
+{
+    /// Deliver one clone of `item` to every open branch per [`BroadcastPolicy`]
+    /// (see the task-family `deliver` for the policy contract).
+    fn deliver(&self, item: &Stream<D, P>) {
+        for queue in &self.queues {
+            if queue.is_closed() {
+                continue;
+            }
+            match self.policy {
+                BroadcastPolicy::DropOldest => {
+                    let _ = queue.force_push(item.clone());
+                }
+                BroadcastPolicy::Backpressure | BroadcastPolicy::DropNewest => {
+                    let _ = queue.push(item.clone());
+                }
+            }
+        }
+    }
+}
+
+impl<I, D, P> Iterator for SBroadcastContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+    D: Clone,
+    P: Clone,
+{
+    type Item = Stream<D, P>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        // Resume a parked broadcast (zero-loss only): deliver once every open branch
+        // has vacancy, otherwise yield `Stream::Wait` and retry.
+        if let Some(value) = self.pending_value.take() {
+            if self.first_full_branch().is_some() {
+                self.pending_value = Some(value);
+                return Some(Stream::Wait);
+            }
+            self.deliver(&value);
+            return self.pending_forward.take();
+        }
+
+        let item = if let Some(item) = self.inner.next() {
+            item
+        } else {
+            self.close_all();
+            return None;
+        };
+
+        if (self.predicate)(&item) {
+            match self.policy {
+                BroadcastPolicy::Backpressure => {
+                    if self.first_full_branch().is_some() {
+                        // Deliver to NO branch until all have vacancy (no double
+                        // delivery on retry, no drop); hold the source item back.
+                        self.pending_value = Some(item.clone());
+                        self.pending_forward = Some(item);
+                        return Some(Stream::Wait);
+                    }
+                    self.deliver(&item);
+                }
+                BroadcastPolicy::DropNewest | BroadcastPolicy::DropOldest => {
+                    self.deliver(&item);
+                }
+            }
+        }
+
+        Some(item)
+    }
+}
+
+impl<I, D, P> Drop for SBroadcastContinuation<I, D, P>
+where
+    I: StreamIterator<D = D, P = P>,
+{
+    fn drop(&mut self) {
+        self.close_all();
+        tracing::debug!("SBroadcastContinuation: dropped, branches closed");
     }
 }
 
