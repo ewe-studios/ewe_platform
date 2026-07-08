@@ -177,10 +177,38 @@ Valtron `TaskIterator`. Each poll:
            conn.encode_frame(sid, &frame);
        }
 5. WouldBlock → TaskStatus::Delayed(10ms)
-   (matches existing ConnectionHandler pattern; reactor parking from
-   Decision 12 §12 / Feature 10 would upgrade this to Depends(RegisteredFd)
-   but that is wired at a different valtron layer — same gap for both h1
-   and h2 handlers)
+   (matches existing ConnectionHandler pattern — same gap for both h1 and h2)
+
+### Deferred: reactor parking
+
+Both `ConnectionHandler` (h1) and `H2ConnectionHandler` (h2) use
+`TaskStatus::Delayed(duration)` with escalation when the socket returns
+`WouldBlock`. This is polite — the valtron executor re-polls on timer expiry —
+but wasteful: the fd may have data 3ms later but we wait 10ms.
+
+The infrastructure for true reactor parking already exists:
+
+- `RawStream` impls `AsRawFd` (Decision 12 §12)
+- `foundation_nativeapis` provides `RegisteredFd<T>` (Feature 10, complete)
+- `RegisteredFd: EventReadiness` — the `Depends` trait
+- `TaskStatus::Depends(Arc<dyn EventReadiness>)` — a valtron task parks on the
+  kernel wake rather than a timer
+
+What's missing: the integration layer that registers the fd when the handler
+starts and unregisters it on close. The existing `ConnectionHandler` doesn't
+have this either — it's not a regression, it's a shared deferred gap.
+
+**Separate feature: `47b-h2-reactor-parking`** (or a common h1+h2 parking
+feature) would:
+1. Accept a `RegisteredFd` constructor in `H2ConnectionHandler::new()`
+2. On `WouldBlock`, spawn a tiny evented task that registers the fd and parks
+   on `Depends(RegisteredFd)` — wakes when kernel signals data
+3. On poll exit, return `Pending` which the executor schedules on wake
+4. On connection close, unregister the fd
+
+This is h2- and h1-agnostic — any `TaskIterator` over a non-blocking fd can
+use it. Tracked here as a dependency so this feature doesn't claim reactor
+parking is addressed.
 ```
 
 **Why spawning works for multiplexing:** The poll loop never blocks on a
