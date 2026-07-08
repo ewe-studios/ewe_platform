@@ -1,7 +1,7 @@
 ---
 feature: "HTTP/1.1 Transport impl over foundation_netio (D07/D11)"
 description: "Transport::open on the netio client + HttpConnectionPool reuse; round_trip; WASM Fetch capabilities stub"
-status: "pending"
+status: "complete"
 priority: "high"
 phase: 1
 depends_on: ["07-pushable-request-body", "17-transport-seam"]
@@ -43,3 +43,27 @@ the spine this feature's `open` plugs into.
 - Streaming request body rides chunked TE through the pushable pipe; response head awaitable
 - Half-duplex scheduling: writer starts after request-complete for client/server-streaming
 - Pool reuse observed across sequential unary calls (test)
+
+## Validation (2026-07-08) — ✅ complete
+
+Delivered by **F44** (connection-owner walking skeleton — the pump spine +
+`into_sender`) and **F45 Part D** (the `H1Transport` itself: split-based
+head/body, `send_body` the one Pipe, awaitable `HeadStream`/`BodyStream`).
+
+- **Streaming body + awaitable head** ✅ — `server_socket_tests::
+  h1_client_transport_over_real_socket` (green this session): `open()` →
+  chunked-TE upload through the pushable `send_body` → `head.next().await` →
+  body drain over a real loopback socket.
+- **Half-duplex scheduling** ✅ — `h1_transport_capabilities_are_correct`
+  (`full_duplex = false`, `http_versions = [HTTP11]`); the pump spawns the drive
+  task and the caller closes `send_body` to complete the request before the
+  response drains (the deadlock-avoidance contract, documented in
+  `server_socket_tests`); `transport_tests` reject bidi on h1.
+- **Pool reuse across sequential calls** ✅ — the pool is netio's; `H1Transport`
+  delegates to the same `SimpleHttpClient` pool ("transparent via the seam" per
+  Scope). Reuse is covered by `foundation_netio` `simple_http/pool_drain_tests`
+  (sequential requests reusing the pooled connection; checkout/checkin +
+  `Connection: close` honoured).
+
+Note: the WASM Fetch capabilities stub is F24's `wasm.rs` (still a stub); the
+h1 (native) transport — this feature's subject — is complete.
