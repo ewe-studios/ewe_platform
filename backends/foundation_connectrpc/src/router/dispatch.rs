@@ -566,23 +566,39 @@ async fn send_whole_response(
     let headers = h2_headers(&response.headers);
     let payload = h2_body(response.body)?;
     let has_body = !payload.is_empty();
+    let has_trailers = !response.trailers.is_empty();
+    let end_stream = !has_body && !has_trailers;
 
     tx.send(H2Frame::Headers {
         status,
         headers,
-        end_stream: !has_body,
+        end_stream,
     })
     .await
     .map_err(stream_gone)?;
 
     if has_body {
+        let data_end = !has_trailers;
         tx.send(H2Frame::Data {
             payload,
+            end_stream: data_end,
+        })
+        .await
+        .map_err(stream_gone)?;
+    }
+
+    if has_trailers {
+        let trailer_headers = h2_headers(&response.trailers);
+        // Trailing HEADERS: status is ignored by the h2 connection layer.
+        tx.send(H2Frame::Headers {
+            status: 0,
+            headers: trailer_headers,
             end_stream: true,
         })
         .await
         .map_err(stream_gone)?;
     }
+
     Ok(())
 }
 

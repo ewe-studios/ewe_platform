@@ -1278,10 +1278,13 @@ async fn do_unary_round_trip(
         body_buf.extend_from_slice(&chunk.map_err(|e| ConnectError::from(e))?);
     }
 
+    // Read trailers (h2 trailing HEADERS for gRPC grpc-status; empty for Connect).
+    let trailers = stream.trailers.receive().await.unwrap_or_default();
+
     if status == Status::OK {
         Ok(UnaryReply {
             headers: resp_headers,
-            trailers: SimpleHeaders::new(),
+            trailers,
             frame: Bytes::from(body_buf),
         })
     } else {

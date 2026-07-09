@@ -137,10 +137,13 @@ impl Transport for MockTransport {
             .take()
             .ok_or_else(|| TransportError::Protocol("mock: no pipes prepared".into()))?;
 
+        let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
+        trailer_tx.close();
         Ok(TransportStream {
             send_body: pipes.req_tx,
             head: head_stream_from_pipe(pipes.head_rx),
             recv_body: body_stream_from_pipe(pipes.resp_rx),
+            trailers: trailer_rx,
         })
     }
 }

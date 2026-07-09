@@ -112,8 +112,10 @@ impl DockerFileConfig {
         // If yes → return ImageBuildResult { was_cached: true, ... }
         // If no → build via bollard::build_image, tag, return result
         let _ = self;
-        Err(crate::docker::error::DockerError::InvalidConfig(
-            "image build not yet implemented".to_string(),
+        Err(crate::docker::error::docker_err(
+            crate::docker::error::DockerError::InvalidConfig(
+                "image build not yet implemented".to_string(),
+            ),
         ))
     }
 }

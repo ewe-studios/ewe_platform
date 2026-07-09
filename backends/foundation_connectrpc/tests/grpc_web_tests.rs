@@ -203,6 +203,11 @@ fn roundtrip(text: bool) {
                 // pipe-fed test harness through the pipe→FutureStream adapters.
                 head: foundation_connectrpc::transport::head_stream_from_pipe(client_head_rx),
                 recv_body: foundation_connectrpc::transport::body_stream_from_pipe(resp_rx),
+                trailers: {
+                    let (tx, rx) = Pipe::with_depth(1);
+                    tx.close();
+                    rx
+                },
             },
             CancelSignal::new(),
         )

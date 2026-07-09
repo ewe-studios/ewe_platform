@@ -42,7 +42,7 @@ impl ContainerHandle {
             .map(|n| CreateContainerOptionsBuilder::default().name(n).build());
 
         let create_result = docker
-            .create_container(create_opts.as_ref(), body)
+            .create_container(create_opts, body)
             .await
             .map_err(|e| docker_err(DockerError::ContainerCreate(format!("{e}"))))?;
 
@@ -169,7 +169,7 @@ impl ContainerHandle {
 
     fn build_body(config: &ContainerConfig) -> ContainerCreateBody {
         let mut port_bindings = HashMap::new();
-        let mut exposed_ports = HashMap::new();
+        let mut exposed_ports = Vec::new();
 
         for pm in &config.ports {
             let port_key = format!(
@@ -180,7 +180,7 @@ impl ContainerHandle {
                     crate::docker::config::PortProtocol::Udp => "udp",
                 }
             );
-            exposed_ports.insert(port_key.clone(), HashMap::new());
+            exposed_ports.push(port_key.clone());
 
             let host_port_str = pm
                 .host_port
@@ -259,7 +259,11 @@ impl ContainerHandle {
                     .collect(),
             ),
             cmd: config.command.clone(),
-            exposed_ports: Some(exposed_ports),
+            exposed_ports: if exposed_ports.is_empty() {
+                None
+            } else {
+                Some(exposed_ports)
+            },
             host_config: Some(host_config),
             labels: if config.labels.is_empty() {
                 None

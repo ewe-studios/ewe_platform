@@ -61,6 +61,8 @@ pub enum DockerError {
     InvalidConfig(String),
 }
 
+impl std::error::Error for DockerError {}
+
 impl DockerError {
     /// Returns `true` if this error indicates Docker is not available.
     #[must_use]

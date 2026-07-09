@@ -80,6 +80,15 @@ pub struct H2Channel {
     goaway_received: bool,
 }
 
+/// One event on a stream after the initial response headers have been delivered.
+#[derive(Debug)]
+pub enum H2StreamEvent {
+    /// A DATA frame chunk (may be empty, `end_stream` is the flag).
+    Data { stream_id: u32, data: Bytes, end_stream: bool },
+    /// A HEADERS frame carrying trailing metadata (`END_STREAM` + `END_HEADERS`).
+    Trailers { stream_id: u32, headers: Vec<(Bytes, Bytes)> },
+}
+
 impl H2Channel {
     /// Create a new channel.
     ///
@@ -437,22 +446,10 @@ impl H2Channel {
         }
     }
 
-    /// One event on a stream after the response headers have been delivered.
-    #[derive(Debug)]
-    pub enum H2StreamEvent {
-        /// A DATA frame chunk (may be empty, `end_stream` is the flag).
-        Data { stream_id: u32, data: Bytes, end_stream: bool },
-        /// A HEADERS frame carrying trailing metadata (`END_STREAM` + `END_HEADERS`).
-        Trailers { stream_id: u32, headers: Vec<(Bytes, Bytes)> },
-    }
-
     /// Try to read the next **post-headers** event on any stream.
     ///
     /// Returns `Ok(Some((stream_id, event)))` for DATA or trailing HEADERS,
     /// `Ok(None)` for GOAWAY, and `Err(WouldBlock)` when the buffer is drained.
-    ///
-    /// This is the unified poll for the draining phase — it surfaces trailing
-    /// HEADERS that `recv_data_frame` silently drops (it only matches `Kind::Data`).
     pub fn recv_stream_event(&mut self) -> io::Result<Option<(u32, H2StreamEvent)>> {
         loop {
             let (head, payload) = self.read_frame()?;
