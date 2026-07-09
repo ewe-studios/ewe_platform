@@ -142,6 +142,11 @@ fn main() {
 - Config is type-checked at compile time — invalid service names, missing
   required fields, wrong types are caught by the compiler.
 - Equivalent to vm-uncloud recipes baked into a Docker image.
+- **Protocol inference:** The protocol is derived from the backend URL scheme:
+  `http://`/`https://` → HTTP reverse proxy (headers, WebSocket upgrade,
+  health checks, cookies, buffering); `tcp://` → raw TCP passthrough (RDP,
+  VNC, dockurr noVNC — byte-level streaming, no HTTP semantics). No separate
+  `proto` field needed.
 
 ### Path 2: Programmatic builder — runtime, dynamic
 
