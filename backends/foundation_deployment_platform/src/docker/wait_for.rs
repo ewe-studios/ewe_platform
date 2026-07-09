@@ -12,6 +12,7 @@
 //! constructors provide sensible defaults.
 
 use std::collections::HashMap;
+use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::time::{Duration, Instant};
 
@@ -72,7 +73,7 @@ impl WaitFor {
                     wait_for_stdout(docker, container_id, message, *timeout).await?;
                 }
                 WaitFor::Http { url, expected_status, timeout } => {
-                    wait_for_http(url, *expected_status, *timeout).await?;
+                    wait_for_http(url, *expected_status, *timeout)?;
                 }
                 WaitFor::Composite { strategies } => {
                     // Push children in reverse so they execute in original order
@@ -164,15 +165,66 @@ async fn wait_for_stdout(
     }
 }
 
-/// HTTP GET loop — TODO: implement when reqwest is available as dep.
-#[allow(unused_variables)]
-async fn wait_for_http(
-    url: &str,
-    expected_status: u16,
-    timeout: Duration,
-) -> DockerResult<()> {
-    // TODO: implement HTTP health check via foundation_http or reqwest
-    // For now, containers use Port or Stdout strategies
-    let _ = (url, expected_status, timeout);
-    Ok(())
+/// HTTP GET loop with raw TcpStream — no external HTTP client needed.
+fn wait_for_http(url: &str, expected_status: u16, timeout: Duration) -> DockerResult<()> {
+    // Parse "http://host:port/path" manually
+    let (host, port, path) = parse_http_url(url)?;
+
+    let addr = format!("{host}:{port}");
+    let request = format!("GET {path} HTTP/1.1\r\nHost: {host}\r\nConnection: close\r\n\r\n");
+    let expected_line = format!("HTTP/1.1 {expected_status}");
+
+    let start = Instant::now();
+    let mut backoff = Duration::from_millis(100);
+
+    loop {
+        match TcpStream::connect(&addr) {
+            Ok(mut stream) => {
+                if stream.write_all(request.as_bytes()).is_ok()
+                    && stream.set_read_timeout(Some(Duration::from_secs(2))).is_ok()
+                {
+                    let mut response = String::new();
+                    if stream.read_to_string(&mut response).is_ok()
+                        && response.contains(&expected_line)
+                    {
+                        return Ok(());
+                    }
+                }
+            }
+            Err(_) => { /* connection refused, retry */ }
+        }
+
+        if start.elapsed() >= timeout {
+            return Err(docker_err(DockerError::WaitTimeout {
+                strategy: format!("Http({url}, expected {expected_status})"),
+                elapsed: start.elapsed(),
+            }));
+        }
+
+        std::thread::sleep(backoff);
+        backoff = (backoff * 2).min(Duration::from_secs(1));
+    }
+}
+
+/// Parse an HTTP URL into (host, port, path). No url crate needed.
+fn parse_http_url(url: &str) -> DockerResult<(String, u16, String)> {
+    let rest = url
+        .strip_prefix("http://")
+        .or_else(|| url.strip_prefix("https://"))
+        .ok_or_else(|| {
+            docker_err(DockerError::InvalidConfig(format!(
+                "URL must start with http:// or https://: {url}"
+            )))
+        })?;
+
+    let (host_part, path) = rest.split_once('/').unwrap_or((rest, ""));
+    let path = if path.is_empty() { "/" } else { &format!("/{path}") };
+
+    let (host, port) = if let Some((h, p)) = host_part.split_once(':') {
+        (h.to_string(), p.parse::<u16>().unwrap_or(80))
+    } else {
+        (host_part.to_string(), 80)
+    };
+
+    Ok((host, port, path.to_string()))
 }
