@@ -128,6 +128,8 @@ impl Transport for H2Transport {
             req_headers,
             request_sent: false,
             response_head_sent: false,
+            body_buf: Vec::new(),
+            body_complete: false,
         };
 
         valtron::send(pump).map_err(|e| {
@@ -167,6 +169,11 @@ struct H2Pump {
     req_headers: SimpleHeaders,
     request_sent: bool,
     response_head_sent: bool,
+    /// Request body accumulated across polls. The pump emits the request as a
+    /// single HEADERS(+DATA), so it must hold every byte until `send_rx` closes.
+    body_buf: Vec<u8>,
+    /// `send_rx` has closed: the request body is complete.
+    body_complete: bool,
 }
 
 impl TaskIterator for H2Pump {
@@ -202,17 +209,28 @@ impl TaskIterator for H2Pump {
             match self.state {
                 PumpPhase::SendingRequest => {
                     // ── Drain request body from pipe ──────────────────
-                    let mut body_bytes = Vec::new();
+                    // Accumulate into `self.body_buf`: a poll that drains some
+                    // bytes and then sees `Empty` must not lose them.
                     loop {
                         match self.send_rx.try_recv() {
-                            Ok(b) => body_bytes.extend_from_slice(&b),
-                            Err(TryRecvError::Closed) => break,
+                            Ok(b) => self.body_buf.extend_from_slice(&b),
+                            Err(TryRecvError::Closed) => {
+                                self.body_complete = true;
+                                break;
+                            }
+                            // Nothing buffered *right now*. The body may still be
+                            // on its way — this is not end-of-body.
                             Err(TryRecvError::Empty) => break,
                         }
                     }
 
                     // ── Send the h2 request ───────────────────────────
-                    if !self.request_sent {
+                    // The request goes out as one HEADERS(+DATA), so it cannot be
+                    // sent until the body is complete. Committing earlier would
+                    // set END_STREAM on HEADERS while bytes were still queued,
+                    // silently dropping the request body.
+                    if !self.request_sent && self.body_complete {
+                        let body_bytes = std::mem::take(&mut self.body_buf);
                         let authority = Bytes::from(format!("{}:{}", self.host, self.port));
                         let has_body = !body_bytes.is_empty();
 
@@ -233,7 +251,11 @@ impl TaskIterator for H2Pump {
                             path: Bytes::copy_from_slice(self.path.as_bytes()),
                             headers: h2_headers,
                             body: if has_body { Some(Bytes::from(body_bytes)) } else { None },
-                            end_stream: !has_body,
+                            // "The request is complete." `send_request` puts
+                            // END_STREAM on HEADERS when there is no body, and on
+                            // the DATA frame when there is. Passing `!has_body`
+                            // here marks neither, so the peer waits forever.
+                            end_stream: true,
                         };
 
                         match self.channel.send_request(&req) {

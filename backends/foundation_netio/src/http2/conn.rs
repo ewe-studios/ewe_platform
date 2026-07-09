@@ -8,48 +8,148 @@
 //! WHAT: [`H2Conn`] wraps `H2Connection`, delegating handshake, frame I/O,
 //! HPACK decoding, and per-stream H2Frame encoding through a clean surface.
 //!
-//! HOW: Every method delegates directly to the inner `H2Connection`. Frame
-//! encoding appends to the shared `write_buf`; the caller flushes.
+//! HOW: A frame is only read once it is entirely buffered. `H2Conn` first
+//! `peek`s (which consumes nothing) to confirm the 9-byte header plus its
+//! declared payload are in memory, and only then delegates — so the inner reads
+//! are served from the buffer and cannot stall mid-frame. The handshake is
+//! likewise driven one buffered frame at a time, so a `WouldBlock` between its
+//! steps parks the caller rather than restarting it from the preface.
+//! Frame encoding appends to the shared `write_buf`; the caller flushes.
 
 use std::io;
 
 use bytes::{Bytes, BytesMut};
 
-use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBufferStream};
 use crate::netcap::RawStream;
 
 use crate::http2::connection::H2Connection;
-use crate::http2::frame::{Head, HeadersFrame, DataFrame, ResetFrame, headers_flags, data_flags};
+use crate::http2::frame::{
+    data_flags, headers_flags, DataFrame, Head, HeadersFrame, ResetFrame, HEADER_LEN,
+};
 use crate::http2::hpack;
 use crate::http2::types::H2Frame;
+
+/// Progress through the server handshake. Each step needs bytes the peer may not
+/// have sent yet, so the handshake must be resumable across polls.
+///
+/// There is deliberately no "await the client's SETTINGS ACK" step. Per
+/// RFC 9113 §3.4 the connection is usable as soon as the server has sent its own
+/// SETTINGS; a client may send HEADERS before it ACKs. Blocking the handshake on
+/// that ACK deadlocks against such a client. The ACK arrives later and is
+/// absorbed by the ordinary frame loop.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum ServerHandshake {
+    /// Awaiting the 24-byte client preface.
+    Preface,
+    /// Awaiting the client's initial SETTINGS frame.
+    Settings,
+    Done,
+}
 
 /// Concrete HTTP/2 connection — the h2 equivalent of
 /// [`SharedByteBufferStream<RawStream>`] for HTTP/1.1.
 pub struct H2Conn {
     inner: H2Connection<SharedByteBufferStream<RawStream>>,
+    /// A second handle on the *same* shared buffer, used to `peek` ahead without
+    /// consuming. Cloning shares the buffer; it does not duplicate it.
+    stream: SharedByteBufferStream<RawStream>,
     /// HPACK decoding is stateful for the life of the connection: the peer may
     /// reference dynamic-table entries established by an earlier HEADERS frame.
     /// A per-call decoder would fail to resolve those indices.
     hpack_dec: hpack::Decoder,
+    handshake: ServerHandshake,
+}
+
+/// Nothing is readable yet — the caller should park and retry.
+fn would_block() -> io::Error {
+    io::Error::new(io::ErrorKind::WouldBlock, "h2: frame not yet buffered")
 }
 
 impl H2Conn {
     /// Create a new server-side connection (allocates even push stream IDs).
     #[must_use]
     pub fn new_server(stream: SharedByteBufferStream<RawStream>) -> Self {
-        Self { inner: H2Connection::new(stream, true), hpack_dec: hpack::Decoder::new() }
+        Self {
+            stream: stream.clone(),
+            inner: H2Connection::new(stream, true),
+            hpack_dec: hpack::Decoder::new(),
+            handshake: ServerHandshake::Preface,
+        }
     }
 
     /// Create a new client-side connection (allocates odd stream IDs).
     #[must_use]
     #[allow(dead_code)]
     pub fn new_client(stream: SharedByteBufferStream<RawStream>) -> Self {
-        Self { inner: H2Connection::new(stream, false), hpack_dec: hpack::Decoder::new() }
+        Self {
+            stream: stream.clone(),
+            inner: H2Connection::new(stream, false),
+            hpack_dec: hpack::Decoder::new(),
+            handshake: ServerHandshake::Done,
+        }
     }
 
-    /// Run the server-side h2 handshake (read client preface + SETTINGS exchange).
+    /// Are at least `n` bytes already buffered? Peeking consumes nothing, so a
+    /// `false` answer leaves the stream exactly as it was.
+    fn buffered(&mut self, n: usize) -> io::Result<bool> {
+        let mut probe = vec![0u8; n];
+        match self.stream.peek(&mut probe) {
+            Ok(got) => Ok(got >= n),
+            Err(PeekError::IOError(ref e)) if e.kind() == io::ErrorKind::WouldBlock => Ok(false),
+            Err(PeekError::IOError(e)) => Err(e),
+            Err(e) => Err(io::Error::new(io::ErrorKind::InvalidData, e.to_string())),
+        }
+    }
+
+    /// Is a whole frame — 9-byte header plus its declared payload — buffered?
+    fn frame_buffered(&mut self) -> io::Result<bool> {
+        if !self.buffered(HEADER_LEN)? {
+            return Ok(false);
+        }
+        let mut header = [0u8; HEADER_LEN];
+        match self.stream.peek(&mut header) {
+            Ok(got) if got >= HEADER_LEN => {}
+            Ok(_) => return Ok(false),
+            Err(PeekError::IOError(ref e)) if e.kind() == io::ErrorKind::WouldBlock => {
+                return Ok(false)
+            }
+            Err(PeekError::IOError(e)) => return Err(e),
+            Err(e) => return Err(io::Error::new(io::ErrorKind::InvalidData, e.to_string())),
+        }
+        let (_head, payload_len) = Head::parse_with_len(&header);
+        self.buffered(HEADER_LEN + payload_len as usize)
+    }
+
+    /// Drive the server handshake as far as the buffered bytes allow.
+    ///
+    /// Returns `WouldBlock` when it needs more from the peer; the caller parks
+    /// and calls again. Progress is never lost: each step runs only once its
+    /// bytes are fully buffered, so nothing is left half-consumed.
+    ///
+    /// # Errors
+    /// `InvalidData` if the peer's preface or SETTINGS frame is malformed.
     pub fn server_handshake(&mut self) -> io::Result<()> {
-        self.inner.server_handshake()
+        loop {
+            match self.handshake {
+                ServerHandshake::Preface => {
+                    if !self.buffered(crate::http2::connection::CLIENT_PREFACE_LEN)? {
+                        return Err(would_block());
+                    }
+                    self.inner.server_recv_preface()?;
+                    self.handshake = ServerHandshake::Settings;
+                }
+                ServerHandshake::Settings => {
+                    if !self.frame_buffered()? {
+                        return Err(would_block());
+                    }
+                    let (head, payload) = self.inner.read_frame()?;
+                    self.inner.server_recv_settings(&head, &payload)?;
+                    self.handshake = ServerHandshake::Done;
+                }
+                ServerHandshake::Done => return Ok(()),
+            }
+        }
     }
 
     /// Run the client-side h2 handshake (write preface + SETTINGS exchange).
@@ -58,8 +158,14 @@ impl H2Conn {
         self.inner.client_handshake()
     }
 
-    /// Read the next frame from the socket.
+    /// Read the next frame, but only once it is entirely buffered.
+    ///
+    /// # Errors
+    /// `WouldBlock` while the frame is still arriving — nothing is consumed.
     pub fn read_frame(&mut self) -> io::Result<(Head, Bytes)> {
+        if !self.frame_buffered()? {
+            return Err(would_block());
+        }
         self.inner.read_frame()
     }
 

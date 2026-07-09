@@ -274,41 +274,52 @@ Valtron `TaskIterator`. Each poll:
    (matches existing ConnectionHandler pattern — same gap for both h1 and h2)
 ```
 
-### BLOCKER: `H2Connection` assumes a blocking socket
+### Non-blocking reads (resolved)
 
-Discovered while running `h2_echo` end-to-end. `H2Connection` (F29) was written
-against a blocking socket, but `HttpServer` sets every accepted socket
-non-blocking. Both of its read paths use `read_exact`:
+`H2Connection` (F29) was written against a blocking socket, but `HttpServer` sets
+every accepted socket non-blocking. Running `h2_echo` end-to-end exposed four
+defects, each fixed and covered by tests in
+`foundation_core/tests/ioutils_nonblocking_reads.rs`.
 
-- `server_handshake()` — reads the 24-byte preface, then the client SETTINGS,
-  then flushes, then waits for the client's SETTINGS ACK. The ACK cannot have
-  arrived yet, so it returns `WouldBlock` **after** consuming the preface. The
-  poll loop parks and calls `server_handshake()` again, which re-reads 24 bytes
-  — now the SETTINGS frame — and reports `invalid HTTP/2 connection preface`.
-  Observed exactly this: detection sees the correct preface, then the handshake
-  fails on the retry. The function is not resumable.
-- `read_frame()` — `read_exact(header)` / `read_exact(payload)` can consume a
-  partial frame and then error, leaving the stream mid-frame. Same latent
-  corruption, just harder to trigger on loopback.
+1. **`read_exact` lost data.** The standard `read_exact` loops over `read`,
+   keeping what it gets. When a later `read` hits `WouldBlock` it returns `Err`
+   and the caller drops its buffer — but those bytes were already *consumed*, so
+   the retry resumed mid-message. `SharedByteBufferStream::read_exact` is now
+   all-or-nothing: it buffers the whole request via `peekby` (which consumes
+   nothing) and only then consumes. Fixed **in ioutils**, so no caller has to
+   remember to peek first. A short `read` still reports its short count; only
+   `read_exact` is atomic. `Ok(short)` from `peekby` means the reader returned 0
+   bytes, i.e. a genuine EOF, so that path reports `UnexpectedEof` — `WouldBlock`
+   there would spin forever on a closed socket.
+2. **The handshake was not resumable.** `server_handshake` consumed the preface,
+   then blocked awaiting the client's SETTINGS ACK. On `WouldBlock` the poll loop
+   restarted it from step 1, which re-read the *next* 24 bytes and reported
+   `invalid HTTP/2 connection preface`. It is now a state machine
+   (`Preface → Settings → Done`) in `H2Conn`, driven one buffered frame at a
+   time. The ACK wait is gone entirely: per RFC 9113 §3.4 the connection is
+   usable once the server has sent its SETTINGS, and a client may legally send
+   HEADERS before ACKing — waiting deadlocks against such a client. The ACK is
+   absorbed by the ordinary frame loop.
+3. **`read_frame` could split a frame.** Its two `read_exact` calls could consume
+   the header and then stall on the payload. `H2Conn::read_frame` now peeks 9
+   bytes, parses the length, peeks `9 + len`, and only delegates once the whole
+   frame is buffered; otherwise it returns `WouldBlock` having consumed nothing.
+4. **`peek` panicked at EOF.** `peekby` returns `PeekState::NoNext` when the peer
+   closed and the buffer is drained, and the `peek` impl matched
+   `_ => unreachable!()`. A peer that connected and immediately disconnected
+   panicked the detect task. It now reports `Ok(0)`.
 
-Fix (frame-atomic, resumable):
+Two client-side (F30) bugs surfaced in the same run:
 
-1. `H2Conn` keeps a clone of the `SharedByteBufferStream` (the buffer is shared)
-   and pre-buffers with `peek` before consuming: `read_frame` peeks 9 bytes,
-   parses the length, peeks `9 + len`, and only then delegates. If the whole
-   frame is not buffered it returns `WouldBlock` having consumed nothing.
-   `read_exact` then never touches the socket and cannot partially fail.
-2. Split `H2Connection::server_handshake` into `server_handshake_recv` (preface
-   + client SETTINGS + our SETTINGS/ACK flush) and `server_handshake_ack` (await
-   the client's ACK), and drive them from a small resumable state machine in
-   `H2Conn` (`Preface → Ack → Done`), each phase pre-buffered as above.
-
-Also found: `SharedByteBufferStream::peek` panics on EOF. `peekby` returns
-`PeekState::NoNext` when the peer has closed and the buffer is empty, and the
-`peek` impl matches `_ => unreachable!("We should never hit this state")`. A
-peer that connects and immediately disconnects therefore panics the detect task.
-This must be fixed (return `Ok(0)` or an EOF error) before the h2 path is
-exposed to the open internet.
+- `H2Pump` rebuilt `body_bytes` as a **local** on every poll, so bytes drained on
+  a poll that then saw `TryRecvError::Empty` were dropped. It now accumulates
+  into `self.body_buf`.
+- `H2Pump` treated `Empty` (body not pushed yet) as `Closed` (no body ever), and
+  passed `end_stream: !has_body` to `send_request`. But `send_request` reads that
+  flag as "the request is complete": it sets END_STREAM on HEADERS when there is
+  no body and on the DATA frame when there is. Passing `!has_body` marked
+  *neither*, so the server waited forever for a body that had already been sent.
+  The pump now waits for `send_rx` to close and passes `end_stream: true`.
 
 ### Deferred: reactor parking
 

@@ -1095,8 +1095,16 @@ impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
                         }
                         Ok(data.len())
                     }
-                    PeekState::ZeroLengthInput => Ok(0),
-                    _ => unreachable!("We should never hit this state"),
+                    // No bytes are currently peekable. `NoNext` in particular is
+                    // reached when the reader is drained and reported EOF — a
+                    // peer that connects and immediately disconnects hits it, so
+                    // it is an ordinary end-of-stream, not an unreachable state.
+                    PeekState::ZeroLengthInput
+                    | PeekState::NoNext
+                    | PeekState::LessThanRequested
+                    | PeekState::EndOfBuffered
+                    | PeekState::EndOfFile
+                    | PeekState::Continue => Ok(0),
                 },
                 Err(err) => Err(PeekError::IOError(err)),
             })
@@ -1148,8 +1156,41 @@ impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
         self.0.do_once_mut(|binding| binding.read_vectored(buf))
     }
 
+    /// All-or-nothing `read_exact`.
+    ///
+    /// WHY: the standard `read_exact` loops over `read`, copying what it gets
+    /// into `buf`. If a later `read` fails — which on a non-blocking stream means
+    /// `WouldBlock` — it returns `Err` and the caller drops `buf`. But those
+    /// bytes were already *consumed* from the stream, so a retry silently
+    /// resumes mid-message. That corrupts any framed protocol (it is exactly how
+    /// an h2 handshake ends up validating a SETTINGS frame as its preface).
+    ///
+    /// HOW: buffer the whole request first via `peekby`, which consumes nothing.
+    /// Only once all `buf.len()` bytes are in memory do we consume them, so this
+    /// call either fully succeeds or leaves the stream untouched.
+    ///
+    /// Blocking readers are unaffected: `peekby` fills until satisfied or EOF.
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
-        self.0.do_once_mut(|binding| binding.read_exact(buf))
+        if buf.is_empty() {
+            return Ok(());
+        }
+        self.0.do_once_mut(|binding| {
+            let needed = buf.len();
+            let available = match binding.peekby(needed) {
+                Ok(PeekState::Request(data)) => data.len(),
+                // Buffer drained and the reader hit EOF: it will never satisfy us.
+                Ok(_) => 0,
+                // Nothing readable yet. Nothing was consumed — the caller retries.
+                Err(err) => return Err(err),
+            };
+            if available < needed {
+                return Err(crate::err!(
+                    UnexpectedEof,
+                    "failed to fill whole buffer: stream ended early"
+                ));
+            }
+            binding.read_exact(buf)
+        })
     }
 
     fn read_to_end(&mut self, buf: &mut Vec<u8>) -> Result<usize> {

@@ -250,6 +250,62 @@ impl<S: Read + Write> H2Connection<S> {
         Ok(())
     }
 
+    // ── Resumable server handshake (non-blocking sockets) ──────────────
+    //
+    // `server_handshake` above is a straight-line sequence: it consumes the
+    // preface, then blocks awaiting frames that have not arrived yet. On a
+    // non-blocking socket it returns `WouldBlock` having already consumed
+    // bytes, and re-running it re-reads the *next* bytes as if they were the
+    // preface. These three steps let a caller drive the handshake one buffered
+    // frame at a time and park in between, without ever restarting it.
+
+    /// Step 1: consume and validate the 24-byte client preface.
+    ///
+    /// The caller must guarantee the 24 bytes are already buffered, so this
+    /// `read_exact` is served from memory and cannot fail partway.
+    ///
+    /// # Errors
+    /// `InvalidData` if the bytes are not the HTTP/2 client preface.
+    pub fn server_recv_preface(&mut self) -> io::Result<()> {
+        let mut preface_buf = [0u8; CLIENT_PREFACE_LEN];
+        self.socket.read_exact(&mut preface_buf)?;
+        if &preface_buf != CLIENT_PREFACE {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid HTTP/2 connection preface",
+            ));
+        }
+        self.preface_received = true;
+        Ok(())
+    }
+
+    /// Step 2: apply the client's SETTINGS, ACK them, and send our own. This
+    /// completes the handshake — the connection is usable immediately, and the
+    /// client's own SETTINGS ACK is absorbed later by the frame loop.
+    ///
+    /// # Errors
+    /// `InvalidData` unless `head` is a non-ACK SETTINGS frame.
+    pub fn server_recv_settings(&mut self, head: &Head, payload: &Bytes) -> io::Result<()> {
+        if head.kind != Kind::Settings || head.flag & settings_flags::ACK != 0 {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "expected SETTINGS frame after preface",
+            ));
+        }
+        let sf = SettingsFrame::parse(head, payload).map_err(proto_err)?;
+        let _changes = self.remote_settings.apply(&sf.settings).map_err(proto_err)?;
+
+        SettingsFrame::ack().encode(&mut self.write_buf);
+        self.flush_write()?;
+
+        self.local_settings.to_frame().encode(&mut self.write_buf);
+        self.flush_write()?;
+        self.settings_sent = true;
+        self.waiting_for_settings_ack = true;
+        self.preface_sent = true;
+        Ok(())
+    }
+
     // ── Frame I/O ──────────────────────────────────────────────────────
 
     /// Public: read a raw frame from the socket, returning `(head, payload_bytes)`.
