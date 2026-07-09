@@ -6,12 +6,26 @@ rust-version.workspace = true
 license.workspace = true
 authors.workspace = true
 repository.workspace = true
-description = "cloudflare deployment provider — placeholder"
+description = "Cloudflare API v4 client — DNS records, zones, certificates"
 
 [dependencies]
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "multi"] }
+foundation_deployment = { path = "../foundation_deployment", version = "0.0.1" }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+
+serde.workspace = true
+serde_json.workspace = true
+sha2 = "0.10"
+derive_more.workspace = true
+chrono.workspace = true
+tracing.workspace = true
 
 [features]
-default = []
+default = ["zones"]
+zones = []
+full = ["zones"]
 
 [lints]
 workspace = true

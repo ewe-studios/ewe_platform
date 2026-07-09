@@ -4258,6 +4258,19 @@ version = "0.1.0"
 [[package]]
 name = "foundation_deployment_cloudflare"
 version = "0.1.0"
+dependencies = [
+ "chrono",
+ "derive_more",
+ "foundation_core",
+ "foundation_deployment",
+ "foundation_errstacks",
+ "foundation_macros",
+ "foundation_netio",
+ "serde",
+ "serde_json",
+ "sha2",
+ "tracing",
+]
 
 [[package]]
 name = "foundation_deployment_flyio"

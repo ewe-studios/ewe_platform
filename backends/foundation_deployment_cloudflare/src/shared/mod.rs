@@ -4,7 +4,7 @@
 //! DO NOT EDIT MANUALLY.
 
 // Re-export common API types from foundation_deployment
-pub use crate::providers::common::{
+pub use foundation_deployment::providers::common::{
     ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro,
 };
 
