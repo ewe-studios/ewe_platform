@@ -1,7 +1,7 @@
 ---
 feature: "WebSocketTransport: Connect-over-WS bidi (D13 F1)"
 description: "The opt-in WS transport: upgrade routing, subprotocol negotiation, batch framing, full-duplex bidi on h1 deployments"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 4
 depends_on: ["37-ws-server-task", "22-router-dispatch"]

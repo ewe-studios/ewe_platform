@@ -22,6 +22,8 @@ pub mod h1;
 #[cfg(not(target_family = "wasm"))]
 pub mod h2;
 pub mod wasm;
+#[cfg(not(target_family = "wasm"))]
+pub mod ws;
 
 pub use base::{
     body_stream_from_pipe, head_stream_from_pipe, BodyStream, ByteSink, ByteSource, HeadSource,
