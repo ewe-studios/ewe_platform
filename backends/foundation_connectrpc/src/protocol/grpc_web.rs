@@ -783,6 +783,43 @@ impl ProtocolClient for GrpcWebClient {
         }
     }
 
+    fn encode_unary_request(&self, body: &[u8], is_compressed: bool) -> Bytes {
+        // gRPC-Web unary: single envelope frame, same as gRPC.
+        let flags: u8 = if is_compressed {
+            Envelope::FLAG_COMPRESSED
+        } else {
+            0x00
+        };
+        let len = body.len() as u32;
+        let mut envelope = Vec::with_capacity(ENVELOPE_HEADER_LEN + body.len());
+        envelope.push(flags);
+        envelope.extend_from_slice(&len.to_be_bytes());
+        envelope.extend_from_slice(body);
+        Bytes::from(envelope)
+    }
+
+    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
+        // gRPC-Web unary response: single envelope frame. Strip the header;
+        // same contract as gRPC — compressed responses are not yet handled.
+        if body.is_empty() {
+            return Ok(Bytes::new());
+        }
+        if body.len() < ENVELOPE_HEADER_LEN {
+            return Err(ConnectError::invalid_argument("truncated gRPC-Web response frame").into());
+        }
+        let flags = body[0];
+        let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
+        let end = (ENVELOPE_HEADER_LEN + len).min(body.len());
+        let payload = body.slice(ENVELOPE_HEADER_LEN..end);
+        if flags & Envelope::FLAG_COMPRESSED != 0 {
+            return Err(ConnectError::internal(
+                "compressed gRPC-Web unary response — see gRPC decode_unary_response",
+            )
+            .into());
+        }
+        Ok(payload)
+    }
+
     fn new_conn(
         &self,
         spec: &Spec,

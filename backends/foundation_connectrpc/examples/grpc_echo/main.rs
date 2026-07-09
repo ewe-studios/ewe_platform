@@ -1,4 +1,4 @@
-//! gRPC over HTTP/2 cleartext (h2c) — all streaming modes.
+//! gRPC over HTTP/2 cleartext (h2c) — all four RPC modes.
 //!
 //! Run with: `cargo run -p foundation_connectrpc --example grpc_echo`
 //!
@@ -7,16 +7,9 @@
 //! The client adds `.with_grpc()`; everything else stays the same.
 //!
 //! Wire difference: gRPC always returns HTTP 200, errors ride `grpc-status`
-//! trailing headers, and every message is enveloped. The library handles all
-//! of that — from user code, it's the same `Client<Req, Res>` with the same
-//! method names for `.server_stream()`, `.client_stream()`, and
-//! `.bidi_stream()`.
-//!
-//! NOTE: gRPC unary (`client.unary()`) is not yet wired through the typed
-//! `Client` — `call_unary_post` sends raw bytes, but gRPC expects an
-//! enveloped frame. The fix is `ProtocolClient::encode_unary_request()`.
-//! Until then, gRPC unary works at the transport level (see `tests/grpc_tests.rs`)
-//! and all streaming modes work through the typed client.
+//! trailing headers, and every message is enveloped (even unary). The library
+//! handles all of that — from user code, it's the same `Client<Req, Res>`
+//! with the same four method names.
 
 use std::sync::Arc;
 use std::thread;
@@ -50,6 +43,7 @@ impl Msg {
     }
 }
 
+const UNARY: &str = "/echo.Svc/Unary";
 const SERVER_STREAM: &str = "/echo.Svc/ServerStream";
 const CLIENT_STREAM: &str = "/echo.Svc/ClientStream";
 const BIDI: &str = "/echo.Svc/Bidi";
@@ -63,11 +57,8 @@ fn codecs() -> ProcedureCodecs<Msg, Msg> {
 fn build_router() -> Router {
     let mut router = Router::new();
 
-    // Unary is registered so the router has parity with h2_echo — we just
-    // don't call it via the typed Client until ProtocolClient gains
-    // encode_unary_request.
     router.unary(
-        "/echo.Svc/Unary",
+        UNARY,
         codecs(),
         |_ctx: Ctx, req: Request<Msg>| async move {
             Ok(Response::new(Msg::of(format!("echo:{}", req.msg.text))))
@@ -119,7 +110,7 @@ fn start_server() -> (String, Arc<OnSignal>) {
         Arc::new(ConnectRpcServeH2::new(build_router().into_handler()));
 
     let mut app = HttpApp::new_h2_serve();
-    app.route_any_h2("/echo.Svc/Unary", rpc.clone());
+    app.route_any_h2(UNARY, rpc.clone());
     app.route_any_h2(SERVER_STREAM, rpc.clone());
     app.route_any_h2(CLIENT_STREAM, rpc.clone());
     app.route_any_h2(BIDI, rpc);
@@ -159,12 +150,25 @@ fn ctx() -> Ctx {
     Ctx::background().with_deadline(Duration::from_secs(15))
 }
 
-// ── Entry point — three streaming modes, gRPC framing ────────────────────────
+// ── Entry point — all four modes, gRPC framing ───────────────────────────────
 
 #[valtron(seed = 1, threads = 4)]
 async fn main() {
     let (addr, shutdown) = start_server();
     println!("h2c server on {addr} (serving both Connect and gRPC)");
+
+    // ── gRPC unary ────────────────────────────────────────────────────────
+    //
+    // On the wire: single enveloped request → single enveloped response.
+    // User code: the same `client.unary(ctx, request)` as Connect.
+
+    let client = grpc_client_for(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("hello")))
+        .await
+        .expect("unary");
+    println!("[grpc unary] {}", resp.msg.text);
+    assert_eq!(resp.msg, Msg::of("echo:hello"));
 
     // ── gRPC server stream ────────────────────────────────────────────────
     //
@@ -226,7 +230,6 @@ async fn main() {
     );
     println!("[grpc bidi] interleaved send/receive OK");
 
-    println!("\nall three gRPC streaming modes verified ✓");
-    println!("(unary pending ProtocolClient::encode_unary_request — see module docs)");
+    println!("\nall four gRPC modes verified ✓");
     shutdown.turn_on();
 }

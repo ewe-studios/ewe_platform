@@ -259,12 +259,16 @@ fn client_init_grpc_on_h1_fails() {
 /// when a task parks (e.g. on a pipe read), the entire future tree suspends, so
 /// `join!` branches cannot make progress. Spawning the server as a separate
 /// valtron task lets the executor schedule them concurrently.
-fn spawn_unary_server(server: ServerPipes, expected_req: &'static [u8], resp_body: &'static [u8]) {
+fn spawn_unary_server(
+    server: ServerPipes,
+    expected_req: Vec<u8>,
+    resp_body: Vec<u8>,
+) {
     let _ = foundation_core::valtron::send(foundation_core::valtron::from_future(async move {
         let req_body = server.read_request_body().await;
         assert_eq!(req_body, expected_req);
         server
-            .send_unary_response(Bytes::from_static(resp_body))
+            .send_unary_response(Bytes::from(resp_body))
             .await;
     }));
 }
@@ -284,7 +288,7 @@ async fn client_unary_connect_round_trip() {
     )
     .unwrap();
 
-    spawn_unary_server(server, b"ping", b"pong");
+    spawn_unary_server(server, b"ping".to_vec(), b"pong".to_vec());
 
     let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
@@ -329,6 +333,14 @@ async fn client_unary_error_status() {
     }
 }
 
+/// Wrap bytes in a gRPC envelope: flags=0x00 | 4-byte BE len | payload.
+fn grpc_envelope(payload: &[u8]) -> Vec<u8> {
+    let mut envelope = vec![0u8; 5];
+    envelope[1..5].copy_from_slice(&(payload.len() as u32).to_be_bytes());
+    envelope.extend_from_slice(payload);
+    envelope
+}
+
 #[valtron_test]
 async fn client_unary_with_grpc_web() {
     let mock = MockTransport::full_duplex();
@@ -344,11 +356,16 @@ async fn client_unary_with_grpc_web() {
     )
     .unwrap();
 
-    spawn_unary_server(server, b"ping", b"pong");
+    // gRPC-Web unary wraps the request in a single envelope. The client's
+    // encode_unary_request handles this — the mock sees the envelope on the wire.
+    let req_envelope = grpc_envelope(b"ping");
+    let resp_envelope = grpc_envelope(b"pong");
+    spawn_unary_server(server, req_envelope, resp_envelope);
 
     let ctx = Ctx::background().with_deadline(std::time::Duration::from_secs(10));
     let request = Request::new(b"ping".to_vec());
 
+    // The client unwraps the response envelope; the caller sees b"pong".
     let response = client.unary(ctx, request).await.unwrap();
     assert_eq!(response.msg, b"pong".to_vec());
 }

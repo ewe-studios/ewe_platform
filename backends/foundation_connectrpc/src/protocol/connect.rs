@@ -647,6 +647,18 @@ impl ProtocolClient for ConnectClient {
         }
     }
 
+    fn encode_unary_request(&self, body: &[u8], _is_compressed: bool) -> Bytes {
+        // Connect unary: bare body. Compression rides Content-Encoding (set in
+        // write_request_headers), not a wire flag.
+        Bytes::copy_from_slice(body)
+    }
+
+    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
+        // Connect unary: bare body. Compression handled via Content-Encoding
+        // header (already decompressed by the transport if applicable).
+        Ok(body)
+    }
+
     fn new_conn(
         &self,
         spec: &Spec,

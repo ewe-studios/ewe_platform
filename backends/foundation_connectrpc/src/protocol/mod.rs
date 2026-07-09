@@ -155,6 +155,22 @@ pub trait ProtocolClient: Send + Sync {
         codec_name: &str,
         compression: Option<&str>,
     );
+    /// Encode the (optionally compressed) marshaled request body for a **unary**
+    /// call. Protocol-specific wrapping — Connect is the identity (bare bytes),
+    /// gRPC and gRPC-Web wrap the body in a single 5-byte envelope frame.
+    ///
+    /// `is_compressed` is `true` when a compressor was applied to `body`; the
+    /// protocol sets the corresponding flag (gRPC → envelope flags bit 0x01,
+    /// Connect → already set as `Content-Encoding` by the caller).
+    fn encode_unary_request(&self, body: &[u8], is_compressed: bool) -> Bytes;
+    /// Decode the raw response body bytes into message-level bytes for a
+    /// **unary** call. Protocol-specific unwrapping — Connect is the identity
+    /// (bare bytes), gRPC and gRPC-Web strip the 5-byte envelope frame.
+    ///
+    /// # Errors
+    /// A trace on a malformed envelope (truncated frame, missing compression
+    /// handler).
+    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes>;
     /// Build the per-call exchange over a live transport stream.
     ///
     /// The `cancel` signal is linked into the conn's sender/receiver halves so

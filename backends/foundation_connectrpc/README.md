@@ -1,15 +1,14 @@
 # foundation_connectrpc
 
-ConnectRPC for the EWE platform — the [Connect protocol](https://connectrpc.com/docs/protocol)
-(and gRPC-Web) implemented natively on the platform's foundation crates. An
+ConnectRPC for the EWE platform — the [Connect protocol](https://connectrpc.com/docs/protocol),
+gRPC, and gRPC-Web implemented natively on the platform's foundation crates. An
 independent Rust port with [connect-go](https://github.com/connectrpc/connect-go)
 as the design reference — **not** a wrapper around any existing crate. There is no
 tower, hyper, or tokio here: HTTP and wire types come from `foundation_netio` /
 `foundation_http`, execution from valtron, errors from `foundation_errstacks`.
 
-Speak **Connect**, **gRPC-Web**, and (as the HTTP/2 substrate lands) **gRPC** —
-one router, one set of handlers, one client type — over JSON, protobuf (buffa),
-or Arrow.
+Speak **Connect**, **gRPC**, or **gRPC-Web** — one router, one set of handlers,
+one client type — over JSON, protobuf (buffa), or Arrow.
 
 ## Status
 
@@ -20,16 +19,28 @@ end-to-end today, over a real loopback socket:
 |---|---|
 | Connect protocol (unary + streaming) | ✅ working |
 | gRPC-Web protocol | ✅ working |
+| gRPC protocol over HTTP/2 (h2c) — unary + all streaming | ✅ working |
 | HTTP/1.1 transport (client `H1Transport` + server `ConnectRpcServe`) | ✅ working |
+| HTTP/2 transport (client `H2Transport` + server `ConnectRpcServeH2`) | ✅ working |
 | Codecs: protobuf (buffa), JSON, Arrow | ✅ working |
 | Compression: gzip (+ optional zstd, brotli) | ✅ working |
 | Auth middleware (`auth` feature) | ✅ working |
-| Code generation: proto (build.rs / protoc) + code-first macro | ✅ working (unary + streaming, both proven) |
-| gRPC protocol / HTTP/2, HTTP/3, WebSocket transports | ⏳ pending (needs the HTTP/2 substrate) |
+| Code generation: proto (build.rs / protoc) + code-first macro | ✅ working |
+| gRPC status trailers (client-visible) | ⏳ trailers consumed by h2 pump, not forwarded |
+| HTTP/3, WebSocket transports | ⏳ pending |
 
-The [`examples/`](examples/) directory holds runnable, self-contained programs —
-each in its own subdirectory with a deep `README.md`, each standing up a server
-and calling it over a real TCP socket.
+The [`examples/`](examples/) directory holds runnable, self-contained programs,
+each standing up a server and calling it over a real TCP socket:
+
+| Example | Protocol | Transport | Modes |
+|---|---|---|---|
+| [`unary_echo`](examples/unary_echo/) | Connect | H1Transport (HTTP/1.1) | unary |
+| [`server_streaming`](examples/server_streaming/) | Connect | H1Transport (HTTP/1.1) | server-stream |
+| [`h2_echo`](examples/h2_echo/) | Connect | H2Transport (h2c) | unary, server-stream, client-stream, bidi |
+| [`grpc_echo`](examples/grpc_echo/) | gRPC | H2Transport (h2c) | unary, server-stream, client-stream, bidi |
+| [`codecs`](examples/codecs/) | Connect | H1Transport | unary (multi-codec) |
+| [`code_first_service`](examples/code_first_service/) | Connect (code-first) | H1Transport | unary |
+| [`code_first_streaming`](examples/code_first_streaming/) | Connect (code-first) | H1Transport | server-stream |
 
 ## Quick start
 
@@ -41,8 +52,15 @@ foundation_connectrpc = "0.0.1"   # default = ["rpc_multi"]
 Run the bundled examples:
 
 ```sh
+# Connect protocol over HTTP/1.1
 cargo run -p foundation_connectrpc --example unary_echo
 cargo run -p foundation_connectrpc --example server_streaming
+
+# Connect + gRPC over HTTP/2 cleartext (all four RPC modes)
+cargo run -p foundation_connectrpc --example h2_echo
+cargo run -p foundation_connectrpc --example grpc_echo
+
+# Code-first services (proc macro)
 cargo run -p foundation_connectrpc --example code_first_service
 ```
 
@@ -59,9 +77,9 @@ value** (owned, cheap-`Clone`, Arc-backed) and every RPC-surface signature retur
 | **Client-streaming** | `Fn(Ctx, RequestStream<Req>) -> ConnectResult<Response<Res>>` |
 | **Bidi-streaming** | `Fn(Ctx, RequestStream<Req>) -> ConnectResult<impl Stream<Item = ConnectResult<Res>>>` |
 
-Full-duplex bidi needs a full-duplex transport — HTTP/2 or WebSocket, both
-pending; unary, server-streaming, and half-duplex client-streaming work over
-HTTP/1.1.
+Full-duplex bidi needs a full-duplex transport — `H2Transport` (HTTP/2 cleartext
+or TLS) enables it; unary, server-streaming, and client-streaming work over both
+HTTP/1.1 and HTTP/2.
 
 ## Server
 
@@ -91,6 +109,17 @@ let serve = Arc::new(ConnectRpcServe::new(router.into_handler()));
 `.bidi_stream(...)`. `HandlerOptions` carries per-procedure interceptors,
 size limits, idempotency, compression, and pipe depth.
 
+For HTTP/2, use `ConnectRpcServeH2` with `HttpApp::new_h2_serve()` instead:
+
+```rust
+use foundation_connectrpc::ConnectRpcServeH2;
+use foundation_http::shared::serve::h2::H2Serve;
+
+let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
+let mut app = HttpApp::new_h2_serve();
+app.route_any_h2("/my.Svc/Method", rpc);
+```
+
 ## Client
 
 ```rust
@@ -102,12 +131,17 @@ use foundation_connectrpc::{
 use foundation_connectrpc::transport::Transport;
 use foundation_netio::simple_http::client::SimpleHttpClient;
 
+// HTTP/1.1 transport (Connect + gRPC-Web)
 let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(SimpleHttpClient::from_system()));
+
+// HTTP/2 cleartext transport (Connect + gRPC, all four modes including bidi)
+// let transport: Arc<dyn Transport> = Arc::new(H2Transport::new());
+
 let client: Client<EchoMessage, EchoMessage> = Client::new(
     transport,
     "http://127.0.0.1:8080/demo.EchoService/Echo",   // base URL + procedure path
     ProcedureCodecs::<EchoMessage, EchoMessage>::defaults(),
-    ClientOptions::new(),                             // .with_connect() / .with_grpc_web() / .with_codec("json") / .with_timeout(..)
+    ClientOptions::new(),                             // .with_connect() / .with_grpc() / .with_grpc_web() / .with_codec("json") / .with_timeout(..)
 )?;
 
 let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
@@ -116,6 +150,22 @@ let resp = client.unary(ctx, Request::new(EchoMessage { /* .. */ })).await?;
 
 `Client` also exposes `.server_stream()`, `.client_stream()`, and `.bidi_stream()`,
 returning stream handles you drain with `.receive().await`.
+
+### Protocol selection
+
+The only difference between Connect and gRPC from user code is
+`ClientOptions`. The server-side `Router` dispatches both automatically:
+
+```rust
+// Connect (the default):
+ClientOptions::new().with_connect()
+
+// gRPC over HTTP/2:
+ClientOptions::new().with_grpc().with_codec("json")
+
+// gRPC-Web over HTTP/1.1:
+ClientOptions::new().with_grpc_web()
+```
 
 ## Codecs
 
@@ -156,11 +206,11 @@ ClientOptions::new().with_codec("json")
 
 `ClientOptions` selects the protocol; the router serves all of them at once.
 
-| Protocol | Selector | State |
-|---|---|---|
-| Connect | `ClientOptions::new().with_connect()` (default) | ✅ |
-| gRPC-Web | `.with_grpc_web()` | ✅ |
-| gRPC | `.with_grpc()` | ⏳ requires HTTP/2 (pending) |
+| Protocol | Selector | Transport | State |
+|---|---|---|---|---|
+| Connect | `ClientOptions::new().with_connect()` (default) | H1Transport or H2Transport | ✅ |
+| gRPC-Web | `.with_grpc_web()` | H1Transport | ✅ |
+| gRPC | `.with_grpc()` | H2Transport (HTTP/2 required) | ✅ unary + streaming |
 
 ---
 

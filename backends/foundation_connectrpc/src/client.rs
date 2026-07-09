@@ -775,24 +775,40 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         );
         add_timeout_header(&self.config.protocol, &mut headers, ctx.remaining_timeout());
 
+        // Protocol-specific wire framing. Connect = bare bytes; gRPC/gRPC-Web =
+        // single envelope frame. The compression flag (if any) is already in
+        // `content_encoding`; the protocol sets the corresponding wire flag.
+        let wire_body = self
+            .protocol
+            .encode_unary_request(&body, content_encoding.is_some());
+
+        // gRPC requires HTTP/2; Connect and gRPC-Web are HTTP/1.1.
+        let proto = match self.config.protocol {
+            ProtocolSelection::Grpc => Proto::HTTP20,
+            _ => Proto::HTTP11,
+        };
+
         let call = UnaryCall {
             headers: headers.clone(),
             codec_name: self.config.codec_name.clone(),
-            frame: Bytes::from(body.clone()),
+            frame: wire_body,
         };
 
         // Build the inner unary function.
         let transport = Arc::clone(&self.transport);
         let url_clone = url.clone();
+        // Proto is Clone but not Copy; clone it into each closure scope.
+        let proto_for_inner = proto.clone();
 
         let inner: UnaryFunc = Arc::new(move |_ctx: Ctx, call: UnaryCall| {
             let transport = Arc::clone(&transport);
             let url = url_clone.clone();
+            let proto = proto_for_inner.clone();
             Box::pin(async move {
                 let uri = Uri::parse(&url)
                     .map_err(|e| ConnectError::internal(format!("invalid URL: {e}")))?;
                 let desc = RequestDescriptor {
-                    proto: Proto::HTTP11,
+                    proto,
                     request_url: SimpleUrl::url_only(&url),
                     request_uri: uri,
                     headers: call.headers,
@@ -809,9 +825,11 @@ impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
         let wrapped = chain.wrap_unary(inner);
         let reply = wrapped(ctx.clone(), call).await?;
 
-        // Decode response.
+        // Decode response: protocol-level unwrap first, then codec unmarshal.
+        // gRPC/gRPC-Web envelop their unary response; Connect returns bare bytes.
+        let wire = self.protocol.decode_unary_response(reply.frame)?;
         let res_codec = self.codecs.for_response(&self.config.codec_name)?;
-        let msg = res_codec.unmarshal(reply.frame)?;
+        let msg = res_codec.unmarshal(wire)?;
 
         let mut response = Response::new(msg);
         for (h, vals) in &reply.headers {

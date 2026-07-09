@@ -380,6 +380,49 @@ impl ProtocolClient for GrpcClient {
         }
     }
 
+    fn encode_unary_request(&self, body: &[u8], is_compressed: bool) -> Bytes {
+        // gRPC unary: single envelope frame. flags bit 0x01 marks compression;
+        // the payload is the (optionally compressed) marshaled message bytes.
+        let flags: u8 = if is_compressed {
+            Envelope::FLAG_COMPRESSED
+        } else {
+            0x00
+        };
+        let len = body.len() as u32;
+        let mut envelope = Vec::with_capacity(ENVELOPE_HEADER_LEN + body.len());
+        envelope.push(flags);
+        envelope.extend_from_slice(&len.to_be_bytes());
+        envelope.extend_from_slice(body);
+        Bytes::from(envelope)
+    }
+
+    fn decode_unary_response(&self, body: Bytes) -> ConnectResult<Bytes> {
+        // gRPC unary response: single envelope frame. Strip the 5-byte header,
+        // return the payload. Compression is negotiated via grpc-encoding; if a
+        // response arrives compressed, the caller must decompress separately
+        // (or thread the CompressionRegistry through — the streaming path
+        // handles this in the reader task).
+        if body.is_empty() {
+            return Ok(Bytes::new());
+        }
+        if body.len() < ENVELOPE_HEADER_LEN {
+            return Err(ConnectError::invalid_argument("truncated gRPC response frame").into());
+        }
+        let flags = body[0];
+        let len = u32::from_be_bytes([body[1], body[2], body[3], body[4]]) as usize;
+        let end = (ENVELOPE_HEADER_LEN + len).min(body.len());
+        let payload = body.slice(ENVELOPE_HEADER_LEN..end);
+        if flags & Envelope::FLAG_COMPRESSED != 0 {
+            return Err(ConnectError::internal(
+                "compressed gRPC unary response — decode_unary_response does not yet thread the \
+                 CompressionRegistry (streaming handles this in the reader task); \
+                 set response_compression: None on the server or add registry threading here",
+            )
+            .into());
+        }
+        Ok(payload)
+    }
+
     fn new_conn(
         &self,
         spec: &Spec,
