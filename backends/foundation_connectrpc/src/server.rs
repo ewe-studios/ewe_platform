@@ -22,7 +22,6 @@ use std::future::Future;
 use std::sync::Arc;
 use std::task::{Context, Poll, Wake, Waker};
 
-use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve};

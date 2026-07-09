@@ -23,6 +23,9 @@ dispatches through `ConnectRpcHandler`, and bridges the handler's output to
 
 ```rust
 /// Decoded HEADERS frame without the body — the "everything except body" type.
+///
+/// `uri` and `url` are computed once from `:scheme`/`:authority`/`:path` so no
+/// downstream caller ever reconstructs (or fabricates) them.
 pub struct SimpleIncomingRequestHeader {
     pub method: SimpleMethod,
     pub scheme: String,
@@ -30,7 +33,18 @@ pub struct SimpleIncomingRequestHeader {
     pub path: String,
     pub headers: SimpleHeaders,
     pub connection: Arc<ConnectionContext>,
+    pub uri: Uri,
+    pub url: SimpleUrl,
 }
+
+/// Fallible: a malformed `:path`/`:authority` has no meaningful fallback.
+/// The caller answers with a stream PROTOCOL_ERROR. Never fabricate a `Uri`.
+/// Origin-form requests (no `:authority`) parse path-only, which `Uri::parse`
+/// accepts. `url` is derived from the same `Uri`, mirroring `redirects.rs`.
+pub fn header_from_hpack(
+    pairs: &[(Bytes, Bytes)],
+    connection: Arc<ConnectionContext>,
+) -> Result<SimpleIncomingRequestHeader, InvalidUri>;
 
 /// One frame after HEADERS on an incoming stream.
 /// Stream ends when the body stream returns Ready(None).
@@ -59,6 +73,82 @@ impl H2Conn {
     pub fn encode_frame(&mut self, stream_id: u32, frame: &H2Frame);
 }
 ```
+
+### H2Serve trait (foundation_http)
+
+The h2 sibling of `Serve`. It mirrors the `Serve` / `ConnectRpcServe` layering —
+the trait lives in `foundation_http`, the impl (`ConnectRpcServeH2`) in
+`foundation_connectrpc`. No dependency inversion.
+
+```rust
+pub trait H2Serve: Send + Sync + 'static {
+    /// Returns a future the connection handler spawns on the valtron pool.
+    /// It MUST NOT touch H2Conn: the poll loop is the only writer.
+    fn serve_h2(
+        &self,
+        bag: Arc<ContextBag>,
+        header: SimpleIncomingRequestHeader,
+        body: PipeReceiver<H2IncomingFrame>,
+        tx: PipeSender<H2Frame>,
+    ) -> BoxFuture<'static, io::Result<()>>;
+}
+```
+
+**Rejected shape:** `serve_h2(.., conn: &mut H2Conn, stream_id: u32)` returning
+`()`. Handing the handler `&mut H2Conn` forces it to run inline on the poll
+loop, which means (a) `block_on(dispatch(..))` stalls the whole connection so a
+slow stream 1 head-of-line-blocks stream 3 — h2 multiplexing is defeated; and
+(b) the request body must be fully buffered into a `Vec<u8>` before dispatch,
+and streaming responses are inexpressible. Only unary would ever work. The pipe
+shape keeps `H2Conn` owned solely by the poll loop.
+
+### ServerApp — protocol → app routing (foundation_http)
+
+`HttpServer` no longer holds a single `HttpApp`. Middleware and handler types
+differ between protocols (`Serve` takes `SimpleIncomingRequest`, `H2Serve` takes
+a header + body pipe), so the two apps cannot be unified behind one type.
+
+```rust
+pub enum ServerApp {
+    Http1(Arc<HttpApp<Arc<dyn Serve>>>),
+    Http2(Arc<HttpApp<Arc<dyn H2Serve>>>),
+    Both {
+        http1: Arc<HttpApp<Arc<dyn Serve>>>,
+        http2: Arc<HttpApp<Arc<dyn H2Serve>>>,
+    },
+}
+```
+
+Three variants, not four: `Any(Option, Option)` would make the both-`None`
+case — a server that can serve nothing — representable, and `All(a, b)` is just
+`Any(Some(a), Some(b))`, two encodings of one state. `Both` makes the empty
+server unrepresentable by construction. HTTP/3 later adds a variant.
+
+**Protocol mismatch is a hard failure, never a silent default.** After preface
+detection the server looks up the app for the detected protocol; if absent:
+
+| Detected | No app for it | Response |
+|---|---|---|
+| h2c preface | `ServerApp::Http1` | GOAWAY + close |
+| HTTP/1.1 | `ServerApp::Http2` | `505 HTTP Version Not Supported`, close |
+
+Falling back to `HttpApp::default()` (an empty router that 404s every request)
+is forbidden — it reports "route not found" for what is actually "this server
+does not speak your protocol".
+
+### h2c preface detection (foundation_http)
+
+Detection **compares bytes**, it does not count them:
+
+```rust
+// CLIENT_PREFACE = b"PRI * HTTP/2.0\r\n\r\nSM\r\n\r\n"  (24 bytes)
+let is_h2c = stream.peek(CLIENT_PREFACE_LEN)? == CLIENT_PREFACE;
+```
+
+A length-only check (`n >= CLIENT_PREFACE.len()`) misroutes every HTTP/1.1
+request of 24+ bytes into the h2 handler. The peek must not consume: on the h1
+path the bytes are still needed by `HTTPStreams`; on the h2 path
+`server_handshake()` consumes the preface itself.
 
 ### ConnectRpcHandler — new h2 dispatch method
 
@@ -159,11 +249,14 @@ Valtron `TaskIterator`. Each poll:
 3. Dispatch:
    HEADERS (new stream):
      - conn.decode_headers(payload) → (name, value) pairs
-     - map pseudo-headers → SimpleIncomingRequestHeader
+     - header_from_hpack(pairs, conn_ctx)? → SimpleIncomingRequestHeader
+       Err(InvalidUri) → encode RST_STREAM(PROTOCOL_ERROR), drop stream, continue
+     - router.dispatch(&method, &url) → None → RST_STREAM / 404 HEADERS
      - create Pipe<H2IncomingFrame> for body → body_rx, Pipe<H2Frame> for response → resp_tx
-     - valtron::send(dispatch_h2 task)  ← SPAWNED, not called inline
-       → dispatch_h2 runs on valtron pool, pushes H2Frames into resp_tx
+     - valtron::send(FutureTask::new(serve_h2(..)))  ← SPAWNED, not called inline
+       → the handler future runs on the valtron pool, pushes H2Frames into resp_tx
      - store (body_tx, resp_rx) in streams map for draining
+     - if END_STREAM was set on HEADERS: body_tx.close() immediately (no body)
    DATA (stream_id):
      - streams[stream_id].body_tx.send(H2IncomingFrame::Data(payload))
    DATA(END_STREAM):
@@ -176,8 +269,46 @@ Valtron `TaskIterator`. Each poll:
        while let Some(frame) = rx.try_recv() {
            conn.encode_frame(sid, &frame);
        }
-5. WouldBlock → TaskStatus::Delayed(10ms)
+5. Reap: drop streams whose resp_rx is closed and drained
+6. WouldBlock → TaskStatus::Delayed(10ms)
    (matches existing ConnectionHandler pattern — same gap for both h1 and h2)
+```
+
+### BLOCKER: `H2Connection` assumes a blocking socket
+
+Discovered while running `h2_echo` end-to-end. `H2Connection` (F29) was written
+against a blocking socket, but `HttpServer` sets every accepted socket
+non-blocking. Both of its read paths use `read_exact`:
+
+- `server_handshake()` — reads the 24-byte preface, then the client SETTINGS,
+  then flushes, then waits for the client's SETTINGS ACK. The ACK cannot have
+  arrived yet, so it returns `WouldBlock` **after** consuming the preface. The
+  poll loop parks and calls `server_handshake()` again, which re-reads 24 bytes
+  — now the SETTINGS frame — and reports `invalid HTTP/2 connection preface`.
+  Observed exactly this: detection sees the correct preface, then the handshake
+  fails on the retry. The function is not resumable.
+- `read_frame()` — `read_exact(header)` / `read_exact(payload)` can consume a
+  partial frame and then error, leaving the stream mid-frame. Same latent
+  corruption, just harder to trigger on loopback.
+
+Fix (frame-atomic, resumable):
+
+1. `H2Conn` keeps a clone of the `SharedByteBufferStream` (the buffer is shared)
+   and pre-buffers with `peek` before consuming: `read_frame` peeks 9 bytes,
+   parses the length, peeks `9 + len`, and only then delegates. If the whole
+   frame is not buffered it returns `WouldBlock` having consumed nothing.
+   `read_exact` then never touches the socket and cannot partially fail.
+2. Split `H2Connection::server_handshake` into `server_handshake_recv` (preface
+   + client SETTINGS + our SETTINGS/ACK flush) and `server_handshake_ack` (await
+   the client's ACK), and drive them from a small resumable state machine in
+   `H2Conn` (`Preface → Ack → Done`), each phase pre-buffered as above.
+
+Also found: `SharedByteBufferStream::peek` panics on EOF. `peekby` returns
+`PeekState::NoNext` when the peer has closed and the buffer is empty, and the
+`peek` impl matches `_ => unreachable!("We should never hit this state")`. A
+peer that connects and immediately disconnects therefore panics the detect task.
+This must be fixed (return `Ok(0)` or an EOF error) before the h2 path is
+exposed to the open internet.
 
 ### Deferred: reactor parking
 
@@ -209,7 +340,12 @@ feature) would:
 This is h2- and h1-agnostic — any `TaskIterator` over a non-blocking fd can
 use it. Tracked here as a dependency so this feature doesn't claim reactor
 parking is addressed.
-```
+
+**What is spawned, and what is not:** `HttpServer` already spawns one valtron
+task per accepted *connection* — `H2ConnectionHandler` is that task. Nothing
+re-spawns a thread per connection, and no `thread::spawn` + `block_on` appears
+anywhere in this feature. What F47 adds is one valtron task per h2 *stream*,
+which is the whole point of h2: a connection carries many concurrent streams.
 
 **Why spawning works for multiplexing:** The poll loop never blocks on a
 handler. It creates pipes, spawns `dispatch_h2()` on the valtron pool, and
@@ -234,13 +370,17 @@ server side.
 
 | Item | Crate | File |
 |---|---|---|
-| `SimpleIncomingRequestHeader` | foundation_netio | `http2/types.rs` |
+| `SimpleIncomingRequestHeader` (+ `uri`/`url`) | foundation_netio | `http2/types.rs` |
+| `header_from_hpack()` → `Result` | foundation_netio | `http2/types.rs` |
 | `H2IncomingFrame` | foundation_netio | `http2/types.rs` |
 | `H2Frame` | foundation_netio | `http2/types.rs` |
 | `H2Conn` | foundation_netio | `http2/conn.rs` |
+| `H2Serve` trait | foundation_http | `shared/serve/h2.rs` |
+| `ServerApp` enum | foundation_http | `shared/app/mod.rs` |
 | `H2ConnectionHandler` | foundation_http | `native/server/h2_connection.rs` |
-| h2c detect in HttpServer | foundation_http | `native/server/mod.rs` |
+| h2c preface detect + mismatch fail | foundation_http | `native/server/mod.rs` |
 | `dispatch_h2()` | foundation_connectrpc | `router/dispatch.rs` |
+| `ConnectRpcServeH2` | foundation_connectrpc | `h2_serve.rs` |
 | `h2_echo` example | foundation_connectrpc | `examples/h2_echo/main.rs` |
 | `H2Transport` client streaming | foundation_connectrpc | `transport/h2.rs` |
 
@@ -250,4 +390,9 @@ server side.
 - Server-stream: handler produces stream, chunks delivered as h2 DATA frames ✅
 - Client-stream: client sends DATA frames, handler receives them via `H2IncomingFrame` stream ✅
 - Bidi-stream: interleaved send/recv via `futures::join!` ✅
+- Poll loop never blocks: no `block_on` and no full-body `Vec` buffering in
+  `H2ConnectionHandler`; two concurrent streams interleave on one connection ✅
+- An HTTP/1.1 request ≥24 bytes is **not** misdetected as h2c ✅
+- `ServerApp::Http1` + h2c preface → GOAWAY; `ServerApp::Http2` + h1 → 505.
+  Never an empty-router 404 ✅
 - All 87 F29 tests pass, zero warnings ✅

@@ -15,7 +15,6 @@ use foundation_core::synca::{OnSignal, WaitGroup};
 use foundation_netio::simple_http::shared::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
 };
-use foundation_netio::simple_http::shared::HTTPStreams;
 
 #[cfg(any(
     feature = "ssl",
@@ -36,7 +35,7 @@ use foundation_netio::netcap::ssl::SSLAcceptor;
 ))]
 use foundation_netio::netcap::Connection;
 
-use crate::shared::app::HttpApp;
+use crate::shared::app::{HttpApp, ServerApp};
 use crate::shared::serve::{respond, Serve};
 
 // ---------------------------------------------------------------------------
@@ -319,31 +318,41 @@ impl Default for ServerConfig {
 }
 
 mod connection;
+mod h2_connection;
+mod protocol_detect;
 
-use connection::ConnectionHandler;
+use protocol_detect::ProtocolDetectHandler;
 
 /// Running HTTP server.
 pub struct HttpServer {
-    app: Arc<HttpApp<Arc<dyn Serve>>>,
+    app: ServerApp,
     bind_addr: String,
     config: ServerConfig,
 }
 
 impl HttpServer {
-    /// Create a new `HttpServer` with default config.
+    /// Create a new `HttpServer` with default config (HTTP/1.1 only).
     #[must_use]
     pub fn new(app: HttpApp<Arc<dyn Serve>>, addr: &str) -> Self {
         Self::with_config(app, addr, ServerConfig::default())
     }
 
-    /// Create a new `HttpServer` with custom config.
+    /// Create a new `HttpServer` with custom config (HTTP/1.1 only).
     #[must_use]
     pub fn with_config(app: HttpApp<Arc<dyn Serve>>, addr: &str, config: ServerConfig) -> Self {
-        Self {
-            app: Arc::new(app),
-            bind_addr: addr.to_string(),
-            config,
-        }
+        Self { app: ServerApp::Http1(Arc::new(app)), bind_addr: addr.to_string(), config }
+    }
+
+    /// Create from a [`ServerApp`] with default config.
+    #[must_use]
+    pub fn from_app(app: ServerApp, addr: &str) -> Self {
+        Self { app, bind_addr: addr.to_string(), config: ServerConfig::default() }
+    }
+
+    /// Create from a [`ServerApp`] with custom config.
+    #[must_use]
+    pub fn from_app_with_config(app: ServerApp, addr: &str, config: ServerConfig) -> Self {
+        Self { app, bind_addr: addr.to_string(), config }
     }
 
     /// Start serving plain HTTP. Blocks until the shutdown signal is triggered.
@@ -533,23 +542,28 @@ impl HttpServer {
                     // raw_stream.set
 
                     let shared_stream = SharedByteBufferStream::rwrite(raw_stream);
-                    let streams = HTTPStreams::new(shared_stream.clone());
 
-                    // Count this connection as active; the guard handed to the
-                    // handler decrements when its task completes (Decision 12 §10).
+                    // Count this connection as active; the guard travels with the
+                    // connection into whichever protocol handler claims it, and
+                    // decrements when that task completes (Decision 12 §10).
                     active.add(1);
-                    let handler = ConnectionHandler::new(
-                        self.app.clone(),
-                        streams,
+                    let guard = active.guard();
+
+                    // The socket is non-blocking and the peer has usually sent
+                    // nothing yet, so HTTP/1.1-vs-h2c detection cannot happen
+                    // here without stalling the accept loop. Hand the connection
+                    // to a task that peeks, decides, and spawns the real handler.
+                    let detector = ProtocolDetectHandler::new(
                         shared_stream.clone(),
+                        self.app.clone(),
                         client_ip.clone(),
                         connection,
                         shutdown.clone(),
-                        active.guard(),
-                        &keep_alive_config,
+                        guard,
+                        keep_alive_config.clone(),
                     );
 
-                    match foundation_core::valtron::send(handler) {
+                    match foundation_core::valtron::send(detector) {
                         Ok(()) => {
                             tracing::trace!(%client_ip, "Submitted connection to valtron executor");
                         }

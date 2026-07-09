@@ -19,12 +19,14 @@
 //! are collected in memory here; a live streaming transport swaps that for true
 //! streaming in a later feature.
 
+use std::io;
 use std::sync::Arc;
 use std::time::Instant;
 
 use bytes::Bytes;
-use foundation_core::valtron::Pipe;
+use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender};
 use foundation_http::shared::context::ContextBag;
+use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
 use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
 use foundation_netio::simple_http::shared::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
@@ -485,4 +487,338 @@ fn write_error(
     error: &foundation_errstacks::ErrorTrace<ConnectError>,
 ) {
     let _ = ErrorWriter::new().write(response, request, error);
+}
+
+// ── HTTP/2 dispatch ───────────────────────────────────────────────────────────
+
+/// Rebuild the request shell from an h2 HEADERS frame. The body is supplied
+/// separately (a pipe), so it stays `None` here.
+fn request_from_header(header: &SimpleIncomingRequestHeader) -> SimpleIncomingRequest {
+    SimpleIncomingRequest {
+        proto: Proto::HTTP20,
+        request_uri: header.uri.clone(),
+        request_url: header.url.clone(),
+        body: None,
+        headers: header.headers.clone(),
+        method: header.method.clone(),
+        extensions: None,
+        connection: header.connection.clone(),
+    }
+}
+
+/// Headers that are connection-specific and forbidden on h2 (RFC 7540 §8.1.2.2).
+const H2_FORBIDDEN_HEADERS: [&str; 5] = [
+    "connection",
+    "keep-alive",
+    "proxy-connection",
+    "transfer-encoding",
+    "upgrade",
+];
+
+/// Flatten `SimpleHeaders` into h2 wire pairs.
+///
+/// h2 field names must be lowercase (RFC 7540 §8.1.2) — a capitalised name is a
+/// protocol error at a strict peer, so names are lowered rather than trusted.
+fn h2_headers(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
+    let mut out = Vec::new();
+    for (key, values) in headers.iter() {
+        let name = key.to_string().to_lowercase();
+        if H2_FORBIDDEN_HEADERS.contains(&name.as_str()) {
+            continue;
+        }
+        for value in values {
+            out.push((Bytes::from(name.clone()), Bytes::from(value.clone())));
+        }
+    }
+    out
+}
+
+/// The response body as bytes.
+///
+/// Only the buffered variants can appear here: `dispatch_h2` handles streaming
+/// bodies by forwarding the protocol's byte pipe directly, and the unary/error
+/// paths always produce `Bytes` or `Text`. An iterator-backed body would have to
+/// be drained by blocking the pool thread, so it is refused loudly rather than
+/// silently truncated.
+fn h2_body(body: Option<SendSafeBody>) -> io::Result<Bytes> {
+    match body {
+        None | Some(SendSafeBody::None) => Ok(Bytes::new()),
+        Some(SendSafeBody::Bytes(bytes)) => Ok(Bytes::from(bytes)),
+        Some(SendSafeBody::Text(text)) => Ok(Bytes::from(text.into_bytes())),
+        Some(_) => Err(io::Error::new(
+            io::ErrorKind::InvalidData,
+            "iterator-backed response body cannot be serialized to h2 frames",
+        )),
+    }
+}
+
+/// The pipe is gone because the connection handler dropped the stream.
+fn stream_gone<T>(_: T) -> io::Error {
+    io::Error::new(io::ErrorKind::BrokenPipe, "h2 response stream closed")
+}
+
+/// Serialize a complete (non-streaming) response as HEADERS [+ DATA].
+async fn send_whole_response(
+    tx: &PipeSender<H2Frame>,
+    response: SimpleOutgoingResponse,
+) -> io::Result<()> {
+    let status = response.status.into_usize() as u16;
+    let headers = h2_headers(&response.headers);
+    let payload = h2_body(response.body)?;
+    let has_body = !payload.is_empty();
+
+    tx.send(H2Frame::Headers {
+        status,
+        headers,
+        end_stream: !has_body,
+    })
+    .await
+    .map_err(stream_gone)?;
+
+    if has_body {
+        tx.send(H2Frame::Data {
+            payload,
+            end_stream: true,
+        })
+        .await
+        .map_err(stream_gone)?;
+    }
+    Ok(())
+}
+
+/// Drain the inbound h2 body pipe into a buffer (unary: exactly one message).
+///
+/// A peer RST_STREAM ends collection early; the caller abandons the stream.
+async fn collect_h2_body(body: &PipeReceiver<H2IncomingFrame>) -> Option<Vec<u8>> {
+    let mut out = Vec::new();
+    while let Some(frame) = body.receive().await {
+        match frame {
+            H2IncomingFrame::Data(chunk) => out.extend_from_slice(&chunk),
+            H2IncomingFrame::Reset(_) => return None,
+        }
+    }
+    Some(out)
+}
+
+impl ConnectRpcHandler {
+    /// HTTP/2 dispatch: bridge one h2 stream through the router.
+    ///
+    /// Unlike [`dispatch`](Self::dispatch) this never materialises a
+    /// `SimpleOutgoingResponse` for streaming procedures — response frames are
+    /// pushed into `tx` as the handler produces them, and request DATA frames
+    /// are forwarded into the protocol's byte pipe as they arrive.
+    pub fn dispatch_h2(
+        &self,
+        bag: Arc<ContextBag>,
+        header: SimpleIncomingRequestHeader,
+        body: PipeReceiver<H2IncomingFrame>,
+        tx: PipeSender<H2Frame>,
+    ) -> BoxFuture<'static, io::Result<()>> {
+        let router = self.router.clone();
+        Box::pin(dispatch_h2_stream(router, bag, header, body, tx))
+    }
+}
+
+async fn dispatch_h2_stream(
+    router: Arc<Router>,
+    bag: Arc<ContextBag>,
+    header: SimpleIncomingRequestHeader,
+    body: PipeReceiver<H2IncomingFrame>,
+    tx: PipeSender<H2Frame>,
+) -> io::Result<()> {
+    let request = request_from_header(&header);
+    let path = extract_path(&request.request_url.url);
+
+    // Decision phase — identical to `dispatch_request`, but every rejection is
+    // serialized as h2 frames rather than returned.
+    let Some(entry) = router.lookup(&path) else {
+        return send_whole_response(&tx, status_only(&request, Status::NotFound)).await;
+    };
+
+    let allowed = allowed_methods(entry);
+    if !allowed.iter().any(|m| *m == request.method) {
+        return send_whole_response(&tx, method_not_allowed(&request, &allowed)).await;
+    }
+
+    let Some(protocol) = entry
+        .protocol_handlers
+        .iter()
+        .find(|p| p.can_handle(&request))
+    else {
+        return send_whole_response(&tx, unsupported_media_type(&request, entry)).await;
+    };
+    let protocol = protocol.as_ref();
+
+    let Some(codec_name) = protocol.codec_name(&request) else {
+        return send_whole_response(&tx, unsupported_media_type(&request, entry)).await;
+    };
+    if !entry.codec_meta.has_codec(&codec_name) {
+        return send_whole_response(&tx, unsupported_media_type(&request, entry)).await;
+    }
+
+    let caps = capabilities_for(&request.proto);
+    let reqs = requirements(protocol.kind(), entry.spec.stream_type);
+    if check_compatible(&reqs, &caps).is_err() {
+        return send_whole_response(&tx, http_version_not_supported(&request)).await;
+    }
+
+    if entry.options.require_connect_protocol_header && protocol.kind() == ProtocolKind::Connect {
+        if let Err(e) = require_connect_version(&request) {
+            let mut response = blank_response(&request);
+            write_error(&mut response, &request, &e);
+            return send_whole_response(&tx, response).await;
+        }
+    }
+
+    let compression = entry
+        .options
+        .compression
+        .as_ref()
+        .unwrap_or_else(|| router.global_compression());
+    let ctx = build_ctx(bag, &request, entry.spec.clone(), protocol);
+    let spec = entry.spec.clone();
+    let pipe_depth = entry.options.pipe_depth;
+
+    match &entry.handler {
+        HandlerKind::Unary(handler) => {
+            // Unary carries exactly one message: collect it, then reuse the
+            // sequential unary path.
+            let Some(collected) = collect_h2_body(&body).await else {
+                // Peer reset the stream — nothing to answer.
+                return Ok(());
+            };
+            let mut request = request;
+            request.body = Some(SendSafeBody::Bytes(collected));
+
+            let response =
+                run_unary(handler.clone(), protocol, request, codec_name, compression, ctx).await;
+            send_whole_response(&tx, response).await
+        }
+        HandlerKind::ServerStream(handler)
+        | HandlerKind::ClientStream(handler)
+        | HandlerKind::BidiStream(handler) => {
+            run_streaming_h2(
+                handler.clone(),
+                protocol,
+                request,
+                spec,
+                codec_name,
+                compression,
+                ctx,
+                pipe_depth,
+                body,
+                &tx,
+            )
+            .await
+        }
+    }
+}
+
+/// Streaming over h2: request DATA frames feed the protocol's byte pipe while
+/// the protocol's output pipe drains into response DATA frames — concurrently,
+/// so a bidi handler can read and write at the same time.
+#[allow(clippy::too_many_arguments)]
+async fn run_streaming_h2(
+    handler: Arc<dyn super::erased::ErasedStreamHandler>,
+    protocol: &dyn ProtocolHandler,
+    request: SimpleIncomingRequest,
+    spec: Spec,
+    codec_name: String,
+    compression: &crate::compression::CompressionRegistry,
+    ctx: Ctx,
+    pipe_depth: usize,
+    body: PipeReceiver<H2IncomingFrame>,
+    tx: &PipeSender<H2Frame>,
+) -> io::Result<()> {
+    let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
+    let (resp_tx, resp_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
+
+    let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, compression) {
+        Ok(exchange) => exchange,
+        Err(e) => {
+            let mut response = blank_response(&request);
+            write_error(&mut response, &request, &e);
+            return send_whole_response(tx, response).await;
+        }
+    };
+    let crate::protocol::HandlerExchange {
+        conn,
+        reader_task,
+        writer_task,
+    } = exchange;
+
+    // Forward inbound DATA frames as they arrive — no buffering of the body.
+    let feeder = async {
+        while let Some(frame) = body.receive().await {
+            match frame {
+                H2IncomingFrame::Data(chunk) => {
+                    if req_tx.send(chunk).await.is_err() {
+                        break;
+                    }
+                }
+                H2IncomingFrame::Reset(_) => break,
+            }
+        }
+        req_tx.close();
+    };
+
+    // Forward framed response bytes out as DATA frames. HEADERS are withheld
+    // until the first chunk so that a handler which fails before emitting
+    // anything can still be reported with a real status.
+    let content_type = protocol.streaming_response_content_type(&request, &codec_name);
+    let pump = async {
+        let mut opened = false;
+        while let Some(chunk) = resp_rx.receive().await {
+            if !opened {
+                opened = true;
+                let headers = vec![(
+                    Bytes::from_static(b"content-type"),
+                    Bytes::from(content_type.clone()),
+                )];
+                tx.send(H2Frame::Headers {
+                    status: 200,
+                    headers,
+                    end_stream: false,
+                })
+                .await
+                .map_err(stream_gone)?;
+            }
+            tx.send(H2Frame::Data {
+                payload: chunk,
+                end_stream: false,
+            })
+            .await
+            .map_err(stream_gone)?;
+        }
+        Ok::<bool, io::Error>(opened)
+    };
+
+    let handler_fut = handler.handle(ctx, &codec_name, conn);
+
+    let (_, reader_res, writer_res, handler_res, pumped) =
+        futures::join!(feeder, reader_task, writer_task, handler_fut, pump);
+
+    if pumped? {
+        // The stream framed itself (including any in-band terminal error);
+        // close the response direction.
+        tx.send(H2Frame::Data {
+            payload: Bytes::new(),
+            end_stream: true,
+        })
+        .await
+        .map_err(stream_gone)?;
+        return Ok(());
+    }
+
+    // Nothing was emitted: report the failure, or an empty successful stream.
+    let mut response = blank_response(&request);
+    if let Some(e) = handler_res.err().or(writer_res.err()).or(reader_res.err()) {
+        write_error(&mut response, &request, &e);
+    } else {
+        response.status = Status::OK;
+        response
+            .headers
+            .insert(SimpleHeader::CONTENT_TYPE, vec![content_type]);
+    }
+    send_whole_response(tx, response).await
 }

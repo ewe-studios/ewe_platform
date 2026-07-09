@@ -26,6 +26,10 @@ pub mod router;
 #[cfg(not(target_family = "wasm"))]
 pub mod server;
 
+/// HTTP/2 server connection-owner adapter (foundation_http `H2Serve`).
+#[cfg(not(target_family = "wasm"))]
+pub mod h2_serve;
+
 pub use error_writer::ErrorWriter;
 pub mod protocol;
 pub mod transport;
@@ -61,6 +65,8 @@ pub use client::{BidiStream, Client, ClientOptions, ClientStream, ServerStream};
 
 #[cfg(not(target_family = "wasm"))]
 pub use server::ConnectRpcServe;
+#[cfg(not(target_family = "wasm"))]
+pub use h2_serve::ConnectRpcServeH2;
 
 pub use protocol::{
     canonicalize_content_type, parse_connect_content_type, ClientExchange, HandlerExchange,

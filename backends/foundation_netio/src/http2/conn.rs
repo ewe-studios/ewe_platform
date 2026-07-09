@@ -20,26 +20,31 @@ use crate::netcap::RawStream;
 
 use crate::http2::connection::H2Connection;
 use crate::http2::frame::{Head, HeadersFrame, DataFrame, ResetFrame, headers_flags, data_flags};
+use crate::http2::hpack;
 use crate::http2::types::H2Frame;
 
 /// Concrete HTTP/2 connection — the h2 equivalent of
 /// [`SharedByteBufferStream<RawStream>`] for HTTP/1.1.
 pub struct H2Conn {
     inner: H2Connection<SharedByteBufferStream<RawStream>>,
+    /// HPACK decoding is stateful for the life of the connection: the peer may
+    /// reference dynamic-table entries established by an earlier HEADERS frame.
+    /// A per-call decoder would fail to resolve those indices.
+    hpack_dec: hpack::Decoder,
 }
 
 impl H2Conn {
     /// Create a new server-side connection (allocates even push stream IDs).
     #[must_use]
     pub fn new_server(stream: SharedByteBufferStream<RawStream>) -> Self {
-        Self { inner: H2Connection::new(stream, true) }
+        Self { inner: H2Connection::new(stream, true), hpack_dec: hpack::Decoder::new() }
     }
 
     /// Create a new client-side connection (allocates odd stream IDs).
     #[must_use]
     #[allow(dead_code)]
     pub fn new_client(stream: SharedByteBufferStream<RawStream>) -> Self {
-        Self { inner: H2Connection::new(stream, false) }
+        Self { inner: H2Connection::new(stream, false), hpack_dec: hpack::Decoder::new() }
     }
 
     /// Run the server-side h2 handshake (read client preface + SETTINGS exchange).
@@ -63,11 +68,10 @@ impl H2Conn {
         self.inner.flush()
     }
 
-    /// Decode an HPACK header block into (name, value) pairs.
+    /// Decode an HPACK header block into (name, value) pairs, advancing the
+    /// connection's dynamic table.
     pub fn decode_headers(&mut self, block: &[u8]) -> Result<Vec<(Bytes, Bytes)>, &'static str> {
-        use crate::http2::hpack;
-        let mut dec = hpack::Decoder::new();
-        dec.decode(block)
+        self.hpack_dec.decode(block)
     }
 
     /// Encode an [`H2Frame`] for a stream into the connection's write buffer.
@@ -75,7 +79,10 @@ impl H2Conn {
     pub fn encode_frame(&mut self, stream_id: u32, frame: &H2Frame) {
         match frame {
             H2Frame::Headers { status, headers, end_stream } => {
-                use crate::http2::hpack;
+                // A fresh encoder never emits dynamic-table indices (its table is
+                // empty), so every field goes out as a literal — wasteful but
+                // always decodable. Sharing one encoder across frames would be
+                // the optimisation, and is tracked separately.
                 let mut hpack_enc = hpack::Encoder::new();
                 let mut header_block = BytesMut::new();
                 let status_bytes = status.to_string();
