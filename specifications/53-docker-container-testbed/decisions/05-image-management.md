@@ -1,17 +1,20 @@
 # 05 — Image Management
 
-**Date:** 2026-07-08
+**Date:** 2026-07-10
 **Status:** Resolved
 
 ## Decision
 
-Provide Docker images via **two complementary paths**: (1) multi-stage
-Dockerfiles checked into the crate that define each profile's build environment,
-and (2) pre-built images pushed to a container registry (GitHub Container
-Registry or similar) for fast cold-start on CI. Image resolution follows the
-same priority chain as the existing QEMU image import: environment variable
-override → local cache (Docker image cache) → pull from registry → build from
-Dockerfile.
+Provide Docker images via **three complementary paths**: (1) `DockerfileConfig`
+(decision 02) — the canonical Rust type for defining a Dockerfile, supporting
+both inline strings (`include_str!` or dynamic) and file-on-disk paths,
+combined with `build_once()` for atomic build-or-reuse semantics; (2) pre-built
+images pulled from a container registry (GitHub Container Registry or similar)
+for fast cold-start on CI; and (3) existing upstream images (dockurr/windows,
+postgres:16, redis:7) used directly with no build step.
+
+Image resolution follows a priority chain: environment variable override →
+local Docker cache → registry pull → `DockerfileConfig` build → error.
 
 ## Table of Contents
 

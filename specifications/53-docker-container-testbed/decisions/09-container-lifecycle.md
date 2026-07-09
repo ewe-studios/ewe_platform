@@ -69,8 +69,8 @@ impl ContainerHandle {
 }
 ```
 
-The method is async (requires bollard's tokio runtime). Sync callers use
-`ContainerHandle::start(cfg).await`.
+The method is async. Sync callers use `futures_lite::block_on` (re-exported by
+`foundation_deployment_platform`) or `.await` inside valtron's `block_on_future`.
 
 ### Error handling within start()
 
@@ -88,6 +88,8 @@ not leak.
 ## ContainerHandle::Drop
 
 ```rust
+use futures_lite::future::block_on;  // re-exported by foundation_deployment_platform
+
 impl Drop for ContainerHandle {
     fn drop(&mut self) {
         let docker = self.docker.clone();
@@ -96,7 +98,8 @@ impl Drop for ContainerHandle {
 
         // Best-effort: stop with timeout, then force-remove.
         // Errors are logged at warn level, never propagated from Drop.
-        // Drop calls bollard via Handle::current().block_on(async move {
+        // futures_lite::block_on bridges the async bollard calls from sync Drop.
+        let _ = block_on(async {
             // 1. Stop (graceful)
             let stop_opts = bollard::container::StopContainerOptions { t: timeout as i64 };
             let _ = docker.stop_container(&id, Some(stop_opts)).await;
@@ -118,9 +121,9 @@ Key properties:
   test failure.
 - **Best-effort** — Stop/remove failures are logged (tracing::warn!) not
   propagated. A stuck container is better than a double-panic abort.
-- **Uses the current tokio runtime** — `Handle::current().block_on()` from Drop.
-  Safe because Drop only fires from sync contexts (stack unwinding, explicit
-  drop, end of scope).
+- **`futures_lite::block_on`** bridges async bollard calls from the sync Drop
+  context. Safe because Drop only fires from sync contexts (stack unwinding,
+  explicit drop, end of scope) where no async reactor is mid-poll.
 
 ---
 
