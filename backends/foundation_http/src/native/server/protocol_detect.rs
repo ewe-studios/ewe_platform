@@ -159,11 +159,7 @@ impl ProtocolDetectHandler {
                 client = %self.client_ip,
                 "HTTP/1.1 request on an HTTP/2-only server; refusing with 505"
             );
-            let _ = respond::text(
-                &mut self.stream.clone(),
-                505,
-                "HTTP Version Not Supported",
-            );
+            let _ = respond::text(&mut self.stream.clone(), 505, "HTTP Version Not Supported");
             return;
         };
 
