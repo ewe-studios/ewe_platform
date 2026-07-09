@@ -163,6 +163,125 @@ pub fn with_raw_config(mut self, f: impl FnOnce(&mut bollard::container::Config<
 
 This preserves the 90% ergonomic case while providing a back door for the 10%.
 
+### Custom Dockerfiles extending base images
+
+vm-uncloud's `dev-windows` recipe demonstrates the pattern: extend a base
+dockurr image with a custom Dockerfile that bakes OEM provisioning scripts,
+then use the built image. We provide the same via `DockerfileConfig`:
+
+```rust
+/// A Dockerfile definition that can be built into an image.
+pub struct DockerfileConfig {
+    /// Dockerfile content (use include_str!("Dockerfile") or a dynamic string)
+    pub dockerfile: String,
+    /// Build context directory for COPY/ADD. Defaults to crate root.
+    pub context: PathBuf,
+    /// Build args
+    pub build_args: Vec<(String, String)>,
+    /// Tag for the built image (e.g., "testbed/dev-windows:latest")
+    pub tag: String,
+    /// Platform (e.g., "linux/amd64"). Auto-detected if None.
+    pub platform: Option<String>,
+}
+
+/// Result of building a Dockerfile, ready for ContainerServiceDefinition.
+pub struct ImageBuildResult {
+    pub image_tag: String,      // e.g., "testbed/dev-windows:latest"
+    pub sha256: String,         // SHA256 digest (for pinning)
+    pub was_cached: bool,       // reused existing image (no rebuild)
+}
+```
+
+**`build_once()`** — atomic build-or-reuse: checks if `tag` already exists
+locally (via `DockerClient::image_exists`). If yes, returns `ImageBuildResult`
+with `was_cached: true` — the built image is reused. If no, builds the
+Dockerfile via bollard's `build_image()`, tags the result, and returns the
+SHA. Subsequent calls reuse the cached image indefinitely.
+
+**`ContainerServiceDefinition::from_build(result)`** — consumes the build
+result, pointing the container to the built image instead of a registry pull:
+
+```rust
+let result = DockerfileConfig::new(include_str!("Dockerfile.dev-windows"))
+    .arg("DEV_USER", "vagrant")
+    .tag("testbed/dev-windows:latest")
+    .build_once()?;
+
+let windows = ContainerServiceDefinition::from_build(result)
+    .env("VERSION", "11")
+    .env("RAM_SIZE", "12G")
+    .device("/dev/kvm")
+    .port_mapped(3389, 3389);
+```
+
+### Platform-specific convenience functions
+
+For the common case — dockurr base images with baked provisioning scripts —
+we provide convenience functions that return pre-configured
+`ContainerServiceDefinition` values with the script injected:
+
+**`docker_windows(script: &str, tag: &str) -> ContainerServiceDefinition`**
+Extends `dockurr/windows:5.15` with a script written to `/oem/install.bat`
+(baked into the image at build time, not mounted at runtime):
+
+```rust
+fn docker_windows(script: &str, tag: &str) -> ContainerServiceDefinition {
+    let dockerfile = format!(
+        "FROM dockurr/windows:5.15\n\
+         RUN mkdir -p /oem && echo '{}' > /oem/install.bat\n",
+        script
+    );
+    let result = DockerfileConfig::inline(dockerfile).tag(tag).build_once()
+        .expect("failed to build custom Windows image");
+    ContainerServiceDefinition::from_build(result)
+        .env("VERSION", "11")
+        .env("RAM_SIZE", "12G")
+        .device("/dev/kvm")
+        .cap_add("NET_ADMIN")
+        .port_mapped(3389, 3389)
+}
+```
+
+**`docker_macos(version: &str, tag: &str) -> ContainerServiceDefinition`**
+Same pattern, extends `dockurr/macos:latest`.
+
+**`docker_linux(script: &str, tag: &str) -> ContainerServiceDefinition`**
+Extends `ubuntu:24.04` with SSH setup + an init script at
+`/usr/local/bin/testbed-init.sh`, executed on startup:
+
+```rust
+fn docker_linux(script: &str, tag: &str) -> ContainerServiceDefinition {
+    let dockerfile = format!(
+        "FROM ubuntu:24.04\n\
+         RUN apt-get update && apt-get install -y openssh-server && mkdir /run/sshd\n\
+         RUN echo 'PermitRootLogin yes' >> /etc/ssh/sshd_config\n\
+         COPY testbed_key.pub /root/.ssh/authorized_keys\n\
+         RUN echo '{}' > /usr/local/bin/testbed-init.sh && chmod +x /usr/local/bin/testbed-init.sh\n\
+         CMD [\"/usr/sbin/sshd\", \"-D\"]\n",
+        script
+    );
+    let result = DockerfileConfig::inline(dockerfile).tag(tag).build_once()
+        .expect("failed to build custom Linux image");
+    ContainerServiceDefinition::from_build(result)
+        .port(22)
+}
+```
+
+### Key guarantees
+
+1. **Atomic build** — `build_once()` checks for an existing image by tag.
+   If found, returns it immediately (zero overhead). If not, builds exactly
+   once. No "build every test run" penalty.
+2. **Script baked, not mounted** — The provisioning script lives in the image
+   layer, not in a volume mount. This makes the image self-contained and
+   reproducible across hosts. Same as vm-uncloud's `dev-windows` pattern
+   (`/oem/install.bat` baked via `COPY` in the Dockerfile).
+3. **SHA pinning** — `ImageBuildResult.sha256` is available for deterministic
+   pinning. Pass it to CI for reproducible builds, or ignore it for dev.
+4. **Applies to all three platforms** — Windows, macOS, and Linux each get
+   a `docker_<platform>()` function with baked-in provisioning. Users provide
+   the script via `include_str!()` at compile time.
+
 For the Compose path:
 
 ```yaml
@@ -202,6 +321,11 @@ we use a two-phase approach:
    bootstrap flow (install OpenSSH, configure keys) — exactly as the current
    Windows QEMU bootstrap does. This works because dockurr's Windows is a real
    Windows VM, reachable on the host's ports.
+
+   The custom-Dockerfile pattern from the Integration Approach section above
+   (`DockerfileConfig` + `build_once()` + `docker_windows()`) handles script
+   injection at image build time — scripts baked via `/oem/install.bat` rather
+   than mounted at runtime, making the image self-contained and reproducible.
 
 This means the **existing Windows bootstrap code is fully reused** — only the
 VM launch mechanism changes (QEMU args → dockurr container config).
