@@ -12,13 +12,36 @@ code that `.await`s. Users drive execution with `#[valtron_test]` /
 `#[valtron]` (which already bridge async → sync via `block_on_future`) or any
 tokio runtime. No custom `block_on` wrapper, no internal tokio singleton.
 
+### Principle: async core, sync wrappers at the boundary
+
+Every type is **async-first**: `ContainerHandle`, `ContainerGroup`,
+`DockerClient`, `NetworkHandle` — all methods that touch the Docker API are
+`async fn`. Sync callers (the `Provider` trait, `Drop`, CLI, tests without
+valtron) call `futures_lite::block_on` (re-exported) at the boundary. This
+gives us the best of both worlds:
+
+```
+Caller                    Bridge                     Core
+──────────────────────────────────────────────────────────
+#[valtron_test] async fn  → .await                   async fn
+#[valtron_test] sync fn   → block_on_future → .await  async fn
+Provider trait (sync)     → futures_lite::block_on   async fn
+ContainerHandle::Drop     → futures_lite::block_on   async fn
+#[tokio::main] async fn   → .await                   async fn
+```
+
+No sync wrappers pollute the core types — `ContainerHandle` has exactly one
+`start()` method, `async fn`. Sync callers pay the one-line `block_on` tax
+at their boundary. This keeps the core clean and the sync concern localized.
+
 ## Table of Contents
 
 1. [Why bollard requires tokio](#why-bollard-requires-tokio)
 2. [Core API is async](#core-api-is-async)
-3. [valtron handles the sync boundary](#valtron-handles-the-sync-boundary)
+3. [Sync bridges at the boundary](#sync-bridges-at-the-boundary)
 4. [Macro generates async code](#macro-generates-async-code)
 5. [Drop behavior](#drop-behavior)
+6. [Dependency budget](#dependency-budget)
 6. [Dependency budget](#dependency-budget)
 
 ---
@@ -59,21 +82,25 @@ impl DockerClient {
 }
 ```
 
+Note: `host_port()` and `id()` are sync — they read cached data populated during
+`start()`. No async overhead for post-start inspection.
+
 ---
 
-## valtron handles the sync boundary
+## Sync bridges at the boundary
 
-No custom `block_on` anywhere. The workspace already has the boundary:
+The core is async. Sync callers bridge at their boundary using the simplest
+tool available:
 
-- **`#[valtron_test]`** — initializes the valtron pool + tokio reactor, wraps
-  the test body with `block_on_future(async { ... })`. The test signature can
-  be `async fn` and the macro bridges it to `#[test] fn`.
-- **`#[valtron]`** — same bridge for `main()` or regular functions.
+| Caller | Bridge | What happens |
+|--------|--------|-------------|
+| `#[valtron_test] async fn` | `.await` | valtron pool + tokio reactor already live; bollard futures compose naturally |
+| `#[valtron_test] sync fn` | `block_on_future(async { ... })` | valtron bridges the whole async block to `#[test] fn` |
+| `Provider` trait (sync) | `futures_lite::block_on(...)` | `DockerProvider::launch()` → `block_on(ContainerHandle::start(cfg))` |
+| `ContainerHandle::Drop` | `futures_lite::block_on(...)` | Drop is sync; bollard stop/remove calls are async — bridged inline |
+| `#[tokio::main]` | `.await` | Standard tokio async main
 
-The `#[docker_container]` macro generates code INSIDE this boundary — it
-`.await`s the Docker futures directly. The user never sees `block_on`.
-
-For standalone use without valtron (CLI, tokio::main):
+For standalone use without valtron (CLI):
 
 ```rust
 #[tokio::main]
