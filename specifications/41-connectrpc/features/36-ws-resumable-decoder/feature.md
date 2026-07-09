@@ -1,7 +1,7 @@
 ---
 feature: "WebSocket resumable frame decoder (D13 E1)"
 description: "WebSocketFrameDecoder as the WS impl of IncrementalDecoder; partial-frame state across polls"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 4
 depends_on: ["04-incremental-decoder"]
