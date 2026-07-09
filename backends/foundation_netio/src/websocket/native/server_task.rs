@@ -16,6 +16,7 @@
 //! `Ready`. Control frames (Ping/Close) are handled per `WsServerConfig`.
 
 use std::sync::Arc;
+use std::time::Duration;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::io::ioutils::SharedByteBufferStream;
@@ -31,6 +32,18 @@ use crate::websocket::shared::message::WebSocketMessage;
 
 use foundation_core::io::{DecodeStep, IncrementalDecoder};
 
+/// How the server task parks when the stream has no data ready.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum ReadModel {
+    /// Yield the worker with a short delay — no reactor dependency.
+    /// Safe default for all platforms.
+    Poll,
+    /// Park on the reactor via `TaskStatus::Depends(RegisteredFd)`.
+    /// Requires a reactor Registry (see F40 shared reactor). Falls back
+    /// to `Poll` when no reactor is available.
+    Depends,
+}
+
 /// Configuration for a [`WebSocketServerTask`].
 #[derive(Clone)]
 pub struct WsServerConfig {
@@ -40,6 +53,8 @@ pub struct WsServerConfig {
     pub max_message_size: usize,
     /// Whether to echo a Close frame and perform a graceful close handshake.
     pub graceful_close: bool,
+    /// How the task parks when no data is available.
+    pub read_model: ReadModel,
 }
 
 impl Default for WsServerConfig {
@@ -48,9 +63,13 @@ impl Default for WsServerConfig {
             auto_pong: true,
             max_message_size: 64 * 1024 * 1024,
             graceful_close: true,
+            read_model: ReadModel::Poll,
         }
     }
 }
+
+/// Poll-backoff delay when the stream is idle and no reactor is available.
+const IDLE_POLL_DELAY_MS: u64 = 1;
 
 /// Progress-driven WebSocket server task for valtron integration.
 ///
@@ -247,8 +266,14 @@ impl TaskIterator for WebSocketServerTask {
                 }
             }
             Ok(DecodeStep::Pending) => {
-                // No complete frame yet — parked, not spinning.
-                return Some(TaskStatus::Pending(()));
+                // No data available. With Poll: yield the worker briefly.
+                // With Depends: would return Depends(registered_fd) once
+                // the shared reactor (F40) provides a Registry. The fallback
+                // is an explicit short delay — avoids a hot spin while
+                // keeping the task schedulable without a reactor.
+                return Some(TaskStatus::Delayed(Duration::from_millis(
+                    IDLE_POLL_DELAY_MS,
+                )));
             }
             Err(_e) => {
                 self.draining = true;

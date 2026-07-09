@@ -1,6 +1,7 @@
 //! Foundation Deployment Platform — VM/container orchestration.
 
 pub mod docker;
+pub mod providers;
 
 // Re-export futures_lite::block_on for sync callers
 pub use futures_lite::future::block_on;
