@@ -17,7 +17,7 @@ use foundation_core::synca::{OnSignal, WaitGroupGuard};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::simple_http::shared::{
-    HTTPStreams, Http11, HttpReaderError, RenderHttp, SimpleHeader, SimpleIncomingRequest,
+    HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SimpleHeader, SimpleIncomingRequest,
     SimpleOutgoingResponse,
 };
 use foundation_errstacks::ErrorTrace;
@@ -146,6 +146,22 @@ impl ConnectionHandler {
         false
     }
 
+    /// Whether this HTTP/1.x handler is willing to speak `proto`.
+    ///
+    /// WHY: `Proto::from_str` is infallible — an unrecognised token in the
+    /// request line (`GET / SPDY/3.1`) becomes `Proto::Custom(..)` rather than a
+    /// parse error, and `detect_protocol` only forks h2c-preface vs
+    /// everything-else. Nothing below this point inspects the version, so
+    /// without this gate a peer can name *any* protocol and still be routed and
+    /// served as though it had said HTTP/1.1.
+    ///
+    /// HOW: Callers reject on `false` with `505` and close the connection —
+    /// a version we did not agree to speak is a version whose message framing
+    /// we cannot trust, so the connection cannot be reused (RFC 7231 §6.6.6).
+    fn is_supported_proto(proto: &Proto) -> bool {
+        matches!(proto, Proto::HTTP10 | Proto::HTTP11)
+    }
+
     fn has_body(req: &SimpleIncomingRequest) -> bool {
         req.headers
             .get(&SimpleHeader::CONTENT_LENGTH)
@@ -224,6 +240,23 @@ impl ConnectionHandler {
 
         match read_next_request(&self.streams, &self.client_ip, &self.connection) {
             Some(Ok(req)) => {
+                // Version gate, before the body is read and before any
+                // middleware or route lookup can observe the request.
+                if !Self::is_supported_proto(&req.proto) {
+                    tracing::warn!(
+                        client_ip = %self.client_ip,
+                        proto = %req.proto,
+                        method = %req.method,
+                        "Idle: unsupported HTTP version on HTTP/1.x connection, sending 505"
+                    );
+                    let _ = respond::text(
+                        &mut self.conn.clone(),
+                        505,
+                        "HTTP Version Not Supported",
+                    );
+                    return None;
+                }
+
                 let should_close =
                     req.headers
                         .get(&SimpleHeader::CONNECTION)

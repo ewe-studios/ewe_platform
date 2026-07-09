@@ -140,6 +140,7 @@ fn status_from_code(code: u16) -> Status {
         502 => Status::BadGateway,
         503 => Status::ServiceUnavailable,
         504 => Status::GatewayTimeout,
+        505 => Status::HttpVersionNotSupported,
         n => Status::Numbered(n as usize, String::new()),
     }
 }

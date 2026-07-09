@@ -45,13 +45,25 @@ pub enum DetectedProtocol {
 }
 
 /// Detect the protocol from peeked bytes.
+///
+/// Decides as soon as the evidence allows, which is *not* the same as waiting
+/// for 24 bytes. A complete HTTP/1.1 request can be shorter than the preface
+/// (`GET / HTTP/1.1\r\n\r\n` is 18 bytes); demanding 24 before ruling out h2c
+/// would stall such a request until the caller's detection timeout and then
+/// drop it unanswered. Once the buffered bytes diverge from the preface at any
+/// position, no continuation can make them h2c, so we can answer immediately.
+///
+/// [`DetectedProtocol::NeedMore`] therefore means only "what we have so far is
+/// still a viable prefix of the preface" — the peer may yet be an h2c client
+/// whose preface arrived split across segments.
 #[must_use]
 pub fn detect_protocol(peeked: &[u8]) -> DetectedProtocol {
-    if peeked.len() >= H2C_PREFACE_PEEK_LEN && is_h2c_preface(peeked) {
+    let common = peeked.len().min(CLIENT_PREFACE.len());
+    if peeked[..common] != CLIENT_PREFACE[..common] {
+        return DetectedProtocol::Http11;
+    }
+    if peeked.len() >= H2C_PREFACE_PEEK_LEN {
         DetectedProtocol::H2
-    } else if peeked.len() >= H2C_PREFACE_PEEK_LEN {
-        // Got enough bytes and it's not the h2c preface — it's HTTP/1.1.
-        DetectedProtocol::Http11
     } else {
         DetectedProtocol::NeedMore
     }

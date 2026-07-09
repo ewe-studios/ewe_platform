@@ -10,6 +10,11 @@
 //! does `read_exact` return `Err` — and by then it has consumed and discarded
 //! everything it read so far. `peek`, by contrast, consumes nothing.
 //!
+//! `peek` follows the same rule as `read` on a stall: buffered bytes come back
+//! as a short count, and `WouldBlock` is reported only when *nothing* is
+//! buffered. Reporting `WouldBlock` while holding bytes would strand any caller
+//! whose message is shorter than the amount it asked to peek.
+//!
 //! WHAT: A `Chunky` reader replaying a scripted sequence of reads so the
 //! buffered-reader behaviour is deterministic.
 
@@ -195,13 +200,17 @@ fn header_then_payload_reads_leave_nothing_half_consumed() {
 
 /// An interrupted `peek` consumes nothing, so a later `peek` sees the whole
 /// preface. This is what makes "pre-buffer, then consume" sound.
+///
+/// The stalled first `peek` returns the bytes it *does* have rather than
+/// `WouldBlock`; see [`peek_with_buffered_data_returns_short_count_on_stall`].
 #[test]
 fn peek_interrupted_by_would_block_consumes_nothing() {
     let reader = Chunky::new(vec![Ok(PREFACE[..10].to_vec()), wb(), Ok(PREFACE[10..].to_vec())]);
     let mut stream = SharedByteBufferStream::rwrite(reader);
 
     let mut buf = [0u8; 24];
-    assert!(stream.peek(&mut buf).is_err(), "peek could not satisfy 24 bytes");
+    let short = stream.peek(&mut buf).expect("a stall with data buffered is not an error");
+    assert_eq!(short, 10, "peek yields the 10 bytes it holds, not all 24");
 
     let mut buf2 = [0u8; 24];
     let n = stream.peek(&mut buf2).expect("second peek");
@@ -211,6 +220,89 @@ fn peek_interrupted_by_would_block_consumes_nothing() {
     let mut consumed = [0u8; 24];
     stream.read_exact(&mut consumed).expect("read after peek");
     assert_eq!(&consumed, PREFACE);
+}
+
+/// A stalled `peek` that already holds bytes hands them back short rather than
+/// reporting `WouldBlock`.
+///
+/// WHY this matters beyond tidiness: protocol detection peeks 24 bytes (the h2c
+/// preface length), but a complete HTTP/1.1 request can be shorter than that —
+/// `GET / HTTP/1.1\r\n\r\n` is 18 bytes. If `peek` discarded those 18 buffered
+/// bytes and said `WouldBlock`, the detector would never see them, would retry
+/// forever against a peer that has already said everything it intends to say,
+/// and would drop the connection at its detection timeout. Short reads keep the
+/// bytes reachable.
+#[test]
+fn peek_with_buffered_data_returns_short_count_on_stall() {
+    let request = b"GET / HTTP/1.1\r\n\r\n";
+    assert!(request.len() < 24, "fixture must be shorter than the peek request");
+
+    let reader = Chunky::new(vec![Ok(request.to_vec()), wb(), wb()]);
+    let mut stream = SharedByteBufferStream::rwrite(reader);
+
+    let mut buf = [0u8; 24];
+    for attempt in 1..=3 {
+        let n = stream
+            .peek(&mut buf)
+            .unwrap_or_else(|e| panic!("peek {attempt} must not fail with buffered data: {e:?}"));
+        assert_eq!(n, request.len(), "peek {attempt} yields every buffered byte");
+        assert_eq!(&buf[..n], request, "peek {attempt} yields the right bytes");
+    }
+}
+
+/// Peeking short must not corrupt `read_exact`'s transient-vs-terminal split.
+///
+/// `read_exact` is built on `peek`, so once `peek` began returning buffered
+/// bytes short on a stall, `read_exact` had no way to tell "the peer paused
+/// after 10 of 24 bytes" from "the peer hung up after 10 of 24 bytes" — and it
+/// reported the pause as `UnexpectedEof`, telling callers to give up on a
+/// connection that was merely slow. The two must stay distinguishable.
+#[test]
+fn a_short_peek_does_not_make_read_exact_mistake_a_stall_for_eof() {
+    // Stall: 10 bytes, then WouldBlock forever. Must be WouldBlock (retry).
+    let stalled = Chunky::new(vec![Ok(PREFACE[..10].to_vec()), wb(), wb()]);
+    let mut stream = SharedByteBufferStream::rwrite(stalled);
+    let mut buf = [0u8; 24];
+    let err = stream.read_exact(&mut buf).expect_err("cannot fill 24 bytes");
+    assert_eq!(
+        err.kind(),
+        io::ErrorKind::WouldBlock,
+        "a paused peer is a retry, not an end-of-stream"
+    );
+
+    // EOF: 10 bytes, then the socket closes. Must be UnexpectedEof (give up).
+    let ended = Chunky::new(vec![Ok(PREFACE[..10].to_vec())]);
+    let mut stream = SharedByteBufferStream::rwrite(ended);
+    let mut buf = [0u8; 24];
+    let err = stream.read_exact(&mut buf).expect_err("cannot fill 24 bytes");
+    assert_eq!(
+        err.kind(),
+        io::ErrorKind::UnexpectedEof,
+        "a hung-up peer must not invite an infinite retry"
+    );
+}
+
+/// The other half of the contract: a stall with *nothing* buffered is a genuine
+/// "come back later" and must still surface `WouldBlock`, so callers park rather
+/// than mistake it for end-of-stream.
+#[test]
+fn peek_stalled_with_nothing_buffered_still_reports_would_block() {
+    let reader = Chunky::new(vec![wb(), Ok(PREFACE.to_vec())]);
+    let mut stream = SharedByteBufferStream::rwrite(reader);
+
+    let mut buf = [0u8; 24];
+    let err = stream.peek(&mut buf).expect_err("an empty stall is WouldBlock");
+    match err {
+        foundation_core::io::ioutils::PeekError::IOError(e) => {
+            assert_eq!(e.kind(), io::ErrorKind::WouldBlock);
+        }
+        other => panic!("expected WouldBlock, got {other:?}"),
+    }
+
+    // And the stream is still usable once the data lands.
+    let n = stream.peek(&mut buf).expect("peek after the stall clears");
+    assert_eq!(n, 24);
+    assert_eq!(&buf, PREFACE);
 }
 
 /// Once `peek` has buffered the bytes, `read_exact` is served entirely from

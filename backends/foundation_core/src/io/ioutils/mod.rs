@@ -1083,7 +1083,11 @@ impl<T: Read> PeekableReadStream for SharedByteBufferStream<T> {
         self.0
             .do_once_mut(|binding| match binding.peekby(buf.len()) {
                 Ok(state) => match state {
-                    PeekState::Request(data) => {
+                    // `Stalled` carries real bytes too — the peer simply has not
+                    // finished speaking. A peeker wants to look at whatever is
+                    // there (a whole short request may already have arrived), so
+                    // both states hand their data over.
+                    PeekState::Request(data) | PeekState::Stalled(data) => {
                         let ending = if buf.len() > data.len() {
                             data.len()
                         } else {
@@ -1172,14 +1176,15 @@ impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
     /// The two ways of coming up short are kept strictly apart, because callers
     /// act on them very differently:
     ///
-    /// - **Transient** (the peer is just slow): `peekby` propagates the reader's
-    ///   error, so `WouldBlock` reaches the caller unchanged and it retries.
-    ///   Nothing was consumed, so the retry sees the message from the start.
-    /// - **Terminal** (the peer closed mid-message): `peekby` can only return
-    ///   `Ok` with fewer bytes than asked for by breaking on `fill_up() == 0`,
-    ///   and `Read::read` returning `0` *is* end-of-stream. No further bytes will
-    ///   ever arrive, so this reports `UnexpectedEof` as `read_exact` must.
-    ///   Reporting `WouldBlock` here would invite the caller to retry forever.
+    /// - **Transient** (the peer is just slow): `peekby` reports `Stalled`, or
+    ///   propagates `WouldBlock` when it buffered nothing at all. Either way the
+    ///   caller sees `WouldBlock` and retries. Nothing was consumed, so the retry
+    ///   sees the message from the start.
+    /// - **Terminal** (the peer closed mid-message): `peekby` returns a short
+    ///   `Request`, which it only does by breaking on `fill_up() == 0`, and
+    ///   `Read::read` returning `0` *is* end-of-stream. No further bytes will ever
+    ///   arrive, so this reports `UnexpectedEof` as `read_exact` must. Reporting
+    ///   `WouldBlock` here would invite the caller to retry forever.
     ///
     /// Blocking readers are unaffected: `peekby` fills until satisfied or EOF.
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
@@ -1192,9 +1197,16 @@ impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
                 // Fully buffered: the consuming read below cannot now stall.
                 Ok(PeekState::Request(data)) if data.len() >= needed => binding.read_exact(buf),
 
-                // Short, or nothing at all. `peekby` only returns `Ok` here after
-                // the reader signalled EOF (see the invariant above), so the
-                // stream has ended mid-message.
+                // Short because the peer paused, not because it left. More bytes
+                // are still coming, so this is a retry, not a failure.
+                Ok(PeekState::Stalled(_)) => Err(crate::err!(
+                    WouldBlock,
+                    "only part of the {needed} bytes have arrived; retry once the peer sends more"
+                )),
+
+                // Short, or nothing at all. With `Stalled` handled above, `peekby`
+                // only returns `Ok` here after the reader signalled EOF (see the
+                // invariant above), so the stream has ended mid-message.
                 Ok(_) => Err(crate::err!(
                     UnexpectedEof,
                     "failed to fill whole buffer: stream ended before {needed} bytes arrived"
@@ -1296,6 +1308,15 @@ pub enum Data<'a> {
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum PeekState<'a> {
     Request(&'a [u8]), // data you resulted
+    /// Fewer bytes than requested, because the non-blocking reader stalled
+    /// (`WouldBlock`) rather than ended. The bytes are real and peekable, but
+    /// more may still arrive.
+    ///
+    /// This is deliberately distinct from a short [`Self::Request`], which means
+    /// the stream *ended* early: a caller that needs every byte must retry on
+    /// `Stalled` and fail on a short `Request`. Collapsing the two makes a slow
+    /// peer indistinguishable from a hung-up one.
+    Stalled(&'a [u8]),
     LessThanRequested, // when data is way less than requested position
     EndOfBuffered,     // end of buffered data, so consume and read more
     EndOfFile,         // end of file, the real underlying stream is finished
@@ -1726,7 +1747,9 @@ impl<T: Read> ByteBufferPointer<T> {
     /// Returns an error if peeking fails or if there's no data available.
     pub fn peekby2(&mut self, size: usize) -> std::io::Result<&[u8]> {
         self.peekby(size).map(|item| match item {
-            PeekState::Request(inner) => Ok(inner),
+            // A stall still yields the bytes it holds; this returns what is
+            // peekable now, and short results are already part of its contract.
+            PeekState::Request(inner) | PeekState::Stalled(inner) => Ok(inner),
             PeekState::NoNext => Err(crate::err!(UnexpectedEof, "No more data to pull through")),
             PeekState::ZeroLengthInput => Err(crate::err!(WriteZero, "Provided zero size request")),
             _ => unreachable!("Should not trigger this stage"),
@@ -1740,7 +1763,8 @@ impl<T: Read> ByteBufferPointer<T> {
     /// This moves forward the peek cursor forward temporarily until the requested size is achieved
     /// and if the loop stops and the current buffer size does not match then
     /// we return what's already acquired, so you need to be aware that this can happen
-    /// since generally it means we have reached EOF from the internal readers perspective.
+    /// since generally it means we have reached EOF from the internal readers perspective —
+    /// or, on a non-blocking reader, that the peer has paused mid-message.
     ///
     /// WARNING: Do not use this method and then call [`Self::consume`] has it has no effect
     /// or you may consume far less than intended. This is intended to let you peek forward
@@ -1749,11 +1773,18 @@ impl<T: Read> ByteBufferPointer<T> {
     ///
     /// # Errors
     /// Returns an error if peeking or reading from the underlying reader fails.
+    /// `WouldBlock` is returned only when the stall leaves *nothing* buffered; a
+    /// stall on top of buffered bytes yields those bytes as a short
+    /// [`PeekState::Request`] instead.
     #[inline]
     pub fn peekby(&mut self, size: usize) -> std::io::Result<PeekState<'_>> {
         if size == 0 {
             return Ok(PeekState::ZeroLengthInput);
         }
+
+        // Set when the fill loop stopped because the reader stalled rather than
+        // ended, so the short result below can be labelled `Stalled` not `Request`.
+        let mut stalled = false;
 
         loop {
             // Check remaining unconsumed data from peek_pos, not total buffer length.
@@ -1766,8 +1797,27 @@ impl<T: Read> ByteBufferPointer<T> {
 
             // request more data so we get to enough to actually resolve the
             // requested size.
-            if self.fill_up()? == 0 {
-                break;
+            match self.fill_up() {
+                // EOF: the peer will send no more, so hand back what we have.
+                Ok(0) => break,
+                Ok(_) => {}
+                Err(err) if err.kind() == std::io::ErrorKind::WouldBlock => {
+                    // A non-blocking reader with nothing *more* to give yet. Bytes
+                    // already buffered are still perfectly good to peek at, and
+                    // discarding them by propagating `WouldBlock` strands any peer
+                    // whose whole message is shorter than `size` — the caller would
+                    // ask again, stall again, and never see the bytes sitting in
+                    // the buffer.
+                    //
+                    // Only a stall with *nothing* buffered is a pure "come back
+                    // later"; that still surfaces `WouldBlock` so callers can park.
+                    if available > 0 {
+                        stalled = true;
+                        break;
+                    }
+                    return Err(err);
+                }
+                Err(err) => return Err(err),
             }
         }
 
@@ -1781,6 +1831,10 @@ impl<T: Read> ByteBufferPointer<T> {
         let slice = &self.buffer[self.peek_pos..until_pos];
         if slice.is_empty() {
             return Ok(PeekState::NoNext);
+        }
+
+        if stalled && slice.len() < size {
+            return Ok(PeekState::Stalled(slice));
         }
 
         Ok(PeekState::Request(slice))
