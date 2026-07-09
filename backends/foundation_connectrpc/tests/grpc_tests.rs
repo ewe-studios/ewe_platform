@@ -715,29 +715,23 @@ async fn grpc_error_trailers_readable_from_response() {
     let addr_str = addr.to_string();
     let client = grpc_client_for(&addr_str, ERR_PATH);
 
-    let resp = client
+    let err = client
         .unary(ctx(), Request::new(Msg::of("err")))
         .await
-        .expect("unary");
+        .expect_err("gRPC error in trailers should become an Err from unary");
 
-    // gRPC errors still return HTTP 200 — the error is in trailers.
-    let trailers = resp.trailers();
-    let status_code: u32 = trailers
-        .get(&SimpleHeader::from("grpc-status".to_string()))
-        .and_then(|v| v.first())
-        .and_then(|s| s.parse().ok())
-        .expect("grpc-status trailer");
-
-    // permission_denied → gRPC code 7
-    assert_eq!(status_code, 7, "grpc-status must be 7 (PermissionDenied)");
-
-    let message = trailers
-        .get(&SimpleHeader::from("grpc-message".to_string()))
-        .and_then(|v| v.first())
-        .expect("grpc-message trailer");
+    // The error should carry the gRPC status code and message from trailers.
+    let ctx = err.current_context();
+    assert_eq!(
+        ctx.code().grpc_code(),
+        7,
+        "permission_denied → grpc code 7, got {}",
+        ctx.code().grpc_code()
+    );
     assert!(
-        message.contains("not allowed"),
-        "grpc-message must carry error text, got: {message:?}"
+        ctx.message().contains("not allowed"),
+        "error message must carry grpc-message text, got: {:?}",
+        ctx.message()
     );
 
     shutdown.turn_on();
