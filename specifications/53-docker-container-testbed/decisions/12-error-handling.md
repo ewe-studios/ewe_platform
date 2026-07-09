@@ -137,7 +137,7 @@ impl From<std::io::Error> for DockerError {
 The `#[docker_container]` macro generates error handling with two branches:
 
 ```rust
-match block_on(ContainerHandle::start(cfg)) {
+match ContainerHandle::start(cfg).await {
     Ok(handle) => handle,           // container started successfully
     Err(e) if e.is_connection_error() => {
         tracing::warn!("SKIP: Docker not available ({e})");

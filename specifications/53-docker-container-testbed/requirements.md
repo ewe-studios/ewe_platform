@@ -72,7 +72,7 @@ All decisions documented in `decisions/`.
 | # | Decision | Summary |
 |---|----------|---------|
 | 03 | Crate Architecture | Extract platform from testbed into `foundation_deployment_platform`; docker module lives there |
-| 07 | Bollard + Internal Tokio Runtime | Bollard for Docker API; internal `LazyLock<Runtime>` singleton for async bridge |
+| 07 | Bollard + Internal Tokio Runtime | Bollard for Docker API; core API is async; sync at boundaries via block_on |
 | 08 | Proc Macro Location | Macro in `foundation_macros`, runtime types in `foundation_deployment_platform::docker` |
 | 09 | Container Lifecycle | Pull → Create → Start → Inspect → Wait → Use → Stop → Remove |
 | 10 | Networking Model | User-defined bridge networks via `NetworkHandle`; DNS-based service discovery |

@@ -63,7 +63,7 @@ pub fn foundation_deployment_platform_path() -> proc_macro2::TokenStream {
 ```
 
 The macro's generated code uses this path for all references to
-`ContainerHandle`, `ContainerConfig`, `WaitFor`, `DockerError`, and `block_on`:
+`ContainerHandle`, `ContainerConfig`, `WaitFor`, and `DockerError`:
 
 ```rust
 let __path = foundation_deployment_platform_path();
@@ -71,7 +71,7 @@ quote! {
     let __cfg = #__path::docker::ContainerConfig::new("redis:7")
         .port(6379)
         .wait(#__path::docker::WaitFor::Port { port: 6379, timeout: ... });
-    let __guard = #__path::docker::block_on(#__path::docker::ContainerHandle::start(__cfg));
+    let __guard = #__path::docker::ContainerHandle::start(__cfg).await;
 }
 ```
 
@@ -159,15 +159,13 @@ fn test_redis() {
     fn __docker_body_test_redis() { /* original body */ }
 
     let __docker_guard = {
-        let __cfg = ::foundation_deployment_platform::ContainerConfig::new("redis:7")
+        let __cfg = ::foundation_deployment_platform::docker::ContainerConfig::new("redis:7")
             .port(6379)
-            .wait(::foundation_deployment_platform::WaitFor::Port {
+            .wait(::foundation_deployment_platform::docker::WaitFor::Port {
                 port: 6379,
                 timeout: ::core::time::Duration::from_secs(30),
             });
-        match ::foundation_deployment_platform::block_on(
-            ::foundation_deployment_platform::ContainerHandle::start(__cfg)
-        ) {
+        match ::foundation_deployment_platform::docker::ContainerHandle::start(__cfg).await {
             Ok(handle) => handle,
             Err(e) if e.is_connection_error() => {
                 ::tracing::warn!("SKIP: Docker not available ({e})");
@@ -194,9 +192,9 @@ fn test_redis() {
    automatically. On normal return, the explicit drop provides deterministic
    cleanup order. Same pattern as `valtron_entry.rs`.
 
-3. **`block_on` for Docker ops** — Docker setup/teardown uses the internal
-   tokio runtime's `block_on`. The user's body is unchanged (sync or async,
-   depending on their function signature).
+3. **`.await` for Docker ops** — Docker setup/teardown `.await`s directly.
+   The whole thing runs inside valtron's `block_on_future` async block, so
+   bollard futures compose naturally. The user's body can be sync or async.
 
 4. **`is_connection_error()` guard** — Distinguishes "Docker not running" from
    actual failures. On connection error, the test returns early (passes). This

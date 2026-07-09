@@ -70,7 +70,7 @@ impl ContainerHandle {
 ```
 
 The method is async (requires bollard's tokio runtime). Sync callers use
-`block_on(ContainerHandle::start(cfg))`.
+`ContainerHandle::start(cfg).await`.
 
 ### Error handling within start()
 
@@ -96,7 +96,7 @@ impl Drop for ContainerHandle {
 
         // Best-effort: stop with timeout, then force-remove.
         // Errors are logged at warn level, never propagated from Drop.
-        let _ = DOCKER_RUNTIME.block_on(async move {
+        // Drop calls bollard via Handle::current().block_on(async move {
             // 1. Stop (graceful)
             let stop_opts = bollard::container::StopContainerOptions { t: timeout as i64 };
             let _ = docker.stop_container(&id, Some(stop_opts)).await;
@@ -118,7 +118,7 @@ Key properties:
   test failure.
 - **Best-effort** — Stop/remove failures are logged (tracing::warn!) not
   propagated. A stuck container is better than a double-panic abort.
-- **Uses the same tokio runtime** — `DOCKER_RUNTIME.block_on()` from Drop.
+- **Uses the current tokio runtime** — `Handle::current().block_on()` from Drop.
   Safe because Drop only fires from sync contexts (stack unwinding, explicit
   drop, end of scope).
 

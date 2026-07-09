@@ -205,23 +205,23 @@ impl Drop for ContainerGroup {
 }
 ```
 
-### Usage example (programmatic)
+### Usage example (programmatic — async)
 
 ```rust
-use foundation_deployment_platform::*;
+use foundation_deployment_platform::docker::*;
 
 #[valtron_test]
-fn test_app_with_db() {
-    let group = block_on(ContainerGroup::start(vec![
+async fn test_app_with_db() {
+    let group = ContainerGroup::start(vec![
         ContainerServiceDefinition::new("postgres:16")
             .port(5432)
             .env("POSTGRES_PASSWORD", "test")
             .env("POSTGRES_DB", "app_test")
-            .wait(wait_for::port(5432)),
+            .wait(WaitFor::port(5432)),
         ContainerServiceDefinition::new("redis:7")
             .port(6379)
-            .wait(wait_for::stdout("Ready to accept connections")),
-    ])).expect("Failed to start containers");
+            .wait(WaitFor::stdout("Ready to accept connections")),
+    ]).await.expect("Failed to start containers");
 
     let pg = group.container("postgres:16").unwrap();
     let redis = group.container("redis:7").unwrap();
@@ -299,7 +299,7 @@ instances at compile time (for users who prefer starting from Compose):
 
 ```rust
 let defs = container_compose!("compose.yaml");
-let group = block_on(ContainerGroup::start(defs))?;
+let group = ContainerGroup::start(defs).await?;
 ```
 
 But this is a convenience — the Rust-native definition is the recommended path.

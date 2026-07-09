@@ -267,6 +267,12 @@ pub fn launch(profile: &PlatformProfile) -> Result<PlatformHandle> {
 
 ## DockerProvider implementation
 
+The `Provider` trait is sync — QEMU/UTM are sync by nature (child process spawn,
+AppleScript). `DockerProvider` internally bridges bollard's async via
+`futures_lite::block_on` (re-exported from `foundation_deployment_platform`).
+Callers using the core `ContainerHandle` API directly (not through the Provider
+trait) work with `async fn` natively via `.await`.
+
 ```rust
 // In foundation_deployment_platform/src/providers/docker/mod.rs
 use crate::docker::{ContainerHandle, ContainerServiceDefinition, WaitFor, block_on};
@@ -287,12 +293,11 @@ impl Provider for DockerProvider {
     }
 
     fn stop(&self, handle: &ContainerHandle) -> Result<()> {
-        // ContainerHandle::Drop stops+removes. For explicit stop:
         block_on(handle.shutdown())
     }
 
     fn is_running(&self, handle: &ContainerHandle) -> bool {
-        block_on(handle.is_running())
+        block_on(handle.is_running()).unwrap_or(false)
     }
 
     fn resolved_ports(&self, handle: &ContainerHandle) -> Result<ResolvedPorts> {
@@ -314,6 +319,11 @@ impl Provider for DockerProvider {
     }
 }
 ```
+
+The `block_on` here is `futures_lite::future::block_on` — re-exported, not
+custom. It bridges the Provider trait's sync contract to the async bollard
+calls. The same pattern applies to sync convenience wrappers on
+`ContainerHandle` / `ContainerGroup` for callers that need them.
 
 ---
 
