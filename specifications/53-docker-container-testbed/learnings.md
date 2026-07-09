@@ -6,6 +6,8 @@
 - **Types moved.** Options live in `bollard::query_parameters`, models in `bollard::models`. Not in `bollard::container`.
 - **ContainerCreateBody** replaces the old `Config` struct. Fields: `image`, `cmd`, `env`, `exposed_ports`, `host_config`, `labels`.
 - **Generic options.** `start_container` takes `Option<StartContainerOptions>` (no type param), `create_container` takes `Option<&CreateContainerOptions>` (by ref).
+- **Network API.** `create_network(config: NetworkCreateRequest)` with `name` and `driver` fields. `connect_network(name, NetworkConnectRequest { container, endpoint_config })`. Response types differ: `NetworkCreateResponse.id: String`, `Network.id: Option<String>`.
+- **create_container takes owned Options.** `create_container(options: Option<CreateContainerOptions>, config)` — not `Option<&CreateContainerOptions>`.
 
 ## Error handling with foundation_errstacks
 

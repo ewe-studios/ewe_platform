@@ -8,20 +8,26 @@
 |------|--------|
 | Cargo.toml | ✅ bollard 0.21, tokio, futures-lite, foundation_errstacks |
 | lib.rs | ✅ Re-exports docker module + block_on |
-| docker/mod.rs | ✅ Module declarations + re-exports |
 | docker/error.rs | ✅ DockerError enum, std::error::Error impl, docker_err() helper |
 | docker/config.rs | ✅ ContainerConfig builder with full chainable API |
-| docker/container.rs | ✅ ContainerHandle — start_async/start, shutdown, is_running, Drop |
+| docker/container.rs | ✅ ContainerHandle — start_async/start, shutdown, is_running, Drop, port wait |
 | docker/group.rs | ✅ ContainerGroup for multi-container |
-| docker/client.rs | ✅ DockerClient wrapping bollard |
-| docker/network.rs | 🔄 Stub — bollard network API pending |
+| docker/client.rs | ✅ DockerClient wrapping bollard (local + SSH stub) |
+| docker/network.rs | ✅ NetworkHandle — create_or_find, find, connect, remove |
 | docker/image.rs | 🔄 Stub — build_once() pending |
-| docker/wait_for.rs | 🔄 WaitFor enum defined, strategies not implemented |
-| tests/container_integration.rs | ✅ Redis start/stop/cleanup/drop tests |
+| docker/wait_for.rs | ✅ Port (TCP connect loop), Stdout (logs stream), Http (stub), Composite (iterative) |
+| tests/container_integration.rs | ✅ Redis start/stop/PING/SET/GET/Drop |
 
-## Phase 2: Wait strategies 🔄
+## Phase 2: Wait strategies + Network ✅
 
-- [ ] Port wait (TCP connect loop with exponential backoff)
-- [ ] Stdout wait (bollard logs stream scan)
-- [ ] HTTP wait (GET loop)
-- [ ] Composite wait (serial AND)
+- ✅ Port wait — TCP connect loop with exponential backoff (100ms→1s cap)
+- ✅ Stdout wait — bollard logs() streaming API with tokio timeout
+- 🔄 Http wait — stub (deferred until reqwest/foundation_http available)
+- ✅ Composite wait — iterative stack-based flattening
+- ✅ NetworkHandle — create_or_find, find, connect, remove
+
+## Next: Phase 3 — Proc macro
+
+- [ ] `#[docker_container]` in `foundation_macros/src/docker_container.rs`
+- [ ] Re-export from `foundation_deployment_platform`
+- [ ] Macro integration tests
