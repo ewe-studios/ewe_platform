@@ -22,8 +22,9 @@ Fix `foundation_deployment` by splitting it cleanly in two:
 - **Broken sibling shells** — `foundation_deployment_aws`, `_cloudflare`,
   `_gcp`, `_flyio`, `_neon`, `_planetscale`, `_supabase`, `_stripe`,
   `_prisma`, `_mongoatlas` are all broken (empty lib.rs, zero deps, can't
-  compile). Decision: fix `_cloudflare` first (decision 15), keep
-  `_huggingface` as-is (it works), archive the rest as reference material.
+  compile). Fix `_cloudflare` now (decision 15), keep `_huggingface` as-is
+  (it works). All other broken shells are ignored — they stay in the
+  workspace but are not compiled or maintained until a consumer needs them.
 
 ## Table of Contents
 
@@ -137,7 +138,7 @@ AFTER:
 | `foundation_deployment_cloudflare` | → **Fix in place** (decision 15) | Transition from auto-gen to hand-maintained |
 | `foundation_deployment_huggingface` | → **Keep as-is** | Only working sibling; standalone is fine |
 | `foundation_deployment_aws` | → **Move back** into `foundation_deployment_platform` | Orphaned implementation of `DeploymentProvider` |
-| Remaining 8 broken shells | → **Move to archive/** | Reference material, not compiled |
+| Remaining 8 broken shells | → **Ignore** | Stay in workspace; not compiled, not maintained |
 
 ---
 
@@ -145,24 +146,22 @@ AFTER:
 
 | Crate | Action | Rationale |
 |-------|--------|-----------|
-| `foundation_deployment_huggingface` | **Keep** — works, standalone | Proper crate with tests, no issues |
-| `foundation_deployment_cloudflare` | **Fix** — decision 15 | Needed by `foundation_proxy` for DNS + TLS |
+| `foundation_deployment_huggingface` | **Keep** | Works, standalone |
+| `foundation_deployment_cloudflare` | **Fix** (decision 15) | Needed by `foundation_proxy` for DNS + TLS |
 | `foundation_deployment_aws` | **Move code into `foundation_deployment_platform`** | Orphaned 568-line `DeploymentProvider` impl |
-| `foundation_deployment_gcp` | **Archive** | 1.75M lines generated, no consumer, broken |
-| `foundation_deployment_flyio` | **Archive** | 39K lines generated, no consumer, broken |
-| `foundation_deployment_neon` | **Archive** | 49K lines generated, no consumer, broken |
-| `foundation_deployment_planetscale` | **Archive** | 57K lines generated, no consumer, broken |
-| `foundation_deployment_supabase` | **Archive** | 74K lines generated, no consumer, broken |
-| `foundation_deployment_stripe` | **Archive** | 282K lines generated, no consumer, broken |
-| `foundation_deployment_prisma` | **Archive** | 22K lines generated, no consumer, broken |
-| `foundation_deployment_mongoatlas` | **Archive** | 82 lines, never started, broken |
+| `foundation_deployment_gcp` | **Ignore** | 1.75M lines generated, no consumer, broken |
+| `foundation_deployment_flyio` | **Ignore** | 39K lines generated, no consumer, broken |
+| `foundation_deployment_neon` | **Ignore** | 49K lines generated, no consumer, broken |
+| `foundation_deployment_planetscale` | **Ignore** | 57K lines generated, no consumer, broken |
+| `foundation_deployment_supabase` | **Ignore** | 74K lines generated, no consumer, broken |
+| `foundation_deployment_stripe` | **Ignore** | 282K lines generated, no consumer, broken |
+| `foundation_deployment_prisma` | **Ignore** | 22K lines generated, no consumer, broken |
+| `foundation_deployment_mongoatlas` | **Ignore** | 82 lines, never started, broken |
 
-Archive destination: `backends/archive/foundation_deployment_<name>/`. These
-are reference for the code generator, but they are NOT compiled into the
-workspace. The generated API wrappers in them are not yet needed by any
-consumer. When a consumer needs one (e.g., Stripe billing integration), we
-pull it from archive, fix its Cargo.toml (add deps + features), and make it
-compile.
+These broken shells stay in the workspace but are not compiled or maintained.
+They exist as reference for the code generator. When a consumer needs one
+(e.g., Stripe billing integration), we fix its Cargo.toml (add deps + features)
+and make it compile at that point.
 
 ---
 
@@ -217,12 +216,15 @@ Two competing deployment traits currently exist with zero implementors:
 7. Implement decision 15 phases 1-3 (core types, HTTP client, DNS operations).
 8. This makes it the second working sibling (alongside huggingface).
 
-### Phase 3: Archive broken shells
+### Phase 3: Ignore broken shells
 
-9. Move `_gcp`, `_flyio`, `_neon`, `_planetscale`, `_supabase`, `_stripe`,
-   `_prisma`, `_mongoatlas` to `backends/archive/`.
+9. Eight broken siblings (`_gcp`, `_flyio`, `_neon`, `_planetscale`, `_supabase`,
+   `_stripe`, `_prisma`, `_mongoatlas`) stay where they are — not compiled, not
+   maintained, not moved. Reference material for the code generator only.
 10. Move orphaned AWS code into `foundation_deployment_platform/src/providers/aws/`.
-11. Exclude archive from workspace via root `Cargo.toml` `exclude` list.
+11. Exclude broken shells from any workspace-wide builds (they're already
+    excluded by the existing workspace config — `backends/*` glob includes them
+    but each has a broken Cargo.toml that prevents compilation).
 
 ### Phase 4: Clean up foundation_deployment
 
