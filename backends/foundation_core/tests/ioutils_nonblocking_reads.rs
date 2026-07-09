@@ -128,6 +128,50 @@ fn read_exact_interrupted_by_a_persistent_stall_consumes_nothing() {
     assert_eq!(&next, b"NEXT-FRAME-BYTES-PADDING");
 }
 
+/// The two shortfall cases are distinct, and `read_exact` must not conflate them.
+///
+/// A *transient* shortfall — the peer is slow — surfaces as `WouldBlock`, which
+/// callers understand as "retry later". This is asserted above.
+///
+/// A *terminal* shortfall — the peer closed after sending 10 of the 24 bytes —
+/// must surface as `UnexpectedEof`. Reporting `WouldBlock` here would be a lie:
+/// no further bytes are ever coming, so a caller that retries on `WouldBlock`
+/// (which is the whole point of that error) would spin forever.
+#[test]
+fn eof_after_partial_data_reports_unexpected_eof_not_would_block() {
+    // 10 bytes, then the peer closes (the script runs out → Ok(0) → EOF).
+    let reader = Chunky::new(vec![Ok(PREFACE[..10].to_vec())]);
+    let mut stream = SharedByteBufferStream::rwrite(reader);
+
+    let mut buf = [0u8; 24];
+    let err = stream.read_exact(&mut buf).expect_err("stream ended early");
+    assert_eq!(
+        err.kind(),
+        io::ErrorKind::UnexpectedEof,
+        "a closed stream must not masquerade as a transient stall"
+    );
+
+    // It stays terminal: retrying does not suddenly succeed.
+    let mut again = [0u8; 24];
+    assert_eq!(
+        stream.read_exact(&mut again).unwrap_err().kind(),
+        io::ErrorKind::UnexpectedEof
+    );
+}
+
+/// EOF with *nothing* buffered is the same terminal condition, not a stall.
+#[test]
+fn eof_with_no_data_reports_unexpected_eof() {
+    let reader = Chunky::new(vec![]); // immediate EOF
+    let mut stream = SharedByteBufferStream::rwrite(reader);
+
+    let mut buf = [0u8; 8];
+    assert_eq!(
+        stream.read_exact(&mut buf).unwrap_err().kind(),
+        io::ErrorKind::UnexpectedEof
+    );
+}
+
 /// A caller must not have to `peek` first to get the guarantee above. Reading a
 /// frame header and then its payload — the shape every framed protocol uses —
 /// leaves nothing half-consumed when the payload has not arrived.

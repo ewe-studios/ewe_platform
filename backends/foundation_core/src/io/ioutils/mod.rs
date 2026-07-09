@@ -1169,6 +1169,18 @@ impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
     /// Only once all `buf.len()` bytes are in memory do we consume them, so this
     /// call either fully succeeds or leaves the stream untouched.
     ///
+    /// The two ways of coming up short are kept strictly apart, because callers
+    /// act on them very differently:
+    ///
+    /// - **Transient** (the peer is just slow): `peekby` propagates the reader's
+    ///   error, so `WouldBlock` reaches the caller unchanged and it retries.
+    ///   Nothing was consumed, so the retry sees the message from the start.
+    /// - **Terminal** (the peer closed mid-message): `peekby` can only return
+    ///   `Ok` with fewer bytes than asked for by breaking on `fill_up() == 0`,
+    ///   and `Read::read` returning `0` *is* end-of-stream. No further bytes will
+    ///   ever arrive, so this reports `UnexpectedEof` as `read_exact` must.
+    ///   Reporting `WouldBlock` here would invite the caller to retry forever.
+    ///
     /// Blocking readers are unaffected: `peekby` fills until satisfied or EOF.
     fn read_exact(&mut self, buf: &mut [u8]) -> Result<()> {
         if buf.is_empty() {
@@ -1176,20 +1188,22 @@ impl<T: Read> std::io::Read for SharedByteBufferStream<T> {
         }
         self.0.do_once_mut(|binding| {
             let needed = buf.len();
-            let available = match binding.peekby(needed) {
-                Ok(PeekState::Request(data)) => data.len(),
-                // Buffer drained and the reader hit EOF: it will never satisfy us.
-                Ok(_) => 0,
-                // Nothing readable yet. Nothing was consumed — the caller retries.
-                Err(err) => return Err(err),
-            };
-            if available < needed {
-                return Err(crate::err!(
+            match binding.peekby(needed) {
+                // Fully buffered: the consuming read below cannot now stall.
+                Ok(PeekState::Request(data)) if data.len() >= needed => binding.read_exact(buf),
+
+                // Short, or nothing at all. `peekby` only returns `Ok` here after
+                // the reader signalled EOF (see the invariant above), so the
+                // stream has ended mid-message.
+                Ok(_) => Err(crate::err!(
                     UnexpectedEof,
-                    "failed to fill whole buffer: stream ended early"
-                ));
+                    "failed to fill whole buffer: stream ended before {needed} bytes arrived"
+                )),
+
+                // Reader error — `WouldBlock` included — passed through verbatim.
+                // Nothing has been consumed.
+                Err(err) => Err(err),
             }
-            binding.read_exact(buf)
         })
     }
 
