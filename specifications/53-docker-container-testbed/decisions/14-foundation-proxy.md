@@ -10,7 +10,8 @@ deployments, automatic SSL termination, and health-check-based traffic routing.
 Learn from Kamal (Basecamp's deploy tool) and kamal-proxy (its Go reverse proxy).
 Build on Foundation crates: `foundation_netio` (TCP/TLS), `foundation_http`
 (request/response), `foundation_db` (state persistence), `foundation_nativeapis`
-(Unix socket RPC).
+(Unix socket RPC, VFS cert storage), and `foundation_deployment_cloudflare`
+(Cloudflare API v4 client for DNS + wildcard TLS).
 
 ## Table of Contents
 
@@ -269,23 +270,33 @@ proxy.register(ServiceConfig {
 
 ### Cloudflare API integration
 
-`foundation_proxy` manages Cloudflare DNS via its REST API (not the
-`cloudflare` CLI or Terraform). The API token needs exactly one permission:
-`Zone:DNS:Edit` for the target zone — scoped, not an account-wide token.
-This matches vm-uncloud's token scoping.
+`foundation_proxy` manages Cloudflare DNS via the **existing
+`foundation_deployment_cloudflare` crate** — an auto-generated, feature-gated
+Cloudflare API v4 client covering every endpoint (zones, DNS records, tokens,
+certificates, etc.). The crate provides raw request builder functions; we
+wrap them with type-safe structs and higher-level operations needed by the
+proxy.
+
+The API token needs exactly one permission: `Zone:DNS:Edit` for the target
+zone — scoped, not an account-wide token. This matches vm-uncloud's token
+scoping.
 
 ```rust
-/// Cloudflare DNS provider. Manages DNS records for TLS challenges and
-/// optional apex DNS. Uses the Cloudflare v4 REST API.
+use foundation_deployment_cloudflare::zones;
+
+/// Cloudflare DNS provider. Wraps `foundation_deployment_cloudflare`'s raw
+/// API request builders with type-safe DNS record operations.
 pub struct CloudflareDns {
     zone_id: String,               // Cloudflare Zone ID (from dashboard)
     api_token: String,             // Scoped API token (Zone:DNS:Edit)
-    client: reqwest::Client,
+    client: SimpleHttpClient<R>,   // foundation_netio HTTP client
 }
 
 impl CloudflareDns {
-    /// Create or update a DNS record. Idempotent — if the record already
-    /// exists with the same type + name + content, it's a no-op.
+    /// Create or update a DNS record. Idempotent — if a record with the same
+    /// type + name already exists, it's updated (PUT). Otherwise it's created
+    /// (POST). This is two API calls: list (filter by name + type), then
+    /// create or update based on whether a match was found.
     pub async fn upsert_record(
         &self,
         record_type: DnsRecordType,  // A, CNAME, TXT
@@ -621,11 +632,21 @@ state file pattern.
 | Crate | Role |
 |-------|------|
 | `foundation_netio` | TCP/TLS listener, Unix socket RPC |
-| `foundation_http` | HTTP request/response, reverse proxy via `reqwest` or `hyper` |
+| `foundation_http` | HTTP request/response, reverse proxy |
 | `foundation_db` | SQLite-backed state persistence |
 | `foundation_nativeapis` | VFS for cert storage (local FS, S3, R2), Unix sockets |
+| `foundation_deployment_cloudflare` | Cloudflare API v4 client (DNS record CRUD, zones, certs) — auto-generated, feature-gated |
 | `rustls` | TLS termination |
 | `acme-micro` or `rustls-acme` | Let's Encrypt ACME protocol |
+
+`CloudflareDns` wraps `foundation_deployment_cloudflare::zones::dns_records_for_a_zone_list_dns_records_request()` and related functions with:
+- **Type-safe `DnsRecord` structs** (the auto-generated crate uses `HashMap<String, Value>` for all bodies)
+- **Auth injection** (passes the API token via the `builder_mod` closure each request builder accepts)
+- **Higher-level ops** (`upsert_record`, `delete_by_name_and_type`, `bootstrap_domain`)
+- **Zone lookup** (resolves domain name → zone_id via `foundation_deployment_cloudflare::zones::list_zones_request`)
+
+The auto-generated crate is NOT modified — it's the raw HTTP layer. `foundation_proxy`
+provides the type safety and semantic operations on top.
 
 `foundation_deployment_platform` integrates with `foundation_proxy` for:
 - Registering containers as backends after `ContainerGroup::start`
