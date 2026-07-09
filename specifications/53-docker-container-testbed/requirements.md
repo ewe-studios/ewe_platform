@@ -90,6 +90,8 @@ All decisions documented in `decisions/`.
 | 06 | Cloud Deployment | cloud-init for Hetzner; colima on macOS; remote Docker via bollard SSH |
 | 13 | foundation_sshkit | Dedicated SSH crate: connection pooling, key management, host abstraction, runners |
 | 14 | foundation_proxy | Reverse proxy: SSL termination, zero-downtime deploys, VFS cert storage |
+| 15 | Cloudflare Crate Transition | Convert `foundation_deployment_cloudflare` from auto-generated to hand-maintained; add `CloudflareClient`, `DnsRecord`, auth management |
+| 16 | foundation_deployment Split | Split `foundation_deployment` into shared library (OpenAPI utils) + `foundation_deployment_platform` (orchestration); archive 8 broken sibling shells |
 
 ## Features
 
