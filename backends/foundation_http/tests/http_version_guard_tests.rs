@@ -1,12 +1,13 @@
 //! HTTP version gating on the HTTP/1.x connection handler.
 //!
 //! WHY: `Proto::from_str` is infallible — an unrecognised request-line token
-//! parses to `Proto::Custom(..)` instead of failing — and `detect_protocol`
-//! only forks "h2c preface" vs "everything else". So the request line is the
-//! last place the HTTP version is ever named, and nothing downstream of the
-//! reader inspects it. Without a gate, `GET / SPDY/3.1` is routed and served
-//! exactly like HTTP/1.1: a peer smuggles a protocol past a server that never
-//! agreed to speak it.
+//! parses to `Proto::Custom(..)` instead of failing. `detect_protocol` chooses
+//! only which parser handles the connection, and any request-line shape suffices
+//! for it; the version named inside that line is not its business. So the
+//! request line is the last place the HTTP version is ever named, and nothing
+//! downstream of the reader inspects it. Without a gate, `GET / SPDY/3.1` is
+//! routed and served exactly like HTTP/1.1: a peer smuggles a protocol past a
+//! server that never agreed to speak it.
 //!
 //! WHAT: These tests drive a real `HttpServer` over raw TCP sockets and assert
 //! the handler answers `505` and closes for any version outside the `Proto`
@@ -247,3 +248,83 @@ fn serves_lowercase_http_11_token() {
     assert_served("http/1.1");
 }
 
+
+// -- Persistence defaults are version-dependent (RFC 9112 §9.3).
+//
+// HTTP/1.1: persistent unless `Connection: close`.
+// HTTP/1.0: closes unless `Connection: keep-alive`.
+// Deciding on the header alone — as this handler once did — inverts 1.0.
+
+/// Send one request and report whether the server closed the connection after
+/// answering it. A closed peer makes the next read return `Ok(0)`.
+fn closes_after_request(request: &str) -> bool {
+    let (addr, shutdown) = start_server();
+
+    let mut stream = std::net::TcpStream::connect(addr).expect("connect");
+    stream.write_all(request.as_bytes()).expect("write");
+    let resp = read_available(&mut stream, Duration::from_secs(3));
+    assert!(
+        resp.contains("HTTP/1.1 200"),
+        "request should be served, got: {resp:?}"
+    );
+
+    let closed = is_closed(&mut stream, Duration::from_secs(2));
+    shutdown.turn_on();
+    closed
+}
+
+#[test]
+#[serial(version_guard)]
+fn http_11_keeps_the_connection_alive_by_default() {
+    let _pool = initialize_pool(41, Some(4));
+    assert!(
+        !closes_after_request("GET /echo HTTP/1.1\r\nHost: t\r\n\r\n"),
+        "HTTP/1.1 defaults to persistent"
+    );
+}
+
+#[test]
+#[serial(version_guard)]
+fn http_11_closes_when_asked() {
+    let _pool = initialize_pool(41, Some(4));
+    assert!(
+        closes_after_request("GET /echo HTTP/1.1\r\nHost: t\r\nConnection: close\r\n\r\n"),
+        "`Connection: close` closes an HTTP/1.1 connection"
+    );
+}
+
+/// The inverted case. Before the version was consulted, this held the socket
+/// open until the idle timeout.
+#[test]
+#[serial(version_guard)]
+fn http_10_closes_by_default() {
+    let _pool = initialize_pool(41, Some(4));
+    assert!(
+        closes_after_request("GET /echo HTTP/1.0\r\nHost: t\r\n\r\n"),
+        "HTTP/1.0 defaults to closing; it is not persistent"
+    );
+}
+
+#[test]
+#[serial(version_guard)]
+fn http_10_stays_open_when_it_opts_in() {
+    let _pool = initialize_pool(41, Some(4));
+    assert!(
+        !closes_after_request("GET /echo HTTP/1.0\r\nHost: t\r\nConnection: keep-alive\r\n\r\n"),
+        "HTTP/1.0 opts into persistence with `Connection: keep-alive`"
+    );
+}
+
+/// `Connection: close` beats the 1.0 opt-in, and a multi-token header value is
+/// parsed per-token rather than compared whole.
+#[test]
+#[serial(version_guard)]
+fn close_wins_over_keep_alive_and_tokens_are_split() {
+    let _pool = initialize_pool(41, Some(4));
+    assert!(
+        closes_after_request(
+            "GET /echo HTTP/1.0\r\nHost: t\r\nConnection: keep-alive, close\r\n\r\n"
+        ),
+        "`close` wins when both tokens are present"
+    );
+}

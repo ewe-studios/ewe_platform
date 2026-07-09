@@ -150,16 +150,51 @@ impl ConnectionHandler {
     ///
     /// WHY: `Proto::from_str` is infallible — an unrecognised token in the
     /// request line (`GET / SPDY/3.1`) becomes `Proto::Custom(..)` rather than a
-    /// parse error, and `detect_protocol` only forks h2c-preface vs
-    /// everything-else. Nothing below this point inspects the version, so
-    /// without this gate a peer can name *any* protocol and still be routed and
-    /// served as though it had said HTTP/1.1.
+    /// parse error. `detect_protocol` decides only *which parser* gets the
+    /// connection, and it accepts anything shaped like a request line; the
+    /// version named inside that line is never its concern. Nothing below this
+    /// point inspects the version either, so without this gate a peer can name
+    /// *any* protocol and still be routed and served as though it said HTTP/1.1.
     ///
     /// HOW: Callers reject on `false` with `505` and close the connection —
     /// a version we did not agree to speak is a version whose message framing
     /// we cannot trust, so the connection cannot be reused (RFC 7231 §6.6.6).
     fn is_supported_proto(proto: &Proto) -> bool {
         matches!(proto, Proto::HTTP10 | Proto::HTTP11)
+    }
+
+    /// Whether `req`'s `Connection` header names `token`.
+    fn connection_header_has(req: &SimpleIncomingRequest, token: &str) -> bool {
+        req.headers
+            .get(&SimpleHeader::CONNECTION)
+            .is_some_and(|values| {
+                values.iter().any(|value| {
+                    value
+                        .split(',')
+                        .any(|part| part.trim().eq_ignore_ascii_case(token))
+                })
+            })
+    }
+
+    /// Whether the connection must close once this request has been answered.
+    ///
+    /// WHY: persistence is version-dependent, and the version is the one thing
+    /// this handler used to ignore. Under HTTP/1.1 connections are persistent
+    /// unless the client says `Connection: close`. Under HTTP/1.0 the default is
+    /// the *opposite*: the connection closes unless the client opts in with
+    /// `Connection: keep-alive`. Deciding on the header alone silently held HTTP
+    /// /1.0 sockets open, so a 1.0 client that sent one request and expected the
+    /// close waited for the idle timeout instead.
+    ///
+    /// `Connection: close` always wins, at either version.
+    fn should_close_after(req: &SimpleIncomingRequest) -> bool {
+        if Self::connection_header_has(req, "close") {
+            return true;
+        }
+        match req.proto {
+            Proto::HTTP10 => !Self::connection_header_has(req, "keep-alive"),
+            _ => false,
+        }
     }
 
     fn has_body(req: &SimpleIncomingRequest) -> bool {
@@ -257,14 +292,7 @@ impl ConnectionHandler {
                     return None;
                 }
 
-                let should_close =
-                    req.headers
-                        .get(&SimpleHeader::CONNECTION)
-                        .is_some_and(|values| {
-                            values
-                                .iter()
-                                .any(|v| v.trim().eq_ignore_ascii_case("close"))
-                        });
+                let should_close = Self::should_close_after(&req);
 
                 tracing::trace!(
                     client_ip = %self.client_ip,
