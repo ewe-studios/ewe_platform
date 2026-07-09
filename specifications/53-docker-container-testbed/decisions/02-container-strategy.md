@@ -12,6 +12,8 @@ existing QEMU provider** for macOS guests. Each platform gets its own
 image (or Dockerfile build context) as the backing artifact instead of a qcow2
 disk.
 
+_OSX support expanded in section 4 below — dockurr/macos provides a Docker interface for macOS guests on KVM-capable hosts._
+
 ## Table of Contents
 
 1. [Platform matrix](#platform-matrix)
@@ -30,7 +32,8 @@ disk.
 |----------|---------|-----------|---------------|-------------|------------|
 | **Linux** (build + test) | Native Docker container | cgroups + namespaces | No | ~1-3 seconds | ~500 MB-2 GB (Docker image) |
 | **Windows** (build + test) | dockurr/windows (QEMU in Docker) | Full VM inside container | Yes | ~30-90 seconds | ~6-8 GB (qcow2 in /storage) |
-| **macOS** (build + test) | Retained QEMU provider / UTM | Full VM | Yes (HVF on macOS) | ~30-90 seconds | ~15-25 GB (qcow2) |
+| **macOS** (build + test) | dockurr/macos (QEMU in Docker) | Full VM inside container | Yes | ~30-90 seconds | ~15-25 GB (qcow2 in /storage) |
+| **macOS** (fallback, Apple Silicon) | UTM / QEMU (raw) | Full VM | Yes (HVF) | ~30-90 seconds | ~15-25 GB (qcow2) |
 
 Key insight: native Docker containers are 10-30× faster to start than QEMU VMs
 and require no KVM. This alone makes Linux the "fast path" for iterative
@@ -117,7 +120,9 @@ volume for the disk, port 8006 for web access, port 3389 for RDP.
    `-cpu host`, SATA vs virtio, Apple SMC, etc. dockurr has tested these
    across hundreds of thousands of pulls and dozens of Windows versions.
 2. **ISO auto-download** — Set `VERSION=11` and dockurr downloads the correct
-   Windows ISO from Microsoft's servers. No Vagrant Cloud dependency.
+   Windows ISO from Microsoft's servers. No Vagrant Cloud dependency. The ISO
+   is stored in the `/storage` volume (persistent host mount), making it a
+   one-time cost per host — subsequent starts reuse the cached download.
 3. **Automatic driver installation** — VirtIO drivers, networking, RDP are
    installed during Windows setup automatically.
 4. **Web viewer on port 8006** — For debugging when SSH/WinRM isn't working.
@@ -126,37 +131,37 @@ volume for the disk, port 8006 for web access, port 3389 for RDP.
 
 ### Integration approach
 
-For the bollard path:
+For the bollard path (via `ContainerServiceDefinition` — the Rust-native API):
 
 ```rust
-let config = bollard::container::Config {
-    image: Some("dockurr/windows"),
-    env: Some(vec![
-        "VERSION=11",
-        "RAM_SIZE=12G",
-        "CPU_CORES=4",
-        "DISK_SIZE=80G",
-        "USERNAME=vagrant",
-        "PASSWORD=vagrant",
-    ]),
-    host_config: Some(bollard::container::HostConfig {
-        devices: Some(vec![
-            DeviceMapping { path_on_host: Some("/dev/kvm".into()), .. },
-            DeviceMapping { path_on_host: Some("/dev/net/tun".into()), .. },
-        ]),
-        cap_add: Some(vec!["NET_ADMIN".into()]),
-        port_bindings: Some(hashmap! {
-            "3389/tcp" => vec![PortBinding { host_port: Some("3389".into()), .. }],
-            "8006/tcp" => vec![PortBinding { host_port: Some("8006".into()), .. }],
-        }),
-        binds: Some(vec![
-            format!("{}:/storage", windows_disk_dir),
-        ]),
-        ..Default::default()
-    }),
-    ..Default::default()
-};
+let windows = ContainerServiceDefinition::new("dockurr/windows:5.15")
+    .env("VERSION", "11")
+    .env("RAM_SIZE", "12G")
+    .env("CPU_CORES", "4")
+    .env("DISK_SIZE", "80G")
+    .env("USERNAME", "vagrant")
+    .env("PASSWORD", "vagrant")
+    .device("/dev/kvm")
+    .device("/dev/net/tun")
+    .cap_add("NET_ADMIN")
+    .port_mapped(3389, 3389)    // RDP
+    .port_mapped(8006, 8006)    // noVNC viewer
+    .volume("/var/lib/testbed/windows", "/storage")
+    .stop_timeout_secs(120)
+    .required();                 // no graceful skip — KVM is required
 ```
+
+The `ContainerServiceDefinition` is the primary API — users should not need to
+construct raw `bollard::container::Config` in common cases. For advanced
+scenarios not covered by the builder, `ContainerServiceDefinition` exposes:
+
+```rust
+/// Escape hatch: access the underlying bollard Config for modifications
+/// not expressible through the high-level builder.
+pub fn with_raw_config(mut self, f: impl FnOnce(&mut bollard::container::Config<String>)) -> Self;
+```
+
+This preserves the 90% ergonomic case while providing a back door for the 10%.
 
 For the Compose path:
 
@@ -206,21 +211,112 @@ VM launch mechanism changes (QEMU args → dockurr container config).
 - **Requires KVM** — Does not eliminate the KVM dependency for Windows testing.
   This is a fundamental constraint of running Windows on Linux.
 - **No SSH by default** — Still needs the two-phase WinRM→SSH bootstrap.
-- **Large image** — The Windows disk image is 6-8 GB, downloaded on first run.
-- **Not a true container** — It's QEMU inside Docker. The value is the Docker
-  *interface*, not container-level isolation.
-
+  This matches vm-uncloud's approach: the default Windows recipe uses RDP
+  (port 3389) as the primary authenticated entry, with the noVNC viewer
+  (port 8006) reachable only over SSH tunnel for debugging. There is no
+  SSH-in-the-box at launch — SSH is installed as part of bootstrap, same
+  as our two-phase flow. The `dev-windows` variant experiments with baking
+  OpenSSH into a custom Dockerfile via `/oem/install.bat`, which is a
+  future optimisation we can adopt.
 ---
 
-## macOS: retained QEMU/UTM
+## macOS: dockurr/macos as a Docker interface
 
-Docker cannot virtualize macOS. dockurr/macos exists but has the same
-limitations as the existing QEMU macOS support (requires KVM/HVF, complex
-OpenCore setup). We retain the existing `QemuProvider` and `UtmProvider` for
-macOS guests without change.
+dockurr/macos runs a full macOS VM inside a Docker container using QEMU
+internally, following the same pattern as dockurr/windows. It provides a
+**Docker interface** for managing the VM — environment variables for version
+selection, `/storage` volume for the disk, port 8006 for noVNC web access,
+and port 5900 for VNC. This was validated in the `vm-uncloud` project via the
+`macos-kvm` recipe (`recipes/macos-kvm/compose.yaml`).
 
-The `Provider` trait already abstracts this — callers don't know or care which
-backend is used.
+### Supported macOS versions
+
+| VERSION | Name |
+|---------|------|
+| `15` | Sequoia |
+| `14` | Sonoma |
+| `13` | Ventura |
+| `12` | Monterey |
+| `11` | Big Sur |
+
+### Docker interface
+
+```yaml
+services:
+  macos:
+    image: dockurr/macos:latest
+    environment:
+      VERSION: "14"          # Sonoma
+      RAM_SIZE: "12G"
+      CPU_CORES: "6"
+      DISK_SIZE: "96G"       # macOS needs more headroom than Windows
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/kvm             # required — no TCG fallback for macOS
+    volumes:
+      - macos_storage:/storage
+      # noVNC :8006 — NO auth; reach via SSH tunnel, not published
+    restart: always
+```
+
+### Access model
+
+- **VNC on port 5900** — primary remote access for GUI interaction.
+- **noVNC on port 8006** — web-based viewer. No authentication; vm-uncloud
+  explicitly does NOT publish this port. Reach it via SSH tunnel only
+  (`ssh -L 8006:localhost:8006 root@<node>`), never expose publicly.
+- **SSH** — Not exposed by default. Must be enabled inside the guest via
+  System Settings → General → Sharing → Remote Login after first boot
+  through the VNC viewer. Once enabled, the SSH port can be mapped for
+  headless build/test automation.
+
+### Caveats and limitations
+
+1. **Requires KVM** — macOS on dockurr has no TCG fallback. Unlike
+   dockurr/windows (which runs on TCG at ~5-10x slowdown), dockurr/macos
+   requires hardware acceleration. Needs bare metal (Vultr BM, Hetzner
+   Robot) or a local Linux host with KVM.
+
+2. **Licensing** — Running macOS on non-Apple hardware violates Apple's
+   End User License Agreement. Fine for personal/experimental use; review
+   the posture before relying on it in shared or public CI. The
+   `vm-uncloud` recipe explicitly flags this.
+
+3. **No RDP** — macOS has no native RDP. VNC is the primary remote
+   desktop protocol. For headless build/test, SSH must be manually
+   enabled via the VNC viewer after first boot.
+
+4. **Large disk** — macOS disk images are 15-25 GB, larger than Windows.
+
+5. **AMD core limitation** — On AMD systems, multiple cores may decrease
+   performance or cause crashes until after installation. dockurr recommends
+   single-core for the initial setup.
+
+### SSH bootstrap for headless use
+
+Following vm-uncloud's patterns, the macOS bootstrap flow is:
+
+1. **First boot** — Launch dockurr/macos with KVM. Connect via VNC to
+   complete the initial setup assistant and enable Remote Login (SSH).
+2. **SSH key injection** — Once SSH is enabled, inject the testbed public
+   key via VNC terminal or `docker exec`.
+3. **Subsequent boots** — SSH on the mapped host port works immediately.
+   No VNC needed after the one-time setup.
+
+This matches the two-phase Windows bootstrap (first boot interactive,
+subsequent boots headless via SSH), just using VNC instead of RDP.
+
+### Provider selection
+
+The `DockerProvider` selects the macOS backend based on host capabilities:
+
+| Host | Provider | Rationale |
+|------|----------|-----------|
+| Linux with KVM | dockurr/macos via Docker | Same Docker interface as Linux and Windows |
+| Apple Silicon Mac | UTM (existing `UtmProvider`) | Native HVF, no Docker KVM passthrough required |
+| Linux without KVM | Error — macOS cannot run without KVM | TCG not supported for macOS |
+| Hetzner Cloud | Error — no `/dev/kvm` | TCG not supported; need bare metal (Hetzner Robot, Vultr BM) |
 
 ---
 

@@ -1,28 +1,30 @@
 # 01 — Docker API Strategy
 
-**Date:** 2026-07-08
+**Date:** 2026-07-09
 **Status:** Resolved
 
 ## Decision
 
-Use **bollard** (the Rust Docker Engine API client) as the primary programmatic
-interface for container lifecycle management, and **keep Docker Compose files**
-(`compose.yaml`) alongside the crate as the declarative, human-editable
-definition of test environments. The two are complementary: bollard handles
-imperative operations (create/start/stop/inspect/exec) at runtime, while Compose
-files serve as the source of truth for multi-service topologies. We do NOT
-generate Compose files from Rust; we read and execute them via the Docker CLI
-as a convenience path, with bollard handling the fine-grained control path.
+Use **bollard** (the Rust Docker Engine API client) as the programmatic interface
+for container lifecycle management. The primary source of truth is a Rust-native
+**`ContainerServiceDefinition`** struct — a builder-pattern type that describes a
+container's image, ports, env vars, volumes, network, and wait strategy entirely
+in Rust. Users interact with Docker either via the `#[docker_container(...)]`
+proc macro (declarative, applied to functions) or via a programmatic API that
+takes `Vec<ContainerServiceDefinition>` and returns a **`ContainerGroup`** handle.
+Compose YAML generation is a serialization convenience (not the primary path).
 
 ## Table of Contents
 
 1. [Options considered](#options-considered)
 2. [Why bollard over Docker CLI shell-out](#why-bollard-over-docker-cli-shell-out)
-3. [Why keep Compose files (not generate them)](#why-keep-compose-files-not-generate-them)
-4. [Dual-mode architecture](#dual-mode-architecture)
-5. [What bollard handles vs what Compose handles](#what-bollard-handles-vs-what-compose-handles)
-6. [Dependency budget](#dependency-budget)
-7. [SSH transport for remote Docker](#ssh-transport-for-remote-docker)
+3. [ContainerServiceDefinition — Rust-native source of truth](#containerservicedefinition--rust-native-source-of-truth)
+4. [ContainerGroup — grouped lifecycle](#containergroup--grouped-lifecycle)
+5. [Programmatic API design](#programmatic-api-design)
+6. [Compose YAML as optional serialization](#compose-yaml-as-optional-serialization)
+7. [Log output configuration](#log-output-configuration)
+8. [Dependency budget](#dependency-budget)
+9. [SSH transport for remote Docker](#ssh-transport-for-remote-docker)
 
 ---
 
@@ -32,8 +34,8 @@ as a convenience path, with bollard handling the fine-grained control path.
 |----------|-------------|------|------|
 | **A: bollard SDK** | Full Rust Docker API client | Async, complete API, BuildKit, SSH, streaming | ~55 transitive deps |
 | **B: Docker CLI shell-out** | `std::process::Command` spawning `docker` | Zero deps, familiar error messages | String parsing, no streaming types, fragile |
-| **C: bollard + Compose files** (chosen) | Bollard for runtime ops, Compose for definitions | Best of both; Compose files are debuggable without Rust | Two surfaces to maintain |
-| **D: Generate Compose from Rust** | `compose_spec` crate to serialize Rust structs → YAML | Type-safe, single source of truth | Yet another dep; Compose YAML is already the universal format |
+| **C: bollard + Compose files** | Bollard for runtime ops, Compose for definitions | Compose files are debuggable without Rust | Two surfaces to maintain |
+| **D: `ContainerServiceDefinition` + bollard** (chosen) | Rust-native service definitions, Compose YAML as optional export | Single source of truth, type-safe, macros + programmatic API | New type to design; Compose round-trip fidelity not guaranteed |
 
 ---
 
@@ -67,92 +69,271 @@ pipeline:
    remote Docker daemons natively. This enables the Hetzner cloud deployment
    pattern (local bollard → SSH → remote dockerd).
 
-The ~55 transitive dependencies are acceptable in a dev-tooling crate
-(`foundation_testbed` already pulls in ssh2 + OpenSSL, indicatif, tar, flate2,
-xz2, deno_core/V8, etc.). Bollard is NOT pulled into production crates.
+7. **Per-container handle with health API** — `ContainerGroup::container(name)`
+   returns a `ContainerHandle` with `wait_till_health().await?` and other
+   inspection methods.
+
+The ~55 transitive dependencies (hyper, tokio, bytes, http, futures, tower, etc.)
+are acceptable because:
+1. `foundation_deployment_docker` is a **dev-tooling crate**, not pulled into
+   production binaries.
+2. Many of bollard's deps overlap with crates already in the workspace (tokio
+   is at 97 lockfile entries, hyper/http/bytes are used by `foundation_netio`).
+3. For comparison, other dev-tooling crates in the workspace pull heavyweight
+   dependencies: `foundation_testbed` already includes ssh2 + vendored
+   OpenSSL, indicatif, tar, flate2, xz2, and (optionally) deno_core/V8.
+
+**Resolved**: The Docker API (`ContainerServiceDefinition`, `ContainerHandle`, `ContainerGroup`,
+`WaitFor`, `DockerClient`) lives in `foundation_deployment_docker` — a standalone
+crate alongside `foundation_deployment`. `foundation_testbed` DEPENDS on it
+(rather than owning it), so the Docker interaction layer is available to ANY
+workspace crate that needs programmatic container management, not just the testbed.
 
 ---
 
-## Why keep Compose files (not generate them)
+## ContainerServiceDefinition — Rust-native source of truth
 
-1. **Human debuggability** — A developer can `cd` to the compose file directory
-   and run `docker compose up` directly to reproduce a test environment without
-   going through the Rust crate. This is the "escape hatch" when programmatic
-   control isn't working.
+Rather than generating Compose YAML and shelling out, the canonical definition
+of a container service lives in Rust:
 
-2. **Existing ecosystem** — Dockurr images, CI pipelines, and deployment tools
-   already speak Compose. Generating YAML from Rust types adds indirection
-   with no practical benefit.
-
-3. **Compose files are the source of truth** — The `ContainerProfile` (our Rust
-   config struct) is a *subset* of what Compose can express. Rather than try to
-   model the full Compose spec in Rust, we let Compose handle the full
-   expressiveness and use bollard for the runtime operations we actually need.
-
-4. **No `compose_spec` dependency** — Avoids pulling in another crate just to
-   serialize YAML. We already have `serde`/`serde_json`; reading an existing
-   compose file into a partial struct is simpler than generating one.
-
----
-
-## Dual-mode architecture
-
+```rust
+/// A declarative description of a single container service. This is the
+/// Rust-native equivalent of a `compose.yaml` service entry — it can be
+/// constructed statically, at runtime, or via the `#[docker_container]`
+/// proc macro's parsed attributes.
+pub struct ContainerServiceDefinition {
+    /// Docker image (e.g. "redis:7", "postgres:16", "dockurr/windows:5.15")
+    pub image: String,
+    /// Optional container name. Auto-generated if absent.
+    pub name: Option<String>,
+    /// Ports to expose: container_port -> optional host_port (None = auto)
+    pub ports: Vec<PortMapping>,
+    /// Environment variables
+    pub env: Vec<(String, String)>,
+    /// Volume mounts
+    pub volumes: Vec<VolumeMount>,
+    /// Network to attach to
+    pub network: Option<String>,
+    /// Network aliases for DNS resolution
+    pub network_aliases: Vec<String>,
+    /// Wait strategy
+    pub wait: WaitFor,
+    /// Stop timeout (seconds)
+    pub stop_timeout: u64,
+    /// Memory limit (e.g. "512m", "2g")
+    pub memory: Option<String>,
+    /// CPU limit
+    pub cpus: Option<u32>,
+    /// Force pull on every start
+    pub always_pull: bool,
+    /// Command override
+    pub command: Option<Vec<String>>,
+    /// Devices (for KVM, TUN, etc.)
+    pub devices: Vec<DeviceMapping>,
+    /// Linux capabilities to add
+    pub cap_add: Vec<String>,
+    /// Where container logs are forwarded
+    pub log_output: LogOutput,
+    /// Whether this container is required (failure = panic, no graceful skip)
+    pub required: bool,
+}
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    DockerProvider                            │
-│                                                             │
-│  ┌──────────────────┐    ┌──────────────────────────────┐   │
-│  │  Bollard path     │    │  Compose path                 │   │
-│  │  (programmatic)   │    │  (declarative)                │   │
-│  │                   │    │                              │   │
-│  │  bollard::Docker  │    │  compose.yaml beside crate    │   │
-│  │  → connect to     │    │  → docker compose up -d       │   │
-│  │    docker.sock    │    │  → bollard for exec/inspect   │   │
-│  │  → pull image     │    │  → docker compose down        │   │
-│  │  → create container│   │                              │   │
-│  │  → start          │    │                              │   │
-│  │  → exec (build)   │    │                              │   │
-│  │  → stop/remove    │    │                              │   │
-│  └──────────────────┘    └──────────────────────────────┘   │
-│                                                             │
-│  Both paths:                                                │
-│  → SSH into container (ssh2, same as today)                 │
-│  → File push/pull (docker cp or bind mount)                 │
-│  → Binary validation (same as today)                        │
-└─────────────────────────────────────────────────────────────┘
+
+### Builder API
+
+```rust
+impl ContainerServiceDefinition {
+    pub fn new(image: impl Into<String>) -> Self;
+    pub fn port(mut self, container_port: u16) -> Self;
+    pub fn port_mapped(mut self, container_port: u16, host_port: u16) -> Self;
+    pub fn env(mut self, key: impl Into<String>, value: impl Into<String>) -> Self;
+    pub fn network(mut self, name: impl Into<String>) -> Self;
+    pub fn network_alias(mut self, alias: impl Into<String>) -> Self;
+    pub fn volume(mut self, source: impl Into<PathBuf>, target: impl Into<PathBuf>) -> Self;
+    pub fn wait(mut self, strategy: WaitFor) -> Self;
+    pub fn memory(mut self, mem: impl Into<String>) -> Self;
+    pub fn cpus(mut self, count: u32) -> Self;
+    pub fn always_pull(mut self) -> Self;
+    pub fn command(mut self, cmd: Vec<String>) -> Self;
+    pub fn device(mut self, host_path: impl Into<PathBuf>) -> Self;
+    pub fn cap_add(mut self, cap: impl Into<String>) -> Self;
+    pub fn log_to(mut self, output: LogOutput) -> Self;
+    pub fn required(mut self) -> Self;
+}
 ```
 
-The `DockerProvider` selects between paths based on configuration:
-
-- **Bollard path** (default for programmatic use): Full lifecycle via bollard.
-  Generates container configs from `ContainerProfile` programmatically, creates
-  networks, manages volumes.
-- **Compose path** (opt-in, or for complex topologies): Reads `compose.yaml`,
-  shells out to `docker compose up -d` for the initial launch, then uses
-  bollard to connect to running containers for exec/inspect/stop.
-
-The Compose path intentionally uses the Docker CLI for `up`/`down` because
-Compose is a client-side orchestrator (it computes the diff between desired
-and actual state, then issues individual container API calls). Reimplementing
-Compose's diff logic in Rust is not valuable.
+`ContainerServiceDefinition` can be:
+- Constructed **statically** — `const REDIS: ContainerServiceDefinition = ...`
+- Built at **runtime** — pulling env vars, reading config files
+- Generated by the **proc macro** — `#[docker_container]` attributes parse into this struct
 
 ---
 
-## What bollard handles vs what Compose handles
+## ContainerGroup — grouped lifecycle
 
-| Operation | bollard | Compose (CLI) |
-|-----------|---------|---------------|
-| Pull image | `create_image()` | `docker compose pull` |
-| Create container | `create_container()` | Implicit in `up` |
-| Start container | `start_container()` | Implicit in `up` |
-| Stop container | `stop_container()` | `docker compose down` |
-| Remove container | `remove_container()` | `docker compose down` |
-| Create network | `create_network()` | Defined in compose.yaml |
-| Exec command | `create_exec()` + `start_exec()` | `docker compose exec` |
-| Stream logs | `logs()` → Stream | `docker compose logs -f` |
-| Inspect container | `inspect_container()` | `docker compose ps` |
-| Health status | Event stream | `docker compose ps` |
-| Multi-service orchestration | Manual (sequential API calls) | Native (`depends_on`, profiles) |
+```rust
+/// A handle to a group of running containers. Created by
+/// `ContainerGroup::start(vec![def1, def2, ...])`. On Drop, stops and removes
+/// all containers in dependency order (reverse start order).
+///
+/// The group handle allows individual container access for inspection,
+/// health checks, and exec.
+pub struct ContainerGroup {
+    handles: Vec<ContainerHandle>,
+}
+
+impl ContainerGroup {
+    /// Start all containers from their definitions. Returns a group handle
+    /// that will clean up all containers on Drop.
+    pub async fn start(
+        definitions: Vec<ContainerServiceDefinition>,
+    ) -> Result<Self, DockerError>;
+
+    /// Get a handle to an individual container by its service name or
+    /// container name.
+    pub fn container(&self, name: &str) -> Option<&ContainerHandle>;
+
+    /// Get all container handles.
+    pub fn containers(&self) -> &[ContainerHandle];
+}
+
+impl Drop for ContainerGroup {
+    fn drop(&mut self) {
+        // Reverse order teardown: stop + remove all containers.
+        // Best-effort, errors logged.
+    }
+}
+```
+
+### Usage example (programmatic)
+
+```rust
+use foundation_deployment_docker::*;
+
+#[valtron_test]
+fn test_app_with_db() {
+    let group = block_on(ContainerGroup::start(vec![
+        ContainerServiceDefinition::new("postgres:16")
+            .port(5432)
+            .env("POSTGRES_PASSWORD", "test")
+            .env("POSTGRES_DB", "app_test")
+            .wait(wait_for::port(5432)),
+        ContainerServiceDefinition::new("redis:7")
+            .port(6379)
+            .wait(wait_for::stdout("Ready to accept connections")),
+    ])).expect("Failed to start containers");
+
+    let pg = group.container("postgres:16").unwrap();
+    let redis = group.container("redis:7").unwrap();
+
+    // Connect: localhost:<pg.host_port(5432)>
+    // Connect: localhost:<redis.host_port(6379)>
+
+    // Group drops here — both containers stopped and removed.
+}
+```
+
+### Usage example (macro)
+
+```rust
+#[docker_container(image = "redis:7", port = 6379)]
+#[valtron_test]
+fn test_redis_cache() {
+    // Redis running, auto-cleaned up after this function returns.
+}
+```
+
+For multi-container via macro, stacked attributes:
+
+```rust
+#[docker_container(image = "redis:7", port = 6379)]
+#[docker_container(image = "postgres:16", port = 5432, env("POSTGRES_PASSWORD", "test"))]
+#[valtron_test]
+fn test_with_db_and_cache() {
+    // Both running, cleaned up in reverse order.
+}
+```
+
+---
+
+## Programmatic API design
+
+Users have three entry points, all backed by the same `ContainerServiceDefinition`:
+
+| Path | Mechanism | Use case |
+|------|-----------|----------|
+| **Proc macro** | `#[docker_container(...)]` on a function | Quick test isolation, single or stacked containers |
+| **Builder API** | `ContainerGroup::start(vec![...])` | Tests with dynamic config, multi-container with ordering |
+| **Static definitions** | `const MY_SERVICE: ContainerServiceDefinition = ...` | Reusable service profiles across a codebase |
+
+All three paths converge on `ContainerHandle::start()` internally. This means:
+- The same `WaitFor` strategies, error handling, and lifecycle guarantees apply
+  regardless of how the container was started.
+- The `ContainerGroup` returned by the builder API is the same type the macro
+  generates internally.
+
+---
+
+## Compose YAML as optional serialization
+
+Compose files are NOT the source of truth — they are an export format for
+debugging and interoperability. `ContainerServiceDefinition` provides
+`.to_compose_yaml() -> String`:
+
+```rust
+let defs = vec![
+    ContainerServiceDefinition::new("postgres:16").port(5432).env("POSTGRES_PASSWORD", "test"),
+    ContainerServiceDefinition::new("redis:7").port(6379),
+];
+let yaml = ContainerServiceDefinition::to_compose_yaml(&defs);
+std::fs::write("docker-compose.yml", yaml)?;
+// → docker compose up    (optional escape hatch)
+```
+
+This is a **one-way export** — we do not parse Compose YAML back into
+`ContainerServiceDefinition`. The Rust struct is the canonical form.
+
+Additionally, a `container_compose!` macro can accept a path to an existing
+`compose.yaml` and generate the equivalent `ContainerServiceDefinition`
+instances at compile time (for users who prefer starting from Compose):
+
+```rust
+let defs = container_compose!("compose.yaml");
+let group = block_on(ContainerGroup::start(defs))?;
+```
+
+But this is a convenience — the Rust-native definition is the recommended path.
+
+---
+
+## Log output configuration
+
+Each `ContainerServiceDefinition` specifies where container logs go:
+
+```rust
+pub enum LogOutput {
+    /// Forward to stdout (interleaved with process output)
+    Stdout,
+    /// Forward to stderr (interleaved with process output)
+    Stderr,
+    /// Write to a file path
+    File(PathBuf),
+    /// Discard logs
+    Null,
+    /// Capture in-memory (accessible via handle)
+    Captured,
+}
+```
+
+The macro equivalent:
+
+```rust
+#[docker_container(image = "redis:7", port = 6379, log_output = "file", log_path = "/tmp/redis.log")]
+fn test() { ... }
+```
+
+`ContainerHandle` provides `fn logs(&self) -> Result<String, DockerError>` for
+the `Captured` variant, returning accumulated stdout/stderr.
 
 ---
 
@@ -161,7 +342,7 @@ Compose's diff logic in Rust is not valuable.
 Bollard adds approximately 55 transitive dependencies (hyper, tokio, bytes,
 http, futures, tower, etc.). This is acceptable because:
 
-1. `foundation_testbed` is a **dev-tooling crate**, not a production
+1. `foundation_deployment_docker` is a **dev-tooling crate**, not a production
    dependency. It already has heavy deps (deno_core + V8 ~100MB, ssh2 +
    vendored OpenSSL).
 2. Bollard is feature-gated behind `vms` (the existing feature flag). Crates
@@ -182,7 +363,6 @@ let docker = Docker::connect_with_ssh(
     &["/home/user/.ssh/id_ed25519"],
     "root",
     22,
-    // No TLS verification needed — SSH provides the secure tunnel
 )?;
 ```
 
@@ -193,3 +373,13 @@ certificate management — SSH handles authentication and encryption.
 
 This aligns with the `vm-uncloud` pattern where `uc machine init` installs
 Docker on the remote machine and all subsequent operations go over SSH.
+
+## Related decisions
+
+The SSH transport layer and reverse-proxy/ingress concerns identified here
+warrant dedicated foundation crates. See:
+
+- **Decision 13 — `foundation_sshkit`** — A dedicated SSH crate for key
+  management, connection pooling, and command execution across the workspace.
+- **Decision 14 — `foundation_proxy`** — A proxy/sidecar crate with SSL
+  termination, automatic cert provisioning, and VFS-backed cert storage.

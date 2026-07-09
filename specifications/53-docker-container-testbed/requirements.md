@@ -50,9 +50,10 @@ the existing `Provider` trait.
 
 ## Non-Goals
 
-- Replacing QEMU for macOS guests (Docker cannot virtualize macOS).
+- Replacing QEMU for macOS on Apple Silicon (UTM with native HVF remains
+  the best option for Mac hosts; dockurr/macos requires KVM).
 - A Compose replacement — this crate provides imperative container management;
-  Compose files are a complementary approach.
+  Compose files are a complementary serialization format.
 - A production deployment tool — this is for testing and development.
 
 ## Decisions
@@ -80,6 +81,8 @@ All decisions documented in `decisions/`.
 | 04 | Networking & Volume Mounts | User-defined bridge networks, bind mounts for project source, named volumes for state |
 | 05 | Image Management | Multi-stage Dockerfiles per profile + pre-built images on a registry |
 | 06 | Cloud Deployment | cloud-init for Hetzner; Docker-in-Docker or sibling-container pattern |
+| 13 | foundation_sshkit | Dedicated SSH crate: connection pooling, key management, host abstraction, runners |
+| 14 | foundation_proxy | Reverse proxy: SSL termination, zero-downtime deploys, VFS cert storage |
 
 ## Features
 
