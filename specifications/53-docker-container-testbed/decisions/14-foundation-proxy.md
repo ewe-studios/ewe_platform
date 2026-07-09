@@ -114,14 +114,14 @@ adds the `proxy:` layer — SSL, host routing, health checks.
   Internet ──────┤                                                 │
                  │                                                 │
                  │  ┌─────────────────────────────────────────┐    │
-                 │  │ CloudflareDns (zone: example.com)        │    │
+                 │  │ CloudflareClient (zone: example.com)        │    │
                  │  │   A *.example.com → 1.2.3.4              │    │
                  │  │   TXT _acme-challenge.* → (ephemeral)    │    │
                  │  └─────────────────────────────────────────┘    │
                  │                      │                          │
                  │  ┌───────────────────▼──────────────────────┐    │
 Internet ───────▶│  │ TLS (rustls + CertManager)               │    │
-:443             │  │   CloudflareDns01CertManager              │    │
+:443             │  │   CloudflareAcmeCertManager              │    │
                  │  │     → ACME DNS-01 via Cloudflare API      │    │
                  │  │     → VFS cert store (local/R2/S3)        │    │
                  │  │     → Background renewal + hot-reload     │    │
@@ -271,58 +271,56 @@ proxy.register(ServiceConfig {
 ### Cloudflare API integration
 
 `foundation_proxy` manages Cloudflare DNS via the **existing
-`foundation_deployment_cloudflare` crate** — an auto-generated, feature-gated
-Cloudflare API v4 client covering every endpoint (zones, DNS records, tokens,
-certificates, etc.). The crate provides raw request builder functions; we
-wrap them with type-safe structs and higher-level operations needed by the
-proxy.
+`foundation_deployment_cloudflare` crate** — transitioned from auto-generated
+stubs to a hand-maintained crate with proper domain types (decision 15).
+The `CloudflareClient` struct provides auth management, type-safe DNS record
+CRUD, and higher-level operations (`upsert_record`, `bootstrap_domain`).
 
 The API token needs exactly one permission: `Zone:DNS:Edit` for the target
 zone — scoped, not an account-wide token. This matches vm-uncloud's token
 scoping.
 
 ```rust
-use foundation_deployment_cloudflare::zones;
+use foundation_deployment_cloudflare::{CloudflareClient, DnsRecord, DnsRecordType};
 
-/// Cloudflare DNS provider. Wraps `foundation_deployment_cloudflare`'s raw
-/// API request builders with type-safe DNS record operations.
-pub struct CloudflareDns {
-    zone_id: String,               // Cloudflare Zone ID (from dashboard)
-    api_token: String,             // Scoped API token (Zone:DNS:Edit)
-    client: SimpleHttpClient<R>,   // foundation_netio HTTP client
-}
+let cf = CloudflareClient::from_env()?;
+let zone = cf.find_zone("example.com").await?.unwrap();
 
-impl CloudflareDns {
-    /// Create or update a DNS record. Idempotent — if a record with the same
-    /// type + name already exists, it's updated (PUT). Otherwise it's created
-    /// (POST). This is two API calls: list (filter by name + type), then
-    /// create or update based on whether a match was found.
-    pub async fn upsert_record(
-        &self,
-        record_type: DnsRecordType,  // A, CNAME, TXT
-        name: &str,                  // e.g. "*.example.com" or "_acme-challenge.app"
-        content: &str,               // e.g. "1.2.3.4" or "abc123..."
-        ttl: u32,                    // 1 = auto, 60 for challenge TXT
-        proxied: bool,               // Cloudflare orange-cloud (DNS-only for ACME)
-    ) -> Result<String>;  // returns record ID
+// Upsert wildcard A record — idempotent
+cf.upsert_dns_record(&zone.id, &DnsRecord {
+    name: "*.example.com".into(),
+    r#type: DnsRecordType::A,
+    content: "1.2.3.4".into(),
+    ttl: 60,
+    proxied: false,  // DNS-only for ACME
+    ..Default::default()
+}).await?;
 
-    /// Delete a DNS record by ID. Used to clean up ACME challenge TXT records
-    /// after certificate issuance completes.
-    pub async fn delete_record(&self, record_id: &str) -> Result<()>;
+// Create ACME challenge TXT record
+let challenge_name = "_acme-challenge.example.com";
+cf.upsert_dns_record(&zone.id, &DnsRecord {
+    name: challenge_name.into(),
+    r#type: DnsRecordType::Txt,
+    content: "expected-token-value".into(),
+    ttl: 60,
+    proxied: false,
+    ..Default::default()
+}).await?;
 
-    /// List existing records matching a filter.
-    pub async fn list_records(
-        &self,
-        record_type: Option<DnsRecordType>,
-        name: Option<&str>,
-    ) -> Result<Vec<DnsRecord>>;
-}
+// Clean up after ACME validation
+cf.delete_dns_records_by_name(&zone.id, challenge_name, DnsRecordType::Txt).await?;
 ```
+
+All DNS operations go through `CloudflareClient` — no raw request builders,
+no manual auth injection. Type-safe `DnsRecord` structs replace the
+auto-generated `HashMap<String, Value>`. See decision 15 for the full type
+hierarchy and implementation plan.
 
 ### DNS-01 challenge flow (Let's Encrypt via Cloudflare)
 
-The `CloudflareDns01` cert manager implements the ACME DNS-01 challenge by
-programmatically creating/deleting TXT records:
+The `CloudflareAcmeCertManager` implements the ACME DNS-01 challenge by
+creating/deleting TXT records via `CloudflareClient` (from
+`foundation_deployment_cloudflare`):
 
 ```
 1. ACME order created for *.example.com
@@ -344,13 +342,13 @@ programmatically creating/deleting TXT records:
 ```
 
 ```rust
-pub struct CloudflareDns01CertManager {
-    dns: CloudflareDns,
+pub struct CloudflareAcmeCertManager {
+    dns: CloudflareClient,
     acme: AcmeClient,               // acme-micro or rustls-acme
     cert_store: Box<dyn CertStore>,  // VFS-backed
 }
 
-impl CertManager for CloudflareDns01CertManager {
+impl CertManager for CloudflareAcmeCertManager {
     async fn get_cert(&self, domain: &str) -> Result<CertPair> {
         if let Some(cert) = self.cert_store.load(domain).await? {
             if !self.needs_renewal(domain).await? {
@@ -424,26 +422,9 @@ On first run, or via `foundation_proxy init --domain example.com`, the proxy
 ensures the DNS records exist:
 
 ```rust
-impl CloudflareDns {
-    /// Ensure the wildcard + optional apex DNS records exist. Idempotent.
-    pub async fn bootstrap_domain(&self, domain: &str, ip: &str, setup_apex: bool) -> Result<()> {
-        // Wildcard A record — covers ALL subdomains
-        self.upsert_record(
-            DnsRecordType::A,
-            &format!("*.{}", domain),
-            ip,
-            60,       // 60s TTL for fast IP changes
-            false,    // DNS-only (grey cloud) — proxy handles TLS itself
-        ).await?;
-
-        // Optional apex A record (example.com → IP)
-        if setup_apex {
-            self.upsert_record(DnsRecordType::A, domain, ip, 60, false).await?;
-        }
-
-        Ok(())
-    }
-}
+// bootstrap_domain lives on CloudflareClient (decision 15).
+// Called once at proxy startup:
+cf.bootstrap_domain("example.com", "1.2.3.4", setup_apex: false).await?;
 ```
 
 The result is identical to vm-uncloud's OpenTofu output: one wildcard
@@ -458,15 +439,10 @@ token. The token comes from the environment (`CLOUDFLARE_API_TOKEN`) or a local
 secrets store, never from committed files:
 
 ```rust
-impl CloudflareDns {
-    pub fn from_env() -> Result<Self> {
-        let token = std::env::var("CLOUDFLARE_API_TOKEN")
-            .map_err(|_| ConfigError("CLOUDFLARE_API_TOKEN not set"))?;
-        let zone_id = std::env::var("CLOUDFLARE_ZONE_ID")
-            .map_err(|_| ConfigError("CLOUDFLARE_ZONE_ID not set"))?;
-        Ok(Self { zone_id, token, client: reqwest::Client::new() })
-    }
-}
+// CloudflareClient reads credentials from env (decision 15).
+// CLOUDFLARE_API_TOKEN: scoped Zone:DNS:Edit — never committed to files.
+// CLOUDFLARE_ZONE_ID: from Cloudflare dashboard sidebar.
+let cf = CloudflareClient::from_env()?;
 ```
 
 ### Integration with proxy startup
@@ -474,10 +450,10 @@ impl CloudflareDns {
 ```
 foundation_proxy start --domain example.com
   │
-  ├── 1. CloudflareDns::bootstrap_domain("example.com", <public_ip>)
+  ├── 1. CloudflareClient::bootstrap_domain("example.com", <public_ip>)
   │      → Ensures *.example.com A record exists (idempotent)
   │
-  ├── 2. CloudflareDns01CertManager::get_cert("*.example.com")
+  ├── 2. CloudflareAcmeCertManager::get_cert("*.example.com")
   │      → Checks VFS for existing cert
   │      → If missing or expiring: ACME DNS-01 challenge via Cloudflare TXT
   │      → Stores new cert in VFS (R2 for production, local FS for dev)
@@ -535,8 +511,8 @@ choose the VFS backend based on environment, swap transparently. The
 
 | Capability | Mechanism | vm-uncloud equivalent |
 |------------|-----------|----------------------|
-| DNS for wildcard domains | `CloudflareDns::bootstrap_domain()` | OpenTofu `cloudflare_dns_record` |
-| Wildcard TLS cert | `CloudflareDns01CertManager` (ACME DNS-01) | Caddy `tls { dns cloudflare }` |
+| DNS for wildcard domains | `CloudflareClient::bootstrap_domain()` | OpenTofu `cloudflare_dns_record` |
+| Wildcard TLS cert | `CloudflareAcmeCertManager` (ACME DNS-01) | Caddy `tls { dns cloudflare }` |
 | Cert persistence across restarts | VFS (local FS / R2 / S3) | Caddy's `/data` volume |
 | Cert auto-renewal | Background cron task, hot-reload | Caddy's built-in cert maintenance |
 | One-time DNS setup | `upsert_record` idempotent | OpenTofu plan/apply idempotency |
@@ -639,14 +615,10 @@ state file pattern.
 | `rustls` | TLS termination |
 | `acme-micro` or `rustls-acme` | Let's Encrypt ACME protocol |
 
-`CloudflareDns` wraps `foundation_deployment_cloudflare::zones::dns_records_for_a_zone_list_dns_records_request()` and related functions with:
-- **Type-safe `DnsRecord` structs** (the auto-generated crate uses `HashMap<String, Value>` for all bodies)
-- **Auth injection** (passes the API token via the `builder_mod` closure each request builder accepts)
-- **Higher-level ops** (`upsert_record`, `delete_by_name_and_type`, `bootstrap_domain`)
-- **Zone lookup** (resolves domain name → zone_id via `foundation_deployment_cloudflare::zones::list_zones_request`)
-
-The auto-generated crate is NOT modified — it's the raw HTTP layer. `foundation_proxy`
-provides the type safety and semantic operations on top.
+The `CloudflareClient`, `DnsRecord`, and `DnsRecordType` types live in
+`foundation_deployment_cloudflare` (decision 15 — transitioned from auto-generated
+to hand-maintained). `foundation_proxy` depends on that crate directly — no
+intermediate wrapper needed.
 
 `foundation_deployment_platform` integrates with `foundation_proxy` for:
 - Registering containers as backends after `ContainerGroup::start`
