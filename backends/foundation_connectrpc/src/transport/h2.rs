@@ -28,7 +28,7 @@ use foundation_core::valtron::{
 use foundation_netio::simple_http::shared::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
 };
-use foundation_netio::http2::channel::H2Channel;
+use foundation_netio::http2::channel::{H2Channel, H2StreamEvent};
 use foundation_netio::http2::connection::H2Request;
 
 use super::{
@@ -117,6 +117,7 @@ impl Transport for H2Transport {
         let (send_tx, send_rx) = Pipe::<Bytes>::new();
         let (head_tx, head_rx) = Pipe::<(Status, SimpleHeaders)>::new();
         let (body_tx, body_rx) = Pipe::<Bytes>::new();
+        let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
 
         // ── Spawn the valtron pump ────────────────────────────────────────────
         let pump = H2Pump {
@@ -126,6 +127,7 @@ impl Transport for H2Transport {
             send_rx,
             head_tx,
             body_tx,
+            trailer_tx,
             method: method.to_string(),
             host,
             port,
@@ -150,7 +152,7 @@ impl Transport for H2Transport {
         let head: HeadStream = head_stream_from_pipe(head_rx);
         let recv_body: BodyStream = body_stream_from_pipe(body_rx);
 
-        Ok(TransportStream { send_body: send_tx, head, recv_body })
+        Ok(TransportStream { send_body: send_tx, head, recv_body, trailers: trailer_rx })
     }
 }
 
@@ -170,6 +172,7 @@ struct H2Pump {
     send_rx: PipeReceiver<Bytes>,
     head_tx: PipeSender<(Status, SimpleHeaders)>,
     body_tx: PipeSender<Bytes>,
+    trailer_tx: PipeSender<SimpleHeaders>,
     method: String,
     host: String,
     port: u16,
@@ -519,8 +522,8 @@ impl TaskIterator for H2Pump {
                         return Some(TaskStatus::Pending(()));
                     }
 
-                    match self.channel.recv_data_frame() {
-                        Ok(Some((_sid, data, end))) => {
+                    match self.channel.recv_stream_event() {
+                        Ok(Some((_sid, H2StreamEvent::Data { data, end_stream: end, .. }))) => {
                             if !data.is_empty() {
                                 self.pending_body.push_back(data);
                             }
@@ -535,8 +538,36 @@ impl TaskIterator for H2Pump {
                                 return Some(TaskStatus::Pending(()));
                             }
                         }
+                        Ok(Some((_sid, H2StreamEvent::Trailers { headers, .. }))) => {
+                            // Decode trailing headers and push them into the
+                            // trailer pipe so the caller can read grpc-status etc.
+                            let mut trailers = SimpleHeaders::new();
+                            for (name, value) in &headers {
+                                let n = String::from_utf8_lossy(name);
+                                let v = String::from_utf8_lossy(value);
+                                // Skip pseudo-headers (:status etc.).
+                                if !n.starts_with(':') {
+                                    trailers
+                                        .entry(SimpleHeader::from(n.to_string()))
+                                        .or_default()
+                                        .push(v.to_string());
+                                }
+                            }
+                            let _ = self.trailer_tx.try_send(trailers);
+                            self.trailer_tx.close();
+                            // Trailers carry END_STREAM, so the body is also done.
+                            self.response_ended = true;
+                            if !self.flush_response_body() {
+                                return None;
+                            }
+                            if self.pending_body.is_empty() {
+                                self.state = PumpPhase::Done;
+                                return Some(TaskStatus::Pending(()));
+                            }
+                        }
                         Ok(None) => {
                             self.body_tx.close();
+                            self.trailer_tx.close();
                             self.state = PumpPhase::Done;
                             return Some(TaskStatus::Pending(()));
                         }
@@ -550,6 +581,7 @@ impl TaskIterator for H2Pump {
                         }
                         Err(_e) => {
                             self.body_tx.close();
+                            self.trailer_tx.close();
                             return None;
                         }
                     }
@@ -569,6 +601,7 @@ impl TaskIterator for H2Pump {
                     // (`valtron::send` is fire-and-forget), so it never ended.
                     self.body_tx.close();
                     self.head_tx.close();
+                    self.trailer_tx.close();
                     return None;
                 }
             }

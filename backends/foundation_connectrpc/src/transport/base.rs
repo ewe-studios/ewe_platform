@@ -126,14 +126,7 @@ pub trait Transport: Send + Sync + 'static {
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
 }
 
-/// A live transport exchange (F45 Part D, design D1). Three caller-facing halves:
-/// push request bytes, `.await` the response head, drain the response body.
-///
-/// Only `send_body` is a valtron [`Pipe`](foundation_core::valtron::Pipe) — the
-/// caller→task **input** direction, which fan-out splits cannot express. The two
-/// **output** halves are erased [`HeadFuture`]/[`BodyStream`] handles, so the
-/// transport's internal mechanism (h1 splits, WASM Fetch, …) does not leak: a
-/// transport failure rides the payload as `Err` instead of a silent close.
+/// A live transport exchange (F45 Part D, design D1). Four caller-facing halves.
 pub struct TransportStream {
     /// Wire request-body bytes out (the one surviving `Pipe`).
     pub send_body: ByteSink,
@@ -145,6 +138,10 @@ pub struct TransportStream {
     /// Wire response-body bytes in. Each `.next().await` yields `Ok(chunk)` or
     /// `Err(TransportError)` (a mid-body failure), then `None` at end of stream.
     pub recv_body: BodyStream,
+    /// HTTP trailers (h2 trailing HEADERS). At most one item — `None` means the
+    /// transport does not support trailers (e.g. HTTP/1.1 Connect) or the peer
+    /// sent none. Consumers call `trailers.receive().await` after draining `recv_body`.
+    pub trailers: PipeReceiver<SimpleHeaders>,
 }
 
 /// A transport-layer failure — a failure where no RPC response exists at all

@@ -14,14 +14,14 @@
 use std::sync::Arc;
 
 use foundation_core::url::Uri;
-use foundation_core::valtron::{self, CollectionState, StreamIteratorExt, TaskIteratorExt};
+use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
 use foundation_netio::simple_http::client::shared::request_task::HttpExchange;
 use foundation_netio::simple_http::client::shared::PreparedRequest;
 use foundation_netio::simple_http::client::{HttpExchangeTask, SimpleHttpClient};
 use foundation_netio::simple_http::shared::Extensions;
 use foundation_netio::simple_http::shared::{
     pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
-    DEFAULT_PUSHABLE_DEPTH,
+    SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
 };
 
 use super::{
@@ -135,10 +135,15 @@ impl Transport for H1Transport {
         let head: HeadStream = Box::pin(head_obs.into_next_stream());
         let recv_body: BodyStream = Box::pin(body_obs.into_next_stream());
 
+        // HTTP/1.1 has no trailing headers — close immediately.
+        let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
+        trailer_tx.close();
+
         Ok(TransportStream {
             send_body,
             head,
             recv_body,
+            trailers: trailer_rx,
         })
     }
 }

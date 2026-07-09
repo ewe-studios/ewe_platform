@@ -437,6 +437,53 @@ impl H2Channel {
         }
     }
 
+    /// One event on a stream after the response headers have been delivered.
+    #[derive(Debug)]
+    pub enum H2StreamEvent {
+        /// A DATA frame chunk (may be empty, `end_stream` is the flag).
+        Data { stream_id: u32, data: Bytes, end_stream: bool },
+        /// A HEADERS frame carrying trailing metadata (`END_STREAM` + `END_HEADERS`).
+        Trailers { stream_id: u32, headers: Vec<(Bytes, Bytes)> },
+    }
+
+    /// Try to read the next **post-headers** event on any stream.
+    ///
+    /// Returns `Ok(Some((stream_id, event)))` for DATA or trailing HEADERS,
+    /// `Ok(None)` for GOAWAY, and `Err(WouldBlock)` when the buffer is drained.
+    ///
+    /// This is the unified poll for the draining phase — it surfaces trailing
+    /// HEADERS that `recv_data_frame` silently drops (it only matches `Kind::Data`).
+    pub fn recv_stream_event(&mut self) -> io::Result<Option<(u32, H2StreamEvent)>> {
+        loop {
+            let (head, payload) = self.read_frame()?;
+            match head.kind {
+                Kind::Data => {
+                    let df = DataFrame::parse(&head, &payload).map_err(proto_err)?;
+                    let end = df.flags & data_flags::END_STREAM != 0;
+                    return Ok(Some((head.stream_id, H2StreamEvent::Data {
+                        stream_id: head.stream_id,
+                        data: df.data,
+                        end_stream: end,
+                    })));
+                }
+                Kind::Headers => {
+                    let hf = HeadersFrame::parse(&head, &payload).map_err(proto_err)?;
+                    let decoded =
+                        self.hpack_dec.decode(&hf.header_block).map_err(proto_err)?;
+                    return Ok(Some((head.stream_id, H2StreamEvent::Trailers {
+                        stream_id: head.stream_id,
+                        headers: decoded,
+                    })));
+                }
+                Kind::Settings => self.handle_settings(head, &payload)?,
+                Kind::WindowUpdate => self.handle_window_update(head, &payload)?,
+                Kind::Ping => self.handle_ping(head, &payload)?,
+                Kind::GoAway => { self.goaway_received = true; return Ok(None); }
+                _ => {}
+            }
+        }
+    }
+
     // ── Internal frame handlers ─────────────────────────────────────────
 
     fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
