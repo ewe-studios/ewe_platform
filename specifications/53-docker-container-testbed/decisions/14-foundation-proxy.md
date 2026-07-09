@@ -17,13 +17,14 @@ Build on Foundation crates: `foundation_netio` (TCP/TLS), `foundation_http`
 
 1. [Why a Foundation proxy](#why-a-foundation-proxy)
 2. [Prior art: Kamal + kamal-proxy](#prior-art-kamal--kamal-proxy)
-3. [Architecture](#architecture)
-4. [SSL termination and cert provisioning](#ssl-termination-and-cert-provisioning)
-5. [Cloudflare integration: DNS + TLS + wildcard certs](#cloudflare-integration-dns--tls--wildcard-certs)
-6. [Zero-downtime deployment](#zero-downtime-deployment)
-7. [State persistence](#state-persistence)
-8. [Integration with the workspace](#integration-with-the-workspace)
-9. [What Kamal does that we defer](#what-kamal-does-that-we-defer)
+3. [Three config paths](#three-config-paths)
+4. [Architecture](#architecture)
+5. [SSL termination and cert provisioning](#ssl-termination-and-cert-provisioning)
+6. [Cloudflare integration: DNS + TLS + wildcard certs](#cloudflare-integration-dns--tls--wildcard-certs)
+7. [Zero-downtime deployment](#zero-downtime-deployment)
+8. [State persistence](#state-persistence)
+9. [Integration with the workspace](#integration-with-the-workspace)
+10. [What Kamal does that we defer](#what-kamal-does-that-we-defer)
 
 ---
 
@@ -102,6 +103,136 @@ accessories:
 Our Rust equivalent is `ContainerServiceDefinition` (decision 01), which
 already expresses the app + accessory container topology. `foundation_proxy`
 adds the `proxy:` layer — SSL, host routing, health checks.
+
+---
+
+## Three config paths
+
+`foundation_proxy` exposes three paths for defining the proxy configuration.
+All three converge on the same runtime types (`ProxyConfig`, `ServiceConfig`,
+`SslConfig`) — the difference is when and how the config is constructed.
+
+### Path 1: `proxy!` macro — compile-time, baked into the binary
+
+```rust
+use foundation_proxy::proxy;
+
+fn main() {
+    let config = proxy! {
+        domain: "example.com",
+        ssl: lets_encrypt { email: "admin@example.com" },
+        services: {
+            windows_viewer: {
+                host: "windows.example.com",
+                backends: ["http://localhost:8006"],
+            },
+            app: {
+                host: "app.example.com",
+                backends: ["http://localhost:3000"],
+                health_check: "/up",
+            },
+        },
+    };
+
+    config.start().await?;
+}
+```
+
+- Single binary, zero external files. Deploy and run.
+- Config is type-checked at compile time — invalid service names, missing
+  required fields, wrong types are caught by the compiler.
+- Equivalent to vm-uncloud recipes baked into a Docker image.
+
+### Path 2: Programmatic builder — runtime, dynamic
+
+```rust
+use foundation_proxy::{ProxyConfig, ServiceConfig, SslConfig, HealthCheckConfig};
+
+fn main() {
+    let domain = std::env::var("PROXY_DOMAIN").unwrap();
+    let public_ip = std::env::var("PUBLIC_IP").unwrap();
+
+    let config = ProxyConfig::new(&domain, public_ip)
+        .ssl(SslConfig::lets_encrypt("admin@example.com"))
+        .service(ServiceConfig::new("app", "app.example.com")
+            .backend("http://localhost:3000")
+            .health_check("/up", Duration::from_secs(5)))
+        .service(ServiceConfig::new("windows", "windows.example.com")
+            .backend("http://localhost:8006"))
+        .build();
+
+    config.start().await?;
+}
+```
+
+- Full Rust expressiveness — read env vars, query APIs, compute at runtime.
+- Same `ProxyConfig` struct as the macro produces. No special types.
+- Good for CI, dynamic environments, multi-tenant setups.
+
+### Path 3: File-based — `proxy.toml`, reloadable
+
+```toml
+# proxy.toml
+domain = "example.com"
+public_ip = "1.2.3.4"
+
+[ssl]
+lets_encrypt = { email = "admin@example.com" }
+
+[[services]]
+name = "app"
+host = "app.example.com"
+backends = ["http://localhost:3000"]
+health_check = "/up"
+
+[[services]]
+name = "windows"
+host = "windows.example.com"
+backends = ["http://localhost:8006"]
+```
+
+```rust
+use foundation_proxy;
+
+fn main() {
+    // Load from a file beside the binary (or specified via clap)
+    let config = foundation_proxy::load_file("./proxy.toml")?;
+    config.start().await?;
+}
+```
+
+- Update config without rebuilding — just edit `proxy.toml` and restart.
+- Clap argument for path: `proxy --config ./proxy.toml`. If no argument
+  provided, defaults to `./proxy.toml` in the current directory.
+- Same `ProxyConfig` struct on the other side — deserialized via `toml` crate.
+  Validation is identical to paths 1 and 2 (same struct, same invariants).
+
+### Comparison
+
+| Path | Config lives in | Rebuild to change? | Type-checked at compile time? | Best for |
+|------|----------------|---------------------|------------------------------|----------|
+| Macro | Rust source code | Yes | Yes | Single-purpose deploy, CI |
+| Programmatic | Rust source code | Yes | Yes | Dynamic config, multi-tenant |
+| File (toml) | Sidecar file | No (restart only) | At load time (runtime validation) | Ops-managed, shared infra |
+
+### Implementation note
+
+All three paths produce the same `ProxyConfig` struct. The macro desugars to
+the builder pattern. The file path deserializes via `serde` (TOML). Validation
+happens once, at `ProxyConfig::build()`, regardless of which path was used:
+
+```rust
+impl ProxyConfig {
+    /// Validate and resolve the config. Called by all three paths.
+    pub async fn start(self) -> Result<ProxyServer, ProxyError> {
+        // 1. Validate: no duplicate hosts, backends are reachable, SSL config is valid
+        // 2. Bootstrap Cloudflare DNS (if using Cloudflare provider)
+        // 3. Provision or load TLS certs
+        // 4. Start the router + health probes
+        // 5. Return running ProxyServer handle
+    }
+}
+```
 
 ---
 

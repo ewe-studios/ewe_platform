@@ -92,10 +92,12 @@ procedural DSL backed by connection pooling and runner strategies.
 | **`russh`** | Pure Rust SSH2 | Async/tokio-native. Smaller community. Could be a secondary backend. |
 | **`openssh`** | CLI wrapper (`ssh`, `scp`) | Spawns processes. Simple but limited control. Fallback option. |
 
-**Recommendation:** Use `ssh2` as the primary backend (already proven in the
-workspace). Architect the `Backend` trait to be swappable, so `russh` or
-`openssh` can be added later.
-
+**Recommendation:** Land **two backends — `ssh2` and `russh`**. `ssh2` is the
+primary backend (already proven in `foundation_testbed`). `russh` is the
+pure-Rust async backend (no C dependency, tokio-native). Both implement the
+same `Backend` trait, swappable via a feature flag or runtime selection. Skip
+`openssh` entirely — spawning a CLI binary for each command loses typed output,
+exit code fidelity, and connection pooling.
 ---
 
 ## Core abstractions
