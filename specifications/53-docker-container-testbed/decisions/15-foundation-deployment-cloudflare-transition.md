@@ -127,164 +127,46 @@ pub struct DnsRecordsDnsResponseSingle {
 
 ## New type hierarchy
 
+**Core client:** `CloudflareClient` owns the HTTP client + token, wrapping the
+existing auto-generated valtron `TaskIterator` functions. Auth is injected
+automatically (hiding the `builder_mod` closure). Return types stay valtron-native.
+
+**Error type:** `CloudflareError` enum (variants: `Auth`, `ZoneNotFound`,
+`DnsRecordNotFound`, `Api`, `Http`, `Json`, `Io`) — same pattern as
+`DockerError` (decision 12): `derive_more` + `ErrorTrace<CloudflareError>`.
+Type alias `CfResult<T>` for all public API returns.
+
+**Domain types:** `Zone`, `DnsRecord`, `DnsRecordType`, `ZoneStatus`,
+`DnsRecordPatch` — proper Rust structs with typed fields replacing the
+auto-generated `HashMap<String, Value>` wrappers. `DnsRecordPatch` is a
+partial-update struct (PATCH semantics — all fields `Option<T>`).
+
+**High-level operations wrap valtron streams.** The existing request builders
+return `Result<impl TaskIterator<Ready = Result<ApiResponse<T>, ApiError>, ...>, ApiError>`.
+`CloudflareClient` wraps these: auth injection, `ApiError` → `CloudflareError`
+mapping via `.change_context()`, and `HashMap<String, Value>` → typed struct
+conversion. The return types stay valtron `TaskIterator` streams — no
+standalone `async fn` unless a caller explicitly requests a convenience wrapper.
+
+**Access pattern:** Callers drive the valtron stream via `block_on_future`
+or `collect_one`:
+
 ```rust
-use derive_more::{Display, Error, From};
-use foundation_errstacks::ErrorTrace;
-
-/// Type alias for all Cloudflare operations. Every public API returns this.
-pub type CfResult<T> = Result<T, ErrorTrace<CloudflareError>>;
-
-// ── Core client ──
-
-/// Owns the HTTP client + token. Every Cloudflare operation goes through this.
-/// Replaces the `builder_mod` closure pattern.
-pub struct CloudflareClient {
-    client: SimpleHttpClient<DnsResolver>,
-    token: String,   // "Authorization: Bearer {token}" injected automatically
-}
-
-impl CloudflareClient {
-    /// Create from env: reads CLOUDFLARE_API_TOKEN and CLOUDFLARE_ZONE_ID.
-    /// Missing env vars → `CloudflareError::Auth`.
-    pub fn from_env() -> CfResult<Self>;
-    pub fn new(token: String) -> Self;   // infallible — token ownership is all it needs
-}
-
-// ── Error type ──
-
-/// Errors from Cloudflare API operations. derive_more for Display + Error + From;
-/// wrapped in ErrorTrace<CloudflareError> for stack context via foundation_errstacks.
-#[derive(Debug, Display, Error, From)]
-pub enum CloudflareError {
-    /// Authentication token missing or invalid.
-    #[display("Cloudflare auth failed: {_0}")]
-    Auth(String),
-
-    /// Zone not found by domain name.
-    #[display("Zone not found: {_0}")]
-    ZoneNotFound(String),
-
-    /// DNS record not found by ID or name+type.
-    #[display("DNS record not found: {_0}")]
-    DnsRecordNotFound(String),
-
-    /// Cloudflare API returned an error response.
-    #[display("API error ({status}): {message}")]
-    Api { status: u16, message: String },
-
-    /// HTTP/network error reaching the Cloudflare API.
-    #[display("HTTP transport error: {_0}")]
-    Http(String),
-
-    /// JSON deserialisation failed for API response.
-    #[display("JSON parse error: {_0}")]
-    Json(String),
-
-    /// I/O error (config file, cert file, etc.).
-    #[display("I/O error: {_0}")]
-    Io(String),
-}
-
-// ── Domain types (replace HashMap<String, Value>) ──
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Zone {
-    pub id: String,
-    pub name: String,                  // e.g. "example.com"
-    pub status: ZoneStatus,            // active, pending, initializing, etc.
-    pub name_servers: Vec<String>,
-    pub plan: ZonePlan,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ZoneStatus { Active, Pending, Initializing, Moved, Deleted }
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct DnsRecord {
-    pub id: String,
-    pub zone_id: String,
-    pub name: String,                  // e.g. "*.example.com"
-    pub r#type: DnsRecordType,         // A, AAAA, CNAME, TXT, MX, etc.
-    pub content: String,               // e.g. "1.2.3.4" or "abc123..."
-    pub ttl: u32,                      // 1 = auto
-    pub proxied: bool,                 // orange-cloud
-    pub priority: Option<u32>,         // MX only
-    pub comment: Option<String>,
-    pub tags: Vec<String>,
-    pub created_on: DateTime<Utc>,
-    pub modified_on: DateTime<Utc>,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum DnsRecordType {
-    A, Aaaa, Cname, Txt, Mx, Ns, Soa, Srv, Caa, Ptr, Loc, Ds, Dnskey, Https, Svcb,
-}
-
-#[derive(Debug, Clone, Default, Serialize, Deserialize)]
-pub struct DnsRecordPatch {
-    pub ttl: Option<u32>,
-    pub proxied: Option<bool>,
-    pub content: Option<String>,
-    pub comment: Option<String>,
-    pub tags: Option<Vec<String>>,
-}
-
-// ── Higher-level operations on CloudflareClient ──
-// All async — CloudflareClient doesn't implement a sync trait.
-
-impl CloudflareClient {
-    // ── Zones ──
-
-    /// Find a zone by domain name. Returns None if no zone matches.
-    pub async fn find_zone(&self, domain: &str) -> CfResult<Option<Zone>>;
-
-    // ── DNS Records ──
-
-    /// List all DNS records, optionally filtered by type and/or name.
-    pub async fn list_dns_records(
-        &self, zone_id: &str, r#type: Option<DnsRecordType>, name: Option<&str>,
-    ) -> CfResult<Vec<DnsRecord>>;
-
-    /// Create a DNS record. Returns the created record (with server-assigned id).
-    pub async fn create_dns_record(&self, zone_id: &str, record: &DnsRecord) -> CfResult<DnsRecord>;
-
-    /// Update an existing DNS record (PUT — full replacement).
-    pub async fn update_dns_record(&self, zone_id: &str, record: &DnsRecord) -> CfResult<DnsRecord>;
-
-    /// Patch a DNS record (PATCH — partial update, e.g. TTL or proxied only).
-    pub async fn patch_dns_record(
-        &self, zone_id: &str, record_id: &str, fields: &DnsRecordPatch,
-    ) -> CfResult<DnsRecord>;
-
-    /// Delete a DNS record by ID.
-    pub async fn delete_dns_record(&self, zone_id: &str, record_id: &str) -> CfResult<()>;
-
-    /// Upsert: if a record with the same name + type exists, update it.
-    /// Otherwise create it. Returns the record ID.
-    pub async fn upsert_dns_record(
-        &self, zone_id: &str, record: &DnsRecord,
-    ) -> CfResult<String>;
-
-    /// Delete all records matching a name + type. Used for ACME challenge cleanup.
-    pub async fn delete_dns_records_by_name(
-        &self, zone_id: &str, name: &str, r#type: DnsRecordType,
-    ) -> CfResult<usize>;  // returns count of deleted records
-
-    // ── Domain bootstrap (for foundation_proxy startup) ──
-
-    /// Ensure wildcard and optional apex A records exist pointing to the
-    /// proxy's public IP. Idempotent — skips if records already exist.
-    pub async fn bootstrap_domain(
-        &self, domain: &str, public_ip: &str, setup_apex: bool,
-    ) -> CfResult<()>;
-}
+let cf = CloudflareClient::from_env()?;
+let records: Vec<DnsRecord> = block_on_future(
+    cf.list_dns_records(&zone_id, Some(DnsRecordType::A), Some("*.example.com"))
+      .change_context(CloudflareError::Api)?
+      .map_ready(|r| r.into_typed())?  // maps ApiResponse<DnsRecordsDnsResponseCollection> → Vec<DnsRecord>
+      .collect()
+);
 ```
 
-`CfResult<T>` is the standard return type — all public APIs return
-`Result<T, ErrorTrace<CloudflareError>>`. Internal methods call
-`.change_context(CloudflareError::...)` and `.attach(...)` to build
-context stacks. Callers inspect via downcast or pattern matching on
-`CloudflareError` variants.
+Higher-level composable methods on `CloudflareClient` return
+`Result<impl TaskIterator<...>, ErrorTrace<CloudflareError>>` — same shape as the
+auto-generated functions but with typed errors and typed response bodies:
+`list_dns_records`, `create_dns_record`, `update_dns_record`, `patch_dns_record`,
+`delete_dns_record`, `upsert_dns_record`, `delete_dns_records_by_name`,
+`bootstrap_domain`.
 
 ---
 
