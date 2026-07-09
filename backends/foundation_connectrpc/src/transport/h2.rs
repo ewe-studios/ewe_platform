@@ -14,6 +14,7 @@
 //! on the pool; the caller gets `TransportStream { send_body, head, recv_body }`
 //! and drains response bytes from the pipe handles.
 
+use std::collections::VecDeque;
 use std::io::{self, Read, Write};
 use std::net::TcpStream;
 use std::sync::Arc;
@@ -53,9 +54,13 @@ impl Transport for H2Transport {
     fn capabilities(&self) -> TransportCapabilities {
         TransportCapabilities {
             request_streaming: true,
-            full_duplex: false,
+            // The pump streams request DATA frames while concurrently draining
+            // response frames, so a bidi call makes progress in both directions.
+            full_duplex: true,
             h2_trailers: true,
             http_versions: &[Proto::HTTP20],
+            // One TCP connection per call — h2 stream multiplexing across calls
+            // is not wired up on the client side yet.
             multiplexed: false,
         }
     }
@@ -128,8 +133,11 @@ impl Transport for H2Transport {
             req_headers,
             request_sent: false,
             response_head_sent: false,
-            body_buf: Vec::new(),
+            stream_id: 0,
             body_complete: false,
+            request_ended: false,
+            pending_body: VecDeque::new(),
+            response_ended: false,
         };
 
         valtron::send(pump).map_err(|e| {
@@ -169,11 +177,83 @@ struct H2Pump {
     req_headers: SimpleHeaders,
     request_sent: bool,
     response_head_sent: bool,
-    /// Request body accumulated across polls. The pump emits the request as a
-    /// single HEADERS(+DATA), so it must hold every byte until `send_rx` closes.
-    body_buf: Vec<u8>,
+    /// The stream this request occupies, known once HEADERS has been sent.
+    stream_id: u32,
     /// `send_rx` has closed: the request body is complete.
     body_complete: bool,
+    /// Set once the terminating `DATA(END_STREAM)` has gone out.
+    request_ended: bool,
+    /// Response chunks the body pipe was too full to accept. They must be
+    /// delivered, in order, ahead of any later chunk — `try_send` dropping a
+    /// `Full` chunk on the floor silently truncates the response body.
+    pending_body: VecDeque<Bytes>,
+    /// The peer signalled END_STREAM; close `body_tx` once `pending_body` drains.
+    response_ended: bool,
+}
+
+impl H2Pump {
+    /// Forward any newly-available request body chunks, and terminate the request
+    /// direction once `send_rx` closes. Returns `false` on a fatal channel error.
+    ///
+    /// Called from every phase: a server may answer while the client is still
+    /// sending (bidi), so the request direction cannot stall once we move on to
+    /// reading the response.
+    fn pump_request_body(&mut self) -> bool {
+        if !self.request_sent || self.request_ended {
+            return true;
+        }
+
+        loop {
+            match self.send_rx.try_recv() {
+                Ok(chunk) => {
+                    if !chunk.is_empty()
+                        && self
+                            .channel
+                            .send_data_frame(self.stream_id, &chunk, false)
+                            .is_err()
+                    {
+                        return false;
+                    }
+                }
+                Err(TryRecvError::Closed) => {
+                    self.body_complete = true;
+                    break;
+                }
+                Err(TryRecvError::Empty) => break,
+            }
+        }
+
+        if self.body_complete && !self.request_ended {
+            if self
+                .channel
+                .send_data_frame(self.stream_id, &[], true)
+                .is_err()
+            {
+                return false;
+            }
+            self.request_ended = true;
+        }
+        true
+    }
+
+    /// Push queued response chunks into `body_tx`, respecting its capacity.
+    /// Returns `false` if the consumer hung up.
+    fn flush_response_body(&mut self) -> bool {
+        while let Some(chunk) = self.pending_body.front() {
+            match self.body_tx.try_send(chunk.clone()) {
+                Ok(()) => {
+                    self.pending_body.pop_front();
+                }
+                // Consumer is behind. Keep the chunk and retry next poll.
+                Err(e) if e.is_full() => return true,
+                Err(_) => return false,
+            }
+        }
+        if self.response_ended {
+            self.body_tx.close();
+        }
+        true
+    }
 }
 
 impl TaskIterator for H2Pump {
@@ -208,31 +288,29 @@ impl TaskIterator for H2Pump {
 
             match self.state {
                 PumpPhase::SendingRequest => {
-                    // ── Drain request body from pipe ──────────────────
-                    // Accumulate into `self.body_buf`: a poll that drains some
-                    // bytes and then sees `Empty` must not lose them.
+                    // ── Collect whatever body is available right now ───
+                    // `Empty` means "nothing buffered yet", NOT end-of-body. Only
+                    // `Closed` ends the request.
+                    let mut chunks: Vec<Bytes> = Vec::new();
                     loop {
                         match self.send_rx.try_recv() {
-                            Ok(b) => self.body_buf.extend_from_slice(&b),
+                            Ok(b) => chunks.push(b),
                             Err(TryRecvError::Closed) => {
                                 self.body_complete = true;
                                 break;
                             }
-                            // Nothing buffered *right now*. The body may still be
-                            // on its way — this is not end-of-body.
                             Err(TryRecvError::Empty) => break,
                         }
                     }
 
-                    // ── Send the h2 request ───────────────────────────
-                    // The request goes out as one HEADERS(+DATA), so it cannot be
-                    // sent until the body is complete. Committing earlier would
-                    // set END_STREAM on HEADERS while bytes were still queued,
-                    // silently dropping the request body.
-                    if !self.request_sent && self.body_complete {
-                        let body_bytes = std::mem::take(&mut self.body_buf);
+                    // ── HEADERS, on the first poll ────────────────────
+                    // Emitted immediately rather than waiting for the body to
+                    // complete: a bidi caller keeps `send_rx` open while awaiting
+                    // responses, so waiting here would deadlock. END_STREAM rides
+                    // the HEADERS only when we already know there is no body.
+                    if !self.request_sent {
+                        let no_body = self.body_complete && chunks.is_empty();
                         let authority = Bytes::from(format!("{}:{}", self.host, self.port));
-                        let has_body = !body_bytes.is_empty();
 
                         let mut h2_headers = Vec::new();
                         for (k, vals) in &self.req_headers {
@@ -250,18 +328,19 @@ impl TaskIterator for H2Pump {
                             authority,
                             path: Bytes::copy_from_slice(self.path.as_bytes()),
                             headers: h2_headers,
-                            body: if has_body { Some(Bytes::from(body_bytes)) } else { None },
-                            // "The request is complete." `send_request` puts
-                            // END_STREAM on HEADERS when there is no body, and on
-                            // the DATA frame when there is. Passing `!has_body`
-                            // here marks neither, so the peer waits forever.
-                            end_stream: true,
+                            // Body frames are streamed separately below, so the
+                            // HEADERS never carries one. `end_stream` here means
+                            // "no body at all" — `send_request` puts END_STREAM on
+                            // HEADERS exactly when `body.is_none() && end_stream`.
+                            body: None,
+                            end_stream: no_body,
                         };
 
                         match self.channel.send_request(&req) {
-                            Ok(_sid) => self.request_sent = true,
-                            Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                                // Shouldn't happen — send_request doesn't read
+                            Ok(sid) => {
+                                self.stream_id = sid;
+                                self.request_sent = true;
+                                self.request_ended = no_body;
                             }
                             Err(_e) => {
                                 let _ = self.head_tx.try_send((Status::BadGateway, SimpleHeaders::new()));
@@ -272,13 +351,47 @@ impl TaskIterator for H2Pump {
                         }
                     }
 
+                    // ── Stream body chunks as they arrive ─────────────
+                    if self.request_sent && !self.request_ended {
+                        for chunk in chunks {
+                            if chunk.is_empty() {
+                                continue;
+                            }
+                            if self
+                                .channel
+                                .send_data_frame(self.stream_id, &chunk, false)
+                                .is_err()
+                            {
+                                self.head_tx.close();
+                                self.body_tx.close();
+                                return None;
+                            }
+                        }
+
+                        // `send_rx` closed: terminate the request direction. The
+                        // frame may be empty — END_STREAM is what matters.
+                        if self.body_complete {
+                            if self
+                                .channel
+                                .send_data_frame(self.stream_id, &[], true)
+                                .is_err()
+                            {
+                                self.head_tx.close();
+                                self.body_tx.close();
+                                return None;
+                            }
+                            self.request_ended = true;
+                        }
+                    }
+
                     // Flush output
                     let out = self.channel.drain_output();
                     if !out.is_empty() {
                         match self.stream.write(&out) {
-                            Ok(_) => {}
+                            Ok(_) => {
+                                self.stream.flush().ok();
+                            }
                             Err(ref e) if e.kind() == io::ErrorKind::WouldBlock => {
-                                // Put bytes back? Just yield and retry.
                                 return Some(TaskStatus::Delayed(POLL_DELAY));
                             }
                             Err(_e) => {
@@ -290,12 +403,25 @@ impl TaskIterator for H2Pump {
                         }
                     }
 
+                    // Move on once the head is out. The remaining body chunks (if
+                    // any) keep streaming from the WaitingResponse/Draining
+                    // phases, so a server that answers mid-request still works.
                     if self.request_sent {
                         self.state = PumpPhase::WaitingResponse;
+                    } else {
+                        return Some(TaskStatus::Delayed(POLL_DELAY));
                     }
                 }
 
                 PumpPhase::WaitingResponse => {
+                    // Keep feeding the request: a bidi server may not answer until
+                    // it has seen some (or all) of the request body.
+                    if !self.pump_request_body() {
+                        self.head_tx.close();
+                        self.body_tx.close();
+                        return None;
+                    }
+
                     // ── Try to read a response ─────────────────────────
                     match self.channel.recv_response() {
                         Ok(Some((_sid, resp))) => {
@@ -320,15 +446,21 @@ impl TaskIterator for H2Pump {
                             self.head_tx.close();
                             self.response_head_sent = true;
 
-                            // Push body if present
+                            // Queue body if present; `flush_response_body` honours
+                            // the pipe's capacity rather than dropping on Full.
                             if let Some(body) = &resp.body {
                                 if !body.is_empty() {
-                                    let _ = self.body_tx.try_send(body.clone());
+                                    self.pending_body.push_back(body.clone());
                                 }
                             }
-
                             if resp.end_stream {
-                                self.body_tx.close();
+                                self.response_ended = true;
+                            }
+                            if !self.flush_response_body() {
+                                return None;
+                            }
+
+                            if self.response_ended && self.pending_body.is_empty() {
                                 self.state = PumpPhase::Done;
                                 return Some(TaskStatus::Pending(()));
                             }
@@ -368,14 +500,37 @@ impl TaskIterator for H2Pump {
                 }
 
                 PumpPhase::Draining => {
-                    // Read more DATA frames
+                    // The request direction may still be open (bidi).
+                    if !self.pump_request_body() {
+                        self.body_tx.close();
+                        return None;
+                    }
+
+                    // Retry anything the consumer was too slow to take. Only pull
+                    // a new frame once the backlog has drained, so ordering holds.
+                    if !self.flush_response_body() {
+                        return None;
+                    }
+                    if !self.pending_body.is_empty() {
+                        return Some(TaskStatus::Delayed(POLL_DELAY));
+                    }
+                    if self.response_ended {
+                        self.state = PumpPhase::Done;
+                        return Some(TaskStatus::Pending(()));
+                    }
+
                     match self.channel.recv_data_frame() {
                         Ok(Some((_sid, data, end))) => {
                             if !data.is_empty() {
-                                let _ = self.body_tx.try_send(data);
+                                self.pending_body.push_back(data);
                             }
                             if end {
-                                self.body_tx.close();
+                                self.response_ended = true;
+                            }
+                            if !self.flush_response_body() {
+                                return None;
+                            }
+                            if self.response_ended && self.pending_body.is_empty() {
                                 self.state = PumpPhase::Done;
                                 return Some(TaskStatus::Pending(()));
                             }
@@ -389,6 +544,7 @@ impl TaskIterator for H2Pump {
                             let out = self.channel.drain_output();
                             if !out.is_empty() {
                                 let _ = self.stream.write(&out);
+                                self.stream.flush().ok();
                             }
                             return Some(TaskStatus::Delayed(POLL_DELAY));
                         }
