@@ -189,4 +189,4 @@ If Docker is unavailable:
 WARN docker_container{image="redis:7"}: SKIP: Docker not available (socket /var/run/docker.sock not found)
 ```
 
-This enables debugging via `RUST_LOG=foundation_deployment_docker=debug cargo test`.
+This enables debugging via `RUST_LOG=foundation_deployment_platform=debug cargo test`.

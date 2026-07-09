@@ -1,339 +1,408 @@
-# 03 — Provider Trait Integration
+# 03 — Provider Trait Integration & Crate Architecture
 
-**Date:** 2026-07-08
+**Date:** 2026-07-09
 **Status:** Resolved
 
 ## Decision
 
-Add `DockerProvider` as a new implementation of the existing `Provider` trait,
-sitting alongside `QemuProvider` and `UtmProvider`. The trait surface is already
-a good fit: `launch`, `stop`, `is_running`, `resolved_ports`, `ensure_image`,
-`host_health` all map cleanly to Docker operations. `default_provider()` changes
-to prefer Docker on Linux hosts when Docker is available, falling back to QEMU
-when it's not (no Docker socket, or KVM required for non-Linux guests).
+Extract all platform abstraction logic from `foundation_testbed` into a new
+crate **`foundation_deployment_platform`** — a sibling of `foundation_deployment`.
+This crate owns the `Provider` trait (redesigned with associated types), all
+provider implementations (`QemuProvider`, `UtmProvider`, `DockerProvider`), SSH
+and WinRM communication, guest bootstrap, image management, state persistence,
+and the platform CLI. The Docker runtime (`ContainerHandle`, `ContainerConfig`,
+`WaitFor`, `DockerClient`) lives as a `docker/` module within this crate — no
+separate `foundation_deployment_platform` crate. `foundation_testbed` becomes a
+thin consumer.
 
 ## Table of Contents
 
-1. [Trait surface mapping](#trait-surface-mapping)
-2. [DockerProvider implementation](#dockerprovider-implementation)
-3. [VmHandle for Docker containers](#vmhandle-for-docker-containers)
-4. [Provider selection logic](#provider-selection-logic)
-5. [Profile dispatch](#profile-dispatch)
-6. [What changes in callers](#what-changes-in-callers)
+1. [Why the Provider trait needs associated types](#why-the-provider-trait-needs-associated-types)
+2. [Redesigned Provider trait](#redesigned-provider-trait)
+3. [Why VmProfile doesn't work for Docker](#why-vmprofile-doesnt-work-for-docker)
+4. [ContainerServiceDefinition vs VmProfile](#containerservicedefinition-vs-vmprofile)
+5. [Dispatch via PlatformHandle](#dispatch-via-platformhandle)
+6. [DockerProvider implementation](#dockerprovider-implementation)
+7. [Crate dependency graph](#crate-dependency-graph)
+8. [What moves where](#what-moves-where)
+9. [Colima support on macOS](#colima-support-on-macos)
 
 ---
 
-## Trait surface mapping
+## Why the Provider trait needs associated types
 
-The existing `Provider` trait (simplified):
+The current `Provider` trait is QEMU-shaped:
+
+```rust
+// Current — QEMU-specific:
+fn launch(&self, profile: &VmProfile, display: DisplayMode) -> Result<VmHandle>;
+fn monitor_command(&self, handle: &VmHandle, cmd: &str) -> Result<String>;
+fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf>;
+```
+
+Problems:
+1. **`VmProfile`** has `image_name` (qcow2 filename), `vnc_port`, `memory_mib`,
+   `disk_gb`, `prebaked_url` — all QEMU concepts. Docker uses image tags, env
+   vars, and string-based limits. See [VmProfile analysis](#why-vmprofile-doesnt-work-for-docker).
+2. **`VmHandle`** holds a PID + monitor socket. Docker holds a container ID.
+3. **`DisplayMode`** is VNC/SPICE/GTK vs headless — QEMU display backends.
+   Docker containers don't have displays. dockurr web viewers are just ports.
+4. **`monitor_command`** is QEMU Monitor Protocol (QMP). Docker uses
+   `docker exec` or bollard's `create_exec`.
+5. **`ensure_image`** returns `PathBuf` to a qcow2 on disk. Docker images are
+   managed by the daemon, not files on disk.
+
+The fix: **associated types on the Provider trait**. Each provider defines its
+own handle type and config type:
 
 ```rust
 pub trait Provider: Send + Sync {
+    /// The handle this provider returns on launch.
+    /// QemuProvider/UtmProvider → VmHandle (owns child process + monitor socket)
+    /// DockerProvider → ContainerHandle (owns bollard container lifecycle)
+    type Handle;
+
+    /// The configuration this provider accepts.
+    /// QemuProvider/UtmProvider → VmProfile (qcow2, VNC, MiB, etc.)
+    /// DockerProvider → ContainerServiceDefinition (image tag, WaitFor, etc.)
+    type Config;
+
+    fn name(&self) -> &'static str;
     fn id(&self) -> ProviderId;
-    fn launch(&self, profile: &VmProfile, display: DisplayMode) -> Result<VmHandle>;
-    fn stop(&self, handle: &VmHandle) -> Result<()>;
-    fn is_running(&self, handle: &VmHandle) -> Result<bool>;
-    fn resolved_ports(&self, handle: &VmHandle) -> Result<HashMap<String, u16>>;
-    fn monitor_command(&self, handle: &VmHandle, cmd: &str) -> Result<String>;
-    fn ensure_image(&self, profile: &VmProfile) -> Result<PathBuf>;
-    fn host_health(&self) -> Result<Vec<HealthCheck>>;
+    fn launch(&self, config: &Self::Config) -> Result<Self::Handle>;
+    fn stop(&self, handle: &Self::Handle) -> Result<()>;
+    fn is_running(&self, handle: &Self::Handle) -> bool;
+    fn resolved_ports(&self, handle: &Self::Handle) -> Result<ResolvedPorts>;
+    fn host_health(&self) -> HostHealth;
 }
 ```
 
-### How each method maps to Docker:
+What was **removed** from the trait:
+- **`monitor_command`** — QEMU-specific. Callers that need QMP access go
+  through the concrete `QemuVm` type, not the trait.
+- **`ensure_image`** — Each provider handles image provisioning internally
+  as part of `launch()`. QEMU downloads qcow2; Docker pulls from registry.
+- **`DisplayMode`** — Set on the provider at construction time
+  (`QemuProvider::new().display(Headless)`), not per-launch. Docker doesn't
+  have a display mode.
 
-| Trait method | Docker equivalent | Notes |
-|-------------|-------------------|-------|
-| `launch()` | `docker create` + `docker start`, or `docker compose up -d` | Returns a `VmHandle` with container ID |
-| `stop()` | `docker stop` + `docker rm` | Graceful (SIGTERM) then force (SIGKILL) |
-| `is_running()` | `docker inspect` → check `State.Running` | Fast, single API call |
-| `resolved_ports()` | `docker inspect` → read `NetworkSettings.Ports` | Returns host ports mapped to container ports |
-| `monitor_command()` | `docker exec container cmd` | Maps to container exec for QEMU-monitor-like introspection |
-| `ensure_image()` | `docker pull` or `docker build` | Pull from registry or build from Dockerfile |
-| `host_health()` | Check Docker socket exists + daemon reachable + disk space | Replaces KVM/QEMU binary checks |
+What was **kept**:
+- **`launch` / `stop` / `is_running`** — universal lifecycle
+- **`resolved_ports`** — all providers resolve host↔guest port mappings
+- **`host_health`** — all providers check prerequisites (KVM, Docker socket, etc.)
+
+---
+
+## Why VmProfile doesn't work for Docker
+
+`VmProfile` is currently 14 fields. Here's which ones are QEMU-specific
+and have no Docker equivalent:
+
+| Field | QEMU meaning | Docker equivalent | Works? |
+|-------|-------------|-------------------|--------|
+| `name` | Profile name (`"linux-build"`) | Same | ✅ |
+| `os` | GuestOs enum | `ContainerServiceDefinition` has no OS — the image defines it | Partial |
+| `image_name` | qcow2 filename (`"ubuntu-24.04-x86_64.qcow2"`) | Docker image tag (`"testbed/linux-build:latest"`) | ❌ Different type |
+| `image_cache_path()` | `~/.cache/.../images/<name>.qcow2` | Docker daemon manages images internally | ❌ Not applicable |
+| `ssh_port` | Host port → guest :22 | Same port mapping | ✅ |
+| `rdp_port` | Host port → guest :3389 | Same port mapping (dockurr Windows) | ✅ |
+| `winrm_port` | Host port → guest :5985 | Same port mapping (Windows bootstrap) | ✅ |
+| `vnc_port` | VNC display offset (5900 + N) | Docker has no VNC. dockurr exposes web viewer (8006) or VNC (5900) directly as ports | ❌ Different concept |
+| `memory_mib` | u32 MiB | Docker uses string (`"4G"`, `"512m"`) in HostConfig | ❌ Different type/unit |
+| `cpu_cores` | u32 | Docker uses `HostConfig.nano_cpus` or `--cpus` | Partial |
+| `disk_gb` | Pre-allocated qcow2 size | Docker doesn't pre-allocate. dockurr uses `DISK_SIZE` env var | ❌ Not applicable |
+| `prebaked_url` | qcow2 download URL | Docker image pull from registry | ❌ Different mechanism |
+| `bootstrap` | WinRM→SSH bootstrap mode | Docker bakes provisioning into Dockerfile (not a runtime flag) | ❌ Different model |
+| `user` / `pass` | Guest credentials | Env vars in ContainerServiceDefinition | Partial |
+
+**Only 3 of 14 fields map cleanly** (`name`, `ssh_port`, `rdp_port`). The rest
+are QEMU concepts with no Docker equivalent, or fundamentally different types.
+
+---
+
+## ContainerServiceDefinition vs VmProfile
+
+These are **sibling types**, not a subtype relationship. Each provider
+accepts the config that matches its isolation model:
+
+```rust
+// ── VM isolation (QEMU/UTM) ──
+pub struct VmProfile {
+    pub name: String,
+    pub os: GuestOs,
+    pub image_name: String,       // qcow2 filename
+    pub ssh_port: u16,
+    pub rdp_port: Option<u16>,
+    pub winrm_port: Option<u16>,
+    pub vnc_port: u16,            // display offset
+    pub user: String,
+    pub pass: String,
+    pub bootstrap: BootstrapMode,
+    pub memory_mib: u32,
+    pub cpu_cores: u32,
+    pub disk_gb: u32,
+    pub prebaked_url: Option<String>,
+}
+
+// ── Container isolation (Docker) ──
+pub struct ContainerServiceDefinition {
+    pub name: String,
+    pub image: String,                   // Docker image tag
+    pub ports: Vec<PortMapping>,
+    pub env: Vec<(String, String)>,
+    pub volumes: Vec<VolumeMount>,
+    pub network: Option<String>,
+    pub network_aliases: Vec<String>,
+    pub wait: WaitFor,
+    pub stop_timeout: u64,
+    pub memory: Option<String>,          // "4G", "512m"
+    pub cpus: Option<u32>,
+    pub always_pull: bool,
+    pub command: Option<Vec<String>>,
+    pub devices: Vec<DeviceMapping>,
+    pub cap_add: Vec<String>,
+    pub log_output: LogOutput,
+    pub required: bool,
+}
+```
+
+### Conversion between profiles
+
+For the CLI and build pipeline, a `VmProfile` can be converted to a
+`ContainerServiceDefinition` for the Docker provider:
+
+```rust
+impl ContainerServiceDefinition {
+    /// Convert a VmProfile to a ContainerServiceDefinition for the Docker
+    /// provider. This is a best-effort mapping — some VmProfile fields have
+    /// no Docker equivalent and are ignored (vnc_port, disk_gb, prebaked_url).
+    pub fn from_vm_profile(profile: &VmProfile) -> Self {
+        let image = match profile.os {
+            GuestOs::Linux => "testbed/linux-build:latest",
+            GuestOs::Windows => "dockurr/windows:5.15",
+            GuestOs::MacOS => "dockurr/macos:latest",
+        };
+        ContainerServiceDefinition::new(image)
+            .name(&profile.name)
+            .port_mapped(22, profile.ssh_port)
+            .memory(format!("{}M", profile.memory_mib))
+            .cpus(profile.cpu_cores)
+            .env("USERNAME", &profile.user)
+            .env("PASSWORD", &profile.pass)
+        // vnc_port, disk_gb, prebaked_url, bootstrap — not mapped
+    }
+}
+```
+
+This conversion is a **convenience for the CLI path** — it lets users type
+`testbed start linux-build` and have it work with either QEMU or Docker
+depending on what's available. The full expressiveness of
+`ContainerServiceDefinition` (WaitFor, LogOutput, devices, cap_add, etc.) is
+available when constructing the profile programmatically.
+
+---
+
+## Dispatch via PlatformHandle
+
+Callers that need to work with any provider use the enum-based dispatch:
+
+```rust
+/// A handle from any provider. Wraps the concrete handle type.
+pub enum PlatformHandle {
+    Qemu(VmHandle),
+    Utm(VmHandle),       // UTM uses the same VmHandle shape
+    Docker(ContainerHandle),
+}
+
+impl PlatformHandle {
+    pub fn id(&self) -> &str {
+        match self {
+            PlatformHandle::Qemu(h) => &h.internal_id,
+            PlatformHandle::Utm(h) => &h.internal_id,
+            PlatformHandle::Docker(h) => h.id(),
+        }
+    }
+
+    pub fn host_port(&self, container_port: u16) -> u16 {
+        match self {
+            PlatformHandle::Qemu(h) => h.resolved_ports.ssh_port,
+            PlatformHandle::Utm(h) => h.resolved_ports.ssh_port,
+            PlatformHandle::Docker(h) => h.host_port(container_port),
+        }
+    }
+}
+
+/// A profile for any provider.
+pub enum PlatformProfile {
+    Vm(VmProfile),
+    Container(ContainerServiceDefinition),
+}
+```
+
+The CLI dispatch layer resolves `PlatformProfile` → `PlatformHandle`:
+
+```rust
+pub fn launch(profile: &PlatformProfile) -> Result<PlatformHandle> {
+    match profile {
+        PlatformProfile::Container(def) => {
+            let provider = DockerProvider::local()?;
+            Ok(PlatformHandle::Docker(provider.launch(def)?))
+        }
+        PlatformProfile::Vm(vm_profile) => {
+            // Try Docker first for Linux guests, fall back to QEMU
+            if vm_profile.os == GuestOs::Linux && docker_available() {
+                let def = ContainerServiceDefinition::from_vm_profile(vm_profile);
+                let provider = DockerProvider::local()?;
+                return Ok(PlatformHandle::Docker(provider.launch(&def)?));
+            }
+            // Fall back to QEMU/UTM
+            let provider = QemuProvider::new();
+            Ok(PlatformHandle::Qemu(provider.launch(vm_profile)?))
+        }
+    }
+}
+```
 
 ---
 
 ## DockerProvider implementation
 
 ```rust
+// In foundation_deployment_platform/src/providers/docker/mod.rs
+use crate::docker::{ContainerHandle, ContainerServiceDefinition, WaitFor, block_on};
+
 pub struct DockerProvider {
-    /// Bollard client connected to the local Docker daemon.
-    docker: Docker,
-    /// Path to Compose files directory (optional).
-    compose_dir: Option<PathBuf>,
+    client: DockerClient,
 }
 
-impl DockerProvider {
-    /// Connect to the local Docker daemon (Unix socket or named pipe).
-    pub fn local() -> Result<Self> {
-        let docker = Docker::connect_with_local_defaults()?;
-        Ok(Self { docker, compose_dir: None })
-    }
-
-    /// Connect to a remote Docker daemon over SSH.
-    pub fn remote_ssh(host: &str, key_path: &Path, user: &str, port: u16) -> Result<Self> {
-        let docker = Docker::connect_with_ssh(host, &[key_path], user, port)?;
-        Ok(Self { docker, compose_dir: None })
-    }
-
-    /// Use Compose files for launch/stop (escapes to CLI for `up`/`down`).
-    pub fn with_compose(mut self, dir: PathBuf) -> Self {
-        self.compose_dir = Some(dir);
-        self
-    }
-}
-```
-
-### launch() implementation
-
-```rust
 impl Provider for DockerProvider {
-    fn launch(&self, profile: &VmProfile, display: DisplayMode) -> Result<VmHandle> {
-        let container_profile = ContainerProfile::from_vm_profile(profile)?;
+    type Handle = ContainerHandle;
+    type Config = ContainerServiceDefinition;
 
-        if let Some(ref compose_dir) = self.compose_dir {
-            // Compose path: shell out to docker compose up -d
-            self.launch_via_compose(compose_dir, &container_profile)
-        } else {
-            // Bollard path: programmatic container creation
-            self.launch_via_bollard(&container_profile)
-        }
+    fn name(&self) -> &'static str { "docker" }
+    fn id(&self) -> ProviderId { ProviderId::Docker }
+
+    fn launch(&self, config: &ContainerServiceDefinition) -> Result<ContainerHandle> {
+        block_on(ContainerHandle::start(config.clone()))
     }
-}
 
-impl DockerProvider {
-    fn launch_via_bollard(&self, profile: &ContainerProfile) -> Result<VmHandle> {
-        // 1. Pull image if not present
-        self.ensure_image_bollard(profile)?;
+    fn stop(&self, handle: &ContainerHandle) -> Result<()> {
+        // ContainerHandle::Drop stops+removes. For explicit stop:
+        block_on(handle.shutdown())
+    }
 
-        // 2. Create network if specified
-        if let Some(ref network) = profile.network {
-            self.ensure_network(network)?;
-        }
+    fn is_running(&self, handle: &ContainerHandle) -> bool {
+        block_on(handle.is_running())
+    }
 
-        // 3. Build container config
-        let config = self.build_container_config(profile);
-
-        // 4. Create container
-        let create_result = rt().block_on(self.docker.create_container(
-            Some(bollard::container::CreateContainerOptions {
-                name: &profile.name,
-                ..Default::default()
-            }),
-            config,
-        ))?;
-
-        // 5. Start container
-        rt().block_on(self.docker.start_container(
-            &create_result.id,
-            None::<bollard::container::StartContainerOptions<String>>,
-        ))?;
-
-        // 6. Wait for health check or SSH port
-        self.wait_for_ready(&create_result.id, profile)?;
-
-        Ok(VmHandle {
-            provider: ProviderId::Docker,
-            id: create_result.id,
-            vm_name: profile.name.clone(),
-            ports: profile.port_map(),
-            state_path: profile.state_dir(),
+    fn resolved_ports(&self, handle: &ContainerHandle) -> Result<ResolvedPorts> {
+        let ports = handle.host_ports();
+        Ok(ResolvedPorts {
+            ssh_port: ports.get("22/tcp").copied().unwrap_or(0),
+            winrm_port: ports.get("5985/tcp").copied(),
+            rdp_port: ports.get("3389/tcp").copied(),
+            vnc_port: ports.get("5900/tcp").copied().unwrap_or(0),
         })
     }
 
-    fn launch_via_compose(&self, dir: &Path, profile: &ContainerProfile) -> Result<VmHandle> {
-        // Shell out: docker compose -f <dir>/compose.yaml up -d
-        let output = Command::new("docker")
-            .args(["compose", "-f", &dir.join("compose.yaml").to_string_lossy(), "up", "-d"])
-            .output()?;
-
-        if !output.status.success() {
-            return Err(TestbedError::LaunchFailed(
-                String::from_utf8_lossy(&output.stderr).to_string()
-            ));
-        }
-
-        // Inspect the started container to get its ID
-        let container_id = self.resolve_compose_container(&profile.name)?;
-        // … same as bollard path from here
-    }
-}
-```
-
-### ensure_image() mapping
-
-In the QEMU world, `ensure_image()` downloads a qcow2 disk from Vagrant Cloud
-or a URL. In Docker:
-
-| Profile type | ensure_image() behavior |
-|-------------|------------------------|
-| Pre-built image from registry | `docker pull <image>:<tag>` via bollard's `create_image()` |
-| Dockerfile on disk | `docker build -t <tag> -f <dockerfile> <context>` (shell out; bollard's BuildKit support is behind a feature flag and less tested) |
-| dockurr image | `docker pull dockurr/windows` — no custom build needed |
-
-### stop() implementation
-
-```rust
-fn stop(&self, handle: &VmHandle) -> Result<()> {
-    // Graceful stop (SIGTERM, 10s timeout)
-    let stop_opts = bollard::container::StopContainerOptions { t: 10 };
-    let _ = rt().block_on(self.docker.stop_container(&handle.id, Some(stop_opts)));
-
-    // Remove container (and associated anonymous volumes)
-    let remove_opts = bollard::container::RemoveContainerOptions {
-        force: true,
-        v: true,  // remove anonymous volumes
-        ..Default::default()
-    };
-    rt().block_on(self.docker.remove_container(&handle.id, Some(remove_opts)))?;
-
-    Ok(())
-}
-```
-
-### is_running() implementation
-
-```rust
-fn is_running(&self, handle: &VmHandle) -> Result<bool> {
-    let inspect = rt().block_on(self.docker.inspect_container(&handle.id, None))?;
-    Ok(inspect.state.and_then(|s| s.running).unwrap_or(false))
-}
-```
-
-### host_health() — replaces KVM checks
-
-```rust
-fn host_health(&self) -> Result<Vec<HealthCheck>> {
-    let mut checks = Vec::new();
-
-    // Docker socket accessible?
-    checks.push(HealthCheck::new("docker_socket")
-        .check(|| Docker::connect_with_local_defaults().is_ok()));
-
-    // Docker daemon responding?
-    checks.push(HealthCheck::new("docker_ping")
-        .check(|| rt().block_on(self.docker.ping()).is_ok()));
-
-    // Disk space for images?
-    let info = rt().block_on(self.docker.system_info())?;
-    // …
-
-    Ok(checks)
-}
-```
-
----
-
-## VmHandle for Docker containers
-
-The existing `VmHandle` already carries a string `id` (QEMU PID) and provider
-identifier. For Docker, `id` becomes the container ID (64-char hex string),
-and `provider` becomes `ProviderId::Docker`.
-
-```rust
-pub enum ProviderId {
-    Qemu,
-    Utm,
-    Docker,  // ← NEW
-}
-```
-
-The `VmHandle` state file path (`.testbed/<name>/state/`) is unchanged —
-Docker containers don't have a persistent PID on the host, but we store the
-container ID and can always `docker inspect <id>` to check liveness.
-
----
-
-## Provider selection logic
-
-```rust
-pub fn default_provider() -> Box<dyn Provider> {
-    // macOS: UTM remains default (Docker Desktop is optional)
-    if cfg!(target_os = "macos") {
-        return Box::new(UtmProvider::new());
-    }
-
-    // Linux: prefer Docker if available, fall back to QEMU
-    if cfg!(target_os = "linux") {
-        if let Ok(docker) = DockerProvider::local() {
-            // Docker is available — use it for Linux profiles,
-            // but we still need QEMU for Windows/macOS profiles
-            return Box::new(docker);
-        }
-        return Box::new(QemuProvider::new());
-    }
-
-    // Windows: QEMU (Windows containers are a different beast)
-    Box::new(QemuProvider::new())
-}
-```
-
-Note: `default_provider()` returns a single provider, but the provider may
-need to delegate to another for profiles it can't handle. For example,
-`DockerProvider` handles `GuestOs::Linux` natively but delegates
-`GuestOs::Windows` to `QemuProvider` (or to itself via the dockurr path).
-
-This delegation happens inside `DockerProvider::launch()` based on
-`profile.guest_os`:
-
-```rust
-fn launch(&self, profile: &VmProfile, display: DisplayMode) -> Result<VmHandle> {
-    match profile.guest_os {
-        GuestOs::Linux => self.launch_linux_container(profile),
-        GuestOs::Windows => self.launch_windows_dockurr(profile),
-        GuestOs::MacOs => {
-            // Delegate to QEMU — DockerProvider can't do macOS
-            let qemu = QemuProvider::new();
-            qemu.launch(profile, display)
-        }
+    fn host_health(&self) -> HostHealth {
+        let mut health = HostHealth::new("docker");
+        health.check("docker_socket", || self.client.is_available());
+        health.check("docker_daemon", || block_on(self.client.ping()));
+        health.check("kvm_for_dockurr", || Path::new("/dev/kvm").exists());
+        health
     }
 }
 ```
 
 ---
 
-## Profile dispatch
+## Crate dependency graph
 
-The `VmProfile` → `ContainerProfile` mapping happens at launch time:
-
-```rust
-impl ContainerProfile {
-    pub fn from_vm_profile(vm_profile: &VmProfile) -> Result<Self> {
-        let base = match vm_profile.guest_os {
-            GuestOs::Linux => CONTAINER_PROFILES.linux_build.clone(),
-            GuestOs::Windows => CONTAINER_PROFILES.windows_build.clone(),
-            GuestOs::MacOs => return Err(TestbedError::UnsupportedOs(
-                "macOS containers are not supported; use QEMU/UTM".into()
-            )),
-        };
-
-        // Override with user config from testbed.toml
-        let overrides = load_container_overrides(&vm_profile.name)?;
-        Ok(base.apply(overrides))
-    }
-}
 ```
+foundation_macros                ← #[docker_container] proc macro
+  │                                 generates code referencing
+  │                                 foundation_deployment_platform::docker
+  │
+  ▼
+foundation_deployment_platform   ← Provider trait + all backends + guest infra
+  │                                 + docker/ module (ContainerHandle, WaitFor, etc.)
+  │                                 Depends: bollard, tokio, ssh2, foundation_netio
+  │
+  ├── foundation_testbed         ← thin consumer: wasm harness + CLI wrappers
+  │                                 Depends: foundation_deployment_platform
+  │
+  └── foundation_deployment      ← cloud deployment providers (unchanged)
+                                    Depends: foundation_deployment_platform (for
+                                    remote Docker via bollard SSH, SSH via sshkit)
+```
+
+**No `foundation_deployment_platform` crate exists.** The Docker runtime lives
+at `foundation_deployment_platform::docker`. This avoids:
+- A proc-macro crate dependency tangle (Docker runtime is not a proc-macro crate)
+- A three-crate chain (platform → docker → macros would be circular)
+- Extra crate overhead for ~8 source files
 
 ---
 
-## What changes in callers
+## What moves where
 
-**Zero changes** to callers that use the `Provider` trait. The trait surface is
-unchanged. Callers already get a `Box<dyn Provider>` from `default_provider()`
-and call `.launch()`, `.stop()`, etc.
+| Current location | Moves to |
+|-----------------|----------|
+| `foundation_testbed/src/vms/` (everything) | `foundation_deployment_platform/src/` |
+| `foundation_testbed/src/vms/providers/` | `foundation_deployment_platform/src/providers/` |
+| `foundation_testbed/src/vms/ssh/` | `foundation_deployment_platform/src/ssh/` |
+| `foundation_testbed/src/vms/winrm/` | `foundation_deployment_platform/src/winrm/` |
+| `foundation_testbed/src/vms/bootstrap/` | `foundation_deployment_platform/src/bootstrap/` |
+| `foundation_testbed/src/vms/qemu/` | `foundation_deployment_platform/src/qemu/` |
+| `foundation_testbed/src/vms/config.rs` | `foundation_deployment_platform/src/config.rs` |
+| `foundation_testbed/src/vms/cli/` | `foundation_deployment_platform/src/cli/` |
+| `foundation_testbed/src/bin/testbed.rs` | `foundation_deployment_platform/src/bin/platform.rs` |
+| `foundation_testbed/scripts/` | `foundation_deployment_platform/scripts/` |
+| `foundation_testbed/tests/` (platform tests) | `foundation_deployment_platform/tests/` |
+| **New:** `src/docker/` | `foundation_deployment_platform/src/docker/` (8 files) |
+| **New:** `src/providers/docker/` | `foundation_deployment_platform/src/providers/docker/mod.rs` |
+| `foundation_testbed/src/wasm/` | **Stays** in foundation_testbed |
+| `foundation_testbed/tests/e2e_tauri.rs` | **Stays** in foundation_testbed |
 
-The only behavioral difference is that `default_provider()` now returns a
-`DockerProvider` instead of a `QemuProvider` on Linux hosts with Docker.
+---
 
-**SSH and bootstrap code is unchanged** — the Docker container runs an SSH
-daemon on port 22, mapped to the same host port the QEMU profile used. The
-`ssh2` client connects to `127.0.0.1:<ssh_port>` exactly as before.
+## Colima support on macOS
 
-**CLI is unchanged** — `testbed start linux-build` works regardless of whether
-the provider is QEMU or Docker. Users can force a specific provider:
+On macOS, the Docker daemon can be provided by several backends:
 
-```bash
-testbed start linux-build --provider qemu    # Force QEMU
-testbed start linux-build --provider docker  # Force Docker
+| Backend | Cost | Notes |
+|---------|------|-------|
+| **Colima** | Free, OSS | QEMU/Lima under the hood. Sets `DOCKER_HOST` automatically. |
+| **Docker Desktop** | Free/Paid | Official Docker Inc. product. |
+| **OrbStack** | Free/Paid | Fast, native ARM64. |
+
+All three expose a Docker socket that bollard connects to via
+`connect_with_local_defaults()`. The `DockerProvider` doesn't care which
+backend provides the socket — it just needs a working Docker daemon.
+
+dockurr runs **on top of** Docker (whichever backend). It does not replace
+Docker — it's a set of Docker images that wrap QEMU to run Windows/macOS.
+dockurr needs two things:
+1. A working Docker daemon (Colima, Docker Desktop, OrbStack, or native Linux)
+2. `/dev/kvm` passthrough (for hardware acceleration; TCG fallback on Windows only)
+
+### Platform dispatch on macOS
+
 ```
+Docker daemon available (Colima/Docker Desktop/OrbStack)?
+  ├── Yes → DockerProvider
+  │         ├── Linux container test → native container (fast, ARM64)
+  │         ├── Windows test → dockurr/windows container (needs /dev/kvm)
+  │         └── macOS test → dockurr/macos container (needs /dev/kvm)
+  │              If /dev/kvm unavailable → error for macOS, TCG fallback for Windows
+  └── No  → UtmProvider (native Apple HVF)
+              └── macOS guest → native macOS VM
+              └── Linux guest → QEMU VM via UTM
+              └── Windows guest → QEMU VM via UTM
+```
+
+The key insight: Colima/Docker Desktop provide the Docker runtime that
+dockurr containers run on. They don't replace dockurr — they're the
+infrastructure dockurr needs. On macOS without any Docker daemon, UTM is
+the fallback for all guest types.

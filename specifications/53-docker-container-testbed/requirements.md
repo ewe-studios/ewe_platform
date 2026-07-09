@@ -4,49 +4,56 @@
 
 This specification covers two related Docker initiatives in one spec:
 
-**Part A — `foundation_deployment_docker` crate.** A new workspace crate that
-wraps `bollard` (Rust Docker Engine API client) to provide a
-testcontainers-like experience. The centerpiece is a `#[docker_container(...)]`
-proc macro that starts Docker containers before a function body and
-stops/removes them after (RAII on Drop, panic-safe). This crate is a sibling of
-`foundation_deployment` — a general-purpose Docker interaction layer for the
-entire workspace, not scoped to any single consumer.
+**Part A — `foundation_deployment_platform` crate + Docker runtime.** The
+existing platform abstraction (Provider trait, QEMU/UTM backends, SSH/WinRM,
+bootstrap, images, state, CLI) moves from `foundation_testbed` into a new
+`foundation_deployment_platform` crate alongside `foundation_deployment`. A
+new `docker/` module in this crate wraps `bollard` to provide a
+testcontainers-like experience — `ContainerHandle` (RAII), `ContainerConfig`
+(builder), `WaitFor` strategies, `NetworkHandle` — plus the
+`#[docker_container(...)]` proc macro (in `foundation_macros`, referencing
+`foundation_deployment_platform::docker`). No separate `foundation_deployment_platform`
+crate — the Docker runtime lives as a module within the platform crate.
 
 **Part B — Testbed migration.** Replace QEMU/KVM-based VMs in
 `foundation_testbed` with Docker containers as the primary test isolation
-mechanism for Linux. Docker provides simpler networking, reliable host-to-guest
-filesystem mounts, faster startup times, and a mature image ecosystem. Part B
-consumes the crate built in Part A and adds a `DockerProvider` implementation of
-the existing `Provider` trait.
+mechanism for Linux. The testbed becomes a thin consumer: depends on
+`foundation_deployment_platform` for all VM/container lifecycle, adds its
+wasm test harness, and provides thin CLI wrappers. Part B adds a
+`DockerProvider` (implementing the `Provider` trait using
+`foundation_deployment_platform::docker` primitives) alongside the existing
+`QemuProvider` and `UtmProvider`.
 
 ## Goals
 
-### Part A — `foundation_deployment_docker` crate
+### Part A — Platform crate + Docker runtime
 
 - **Proc-macro ergonomics** — `#[docker_container(image = "redis:7", port = 6379)]`
   on any function (test, main, regular) starts a container for its duration.
+  Macro in `foundation_macros`, runtime in `foundation_deployment_platform::docker`.
 - **RAII lifecycle** — `ContainerHandle` stops and removes containers on Drop,
   even on panic. No manual cleanup code.
 - **Programmatic API** — `ContainerConfig` builder, `ContainerHandle::start()`,
-  `WaitFor` strategies, `NetworkHandle` for multi-container topologies.
-- **Zero-config local dev** — Connects to the local Docker socket.
-- **Remote Docker support** — SSH transport to remote Docker daemons via bollard.
+  `ContainerGroup` for multi-container, `WaitFor` strategies, `NetworkHandle`.
+- **Zero-config local dev** — Connects to the local Docker socket. Colima on macOS.
+- **Remote Docker support** — SSH transport to remote daemons via bollard.
 - **Graceful skip without Docker** — On machines without Docker, tests skip and
   pass rather than fail.
 - **Works with valtron** — Docker lifecycle ops use an internal tokio runtime
   (bollard requires tokio for hyper). Proc macro composes with `#[valtron_test]`.
+- **Platform consolidation** — Provider trait, all backends, SSH/WinRM, bootstrap,
+  images, state, and CLI live in one crate. No circular deps.
 
 ### Part B — Testbed migration
 
 - **Replace QEMU with Docker** for Linux test environments, retaining QEMU
-  only where Docker cannot reach (macOS guests, Windows guests).
-- **Keep the `Provider` trait** — add a `DockerProvider` alongside the existing
-  `QemuProvider` and `UtmProvider`, so callers don't change.
+  only where Docker cannot reach (macOS guests without KVM).
+- **`DockerProvider`** as a new `Provider` impl using `foundation_deployment_platform::docker`.
 - **Docker network model** for multi-container test scenarios.
-- **Adapt cloud-init patterns** from `vm-uncloud` for deploying the testbed to
-  Hetzner Cloud and similar providers.
+- **Adapt cloud-init patterns** from `vm-uncloud` for cloud deployment.
 - **Preserve existing functionality**: SSH exec, file push/pull, build-in-guest,
   binary validation — all must work through the Docker provider.
+- **Thin testbed** — `foundation_testbed` becomes a consumer, not a platform owner.
 
 ## Non-Goals
 
@@ -60,12 +67,13 @@ the existing `Provider` trait.
 
 All decisions documented in `decisions/`.
 
-### Part A — Crate internals
+### Part A — Platform crate + Docker runtime
 
 | # | Decision | Summary |
 |---|----------|---------|
+| 03 | Crate Architecture | Extract platform from testbed into `foundation_deployment_platform`; docker module lives there |
 | 07 | Bollard + Internal Tokio Runtime | Bollard for Docker API; internal `LazyLock<Runtime>` singleton for async bridge |
-| 08 | Proc Macro Location | Macro in `foundation_macros`, runtime types in `foundation_deployment_docker` |
+| 08 | Proc Macro Location | Macro in `foundation_macros`, runtime types in `foundation_deployment_platform::docker` |
 | 09 | Container Lifecycle | Pull → Create → Start → Inspect → Wait → Use → Stop → Remove |
 | 10 | Networking Model | User-defined bridge networks via `NetworkHandle`; DNS-based service discovery |
 | 11 | Wait Strategies | Port, HTTP, Stdout, Composite, None; extensible enum |
@@ -75,12 +83,11 @@ All decisions documented in `decisions/`.
 
 | # | Decision | Summary |
 |---|----------|---------|
-| 01 | Docker API Strategy | Bollard for programmatic control; Compose files as declarative fallback |
-| 02 | Container Strategy per Platform | Native Docker (Linux), dockurr wrapper (Windows), QEMU retained (macOS) |
-| 03 | Provider Trait Integration | `DockerProvider` as a new `Provider` impl; consumes `foundation_deployment_docker` |
+| 01 | Docker API Strategy | `ContainerServiceDefinition` + bollard; Compose YAML as optional serialization |
+| 02 | Container Strategy per Platform | Native Docker (Linux), dockurr (Windows + macOS), QEMU/UTM fallback |
 | 04 | Networking & Volume Mounts | User-defined bridge networks, bind mounts for project source, named volumes for state |
-| 05 | Image Management | Multi-stage Dockerfiles per profile + pre-built images on a registry |
-| 06 | Cloud Deployment | cloud-init for Hetzner; Docker-in-Docker or sibling-container pattern |
+| 05 | Image Management | Multi-stage Dockerfiles + `DockerfileConfig` + `build_once()` + pre-built registry images |
+| 06 | Cloud Deployment | cloud-init for Hetzner; colima on macOS; remote Docker via bollard SSH |
 | 13 | foundation_sshkit | Dedicated SSH crate: connection pooling, key management, host abstraction, runners |
 | 14 | foundation_proxy | Reverse proxy: SSL termination, zero-downtime deploys, VFS cert storage |
 
@@ -100,12 +107,12 @@ All decisions documented in `decisions/`.
 2. **Feature 01 — Runtime library** — `DockerClient`, `ContainerHandle`,
    `ContainerConfig`, `DockerError`. Manual integration tests.
 3. **Feature 02 — Proc macro** — `#[docker_container]` in `foundation_macros`,
-   re-exported from `foundation_deployment_docker`. Macro integration tests.
+   re-exported from `foundation_deployment_platform`. Macro integration tests.
 4. **Feature 03 — Networking & volumes** — `NetworkHandle`, bind mounts,
    named volumes, multi-container scenarios.
 5. **Feature 04 — Image management** — `ImageHandle`, pull with progress,
    local cache, `always_pull` flag.
 6. **Feature 05 — Wait strategies** — Port polling, HTTP health checks,
    stdout log scanning, composite strategies.
-7. **Testbed integration** — `DockerProvider` consuming `foundation_deployment_docker`,
+7. **Testbed integration** — `DockerProvider` consuming `foundation_deployment_platform`,
    testbed profiles as Docker containers, cloud deployment with cloud-init.

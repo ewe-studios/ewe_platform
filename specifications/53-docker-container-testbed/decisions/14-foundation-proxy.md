@@ -127,7 +127,7 @@ adds the `proxy:` layer — SSL, host routing, health checks.
                    │    │  resume, status)            │
                    └────┼─────────────────────────────┘
                         │
-              foundation_deployment_docker
+              foundation_deployment_platform
               (ContainerGroup::deploy calls RPC)
 ```
 
@@ -304,7 +304,7 @@ state file pattern.
 | `rustls` | TLS termination |
 | `acme-micro` or `rustls-acme` | Let's Encrypt ACME protocol |
 
-`foundation_deployment_docker` integrates with `foundation_proxy` for:
+`foundation_deployment_platform` integrates with `foundation_proxy` for:
 - Registering containers as backends after `ContainerGroup::start`
 - Health-check-driven deploy orchestration
 - Container drain and removal on `ContainerGroup::drop`
@@ -318,8 +318,8 @@ We defer these Kamal responsibilities to other crates:
 
 | Kamal feature | Deferred to |
 |---------------|-------------|
-| Image building + pushing to registry | `foundation_deployment_docker` (image management) |
-| Container lifecycle on remote hosts | `foundation_deployment_docker` (bollard SSH) |
+| Image building + pushing to registry | `foundation_deployment_platform` (image management) |
+| Container lifecycle on remote hosts | `foundation_deployment_platform` (bollard SSH) |
 | SSH host provisioning | `foundation_sshkit` |
 | Deploy locking | `foundation_db` (distributed lock) |
 | Pre/post deploy hooks | `foundation_shell` (script execution) |

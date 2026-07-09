@@ -75,7 +75,7 @@ pipeline:
 
 The ~55 transitive dependencies (hyper, tokio, bytes, http, futures, tower, etc.)
 are acceptable because:
-1. `foundation_deployment_docker` is a **dev-tooling crate**, not pulled into
+1. `foundation_deployment_platform` is a **dev-tooling crate**, not pulled into
    production binaries.
 2. Many of bollard's deps overlap with crates already in the workspace (tokio
    is at 97 lockfile entries, hyper/http/bytes are used by `foundation_netio`).
@@ -84,7 +84,7 @@ are acceptable because:
    OpenSSL, indicatif, tar, flate2, xz2, and (optionally) deno_core/V8.
 
 **Resolved**: The Docker API (`ContainerServiceDefinition`, `ContainerHandle`, `ContainerGroup`,
-`WaitFor`, `DockerClient`) lives in `foundation_deployment_docker` — a standalone
+`WaitFor`, `DockerClient`) lives in `foundation_deployment_platform` — a standalone
 crate alongside `foundation_deployment`. `foundation_testbed` DEPENDS on it
 (rather than owning it), so the Docker interaction layer is available to ANY
 workspace crate that needs programmatic container management, not just the testbed.
@@ -208,7 +208,7 @@ impl Drop for ContainerGroup {
 ### Usage example (programmatic)
 
 ```rust
-use foundation_deployment_docker::*;
+use foundation_deployment_platform::*;
 
 #[valtron_test]
 fn test_app_with_db() {
@@ -342,7 +342,7 @@ the `Captured` variant, returning accumulated stdout/stderr.
 Bollard adds approximately 55 transitive dependencies (hyper, tokio, bytes,
 http, futures, tower, etc.). This is acceptable because:
 
-1. `foundation_deployment_docker` is a **dev-tooling crate**, not a production
+1. `foundation_deployment_platform` is a **dev-tooling crate**, not a production
    dependency. It already has heavy deps (deno_core + V8 ~100MB, ssh2 +
    vendored OpenSSL).
 2. Bollard is feature-gated behind `vms` (the existing feature flag). Crates

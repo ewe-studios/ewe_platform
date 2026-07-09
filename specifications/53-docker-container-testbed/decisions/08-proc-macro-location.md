@@ -6,9 +6,11 @@
 ## Decision
 
 The `#[docker_container]` proc macro lives in `foundation_macros` (alongside all
-other workspace proc macros), with a re-export from `foundation_deployment_docker`
-so users have a single import path. The runtime types (`ContainerHandle`,
-`ContainerConfig`, `WaitFor`, `DockerError`) live in `foundation_deployment_docker`.
+other workspace proc macros). The runtime types (`ContainerHandle`,
+`ContainerConfig`, `WaitFor`, `DockerError`) live in
+`foundation_deployment_platform::docker`. Users import everything from one
+crate — `foundation_deployment_platform` — since the macro is re-exported
+from there.
 
 ## Table of Contents
 
@@ -38,9 +40,9 @@ All workspace proc macros live in `foundation_macros`:
 The pattern is: **proc macros in `foundation_macros`, runtime types in their
 respective crates**. `#[docker_container]` follows this pattern exactly.
 
-An alternative would be to put the macro in `foundation_deployment_docker`
+An alternative would be to put the macro in `foundation_deployment_platform`
 itself (making it a dual proc-macro + library crate). This is not the workspace
-convention and would require `foundation_deployment_docker` to have
+convention and would require `foundation_deployment_platform` to have
 `proc-macro = true` in its Cargo.toml, which blocks it from being used as a
 normal library dependency by downstream crates (proc-macro crates can only
 export proc macros).
@@ -55,8 +57,8 @@ renames the dependency:
 
 ```rust
 // In foundation_macros/src/crate_paths.rs:
-pub fn foundation_deployment_docker_path() -> proc_macro2::TokenStream {
-    resolve_crate("foundation_deployment_docker")
+pub fn foundation_deployment_platform_path() -> proc_macro2::TokenStream {
+    resolve_crate("foundation_deployment_platform")
 }
 ```
 
@@ -64,12 +66,12 @@ The macro's generated code uses this path for all references to
 `ContainerHandle`, `ContainerConfig`, `WaitFor`, `DockerError`, and `block_on`:
 
 ```rust
-let __path = foundation_deployment_docker_path();
+let __path = foundation_deployment_platform_path();
 quote! {
-    let __cfg = #__path::ContainerConfig::new("redis:7")
+    let __cfg = #__path::docker::ContainerConfig::new("redis:7")
         .port(6379)
-        .wait(#__path::WaitFor::Port { port: 6379, timeout: ... });
-    let __guard = #__path::block_on(#__path::ContainerHandle::start(__cfg));
+        .wait(#__path::docker::WaitFor::Port { port: 6379, timeout: ... });
+    let __guard = #__path::docker::block_on(#__path::docker::ContainerHandle::start(__cfg));
 }
 ```
 
@@ -77,7 +79,7 @@ quote! {
 
 ## Re-export pattern
 
-`foundation_deployment_docker/src/lib.rs` re-exports the macro:
+`foundation_deployment_platform/src/lib.rs` re-exports the macro:
 
 ```rust
 pub use foundation_macros::docker_container;
@@ -86,7 +88,7 @@ pub use foundation_macros::docker_container;
 Users write:
 
 ```rust
-use foundation_deployment_docker::docker_container;
+use foundation_deployment_platform::docker_container;
 
 #[docker_container(image = "redis:7", port = 6379)]
 #[valtron_test]
@@ -157,14 +159,14 @@ fn test_redis() {
     fn __docker_body_test_redis() { /* original body */ }
 
     let __docker_guard = {
-        let __cfg = ::foundation_deployment_docker::ContainerConfig::new("redis:7")
+        let __cfg = ::foundation_deployment_platform::ContainerConfig::new("redis:7")
             .port(6379)
-            .wait(::foundation_deployment_docker::WaitFor::Port {
+            .wait(::foundation_deployment_platform::WaitFor::Port {
                 port: 6379,
                 timeout: ::core::time::Duration::from_secs(30),
             });
-        match ::foundation_deployment_docker::block_on(
-            ::foundation_deployment_docker::ContainerHandle::start(__cfg)
+        match ::foundation_deployment_platform::block_on(
+            ::foundation_deployment_platform::ContainerHandle::start(__cfg)
         ) {
             Ok(handle) => handle,
             Err(e) if e.is_connection_error() => {

@@ -156,7 +156,7 @@ container lifecycle. Reasons not to:
 Bollard adds approximately 55 transitive dependencies (hyper, tokio, bytes,
 http, futures, tower, etc.). This is acceptable:
 
-1. `foundation_deployment_docker` is a **dev-tooling crate**, not pulled into
+1. `foundation_deployment_platform` is a **dev-tooling crate**, not pulled into
    production binaries.
 2. Many deps overlap with the existing workspace (tokio is already present,
    hyper/http/bytes are used by `foundation_netio`).

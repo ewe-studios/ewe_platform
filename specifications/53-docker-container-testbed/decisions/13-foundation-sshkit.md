@@ -228,7 +228,7 @@ impl Runner {
 - `tracing` — structured logging
 - `foundation_core` — valtron executor (optional, for multi-threading)
 
-`foundation_deployment_docker` uses `foundation_sshkit` for:
+`foundation_deployment_platform` uses `foundation_sshkit` for:
 - Bollard SSH transport host resolution (parsing `ssh://user@host:port`)
 - Remote Docker health checks
 - Cloud-init provisioning SSH commands
