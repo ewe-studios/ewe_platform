@@ -289,3 +289,97 @@ async fn two_concurrent_calls_both_complete() {
 
     shutdown.turn_on();
 }
+
+
+/// End-of-stream must come from the pump, not from the peer's idle timeout.
+///
+/// WHY: `H2Pump` reaches `PumpPhase::Done` once the response direction ends. It
+/// used to return `TaskStatus::Ready(())` there — which only *yields* a value, so
+/// the executor polled `Done` again, and again, forever: the task never
+/// completed, and its `body_tx` was therefore never closed nor dropped. All the
+/// response data had arrived, but the body pipe stayed open, so a reader waiting
+/// for end-of-stream learned of it only when the *server's* 60s h2 `IDLE_TIMEOUT`
+/// closed the socket. A call that takes 111ms alone took 60s inside the suite,
+/// while a hot spin burned a worker the whole time. Occasionally the connection
+/// never aged out at all and the suite hung outright.
+///
+/// WHAT: this drives `H2Transport` directly and drains `recv_body` — the pipe the
+/// pump owns — asserting the pipe closes, and closes promptly.
+///
+/// HOW: at the transport layer on purpose. The typed `Client` remembers that a
+/// stream ended and answers `None` from its own state without ever touching the
+/// pipe, so a typed test cannot observe the pipe's state at all.
+///
+/// Honest limit of this test: it does **not** reproduce the 60s stall on its own,
+/// and passes against the broken pump when run alone. The stall needs two pumps
+/// spinning in `Done` to starve the executor, which only happens with the rest of
+/// this file's tests for company. What this pins is the invariant the fix rests
+/// on — the pump, not the peer's timeout, ends the stream. The stall itself was
+/// measured over repeated whole-file runs: 2 anomalies in 12 before (one 60.6s,
+/// one outright hang), 0 in 25 after.
+#[valtron_test]
+async fn h2_pump_closes_the_body_pipe_at_end_of_stream() {
+    use foundation_connectrpc::protocol::connect::streaming_content_type;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::shared::{
+        Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,
+    };
+
+    let (addr, shutdown) = start_h2_server();
+
+    let url = format!("http://{addr}{SERVER_STREAM}");
+    let uri = Uri::parse(&url).expect("valid uri");
+    let mut headers = SimpleHeaders::new();
+    headers.insert(
+        SimpleHeader::CONTENT_TYPE,
+        vec![streaming_content_type("json")],
+    );
+
+    let transport = H2Transport::new();
+    let mut stream = transport
+        .open(RequestDescriptor {
+            proto: Proto::HTTP20,
+            request_url: SimpleUrl::url_only(url.clone()),
+            request_uri: uri,
+            headers,
+            method: SimpleMethod::POST,
+        })
+        .expect("open h2 stream");
+
+    // A single enveloped request message, then close the request direction.
+    let msg = serde_json::to_vec(&Msg::of("many")).expect("encode");
+    let mut envelope = vec![0u8; 5];
+    envelope[1..5].copy_from_slice(&(msg.len() as u32).to_be_bytes());
+    envelope.extend_from_slice(&msg);
+    stream
+        .send_body
+        .try_send(bytes::Bytes::from(envelope))
+        .expect("send request body");
+    stream.send_body.close();
+
+    let (status, _headers) = stream
+        .head
+        .next()
+        .await
+        .expect("response head")
+        .expect("head ok");
+    assert_eq!(status, Status::OK);
+
+    // Drain every chunk. The final `next()` must resolve to `None` because the
+    // pump closed the pipe — not because the connection eventually died.
+    let started = std::time::Instant::now();
+    let mut chunks = 0usize;
+    while let Some(chunk) = stream.recv_body.next().await {
+        chunk.expect("body chunk");
+        chunks += 1;
+    }
+    assert!(chunks > 0, "server stream should have sent body frames");
+
+    let elapsed = started.elapsed();
+    assert!(
+        elapsed < Duration::from_secs(10),
+        "body pipe closed only after {elapsed:?}; end-of-stream is gated on the server's idle timeout"
+    );
+
+    shutdown.turn_on();
+}

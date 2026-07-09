@@ -556,7 +556,20 @@ impl TaskIterator for H2Pump {
                 }
 
                 PumpPhase::Done => {
-                    return Some(TaskStatus::Ready(()));
+                    // The response direction is finished, and `Done` is terminal.
+                    //
+                    // Closing `body_tx` is what tells the consumer end-of-stream.
+                    // Leaving it to the sender's eventual drop parks the reader
+                    // until the *peer's* idle timeout closes the socket — a 60s
+                    // stall on a call that completed in milliseconds.
+                    //
+                    // Returning `None` completes the task. `TaskStatus::Ready`
+                    // only yields a value, so the executor polls again, lands on
+                    // `Done` again, and spins: nobody consumes this task's value
+                    // (`valtron::send` is fire-and-forget), so it never ended.
+                    self.body_tx.close();
+                    self.head_tx.close();
+                    return None;
                 }
             }
 

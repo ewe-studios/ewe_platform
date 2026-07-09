@@ -171,6 +171,18 @@ where
                 if let Some(panic_handler) = &self.panic_handler {
                     (panic_handler)(panic_error);
                 }
+
+                // A panicked task produces nothing further, so its result
+                // channel must be closed exactly as on the `Done` path above.
+                //
+                // Leaving it open strands every collector: `sync_collect_one`
+                // (and so `block_on_future`, and so `#[valtron_test]`) waits on
+                // a stream that will never yield and never end. A failing
+                // assertion inside a task then wedges the whole test in a futex
+                // instead of reporting a failure — the panic is swallowed here,
+                // and the harness never even prints `test result:`.
+                self.channel.close();
+                self.alive.take();
                 return Some(State::Panicked);
             }
         };
@@ -474,6 +486,18 @@ where
                 if let Some(panic_handler) = &self.panic_handler {
                     (panic_handler)(panic_error);
                 }
+
+                // A panicked task produces nothing further, so its result
+                // channel must be closed exactly as on the `Done` path above.
+                //
+                // Leaving it open strands every collector: `sync_collect_one`
+                // (and so `block_on_future`, and so `#[valtron_test]`) waits on
+                // a stream that will never yield and never end. A failing
+                // assertion inside a task then wedges the whole test in a futex
+                // instead of reporting a failure — the panic is swallowed here,
+                // and the harness never even prints `test result:`.
+                self.channel.close();
+                self.alive.take();
                 return Some(State::Panicked);
             }
         };
@@ -765,6 +789,18 @@ where
                 if let Some(panic_handler) = &self.panic_handler {
                     (panic_handler)(panic_error);
                 }
+
+                // A panicked task produces nothing further, so its result
+                // channel must be closed exactly as on the `Done` path above.
+                //
+                // Leaving it open strands every collector: `sync_collect_one`
+                // (and so `block_on_future`, and so `#[valtron_test]`) waits on
+                // a stream that will never yield and never end. A failing
+                // assertion inside a task then wedges the whole test in a futex
+                // instead of reporting a failure — the panic is swallowed here,
+                // and the harness never even prints `test result:`.
+                self.channel.close();
+                self.alive.take();
                 return Some(State::Panicked);
             }
         };
