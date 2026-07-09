@@ -365,12 +365,16 @@ pub fn content_type(codec: &str, text: bool) -> String {
 #[must_use]
 pub fn parse_content_type(content_type: &str) -> Option<(String, bool)> {
     let canonical = super::canonicalize_content_type(content_type);
-    if let Some(rest) = canonical.strip_prefix(constants::CONTENT_TYPE_TEXT_PREFIX) {
-        let codec = rest.strip_prefix('+').unwrap_or("proto");
+    // `-text` is tried first: it is the longer subtype, and `application/grpc-web`
+    // is a prefix of `application/grpc-web-text`. The boundary check in
+    // `codec_for_content_type` makes the order a clarity choice rather than a
+    // correctness one — neither can now swallow the other.
+    if let Some(codec) =
+        super::codec_for_content_type(&canonical, constants::CONTENT_TYPE_TEXT_PREFIX)
+    {
         return Some((codec.to_string(), true));
     }
-    if let Some(rest) = canonical.strip_prefix(constants::CONTENT_TYPE_PREFIX) {
-        let codec = rest.strip_prefix('+').unwrap_or("proto");
+    if let Some(codec) = super::codec_for_content_type(&canonical, constants::CONTENT_TYPE_PREFIX) {
         return Some((codec.to_string(), false));
     }
     None

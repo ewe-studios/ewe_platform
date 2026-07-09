@@ -4318,6 +4318,7 @@ dependencies = [
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
+ "foundation_macros",
  "foundation_nativeapis",
  "foundation_netio",
  "foundation_testing",

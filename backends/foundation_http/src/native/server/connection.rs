@@ -17,8 +17,8 @@ use foundation_core::synca::{OnSignal, WaitGroupGuard};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_netio::simple_http::shared::{
-    HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SimpleHeader, SimpleIncomingRequest,
-    SimpleOutgoingResponse,
+    HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
+    SimpleIncomingRequest, SimpleOutgoingResponse,
 };
 use foundation_errstacks::ErrorTrace;
 
@@ -580,12 +580,35 @@ impl ConnectionHandler {
                     middleware_response = Some(resp);
                     break;
                 }
-                crate::shared::middleware::MiddlewareResult::InterimResponse(resp) => {
+                crate::shared::middleware::MiddlewareResult::InterimResponse(mut resp) => {
                     tracing::trace!(
                         client_ip = %self.client_ip,
                         status = %resp.status,
                         "Processing: middleware returned interim response"
                     );
+
+                    // RFC 9110 §15.2: an interim (1xx) response never carries
+                    // content. The final response follows it on the same
+                    // connection, so emitting a middleware-supplied body here
+                    // desynchronises the stream — the client reads those bytes
+                    // as the beginning of the final response's status line.
+                    // Drop the body rather than corrupt the connection, and warn:
+                    // a middleware that set one has a bug.
+                    // `SendSafeBody::None` is the *representation* of "no body"
+                    // that the renderer expects; `Option::None` is not
+                    // interchangeable with it. Only real content is stripped.
+                    let carries_content =
+                        !matches!(resp.body, None | Some(SendSafeBody::None));
+                    if carries_content {
+                        tracing::warn!(
+                            client_ip = %self.client_ip,
+                            status = %resp.status,
+                            "Processing: interim response carried a body; dropping it (RFC 9110 §15.2)"
+                        );
+                        resp.body = Some(SendSafeBody::None);
+                        resp.headers.remove(&SimpleHeader::CONTENT_LENGTH);
+                        resp.headers.remove(&SimpleHeader::CONTENT_TYPE);
+                    }
 
                     let client_ip = self.client_ip.clone();
                     let client_status = resp.status.clone();

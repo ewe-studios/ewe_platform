@@ -10,10 +10,13 @@
 //! `ConnectionHandler` or `H2ConnectionHandler` — handing along the same drain
 //! guard so the shutdown drain still accounts for this connection.
 //!
-//! HOW: Each poll peeks. Fewer than 24 bytes means "undecided" — park on a timer
-//! and retry, up to [`DETECT_TIMEOUT`]. Once decided, the task spawns the real
-//! handler and completes. A protocol this server does not speak is refused
-//! outright, never downgraded to an empty router.
+//! HOW: Each poll peeks. `detect_protocol` decides as soon as the bytes allow —
+//! it does not wait for all 24, since a complete HTTP/1.1 request can be shorter
+//! than the preface. Only genuinely ambiguous evidence (a viable preface prefix,
+//! or a method token that has not reached its space) parks on a timer and
+//! retries, up to [`DETECT_TIMEOUT`]. Once decided, the task spawns the real
+//! handler and completes. A peer that is speaking neither HTTP/1.x nor h2c is
+//! refused outright, never downgraded to an empty router.
 
 use std::sync::Arc;
 use std::time::{Duration, Instant};
@@ -32,7 +35,7 @@ use super::KeepAliveConfig;
 use crate::shared::app::ServerApp;
 use crate::shared::serve::respond;
 
-const POLL_DELAY: Duration = Duration::from_millis(5);
+const POLL_DELAY: Duration = Duration::from_millis(3);
 
 /// How long to wait for the client's first 24 bytes before giving up. A peer
 /// that connects and says nothing must not hold a slot forever.
@@ -113,6 +116,16 @@ impl TaskIterator for ProtocolDetectHandler {
             }
             DetectedProtocol::Http11 => {
                 self.spawn_h1();
+                None
+            }
+            // Not a protocol this server speaks. Drop the connection without
+            // spawning a handler: handing these bytes to the HTTP/1.1 parser
+            // would let a TLS handshake or an SSH banner drive it.
+            DetectedProtocol::Unsupported => {
+                tracing::debug!(
+                    client = %self.client_ip,
+                    "connection is not HTTP/1.x or h2c, refusing"
+                );
                 None
             }
         }

@@ -68,12 +68,15 @@ pub fn content_type(codec: &str) -> String {
 }
 
 /// Parse a gRPC content-type into `(codec)`, or `None` if not gRPC.
+///
+/// `application/grpc-web+proto` is **not** gRPC: the match must end at the
+/// subtype boundary, or this handler claims every gRPC-Web request before the
+/// gRPC-Web handler is ever offered it. See [`super::codec_for_content_type`].
 #[must_use]
 pub fn parse_content_type(content_type: &str) -> Option<String> {
     let canonical = super::canonicalize_content_type(content_type);
-    let rest = canonical.strip_prefix(constants::CONTENT_TYPE_PREFIX)?;
-    let codec = rest.strip_prefix('+').unwrap_or("proto");
-    Some(codec.to_string())
+    super::codec_for_content_type(&canonical, constants::CONTENT_TYPE_PREFIX)
+        .map(ToString::to_string)
 }
 
 // ── reader / writer tasks ───────────────────────────────────────────────────

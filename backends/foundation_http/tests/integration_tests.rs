@@ -18,8 +18,9 @@ use foundation_netio::netcap::RawStream;
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
 use foundation_netio::event_source::SseEvent;
-use foundation_netio::simple_http::client::body_reader::try_collect_bytes;
-use foundation_netio::simple_http::client::{SimpleHttpClient, StaticSocketAddr};
+use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
+use foundation_netio::simple_http::client::shared::StaticSocketAddr;
+use foundation_netio::simple_http::client::SimpleHttpClient;
 use foundation_netio::simple_http::shared::{
     SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
 };
@@ -180,7 +181,7 @@ impl RequestMiddleware for BlockMiddleware {
 /// Start an HttpServer in a background thread. Returns (addr, shutdown_signal).
 /// Binds the TcpListener before spawning the server thread so the port is
 /// guaranteed to be in use by the time this function returns.
-fn start_server(app: HttpApp) -> (std::net::SocketAddr, Arc<OnSignal>) {
+fn start_server(app: HttpApp<Arc<dyn Serve>>) -> (std::net::SocketAddr, Arc<OnSignal>) {
     let shutdown = Arc::new(OnSignal::new());
 
     // Bind the listener first — the port is ours from this point on.
@@ -188,7 +189,7 @@ fn start_server(app: HttpApp) -> (std::net::SocketAddr, Arc<OnSignal>) {
     let addr = listener.local_addr().expect("local_addr failed");
 
     let config = ServerConfig::defaults().with_keep_alive(
-        foundation_http::KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)),
+        KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(3)),
     );
 
     let bind_addr = format!("127.0.0.1:{}", addr.port());
@@ -241,7 +242,7 @@ fn status_code(status: &Status) -> u16 {
 #[serial(http_test)]
 fn test_static_route_get() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
     let (addr, shutdown) = start_server(app);
@@ -279,7 +280,7 @@ fn test_static_route_get() {
 #[serial(http_test)]
 fn test_static_route_post() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::POST, "/echo");
 
     let (addr, shutdown) = start_server(app);
@@ -314,7 +315,7 @@ fn test_static_route_post() {
 #[serial(http_test)]
 fn test_param_route() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/users/:id");
 
     let (addr, shutdown) = start_server(app);
@@ -349,7 +350,7 @@ fn test_param_route() {
 #[traced_test]
 fn test_nested_param_route() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/users/:id/posts/:post_id");
 
     let (addr, shutdown) = start_server(app);
@@ -384,7 +385,7 @@ fn test_nested_param_route() {
 #[serial(http_test)]
 fn test_wildcard_route() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/files/*");
 
     let (addr, shutdown) = start_server(app);
@@ -422,7 +423,7 @@ fn test_wildcard_route() {
 #[serial(http_test)]
 fn test_route_any_matches_all_methods() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route_any::<EchoHandler>("/any");
 
     let (addr, shutdown) = start_server(app);
@@ -481,7 +482,7 @@ fn test_route_any_matches_all_methods() {
 #[serial(http_test)]
 fn test_root_route() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/");
 
     let (addr, shutdown) = start_server(app);
@@ -511,7 +512,7 @@ fn test_root_route() {
 #[serial(http_test)]
 fn test_not_found() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
     let (addr, shutdown) = start_server(app);
@@ -538,7 +539,7 @@ fn test_not_found() {
 #[serial(http_test)]
 fn test_method_mismatch_returns_not_found() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
     let (addr, shutdown) = start_server(app);
@@ -568,7 +569,7 @@ fn test_method_mismatch_returns_not_found() {
 #[serial(http_test)]
 fn test_post_with_text_body() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::POST, "/body-echo");
 
     let (addr, shutdown) = start_server(app);
@@ -596,7 +597,7 @@ fn test_post_with_text_body() {
 #[serial(http_test)]
 fn test_post_with_json_body() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<BodyEchoHandler>(SimpleMethod::POST, "/json");
 
     let (addr, shutdown) = start_server(app);
@@ -633,7 +634,7 @@ fn test_post_with_json_body() {
 #[serial(http_test)]
 fn test_query_string_preserved() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<QueryHandler>(SimpleMethod::GET, "/search");
 
     let (addr, shutdown) = start_server(app);
@@ -674,7 +675,7 @@ fn test_middleware_runs_before_handler() {
         count: count.clone(),
     };
 
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.middleware(mw);
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
@@ -716,7 +717,7 @@ fn test_middleware_runs_before_handler() {
 #[serial(http_test)]
 fn test_middleware_blocks_request() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.middleware(BlockMiddleware);
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
@@ -754,7 +755,7 @@ fn test_multiple_middleware_chain() {
         count: count.clone(),
     };
 
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.middleware(mw1);
     app.middleware(mw2);
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
@@ -784,7 +785,7 @@ fn test_multiple_middleware_chain() {
 #[serial(http_test)]
 fn test_multiple_routes_same_app() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
     app.route::<BodyEchoHandler>(SimpleMethod::POST, "/body");
     app.route::<QueryHandler>(SimpleMethod::GET, "/search");
@@ -880,7 +881,7 @@ fn test_valtron_multiplex_concurrent_connections() {
 
     // Phase 1: sequential baseline — 3 requests one after another.
     let _guard = initialize_pool(42, Some(10));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<SlowHandler>(SimpleMethod::GET, "/slow");
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
     app.route::<QueryHandler>(SimpleMethod::GET, "/search");
@@ -960,7 +961,7 @@ fn test_valtron_multiplex_concurrent_connections() {
 #[serial(http_test)]
 fn test_multiple_sequential_requests() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
     let (addr, shutdown) = start_server(app);
@@ -989,7 +990,7 @@ fn test_multiple_sequential_requests() {
 #[serial(http_test)]
 fn test_custom_request_header() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
     let (addr, shutdown) = start_server(app);
@@ -1018,7 +1019,7 @@ fn test_custom_request_header() {
 #[serial(http_test)]
 fn test_head_request() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::HEAD, "/echo");
 
     let (addr, shutdown) = start_server(app);
@@ -1046,7 +1047,7 @@ fn test_head_request() {
 #[traced_test]
 fn test_delete_request() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::DELETE, "/items/:id");
 
     let (addr, shutdown) = start_server(app);
@@ -1073,7 +1074,7 @@ fn test_delete_request() {
 #[test]
 #[foundation_macros::timeout(60000)]
 fn test_http_app_builder() {
-    let app = HttpApp::new();
+    let app = HttpApp::new_serve();
     app.context().store("test_config".to_string());
 
     let config = app.context().get::<String>();
@@ -1101,7 +1102,7 @@ fn test_server_config_builder() {
         .with_would_block_sleep(Duration::from_millis(50))
         .with_accept_error_sleep(Duration::from_millis(200))
         .with_keep_alive(
-            foundation_http::KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(30)),
+            KeepAliveConfig::defaults().with_idle_timeout(Duration::from_secs(30)),
         )
         .with_max_body_bytes(1024);
 
@@ -1117,7 +1118,7 @@ fn test_server_config_builder() {
 #[test]
 #[foundation_macros::timeout(60000)]
 fn test_context_store_multiple_types() {
-    let app = HttpApp::new();
+    let app = HttpApp::new_serve();
     app.context().store(42u32);
     app.context().store("hello".to_string());
     app.context().store(true);
@@ -1169,7 +1170,7 @@ impl Serve for WsEchoHandler {
 #[serial(http_test)]
 fn test_websocket_upgrade() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<WsEchoHandler>(SimpleMethod::GET, "/ws");
 
     let (addr, shutdown) = start_server(app);
@@ -1282,7 +1283,7 @@ impl Serve for SseCounterHandler {
 #[serial(http_test)]
 fn test_sse_streaming() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
 
     // Store shared counter in context
     let counter = Arc::new(std::sync::atomic::AtomicUsize::new(0));
@@ -1387,7 +1388,7 @@ impl Serve for ExpectContinueEchoHandler {
         );
         let body_text = match req.body {
             Some(body) => {
-                let bytes = foundation_netio::simple_http::client::body_reader::collect_bytes_from_send_safe(body);
+                let bytes = foundation_netio::simple_http::client::shared::body_reader::collect_bytes_from_send_safe(body);
                 tracing::trace!("ExpectContinueEchoHandler: collected {} bytes", bytes.len());
                 String::from_utf8_lossy(&bytes).to_string()
             }
@@ -1410,7 +1411,7 @@ impl Serve for ExpectContinueEchoHandler {
 #[serial(http_test)]
 fn test_expect_100_continue_body_echo() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<ExpectContinueEchoHandler>(SimpleMethod::POST, "/echo-body");
 
     let (addr, shutdown) = start_server(app);
@@ -1449,7 +1450,7 @@ fn test_expect_100_continue_body_echo() {
 #[serial(http_test)]
 fn test_expect_100_continue_json_body() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<BodyEchoHandler>(SimpleMethod::POST, "/json-echo");
 
     let (addr, shutdown) = start_server(app);
@@ -1488,7 +1489,7 @@ fn test_expect_100_continue_json_body() {
 #[serial(http_test)]
 fn test_expect_100_continue_get_no_body() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<EchoHandler>(SimpleMethod::GET, "/echo");
 
     let (addr, shutdown) = start_server(app);
@@ -1519,7 +1520,7 @@ fn test_expect_100_continue_get_no_body() {
 #[serial(http_test)]
 fn test_expect_100_continue_zero_content_length() {
     let _guard = initialize_pool(42, Some(5));
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.route::<ExpectContinueEchoHandler>(SimpleMethod::POST, "/echo-zero");
 
     let (addr, shutdown) = start_server(app);
@@ -1621,7 +1622,7 @@ fn test_interim_response_continues_to_handler() {
     let _guard = initialize_pool(42, Some(5));
     let interim_sent = Arc::new(std::sync::atomic::AtomicBool::new(false));
 
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.middleware(InterimMiddleware {
         interim_sent: interim_sent.clone(),
     });
@@ -1681,7 +1682,7 @@ fn test_interim_response_with_subsequent_middleware() {
         count: count.clone(),
     };
 
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.middleware(mw_interim); // First: sends interim
     app.middleware(mw_counter); // Second: increments counter
     app.route::<AfterInterimHandler>(SimpleMethod::GET, "/chain-test");
@@ -1722,7 +1723,7 @@ fn test_interim_response_then_blocker() {
     let _guard = initialize_pool(42, Some(5));
     let interim_sent = Arc::new(std::sync::atomic::AtomicBool::new(false));
 
-    let mut app = HttpApp::new();
+    let mut app = HttpApp::new_serve();
     app.middleware(InterimMiddleware {
         interim_sent: interim_sent.clone(),
     });
@@ -1752,6 +1753,82 @@ fn test_interim_response_then_blocker() {
     assert!(
         interim_sent.load(std::sync::atomic::Ordering::SeqCst),
         "Interim middleware should have been executed"
+    );
+
+    shutdown.turn_on();
+}
+
+/// An interim response that carries a body must not put that body on the wire.
+///
+/// WHY: a 1xx interim response is followed by the final response on the same
+/// connection (RFC 9110 §15.2 forbids content). If the body were written, the
+/// client would read `processing...` as the start of the final response's status
+/// line and the connection would be desynchronised for every subsequent byte.
+/// `BadInterimMiddleware` models the buggy middleware; the server must defend
+/// against it rather than trust it.
+///
+/// HOW: a raw socket, because this is a claim about bytes on the wire — an HTTP
+/// client would re-frame them and hide the corruption this guards against.
+#[test]
+#[traced_test]
+#[foundation_macros::timeout(60000)]
+#[serial(http_test)]
+fn test_interim_response_with_body_does_not_leak_body_to_wire() {
+    use std::io::{Read, Write};
+
+    let _guard = initialize_pool(42, Some(5));
+    let interim_sent = Arc::new(std::sync::atomic::AtomicBool::new(false));
+
+    let mut app = HttpApp::new_serve();
+    app.middleware(BadInterimMiddleware {
+        interim_sent: interim_sent.clone(),
+    });
+    app.route::<AfterInterimHandler>(SimpleMethod::GET, "/bad-interim");
+
+    let (addr, shutdown) = start_server(app);
+
+    let mut stream = std::net::TcpStream::connect(addr).expect("connect");
+    write!(stream, "GET /bad-interim HTTP/1.1\r\nHost: t\r\n\r\n").expect("write request");
+    stream
+        .set_read_timeout(Some(Duration::from_secs(5)))
+        .expect("set read timeout");
+
+    let mut raw = Vec::new();
+    let mut buf = [0u8; 4096];
+    // Read until the final response's body arrives (or the peer stops talking).
+    loop {
+        match stream.read(&mut buf) {
+            Ok(0) => break,
+            Ok(n) => {
+                raw.extend_from_slice(&buf[..n]);
+                if raw.windows(7).any(|w| w == b"handler") {
+                    break;
+                }
+            }
+            Err(_) => break,
+        }
+    }
+    let wire = String::from_utf8_lossy(&raw).into_owned();
+
+    assert!(
+        interim_sent.load(std::sync::atomic::Ordering::SeqCst),
+        "BadInterimMiddleware should have run"
+    );
+    assert!(
+        wire.contains("102"),
+        "the interim response should still be sent, got: {wire:?}"
+    );
+    assert!(
+        !wire.contains("processing..."),
+        "the interim body must never reach the wire, got: {wire:?}"
+    );
+    assert!(
+        wire.contains("HTTP/1.1 200"),
+        "the final response must follow the interim one, got: {wire:?}"
+    );
+    assert!(
+        wire.contains("handler reached: /bad-interim"),
+        "the handler's response must arrive intact, got: {wire:?}"
     );
 
     shutdown.turn_on();

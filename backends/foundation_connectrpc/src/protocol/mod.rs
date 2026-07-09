@@ -186,6 +186,39 @@ pub fn canonicalize_content_type(content_type: &str) -> String {
         .to_ascii_lowercase()
 }
 
+/// The default codec when a content-type names a family but no `+suffix`.
+const DEFAULT_CODEC: &str = "proto";
+
+/// Match `canonical` against a content-type `prefix`, returning the codec suffix.
+///
+/// WHY: a bare `strip_prefix` is not a media-type match. `application/grpc` is a
+/// prefix of `application/grpc-web+proto`, so matching that way makes the gRPC
+/// handler claim every gRPC-Web request — and because handlers are tried in
+/// order, the gRPC-Web handler is then never consulted. The request is judged
+/// against gRPC's capabilities, which demand HTTP/2, and an HTTP/1.1 gRPC-Web
+/// call is refused with 505. The subtype must therefore end where the prefix
+/// ends.
+///
+/// WHAT: `Some(codec)` only when `canonical` is exactly `prefix` (codec defaults
+/// to `proto`) or `prefix` followed by `+codec`. Anything that merely *starts
+/// with* `prefix` and continues into a different subtype is `None`.
+#[must_use]
+pub fn codec_for_content_type<'a>(canonical: &'a str, prefix: &str) -> Option<&'a str> {
+    let rest = canonical.strip_prefix(prefix)?;
+    match rest.as_bytes().first() {
+        // Exactly the prefix: `application/grpc`.
+        None => Some(DEFAULT_CODEC),
+        // The prefix, then a codec: `application/grpc+json`. A trailing `+` with
+        // nothing after it names no codec and is not a match.
+        Some(b'+') => match &rest[1..] {
+            "" => None,
+            codec => Some(codec),
+        },
+        // The prefix ran into a longer subtype: `application/grpc-web+proto`.
+        Some(_) => None,
+    }
+}
+
 /// The codec wire name + whether the content-type is a streaming one, parsed from
 /// a canonicalized Content-Type per the Connect grammar
 /// (`application/{codec}` unary, `application/connect+{codec}` streaming). Returns

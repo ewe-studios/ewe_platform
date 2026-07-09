@@ -50,6 +50,8 @@ foundation_db = { path = "../foundation_db", version = "0.0.1", optional = true,
 
 [dev-dependencies]
 foundation_testing = { path = "../foundation_testing", version = "0.0.1" }
+# `#[foundation_macros::timeout(..)]` bounds the end-to-end server tests.
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 # Reactor for the RawStream→RegisteredFd seam integration test (Decision 12 §12).
 foundation_nativeapis = { path = "../foundation_nativeapis", version = "0.0.1", features = ["fd"] }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }

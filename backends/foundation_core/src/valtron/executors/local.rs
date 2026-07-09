@@ -2734,6 +2734,10 @@ mod test_local_thread_executor {
             let new_count = old_count + 1;
             self.1 = new_count;
 
+            // Field 0 is the task's label; surfacing it here is what makes an
+            // interleaving failure readable when several counters run at once.
+            tracing::trace!(task = self.0, count = new_count, "Counter advanced");
+
             if new_count == self.2 {
                 return None;
             }
