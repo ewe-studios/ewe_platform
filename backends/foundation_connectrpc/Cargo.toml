@@ -80,3 +80,11 @@ required-features = ["rpc_multi"]
 [[test]]
 name = "auth_tests"
 required-features = ["rpc_multi"]
+
+[[test]]
+name = "h2_streaming_tests"
+required-features = ["rpc_multi"]
+
+[[test]]
+name = "grpc_tests"
+required-features = ["rpc_multi"]
