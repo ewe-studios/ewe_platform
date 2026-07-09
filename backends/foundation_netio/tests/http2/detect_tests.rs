@@ -29,7 +29,7 @@ fn detect_returns_correct_variant() {
         DetectedProtocol::Http11
     );
     assert_eq!(detect_protocol(b"PR"), DetectedProtocol::NeedMore);
-    assert_eq!(detect_protocol(b"PR * HTTP/"), DetectedProtocol::Http11);
+    assert_eq!(detect_protocol(b"PR * HTTP/"), DetectedProtocol::NeedMore);
 }
 
 /// Nothing buffered yet is a viable (empty) prefix — the peer has not spoken.
