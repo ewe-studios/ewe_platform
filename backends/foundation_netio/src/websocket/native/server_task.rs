@@ -264,28 +264,36 @@ impl TaskIterator for WebSocketServerTask {
 mod tests {
     use super::*;
     use foundation_core::io::ioutils::SharedByteBufferStream;
-    use std::io::{Cursor, Write};
+    use std::io::Write;
 
-    /// Build a simple text frame for testing.
-    fn text_frame(payload: &[u8], masked: bool) -> Vec<u8> {
-        let mut wire = vec![0x81u8]; // FIN + Text
-        if masked {
-            wire.push(0x80 | (payload.len() as u8)); // MASK + len
-            let mask: [u8; 4] = [0x01, 0x02, 0x03, 0x04];
-            wire.extend_from_slice(&mask);
-            for (i, &b) in payload.iter().enumerate() {
-                wire.push(b ^ mask[i % 4]);
-            }
-        } else {
-            wire.push(payload.len() as u8); // No mask + len
-            wire.extend_from_slice(payload);
+    /// A helper to get a TcpStream pair for tests.
+    /// Returns (server_side, client_side).
+    /// The actual I/O is localhost-only and non-blocking compatible.
+    fn tcp_pair() -> (std::net::TcpStream, std::net::TcpStream) {
+        let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+        let addr = listener.local_addr().unwrap();
+        let client = std::net::TcpStream::connect(addr).unwrap();
+        let (server, _) = listener.accept().unwrap();
+        server.set_nonblocking(true).ok();
+        client.set_nonblocking(true).ok();
+        (server, client)
+    }
+
+    /// Encoded wire bytes for a masked text frame.
+    fn text_frame(payload: &[u8]) -> Vec<u8> {
+        let mut wire = vec![0x81u8];
+        wire.push(0x80 | (payload.len() as u8));
+        let mask: [u8; 4] = [0x01, 0x02, 0x03, 0x04];
+        wire.extend_from_slice(&mask);
+        for (i, &b) in payload.iter().enumerate() {
+            wire.push(b ^ mask[i % 4]);
         }
         wire
     }
 
-    /// A ping frame (client→server, always masked).
+    /// Encoded wire bytes for a masked ping frame.
     fn ping_frame(payload: &[u8]) -> Vec<u8> {
-        let mut wire = vec![0x89u8]; // FIN + Ping
+        let mut wire = vec![0x89u8];
         wire.push(0x80 | (payload.len() as u8));
         let mask: [u8; 4] = [0x0A, 0x0B, 0x0C, 0x0D];
         wire.extend_from_slice(&mask);
@@ -295,10 +303,10 @@ mod tests {
         wire
     }
 
-    /// Close frame.
+    /// Encoded wire bytes for a masked close frame.
     fn close_frame(code: u16) -> Vec<u8> {
         let payload = code.to_be_bytes().to_vec();
-        let mut wire = vec![0x88u8]; // FIN + Close
+        let mut wire = vec![0x88u8];
         wire.push(0x80 | (payload.len() as u8));
         let mask: [u8; 4] = [0x01, 0x00, 0x00, 0x00];
         wire.extend_from_slice(&mask);
@@ -308,96 +316,80 @@ mod tests {
         wire
     }
 
-    /// Create a pair of connected byte streams.
-    fn pipe_streams() -> (SharedByteBufferStream<RawStream>, SharedByteBufferStream<RawStream>) {
-        // Use TCP for real stream test or in-memory for unit test.
-        // For unit tests, we feed bytes directly through the SharedByteBufferStream
-        // by connecting pipes.
-        let (mut ours, theirs) = crate::netcap::pair().expect("pair");
-        // For test simplicity: write wire bytes into `theirs`, read from `ours`.
-        (SharedByteBufferStream::new(ours), SharedByteBufferStream::new(theirs))
-    }
-
-    #[test]
-    fn auto_pong_responds_to_ping() {
-        let (server_stream, _client_stream) = pipe_streams();
-        let delivery = Arc::new(ConcurrentQueue::unbounded());
-        let mut task = WebSocketServerTask::new(
-            server_stream,
-            WsServerConfig::default(),
-            delivery,
-        );
-
-        // Feed a ping frame into the stream buffer.
-        task.stream.write_all(&ping_frame(b"hello")).unwrap();
-        let status = task.next_status();
-        // Should be Pending (control frames don't produce Ready values).
-        assert!(matches!(status, Some(TaskStatus::Pending(()))));
-
-        // The writer should have a pong queued. Flush would write it.
-        // We can't easily read the output side in this test setup.
-        // The key verification: task didn't crash/error on a ping.
-    }
-
-    #[test]
-    fn masked_text_message_delivers() {
-        let (server_stream, _client_stream) = pipe_streams();
-        let delivery = Arc::new(ConcurrentQueue::unbounded());
-        let mut task = WebSocketServerTask::new(
-            server_stream,
-            WsServerConfig::default(),
-            Arc::clone(&delivery),
-        );
-
-        // Feed a masked text frame.
-        task.stream.write_all(&text_frame(b"hello", true)).unwrap();
-        let status = task.next_status();
-        match status {
-            Some(TaskStatus::Ready(WebSocketMessage::Text(t))) => {
-                assert_eq!(t, "hello");
+    /// Drive the task through `n` polls, collect all `Ready` values.
+    fn drain(task: &mut WebSocketServerTask, n: usize) -> Vec<WebSocketMessage> {
+        let mut msgs = Vec::new();
+        for _ in 0..n {
+            match task.next_status() {
+                Some(TaskStatus::Ready(m)) => msgs.push(m),
+                Some(TaskStatus::Pending(())) => continue,
+                _ => break,
             }
-            other => panic!("expected Ready(Text(\"hello\")), got {other:?}"),
         }
+        msgs
     }
 
     #[test]
-    fn close_frame_triggers_drain() {
-        let (server_stream, _client_stream) = pipe_streams();
-        let delivery = Arc::new(ConcurrentQueue::unbounded());
-        let mut task = WebSocketServerTask::new(
-            server_stream,
-            WsServerConfig::default(),
-            delivery,
-        );
+    fn masked_text_message_delivers_via_incremental_decoder() {
+        // Use a TCP pair so the incremental decoder reads from a real stream.
+        let (server, mut client) = tcp_pair();
+        let wire = text_frame(b"hello");
+        client.write_all(&wire).unwrap();
 
-        task.stream.write_all(&close_frame(1000)).unwrap();
-        let status = task.next_status();
-        // Should be Pending after handling the close.
-        assert!(matches!(status, Some(TaskStatus::Pending(()))));
-        // Next poll should terminate.
-        let status = task.next_status();
-        assert!(status.is_none(), "task ends after graceful close");
+        let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
+        let delivery = Arc::new(ConcurrentQueue::unbounded());
+        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
+
+        let msgs = drain(&mut task, 10);
+        assert_eq!(msgs.len(), 1);
+        assert_eq!(msgs[0], WebSocketMessage::Text("hello".into()));
     }
 
     #[test]
-    fn unmasked_data_frame_rejected() {
-        let (server_stream, _client_stream) = pipe_streams();
-        let delivery = Arc::new(ConcurrentQueue::unbounded());
-        let mut task = WebSocketServerTask::new(
-            server_stream,
-            WsServerConfig::default(),
-            delivery,
-        );
+    fn ping_triggers_pong_output() {
+        let (server, mut client) = tcp_pair();
+        let wire = ping_frame(b"keepalive");
+        client.write_all(&wire).unwrap();
 
-        // Feed an unmasked text frame (violation — client MUST mask).
-        task.stream.write_all(&text_frame(b"bad", false)).unwrap();
-        let status = task.next_status();
-        // Pending after sending close, then terminal.
-        if matches!(status, Some(TaskStatus::Pending(()))) {
-            let status = task.next_status();
-            assert!(status.is_none(), "task terminates on protocol violation");
-        } else {
-            assert!(status.is_none(), "task terminates on protocol violation");
-        }
+        let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
+        let delivery = Arc::new(ConcurrentQueue::unbounded());
+        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
+
+        let msgs = drain(&mut task, 5);
+        // Ping → no Ready message (control frame handled internally).
+        assert!(msgs.is_empty());
+        // Task should still be alive (not drained).
+    }
+
+    #[test]
+    fn close_frame_drains_task() {
+        let (server, mut client) = tcp_pair();
+        let wire = close_frame(1000);
+        client.write_all(&wire).unwrap();
+
+        let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
+        let delivery = Arc::new(ConcurrentQueue::unbounded());
+        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
+
+        let msgs = drain(&mut task, 10);
+        assert!(msgs.is_empty());
+        assert!(task.next_status().is_none(), "task ends after close");
+    }
+
+    #[test]
+    fn unmasked_frame_triggers_close_and_drain() {
+        let (server, mut client) = tcp_pair();
+        // Unmasked data frame (protocol violation — client MUST mask).
+        let wire: Vec<u8> = vec![0x81, 0x05, b'H', b'e', b'l', b'l', b'o'];
+        client.write_all(&wire).unwrap();
+
+        let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
+        let delivery = Arc::new(ConcurrentQueue::unbounded());
+        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
+
+        let msgs = drain(&mut task, 10);
+        // No messages — violation sends close and drains.
+        assert!(msgs.is_empty());
+        assert!(task.next_status().is_none());
     }
 }

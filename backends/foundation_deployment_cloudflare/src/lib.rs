@@ -9,4 +9,4 @@ pub mod types;
 pub mod shared;
 
 pub use client::CloudflareClient;
-pub use types::{CloudflareError, DnsRecord, DnsRecordPatch, DnsRecordType, Zone, ZoneStatus};
+pub use types::{cf_err, CloudflareError, DnsRecord, DnsRecordPatch, DnsRecordType, Zone, ZoneStatus};

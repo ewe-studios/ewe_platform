@@ -4259,6 +4259,7 @@ version = "0.1.0"
 name = "foundation_deployment_cloudflare"
 version = "0.1.0"
 dependencies = [
+ "base85rs",
  "chrono",
  "derive_more",
  "foundation_core",

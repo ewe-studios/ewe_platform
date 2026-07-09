@@ -1,7 +1,7 @@
 ---
 feature: "WebSocketServerTask + WsServerConfig + recv retrofit (D13 E3, OQ#13.4)"
 description: "Progress-driven server task: assembler, dual-queue seam, config-gated auto-Pong/Close; assembler retrofit for blocking recv"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 4
 depends_on: ["36-ws-resumable-decoder"]

@@ -4,13 +4,14 @@
 //! typed Rust structs. Used by `CloudflareClient` for DNS record CRUD.
 
 use chrono::{DateTime, Utc};
-use derive_more::{Display, Error};
+use derive_more::Display;
+use foundation_errstacks::ErrorTrace;
 use serde::{Deserialize, Serialize};
 
 // ── CloudflareError ──
 
 /// Errors from Cloudflare API operations.
-#[derive(Debug, Display, Error)]
+#[derive(Debug, Display)]
 pub enum CloudflareError {
     #[display("Cloudflare auth failed: {_0}")]
     Auth(String),
@@ -28,11 +29,12 @@ pub enum CloudflareError {
     Io(String),
 }
 
-impl foundation_errstacks::ErrorTrace<CloudflareError> {
-    pub fn cf_err(e: CloudflareError) -> Self { Self::new(e) }
-}
-
 impl std::error::Error for CloudflareError {}
+
+/// Convenience: wrap a CloudflareError in an ErrorTrace.
+pub fn cf_err(e: CloudflareError) -> ErrorTrace<CloudflareError> {
+    ErrorTrace::new(e)
+}
 
 // ── Zone ──
 
