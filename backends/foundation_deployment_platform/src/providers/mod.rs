@@ -85,3 +85,5 @@ pub trait Provider: Send + Sync {
     fn resolved_ports(&self, handle: &Self::Handle) -> Result<ResolvedPorts, Self::Error>;
     fn host_health(&self) -> HostHealth;
 }
+
+pub mod docker;
