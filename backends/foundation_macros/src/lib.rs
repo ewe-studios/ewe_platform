@@ -4,6 +4,7 @@ mod connectrpc_service;
 mod arrow_json_schema;
 mod arrow_schema;
 mod crate_paths;
+mod docker_container;
 mod embedders;
 mod from_arrow;
 mod json_hash;
@@ -639,6 +640,28 @@ pub fn timeout(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_ui_server_entry::wasm_ui_server(attr.into(), item.into()).into()
+}
+
+/// `#[docker_container]` — start Docker containers for the duration of a function.
+///
+/// Parses key=value attributes (`image`, `port`, `network`, `wait_stdout`, etc.)
+/// into a `ContainerConfig`, starts the container before the function body,
+/// and stops/removes it after (even on panic — Drop cleanup).
+///
+/// # Examples
+///
+/// ```ignore
+/// use foundation_deployment_platform::docker_container;
+///
+/// #[valtron_test]
+/// #[docker_container(image = "redis:7", port = 6379)]
+/// fn test_redis() {
+///     // Redis is running at localhost:<auto-assigned port>
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
+    docker_container::docker_container(attr, item)
 }
 
 /// `html!` — compile-time HTML templates producing typed
