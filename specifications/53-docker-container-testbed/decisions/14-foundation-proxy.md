@@ -18,10 +18,11 @@ Build on Foundation crates: `foundation_netio` (TCP/TLS), `foundation_http`
 2. [Prior art: Kamal + kamal-proxy](#prior-art-kamal--kamal-proxy)
 3. [Architecture](#architecture)
 4. [SSL termination and cert provisioning](#ssl-termination-and-cert-provisioning)
-5. [Zero-downtime deployment](#zero-downtime-deployment)
-6. [State persistence](#state-persistence)
-7. [Integration with the workspace](#integration-with-the-workspace)
-8. [What Kamal does that we defer](#what-kamal-does-that-we-defer)
+5. [Cloudflare integration: DNS + TLS + wildcard certs](#cloudflare-integration-dns--tls--wildcard-certs)
+6. [Zero-downtime deployment](#zero-downtime-deployment)
+7. [State persistence](#state-persistence)
+8. [Integration with the workspace](#integration-with-the-workspace)
+9. [What Kamal does that we defer](#what-kamal-does-that-we-defer)
 
 ---
 
@@ -106,29 +107,39 @@ adds the `proxy:` layer — SSL, host routing, health checks.
 ## Architecture
 
 ```
-                   ┌─────────────────────────────────┐
-                   │        foundation_proxy          │
-                   │                                 │
-  Internet ───────▶│  TLS (rustls + ACME)            │
-                   │    │                             │
-                   │    ▼                             │
-                   │  Router (host + path matching)   │
-                   │    │                             │
-                   │    ├── app.example.com    → backend_a (round-robin)
-                   │    ├── api.example.com    → backend_b (round-robin)
-                   │    └── *.example.com      → backend_c (catch-all)
-                   │                                 │
-                   │  Health Probes (periodic GET)    │
-                   │  Load Balancers (per backend)    │
-                   │  State DB (SQLite via foundation_db) │
-                   │  Unix Socket RPC                 │
-                   │    ↑                             │
-                   │    │ (deploy, remove, pause,     │
-                   │    │  resume, status)            │
-                   └────┼─────────────────────────────┘
-                        │
-              foundation_deployment_platform
-              (ContainerGroup::deploy calls RPC)
+                 ┌─────────────────────────────────────────────────┐
+                 │              foundation_proxy                    │
+                 │                                                 │
+  Internet ──────┤                                                 │
+                 │                                                 │
+                 │  ┌─────────────────────────────────────────┐    │
+                 │  │ CloudflareDns (zone: example.com)        │    │
+                 │  │   A *.example.com → 1.2.3.4              │    │
+                 │  │   TXT _acme-challenge.* → (ephemeral)    │    │
+                 │  └─────────────────────────────────────────┘    │
+                 │                      │                          │
+                 │  ┌───────────────────▼──────────────────────┐    │
+Internet ───────▶│  │ TLS (rustls + CertManager)               │    │
+:443             │  │   CloudflareDns01CertManager              │    │
+                 │  │     → ACME DNS-01 via Cloudflare API      │    │
+                 │  │     → VFS cert store (local/R2/S3)        │    │
+                 │  │     → Background renewal + hot-reload     │    │
+                 │  └───────────────────┬──────────────────────┘    │
+                 │                      │                          │
+                 │  ┌───────────────────▼──────────────────────┐    │
+                 │  │ Router (host + path matching)             │    │
+                 │  │   ├── windows.example.com → dockurr:8006 │    │
+                 │  │   ├── app.example.com      → backend_a   │    │
+                 │  │   └── *.example.com        → backend_c   │    │
+                 │  └───────────────────┬──────────────────────┘    │
+                 │                      │                          │
+                 │  Health Probes   Load Balancers   State DB      │
+                 │  Unix Socket RPC (deploy, remove, pause, ...)   │
+                 │    ↑                                             │
+                 └────┼─────────────────────────────────────────────┘
+                      │
+        foundation_deployment_platform
+        (ContainerGroup calls proxy RPC on deploy)
 ```
 
 ### Key types
@@ -207,6 +218,318 @@ pub trait CertManager: Send + Sync {
 `LetsEncryptCertManager` uses `acme-micro` (or `rustls-acme`) for the ACME
 protocol. `CloudflareCertManager` uses the Cloudflare API for DNS-01
 challenges. `StaticCertManager` reads from VFS paths.
+
+---
+
+## Cloudflare integration: DNS + TLS + wildcard certs
+
+This is the central pattern learned from vm-uncloud: a single Cloudflare zone
+manages DNS for all services, and wildcard domains provide instant subdomain
+resolution with zero per-service DNS setup.
+
+### Why Cloudflare
+
+vm-uncloud uses Cloudflare for three things:
+
+1. **DNS hosting** — The apex domain's nameservers point to Cloudflare. All
+   DNS records (A, CNAME, TXT) are managed via the Cloudflare API.
+2. **Single wildcard `*.domain.com` A record** — One record resolves every
+   subdomain to the proxy's IP. No per-service DNS changes. A new service at
+   `redis.example.com` resolves instantly because `*` already covers it.
+3. **DNS-01 TLS challenge** — Let's Encrypt (and Cloudflare Origin CA) can
+   validate domain ownership by writing a `_acme-challenge` TXT record via the
+   Cloudflare API. This is the only way to get wildcard certs
+   (`*.example.com`) from Let's Encrypt — HTTP-01 can't do wildcards.
+
+### The wildcard DNS model
+
+```
+Cloudflare Zone: example.com
+  ├── A     example.com        → 1.2.3.4   (optional apex)
+  ├── A     *.example.com      → 1.2.3.4   (wildcard — covers EVERYTHING)
+  └── TXT   _acme-challenge.*  → (ephemeral, created/renewed during cert issuance)
+```
+
+```
+Request:  windows.example.com  ─→  *.example.com resolves to 1.2.3.4
+Request:  app.example.com      ─→  *.example.com resolves to 1.2.3.4
+Request:  anything.example.com ─→  *.example.com resolves to 1.2.3.4
+```
+
+No per-service DNS records. A new service is a single line of proxy config:
+
+```rust
+proxy.register(ServiceConfig {
+    name: "my-new-service".into(),
+    host: "my-new-service.example.com".into(),  // instantly resolves via wildcard
+    backends: vec![...],
+    ..Default::default()
+}).await?;
+```
+
+### Cloudflare API integration
+
+`foundation_proxy` manages Cloudflare DNS via its REST API (not the
+`cloudflare` CLI or Terraform). The API token needs exactly one permission:
+`Zone:DNS:Edit` for the target zone — scoped, not an account-wide token.
+This matches vm-uncloud's token scoping.
+
+```rust
+/// Cloudflare DNS provider. Manages DNS records for TLS challenges and
+/// optional apex DNS. Uses the Cloudflare v4 REST API.
+pub struct CloudflareDns {
+    zone_id: String,               // Cloudflare Zone ID (from dashboard)
+    api_token: String,             // Scoped API token (Zone:DNS:Edit)
+    client: reqwest::Client,
+}
+
+impl CloudflareDns {
+    /// Create or update a DNS record. Idempotent — if the record already
+    /// exists with the same type + name + content, it's a no-op.
+    pub async fn upsert_record(
+        &self,
+        record_type: DnsRecordType,  // A, CNAME, TXT
+        name: &str,                  // e.g. "*.example.com" or "_acme-challenge.app"
+        content: &str,               // e.g. "1.2.3.4" or "abc123..."
+        ttl: u32,                    // 1 = auto, 60 for challenge TXT
+        proxied: bool,               // Cloudflare orange-cloud (DNS-only for ACME)
+    ) -> Result<String>;  // returns record ID
+
+    /// Delete a DNS record by ID. Used to clean up ACME challenge TXT records
+    /// after certificate issuance completes.
+    pub async fn delete_record(&self, record_id: &str) -> Result<()>;
+
+    /// List existing records matching a filter.
+    pub async fn list_records(
+        &self,
+        record_type: Option<DnsRecordType>,
+        name: Option<&str>,
+    ) -> Result<Vec<DnsRecord>>;
+}
+```
+
+### DNS-01 challenge flow (Let's Encrypt via Cloudflare)
+
+The `CloudflareDns01` cert manager implements the ACME DNS-01 challenge by
+programmatically creating/deleting TXT records:
+
+```
+1. ACME order created for *.example.com
+   → Let's Encrypt returns challenge token + expected TXT value
+
+2. Create TXT record: _acme-challenge.example.com → "expected-value"
+   cloudflare.upsert_record("TXT", "_acme-challenge.example.com", value, ttl: 60)
+   → Wait for propagation (60s TTL, but Cloudflare API is near-instant)
+
+3. Notify Let's Encrypt: challenge is ready
+   → Let's Encrypt queries _acme-challenge.example.com TXT via public DNS
+   → Verifies the value matches → issues *.example.com certificate
+
+4. Delete TXT record: cleanup challenge record
+   cloudflare.delete_record(record_id)
+
+5. Store cert in VFS: cert chain + private key → VFS path
+   → rustls loads cert from VFS on startup + renewal
+```
+
+```rust
+pub struct CloudflareDns01CertManager {
+    dns: CloudflareDns,
+    acme: AcmeClient,               // acme-micro or rustls-acme
+    cert_store: Box<dyn CertStore>,  // VFS-backed
+}
+
+impl CertManager for CloudflareDns01CertManager {
+    async fn get_cert(&self, domain: &str) -> Result<CertPair> {
+        if let Some(cert) = self.cert_store.load(domain).await? {
+            if !self.needs_renewal(domain).await? {
+                return Ok(cert);
+            }
+        }
+
+        // Order a new wildcard cert via ACME DNS-01
+        let order = self.acme.new_order(domain).await?;
+        let challenge = order.dns01_challenge()?;
+
+        // Write the challenge TXT record
+        let record_id = self.dns.upsert_record(
+            DnsRecordType::TXT,
+            &challenge.record_name(),
+            &challenge.record_value(),
+            60,         // short TTL for fast propagation
+            false,      // NOT proxied — ACME needs the raw TXT value
+        ).await?;
+
+        // Let ACME validate
+        self.acme.complete_challenge(&challenge).await?;
+        let cert = order.finalize().await?;
+
+        // Clean up challenge record
+        let _ = self.dns.delete_record(&record_id).await;
+
+        // Persist
+        self.cert_store.save(domain, &cert).await?;
+        Ok(cert)
+    }
+
+    async fn needs_renewal(&self, domain: &str) -> Result<bool> {
+        match self.cert_store.load(domain).await? {
+            None => Ok(true),
+            Some(cert) => {
+                // Renew when within 30 days of expiry
+                let expiry = cert.not_after()?;
+                Ok(expiry < Utc::now() + Duration::days(30))
+            }
+        }
+    }
+}
+```
+
+### Cloudflare Origin CA (alternative to Let's Encrypt)
+
+Cloudflare provides its own CA that issues certificates trusted ONLY behind
+Cloudflare's reverse proxy (orange-cloud mode). These certs have longer
+lifetimes (up to 15 years vs Let's Encrypt's 90 days) and don't require
+ACME challenges — just an API call with the Origin CA key:
+
+```rust
+pub enum SslProvider {
+    /// Let's Encrypt via ACME DNS-01 (wildcard support, 90-day certs)
+    LetsEncrypt { contact_email: String },
+    /// Cloudflare Origin CA (15-year certs, Cloudflare-trusted only)
+    CloudflareOriginCa { api_key: String },
+    /// Static cert + key
+    Static { cert: VfsPath, key: VfsPath },
+}
+```
+
+Origin CA is simpler but the cert only works when Cloudflare is the
+front-end (orange-cloud proxy). For direct connections (no Cloudflare
+proxy), Let's Encrypt is required.
+
+### Apex + wildcard DNS setup (one time)
+
+On first run, or via `foundation_proxy init --domain example.com`, the proxy
+ensures the DNS records exist:
+
+```rust
+impl CloudflareDns {
+    /// Ensure the wildcard + optional apex DNS records exist. Idempotent.
+    pub async fn bootstrap_domain(&self, domain: &str, ip: &str, setup_apex: bool) -> Result<()> {
+        // Wildcard A record — covers ALL subdomains
+        self.upsert_record(
+            DnsRecordType::A,
+            &format!("*.{}", domain),
+            ip,
+            60,       // 60s TTL for fast IP changes
+            false,    // DNS-only (grey cloud) — proxy handles TLS itself
+        ).await?;
+
+        // Optional apex A record (example.com → IP)
+        if setup_apex {
+            self.upsert_record(DnsRecordType::A, domain, ip, 60, false).await?;
+        }
+
+        Ok(())
+    }
+}
+```
+
+The result is identical to vm-uncloud's OpenTofu output: one wildcard
+`*.example.com` A record, TTL 60, DNS-only (grey cloud), created once and
+never touched again.
+
+### Token scoping and security
+
+Following vm-uncloud's discipline: the Cloudflare API token has the minimum
+scope needed — `Zone:DNS:Edit` for the specific zone — not an account-wide
+token. The token comes from the environment (`CLOUDFLARE_API_TOKEN`) or a local
+secrets store, never from committed files:
+
+```rust
+impl CloudflareDns {
+    pub fn from_env() -> Result<Self> {
+        let token = std::env::var("CLOUDFLARE_API_TOKEN")
+            .map_err(|_| ConfigError("CLOUDFLARE_API_TOKEN not set"))?;
+        let zone_id = std::env::var("CLOUDFLARE_ZONE_ID")
+            .map_err(|_| ConfigError("CLOUDFLARE_ZONE_ID not set"))?;
+        Ok(Self { zone_id, token, client: reqwest::Client::new() })
+    }
+}
+```
+
+### Integration with proxy startup
+
+```
+foundation_proxy start --domain example.com
+  │
+  ├── 1. CloudflareDns::bootstrap_domain("example.com", <public_ip>)
+  │      → Ensures *.example.com A record exists (idempotent)
+  │
+  ├── 2. CloudflareDns01CertManager::get_cert("*.example.com")
+  │      → Checks VFS for existing cert
+  │      → If missing or expiring: ACME DNS-01 challenge via Cloudflare TXT
+  │      → Stores new cert in VFS (R2 for production, local FS for dev)
+  │
+  ├── 3. rustls loads cert from VFS
+  │      → Starts TLS listener on :443
+  │
+  ├── 4. Router starts, health probes connect, state DB loads
+  │      → Ready for traffic
+  │
+  └── Background: CertRenewalTask (daily cron)
+         → For each managed domain, check needs_renewal()
+         → Renew if within 30 days of expiry
+         → Hot-reload cert into rustls (no downtime)
+```
+
+### VFS-backed cert storage
+
+Certs persist across proxy restarts via VFS. The backend is chosen per
+environment:
+
+| Environment | VFS Backend | Rationale |
+|-------------|------------|-----------|
+| Local dev | `LocalFs("~/.foundation/proxy/certs/")` | Zero setup |
+| CI | `LocalFs` or In-memory | Ephemeral, test certs |
+| Hetzner single node | `LocalFs("/var/lib/foundation-proxy/certs/")` | Simple, fast |
+| Production (multi-node) | `Cloudflare R2` | Durable, shared across nodes (vm-uncloud's R2 state pattern) |
+| AWS | `S3` | Native, shared |
+
+```rust
+use foundation_nativeapis::vfs::{Vfs, LocalFs, R2Backend, S3Backend};
+
+fn cert_store() -> Box<dyn CertStore> {
+    match env("PROXY_ENV").unwrap_or("local") {
+        "production" => Box::new(R2CertStore::new(
+            R2Backend::from_env()?,
+            "proxy-certs",
+        )),
+        "aws" => Box::new(S3CertStore::new(
+            S3Backend::from_env()?,
+            "foundation-proxy-certs",
+        )),
+        _ => Box::new(LocalCertStore::new(
+            dirs::data_dir().join("foundation-proxy/certs"),
+        )),
+    }
+}
+```
+
+This is the same pattern as vm-uncloud's R2 terraform state backend —
+choose the VFS backend based on environment, swap transparently. The
+`CertStore` trait doesn't care where the bytes live.
+
+### What we get from this design
+
+| Capability | Mechanism | vm-uncloud equivalent |
+|------------|-----------|----------------------|
+| DNS for wildcard domains | `CloudflareDns::bootstrap_domain()` | OpenTofu `cloudflare_dns_record` |
+| Wildcard TLS cert | `CloudflareDns01CertManager` (ACME DNS-01) | Caddy `tls { dns cloudflare }` |
+| Cert persistence across restarts | VFS (local FS / R2 / S3) | Caddy's `/data` volume |
+| Cert auto-renewal | Background cron task, hot-reload | Caddy's built-in cert maintenance |
+| One-time DNS setup | `upsert_record` idempotent | OpenTofu plan/apply idempotency |
+| Secrets never on disk | `CLOUDFLARE_API_TOKEN` env var, scoped | `fnox exec` keychain injection |
 
 ---
 
