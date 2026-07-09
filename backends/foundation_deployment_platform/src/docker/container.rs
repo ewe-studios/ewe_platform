@@ -11,7 +11,6 @@ use tracing::warn;
 
 use crate::docker::config::ContainerConfig;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
-use crate::docker::wait_for::WaitFor;
 
 /// RAII guard for a running Docker container.
 pub struct ContainerHandle {
@@ -56,14 +55,8 @@ impl ContainerHandle {
         let ports =
             Self::resolve_ports(&docker, &container_id, &config).await?;
 
-        if let WaitFor::Port { port, .. } = &config.wait {
-            let key = format!("{port}/tcp");
-            if !ports.contains_key(&key) {
-                return Err(docker_err(DockerError::InvalidConfig(format!(
-                    "port {port} was not mapped after container start"
-                ))));
-            }
-        }
+        // Apply wait strategy
+        config.wait.apply(&docker, &container_id, &ports).await?;
 
         Ok(Self {
             docker,

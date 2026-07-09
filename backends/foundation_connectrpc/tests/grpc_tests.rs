@@ -586,3 +586,159 @@ async fn grpc_timeout_header_is_accepted() {
 
     shutdown.turn_on();
 }
+
+/// WHY: h2 trailing HEADERS carry `grpc-status` after the response body.
+/// F31 plumbs them through `TransportStream::trailers` — the H2Pump decodes
+/// trailing headers and pushes them into a dedicated pipe.
+///
+/// WHAT: Open a gRPC unary call, drain the body, then read `stream.trailers`.
+/// Assert `grpc-status: 0` is present.
+#[valtron_test]
+async fn grpc_trailers_readable_from_transport_stream() {
+    let (addr, shutdown) = start_h2_server();
+
+    let transport = H2Transport::new();
+    let url = format!("http://{addr}{UNARY}");
+    let uri = foundation_core::url::Uri::parse(&url).expect("valid uri");
+
+    let msg = serde_json::to_vec(&Msg::of("trailer-test")).expect("encode");
+    let body = grpc_envelope(&msg);
+
+    let mut stream = transport
+        .open(RequestDescriptor {
+            proto: Proto::HTTP20,
+            request_url: SimpleUrl::url_only(&url),
+            request_uri: uri,
+            headers: grpc_headers("json"),
+            method: SimpleMethod::POST,
+        })
+        .expect("open h2 stream");
+
+    stream
+        .send_body
+        .try_send(Bytes::from(body))
+        .expect("send body");
+    stream.send_body.close();
+
+    let (status, _headers) = stream
+        .head
+        .next()
+        .await
+        .expect("response head")
+        .expect("head ok");
+    assert_eq!(status, Status::OK);
+
+    // Drain body.
+    while let Some(_chunk) = stream.recv_body.next().await {}
+
+    // Read trailers from the dedicated pipe.
+    let trailers = stream.trailers.receive().await.unwrap_or_default();
+    let status_code: u32 = trailers
+        .get(&SimpleHeader::from("grpc-status".to_string()))
+        .and_then(|v| v.first())
+        .and_then(|s| s.parse().ok())
+        .expect("grpc-status trailer");
+
+    assert_eq!(status_code, 0, "grpc-status must be 0 (success)");
+
+    shutdown.turn_on();
+}
+
+/// WHY: The typed Client's unary path (`do_unary_round_trip`) reads
+/// transporters from `TransportStream::trailers` and copies them into
+/// `Response::trailers()`. A gRPC caller should see `grpc-status` there.
+///
+/// WHAT: Call `client.unary()` with gRPC, verify `response.trailers()`
+/// contains `grpc-status: 0`.
+#[valtron_test]
+async fn grpc_unary_response_carries_trailers() {
+    let (addr, shutdown) = start_h2_server();
+
+    let client = grpc_client_for(&addr, UNARY);
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("trailers")))
+        .await
+        .expect("unary");
+
+    assert_eq!(resp.msg, Msg::of("echo:trailers"));
+
+    let trailers = resp.trailers();
+    let status_code: u32 = trailers
+        .get(&SimpleHeader::from("grpc-status".to_string()))
+        .and_then(|v| v.first())
+        .and_then(|s| s.parse().ok())
+        .expect("grpc-status trailer in response");
+
+    assert_eq!(status_code, 0, "grpc-status must be 0 (success)");
+    assert!(
+        trailers
+            .get(&SimpleHeader::from("grpc-message".to_string()))
+            .is_none(),
+        "grpc-message should not exist for success"
+    );
+
+    shutdown.turn_on();
+}
+
+/// WHY: gRPC errors set non-zero grpc-status in trailers. The typed Client's
+/// unary path should surface these in `Response::trailers()` even though the
+/// call itself returns `Ok` (gRPC always returns HTTP 200).
+#[valtron_test]
+async fn grpc_error_trailers_readable_from_response() {
+    const ERR_PATH: &str = "/t.Svc/ErrUnary";
+    let mut router = build_router();
+    router.unary(
+        ERR_PATH,
+        codecs(),
+        |_ctx: Ctx, _req: Request<Msg>| async move {
+            Err(
+                foundation_connectrpc::error::ConnectError::permission_denied("not allowed")
+                    .into(),
+            )
+        },
+        HandlerOptions::new(),
+    );
+
+    let rpc: Arc<dyn H2Serve> = Arc::new(ConnectRpcServeH2::new(router.into_handler()));
+    let mut app = HttpApp::new_h2_serve();
+    app.route_any_h2(ERR_PATH, rpc);
+
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let shutdown = Arc::new(OnSignal::new());
+    let server_shutdown = shutdown.clone();
+    let server = HttpServer::from_app(ServerApp::http2(app), &addr.to_string());
+    std::thread::spawn(move || {
+        server.serve_with_listener(&listener, &server_shutdown);
+    });
+
+    let addr_str = addr.to_string();
+    let client = grpc_client_for(&addr_str, ERR_PATH);
+
+    let resp = client
+        .unary(ctx(), Request::new(Msg::of("err")))
+        .await
+        .expect("unary");
+
+    // gRPC errors still return HTTP 200 — the error is in trailers.
+    let trailers = resp.trailers();
+    let status_code: u32 = trailers
+        .get(&SimpleHeader::from("grpc-status".to_string()))
+        .and_then(|v| v.first())
+        .and_then(|s| s.parse().ok())
+        .expect("grpc-status trailer");
+
+    // permission_denied → gRPC code 7
+    assert_eq!(status_code, 7, "grpc-status must be 7 (PermissionDenied)");
+
+    let message = trailers
+        .get(&SimpleHeader::from("grpc-message".to_string()))
+        .and_then(|v| v.first())
+        .expect("grpc-message trailer");
+    assert!(
+        message.contains("not allowed"),
+        "grpc-message must carry error text, got: {message:?}"
+    );
+
+    shutdown.turn_on();
+}
