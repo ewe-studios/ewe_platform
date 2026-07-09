@@ -26,7 +26,6 @@ use crate::netcap::RawStream;
 use crate::websocket::shared::assembler::MessageAssembler;
 use crate::websocket::shared::batch_writer::BatchFrameWriter;
 use crate::websocket::shared::decoder::WebSocketFrameDecoder;
-use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::{Opcode, WebSocketFrame};
 use crate::websocket::shared::message::WebSocketMessage;
 
@@ -116,12 +115,6 @@ impl WebSocketServerTask {
         let _ = self.writer.write_immediate(frame);
     }
 
-    /// Send a data message frame.
-    fn send_message(&mut self, msg: WebSocketMessage) {
-        let frame = server_message_to_frame(msg);
-        let _ = self.writer.queue_frame(frame);
-    }
-
     /// Handle a received control frame.
     fn on_control(&mut self, frame: WebSocketFrame) {
         match frame.opcode {
@@ -144,55 +137,6 @@ impl WebSocketServerTask {
                 self.draining = true;
             }
             _ => {} // Pong, non-auto Ping, etc.
-        }
-    }
-}
-
-/// Convert a server-side message to an unmasked frame.
-fn server_message_to_frame(msg: WebSocketMessage) -> WebSocketFrame {
-    match msg {
-        WebSocketMessage::Text(text) => WebSocketFrame {
-            fin: true,
-            opcode: Opcode::Text,
-            mask: None,
-            payload: text.into_bytes(),
-        },
-        WebSocketMessage::Binary(data) => WebSocketFrame {
-            fin: true,
-            opcode: Opcode::Binary,
-            mask: None,
-            payload: data,
-        },
-        WebSocketMessage::Ping(data) => WebSocketFrame {
-            fin: true,
-            opcode: Opcode::Ping,
-            mask: None,
-            payload: data,
-        },
-        WebSocketMessage::Pong(data) => WebSocketFrame {
-            fin: true,
-            opcode: Opcode::Pong,
-            mask: None,
-            payload: data,
-        },
-        WebSocketMessage::Close(code, reason) => {
-            let mut payload = code.to_be_bytes().to_vec();
-            payload.extend_from_slice(reason.as_bytes());
-            WebSocketFrame {
-                fin: true,
-                opcode: Opcode::Close,
-                mask: None,
-                payload,
-            }
-        }
-        WebSocketMessage::ConnectionEstablished => {
-            // No wire frame for this synthetic message.
-            WebSocketFrame {
-                fin: true,
-                opcode: Opcode::Text,
-                mask: None,
-                payload: Vec::new(),
-            }
         }
     }
 }

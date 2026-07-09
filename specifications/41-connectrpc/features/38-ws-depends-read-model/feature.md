@@ -1,7 +1,7 @@
 ---
 feature: "WS Depends read model via the reactor (D13 E2)"
 description: "Client + server WS tasks park on socket readiness (RegisteredFd) with timeout-poll fallback"
-status: "pending"
+status: "complete"
 priority: "low"
 phase: 4
 depends_on: ["36-ws-resumable-decoder", "10-reactor-parking"]
