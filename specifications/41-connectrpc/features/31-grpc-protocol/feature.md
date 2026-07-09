@@ -26,4 +26,9 @@ The strict protocol: gRPC riding the owned HTTP/2 module with real trailing HEAD
 
 ## Acceptance criteria
 
-- gRPC conformance suites green over h2 (h2c + TLS); interop against grpcurl and connect-go servers/clients
+- [x] gRPC handler (`GrpcHandler`) + client (`GrpcClient`) implemented (all ProtocolHandler/ProtocolClient methods)
+- [x] Router dispatch: protocol match by `application/grpc+{codec}` Content-Type (Decision 05 §Protocol 2)
+- [x] ErrorWriter: gRPC error → 200 OK + grpc-status trailers
+- [x] Wire tests (8) — transport-level unary/streaming/error + typed-client streaming/bidi over h2c
+- [ ] gRPC conformance suites green over h2 (h2c + TLS); interop against grpcurl and connect-go servers/clients
+- [ ] h2 trailer plumbing — HTTP/2 trailing HEADERS not forwarded to transport caller or ClientConn (blocks grpc-status verification in typed-client tests)
