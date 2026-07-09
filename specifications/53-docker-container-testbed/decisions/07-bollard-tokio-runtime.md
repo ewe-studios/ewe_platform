@@ -163,11 +163,11 @@ valtron's `block_on_future` bridges the whole thing to `#[test] fn`.
 ## Drop behavior
 
 `ContainerHandle::Drop` calls `stop_container` + `remove_container` via
-bollard. These are async calls but Drop is sync. Under `#[valtron_test]` or
-`#[tokio::main]`, the tokio reactor is live — `Handle::current()` succeeds
-and Drop can drive the futures to completion. If dropped outside any tokio
-context, this panics — a programmer error (equivalent to using `tokio::spawn`
-without a runtime).
+bollard. These are async calls but Drop is sync. Drop uses
+`futures_lite::block_on` (re-exported) — same bridge as the `Provider`
+trait methods — to drive the async cleanup inside the Drop scope. No
+dependency on the caller's runtime. Works regardless of whether the caller
+is valtron, tokio, or bare sync.
 
 ---
 
