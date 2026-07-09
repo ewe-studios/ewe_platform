@@ -1,0 +1,51 @@
+[package]
+name = "foundation_deployment_platform"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "Foundation deployment platform — VM/container orchestration, Docker runtime, guest infrastructure"
+keywords = ["ewe-platform", "deployment", "platform", "docker", "testcontainers"]
+
+[dependencies]
+# Foundation crates
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "multi"] }
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
+
+# Docker API
+bollard = "0.21"
+
+# Async runtime (bollard requires tokio for hyper)
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "macros"] }
+
+# Async utilities
+futures-lite = "2"
+futures-util = "0.3"
+
+# Serialization
+serde.workspace = true
+serde_json.workspace = true
+
+# Error handling + derive
+derive_more.workspace = true
+
+# Logging
+tracing.workspace = true
+
+# Time
+chrono.workspace = true
+
+[features]
+default = []
+# Enable when using with valtron multi executor
+multi = ["foundation_core/multi", "foundation_netio/multi"]
+
+[dev-dependencies]
+tracing-subscriber = "0.3"
+
+[lints]
+workspace = true
