@@ -1,6 +1,6 @@
 # 06 — Cloud Deployment
 
-**Date:** 2026-07-08
+**Date:** 2026-07-10
 **Status:** Resolved
 
 ## Decision
@@ -8,69 +8,54 @@
 Adopt the **cloud-init + remote Docker** pattern from `vm-uncloud` for deploying
 the testbed to cloud providers (Hetzner, AWS, GCP). The core insight from
 vm-uncloud is: (1) cloud-init provisions the bare minimum (curl + ca-certificates),
-(2) a bootstrap phase installs Docker and the testbed binary over SSH, and
-(3) all subsequent operations go through bollard's SSH transport or the testbed
-CLI over SSH. This replaces the current `HETZNER.md` pattern of installing QEMU
-via apt and managing VMs inside a cloud VM.
+(2) a bootstrap phase installs Docker and the testbed binary over SSH —
+powered by `foundation_sshkit` (decision 13) for connection pooling, key
+management, and retry logic — and (3) all subsequent container operations go
+through bollard's SSH transport or the testbed CLI over SSH. Service exposure
+and TLS termination for dockurr web viewers and test services are handled by
+`foundation_proxy` (decision 14).
 
 ## Table of Contents
 
 1. [vm-uncloud patterns we adopt](#vm-uncloud-patterns-we-adopt)
 2. [Cloud-init template](#cloud-init-template)
-3. [Provisioning flow](#provisioning-flow)
+3. [Provisioning flow with foundation_sshkit](#provisioning-flow-with-foundation_sshkit)
 4. [Remote Docker via bollard SSH](#remote-docker-via-bollard-ssh)
-5. [Hetzner-specific configuration](#hetzner-specific-configuration)
-6. [Multi-provider abstractions](#multi-provider-abstractions)
-7. [What we don't adopt from vm-uncloud](#what-we-dont-adopt-from-vm-uncloud)
+5. [Service exposure via foundation_proxy](#service-exposure-via-foundation_proxy)
+6. [Hetzner-specific configuration](#hetzner-specific-configuration)
+7. [Multi-provider abstractions](#multi-provider-abstractions)
+8. [What we don't adopt from vm-uncloud](#what-we-dont-adopt-from-vm-uncloud)
 
 ---
 
 ## vm-uncloud patterns we adopt
 
-vm-uncloud's architecture has several patterns that apply directly to the
-testbed cloud deployment:
-
 ### 1. Minimal cloud-init
 
 vm-uncloud's `cloud-init/uncloud.yaml` installs only `curl` and
-`ca-certificates`. It deliberately does NOT install Docker or the application
-— those are installed by a subsequent SSH-based bootstrap step (`uc machine init`).
+`ca-certificates`. Docker is NOT in cloud-init — it's installed by a subsequent
+SSH-based bootstrap. This makes the cloud-init resilient to infrastructure
+changes (Docker apt repos changing, package renames).
 
-We apply the same principle:
+### 2. SSH-based bootstrap with connection pooling
 
-```yaml
-#cloud-config
-package_update: true
-package_upgrade: false
-packages:
-  - curl
-  - ca-certificates
-```
+vm-uncloud uses SSH extensively: `uc machine init` (install Docker + uncloudd),
+binary deploy via scp, RDP/viewer tunnels. We replace all of this with
+`foundation_sshkit` (decision 13) — connection pooling, key resolution,
+`Host` abstraction, and runner strategies (parallel for multi-node, sequential
+for single-node bootstrap steps).
 
-Rationale: cloud-init runs once at VM creation. If Docker's apt repository
-changes, a cloud-init that installs Docker would fail on every new VM until
-the template is updated. By deferring Docker installation to a script that
-runs over SSH, we can update the install logic without rebuilding VM images.
+### 3. Single wildcard DNS + TLS
 
-### 2. Remote-exec provisioner for readiness
-
-vm-uncloud uses an OpenTofu `remote-exec` provisioner that blocks on
-`cloud-init status --wait` before proceeding. This ensures the host is ready
-before any SSH commands run.
-
-### 3. Single wildcard DNS (optional, for multi-node)
-
-vm-uncloud uses a single `*.domain.com` wildcard DNS record for all services,
-with Caddy providing TLS termination. This simplifies DNS management to one
-record. For the testbed, this is only relevant if we deploy a Caddy ingress
-or need HTTPS for web-based test viewers.
+vm-uncloud uses a single `*.domain.com` DNS record with Caddy. We replace
+Caddy with `foundation_proxy` (decision 14) — same wildcard TLS, plus
+health-check routing and zero-downtime deploy capabilities.
 
 ### 4. Secrets never on disk
 
 vm-uncloud uses the macOS keychain (via `fnox`) for API tokens. We follow the
 same principle: Hetzner tokens, registry credentials, and SSH keys come from
-environment variables or a local secrets store, never from files committed to
-the repo.
+environment variables or a local secrets store, never from committed files.
 
 ---
 
@@ -87,7 +72,7 @@ packages:
   - ca-certificates
   - ufw
 
-# Basic firewall: allow SSH only
+# Basic firewall: allow SSH + Docker bridge traffic
 write_files:
   - path: /etc/ufw/user.rules
     permissions: '0640'
@@ -101,146 +86,183 @@ write_files:
       -A INPUT -p tcp --dport 22 -j ACCEPT
       # Allow Docker bridge network traffic
       -A INPUT -s 172.20.0.0/16 -j ACCEPT
-      COMMIT
+      # Allow proxy HTTP/HTTPS (if foundation_proxy is deployed)
+      -A INPUT -p tcp --dport 80 -j ACCEPT
+      -A INPUT -p tcp --dport 443 -j ACCEPT
 
 runcmd:
   - ufw --force enable
-  - cloud-init status --wait  # signal to provisioner that we're done
+  - cloud-init status --wait  # signal readiness to provisioner
 ```
-
-Key points:
-- **No Docker install in cloud-init** — Docker is installed by the bootstrap
-  script over SSH, ensuring the latest version and correct repository setup.
-- **UFW firewall** — Blocks everything except SSH (port 22) and internal
-  Docker bridge traffic. Docker ports (SSH into containers) are not exposed
-  to the internet; they're reached through the wireguard mesh or SSH tunnel.
-- **`cloud-init status --wait`** — The signal that the provisioner blocks on.
 
 ---
 
-## Provisioning flow
+## Provisioning flow with foundation_sshkit
+
+The old flow used raw `ssh` and `scp` commands. With `foundation_sshkit`:
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
 │  Step 1: Create cloud VM                                        │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  testbed cloud create --provider hetzner                   │  │
-│  │    → Creates Hetzner CX42 (4 vCPU, 16 GB)                  │  │
-│  │    → Attaches cloud-init user_data (testbed_cloud_init)     │  │
-│  │    → Creates firewall rules (SSH + WireGuard)               │  │
-│  │    → Blocks until cloud-init completes                      │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                              │                                   │
-│                              ▼                                   │
-│  Step 2: Bootstrap the host                                     │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  testbed cloud bootstrap <host>                             │  │
-│  │    → SSH into the host                                      │  │
-│  │    → curl -fsSL https://get.docker.com | sh                 │  │
-│  │    → Install Docker Compose plugin                          │  │
-│  │    → Pull testbed Docker images (linux-build, etc.)          │  │
-│  │    → Verify Docker daemon is running                        │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                              │                                   │
-│                              ▼                                   │
+│    testbed cloud create --provider hetzner                      │
+│      → Creates CX42 (4 vCPU, 16 GB)                             │
+│      → Attaches cloud-init                                      │
+│      → Blocks until cloud-init completes                        │
+│      → Returns Host { hostname, user, port, ... }               │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  Step 2: Bootstrap the host (via foundation_sshkit)              │
+│    let host = Host::parse("root@<ip>")?;                        │
+│    let pool = ConnectionPool::new(idle_timeout: 30s);           │
+│                                                                 │
+│    Runner::Sequential.run(&[host], &backend, |h| {              │
+│        Command::new("curl -fsSL https://get.docker.com | sh")   │
+│            .pty(true)    // Docker install needs a TTY           │
+│    }).await?;                                                   │
+│                                                                 │
+│    // Deploy the cross-compiled platform binary                  │
+│    backend.upload(&host, "bin/platform", "/usr/local/bin/")?;   │
+│                                                                 │
+│    // Verify                                                  │
+│    let result = backend.execute(&host,                           │
+│        Command::new("docker ps")).await?;                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
 │  Step 3: Run tests                                              │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  Option A: Local bollard → SSH → remote Docker              │  │
-│  │    testbed start linux-build --remote ssh://hetzner-box     │  │
-│  │                                                             │  │
-│  │  Option B: SSH into host, run testbed CLI there              │  │
-│  │    ssh hetzner-box "testbed start linux-build"               │  │
-│  └───────────────────────────────────────────────────────────┘  │
-│                              │                                   │
-│                              ▼                                   │
+│    Option A: bollard → SSH → remote Docker (native tunnel)      │
+│      let docker = DockerClient::connect_ssh(host, keys)?;      │
+│      let group = ContainerGroup::start(defs).await?;           │
+│                                                                 │
+│    Option B: SSH into host, run platform CLI there               │
+│      backend.execute(&host,                                      │
+│          Command::new("platform start linux-build")).await?;    │
+│                                                                 │
+│    Option C: Proxy-based (foundation_proxy fronts services)     │
+│      → See "Service exposure" below                             │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+┌─────────────────────────────────────────────────────────────────┐
 │  Step 4: Tear down                                              │
-│  ┌───────────────────────────────────────────────────────────┐  │
-│  │  testbed cloud destroy <host>                               │  │
-│  │    → Stops all running containers                           │  │
-│  │    → Destroys the cloud VM                                  │  │
-│  │    → Removes firewall rules                                 │  │
-│  └───────────────────────────────────────────────────────────┘  │
+│    testbed cloud destroy <host>                                  │
+│      → Stops containers, destroys VM, removes firewall rules    │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+### Key sshkit patterns used
+
+- **`ConnectionPool`** — reuses SSH sessions across bootstrap steps (Docker
+  install, binary deploy, verify). No new TCP handshake per command.
+- **`Runner::Sequential`** — single-node bootstrap is sequential by nature.
+  For multi-node, `Runner::Parallel` fans out.
+- **`.pty(true)`** — Docker install and `uc machine init`-style commands need
+  a TTY (same vm-uncloud gotcha — bubbletea/Bootstrap UIs open `/dev/tty`).
+- **Retry with backoff** — `sshkit` wraps transient failures (connection
+  refused during boot, DNS not propagated) in a retry loop with configurable
+  backoff. Same as vm-uncloud's `with-pty-retry`.
+- **`Host::from_ssh_config()`** — reads `~/.ssh/config` for proxy jump,
+  identity file, port. Bastion host config lives once in the user's SSH
+  config, not in testbed config.
 
 ---
 
 ## Remote Docker via bollard SSH
 
-Bollard supports connecting to a remote Docker daemon over SSH without
-exposing the Docker socket over TCP:
+Bollard tunnels the Docker API through an SSH connection — no exposed TCP port:
 
 ```rust
-use bollard::Docker;
+use foundation_deployment_platform::docker::DockerClient;
 
-/// Connect to Docker on a remote host over SSH.
-///
-/// This tunnels the Docker API through an SSH connection — the Docker
-/// socket is never exposed to the network. Authentication is handled
-/// by SSH keys, not TLS certificates.
-pub fn connect_remote(host: &str) -> Result<Docker> {
-    Docker::connect_with_ssh(
-        host,                                    // e.g., "hetzner-box.example.com"
-        &["/home/user/.ssh/id_ed25519"],         // SSH key path(s)
-        "root",                                  // SSH user
-        22,                                      // SSH port
-    )
-}
+let docker = DockerClient::connect_ssh(
+    &host.hostname,
+    &host.key_paths,
+    &host.user,
+    host.port,
+).await?;
+
+// All subsequent bollard calls go over the SSH tunnel
+let group = ContainerGroup::start(vec![
+    ContainerServiceDefinition::new("redis:7").port(6379),
+]).await?;
 ```
 
-This is the **primary remote access pattern**. Instead of:
-1. SSH into the remote host
-2. Run `docker` CLI commands there
-3. Parse stdout
+### When bollard SSH isn't feasible (jump hosts, restricted networks)
 
-We do:
-1. bollard connects to the remote Docker daemon over SSH
-2. All Docker API calls (create, start, exec, inspect, stop) go through the
-   SSH tunnel natively
-3. Results are typed Rust structs, not string parsing
+```rust
+// Build + deploy static binary via sshkit
+backend.upload(&host, "target/release/platform", "/usr/local/bin/").await?;
 
-### When SSH tunneling doesn't work
-
-For environments where bollard SSH isn't feasible (restricted networks, jump
-hosts), the fallback is the same as today: scp the cross-compiled static binary
-(`x86_64-unknown-linux-musl`) to the host and run the testbed CLI there:
-
-```bash
-# Build static binary
-cargo zigbuild --release --target x86_64-unknown-linux-musl -p foundation_testbed
-
-# Deploy
-scp target/x86_64-unknown-linux-musl/release/testbed root@hetzner-box:/usr/local/bin/
-
-# Run remotely
-ssh root@hetzner-box "testbed start linux-build"
+// Run remotely — platform CLI on the host handles Docker locally
+let result = backend.execute(&host,
+    Command::new("platform start linux-build")
+).await?;
 ```
 
-This is identical to the existing `mise.toml` Hetzner pipeline.
+The `Host` type from `foundation_sshkit` feeds directly into both paths —
+the same SSH config works for `DockerClient::connect_ssh()` and
+`Backend::execute()`.
+
+---
+
+## Service exposure via foundation_proxy
+
+`foundation_proxy` (decision 14) replaces the "SSH tunnel for everything"
+pattern. Instead of `ssh -L 8006:localhost:8006` to reach dockurr's web
+viewer, the proxy provides proper HTTPS:
+
+```
+                    ┌──────────────────────────────────┐
+  Internet ────────▶│  foundation_proxy (TLS + routing) │
+                    │                                  │
+                    │  windows.<domain>  → dockurr:8006│
+                    │  macos.<domain>     → dockurr:5900│
+                    │  app.<domain>       → testbed:3000│
+                    │  *.proxy.<domain>   → (any service)│
+                    └──────────────────────────────────┘
+```
+
+### Dockurr web viewer exposure
+
+```rust
+let proxy = ProxyServer::start(ProxyConfig {
+    services: vec![
+        ServiceConfig {
+            name: "windows-viewer".into(),
+            host: format!("windows.{}", domain),
+            ssl: SslConfig::lets_encrypt("admin@example.com"),
+            health_check: HealthCheckConfig::tcp(8006, 30),
+            backends: vec![BackendTarget {
+                url: format!("http://{}:8006", host_ip),
+                weight: 1,
+            }],
+            ..Default::default()
+        },
+    ],
+    ..Default::default()
+}).await?;
+```
+
+The proxy handles TLS (Let's Encrypt or Cloudflare DNS-01), health-check-based
+routing, and can be deployed alongside the testbed containers on the same
+Docker network.
+
+### What this replaces from vm-uncloud
+
+| vm-uncloud approach | foundation equivalent |
+|---------------------|----------------------|
+| Caddy wildcard TLS | `foundation_proxy` with ACME or Cloudflare DNS-01 |
+| `ssh -L 8006:localhost:8006` tunnel | Proxy routes `windows.<domain>:443` → dockurr:8006 |
+| `ssh -L 3389:localhost:3389` RDP tunnel | Direct RDP via public IP + firewall (same as vm-uncloud win-batch) |
+| noVNC over SSH tunnel | Proxy with basic auth in front (decision 02 dockurr caveats) |
+| `uc deploy` service exposure | `ContainerGroup::start()` + proxy registration |
 
 ---
 
 ## Hetzner-specific configuration
-
-Following the existing `HETZNER.md` and `mise.toml` patterns, but adapted for
-Docker:
-
-```toml
-# mise.toml (updated tasks)
-
-[tasks.cloud.create]
-description = "Create a Hetzner cloud VM for testbed"
-run = "testbed cloud create --provider hetzner --type cx42 --location fsn1"
-
-[tasks.cloud.destroy]
-description = "Tear down the Hetzner cloud VM"
-run = "testbed cloud destroy"
-
-[tasks.cloud.test]
-description = "Full cloud test cycle: create → bootstrap → test → destroy"
-depends = ["cloud.create", "cloud.bootstrap"]
-run = "testbed start linux-build --remote && testbed build linux-build && testbed cloud destroy"
-```
 
 ### VM sizing for Docker workloads
 
@@ -248,51 +270,82 @@ run = "testbed start linux-build --remote && testbed build linux-build && testbe
 |-------------|------|-----|-------------|------------|
 | CX32 | 4 | 8 GB | Single Linux container builds | ~0.05 |
 | CX42 | 4 | 16 GB | Linux + Windows (dockurr) concurrently | ~0.08 |
-| CX52 | 8 | 32 GB | Multi-platform parallel builds | ~0.15 |
+| CX52 | 8 | 32 GB | Multi-platform parallel builds + proxy | ~0.15 |
 
-The move to Docker reduces the cloud VM requirement: QEMU VMs needed KVM
-support (CX22 minimum, which has nested virtualization), plus extra RAM for
-each VM. Docker containers share the host kernel and are much more
-memory-efficient.
+Docker containers share the host kernel and are more memory-efficient than
+QEMU VMs. For dockurr/windows, nested KVM is still required — Hetzner CX22+
+supports this, same as today.
 
-For dockurr/windows, we still need KVM — Hetzner CX22+ supports nested
-virtualization, same as today.
+### mise.toml tasks
+
+```toml
+[tasks.cloud.create]
+description = "Create a Hetzner cloud VM for testbed"
+run = "testbed cloud create --provider hetzner --type cx42 --location fsn1"
+
+[tasks.cloud.bootstrap]
+description = "Install Docker + deploy platform binary (via sshkit)"
+run = "testbed cloud bootstrap"
+
+[tasks.cloud.deploy-proxy]
+description = "Deploy foundation_proxy onto the cloud node for service exposure"
+run = "testbed cloud proxy up"
+
+[tasks.cloud.test]
+description = "Full cloud test cycle"
+depends = ["cloud.create", "cloud.bootstrap"]
+run = "testbed start linux-build --remote && testbed build linux-build"
+
+[tasks.cloud.down]
+description = "Tear down — stops containers, destroys VM, cleans DNS"
+run = "testbed cloud destroy"
+```
 
 ---
 
 ## Multi-provider abstractions
 
-The `CloudProvider` trait abstracts over cloud vendors:
-
 ```rust
 pub trait CloudProvider: Send + Sync {
-    /// Create a cloud VM, return its IP address.
+    /// Create a cloud VM, return a Host ready for sshkit connection.
     fn create_vm(&self, config: &CloudVmConfig) -> Result<CloudVm>;
-    /// Destroy a cloud VM.
+    /// Destroy a cloud VM and associated resources.
     fn destroy_vm(&self, vm: &CloudVm) -> Result<()>;
-    /// Get cloud-init user data for this provider.
+    /// Return cloud-init user data for this provider.
     fn cloud_init(&self) -> String;
+}
+
+pub struct CloudVm {
+    pub host: Host,            // sshkit Host — parsed, ready to connect
+    pub provider_id: String,   // e.g., "hetzner-12345"
+    pub region: String,
+    pub instance_type: String,
 }
 ```
 
-Initial implementation: `HetznerCloudProvider` (using the `hcloud` HTTP API).
+Initial implementation: `HetznerCloudProvider` (direct `hcloud` HTTP API).
 Future: `AwsCloudProvider`, `GcpCloudProvider`.
+
+The `Host` returned by `create_vm` feeds directly into both `foundation_sshkit`
+(`Backend::execute()`, `ConnectionPool::get()`) and
+`foundation_deployment_platform::docker::DockerClient::connect_ssh()`.
 
 ---
 
 ## What we don't adopt from vm-uncloud
 
-vm-uncloud uses several patterns that don't apply to the testbed:
-
-| vm-uncloud feature | Why we skip it |
-|-------------------|----------------|
-| **OpenTofu/Terraform** for infrastructure | Overkill for testbed — we create one VM, not a mesh. The `hcloud` API directly is simpler. |
-| **WireGuard mesh** between nodes | Single-node testbed. Docker bridge networks handle inter-container communication. |
-| **Caddy wildcard TLS** | No public-facing web services. SSH tunnel handles remote access. |
-| **OpenTofu remote state (R2)** | No state to manage beyond the VM's existence. |
-| **`uncloud` CLI / `uc deploy`** | We use native Docker Compose or bollard. `uncloud` is a Go binary with its own opinionated model. |
-| **macOS keychain (fnox)** for secrets | Environment variables or a `.env` file (gitignored) for API tokens. |
-| **Nushell scripts** for orchestration | Rust via bollard + the testbed CLI. This is a Rust project, not a shell-script project. |
+| vm-uncloud feature | Why we skip it | Foundation alternative |
+|-------------------|----------------|----------------------|
+| **OpenTofu/Terraform** | Overkill for single-VM testbed | Direct `hcloud` API |
+| **WireGuard mesh** | Single-node | Docker bridge networks |
+| **Caddy** | Replaced by our own proxy | `foundation_proxy` (decision 14) |
+| **`uncloud` CLI (`uc`)** | Go binary, opinionated model | `ContainerGroup` + `DockerClient` (native Rust) |
+| **Nushell scripts** | Rust project, not shell | `foundation_deployment_platform` CLI + `foundation_sshkit` |
+| **macOS keychain (fnox)** | macOS-specific | Environment variables (CI-friendly, cross-platform) |
+| **Cloudflare R2 state** | No Terraform state | VM existence tracked by local CLI |
+| **raw `ssh`/`scp` commands** | String-based, fragile | `foundation_sshkit` (decision 13) |
+| **SSH tunnels for service access** | Manual, no auth on viewers | `foundation_proxy` TLS + routing (decision 14) |
 
 The value from vm-uncloud is the **architectural pattern** (minimal cloud-init,
-SSH-based bootstrap, remote Docker), not the specific tools.
+SSH-based bootstrap, remote Docker), now implemented with Foundation-native
+tools at each layer.
