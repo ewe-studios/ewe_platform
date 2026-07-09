@@ -5,9 +5,12 @@
 
 ## Decision
 
-Use a typed `DockerError` enum covering the full container lifecycle. Provide
-`is_connection_error()` to discriminate "Docker not available" from operational
-failures, enabling graceful skip behavior in CI environments without Docker.
+Use `foundation_errstacks` (the workspace's standard error crate) with
+`derive_more` for the `DockerError` enum — no `thiserror`, no `anyhow`.
+`derive_more` provides the `Display`, `Error`, and `From` derives; field
+doc-comments are the primary documentation channel. Provide
+`is_connection_error()` to discriminate "Docker not available" from
+operational failures, enabling graceful skip in CI.
 
 ## Table of Contents
 
@@ -22,51 +25,62 @@ failures, enabling graceful skip behavior in CI environments without Docker.
 ## Error variants
 
 ```rust
-#[derive(Debug, thiserror::Error)]
+use derive_more::{Display, Error, From};
+use foundation_errstacks::{ErrorTrace, PlainResultExt};
+
+/// Errors from Docker container lifecycle operations.
+///
+/// Built on `foundation_errstacks` — all public APIs return
+/// `Result<T, ErrorTrace<DockerError>>` for full stack context.
+/// The `is_connection_error()` method discriminates transient
+/// availability failures from operational errors.
+#[derive(Debug, Display, Error, From)]
 pub enum DockerError {
     /// Docker daemon is not reachable (socket missing, permission denied,
     /// daemon not running, connection timeout).
-    #[error("Docker daemon not reachable: {0}")]
+    #[display("Docker daemon not reachable: {_0}")]
     Connection(String),
 
     /// Image pull failed (registry unreachable, image not found, auth failure).
-    #[error("Image pull failed for '{image}': {reason}")]
+    #[display("Image pull failed for '{image}': {reason}")]
     ImagePull { image: String, reason: String },
 
-    /// Container creation failed (invalid config, name conflict, resource
-    /// limits, image not found).
-    #[error("Container creation failed: {0}")]
+    /// Container creation failed (invalid config, name conflict, resource limits).
+    #[display("Container creation failed: {_0}")]
     ContainerCreate(String),
 
-    /// Container start failed (port conflict, device missing, capability
-    /// denied).
-    #[error("Container start failed: {0}")]
+    /// Container start failed (port conflict, device missing, capability denied).
+    #[display("Container start failed: {_0}")]
     ContainerStart(String),
 
     /// Container exited before wait strategy completed.
-    #[error("Container exited with code {code} before becoming ready")]
+    #[display("Container exited with code {code} before becoming ready")]
     ContainerExited { code: i64 },
 
     /// Wait strategy timed out — container is running but never became ready.
-    #[error("Wait strategy '{strategy}' timed out after {elapsed:?}")]
-    WaitTimeout {
-        strategy: String,
-        elapsed: std::time::Duration,
-    },
+    #[display("Wait strategy '{strategy}' timed out after {elapsed:?}")]
+    WaitTimeout { strategy: String, elapsed: Duration },
 
     /// Network operation failed (create, connect, disconnect, inspect).
-    #[error("Network operation failed: {0}")]
+    #[display("Network operation failed: {_0}")]
     Network(String),
 
     /// Invalid configuration (missing required field, invalid port range, etc.).
-    #[error("Invalid configuration: {0}")]
+    #[display("Invalid configuration: {_0}")]
     InvalidConfig(String),
 
     /// Underlying bollard error — transparently wraps bollard's error type.
-    #[error(transparent)]
-    Bollard(#[from] bollard::errors::Error),
+    #[display("bollard error: {_0}")]
+    #[from]
+    Bollard(bollard::errors::Error),
 }
 ```
+
+`derive_more` provides `Display` (via `#[display("...")]`), `Error` (generates
+`source()` delegation to inner errors where applicable), and `From` (generates
+`From<bollard::errors::Error> for DockerError` from the `#[from]` attribute).
+No proc-macro dependency beyond `derive_more` and `foundation_errstacks` —
+both already in the workspace.
 
 ---
 
@@ -101,19 +115,11 @@ fail the test or propagate to the caller.
 
 ## From impls
 
-```rust
-impl From<bollard::errors::Error> for DockerError {
-    fn from(e: bollard::errors::Error) -> Self {
-        DockerError::Bollard(e)
-    }
-}
-```
+The `#[from]` attribute on the `Bollard` variant (via `derive_more::From`)
+generates `From<bollard::errors::Error> for DockerError` automatically —
+callers use `?` on bollard results and get a `DockerError`.
 
-The `#[from]` attribute on the `Bollard` variant (via `thiserror`) generates
-this impl automatically. Callers can use `?` on bollard results and get a
-`DockerError`.
-
-Additional `From` impls for common conversions:
+Additional manual `From` impls for cases `derive_more` can't express:
 
 ```rust
 impl From<std::io::Error> for DockerError {

@@ -34,6 +34,15 @@ No sync wrappers pollute the core types — `ContainerHandle` has exactly one
 `start()` method, `async fn`. Sync callers pay the one-line `block_on` tax
 at their boundary. This keeps the core clean and the sync concern localized.
 
+Since nothing mandates `async fn start()` (no trait), we provide both:
+
+- **`start()`** — sync convenience that calls `start_async()` via `futures_lite::block_on`.
+  The default, ergonomic path for the 90% case (Provider trait, Drop, CLI).
+- **`start_async()`** — the async core. `.await` this in valtron/tokio contexts.
+  The macro generates `start_async().await` for async test bodies.
+
+Same pattern applies to `shutdown()`/`shutdown_async()`, `is_running()`/etc.
+
 ## Table of Contents
 
 1. [Why bollard requires tokio](#why-bollard-requires-tokio)
@@ -41,7 +50,6 @@ at their boundary. This keeps the core clean and the sync concern localized.
 3. [Sync bridges at the boundary](#sync-bridges-at-the-boundary)
 4. [Macro generates async code](#macro-generates-async-code)
 5. [Drop behavior](#drop-behavior)
-6. [Dependency budget](#dependency-budget)
 6. [Dependency budget](#dependency-budget)
 
 ---
@@ -60,30 +68,50 @@ Tokio is already in the workspace (97 lockfile entries). No new runtime.
 ## Core API is async
 
 ```rust
-// All Docker operations are async fn.
+// Every method touching the Docker API has an async core (_async suffix).
+// A sync convenience (no suffix) delegates via futures_lite::block_on.
 impl ContainerHandle {
-    pub async fn start(config: ContainerServiceDefinition) -> Result<Self, DockerError>;
-    pub async fn shutdown(&self) -> Result<(), DockerError>;
-    pub async fn is_running(&self) -> Result<bool, DockerError>;
-    pub fn host_port(&self, container_port: u16) -> u16;  // sync — cached post-start
-    pub fn id(&self) -> &str;                               // sync
+    // ── Async core ──
+    pub async fn start_async(config: ContainerServiceDefinition) -> Result<Self, DockerError>;
+    pub async fn shutdown_async(&self) -> Result<(), DockerError>;
+    pub async fn is_running_async(&self) -> Result<bool, DockerError>;
+
+    // ── Sync convenience (delegates to _async via futures_lite::block_on) ──
+    pub fn start(config: ContainerServiceDefinition) -> Result<Self, DockerError> {
+        block_on(Self::start_async(config))
+    }
+    pub fn shutdown(&self) -> Result<(), DockerError> {
+        block_on(self.shutdown_async())
+    }
+    pub fn is_running(&self) -> bool {
+        block_on(self.is_running_async()).unwrap_or(false)
+    }
+
+    // ── Always sync (cached data, no API call) ──
+    pub fn host_port(&self, container_port: u16) -> u16;
+    pub fn id(&self) -> &str;
 }
 
 impl ContainerGroup {
-    pub async fn start(defs: Vec<ContainerServiceDefinition>) -> Result<Self, DockerError>;
+    pub async fn start_async(defs: Vec<ContainerServiceDefinition>) -> Result<Self, DockerError>;
+    pub fn start(defs: Vec<ContainerServiceDefinition>) -> Result<Self, DockerError> {
+        block_on(Self::start_async(defs))
+    }
     pub fn container(&self, name: &str) -> Option<&ContainerHandle>;
 }
 
 impl DockerClient {
-    pub async fn connect_local() -> Result<Self, DockerError>;
-    pub async fn connect_ssh(host: &str, keys: &[PathBuf], user: &str, port: u16) -> Result<Self, DockerError>;
-    pub async fn is_available(&self) -> bool;
-    pub async fn ping(&self) -> Result<(), DockerError>;
+    pub async fn connect_local_async() -> Result<Self, DockerError>;
+    pub fn connect_local() -> Result<Self, DockerError> {
+        block_on(Self::connect_local_async())
+    }
+    // Same pattern for connect_ssh, is_available, ping...
 }
 ```
 
-Note: `host_port()` and `id()` are sync — they read cached data populated during
-`start()`. No async overhead for post-start inspection.
+*Why both:* `start()` is the 90% case — Provider trait (sync), Drop, CLI,
+sync tests. `start_async()` is for valtron/tokio contexts where `.await`
+composes naturally. Nothing mandates one over the other (no trait).
 
 ---
 
