@@ -3,28 +3,22 @@
 **Last updated:** 2026-07-10
 
 ## Phase 1-3: foundation_deployment_platform core ✅
-- ContainerHandle (RAII, sync+async), ContainerConfig builder, ContainerGroup
-- DockerClient, NetworkHandle, DockerFileConfig stub
-- DockerError (foundation_errstacks), WaitFor strategies (Port/Stdout/Http/Composite)
-- #[docker_container] proc macro in foundation_macros
-- Integration tests (Redis start/stop/PING/SET/GET/Drop)
-- Compiles clean: `cargo check -p foundation_deployment_platform`
+ContainerHandle (RAII), ContainerConfig, ContainerGroup, DockerClient,
+NetworkHandle, WaitFor strategies (Port/Stdout/Http/Composite),
+#[docker_container] proc macro, integration tests.
 
 ## Phase 4: foundation_deployment_cloudflare ✅
-- Domain types: DnsRecord, DnsRecordType, Zone, ZoneStatus
-- CloudflareError + cf_err() helper
-- CloudflareClient struct with from_env()/new()
-- Auto-generated zones module wired, shared types re-exported
-- Compiles clean: `cargo check -p foundation_deployment_cloudflare`
+Domain types (DnsRecord, Zone, CloudflareError), CloudflareClient struct.
 
-## Phase 5: Testbed migration (decision 03) 🔄
-- [ ] Extract Provider trait → foundation_deployment_platform
-- [ ] Move ~40 files from foundation_testbed/src/vms/
-- [ ] Add DockerProvider implementing Provider via ContainerHandle
-- [ ] Thin testbed binary wrappers
-- Blocked: foundation_netio websocket compilation (other agent)
+## Phase 5: Provider trait + DockerProvider ✅
+Provider trait with associated types (Handle, Config, Error).
+DockerProvider implements Provider via ContainerHandle.
 
-## Phase 6: foundation_sshkit + foundation_proxy (decisions 13-14) ⏳
-- [ ] Decision 13: sshkit crate
-- [ ] Decision 14: proxy crate
-- [ ] Decision 15: CloudflareClient DNS operations
+## Phase 6: foundation_sshkit ✅ (decision 13)
+Host, Command, Backend trait, ConnectionPool, Runner strategies.
+Compiles clean. ssh2 backend stub (exec/upload/download pending).
+
+## Phase 7: foundation_proxy 🔄 (decision 14)
+- [ ] ProxyConfig, ServiceConfig, SslConfig types
+- [ ] ProxyServer struct with start()
+- [ ] Three config paths (macro, builder, proxy.toml)

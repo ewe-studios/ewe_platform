@@ -4618,6 +4618,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_proxy"
+version = "0.1.0"
+dependencies = [
+ "chrono",
+ "derive_more",
+ "foundation_db",
+ "foundation_deployment_cloudflare",
+ "foundation_errstacks",
+ "foundation_netio",
+ "serde",
+ "serde_json",
+ "toml 0.9.8",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_runtimes"
 version = "0.0.3"
 dependencies = [
