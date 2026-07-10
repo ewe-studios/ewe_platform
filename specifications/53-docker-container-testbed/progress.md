@@ -86,6 +86,36 @@
 - pipe_mapped.rs: MappedSender/FilterMapReceiver with borrow-based transforms
   (zero-allocation, no extra valtron tasks). Extracted from pipe.rs for clarity.
 
-## Remaining items
-- ProxyServer TLS + ACME (stage 2), Unix-socket RPC (stage 3), proxy! macro.
-- CloudflareClient: deserialise HashMap responses into typed DnsRecord.
+## Spec-53 decisions (24 total — all written)
+
+| # | Decision | Status |
+|---|----------|--------|
+| 01–13 | Testbed infrastructure, networking, cloud | ✅ Implemented |
+| 14 | foundation_proxy architecture | ✅ Stage 1 done |
+| 15 | Cloudflare client transition | ✅ Implemented |
+| 16 | Deployment crate split | ✅ Implemented |
+| 17 | UDP proxying | ✅ Implemented |
+| 18 | TLS termination + auto-cert (ACME/Cloudflare) | 📋 Decision written — Stage 2 |
+| 19 | `proxy!` macro | 📋 Decision written — Stage 2 |
+| 20 | Unix-socket RPC | 📋 Decision written — Stage 3 |
+| 21 | State persistence (foundation_db) | 📋 Decision written — Stage 3 |
+| 22 | Zero-downtime deploy + canary | 📋 Decision written — Stage 3 |
+| 23 | Writer affinity (cookie stickiness) | 📋 Decision written — Stage 3 |
+| 24 | Cloudflare typed DNS records | 📋 Decision written — Stage 2 |
+
+## Stage 2 (next up)
+
+| Feature | Decision | Dependencies |
+|---------|----------|-------------|
+| TLS + auto-cert | 18 | rustls, acme-micro, VFS, CloudflareClient |
+| `proxy!` macro | 19 | foundation_macros |
+| Cloudflare typed records | 24 | serde, Cloudflare API |
+
+## Stage 3 (control plane)
+
+| Feature | Decision | Dependencies |
+|---------|----------|-------------|
+| Unix-socket RPC | 20 | foundation_nativeapis, serde_json |
+| State persistence | 21 | foundation_db |
+| Zero-downtime deploy | 22 | RPC (20), state persistence (21) |
+| Writer affinity | 23 | Cookie parsing in handler |
