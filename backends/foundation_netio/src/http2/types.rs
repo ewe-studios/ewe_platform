@@ -65,12 +65,10 @@ pub fn header_from_hpack(
         // then rejects the shorter arms such as `b":path"`.
         match &name[..] {
             b":method" => {
-                let s = String::from_utf8_lossy(value).to_uppercase();
-                method = if s == "GET" {
-                    SimpleMethod::GET
-                } else {
-                    SimpleMethod::POST
-                };
+                // Every method other than GET used to become POST here, so PUT,
+                // DELETE and PATCH over h2 were silently rewritten. gRPC only ever
+                // sends POST, which is why it went unnoticed.
+                method = SimpleMethod::from(String::from_utf8_lossy(value).to_uppercase());
             }
             b":scheme" => scheme = String::from_utf8_lossy(value).into_owned(),
             b":authority" => authority = String::from_utf8_lossy(value).into_owned(),
