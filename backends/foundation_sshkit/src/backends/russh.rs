@@ -15,10 +15,10 @@ use crate::backends::Backend;
 use crate::command::{Command, CommandResult};
 use crate::host::Host;
 
+#[derive(Default)]
 pub struct RusshBackend;
 
 impl RusshBackend {
-    pub fn new() -> Self { Self }
 
     pub async fn execute_async(&self, host: &Host, cmd: &Command) -> Result<CommandResult, String> {
         let shell_cmd = cmd.to_shell_command();

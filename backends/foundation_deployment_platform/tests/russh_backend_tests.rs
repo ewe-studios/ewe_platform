@@ -100,7 +100,7 @@ fn test_russh_execute_success() {
             .expect("start sshd container");
         let port = handle.host_port(SSH_PORT).expect("ssh port mapped");
 
-        let backend = RusshBackend::new();
+        let backend = RusshBackend::default();
         let host = russh_host(port, &key);
         let result = backend
             .execute_async(&host, &Command::new("echo russh-hello"))
@@ -133,7 +133,7 @@ fn test_russh_upload_download_round_trips() {
             .expect("start sshd container");
         let port = handle.host_port(SSH_PORT).expect("ssh port mapped");
 
-        let backend = RusshBackend::new();
+        let backend = RusshBackend::default();
         let host = russh_host(port, &key);
 
         let stamp = std::time::SystemTime::now()

@@ -68,7 +68,7 @@ fn test_russh_execute_connection_refused() {
     };
 
     RT.block_on(async {
-        let backend = RusshBackend::new();
+        let backend = RusshBackend::default();
         let host = russh_host(1, &key);
         let result = backend.execute_async(&host, &Command::new("true")).await;
 
