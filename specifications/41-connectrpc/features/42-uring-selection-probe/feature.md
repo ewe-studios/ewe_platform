@@ -1,7 +1,7 @@
 ---
 feature: "Runtime backend selection + functional probe (D14 F3)"
 description: "NativeAPI::IOUring actually builds io_uring; Auto walks the ladder; explicit request fails hard on probe failure"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 2
 depends_on: ["41-uring-selector"]
