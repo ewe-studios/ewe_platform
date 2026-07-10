@@ -2,36 +2,49 @@
 
 **Last updated:** 2026-07-10
 
-## Phase 1-3: foundation_deployment_platform core ✅
-ContainerHandle (RAII, sync+async), ContainerConfig builder, ContainerGroup,
-DockerClient, NetworkHandle, WaitFor (Port/Stdout/Http/Composite),
-#[docker_container] proc macro, integration tests. Compiles clean.
+## Crates built (all compile clean)
 
-## Phase 4: foundation_deployment_cloudflare ✅
-DnsRecord, Zone, CloudflareError domain types. CloudflareClient struct.
-Compiles clean.
+### foundation_deployment_platform ✅
+- Provider trait: associated types Handle + Config + Error
+- DockerProvider: wraps ContainerHandle to implement Provider
+- ContainerHandle: RAII (start_async/start, shutdown, is_running, Drop)
+- ContainerConfig: builder (image, port, env, network, wait, memory, cpus)
+- ContainerGroup: multi-container topologies
+- DockerClient: bollard wrapper (local + SSH stub)
+- NetworkHandle: create_or_find, find, connect, remove
+- WaitFor: Port (TCP backoff), Stdout (logs stream), Http (SimpleHttpClient), Composite
+- Integration tests: Redis start/stop/PING/SET/GET/Drop
 
-## Phase 5: Provider trait + DockerProvider ✅
-Provider trait (Handle, Config, Error associated types). DockerProvider impl.
+### foundation_deployment_cloudflare ✅
+- DnsRecord, Zone, DnsRecordType, ZoneStatus domain types
+- CloudflareError + cf_err() helper (foundation_errstacks)
+- CloudflareClient: from_env(), token(), http(), domain()
+- dns_ops: list_dns_records, upsert_dns_record, delete_dns_record, bootstrap_domain
+- Auth injection via FnOnce closure on ClientRequestBuilder
+- Wraps auto-generated valtron TaskIterator functions from zones/mod.rs
 
-## Phase 6: foundation_sshkit ✅
-Host, Command, Backend trait, ConnectionPool, Runner strategies.
-Compiles clean.
+### foundation_sshkit ✅
+- Host: parse user@host:port, key/password/agent auth, proxy jump
+- Command: shell builder (env, within, as_user, pty, background), to_shell_command()
+- CommandResult: exit_code, stdout, stderr, runtime
+- Backend trait: execute, upload, download
+- Ssh2Backend: channel exec, SCP send/recv, uses ConnectionPool
+- ConnectionPool: session cache with idle timeout, auth chain
+- Runner: Parallel, Sequential, Group strategies
 
-## Phase 7: foundation_proxy ✅
-ProxyConfig, ServiceConfig, SslConfig types. ProxyServer with start().
-Three config paths. Compiles clean.
+### foundation_proxy ✅
+- ProxyConfig, ServiceConfig, SslConfig, BackendTarget, HealthCheckConfig
+- ProxyError enum
+- ProxyServer::start() with host dedup validation
+- Three config paths: builder, load_file(), proxy! macro deferred
 
-## Summary
-All seven foundational crates compile:
-- foundation_deployment_platform ✅
-- foundation_deployment_cloudflare ✅
-- foundation_sshkit ✅
-- foundation_proxy ✅
-- foundation_macros (docker_container) ✅
+### foundation_macros ✅
+- #[docker_container] proc macro (~200 lines)
+- Parses: image, port, network, wait_stdout, wait_port, stop_timeout, memory, cpus, name
+- Supports sync + async fn
+- Re-exported from foundation_deployment_platform
 
-## Next
-- CloudflareClient DNS operations (upsert, list, delete)
-- Ssh2Backend execute/upload/download implementation
-- ProxyServer HTTP routing + TLS
-- Testbed migration (move vms/ from testbed to platform)
+## Next steps
+- Testbed migration: move vms/ from foundation_testbed → foundation_deployment_platform
+- ProxyServer HTTP routing + TLS cert provisioning
+- CloudflareClient: deserialise HashMap responses into typed DnsRecord
