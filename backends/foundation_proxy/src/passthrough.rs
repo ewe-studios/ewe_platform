@@ -15,10 +15,10 @@
 //! or a hard error on either side ends the splice.
 
 use std::io::{ErrorKind, Read, Write};
-use std::net::{TcpListener, TcpStream};
+use std::net::{TcpListener, TcpStream, UdpSocket};
 use std::sync::Arc;
 use std::thread::JoinHandle;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use foundation_core::synca::OnSignal;
 
@@ -163,4 +163,147 @@ fn splice_client_to_backend(client: TcpStream, backend_authority: &str) -> std::
     backend.set_nonblocking(true)?;
     splice_bidirectional(client, backend);
     Ok(())
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UdpPassthrough — raw UDP datagram relay (Decision 17)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// A raw UDP passthrough: datagrams arriving on `listen_addr` are forwarded to
+/// `backend_authority` and responses are sent back to the originating client.
+///
+/// WHY: Decision 17 — `udp://` backends need byte-level passthrough with no HTTP
+/// semantics (DNS, QUIC, game servers, syslog, STUN).
+///
+/// HOW: Binds a single `UdpSocket`. Each datagram is forwarded to the backend;
+/// the backend's response is sent back to the client address. Connectionless —
+/// one socket serves all clients. The relay runs on a dedicated OS thread.
+#[derive(Debug)]
+pub struct UdpPassthrough {
+    local_addr: std::net::SocketAddr,
+    shutdown: Arc<OnSignal>,
+    relay_thread: Option<JoinHandle<()>>,
+}
+
+/// How long the relay waits for a backend response before giving up on that
+/// datagram. The relay checks the shutdown signal on every poll cycle (5ms
+/// sleep), so shutdown is never delayed by more than 5ms.
+const BACKEND_RESPONSE_TIMEOUT: Duration = Duration::from_secs(5);
+
+impl UdpPassthrough {
+    /// Bind `listen_addr` and relay every datagram to `backend_authority`.
+    ///
+    /// Returns immediately; the relay loop runs on its own thread until
+    /// [`UdpPassthrough::shutdown`] (or drop).
+    pub fn start(listen_addr: &str, backend_authority: &str) -> std::io::Result<Self> {
+        let socket = UdpSocket::bind(listen_addr)?;
+        socket.set_nonblocking(true)?;
+        let local_addr = socket.local_addr()?;
+        let shutdown = Arc::new(OnSignal::new());
+        let backend = backend_authority.to_string();
+
+        let loop_shutdown = Arc::clone(&shutdown);
+        let relay_thread = std::thread::spawn(move || {
+            relay_udp(socket, &backend, &loop_shutdown);
+        });
+
+        Ok(Self {
+            local_addr,
+            shutdown,
+            relay_thread: Some(relay_thread),
+        })
+    }
+
+    #[must_use]
+    pub fn local_addr(&self) -> std::net::SocketAddr {
+        self.local_addr
+    }
+
+    pub fn shutdown(mut self) {
+        self.shutdown.turn_on();
+        if let Some(handle) = self.relay_thread.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
+impl Drop for UdpPassthrough {
+    fn drop(&mut self) {
+        self.shutdown.turn_on();
+        if let Some(handle) = self.relay_thread.take() {
+            let _ = handle.join();
+        }
+    }
+}
+
+/// Single-threaded relay: recv client datagram → send to backend → recv
+/// response → send to client. Stays non-blocking so shutdown is responsive.
+fn relay_udp(socket: UdpSocket, backend_addr: &str, shutdown: &Arc<OnSignal>) {
+    let mut buf = [0u8; 65535];
+    let backend = match backend_addr.to_socket_addrs_first() {
+        Some(addr) => addr,
+        None => {
+            tracing::error!(%backend_addr, "UDP relay: cannot resolve backend address");
+            return;
+        }
+    };
+
+    loop {
+        if shutdown.probe() {
+            return;
+        }
+        match socket.recv_from(&mut buf) {
+            Ok((n, client_addr)) => {
+                if let Err(e) = socket.send_to(&buf[..n], backend) {
+                    tracing::warn!(%backend, "UDP relay send to backend failed: {e}");
+                    continue;
+                }
+                // Poll backend for response — non-blocking spin with short
+                // sleeps, shutdown check on every iteration.
+                let deadline = Instant::now() + BACKEND_RESPONSE_TIMEOUT;
+                let mut responded = false;
+                while Instant::now() < deadline {
+                    if shutdown.probe() {
+                        return;
+                    }
+                    match socket.recv_from(&mut buf) {
+                        Ok((m, _from)) => {
+                            if let Err(e) = socket.send_to(&buf[..m], client_addr) {
+                                tracing::warn!(%client_addr, "UDP relay send to client failed: {e}");
+                            }
+                            responded = true;
+                            break;
+                        }
+                        Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+                            std::thread::sleep(Duration::from_millis(5));
+                        }
+                        Err(e) => {
+                            tracing::warn!("UDP relay recv from backend failed: {e}");
+                            break;
+                        }
+                    }
+                }
+                if !responded {
+                    tracing::trace!("UDP relay: no response from backend within {:?}", BACKEND_RESPONSE_TIMEOUT);
+                }
+            }
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {}
+            Err(e) => {
+                tracing::error!("UDP relay recv error: {e}");
+                break;
+            }
+        }
+    }
+}
+
+/// Minimal helper: resolve the first socket address for `host:port`.
+trait FirstSocketAddr {
+    fn to_socket_addrs_first(&self) -> Option<std::net::SocketAddr>;
+}
+
+impl FirstSocketAddr for str {
+    fn to_socket_addrs_first(&self) -> Option<std::net::SocketAddr> {
+        use std::net::ToSocketAddrs;
+        self.to_socket_addrs().ok().and_then(|mut it| it.next())
+    }
 }

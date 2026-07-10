@@ -32,6 +32,12 @@ serial_test = "3"
 [features]
 default = []
 cloudflare = ["foundation_deployment_cloudflare"]
+docker-tests = []
+
+[[test]]
+name = "proxy_integration_tests"
+path = "tests/proxy_integration_tests.rs"
+required-features = ["docker-tests"]
 
 [lints]
 workspace = true

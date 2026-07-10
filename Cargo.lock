@@ -4638,6 +4638,7 @@ dependencies = [
  "native-tls",
  "ntest",
  "openssl",
+ "quinn-proto",
  "regex",
  "reqwest 0.12.24",
  "ring",

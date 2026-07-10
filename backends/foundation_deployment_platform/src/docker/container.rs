@@ -88,6 +88,13 @@ impl ContainerHandle {
         self.ports.get(&key).copied()
     }
 
+    /// The host port mapped to `container_port`'s UDP binding.
+    #[must_use]
+    pub fn host_port_udp(&self, container_port: u16) -> Option<u16> {
+        let key = format!("{container_port}/udp");
+        self.ports.get(&key).copied()
+    }
+
     #[must_use]
     pub fn host_ports(&self) -> &HashMap<String, u16> {
         &self.ports
@@ -324,7 +331,14 @@ impl ContainerHandle {
         if let Some(settings) = &info.network_settings {
             if let Some(bindings) = &settings.ports {
                 for pm in &config.ports {
-                    let key = format!("{}/tcp", pm.container_port);
+                    let key = format!(
+                        "{}/{}",
+                        pm.container_port,
+                        match pm.protocol {
+                            crate::docker::config::PortProtocol::Tcp => "tcp",
+                            crate::docker::config::PortProtocol::Udp => "udp",
+                        }
+                    );
                     if let Some(Some(binding_list)) = bindings.get(&key) {
                         if let Some(first) = binding_list.first() {
                             if let Some(host_port_str) = &first.host_port {

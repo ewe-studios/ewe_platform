@@ -173,6 +173,7 @@ fn probe_once(
 ) -> bool {
     match backend.protocol() {
         BackendProtocol::Tcp => probe_tcp(&backend.target().authority(), config.timeout),
+        BackendProtocol::Udp => probe_udp(&backend.target().authority(), config.timeout),
         BackendProtocol::Http | BackendProtocol::Https => {
             probe_http(backend.url(), &config.path, config.timeout, client)
         }
@@ -185,6 +186,21 @@ fn probe_tcp(authority: &str, timeout: Duration) -> bool {
         Some(addr) => TcpStream::connect_timeout(&addr, timeout).is_ok(),
         None => TcpStream::connect(authority).is_ok(),
     }
+}
+
+/// UDP echo probe: send a 1-byte datagram, return `true` if a response arrives
+/// within the timeout.
+fn probe_udp(authority: &str, timeout: Duration) -> bool {
+    use std::net::UdpSocket;
+    let Ok(socket) = UdpSocket::bind("0.0.0.0:0") else {
+        return false;
+    };
+    let _ = socket.set_read_timeout(Some(timeout));
+    if socket.send_to(&[1u8], authority).is_err() {
+        return false;
+    }
+    let mut buf = [0u8; 16];
+    socket.recv_from(&mut buf).is_ok()
 }
 
 /// HTTP GET probe; success is any 2xx or 3xx response.

@@ -106,15 +106,14 @@ fn relay(
     let mut conn = conn;
     match protocol {
         BackendProtocol::Tcp => {
-            // HTTP-fronted raw backend: tunnel the connection through. The bytes
-            // already parsed as the HTTP request are not replayed — this path is
-            // meaningful after a takeover (e.g. a WebSocket→raw tunnel). The
-            // dedicated raw entry point is `passthrough::TcpPassthrough`. The
-            // connection is consumed by the splice, so a failure can only be
-            // logged, not answered.
             if let Err(e) = tunnel_tcp(conn, &backend) {
                 tracing::warn!(url = %backend.url(), "tcp tunnel failed: {e}");
             }
+        }
+        BackendProtocol::Udp => {
+            tracing::error!(url = %backend.url(), "UDP backend reached via HTTP — use UdpPassthrough");
+            let _ = respond::text(&mut conn, 502, "UDP not reachable via HTTP");
+            let _ = conn.flush();
         }
         BackendProtocol::Http | BackendProtocol::Https => {
             if is_upgrade_request(&req) {

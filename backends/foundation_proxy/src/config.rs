@@ -80,8 +80,8 @@ impl ProxyConfig {
     ///
     /// # Errors
     /// Returns `ProxyError` if validation fails or the listener cannot bind.
-    pub async fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
-        crate::server::ProxyServer::start(self).await
+    pub fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
+        crate::server::ProxyServer::start(self)
     }
 }
 
@@ -214,6 +214,8 @@ pub enum BackendProtocol {
     Https,
     #[display("tcp")]
     Tcp,
+    #[display("udp")]
+    Udp,
 }
 
 /// Backend target — where traffic is routed.
@@ -252,12 +254,14 @@ impl BackendTarget {
 
     /// Infer the wire protocol from the URL scheme.
     ///
-    /// WHAT: `http://` → `Http`, `https://` → `Https`, `tcp://` → `Tcp`.
-    /// Anything with no recognised scheme defaults to `Http`.
+    /// WHAT: `http://` → `Http`, `https://` → `Https`, `tcp://` → `Tcp`,
+    /// `udp://` → `Udp`. Anything with no recognised scheme defaults to `Http`.
     #[must_use]
     pub fn protocol(&self) -> BackendProtocol {
         let lower = self.url.to_ascii_lowercase();
-        if lower.starts_with("tcp://") {
+        if lower.starts_with("udp://") {
+            BackendProtocol::Udp
+        } else if lower.starts_with("tcp://") {
             BackendProtocol::Tcp
         } else if lower.starts_with("https://") {
             BackendProtocol::Https

@@ -148,6 +148,28 @@ impl ContainerConfig {
         self
     }
 
+    /// Expose a UDP container port with an auto-assigned host port.
+    #[must_use]
+    pub fn port_udp(mut self, container_port: u16) -> Self {
+        self.ports.push(PortMapping {
+            container_port,
+            host_port: None,
+            protocol: PortProtocol::Udp,
+        });
+        self
+    }
+
+    /// Map a UDP container port to an explicit host port.
+    #[must_use]
+    pub fn port_udp_mapped(mut self, container_port: u16, host_port: u16) -> Self {
+        self.ports.push(PortMapping {
+            container_port,
+            host_port: Some(host_port),
+            protocol: PortProtocol::Udp,
+        });
+        self
+    }
+
     /// Set an environment variable.
     #[must_use]
     pub fn env(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {

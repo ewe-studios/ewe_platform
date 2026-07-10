@@ -39,7 +39,7 @@ pub use config::{
 pub use forward::SharedHttpClient;
 pub use handler::ProxyHandler;
 pub use health::{HealthMonitor, ProbeState};
-pub use passthrough::TcpPassthrough;
+pub use passthrough::{TcpPassthrough, UdpPassthrough};
 pub use router::Router;
 pub use runtime::{BackendLease, BackendRuntime, ServiceRuntime};
 pub use server::ProxyServer;

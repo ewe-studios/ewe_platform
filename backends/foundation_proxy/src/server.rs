@@ -63,7 +63,7 @@ impl ProxyServer {
     /// # Panics
     /// Never panics. (The valtron pool must already be initialised by the
     /// caller; without it the front end cannot submit connections.)
-    pub async fn start(config: ProxyConfig) -> Result<Self, ProxyError> {
+    pub fn start(config: ProxyConfig) -> Result<Self, ProxyError> {
         tracing::info!(domain = %config.domain, services = config.services.len(), "starting proxy");
 
         // Validate: no duplicate routes. A route is a (host, path_prefix) pair —
