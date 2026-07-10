@@ -17,6 +17,27 @@ The robust server-side WS task, plus the ConcurrentQueue→Pipe migration that
 gives all three WS task families (WebSocketServerTask, WebSocketTask,
 ReconnectingWebSocketTask) executor-integrated waking and backpressure.
 
+### Where this sits in the stack
+
+This feature changes the **internal queuing** inside `WebSocketTask`,
+`WebSocketServerTask`, `ReconnectingWebSocketTask`, and `MessageDelivery`.
+It does NOT touch the protocol layer (`ProtocolHandler`, `Router`, `Client`,
+codec, compression, envelope, interceptor, auth). Those layers never see
+`ConcurrentQueue` or `Pipe` — they only see `ByteSink`/`ByteSource` on
+`TransportStream`. The WS message queue is a transport-internal concern.
+
+```
+Protocol layer:      Bytes in, Bytes out on TransportStream pipes
+                           │
+Transport seam:      ByteSink / ByteSource / HeadStream / trailers
+                           │
+WsTransport:         MessageDelivery (PipeSender) + WebSocketClient stream
+                           │
+WS tasks:            Pipe<WebSocketMessage>   ← what this feature migrates
+                           │
+TCP:                 WS Binary frames on the wire
+```
+
 ## Design revision: ConcurrentQueue → Pipe (2026-07-10)
 
 ### Current state

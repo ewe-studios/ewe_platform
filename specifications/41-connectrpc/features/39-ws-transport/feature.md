@@ -16,6 +16,54 @@ updated: 2026-07-10
 The last transport: Connect envelopes over WebSocket messages, giving bidi to
 HTTP/1.1 deployments — non-standard, opt-in, our-stack-to-our-stack.
 
+### Zero protocol-side changes — the Transport seam thesis validated
+
+The ConnectRPC protocol layer (`ProtocolHandler`, `ProtocolClient`, `Router`,
+`Client`, codec, compression, envelope, interceptor, auth) is **completely
+unaffected** by this transport. Every protocol subsystem sees the same
+`TransportStream { send_body, head, recv_body, trailers }` — byte-level
+pipes. Whether those bytes travel as HTTP/1.1 chunks, h2 DATA frames, or
+WS Binary messages is invisible above the [`Transport`] trait:
+
+```
+                    ┌──────────────────────────────────────┐
+                    │   Protocol layer (unchanged)           │
+                    │   Router, Client, codecs, envelopes,   │
+                    │   compression, interceptors, auth      │
+                    └──────────────┬───────────────────────┘
+                                   │  TransportStream
+                                   │  { send_body, head,
+                                   │    recv_body, trailers }
+                    ┌──────────────▼───────────────────────┐
+                    │   Transport implementations            │
+                    │                                       │
+                    │   H1Transport ─► HTTP/1.1 chunks       │
+                    │   H2Transport ─► h2 DATA frames        │
+                    │   WsTransport ─► WS Binary messages    │  ← new
+                    │                                       │
+                    │   All produce the same byte interface  │
+                    └──────────────────────────────────────┘
+```
+
+Capability matching gates WS use automatically:
+
+| RPC mode | Requires | WS capability | Outcome |
+|---|---|---|---|
+| Unary | — | — | ✅ any transport works |
+| Server stream | — | — | ✅ any transport works |
+| Client stream | `request_streaming` | `true` | ✅ |
+| Bidi stream | `full_duplex` | `true` | ✅ |
+| gRPC | `h2_trailers` | `false` | ❌ 505 (WS has no HTTP/2 trailing headers) |
+
+The `Client` already calls `check_compatible(protocol, transport.caps())` before
+every streaming call. A gRPC request over WS is rejected with `505` — correct
+and automatic. Connect requests (unary + all streaming modes) pass capability
+checks and proceed normally.
+
+**No protocol handler code changes. No codec changes. No envelope changes.
+No interceptor changes.** The protocol sees bytes. The transport produces bytes.
+WebSocket is just how the bytes get there.
+
 ## Design revision: WebSocketClient + MessageDelivery (2026-07-10)
 
 ### The existing `WebSocketClient` already does everything

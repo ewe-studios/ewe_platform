@@ -92,6 +92,16 @@ any `Box<dyn TaskIterator>` or trait object.
 
 ## General
 
+### The Transport seam is byte-blind — proven by WS
+Every protocol handler (`ConnectHandler`, `GrpcHandler`, `GrpcWebHandler`)
+operates on `Bytes` through `ByteSink`/`ByteSource` pipes — they never touch
+the wire format, DNS, TCP, TLS, or WS frames. Adding `WsTransport` required
+zero protocol changes: `encode_unary_request`/`decode_unary_response`
+were added for gRPC envelope wrapping (a protocol concern, not transport),
+and `TransportStream.trailers` was added because h2 trailing HEADERS are
+protocol-relevant metadata — neither was WS-specific. The seam design
+from Decision 11 is working as intended.
+
 ### Never `loop {}` in `TaskIterator::next_status()`
 Every call to `next_status()` must do exactly one step of work and return.
 A `loop {}` that drains an unbounded pipe or retries an I/O operation hogs
