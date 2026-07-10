@@ -102,7 +102,11 @@ Not the types. The **dependency direction** and the **registration lifecycle**.
 - `foundation_netio` is reactor-agnostic and wasm-capable. `foundation_nativeapis`
   is native-only (`crate-type = ["rlib", "cdylib"]`, `libc`, `io-uring`). Making
   netio depend on it unconditionally drags a native reactor into every wasm
-  build.
+  build. 
+
+**TODO**: Then gate it to native only
+
+
 - Someone must register the fd with the shared reactor, choose the completion
   path, and deregister on close. Today netio's `ReadModel::Depends` receives
   readiness *from the caller* precisely so netio owns none of that.
@@ -174,6 +178,8 @@ trait; **netio gains no new dependency**. The composition root — whoever alrea
 depends on `foundation_nativeapis` — constructs the completion-backed
 implementation and hands it in.
 
+**TODO**: Then gate it to native only
+
 ### What `Connection` actually demands
 
 A new variant is not free. `Connection` carries more than `Read + Write`, and
@@ -189,10 +195,18 @@ and it is where the design has to be honest:
 | `ReadTimeoutOperations` | Timeouts are a socket-option concept. In completion mode the read never blocks — it returns `WouldBlock` and the task parks — so `set_read_timeout` is a no-op that must be *documented*, not silently ignored. |
 | `peer_addr` / `local_addr` / `stream_addr` | `getpeername`/`getsockname` on the owned fd. |
 | `shutdown` | `shutdown(2)` on the fd. |
+
+
+**TODO**: Whilst we have a solution to this, below, i also noted, no one currently uses the SplitReadStream, so instead we explictly add a new trait that has a `split_read_write_connection` to make it more explictly, then `SplitReadStream::split_connection` will just return Err() always.
+
+Same for `try_clone` - we return Error so people must explicitly use the new `ReadWriteStream::split_read_write`.
+
 | `SplitReadStream::split_connection` | **The hard one — see below.** |
 | `try_clone` | Same problem as split. |
 
 #### `split_connection` is the one genuinely hard obligation
+
+**TODO**: I like this
 
 `Connection::split_connection` returns *another `Connection`* by `try_clone`ing
 the fd, so a transport can read on one half and write on the other. H1 relies on
@@ -213,6 +227,8 @@ fn split_connection(&self) -> io::Result<Self> {
     }
 }
 ```
+
+**TODO**: Why not properly implement the `SEND` for iouring to support writes as well?
 
 `split_write_half()` `dup(2)`s the fd and returns a source whose `read` is
 `Err(BrokenPipe)` and whose `write` is an ordinary `write(2)`. That matches how
@@ -398,6 +414,8 @@ nativeapis is not, so nativeapis→netio adds nothing to a wasm build), or the
 wrapper type lives in `foundation_http`. **The latter.** `foundation_http`
 already depends on both.
 
+**TODO**: just cause netio supports wasm does not mean we cant make a piece of code nativeonly, so stop being stupid, put it in netio and gate it to native only, infactg we have modules for each.
+
 ### Accepting a connection
 
 `RawStream::from_connection(conn: Connection)` already exists and already does
@@ -407,6 +425,8 @@ therefore changes by exactly one line — which `Connection` it hands over:
 ```rust
 // in the server accept loop (foundation_http), once per connection
 let (tcp, _addr) = listener.accept()?;   // listener stays on POLL_ADD — Constraint 2
+**TODO**: we should be passing _addr so the Connection can also report the addr for remote_addr() i believe.
+
 tcp.set_nonblocking(true)?;
 
 //  before:  let conn = Connection::from(tcp);
