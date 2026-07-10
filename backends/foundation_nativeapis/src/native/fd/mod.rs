@@ -49,9 +49,13 @@ pub mod reactor;
 /// The `CompletionSource` seam — byte acquisition for io_uring completion mode.
 pub mod completion;
 
+/// `CompletionSocket` — transport-facing byte source wrapper (Decision 14 F4 / F48).
+pub mod completion_socket;
+
 pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
-pub use reactor::{Reactor, SharedReadiness};
+pub use completion_socket::CompletionSocket;
+pub use reactor::{AlreadyInitialised, Reactor, SharedReadiness};
 
 #[cfg(all(target_os = "linux", feature = "uring"))]
 pub use completion::{Completion, CompletionSource};

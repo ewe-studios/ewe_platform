@@ -43,7 +43,7 @@ use std::thread;
 use std::time::Duration;
 
 use crate::native::fd::Ready;
-use crate::native::poll::{Backend, Events, Interest, Poll, Registry, Token};
+use crate::native::poll::{Backend, BackendPreference, Events, Interest, Poll, Registry, Token};
 
 /// Per-registration readiness tracking.
 ///
@@ -93,6 +93,41 @@ impl std::fmt::Debug for Reactor {
 /// Global singleton.
 static REACTOR: OnceLock<Arc<Reactor>> = OnceLock::new();
 
+/// Error returned by [`Reactor::init`] when a reactor is already running on
+/// a different backend than the one requested.
+///
+/// WHY: the reactor is process-global (D14 OQ#14.1). Two servers in one process
+/// asking for different backends cannot both be satisfied, and silently giving
+/// the second the first's backend defeats the point of explicit selection — a
+/// perf-critical deploy would discover from latency graphs that it never got
+/// io_uring. This error makes that failure a startup crash with both backends
+/// named.
+#[derive(Debug, Clone)]
+pub struct AlreadyInitialised {
+    /// The backend that is already running.
+    pub running: Backend,
+    /// What the caller asked for.
+    pub requested: BackendPreference,
+}
+
+impl std::fmt::Display for AlreadyInitialised {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "reactor already initialised with backend {} — cannot honour request for {:?}",
+            self.running, self.requested,
+        )
+    }
+}
+
+impl std::error::Error for AlreadyInitialised {}
+
+impl From<AlreadyInitialised> for io::Error {
+    fn from(e: AlreadyInitialised) -> io::Error {
+        io::Error::new(io::ErrorKind::AlreadyExists, e.to_string())
+    }
+}
+
 /// Poll timeout for the drain thread. Bounds shutdown latency only — a real
 /// event returns from `poll()` immediately.
 const DRAIN_TIMEOUT_MS: u64 = 100;
@@ -107,6 +142,10 @@ impl Reactor {
     /// existing instance, otherwise builds one and races to `set()` it; a
     /// loser of that race drops its instance and returns the winner's.
     ///
+    /// The reactor is initialised with [`BackendPreference::Auto`] — the probe
+    /// ladder picks the best available backend. Call [`Reactor::init`] instead
+    /// to require a specific backend.
+    ///
     /// # Errors
     /// Returns the underlying `io::Error` if the platform selector or the drain
     /// thread cannot be created.
@@ -117,15 +156,62 @@ impl Reactor {
         if let Some(reactor) = REACTOR.get() {
             return Ok(Arc::clone(reactor));
         }
+        Self::init_inner(BackendPreference::Auto)
+    }
 
-        let poll = Arc::new(Poll::new()?);
+    /// WHY: an operator must be able to demand a specific backend (F48 —
+    /// `ServerIo::Completion` needs `Reactor::init(Uring)`), and must be told
+    /// when that demand cannot be met. `get()` always auto-selects, silently
+    /// falling back to epoll on a host without io_uring. That silent fallback is
+    /// precisely the no-silent-defaults failure mode Decision 14 OQ#14.3 calls
+    /// "the worst."
+    ///
+    /// WHAT: initialise the shared reactor on a specific backend. First call
+    /// wins; the backend is a process-level decision.
+    ///
+    /// HOW: [`BackendPreference::Auto`] walks the probe ladder.
+    /// [`BackendPreference::Uring`] fails hard with the probe detail if io_uring
+    /// is unavailable. [`BackendPreference::Epoll`] skips the probe. See
+    /// [`AlreadyInitialised`] for the conflict case.
+    ///
+    /// # Errors
+    /// - The probe's concrete failure if `preference` is unavailable
+    ///   (`Uring` on `kernel.io_uring_disabled=2`).
+    /// - [`AlreadyInitialised`] if the reactor is already running on a
+    ///   *different* backend than requested.
+    /// - The platform selector's own `io::Error`.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn init(preference: BackendPreference) -> io::Result<Arc<Self>> {
+        if let Some(existing) = REACTOR.get() {
+            let running = existing.backend();
+            // If the running backend matches the preference, return it.
+            // Mismatch: the caller asked for something different than what is
+            // already running.
+            if !backend_matches(running, preference) {
+                return Err(AlreadyInitialised { running, requested: preference }.into());
+            }
+            tracing::debug!(
+                running = %running,
+                ?preference,
+                "reactor already initialised on a matching backend; returning existing instance"
+            );
+            return Ok(Arc::clone(existing));
+        }
+        Self::init_inner(preference)
+    }
+
+    /// Shared init body — builds the reactor and races to install it.
+    fn init_inner(preference: BackendPreference) -> io::Result<Arc<Self>> {
+        let poll = Arc::new(Self::make_poll(preference)?);
         let registry = poll.registry();
         let shutdown = Arc::new(AtomicBool::new(false));
 
         let entries: Arc<RwLock<HashMap<Token, Entry>>> = Arc::new(RwLock::new(HashMap::new()));
 
         // The drain thread polls the *same* selector registrations land in.
-        // Handing it a second `Poll::new()` here silently breaks every wake.
+        // Handing it a second `Poll` instance here silently breaks every wake.
         let drain_poll = Arc::clone(&poll);
         let drain_entries = Arc::clone(&entries);
         let drain_shutdown = Arc::clone(&shutdown);
@@ -153,6 +239,28 @@ impl Reactor {
             // Lost the init race — the winner's instance is authoritative.
             Err(_) => Ok(Arc::clone(REACTOR.get().expect("set() raced, so it is populated"))),
         }
+    }
+
+    /// Construct the platform poller. On Linux, honours the preference through
+    /// the probe ladder. On non-Linux, any explicit preference other than `Auto`
+    /// is a hard error — the only available backend is kqueue.
+    #[cfg(target_os = "linux")]
+    fn make_poll(preference: BackendPreference) -> io::Result<Poll> {
+        Poll::with_preference(preference)
+    }
+
+    #[cfg(not(target_os = "linux"))]
+    fn make_poll(preference: BackendPreference) -> io::Result<Poll> {
+        if !matches!(preference, BackendPreference::Auto) {
+            return Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                format!(
+                    "backend {:?} is not available on this platform; only Auto (kqueue) is supported",
+                    preference,
+                ),
+            ));
+        }
+        Poll::new()
     }
 
     /// WHY: callers that need to drive the selector directly (tests, examples)
@@ -364,6 +472,19 @@ impl Reactor {
 impl Drop for Reactor {
     fn drop(&mut self) {
         self.shutdown.store(true, Ordering::SeqCst);
+    }
+}
+
+/// Whether `running` satisfies `preference`.
+///
+/// `Auto` matches anything — the caller deferred to the probe ladder.
+/// `Uring` matches both readiness and completion modes.
+/// `Epoll` matches only epoll.
+fn backend_matches(running: Backend, preference: BackendPreference) -> bool {
+    match preference {
+        BackendPreference::Auto => true,
+        BackendPreference::Uring => running.is_uring(),
+        BackendPreference::Epoll => running == Backend::Epoll,
     }
 }
 

@@ -4,6 +4,8 @@
 use foundation_core::io::ioutils::{PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream};
 use foundation_core::url::{InvalidUri, Uri};
 #[cfg(unix)]
+use std::os::unix::io::AsRawFd;
+#[cfg(unix)]
 use std::os::unix::net as unix_net;
 use std::{
     io::{Read, Write},
@@ -285,6 +287,66 @@ impl From<unix_net::UnixListener> for Listener {
     }
 }
 
+/// The trait a completion-mode byte source must satisfy so that
+/// [`Connection::Completion`] can delegate through it.
+///
+/// WHY: `Connection::Completion` cannot hold a concrete type from
+/// `foundation_nativeapis` — that crate depends (optionally) on `foundation_db`,
+/// which depends on `foundation_netio`, creating a dependency cycle. The trait
+/// object breaks the cycle: any crate that owns both netio and nativeapis
+/// (today, `foundation_http`) constructs the implementation and hands it in.
+///
+/// WHAT: `Read + Write + AsRawFd` plus the few extras `Connection` needs
+/// beyond those — peer address (captured at accept time), local address
+/// (getsockname on the fd), shutdown, and a flag for whether reads cost no
+/// syscall.
+///
+/// HOW: the implementor overrides `peer_addr` and `is_kernel_read` at minimum;
+/// `local_addr` and `shutdown` delegate to the fd.
+#[cfg(unix)]
+pub trait CompletionReadWrite: Read + Write + AsRawFd + std::fmt::Debug + Send + Sync {
+    /// The peer address captured at accept time.
+    fn peer_addr(&self) -> Option<SocketAddr>;
+
+    /// The local address via getsockname on the fd.
+    fn local_addr(&self) -> std::io::Result<Option<SocketAddr>>;
+
+    /// Shutdown the socket.
+    fn shutdown(&self, how: Shutdown) -> std::io::Result<()>;
+
+    /// Whether `read` here costs no syscall. Observational only.
+    fn is_kernel_read(&self) -> bool {
+        false
+    }
+}
+
+/// An honest asymmetric split into a read half and a write half.
+///
+/// WHY: `SplitReadStream::split_connection` is a `try_clone` in disguise — it
+/// duplicates the fd and hands back a second full-duplex handle, leaving "who
+/// reads?" to convention. That is unsound for a completion socket (the inbox
+/// is keyed by one `Token`) and was never what any caller wanted: H1's pump
+/// writes on one half and reads on the other.
+///
+/// WHAT: the read half keeps the reactor registration and therefore the inbox.
+/// The write half `dup(2)`s the fd and writes with `write(2)`.
+///
+/// # Errors
+/// `Unsupported` if the underlying stream cannot be split.
+pub trait ReadWriteStream: Sized {
+    /// The read half — keeps the reactor registration.
+    type ReadHalf: Read;
+    /// The write half — a `dup(2)`d fd that only writes.
+    type WriteHalf: Write;
+
+    /// Split into independent read and write halves.
+    ///
+    /// # Errors
+    /// `Unsupported` if the underlying stream cannot be split (e.g. a
+    /// completion socket whose inbox is keyed by one Token).
+    fn split_read_write(self) -> std::io::Result<(Self::ReadHalf, Self::WriteHalf)>;
+}
+
 /// [`Connection`] is a unified connection. Either
 /// a [`TcpStream`], [`std::os::unix::net::UnixStream`], or a TLS-encrypted stream.
 #[derive(Debug)]
@@ -298,6 +360,15 @@ pub enum Connection {
         feature = "ssl-native-tls"
     ))]
     Tls(TlsStream),
+
+    /// A byte source whose reads come from the io_uring completion inbox — the
+    /// kernel already performed them (Decision 14 F4 / Feature 48).
+    ///
+    /// The boxed trait object breaks the dependency cycle that a concrete
+    /// `CompletionSocket` from `foundation_nativeapis` would create. The
+    /// composition root (`foundation_http`) constructs the implementation.
+    #[cfg(unix)]
+    Completion(Box<dyn CompletionReadWrite>),
 }
 
 impl Connection {
@@ -373,6 +444,17 @@ impl ReadTimeoutOperations for Connection {
                 );
                 tls.set_read_timeout(Some(timeout))
             }
+            #[cfg(unix)]
+            Self::Completion(_) => {
+                // In completion mode the read never blocks — it returns
+                // `WouldBlock` and the task parks. Setting a timeout is a
+                // documented no-op.
+                tracing::debug!(
+                    "Completion::set_read_timeout_as: timeouts are a socket-option \
+                     concept; completion reads never block — no-op"
+                );
+                Ok(())
+            }
         }
     }
 
@@ -389,6 +471,8 @@ impl ReadTimeoutOperations for Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.read_timeout(),
+            #[cfg(unix)]
+            Self::Completion(_) => Ok(None),
         }
     }
 }
@@ -414,6 +498,8 @@ impl Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.read_timeout(),
+            #[cfg(unix)]
+            Self::Completion(_) => Ok(None),
         }
     }
 
@@ -437,6 +523,8 @@ impl Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.write_timeout(),
+            #[cfg(unix)]
+            Self::Completion(_) => Ok(None),
         }
     }
 
@@ -459,6 +547,13 @@ impl Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.set_write_timeout(dur),
+            #[cfg(unix)]
+            Self::Completion(_) => {
+                // Writes are still `write(2)` — timeouts apply to the socket.
+                // We let this succeed silently; a caller that needs write timeouts
+                // on completion sockets should use socket options directly.
+                Ok(())
+            }
         }
     }
 
@@ -481,6 +576,13 @@ impl Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.set_read_timeout(dur),
+            #[cfg(unix)]
+            Self::Completion(_) => {
+                // In completion mode the read never blocks — it returns
+                // `WouldBlock` and the task parks. Setting a read timeout is a
+                // documented no-op.
+                Ok(())
+            }
         }
     }
 }
@@ -505,6 +607,13 @@ impl SplitReadStream for Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(inner) => inner.try_clone_connection(),
+
+            #[cfg(unix)]
+            Self::Completion(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "a completion socket cannot be split by cloning: its inbox is keyed \
+                 by one Token. Use ReadWriteStream::split_read_write.",
+            )),
         }
     }
 }
@@ -532,6 +641,17 @@ impl PeekableReadStream for Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(_) => Err(PeekError::NotSupported),
+
+            // Completion mode: the kernel already read the bytes into the inbox.
+            // `MSG_PEEK` on the socket would race with the kernel's RECV and return
+            // garbage. The correct peek would read from the staged `ProvidedBuf`s
+            // without advancing the offset — not yet implemented. For now, peek is
+            // a destructive read (the bytes are consumed), which is correct if
+            // suboptimal — a caller that peeked and then read would get the next
+            // batch. Any caller that depends on non-destructive peek will see
+            // `NotSupported` on the completion path.
+            #[cfg(unix)]
+            Self::Completion(_) => Err(PeekError::NotSupported),
         }
     }
 }
@@ -548,6 +668,8 @@ impl std::io::Read for Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.read(buf),
+            #[cfg(unix)]
+            Self::Completion(s) => s.read(buf), // inbox pop on completion; read(2) elsewhere
         }
     }
 }
@@ -564,6 +686,8 @@ impl std::io::Write for Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.write(buf),
+            #[cfg(unix)]
+            Self::Completion(s) => s.write(buf), // write(2) — SEND is future work (F49)
         }
     }
 
@@ -578,6 +702,8 @@ impl std::io::Write for Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.flush(),
+            #[cfg(unix)]
+            Self::Completion(s) => s.flush(),
         }
     }
 }
@@ -598,6 +724,9 @@ impl Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.peer_addr(),
+            // Captured at accept time — no getpeername(2) needed.
+            #[cfg(unix)]
+            Self::Completion(s) => Ok(s.peer_addr()),
         }
     }
 
@@ -616,6 +745,9 @@ impl Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => tls.local_addr(),
+            // Delegates to the trait impl (getsockname on the fd).
+            #[cfg(unix)]
+            Self::Completion(s) => s.local_addr(),
         }
     }
 
@@ -655,13 +787,16 @@ impl Connection {
                 // The underlying TCP connection will be closed when dropped
                 Ok(())
             }
+            #[cfg(unix)]
+            Self::Completion(s) => s.shutdown(how),
         }
     }
 
     /// Try to clone the connection.
     ///
     /// # Errors
-    /// Returns an error if cloning the underlying socket fails.
+    /// Returns an error if cloning the underlying socket fails, or if
+    /// the connection is a completion socket (inbox is keyed by one Token).
     pub fn try_clone(&self) -> std::io::Result<Self> {
         match self {
             Self::Tcp(s) => s.try_clone().map(Self::from),
@@ -673,6 +808,11 @@ impl Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(tls) => Ok(Self::Tls(tls.clone())),
+            #[cfg(unix)]
+            Self::Completion(_) => Err(std::io::Error::new(
+                std::io::ErrorKind::Unsupported,
+                "a completion socket cannot be cloned: its inbox is keyed by one Token",
+            )),
         }
     }
 
@@ -749,6 +889,8 @@ impl std::os::unix::io::AsRawFd for Connection {
                 feature = "ssl-native-tls"
             ))]
             Self::Tls(stream) => stream.as_raw_fd(),
+            #[cfg(unix)]
+            Self::Completion(s) => s.as_raw_fd(),
         }
     }
 }
