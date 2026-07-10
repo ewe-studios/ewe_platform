@@ -53,9 +53,29 @@ message delivery:
 
 ### Target state: `Pipe<WebSocketMessage>` throughout
 
-`Pipe<T>` (F02) is the bounded two-sided waker-hooked pipe already used by
-`FramePipe`, `ByteSink`, `ByteSource`, `send_body`, `recv_body`, `head_rx`,
-and `trailers` — every other seam in the transport stack.
+`Pipe<T>` (F02) wraps a bounded `ConcurrentQueue<T>` and adds:
+
+- Two single-slot **waker stashes** (consumer waker + producer waker)
+- `QueueReadiness` — `EventReadiness` impl; ready when the queue is non-empty
+- `QueueVacancyReadiness` — `EventReadiness` impl; ready when the queue has capacity
+- `try_send`/`try_recv` — non-blocking for the valtron task path; return `Empty`/`Full` so the task can park via `TaskStatus::Depends(pipe.readiness())`
+- `send().await`/`receive().await` — async, park the future on the waker stash; producer/consumer wake each other
+- Cancel composition via `AnyReadiness` — `send().await`/`receive().await` compose the caller's `CancelSignal`
+
+Same underlying queue. Nicer surface for both sync (task) and async (future) callers. Already used by `FramePipe`, `ByteSink`, `ByteSource`, `send_body`, `recv_body`, `head_rx`, and `trailers` — every other seam in the transport stack.
+
+**`MessageDelivery`** is the existing public wrapper in `connection.rs`. After migration:
+
+```
+Before: queue: Arc<ConcurrentQueue<WebSocketMessage>>
+After:  tx: PipeSender<WebSocketMessage>   // same underlying queue + wakers
+
+Public API unchanged: send(msg), ping(), pong(), close() — same call sites.
+New: pipe() → &PipeSender for Transport bridging, send_async().await for async code,
+     into_pipe() for consuming conversion.
+
+WebSocketClient::connect() still returns (client, MessageDelivery) — zero API breakage.
+```
 
 | Property | `ConcurrentQueue` | `Pipe<T>` |
 |---|---|---|
@@ -139,7 +159,21 @@ After:
     on Close → drop(delivery)                         // caller's rx.try_recv() → Closed
 ```
 
-#### WebSocketTask (client) — single-shot, Pipe-based
+#### WebSocketClient (wrapper, not a task)
+
+`WebSocketClient` wraps `WebSocketTask` behind a `DrivenStreamIterator` and
+provides a simple `next()` → `Stream<WebSocketMessage>` iterator. After F37:
+
+- **Internally**: `WebSocketClient::connect()` still creates a `WebSocketTask`,
+  spawns it via `execute(task, None)`, and returns `(Self, MessageDelivery)`.
+  The only internal change is that `MessageDelivery` now wraps a `PipeSender`
+  instead of `Arc<ConcurrentQueue>`.
+- **Public API**: unchanged. `client.next()` still yields inbound messages.
+  `delivery.send(msg)` still pushes outbound messages. Users see zero
+  difference — they get wake integration and backpressure for free.
+- **WsTransport**: calls `WebSocketClient::connect()`, spawns a collector
+  bridging the client stream into `body_tx`, and uses `delivery.into_pipe()`
+  as `TransportStream::send_body`. ~30 lines of glue.
 
 One connection = one task. No reconnection. Migration:
 
