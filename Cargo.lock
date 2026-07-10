@@ -4658,6 +4658,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "foundation_sshkit"
+version = "0.1.0"
+dependencies = [
+ "derive_more",
+ "foundation_core",
+ "foundation_errstacks",
+ "futures-lite",
+ "serde",
+ "serde_json",
+ "ssh2",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "foundation_testbed"
 version = "0.0.1"
 dependencies = [

@@ -1,0 +1,25 @@
+[package]
+name = "foundation_sshkit"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+authors.workspace = true
+repository.workspace = true
+description = "SSH orchestration — connection pooling, host abstraction, command execution, runners"
+
+[dependencies]
+foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
+foundation_core = { path = "../foundation_core", version = "0.0.3" }
+
+ssh2 = "0.9"
+tokio = { version = "1", features = ["rt", "time"] }
+futures-lite = "2"
+
+serde.workspace = true
+serde_json.workspace = true
+derive_more.workspace = true
+tracing.workspace = true
+
+[lints]
+workspace = true
