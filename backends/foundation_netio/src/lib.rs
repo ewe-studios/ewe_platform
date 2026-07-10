@@ -15,6 +15,10 @@ pub mod http2;
 #[cfg(feature = "quic")]
 pub mod quic;
 
+/// HTTP/3 (RFC 9114) — framing, QPACK, and the mapping onto the QUIC traits.
+#[cfg(feature = "quic")]
+pub mod http3;
+
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub mod http_stream;
 

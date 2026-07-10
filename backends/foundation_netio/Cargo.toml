@@ -154,6 +154,12 @@ name = "quic"
 path = "tests/quic/mod.rs"
 required-features = ["quic"]
 
+# HTTP/3 framing + QPACK (F34).
+[[test]]
+name = "http3"
+path = "tests/http3/mod.rs"
+required-features = ["quic"]
+
 [package.metadata.docs.rs]
 # enable one of these as default implementation
 features = ["ssl-rustls"]

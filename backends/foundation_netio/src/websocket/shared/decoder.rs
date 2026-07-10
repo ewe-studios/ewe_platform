@@ -273,7 +273,7 @@ mod tests {
             0x81, 0x02, b'H', b'i',
             0x81, 0x02, b'Y', b'o',
         ];
-        let mut cursor = Cursor::new(wire);
+        let cursor = Cursor::new(wire);
         let mut dec = WebSocketFrameDecoder::new();
 
         let f1 = match dec.step(&mut cursor.clone()).expect("step") {
