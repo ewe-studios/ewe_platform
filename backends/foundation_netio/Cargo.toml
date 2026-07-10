@@ -96,6 +96,7 @@ log_info = []
 nightly = ["socket2"]
 
 socks5 = []
+quic = ["dep:quinn-proto"]
 ssl-provider-ring = ["ring"]
 ssl-provider-awsrc = ["aws-lc-rs"]
 ssl-openssl = ["std", "openssl"]

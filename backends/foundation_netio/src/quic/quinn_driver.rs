@@ -38,7 +38,7 @@ fn quic_client_config() -> io::Result<ClientConfig> {
     let quic_crypto = QuicClientConfig::try_from(rustls_cfg)
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, format!("{e}")))?;
     let mut transport = TransportConfig::default();
-    transport.max_idle_timeout(Some(VarInt::from_u32(10_000)));
+    transport.max_idle_timeout(Some(quinn_proto::IdleTimeout::from(VarInt::from_u32(10_000))));
     let mut cfg = ClientConfig::new(Arc::new(quic_crypto));
     cfg.transport_config(Arc::new(transport));
     Ok(cfg)
@@ -73,7 +73,9 @@ impl rustls::client::danger::ServerCertVerifier for SkipCertVerification {
 
 // ── QuicDriver ───────────────────────────────────────────────────────────────
 
-/// One poll = one transmit drain OR one read OR one event.
+/// One poll = one transmit drain OR one read OR one event. Parks via
+/// `Depends(fd_readiness)` on idle when a readiness signal was injected
+/// by the caller (F38 pattern); falls back to `Delayed` otherwise.
 pub struct QuicDriver {
     phase: Phase,
     endpoint: Endpoint,
@@ -83,6 +85,10 @@ pub struct QuicDriver {
     scratch: Vec<u8>,
     tx_buf: Vec<u8>,
     inbound: Vec<QuicEvent>,
+    /// Caller-injected fd readiness signal (F38). When `Some`, the idle
+    /// branch returns `TaskStatus::Depends(fd)` — parking on the reactor
+    /// instead of polling via `Delayed`.
+    fd_readiness: Option<Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>>,
     idle: Duration,
 }
 
@@ -91,7 +97,12 @@ impl QuicDriver {
         let socket = UdpSocket::bind("0.0.0.0:0")?;
         socket.set_nonblocking(true)?;
         socket.connect(addr)?;
-        let mut ep = Endpoint::new(Arc::new(EndpointConfig::default()), None);
+        let mut ep = Endpoint::new(
+            Arc::new(EndpointConfig::default()),
+            None, // server_config: None (client-only)
+            true,  // allow_mtud
+            None,  // rng_seed
+        );
         let cfg = quic_client_config()?;
         let now = Instant::now();
         let (ch, conn) = ep.connect(now, cfg, addr, &addr.ip().to_string())
@@ -100,8 +111,17 @@ impl QuicDriver {
             phase: Phase::Connecting, endpoint: ep, conn: Some((ch, conn)),
             socket, peer: addr, scratch: Vec::with_capacity(1500),
             tx_buf: Vec::with_capacity(1500), inbound: Vec::new(),
-            idle: Duration::from_millis(1),
+            fd_readiness: None, idle: Duration::from_millis(1),
         })
+    }
+
+    /// Inject an fd readiness signal. The caller wraps the UDP socket fd in
+    /// `SharedReadiness` (F40) or `TimerReadiness` (F38 fallback) and passes
+    /// it here. On idle, the task returns `TaskStatus::Depends(fd)` — parking
+    /// on the reactor — instead of polling with `Delayed`.
+    pub fn with_fd_readiness(mut self, fd: Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>) -> Self {
+        self.fd_readiness = Some(fd);
+        self
     }
 }
 
@@ -157,14 +177,24 @@ impl TaskIterator for QuicDriver {
                 return Some(TaskStatus::Ready(QuicEvent::Connected));
             }
             Some(quinn_proto::Event::Stream(quinn_proto::StreamEvent::Readable { id })) => {
-                let mut stream = conn.recv_stream(id);
-                match stream.read(true) {
-                    Ok(Some(chunk)) => {
-                        return Some(TaskStatus::Ready(QuicEvent::StreamData {
-                            id: id.index(), data: Bytes::from(chunk.bytes.to_vec()), fin: false,
-                        }));
+                let data = {
+                    let mut stream = conn.recv_stream(id);
+                    let chunks_result = stream.read(true);
+                    match chunks_result {
+                        Ok(mut chunks) => {
+                            let mut buf = Vec::new();
+                            while let Ok(Some(chunk)) = chunks.next(usize::MAX) {
+                                buf.extend_from_slice(&chunk.bytes);
+                            }
+                            if !buf.is_empty() { Some(Bytes::from(buf)) } else { None }
+                        }
+                        Err(_) => None,
                     }
-                    _ => {}
+                };
+                if let Some(bytes) = data {
+                    return Some(TaskStatus::Ready(QuicEvent::StreamData {
+                        id: id.index(), data: bytes, fin: false,
+                    }));
                 }
             }
             Some(quinn_proto::Event::ConnectionLost { reason }) => {
@@ -176,13 +206,17 @@ impl TaskIterator for QuicDriver {
             _ => {}
         }
 
-        // 4. Deliver queued events, or Delayed.
+        // 4. Deliver queued events, or park on fd readiness.
         if let Some(e) = self.inbound.pop() {
-            Some(TaskStatus::Ready(e))
-        } else if matches!(self.phase, Phase::Closed) {
-            self.conn = None; None
-        } else {
-            Some(TaskStatus::Delayed(self.idle))
+            return Some(TaskStatus::Ready(e));
+        }
+        if matches!(self.phase, Phase::Closed) {
+            self.conn = None;
+            return None;
+        }
+        match &self.fd_readiness {
+            Some(fd) => Some(TaskStatus::Depends(Arc::clone(fd))),
+            None => Some(TaskStatus::Delayed(self.idle)),
         }
     }
 }
