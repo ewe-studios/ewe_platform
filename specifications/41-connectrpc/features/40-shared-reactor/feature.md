@@ -1,7 +1,7 @@
 ---
 feature: "Shared reactor + Token→wake map (D14 F1)"
 description: "One process-level reactor instead of per-fd epoll instances; is_ready reads drained readiness"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 2
 depends_on: ["10-reactor-parking"]
