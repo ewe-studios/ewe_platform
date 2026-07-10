@@ -29,5 +29,7 @@ mod valtron_macro_tests;
 mod waker_queue_bridge;
 #[cfg(not(target_family = "wasm"))]
 mod pipe_primitive;
+#[cfg(not(target_family = "wasm"))]
+mod pipe_mapped_tests;
 #[cfg(feature="multi")]
 mod multi_workers;
