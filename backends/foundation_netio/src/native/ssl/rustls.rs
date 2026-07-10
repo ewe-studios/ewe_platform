@@ -3,10 +3,9 @@
 #![cfg(not(target_family = "wasm"))]
 
 use foundation_core::io::ioutils::ReadTimeoutOperations;
-use crate::netcap::connection::Connection;
-use crate::netcap::{
-    DataStreamAddr, DataStreamError, DataStreamResult, Endpoint, EndpointConfig, SocketAddr,
-};
+use crate::native::connection::Connection;
+use crate::native::connection::{DataStreamAddr, Endpoint, EndpointConfig, SocketAddr};
+use crate::shared::errors::{DataStreamError, DataStreamResult};
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::ServerName;
 use rustls::{RootCertStore, ALL_VERSIONS};

@@ -24,7 +24,7 @@
 //! `netcap` socket type) is the sole target-gated field.
 
 #[cfg(not(target_family = "wasm"))]
-use crate::netcap::connection::SocketAddr;
+use crate::native::connection::SocketAddr;
 
 /// Cryptographic identity of the connection peer.
 ///

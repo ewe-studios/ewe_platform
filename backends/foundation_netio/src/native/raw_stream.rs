@@ -9,35 +9,35 @@ use foundation_core::io::ioutils::{
     BufferedReader, BufferedWriter, PeekError, PeekableReadStream, ReadTimeoutOperations,
 };
 
-use super::{errors, Connection, DataStreamError, SocketAddr, TlsError};
-use super::{Endpoint, EndpointConfig};
+use crate::shared::errors::{self, DataStreamError, TlsError};
+use crate::native::connection::{Connection, SocketAddr, Endpoint, EndpointConfig, DataStreamAddr};
 
 #[cfg(any(
     feature = "ssl-rustls",
     feature = "ssl-openssl",
     feature = "ssl-native-tls"
 ))]
-use super::ssl::{ClientSSLStream, ServerSSLStream};
+use crate::native::ssl::{ClientSSLStream, ServerSSLStream};
 
 // TLS module imports with priority resolution: rustls > openssl > native-tls.
 // When --all-features enables all backends, the primary (rustls) wins.
 #[cfg(feature = "ssl-rustls")]
-use super::ssl::rustls;
+use crate::native::ssl::rustls;
 
 #[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
-use super::ssl::openssl;
+use crate::native::ssl::openssl;
 
 #[cfg(all(
     not(feature = "ssl-rustls"),
     not(feature = "ssl-openssl"),
     feature = "ssl-native-tls"
 ))]
-use super::ssl::native_ttls;
+use crate::native::ssl::native_ttls;
 
 pub enum RawStream {
     AsPlain(
         BufferedReader<BufferedWriter<Connection>>,
-        super::DataStreamAddr,
+        DataStreamAddr,
     ),
     #[cfg(any(
         feature = "ssl-rustls",
@@ -46,7 +46,7 @@ pub enum RawStream {
     ))]
     AsServerTls(
         BufferedReader<BufferedWriter<ServerSSLStream>>,
-        super::DataStreamAddr,
+        DataStreamAddr,
     ),
     #[cfg(any(
         feature = "ssl-rustls",
@@ -55,7 +55,7 @@ pub enum RawStream {
     ))]
     AsClientTls(
         BufferedReader<BufferedWriter<ClientSSLStream>>,
-        super::DataStreamAddr,
+        DataStreamAddr,
     ),
 }
 
@@ -140,7 +140,7 @@ impl RawStream {
     ///
     /// How you take the returned `RawStream` is up to you but this allows you more control
     /// on how exactly the request starts.
-    pub fn from_tcp(stream: TcpStream) -> super::DataStreamResult<Self> {
+    pub fn from_tcp(stream: TcpStream) -> crate::shared::errors::DataStreamResult<Self> {
         let conn = Connection::Tcp(stream);
         let conn_addr = conn
             .stream_addr()
@@ -156,7 +156,7 @@ impl RawStream {
     ///
     /// How you take the returned `RawStream` is up to you but this allows you more control
     /// on how exactly the request starts.
-    pub fn from_connection(conn: Connection) -> super::DataStreamResult<Self> {
+    pub fn from_connection(conn: Connection) -> crate::shared::errors::DataStreamResult<Self> {
         let conn_addr = conn
             .stream_addr()
             .map_err(|_| DataStreamError::FailedToAcquireAddrs)?;
@@ -173,7 +173,7 @@ impl RawStream {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     ))]
-    pub fn from_server_tls(conn: ServerSSLStream) -> super::DataStreamResult<Self> {
+    pub fn from_server_tls(conn: ServerSSLStream) -> crate::shared::errors::DataStreamResult<Self> {
         let conn_addr = conn
             .stream_addr()
             .map_err(|_| DataStreamError::FailedToAcquireAddrs)?;
@@ -189,7 +189,7 @@ impl RawStream {
         feature = "ssl-openssl",
         feature = "ssl-native-tls"
     ))]
-    pub fn from_client_tls(conn: ClientSSLStream) -> super::DataStreamResult<Self> {
+    pub fn from_client_tls(conn: ClientSSLStream) -> crate::shared::errors::DataStreamResult<Self> {
         let conn_addr = conn
             .stream_addr()
             .map_err(|_| DataStreamError::FailedToAcquireAddrs)?;
@@ -228,7 +228,7 @@ pub enum ClientEndpoint {
 // --- Constructors
 
 impl RawStream {
-    pub fn from_endpoint(endpoint: &ClientEndpoint) -> super::DataStreamResult<Self> {
+    pub fn from_endpoint(endpoint: &ClientEndpoint) -> crate::shared::errors::DataStreamResult<Self> {
         match endpoint {
             ClientEndpoint::Plain(endpoint) => Self::client_from_endpoint(endpoint),
             #[cfg(feature = "ssl-rustls")]
@@ -259,7 +259,7 @@ impl RawStream {
         }
     }
 
-    pub fn client_from_endpoint(endpoint: &Endpoint<()>) -> super::DataStreamResult<Self> {
+    pub fn client_from_endpoint(endpoint: &Endpoint<()>) -> crate::shared::errors::DataStreamResult<Self> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
 
@@ -389,7 +389,7 @@ impl RawStream {
 
     #[inline]
     #[must_use]
-    pub fn addrs(&self) -> super::DataStreamAddr {
+    pub fn addrs(&self) -> DataStreamAddr {
         match self {
             RawStream::AsPlain(inner, addr) => addr.clone(),
             #[cfg(any(

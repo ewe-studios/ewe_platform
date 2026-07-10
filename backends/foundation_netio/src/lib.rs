@@ -7,16 +7,33 @@
 
 #![cfg_attr(feature = "nightly", feature(unix_socket_peek, tcp_linger))]
 
+// ── Shared (wasm-compatible) modules — always compiled ──────────────
+pub mod shared;
+
+// ── Native-only modules ─────────────────────────────────────────────
+#[cfg(not(target_family = "wasm"))]
+pub mod native;
+
+// ── Wasm-only modules ───────────────────────────────────────────────
+#[cfg(target_family = "wasm")]
+pub mod wasm;
+
+// ── Phase 0 compat: legacy module paths kept for downstream crates ──
+// All implementation moved to shared/native/wasm; these are re-exports.
+
 pub mod event_source;
 pub mod simple_http;
 pub mod websocket;
 pub mod netcap;
+
+#[cfg(not(target_family = "wasm"))]
 pub mod http2;
-#[cfg(feature = "quic")]
+
+#[cfg(all(feature = "quic", not(target_family = "wasm")))]
 pub mod quic;
 
 /// HTTP/3 (RFC 9114) — framing, QPACK, and the mapping onto the QUIC traits.
-#[cfg(feature = "quic")]
+#[cfg(all(feature = "quic", not(target_family = "wasm")))]
 pub mod http3;
 
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]

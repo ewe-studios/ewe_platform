@@ -15,7 +15,7 @@ use std::{
 
 use derive_more::derive::From;
 
-use super::{DataStreamError, DataStreamResult};
+use crate::shared::errors::{DataStreamError, DataStreamResult};
 
 // ---------------------------------------------------------------------------
 // TLS type alias with priority resolution: ssl-rustls > ssl-openssl > ssl-native-tls.
@@ -24,13 +24,13 @@ use super::{DataStreamError, DataStreamResult};
 // so this only fires for the blanket --all-features case.
 // ---------------------------------------------------------------------------
 #[cfg(feature = "ssl-rustls")]
-type TlsStream = crate::netcap::ssl::rustls::RustTlsClientStream;
+type TlsStream = crate::native::ssl::rustls::RustTlsClientStream;
 
 #[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
-type TlsStream = crate::netcap::ssl::openssl::SplitOpenSslStream;
+type TlsStream = crate::native::ssl::openssl::SplitOpenSslStream;
 
 #[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
-type TlsStream = crate::netcap::ssl::native_ttls::NativeTlsStream;
+type TlsStream = crate::native::ssl::native_ttls::NativeTlsStream;
 
 #[derive(From, Debug, Clone)]
 pub enum SocketAddr {
@@ -767,22 +767,22 @@ impl std::os::unix::io::AsFd for Connection {
 }
 
 #[cfg(feature = "ssl-rustls")]
-impl From<crate::netcap::ssl::rustls::RustTlsClientStream> for Connection {
-    fn from(s: crate::netcap::ssl::rustls::RustTlsClientStream) -> Self {
+impl From<crate::native::ssl::rustls::RustTlsClientStream> for Connection {
+    fn from(s: crate::native::ssl::rustls::RustTlsClientStream) -> Self {
         Self::Tls(s)
     }
 }
 
 #[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
-impl From<crate::netcap::ssl::openssl::SplitOpenSslStream> for Connection {
-    fn from(s: crate::netcap::ssl::openssl::SplitOpenSslStream) -> Self {
+impl From<crate::native::ssl::openssl::SplitOpenSslStream> for Connection {
+    fn from(s: crate::native::ssl::openssl::SplitOpenSslStream) -> Self {
         Self::Tls(s)
     }
 }
 
 #[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
-impl From<crate::netcap::ssl::native_ttls::NativeTlsStream> for Connection {
-    fn from(s: crate::netcap::ssl::native_ttls::NativeTlsStream) -> Self {
+impl From<crate::native::ssl::native_ttls::NativeTlsStream> for Connection {
+    fn from(s: crate::native::ssl::native_ttls::NativeTlsStream) -> Self {
         Self::Tls(s)
     }
 }
