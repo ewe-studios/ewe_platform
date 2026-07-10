@@ -1,10 +1,11 @@
 ---
 feature: "QUIC backend: quinn-proto + valtron driver + netcap variants (D01 T14, D12 §9)"
 description: "Sans-IO quinn-proto as a Cargo dep, our UDP plumbing + event-loop task, netcap Quic variants"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 3
 depends_on: ["10-reactor-parking"]
+quinn-source: /home/darkvoid/Boxxed/@formulas/src.rust/src.Quinn/
 estimated_effort: "large"
 created: 2026-07-03
 ---
