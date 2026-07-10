@@ -220,7 +220,7 @@ fn completion_mode_reads_the_socket_without_a_read_syscall() {
 
     // Build and arm before forking, so the traced region is only the hot path.
     let sel = uring_completion::Selector::new().expect("completion selector");
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
     write_all(b, b"kernel read this");
 
     let counts = trace_hot_path(a, move || {
@@ -283,7 +283,7 @@ fn read_bytes_copies_from_the_inbox_without_a_read_syscall() {
     let owned_a = unsafe { OwnedFd::from_raw_fd(a) };
     let raw_a = owned_a.as_raw_fd();
 
-    let sock = RegisteredFd::with_interest(owned_a, reactor.registry(), Token(0xF43_9001), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(owned_a, reactor.registry(), Token(0xF43_9001), Interest::READABLE)
         .expect("register socket");
     write_all(b, b"popped from the inbox");
 

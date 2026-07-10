@@ -1,7 +1,7 @@
 /// File descriptor management — wraps any raw fd with readiness tracking.
 ///
-/// Adapted from tokio's `AsyncFd`, but works with our sync, task-driven model
-/// and our cross-platform poll::Selector (epoll/kqueue/IOCP).
+/// Built for our sync, task-driven model on top of our cross-platform
+/// poll::Selector (epoll/kqueue/IOCP).
 ///
 /// ## Key Types
 ///
@@ -22,11 +22,13 @@
 ///
 /// The pattern a transport task follows:
 ///
-/// 1. **Obtain a reactor `Registry`.** Today each task owns its selector:
-///    `let poll = `[`Poll::new`](crate::native::poll::Poll::new)`()?; let registry = poll.registry();`.
-///    (A process-shared reactor — one `Poll` for all connections — is the
-///    io_uring/shared-reactor work in spec-41 features 40–43; the seam here is
-///    unchanged by it.)
+/// 1. **Obtain a reactor `Registry`.** Use the process-shared reactor —
+///    `let reactor = `[`Reactor::get`]`()?; let registry = reactor.registry();` —
+///    so all connections share one selector and `is_ready()` reads a cached
+///    atomic instead of issuing a syscall (spec-41 F40, Decision 14 §Scope 3).
+///    Passing a registry from your own `Poll` is still honoured: the fd is
+///    registered there and readiness is queried against it with a zero-timeout
+///    poll. What you pass is what you get.
 /// 2. **Register the connection's fd.** The fd comes from `netcap::RawStream`
 ///    via `AsRawFd` (spec-41 F09 / Decision 12 §12), reachable from above netio:
 ///    `let fd = Arc::new(`[`RegisteredFd::new`]`(stream, &registry, token)?);`.
@@ -220,24 +222,43 @@ pub struct FdRegistration {
 }
 
 impl FdRegistration {
-    /// Create a new FdRegistration for the given raw fd.
+    /// WHY: the `registry` argument must mean something. An earlier revision
+    /// ignored it whenever `Reactor::get()` succeeded — which is always — and
+    /// registered into the shared reactor regardless. A caller that built its
+    /// own `Poll` and passed its registry got an fd registered somewhere else,
+    /// so its own `poll()` returned no events and nothing said why.
     ///
-    /// When the shared reactor (F40) is available, the fd is registered into it —
-    /// no private epoll fd, no per-check syscall. Falls back to per-fd Poll if
-    /// the reactor can't be initialised.
+    /// WHAT: register `fd` into the selector `registry` fronts.
+    ///
+    /// HOW: if `registry` is the shared reactor's registry (same `Arc<Selector>`),
+    /// take the reactor path — one process-wide selector, readiness read from a
+    /// cached atomic, zero syscalls per check (Decision 14 §Scope 3). Otherwise
+    /// honour the caller's registry and keep a private `Poll` alongside it for
+    /// zero-timeout readiness queries.
+    ///
+    /// Pass `Reactor::get()?.registry()` to opt into the shared reactor.
+    ///
+    /// # Errors
+    /// The selector's `io::Error` if registration fails.
+    ///
+    /// # Panics
+    /// Never panics.
     pub fn new(
         fd: RawFd,
         registry: &crate::native::poll::Registry,
         token: Token,
         interest: Interest,
     ) -> io::Result<Self> {
-        // F40: try shared reactor first. Fall back to per-fd Poll.
-        let (poll, reactor) = match Reactor::get() {
-            Ok(r) => {
-                r.register(fd, token, interest)?;
-                (None, Some(r))
+        let shared = Reactor::get()
+            .ok()
+            .filter(|reactor| registry.same_selector(reactor.registry()));
+
+        let (poll, reactor) = match shared {
+            Some(reactor) => {
+                reactor.register(fd, token, interest)?;
+                (None, Some(reactor))
             }
-            Err(_) => {
+            None => {
                 registry.register_fd(fd, token, interest)?;
                 let poll = crate::native::poll::Poll::new()?;
                 poll.registry().register_fd(fd, token, interest)?;
@@ -252,6 +273,48 @@ impl FdRegistration {
             reactor,
             readiness: Mutex::new(Ready::EMPTY),
             #[cfg(all(target_os = "linux", feature = "uring"))]
+            staged: Mutex::new(completion::StagedReads::default()),
+        })
+    }
+
+    /// Register into the shared reactor, opting the read path into completion
+    /// mode where the backend and the fd allow it.
+    ///
+    /// See [`RegisteredFd::with_completion`].
+    ///
+    /// # Errors
+    /// `Unsupported` if `registry` is not the shared reactor's — a caller-owned
+    /// selector has no completion inbox to pop from. Otherwise the selector's
+    /// registration error.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn with_completion(
+        fd: RawFd,
+        registry: &crate::native::poll::Registry,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<Self> {
+        let reactor = Reactor::get()
+            .ok()
+            .filter(|reactor| registry.same_selector(reactor.registry()))
+            .ok_or_else(|| {
+                io::Error::new(
+                    io::ErrorKind::Unsupported,
+                    "completion mode requires the shared reactor's registry \
+                     (Reactor::get()?.registry())",
+                )
+            })?;
+
+        reactor.register_completion(fd, token, interest)?;
+
+        Ok(Self {
+            registry: registry.clone(),
+            token,
+            poll: None,
+            reactor: Some(reactor),
+            readiness: Mutex::new(Ready::EMPTY),
             staged: Mutex::new(completion::StagedReads::default()),
         })
     }
@@ -505,8 +568,6 @@ impl completion::CompletionSource for FdRegistration {
 
 /// Wraps any type that produces a raw fd, registering it with our poll::Selector
 /// and providing readiness polling + guarded I/O operations.
-///
-/// Adapted from tokio's AsyncFd, but works with our sync, task-driven model.
 pub struct RegisteredFd<T: AsRawFd> {
     registration: FdRegistration,
     inner: Option<T>,
@@ -560,6 +621,38 @@ impl<T: AsRawFd> RegisteredFd<T> {
             registration,
             inner: Some(inner),
         })
+    }
+
+    /// WHY: the transport-facing opt-in of Decision 14 F4. A transport that will
+    /// consume bytes through [`completion::CompletionSource`] declares it at
+    /// registration; only then does the kernel start reading the socket for it.
+    /// Plain [`RegisteredFd::new`] stays byte-transparent, so nothing that reads
+    /// its own fd is disturbed by the reactor's backend.
+    ///
+    /// WHAT: register `inner` with the shared reactor, opting into completion
+    /// mode where the backend and the fd allow it.
+    ///
+    /// HOW: requires the shared reactor's registry (`Reactor::get()?.registry()`);
+    /// a caller-owned registry has no completion inbox. Check
+    /// [`completion::CompletionSource::is_completion_source`] afterwards: it is
+    /// `false` for non-sockets, listening sockets, and non-completion backends,
+    /// and the caller must then use its ordinary read path.
+    ///
+    /// # Errors
+    /// The selector's `io::Error` if registration fails.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn with_completion(
+        inner: T,
+        registry: &crate::native::poll::Registry,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<Self> {
+        let fd = inner.as_raw_fd();
+        let registration = FdRegistration::with_completion(fd, registry, token, interest)?;
+        Ok(Self { registration, inner: Some(inner) })
     }
 
     /// Create, returning the original inner value on failure.

@@ -207,6 +207,39 @@ impl Reactor {
         Ok(())
     }
 
+    /// WHY: [`Reactor::register`] is byte-transparent — the fd's bytes stay in
+    /// the socket and the caller reads them. Completion mode is opted into here,
+    /// per registration, so no existing `Poll` user has the kernel start
+    /// draining its sockets behind its back.
+    ///
+    /// WHAT: register `fd` and, on the completion backend, arm a multishot
+    /// `RECV`. Returns whether the kernel will now read this fd for us.
+    ///
+    /// HOW: `false` on every backend without an inbox, and on fds that cannot
+    /// receive (non-sockets, listeners, write-only interests). The caller must
+    /// keep its own read path for those.
+    ///
+    /// # Errors
+    /// The selector's `io::Error` if registration fails.
+    ///
+    /// # Panics
+    /// Panics if the registration map lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn register_completion(
+        &self,
+        fd: std::os::fd::RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<bool> {
+        let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
+        let armed = self.poll.register_recv_fd(fd, token, interest)?;
+        self.entries.write().expect("entries lock poisoned").insert(
+            token,
+            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest },
+        );
+        Ok(armed)
+    }
+
     /// WHY: a closed connection must stop consuming a selector slot and a cache
     /// entry.
     ///

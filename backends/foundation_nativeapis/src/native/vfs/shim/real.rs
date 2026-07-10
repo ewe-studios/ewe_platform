@@ -105,3 +105,119 @@ pub unsafe fn rmdir(pathname: *const c_char) -> c_int {
     let f = REAL_RMDIR.get_or_init(|| unsafe { resolve(b"rmdir\0") });
     unsafe { f(pathname) }
 }
+
+// ── Directory streams ──
+//
+// WHY: `opendir`/`readdir`/`closedir` are interposed by this shim, so calling
+// `libc::opendir` from inside the shim resolves *back to the shim* — both when
+// the crate is statically linked into a binary and when it is `LD_PRELOAD`ed,
+// because a preloaded definition interposes on itself. That is unbounded
+// recursion; it overflowed the stack the moment any non-virtual directory was
+// opened. Every interposed symbol must reach the real implementation through
+// `RTLD_NEXT`, never through `libc::`.
+
+real_fn!(REAL_OPENDIR, unsafe extern "C" fn(*const c_char) -> *mut libc::DIR);
+real_fn!(REAL_READDIR, unsafe extern "C" fn(*mut libc::DIR) -> *mut libc::dirent);
+real_fn!(REAL_CLOSEDIR, unsafe extern "C" fn(*mut libc::DIR) -> c_int);
+
+/// # Safety
+/// `pathname` must be a valid NUL-terminated C string.
+pub unsafe fn opendir(pathname: *const c_char) -> *mut libc::DIR {
+    let f = REAL_OPENDIR.get_or_init(|| unsafe { resolve(b"opendir\0") });
+    unsafe { f(pathname) }
+}
+
+/// # Safety
+/// `dirp` must be a directory stream returned by [`opendir`].
+pub unsafe fn readdir(dirp: *mut libc::DIR) -> *mut libc::dirent {
+    let f = REAL_READDIR.get_or_init(|| unsafe { resolve(b"readdir\0") });
+    unsafe { f(dirp) }
+}
+
+/// # Safety
+/// `dirp` must be a directory stream returned by [`opendir`], not used again.
+pub unsafe fn closedir(dirp: *mut libc::DIR) -> c_int {
+    let f = REAL_CLOSEDIR.get_or_init(|| unsafe { resolve(b"closedir\0") });
+    unsafe { f(dirp) }
+}
+
+// ── The remaining interposed symbols ──
+//
+// Same rule as the directory stream above: a symbol this shim exports must never
+// be reached through `libc::`, or the call lands back in the shim. Under
+// `LD_PRELOAD` a preloaded definition interposes on itself just as it does when
+// statically linked, so this recursed in production, not only in tests.
+
+real_fn!(REAL_CHMOD, unsafe extern "C" fn(*const c_char, mode_t) -> c_int);
+real_fn!(REAL_FCHMOD, unsafe extern "C" fn(c_int, mode_t) -> c_int);
+real_fn!(REAL_FSYNC, unsafe extern "C" fn(c_int) -> c_int);
+real_fn!(REAL_FTRUNCATE, unsafe extern "C" fn(c_int, off_t) -> c_int);
+real_fn!(REAL_TRUNCATE, unsafe extern "C" fn(*const c_char, off_t) -> c_int);
+real_fn!(REAL_PREAD, unsafe extern "C" fn(c_int, *mut c_void, size_t, off_t) -> ssize_t);
+real_fn!(REAL_PWRITE, unsafe extern "C" fn(c_int, *const c_void, size_t, off_t) -> ssize_t);
+real_fn!(REAL_READLINK, unsafe extern "C" fn(*const c_char, *mut c_char, size_t) -> ssize_t);
+real_fn!(REAL_SYMLINK, unsafe extern "C" fn(*const c_char, *const c_char) -> c_int);
+
+/// # Safety
+/// `pathname` must be a valid NUL-terminated C string.
+pub unsafe fn chmod(pathname: *const c_char, mode: mode_t) -> c_int {
+    let f = REAL_CHMOD.get_or_init(|| unsafe { resolve(b"chmod\0") });
+    unsafe { f(pathname, mode) }
+}
+
+/// # Safety
+/// `fd` must be an open descriptor.
+pub unsafe fn fchmod(fd: c_int, mode: mode_t) -> c_int {
+    let f = REAL_FCHMOD.get_or_init(|| unsafe { resolve(b"fchmod\0") });
+    unsafe { f(fd, mode) }
+}
+
+/// # Safety
+/// `fd` must be an open descriptor.
+pub unsafe fn fsync(fd: c_int) -> c_int {
+    let f = REAL_FSYNC.get_or_init(|| unsafe { resolve(b"fsync\0") });
+    unsafe { f(fd) }
+}
+
+/// # Safety
+/// `fd` must be an open descriptor.
+pub unsafe fn ftruncate(fd: c_int, length: off_t) -> c_int {
+    let f = REAL_FTRUNCATE.get_or_init(|| unsafe { resolve(b"ftruncate\0") });
+    unsafe { f(fd, length) }
+}
+
+/// # Safety
+/// `pathname` must be a valid NUL-terminated C string.
+pub unsafe fn truncate(pathname: *const c_char, length: off_t) -> c_int {
+    let f = REAL_TRUNCATE.get_or_init(|| unsafe { resolve(b"truncate\0") });
+    unsafe { f(pathname, length) }
+}
+
+/// # Safety
+/// `fd` must be open and `buf` writable for `count` bytes.
+pub unsafe fn pread(fd: c_int, buf: *mut c_void, count: size_t, offset: off_t) -> ssize_t {
+    let f = REAL_PREAD.get_or_init(|| unsafe { resolve(b"pread\0") });
+    unsafe { f(fd, buf, count, offset) }
+}
+
+/// # Safety
+/// `fd` must be open and `buf` readable for `count` bytes.
+pub unsafe fn pwrite(fd: c_int, buf: *const c_void, count: size_t, offset: off_t) -> ssize_t {
+    let f = REAL_PWRITE.get_or_init(|| unsafe { resolve(b"pwrite\0") });
+    unsafe { f(fd, buf, count, offset) }
+}
+
+/// # Safety
+/// `pathname` must be a valid NUL-terminated C string and `buf` writable for
+/// `bufsiz` bytes.
+pub unsafe fn readlink(pathname: *const c_char, buf: *mut c_char, bufsiz: size_t) -> ssize_t {
+    let f = REAL_READLINK.get_or_init(|| unsafe { resolve(b"readlink\0") });
+    unsafe { f(pathname, buf, bufsiz) }
+}
+
+/// # Safety
+/// Both arguments must be valid NUL-terminated C strings.
+pub unsafe fn symlink(target: *const c_char, linkpath: *const c_char) -> c_int {
+    let f = REAL_SYMLINK.get_or_init(|| unsafe { resolve(b"symlink\0") });
+    unsafe { f(target, linkpath) }
+}

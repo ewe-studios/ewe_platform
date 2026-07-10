@@ -25,14 +25,10 @@ pub struct InotifyWatcher {
     inotify_fd: OwnedFd,
     /// The poll selector for readiness polling.
     poll: Poll,
-    /// The token for our inotify fd.
-    token: Token,
     /// Map from watch descriptor (wd) to path.
     wd_to_path: HashMap<i32, PathBuf>,
     /// Map from path to watch descriptor.
     path_to_wd: HashMap<PathBuf, i32>,
-    /// Counter for generating unique tokens (future use).
-    next_wd: i32,
     /// Buffer for reading inotify events.
     buffer: [u8; INOTIFY_BUF_LEN],
 }
@@ -76,10 +72,8 @@ impl InotifyWatcher {
         Ok(Self {
             inotify_fd,
             poll,
-            token,
             wd_to_path: HashMap::new(),
             path_to_wd: HashMap::new(),
-            next_wd: 1,
             buffer: [0u8; INOTIFY_BUF_LEN],
         })
     }
@@ -296,45 +290,47 @@ impl NativeWatcher for InotifyWatcher {
         }
     }
 
+    /// WHY: this must not be gated on an epoll *edge*. The inotify fd is
+    /// registered edge-triggered, and `has_events()` runs its own `epoll_wait`
+    /// on the same selector — so whichever call reaches the kernel first
+    /// consumes the one-shot edge. If `has_events()` won that race, `poll()`
+    /// saw no event, returned empty **without ever reading the fd**, and the
+    /// task parked forever with its events sitting unread in the inotify queue.
+    /// That is a deadlock, and a racy one: sometimes `poll()` won instead.
+    ///
+    /// WHAT: drain whatever inotify has buffered, blocking up to `timeout` for
+    /// the first batch.
+    ///
+    /// HOW: read the fd directly. The read is the source of truth, not the
+    /// readiness edge. Only when the fd is empty (`EAGAIN`) does this wait on
+    /// epoll, and it then reads again — so a consumed edge costs at most one
+    /// extra wait, never a lost event.
     fn poll(&mut self, timeout: Duration) -> Result<Vec<WatchEvent>> {
-        let mut events = crate::native::poll::Events::with_capacity(16);
-
-        match self.poll.poll(&mut events, Some(timeout)) {
-            Ok(()) => {}
-            Err(e) if e.kind() == io::ErrorKind::Interrupted => {
-                return Ok(Vec::new());
-            }
+        let n = match self.read_inotify() {
+            Ok(Some(n)) => n,
             Err(e) => return Err(WatchError::Io(e)),
-        }
-
-        if events.is_empty() {
-            return Ok(Vec::new());
-        }
-
-        // Read inotify events from the fd
-        let n = unsafe {
-            libc::read(
-                self.inotify_fd.as_raw_fd(),
-                self.buffer.as_mut_ptr() as *mut libc::c_void,
-                self.buffer.len(),
-            )
-        };
-
-        if n < 0 {
-            let err = io::Error::last_os_error();
-            if err.kind() == io::ErrorKind::WouldBlock {
-                // No data available yet
-                return Ok(Vec::new());
+            // Nothing buffered — wait for readiness, then read again.
+            Ok(None) => {
+                let mut events = crate::native::poll::Events::with_capacity(16);
+                match self.poll.poll(&mut events, Some(timeout)) {
+                    Ok(()) => {}
+                    Err(e) if e.kind() == io::ErrorKind::Interrupted => return Ok(Vec::new()),
+                    Err(e) => return Err(WatchError::Io(e)),
+                }
+                match self.read_inotify() {
+                    Ok(Some(n)) => n,
+                    Ok(None) => return Ok(Vec::new()),
+                    Err(e) => return Err(WatchError::Io(e)),
+                }
             }
-            return Err(WatchError::Io(err));
-        }
+        };
 
         // Decode the buffer into WatchEvents (borrows &mut self.wd_to_path, &mut self.path_to_wd)
         let (events, error) = Self::decode_events(
             &mut self.wd_to_path,
             &mut self.path_to_wd,
             self.inotify_fd.as_raw_fd(),
-            &self.buffer[..n as usize],
+            &self.buffer[..n],
         );
 
         // If there was a decode error, log it but still return any events we did get.
@@ -358,12 +354,83 @@ impl NativeWatcher for InotifyWatcher {
         Ok(())
     }
 
+    /// WHY: a readiness check must be **non-destructive**. Asking epoll would
+    /// consume the edge-triggered readiness that `poll()` needs, and asking with
+    /// a `read` would consume the events themselves. Either way the subsequent
+    /// `poll()` finds nothing and the watcher task parks on data it already has.
+    ///
+    /// WHAT: whether inotify has bytes queued for us right now.
+    ///
+    /// HOW: `FIONREAD` on the inotify fd — it reports the queued byte count
+    /// without dequeuing anything and without touching the epoll edge. When a
+    /// `timeout` is given and nothing is queued yet, wait on epoll once and ask
+    /// again.
     fn has_events(&mut self, timeout: Option<Duration>) -> bool {
+        if self.queued_bytes() > 0 {
+            return true;
+        }
+
+        // `None` means "check, don't block" — the executor's park gate calls it
+        // that way on every scheduler pass.
+        let Some(timeout) = timeout.filter(|d| !d.is_zero()) else {
+            return false;
+        };
+
         let mut events = crate::native::poll::Events::with_capacity(1);
-        // Use zero timeout when None — this is a readiness check, not a blocking poll.
-        // The epoll fd tells the kernel "is the inotify fd readable right now?"
-        // We don't want to block waiting for new events.
-        let effective = timeout.unwrap_or(Duration::ZERO);
-        self.poll.poll(&mut events, Some(effective)).is_ok() && !events.is_empty()
+        if self.poll.poll(&mut events, Some(timeout)).is_err() {
+            return false;
+        }
+        self.queued_bytes() > 0
+    }
+}
+
+impl InotifyWatcher {
+    /// Bytes inotify currently has queued, without dequeuing any.
+    ///
+    /// # Panics
+    /// Never panics.
+    fn queued_bytes(&self) -> usize {
+        let mut available: libc::c_int = 0;
+        // SAFETY: `available` is a valid out-param for FIONREAD, and
+        // `inotify_fd` is an open descriptor owned by `self`.
+        let rc = unsafe {
+            libc::ioctl(self.inotify_fd.as_raw_fd(), libc::FIONREAD, &mut available)
+        };
+        if rc < 0 || available < 0 {
+            return 0;
+        }
+        available as usize
+    }
+
+    /// Read one batch of inotify records.
+    ///
+    /// `Ok(None)` means the fd was empty (`EAGAIN`); the caller decides whether
+    /// to wait. `Ok(Some(0))` cannot happen — inotify never returns a short
+    /// zero read on a nonblocking fd with data.
+    ///
+    /// # Errors
+    /// Any read error other than `WouldBlock`.
+    fn read_inotify(&mut self) -> io::Result<Option<usize>> {
+        // SAFETY: reading into `self.buffer`, a valid writable array, from an
+        // open nonblocking descriptor owned by `self`.
+        let n = unsafe {
+            libc::read(
+                self.inotify_fd.as_raw_fd(),
+                self.buffer.as_mut_ptr().cast::<libc::c_void>(),
+                self.buffer.len(),
+            )
+        };
+
+        if n < 0 {
+            let err = io::Error::last_os_error();
+            if err.kind() == io::ErrorKind::WouldBlock {
+                return Ok(None);
+            }
+            return Err(err);
+        }
+        if n == 0 {
+            return Ok(None);
+        }
+        Ok(Some(n as usize))
     }
 }

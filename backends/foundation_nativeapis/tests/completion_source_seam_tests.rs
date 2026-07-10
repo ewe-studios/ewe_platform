@@ -90,11 +90,11 @@ fn a_socket_is_a_completion_source_and_a_pipe_is_not() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_interest(a, reactor.registry(), Token(0xC0DE_01), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_01), Interest::READABLE)
         .expect("register socket");
 
     let (r, w) = nonblocking_pipe();
-    let pipe = RegisteredFd::with_interest(r, reactor.registry(), Token(0xC0DE_02), Interest::READABLE)
+    let pipe = RegisteredFd::with_completion(r, reactor.registry(), Token(0xC0DE_02), Interest::READABLE)
         .expect("register pipe");
 
     assert!(
@@ -118,7 +118,7 @@ fn parked_task_wakes_and_drains_kernel_filled_bytes() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_interest(a, reactor.registry(), Token(0xC0DE_10), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_10), Interest::READABLE)
         .expect("register socket");
 
     assert!(!sock.is_ready(None), "an idle socket must not be ready");
@@ -148,7 +148,7 @@ fn draining_the_inbox_clears_readiness_so_the_task_parks_again() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_interest(a, reactor.registry(), Token(0xC0DE_20), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_20), Interest::READABLE)
         .expect("register socket");
 
     write_all(&b, b"one");
@@ -190,7 +190,7 @@ fn buffers_return_to_the_pool_when_completions_are_dropped() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_interest(a, reactor.registry(), Token(0xC0DE_30), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_30), Interest::READABLE)
         .expect("register socket");
 
     // Round-trip more messages than a naive implementation could serve if it
@@ -221,7 +221,7 @@ fn read_bytes_serves_a_completion_across_several_small_reads() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_interest(a, reactor.registry(), Token(0xC0DE_50), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_50), Interest::READABLE)
         .expect("register socket");
 
     let payload: Vec<u8> = (0..100u8).collect();
@@ -253,7 +253,7 @@ fn read_bytes_reports_would_block_when_the_inbox_is_empty() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_interest(a, reactor.registry(), Token(0xC0DE_60), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_60), Interest::READABLE)
         .expect("register socket");
 
     let mut chunk = [0u8; 16];
@@ -274,7 +274,7 @@ fn read_bytes_reports_eof_after_the_peer_closes() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_interest(a, reactor.registry(), Token(0xC0DE_70), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_70), Interest::READABLE)
         .expect("register socket");
 
     write_all(&b, b"bye");
@@ -316,7 +316,7 @@ fn peer_close_surfaces_as_eof_through_the_seam() {
     require_completion_backend!(reactor);
 
     let (a, b) = socketpair();
-    let sock = RegisteredFd::with_interest(a, reactor.registry(), Token(0xC0DE_40), Interest::READABLE)
+    let sock = RegisteredFd::with_completion(a, reactor.registry(), Token(0xC0DE_40), Interest::READABLE)
         .expect("register socket");
 
     drop(b);

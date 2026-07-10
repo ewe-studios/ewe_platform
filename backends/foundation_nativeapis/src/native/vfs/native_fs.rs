@@ -163,6 +163,15 @@ pub struct NativeFile {
     mode: OpenMode,
 }
 
+impl std::fmt::Debug for NativeFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("NativeFile")
+            .field("path", &self.path)
+            .field("mode", &self.mode)
+            .finish()
+    }
+}
+
 impl VfsFile for NativeFile {
     fn read_at(&self, buf: &mut [u8], offset: u64) -> VfsResult<usize> {
         #[cfg(unix)]
@@ -243,6 +252,16 @@ pub struct SeekableNativeFile {
     path: PathBuf,
     mode: OpenMode,
     position: std::sync::atomic::AtomicU64,
+}
+
+impl std::fmt::Debug for SeekableNativeFile {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SeekableNativeFile")
+            .field("path", &self.path)
+            .field("mode", &self.mode)
+            .field("position", &self.position.load(std::sync::atomic::Ordering::Acquire))
+            .finish()
+    }
 }
 
 impl VfsFile for SeekableNativeFile {

@@ -207,6 +207,23 @@ impl Poll {
         self.selector.is_recv_token(token)
     }
 
+    /// Register `fd`, opting its read path into completion mode where possible.
+    ///
+    /// Returns whether the kernel will now read this fd for you. See
+    /// [`sys::unix::selector::dispatch::Selector::register_recv_fd`].
+    ///
+    /// # Errors
+    /// Propagates the selector's registration error.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn register_recv_fd(
+        &self,
+        fd: sys::RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<bool> {
+        self.selector.register_recv_fd(fd, token, interest)
+    }
+
     /// Returns a [`Registry`] for registering/deregistering sources.
     pub fn registry(&self) -> Registry {
         Registry {
@@ -242,6 +259,21 @@ pub struct Registry {
 }
 
 impl Registry {
+    /// WHY: `FdRegistration` must honour the registry it is handed. It decides
+    /// between the shared-reactor path (cached readiness, zero syscalls per
+    /// check) and a caller-owned selector by asking whether the two registries
+    /// front the *same* selector — not by silently preferring the singleton.
+    ///
+    /// WHAT: whether `self` and `other` register into the same selector.
+    ///
+    /// HOW: pointer equality of the `Arc<Selector>` both hold.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn same_selector(&self, other: &Registry) -> bool {
+        Arc::ptr_eq(&self.selector, &other.selector)
+    }
+
     /// Register a source with the selector.
     ///
     /// # Arguments

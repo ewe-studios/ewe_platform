@@ -6,7 +6,7 @@
 /// - Broken pipe / closed fd returns Error, not perpetual Ready
 
 use foundation_nativeapis::native::fd::{PollResult, Ready, RegisteredFd};
-use foundation_nativeapis::{Events, Interest, Poll, SourceFd, Token};
+use foundation_nativeapis::{Events, Interest, Poll, Token};
 use std::os::fd::{AsRawFd, OwnedFd};
 use std::time::Duration;
 
@@ -56,11 +56,11 @@ fn registered_fd_not_ready_when_empty() {
 /// This requires the poll layer to update the readiness bitmask.
 #[test]
 fn registered_fd_ready_after_poll_with_data() {
-    let (reader, mut writer) = make_pipe();
+    let (reader, writer) = make_pipe();
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
+    let _registered = RegisteredFd::new(reader, &registry, Token(0))
         .expect("failed to register fd");
 
     // Write data to the pipe
@@ -82,7 +82,7 @@ fn registered_fd_ready_after_poll_with_data() {
 /// Test: After reading all data and polling again, no readiness
 #[test]
 fn registered_fd_readiness_cleared_after_read() {
-    let (reader, mut writer) = make_pipe();
+    let (reader, writer) = make_pipe();
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
@@ -214,7 +214,7 @@ fn registered_fd_lifecycle() {
 /// fully drained), no second event fires even though data remains.
 #[test]
 fn registered_fd_edge_triggered() {
-    let (reader, mut writer) = make_pipe();
+    let (reader, writer) = make_pipe();
     let poll = Poll::new().expect("failed to create poll");
 
     let registered = RegisteredFd::new(reader, &poll.registry(), Token(0))
@@ -371,7 +371,7 @@ fn try_io_read_clears_on_zero_bytes() {
     let poll = Poll::new().expect("failed to create poll");
     let registry = poll.registry();
 
-    let registered = RegisteredFd::new(reader, &registry, Token(0))
+    let _registered = RegisteredFd::new(reader, &registry, Token(0))
         .expect("failed to register fd");
 
     // Manually construct a scenario where readiness is set but read returns 0

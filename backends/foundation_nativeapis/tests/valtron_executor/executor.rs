@@ -131,7 +131,7 @@ fn fd_monitor_task_valtron_execution() {
         );
     }
 
-    let mut task = FdMonitorTask::new(registered)
+    let task = FdMonitorTask::new(registered)
         .with_callback(move |fd| {
             let mut buf = [0u8; 64];
             let n = unsafe { libc::read(fd.as_raw_fd(), buf.as_mut_ptr() as *mut _, buf.len()) };
@@ -286,7 +286,7 @@ fn file_watcher_task_delivers_events() {
 fn file_watcher_task_handles_poll_error() {
     let _guard = init_pool();
 
-    let mut task = FileWatcherTask::with_watcher(Box::new(PollWatcher::new()))
+    let task = FileWatcherTask::with_watcher(Box::new(PollWatcher::new()))
         .with_poll_timeout(Duration::from_millis(10));
 
     // Signal stop after a short delay so the task runs a few ticks then terminates
@@ -314,7 +314,7 @@ fn file_watcher_task_no_subscribers() {
 
     let dir = TempDir::new();
 
-    let mut task = FileWatcherTask::with_watcher(Box::new({
+    let task = FileWatcherTask::with_watcher(Box::new({
         let mut w = PollWatcher::new();
         w.watch(dir.path(), false).expect("watch failed");
         w

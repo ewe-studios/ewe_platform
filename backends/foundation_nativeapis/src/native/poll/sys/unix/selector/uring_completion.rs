@@ -146,19 +146,30 @@ impl std::fmt::Debug for Selector {
 
 /// Is `fd` a socket? `RECV` only works on sockets.
 fn is_socket(fd: RawFd) -> bool {
-    let mut sock_type: libc::c_int = 0;
+    sockopt(fd, libc::SO_TYPE).is_some()
+}
+
+/// Is `fd` a listening socket? A listener has no bytes to receive — only
+/// connections to `accept()` — so `RECV` on it is meaningless.
+fn is_listening(fd: RawFd) -> bool {
+    sockopt(fd, libc::SO_ACCEPTCONN).is_some_and(|v| v != 0)
+}
+
+/// Read one `SOL_SOCKET` integer option, or `None` if `fd` is not a socket.
+fn sockopt(fd: RawFd, name: libc::c_int) -> Option<libc::c_int> {
+    let mut value: libc::c_int = 0;
     let mut len = std::mem::size_of::<libc::c_int>() as libc::socklen_t;
-    // SAFETY: `sock_type`/`len` are valid out-params of the expected sizes.
+    // SAFETY: `value`/`len` are valid out-params of the expected sizes.
     let rc = unsafe {
         libc::getsockopt(
             fd,
             libc::SOL_SOCKET,
-            libc::SO_TYPE,
-            std::ptr::from_mut(&mut sock_type).cast(),
+            name,
+            std::ptr::from_mut(&mut value).cast(),
             &mut len,
         )
     };
-    rc == 0
+    (rc == 0).then_some(value)
 }
 
 impl Selector {
@@ -365,10 +376,20 @@ impl Selector {
         }
     }
 
-    /// Register `fd` under `token`.
+    /// WHY: **byte transparency.** `Poll`/`Registry` callers register an fd and
+    /// then read it themselves — `accept()`, `recv_from()`, `read()`. If this
+    /// backend armed a multishot `RECV`, the kernel would drain the socket into
+    /// our buffer ring and the caller's own read would find nothing. Arming
+    /// `RECV` behind a caller's back is not a backend swap, it is a semantic
+    /// change, and `Poll::new()` picking this backend would inflict it on every
+    /// existing user.
     ///
-    /// Sockets with a readable interest take the completion path; everything
-    /// else takes multishot poll.
+    /// WHAT: register `fd` for readiness, exactly as the epoll and io_uring
+    /// readiness selectors do. No bytes are consumed.
+    ///
+    /// HOW: multishot `POLL_ADD`. Completion mode is opted into per
+    /// registration, via [`Selector::register_recv_fd`] — which is what
+    /// Decision 14 F4 means by "transports opt their read path into inbox-pop".
     ///
     /// # Errors
     /// `InvalidInput` if the token collides with the internal tag bits; the
@@ -377,14 +398,62 @@ impl Selector {
     /// # Panics
     /// Panics if an internal lock is poisoned.
     pub fn register_fd(&self, fd: RawFd, token: Token, interest: Interest) -> io::Result<()> {
+        self.register_with_mode(fd, token, interest, Mode::Poll).map(|_| ())
+    }
+
+    /// WHY: the opt-in half. A transport that will consume through
+    /// [`Selector::take_completions`] declares it here, and only then does the
+    /// kernel start reading the socket on its behalf.
+    ///
+    /// WHAT: arm a multishot `RECV` for `fd`, delivering bytes into this
+    /// selector's inbox. Returns whether the recv path was actually taken.
+    ///
+    /// HOW: `RECV` is a connected-socket operation. Three kinds of fd cannot use
+    /// it, and each falls back to `POLL_ADD` and returns `false` rather than
+    /// failing:
+    ///
+    /// - non-sockets (pipes, eventfds, inotify): `-ENOTSOCK`
+    /// - listening sockets: there are no bytes to receive, only connections to
+    ///   `accept()`
+    /// - registrations without a readable interest: nothing to receive
+    ///
+    /// A caller must therefore check the return value (or
+    /// [`Selector::is_recv_token`]) before skipping its own `read`.
+    ///
+    /// # Errors
+    /// `InvalidInput` if the token collides with the internal tag bits; the
+    /// kernel's error if the SQE cannot be submitted.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    pub fn register_recv_fd(
+        &self,
+        fd: RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<bool> {
+        let mode = if interest.is_readable() && is_socket(fd) && !is_listening(fd) {
+            Mode::Recv
+        } else {
+            Mode::Poll
+        };
+        self.register_with_mode(fd, token, interest, mode)
+    }
+
+    /// Shared registration body. Returns `true` when the recv path was armed.
+    fn register_with_mode(
+        &self,
+        fd: RawFd,
+        token: Token,
+        interest: Interest,
+        mode: Mode,
+    ) -> io::Result<bool> {
         if token.0 as u64 > MAX_TOKEN {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidInput,
                 format!("token {} exceeds the completion selector's tag space", token.0),
             ));
         }
-
-        let mode = if interest.is_readable() && is_socket(fd) { Mode::Recv } else { Mode::Poll };
 
         let mut entries = self.entries.lock().expect("uring entries lock poisoned");
         match mode {
@@ -399,7 +468,7 @@ impl Selector {
             .expect("uring inbox lock poisoned")
             .entry(token)
             .or_default();
-        Ok(())
+        Ok(mode == Mode::Recv)
     }
 
     /// Re-arm `token` with a new interest.

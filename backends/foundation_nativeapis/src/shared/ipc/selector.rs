@@ -6,7 +6,6 @@
 use foundation_core::type_uuid::Bytes;
 
 use super::label::LabelOp;
-use super::selector;
 
 /// Delivery mode for a selector.
 #[derive(Debug, Copy, Clone, serde::Serialize, serde::Deserialize, Eq, PartialEq)]

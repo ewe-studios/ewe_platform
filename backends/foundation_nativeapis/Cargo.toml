@@ -81,6 +81,38 @@ nix = { version = "0.29", features = ["fs", "poll"] }
 tempfile = "3"
 
 # Test targets (directory-based test groups)
+# Integration test targets for tests/<dir>/mod.rs. `autotests` only picks up
+# tests/*.rs, so a directory without an entry here is silently never compiled.
+[[test]]
+name = "poll"
+path = "tests/poll/mod.rs"
+required-features = ["poll"]
+
+[[test]]
+name = "fd"
+path = "tests/fd/mod.rs"
+required-features = ["fd"]
+
+[[test]]
+name = "watcher"
+path = "tests/watcher/mod.rs"
+required-features = ["watcher-linux"]
+
+[[test]]
+name = "valtron_executor"
+path = "tests/valtron_executor/mod.rs"
+required-features = ["watcher-linux", "fd"]
+
+[[test]]
+name = "ipc"
+path = "tests/ipc/mod.rs"
+required-features = ["ipc"]
+
+[[test]]
+name = "vfs_shim_vfs"
+path = "tests/vfs_shim_vfs/mod.rs"
+required-features = ["vfs-preload"]
+
 [[test]]
 name = "valtron_vfs"
 path = "tests/valtron_vfs/mod.rs"

@@ -103,7 +103,7 @@ fn kernel_delivers_socket_bytes_into_a_provided_buffer() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
     write_all(b, b"hello completion");
 
     let completions = collect_completions(&sel, token, Duration::from_secs(2));
@@ -133,7 +133,7 @@ fn dropping_a_provided_buf_returns_it_to_the_pool() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
     write_all(b, b"recycle me");
 
     let before = sel.bufring().recycle_count();
@@ -168,7 +168,7 @@ fn multishot_recv_delivers_successive_writes() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
 
     for i in 0..4u8 {
         write_all(b, &[b'a' + i]);
@@ -198,7 +198,7 @@ fn peer_close_surfaces_as_eof() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
     close(b);
 
     let completions = collect_completions(&sel, token, Duration::from_secs(2));
@@ -221,7 +221,7 @@ fn bytes_still_arrive_when_the_peer_closes_immediately_after_writing() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
     write_all(b, b"last words");
     close(b);
 
@@ -268,7 +268,8 @@ fn non_socket_fds_fall_back_to_the_poll_path() {
 
     // A pipe is not a socket: RECV would fail with -ENOTSOCK, so the selector
     // must register it with multishot POLL_ADD instead.
-    sel.register_fd(r, token, Interest::READABLE).expect("register pipe");
+    let armed = sel.register_recv_fd(r, token, Interest::READABLE).expect("register pipe");
+    assert!(!armed, "a pipe cannot take the RECV path");
     write_all(w, b"x");
 
     let deadline = Instant::now() + Duration::from_secs(2);
@@ -300,7 +301,7 @@ fn a_starved_pool_recovers_once_buffers_are_returned() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
 
     write_all(b, b"first");
     let first = collect_completions(&sel, token, Duration::from_secs(2));
@@ -366,7 +367,7 @@ fn submissions_are_per_registration_not_per_read() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
     let after_register = sel.submissions();
     assert_eq!(after_register, 1, "arming a socket takes exactly one SQE");
 
@@ -401,7 +402,7 @@ fn deregistered_socket_stops_delivering() {
     let (a, b) = socketpair();
     let token = Token(1);
 
-    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    sel.register_recv_fd(a, token, Interest::READABLE).expect("register socket");
     sel.deregister_fd(a).expect("deregister");
 
     write_all(b, b"ignored");
@@ -413,4 +414,95 @@ fn deregistered_socket_stops_delivering() {
 
     close(a);
     close(b);
+}
+
+/// Plain `register_fd` must never let the kernel eat the caller's bytes.
+///
+/// WHY: `Poll`/`Registry` users register a socket and then read it themselves —
+/// `accept()`, `recv_from()`, `read()`. Completion mode originally armed a
+/// multishot `RECV` for every readable socket, so on a completion-mode reactor
+/// the kernel drained those sockets into its buffer ring and the caller's own
+/// read found nothing. `Poll::new()` selecting this backend inflicted that on
+/// every existing user; `tests/poll/mod.rs` caught it (a TCP listener never
+/// reported readable, a UDP datagram vanished).
+///
+/// WHAT: after `register_fd`, the socket still holds its bytes and the caller
+/// can read them.
+///
+/// HOW: completion mode is now opt-in per registration, via `register_recv_fd`.
+#[test]
+fn plain_registration_leaves_the_bytes_in_the_socket() {
+    require_completion_tier!();
+
+    let sel = Selector::new().expect("completion selector");
+    let (a, b) = socketpair();
+    let token = Token(1);
+
+    sel.register_fd(a, token, Interest::READABLE).expect("register socket");
+    assert!(
+        !sel.is_recv_token(token),
+        "plain register_fd must not arm RECV; completion mode is opt-in"
+    );
+
+    write_all(b, b"mine to read");
+
+    // Readiness is reported, exactly as on every other backend.
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let mut events = Events::with_capacity(16);
+    let mut readable = false;
+    while Instant::now() < deadline && !readable {
+        events.clear();
+        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        readable = events.iter().any(|e| e.token() == token && e.is_readable());
+    }
+    assert!(readable, "a plainly-registered socket must still report readable");
+
+    assert!(
+        sel.take_completions(token).is_empty(),
+        "no completion inbox for a plainly-registered fd"
+    );
+
+    // And the bytes are still ours to read.
+    let mut buf = [0u8; 32];
+    // SAFETY: reading into a valid local buffer from an owned socket fd.
+    let n = unsafe { libc::read(a, buf.as_mut_ptr().cast(), buf.len()) };
+    assert!(n > 0, "the kernel consumed bytes the caller never opted out of: {}", io::Error::last_os_error());
+    assert_eq!(&buf[..n as usize], b"mine to read");
+
+    sel.deregister_fd(a).expect("deregister");
+    close(a);
+    close(b);
+}
+
+/// A listening socket cannot `RECV` — there are no bytes, only connections.
+#[test]
+fn a_listening_socket_falls_back_to_the_poll_path() {
+    require_completion_tier!();
+
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let token = Token(1);
+
+    let sel = Selector::new().expect("completion selector");
+    let armed = sel
+        .register_recv_fd(std::os::fd::AsRawFd::as_raw_fd(&listener), token, Interest::READABLE)
+        .expect("register listener");
+    assert!(
+        !armed,
+        "a listener has no bytes to receive; arming RECV on it would make accept() \
+         unreachable"
+    );
+
+    let _client = std::net::TcpStream::connect(addr).expect("connect");
+
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let mut events = Events::with_capacity(16);
+    let mut readable = false;
+    while Instant::now() < deadline && !readable {
+        events.clear();
+        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+        readable = events.iter().any(|e| e.token() == token && e.is_readable());
+    }
+    assert!(readable, "an incoming connection must make the listener readable");
+    listener.accept().expect("accept must still work");
 }

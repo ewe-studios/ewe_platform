@@ -35,7 +35,6 @@ pub struct ShimConfig {
     pub root_dir: Option<String>,
     pub delta_backend: DeltaBackend,
     pub delta_path: Option<String>,
-    pub socket_path: Option<String>,
 }
 
 impl ShimConfig {
@@ -55,14 +54,11 @@ impl ShimConfig {
             .unwrap_or_default();
 
         let delta_path = env::var("FOUNDATION_VFS_DELTA_PATH").ok();
-        let socket_path = env::var("FOUNDATION_VFS_SOCKET").ok();
-
         Self {
             prefixes,
             root_dir,
             delta_backend,
             delta_path,
-            socket_path,
         }
     }
 }

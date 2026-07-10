@@ -9,9 +9,7 @@
 
 use std::fs::File;
 use std::path::PathBuf;
-use std::time::Duration;
 
-use foundation_core::synca::mpp::Receiver;
 use foundation_core::valtron::TaskIterator;
 use foundation_nativeapis::{EventBroadcaster, FileWatcherTask};
 use foundation_nativeapis::{NativeWatcher, PollWatcher};
@@ -81,7 +79,7 @@ fn event_broadcast_cleans_up_dead_subscribers() {
 /// Test: FileWatcherTask with PollWatcher delivers events
 #[test]
 fn file_watcher_task_delivers_events() {
-    use foundation_nativeapis::WatchEvent;
+    
 
     let dir = TempDir::new();
 

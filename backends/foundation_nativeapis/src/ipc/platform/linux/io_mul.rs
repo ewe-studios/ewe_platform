@@ -1,6 +1,6 @@
 /// Linux IO multiplexing — epoll-based event loop.
 
-use std::{ffi, mem, ptr, time::Duration};
+use std::{ffi, mem, time::Duration};
 
 use super::Fd;
 
@@ -37,13 +37,6 @@ impl IoMultiplexing {
                 u64: fd.as_raw() as _,
             };
             let r = libc::epoll_ctl(self.fd.as_raw(), libc::EPOLL_CTL_ADD, fd.as_raw(), &mut ev);
-            assert_ne!(r, -1);
-        }
-    }
-
-    pub(crate) fn deregister(&self, fd: &Fd) {
-        unsafe {
-            let r = libc::epoll_ctl(self.fd.as_raw(), libc::EPOLL_CTL_DEL, fd.as_raw(), ptr::null_mut());
             assert_ne!(r, -1);
         }
     }

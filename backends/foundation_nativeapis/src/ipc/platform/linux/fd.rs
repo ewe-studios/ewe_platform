@@ -2,7 +2,7 @@
 
 use std::{
     io, mem,
-    os::fd::{self, AsRawFd, FromRawFd, IntoRawFd, OwnedFd, RawFd},
+    os::fd::{AsRawFd, FromRawFd, IntoRawFd, OwnedFd, RawFd},
     sync::{Mutex, MutexGuard},
 };
 

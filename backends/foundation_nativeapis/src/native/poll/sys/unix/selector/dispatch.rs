@@ -197,6 +197,32 @@ impl Selector {
         }
     }
 
+    /// WHY: registering an fd must never silently change who reads it. Plain
+    /// [`Selector::register_fd`] is byte-transparent on every backend; this is
+    /// the explicit opt-in that lets the kernel read the socket for you.
+    ///
+    /// WHAT: register `fd` and, on the completion backend, arm a multishot
+    /// `RECV`. Returns whether the recv path was actually taken.
+    ///
+    /// HOW: `false` on every other backend, and on fds that cannot receive
+    /// (non-sockets, listeners, write-only interests) — the caller must then use
+    /// its ordinary read path.
+    ///
+    /// # Errors
+    /// Propagates the underlying selector's registration error.
+    #[cfg(feature = "uring")]
+    pub fn register_recv_fd(
+        &self,
+        fd: RawFd,
+        token: Token,
+        interest: Interest,
+    ) -> io::Result<bool> {
+        match self {
+            Selector::UringCompletion(s) => s.register_recv_fd(fd, token, interest),
+            other => other.register_fd(fd, token, interest).map(|()| false),
+        }
+    }
+
     /// Register `fd` under `token` for `interest`.
     ///
     /// # Errors
