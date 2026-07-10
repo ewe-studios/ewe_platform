@@ -1,11 +1,11 @@
 ---
-feature: "WebSocketTransport: Connect-over-WS bidi via ReconnectingWebSocketTask (D13 F1)"
-description: "The opt-in WS transport built on ReconnectingWebSocketTask + Pipe; full-duplex bidi on h1 deployments with automatic reconnection"
+feature: "WebSocketTransport: Connect-over-WS bidi via WebSocketClient + MessageDelivery (D13 F1)"
+description: "WsTransport built on the existing WebSocketClient + MessageDelivery (Pipe-backed); full-duplex bidi on h1 with reconnection"
 status: "in-progress"
 priority: "medium"
 phase: 4
 depends_on: ["37-ws-server-task", "22-router-dispatch", "02-pipe-primitive"]
-estimated_effort: "large"
+estimated_effort: "medium"
 created: 2026-07-03
 updated: 2026-07-10
 ---
@@ -14,98 +14,100 @@ updated: 2026-07-10
 ## Description
 
 The last transport: Connect envelopes over WebSocket messages, giving bidi to
-HTTP/1.1 deployments — non-standard, opt-in, our-stack-to-our-stack, validating
-the seam's thesis.
+HTTP/1.1 deployments — non-standard, opt-in, our-stack-to-our-stack.
 
-## Design revision: built on ReconnectingWebSocketTask + Pipe (2026-07-10)
+## Design revision: WebSocketClient + MessageDelivery (2026-07-10)
 
-### Before (as initially committed)
+### The existing `WebSocketClient` already does everything
 
-`WsBytePump` in `pump.rs` duplicated the WS handshake and frame I/O from
-scratch using raw TCP — bypassing the proven `WebSocketTask` and
-`ReconnectingWebSocketTask` that already handle connect, upgrade, Ping→Pong,
-Close handshake, message assembly, and reconnection with exponential backoff.
+`WebSocketClient` in `connection.rs` already handles:
 
-The reason was `WebSocketTask<R: DnsResolver>` being generic — but
-`SystemDnsResolver` is a concrete type; `ReconnectingWebSocketTask<SystemDnsResolver>`
-is fully monomorphized and can be spawned via `valtron::send(task)` without
-any boxing.
+- TCP connect + WS upgrade handshake + 101 validation
+- `WebSocketTask` spawning on valtron via `execute(task, None)`
+- Frame encode/decode, masking, Ping→Pong, Close handshake
+- Returns `(Self, MessageDelivery)` — caller polls `client.next()` for
+  inbound messages, calls `delivery.send(msg)` for outbound
 
-### After (target)
+After the F37 Pipe migration, `MessageDelivery` wraps a `PipeSender` instead
+of `Arc<ConcurrentQueue>`. The API is unchanged — `send(msg)`, `ping()`,
+`pong()`, `close()` — but now backed by `Pipe` with wake + backpressure.
 
-`WsTransport::open()` spawns `ReconnectingWebSocketTask<SystemDnsResolver>` on
-the valtron pool, bridges its Pipe-based message seam into the standard
-`TransportStream { send_body, head, recv_body, trailers }`:
+### `WsTransport::open()` — ~30 lines of glue
 
 ```
-                      ┌─────────────────────────────────┐
-                      │     ReconnectingWebSocketTask     │
-                      │                                  │
- caller's tx ────────►│ PipeReceiver<WebSocketMessage>    │──► TCP (WS Binary frames)
- (PipeSender)   send  │  (outbound: caller → task)       │
-                      │                                  │
- caller's rx ◄────────│ PipeSender<WebSocketMessage>      │◄── TCP (WS frames → decode → message)
- (PipeReceiver) recv  │  (inbound: task → caller)        │
-                      │                                  │
-                      │  Auto-reconnect on disconnect.   │
-                      │  Pipe halves are swapped atomically│
-                      │  on each reconnect cycle.         │
-                      └─────────────────────────────────┘
+open(request):
+  1. let (client, delivery) = WebSocketClient::connect(
+       SystemDnsResolver::default(),
+       ws_url,
+       read_timeout,
+       sleep_timeout,
+     )?;
+
+  2. Spawn collector on valtron: loop { client.next() }
+       Stream::Next(Ok(Binary(data))) → body_tx.send(data).await
+       Stream::Next(Ok(Close(..))) | exhausted → body_tx.close(), break
+
+  3. Emit head: Status::SwitchingProtocols on ConnectionEstablished
+
+  4. Return TransportStream {
+       send_body: delivery.into_pipe(),    // PipeSender half
+       head,                                // 101 + response headers
+       recv_body: body_rx,                  // PipeReceiver half
+       trailers: trailer_rx,
+     }
 ```
 
-The task's inbound `Ready(WebSocketMessage)` values are bridged to `body_tx`
-by a thin collector adapter. The 101 head is emitted once on handshake
-completion (the task surfaces `ConnectionEstablished`).
+**No custom task. No raw TCP. No handshake code.** The existing
+`WebSocketClient` + `MessageDelivery` carry the entire client side.
 
-Reconnection status is already surfaced via `type Pending =
-ReconnectingWebSocketProgress` — `Connecting` / `Handshaking` / `Reading` /
-`Reconnecting`. The transport can expose this if desired, but the default is
-transparent: the caller just sees a `TransportStream`.
+### Generic resolved by concrete type
 
-### Why Pipe instead of ConcurrentQueue
+`WebSocketClient<SystemDnsResolver>` is fully monomorphized — spawns via
+`valtron::send()` without boxing. The generic isn't a problem; it's the
+same pattern `SimpleHttpClient<SystemDnsResolver>` already uses.
 
-See [F37 design revision](../37-ws-server-task/feature.md#design-revision-concurrentqueue--pipe) —
-the same argument applies. On an idle connection the task parks on
-`Depends(pipe.readiness())` — zero polls, zero syscalls. On the client side,
-the task's outbound `PipeReceiver` is empty → parks on `QueueReadiness`; the
-caller's `PipeSender.send()` wakes it. On the server side, the inbound
-`PipeSender` is full → parks on `QueueVacancyReadiness`; the caller's
-`PipeReceiver.receive()` wakes it.
+### Reconnection
 
-### Reconnection model
+`WebSocketClient` wraps the single-shot `WebSocketTask`. For reconnection,
+`WsTransport` can optionally layer `ReconnectingWebSocketTask` (which wraps
+`WebSocketTask` with exponential backoff). Both paths are valid:
 
-`ReconnectingWebSocketTask` handles disconnect detection, exponential backoff,
-and re-handshake. On each successful reconnect:
+| Strategy | Task | Reconnect | Use case |
+|---|---|---|---|
+| Simple | `WebSocketTask` via `WebSocketClient` | None — drop + reconnect at Transport level | Ephemeral calls, test fixtures |
+| Reconnecting | `ReconnectingWebSocketTask` | Auto, exponential backoff | Long-lived connections |
 
-1. Old pipe halves are closed (drop → the old receiver sees `None`).
-2. New `Pipe<WebSocketMessage>` pair is created.
-3. The task swaps in the new `PipeReceiver` (outbound) and `PipeSender` (inbound).
-4. The caller's ends are atomically replaced: the old `PipeSender`/`PipeReceiver`
-   are closed, and the new halves are returned to the caller via a notification
-   channel (or the caller re-reads them from a shared `Arc<Mutex<...>>`).
+The initial implementation uses the simple path. Reconnecting is a follow-on
+config option (`WsTransport::with_reconnect(true)`).
 
-The caller sees `send()` → `Err(Closed)` during the reconnect window, retries,
-and the new `PipeSender` is available once the task completes the handshake.
+### How it connects to the Pipe design (F37)
+
+`WebSocketClient::connect()` returns `(client, MessageDelivery)`. After F37:
+- `client` drains `DrivenStreamIterator<WebSocketTask>` — inbound messages
+- `delivery` wraps `PipeSender` — outbound messages
+- `delivery.pipe()` → `&PipeSender` — caller can bridge into `TransportStream::send_body`
+- `delivery.send(msg)` → `tx.try_send(msg)` — same API as today
+- `delivery.send_async(msg).await` → `tx.send(msg).await` — parks on backpressure
 
 ## Scope
 
-- [ ] Delete `pump.rs` (raw TCP `WsBytePump`) — replaced by `ReconnectingWebSocketTask`
+- [ ] Delete `pump.rs` (raw TCP `WsBytePump`) — replaced by `WebSocketClient`
 - [ ] Delete `ws.rs` in connectrpc (current `WsTransport` wrapping `WsBytePump`)
-- [ ] Migrate `WebSocketTask` from `Arc<ConcurrentQueue>` to `Pipe` (F37)
-- [ ] Migrate `ReconnectingWebSocketTask` to Pipe with reconnect-safe caller ends
-- [ ] `WsTransport::open()`: spawn `ReconnectingWebSocketTask<SystemDnsResolver>`,
-      bridge Pipe ends into `TransportStream`
-- [ ] Inbound collector: bridge `TaskStatus::Ready(WebSocketMessage::Binary)` →
-      `body_tx` pipe; `WebSocketMessage::Close` → `trailer_tx` close
-- [ ] Head: emit `Status::SwitchingProtocols` + response headers on `ConnectionEstablished`
+- [ ] Migrate `WebSocketTask` from `Arc<ConcurrentQueue>` to `Pipe`, update `WebSocketClient` accordingly (F37)
+- [ ] Migrate `MessageDelivery`: replace `Arc<ConcurrentQueue>` with `PipeSender` (F37)
+- [ ] `WsTransport::open()`: `WebSocketClient::connect()` → spawn collector → `TransportStream`
+- [ ] Inbound collector: bridge `Stream::Next(Ok(WebSocketMessage::Binary))` → `body_tx`
+- [ ] Head: emit `Status::SwitchingProtocols` on `ConnectionEstablished`
 - [ ] Upgrade path routing + `ewe.connectrpc(.batch).v1` subprotocol negotiation
 - [ ] Batch framing (BE u32 count; opportunistic, never timed; size caps normative) + 1:1 interop mode
 - [ ] Capabilities: `request_streaming + full_duplex: true, h2_trailers: false`
+- [ ] Optional: `ReconnectingWebSocketTask` behind `with_reconnect(true)` config
 
 ## Acceptance criteria
 
-- [ ] Full-duplex bidi end-to-end on an HTTP/1.1-only deployment (our client ↔ our server)
-- [ ] Negotiation refusal rules verified (unknown subprotocol → 400; missing echo → client protocol error)
-- [ ] `WsTransport::open()` returns in < 1 poll cycle (handshake runs on pool, not inline)
-- [ ] Disconnect + reconnect: caller's `PipeSender` is replaced atomically; messages sent during the reconnect window are not lost (buffered in the pipe or rejected with `Closed` — caller retries)
-- [ ] Idle connection: task parks on `Depends`, zero polls
+- Full-duplex bidi end-to-end on an HTTP/1.1-only deployment (our client ↔ our server)
+- `WsTransport::open()` returns in < 1 poll cycle (handshake runs on pool, not inline)
+- Idle connection: task parks on `Depends(pipe.readiness())`, zero polls
+- `delivery.send_async(msg).await` parks caller when pipe is full, wakes when consumer drains
+- Negotiation refusal rules verified (unknown subprotocol → 400; missing echo → client protocol error)
+- `WebSocketClient::connect()` return signature unchanged — `(Self, MessageDelivery)`

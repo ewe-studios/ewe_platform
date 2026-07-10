@@ -48,86 +48,104 @@ and `trailers` — every other seam in the transport stack.
 
 ### How each task type changes
 
+#### `MessageDelivery` wraps `PipeSender` — same API, Pipe-backed
+
+The existing `MessageDelivery` type in `connection.rs` wraps
+`Arc<ConcurrentQueue<WebSocketMessage>>`. Users push messages through it,
+the task drains from the other side. After migration, the inner type becomes
+a `PipeSender<WebSocketMessage>`:
+
+```
+Before:
+  queue: Arc<ConcurrentQueue<WebSocketMessage>>
+  send(msg) → queue.push(msg)         // fails with ConnectionClosed if full
+  queue() → &Arc<ConcurrentQueue<...>> // raw access for the task side
+
+After:
+  tx: PipeSender<WebSocketMessage>
+  send(msg) → tx.try_send(msg)        // task path: Ok | Full → Depends(vacancy)
+  send_async(msg) → tx.send(msg).await // async path: parks on backpressure
+  pipe() → &PipeSender<WebSocketMessage>  // raw pipe access
+  queue() → &Arc<ConcurrentQueue<...>>    // deprecated, kept for transition
+  close() → drop(tx)                     // receiver side sees Closed/None
+```
+
+The public API is nearly identical. Users who called `delivery.send(msg)`
+continue to do so. Users who need the raw pipe (e.g. `WsTransport::open()`
+bridging into `body_tx`) call `delivery.pipe()`.
+
 #### Pipe ownership model — caller-supplied or internal
 
 Every task that uses a `Pipe` takes an `Option<PipeHalf>` — if the caller
 passed `Some(half)`, the task uses it; if `None`, the task creates a fresh
-`Pipe` pair and **exposes the other half** via an accessor. This is the
-standard pattern across the crate (see `Transport::open()` — the caller
-creates pipes, passes the internal halves to the pump, keeps the external
-halves for itself).
+`Pipe` pair and **exposes the other half** via `MessageDelivery`:
 
-```
-// Caller creates the Pipe, keeps rx, gives tx to the task:
-let (tx, rx) = Pipe::<WebSocketMessage>::with_depth(16);
-let task = WebSocketServerTask::new(stream, config, tx);  // task owns tx (inbound sender)
-// caller owns rx — drains messages via rx.receive().await
-
-// OR: Task creates the Pipe, caller reads the other half from the task:
-let task = WebSocketServerTask::new(stream, config, None);  // task creates pipe internally
-let rx = task.inbound_receiver();  // caller gets the read half
-```
-
-This is important because `WsTransport::open()` needs to hold `rx` as part of
-`TransportStream::recv_body` (bridged through a collector). If the task
-created the pipe internally, the caller must be able to reach the other half.
-
-The same applies to `WebSocketTask` (client) for outbound:
 ```
 // Caller creates the Pipe, keeps tx, gives rx to the task:
 let (tx, rx) = Pipe::<WebSocketMessage>::with_depth(16);
-let task = WebSocketTask::connect_with_pipe_resolver(url, rx)?;
-// caller owns tx — sends messages via tx.send(msg).await
+let delivery = MessageDelivery::from_pipe(tx);  // caller holds delivery
+let task = WebSocketTask::connect_with_pipe(resolver, url, rx)?;
 
-// OR: Task creates the Pipe, caller reads the other half:
-let task = WebSocketTask::connect(resolver, url)?;
-let tx = task.outbound_sender();  // caller gets the write half
+// OR: Task creates the Pipe, exposes delivery handle:
+let (client, delivery) = WebSocketClient::connect(resolver, url)?;
+// `delivery` wraps the PipeSender — same API as today
+
+// OR: Internal task constructor, caller reads delivery:
+let task = WebSocketServerTask::new(stream, config, None);
+let delivery = task.delivery();  // returns &MessageDelivery
 ```
+
+This preserves the current `WebSocketClient::connect() → (Self, MessageDelivery)`
+return signature — zero API breakage for existing callers. The internal change
+from `ConcurrentQueue` to `Pipe` is transparent to them, except they now get
+wake integration and backpressure for free.
 
 #### WebSocketServerTask
 
 ```
 Before:
-  task pushes into Arc<ConcurrentQueue<WebSocketMessage>>  (inbound, task→caller)
-  caller drains from the same Arc
+  task pushes into Arc<ConcurrentQueue<WebSocketMessage>>
+  caller drains via delivery.queue().pop()
 
 After:
-  Caller supplies Option<PipeSender<WebSocketMessage>>:
-    Some(tx)  → task uses it, caller already holds the matching rx
-    None      → task creates a Pipe pair, exposes rx via inbound_receiver()
+  task owns PipeSender<WebSocketMessage> (inbound, task→caller)
+  caller holds MessageDelivery wrapping the PipeSender
 
   task.next_status():
-    assembles message → tx.try_send(msg)
+    assembles message → delivery.try_send(msg)
       Ok → done.
-      Full → TaskStatus::Depends(pipe.vacancy())  // parks until consumer drains
-    on Close → drop(tx)                           // caller's rx.try_recv() → Closed
+      Full → TaskStatus::Depends(delivery.vacancy())  // parks until consumer drains
+    on Close → drop(delivery)                         // caller's rx.try_recv() → Closed
 ```
 
 #### WebSocketTask (client) — single-shot, Pipe-based
 
-This is the existing single-shot client task in `foundation_netio`. It connects,
-handshakes, then enters a read/write loop. One connection = one task. No
-reconnection — if the TCP connection drops, the task drains and completes.
-
-Migration from `Arc<ConcurrentQueue>` to `PipeReceiver`:
+One connection = one task. No reconnection. Migration:
 
 ```
 Before:
-  task pops from Arc<ConcurrentQueue<WebSocketMessage>>  (outbound, caller→task)
-  caller pushes into the same Arc
+  task pops from Arc<ConcurrentQueue<WebSocketMessage>>
+  caller pushes via delivery.send(msg)
 
 After:
-  Caller supplies Option<PipeReceiver<WebSocketMessage>>:
-    Some(rx)  → task uses it, caller already holds the matching tx
-    None      → task creates a Pipe pair, exposes tx via outbound_sender()
+  task owns PipeReceiver<WebSocketMessage> (outbound, caller→task)
+  caller holds MessageDelivery wrapping the PipeSender
+
+  WebSocketClient::connect() returns (Self, MessageDelivery) — same API,
+  same convenience methods (send, send_text, close, etc.), now Pipe-backed.
 
   task.next_status():
     match rx.try_recv() {
       msg → write WS Binary frame to TCP
-      Empty → return TaskStatus::Depends(pipe.readiness())  // parks on QueueReadiness
-      Closed → drain + close TCP (caller dropped tx)
+      Empty → TaskStatus::Depends(pipe.readiness())  // parks on QueueReadiness
+      Closed → drain + close TCP (caller dropped delivery)
     }
 ```
+
+`MessageDelivery::send()` calls `tx.try_send(msg)`. On `Full`, the task
+parks via `Depends(delivery.vacancy())`. The caller can also use
+`delivery.send_async(msg).await` — the async path parks via the pipe's
+producer waker. Either way, zero wasted polls.
 
 #### ReconnectingWebSocketTask — wraps WebSocketTask, adds reconnection
 
@@ -182,14 +200,23 @@ No raw TCP, no handshake duplication — the existing proven
 
 ## Scope
 
-- [x] `WebSocketServerTask` with Pipe-based inbound delivery (completed F37 impl — needs Pipe migration)
+- [x] `WebSocketServerTask` with Pipe-based inbound delivery (committed F37 impl — needs Pipe migration)
+- [ ] Migrate `MessageDelivery`: replace `Arc<ConcurrentQueue<WebSocketMessage>>` with `PipeSender<WebSocketMessage>`:
+  - `send(msg)` → `self.tx.try_send(msg)` (existing sync API preserved)
+  - `send_async(msg)` → `self.tx.send(msg).await` (new async API — parks on backpressure)
+  - `pipe()` → `&PipeSender<WebSocketMessage>` (new — raw pipe access for Transport bridging)
+  - `queue()` → `&Arc<ConcurrentQueue<...>>` (deprecated, kept for transition)
+  - `close()` → `drop(self.tx)` (receiver side sees `Closed`)
+  - `into_pipe()` → `PipeSender<WebSocketMessage>` (consuming conversion for Transport::open)
 - [ ] Migrate `WebSocketTask` (client) from `Arc<ConcurrentQueue>` to `PipeReceiver`
-- [ ] Migrate `ReconnectingWebSocketTask` to Pipe — stable caller-facing PipeSender across reconnects
-- [ ] Delete `WsBytePump` (raw TCP pump in pump.rs) — replaced by ReconnectingWebSocketTask + Pipe
+- [ ] Update `WebSocketClient::connect()` internally — still returns `(Self, MessageDelivery)`, same API, now Pipe-backed
+- [ ] Migrate `ReconnectingWebSocketTask` to Pipe — shared `Arc<Mutex<PipeSender>>` across reconnects
+- [ ] Delete `WsBytePump` (raw TCP pump in pump.rs)
 - [ ] WsServerConfig { auto_pong, max_message_size, graceful_close, read_model }
 - [ ] Retrofit blocking `WebSocketServerConnection::recv` with the assembler
 - [ ] Accept `Option<Arc<dyn EventReadiness + Send + Sync>>` in all three task constructors — caller injects fd readiness (F38)
-- [ ] Fix `WebSocketServerTask::Spawner = BoxedSendExecutionAction` (currently `NoSpawner` in the committed code; `WebSocketTask` and `ReconnectingWebSocketTask` already use `BoxedSendExecutionAction` correctly — no change needed there)
+- [ ] Fix `WebSocketServerTask::Spawner = BoxedSendExecutionAction` (others already correct)
+- [ ] Update existing `WebSocketClient` tests in `tests/websocket/` — verify `delivery.send()` + `client.next()` work same as before
 
 ## Acceptance criteria
 
