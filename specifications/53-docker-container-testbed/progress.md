@@ -31,6 +31,28 @@
 - Ssh2Backend: channel exec, SCP send/recv, uses ConnectionPool
 - ConnectionPool: session cache with idle timeout, auth chain
 - Runner: Parallel, Sequential, Group strategies
+- RusshBackend (feature `russh-backend`): pure-Rust async backend — execute,
+  SFTP upload/download, pubkey auth. Confirmed working (not a stub).
+
+**Test coverage (2026-07-10):**
+- Unit tests: host, command, pool (pre-existing).
+- `tests/ssh2_backend_tests.rs` — Ssh2Backend against a real
+  `lscr.io/linuxserver/openssh-server` container via the
+  `foundation_deployment_platform` testbed. Covers execute (success, non-zero
+  exit, stdout+stderr capture), upload↔download round-trip, wrong-password auth
+  rejection (all `#[ignore]`, need Docker) + connection-refused (Docker-free).
+- `tests/runner_tests.rs` — Parallel/Sequential/Group result-shape + per-host
+  command-builder invocation (Docker-free, unreachable hosts) plus all three
+  strategies against a real container (`#[ignore]`).
+- `tests/russh_backend_tests.rs` (feature-gated `russh-backend`) — execute +
+  SFTP round-trip against a container trusting a generated ed25519 key, plus a
+  connection-refused path. ssh-keygen-gated (skips cleanly if absent).
+- Container tests use `ContainerHandle::start_async` directly (the
+  `#[docker_container]` macro drops its handle before the body and exposes no
+  mapped port, so it is unusable where a test needs the host port).
+- Runs (Docker available, `--profile uat`): default suite 5 non-Docker tests
+  pass; `--ignored` ssh2 5/5 pass, runner 1/1 pass; `--features russh-backend
+  --include-ignored` russh 3/3 pass. Zero warnings from the crate.
 
 ### foundation_proxy ✅
 - ProxyConfig, ServiceConfig, SslConfig, BackendTarget, HealthCheckConfig

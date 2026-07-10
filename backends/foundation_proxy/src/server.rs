@@ -1,33 +1,186 @@
-//! ProxyServer — running proxy instance.
+//! `ProxyServer` — the running proxy instance.
+//!
+//! WHY: `ProxyConfig::start` must actually stand up a data plane: bind a
+//! listener, serve requests through the [`ProxyHandler`], run health probes, and
+//! hand back a handle that can be shut down cleanly.
+//!
+//! WHAT: [`ProxyServer::start`] validates the config (no duplicate hosts), builds
+//! the shared [`ProxyState`], binds the front-end listener, spawns the HTTP
+//! server and per-backend health probes, and returns a [`ProxyServer`].
+//! [`ProxyServer::shutdown`] turns off the accept loop and joins everything.
+//!
+//! HOW: The HTTP front end is `foundation_http::HttpServer`, which submits each
+//! connection to the valtron pool. **The caller must have initialised a valtron
+//! pool** (`foundation_core::valtron::initialize_pool`) and hold its guard for
+//! the server's lifetime, exactly as the framework's own server tests do.
+
+use std::collections::HashSet;
+use std::net::{SocketAddr, TcpListener};
+use std::sync::Arc;
+use std::thread::JoinHandle;
+
+use foundation_core::synca::OnSignal;
+use foundation_http::native::server::{HttpServer, ServerConfig};
+use foundation_http::shared::app::HttpApp;
+use foundation_netio::simple_http::client::native::{HttpConnectionPool, SimpleHttpClient};
+use foundation_netio::simple_http::client::shared::ClientConfig;
 
 use crate::config::{ProxyConfig, ProxyError};
-use tracing::info;
+use crate::handler::ProxyHandler;
+use crate::health::{spawn_service_probes, HealthMonitor};
+use crate::router::Router;
+use crate::runtime::ServiceRuntime;
+use crate::state::ProxyState;
+
+const DEFAULT_BIND: &str = "0.0.0.0:80";
 
 /// A running proxy server instance.
 pub struct ProxyServer {
     config: ProxyConfig,
+    local_addr: SocketAddr,
+    shutdown: Arc<OnSignal>,
+    server_thread: Option<JoinHandle<()>>,
+    health: Vec<HealthMonitor>,
+    state: Arc<ProxyState>,
+}
+
+impl std::fmt::Debug for ProxyServer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("ProxyServer")
+            .field("local_addr", &self.local_addr)
+            .field("services", &self.config.services.len())
+            .finish()
+    }
 }
 
 impl ProxyServer {
     /// Start the proxy from a validated configuration.
+    ///
+    /// # Errors
+    /// Returns [`ProxyError::Config`] on a duplicate host, or
+    /// [`ProxyError::Startup`] if the front-end listener cannot bind.
+    ///
+    /// # Panics
+    /// Never panics. (The valtron pool must already be initialised by the
+    /// caller; without it the front end cannot submit connections.)
     pub async fn start(config: ProxyConfig) -> Result<Self, ProxyError> {
-        info!(domain = %config.domain, services = config.services.len(), "starting proxy");
+        tracing::info!(domain = %config.domain, services = config.services.len(), "starting proxy");
 
-        // Validate: no duplicate hosts
-        let mut hosts = std::collections::HashSet::new();
+        // Validate: no duplicate routes. A route is a (host, path_prefix) pair —
+        // Decision 14 routes on host PLUS path_prefix, so two services may share a
+        // host as long as their prefixes differ (e.g. `/api` and `/` on one host).
+        // Only an identical (host, prefix) pair is a genuine conflict.
+        let mut routes = HashSet::new();
         for svc in &config.services {
-            if !hosts.insert(&svc.host) {
-                return Err(ProxyError::Config(format!("duplicate host: {}", svc.host)));
+            let key = (svc.host.clone(), svc.path_prefix.clone());
+            if !routes.insert(key) {
+                return Err(ProxyError::Config(format!(
+                    "duplicate route: host {} with path_prefix {:?}",
+                    svc.host, svc.path_prefix
+                )));
             }
         }
 
-        // TODO: Cloudflare DNS bootstrap (when cloudflare feature is enabled)
-        // TODO: TLS cert provisioning (LetsEncrypt ACME or Cloudflare)
-        // TODO: Start the HTTP/S router + health probes
+        // Build runtime services, router, shared client, and state.
+        let services: Vec<Arc<ServiceRuntime>> = config
+            .services
+            .iter()
+            .cloned()
+            .map(|svc| Arc::new(ServiceRuntime::new(svc)))
+            .collect();
+        let router = Arc::new(Router::new(services.clone()));
 
-        Ok(Self { config })
+        let pool = Arc::new(HttpConnectionPool::default());
+        let client = SimpleHttpClient::new(ClientConfig::default(), pool);
+
+        // Bind the front-end listener (ephemeral port support for tests).
+        let bind_addr = config.bind_addr.clone().unwrap_or_else(|| DEFAULT_BIND.to_string());
+        let listener = TcpListener::bind(&bind_addr)
+            .map_err(|e| ProxyError::Startup(format!("bind {bind_addr}: {e}")))?;
+        let local_addr = listener
+            .local_addr()
+            .map_err(|e| ProxyError::Startup(format!("local_addr: {e}")))?;
+
+        // Build the HTTP app: store proxy state, then register the catch-all
+        // handler (its factory reads the state out of the bag at registration).
+        // Read the Arc back so `ProxyServer` shares the exact state the handler
+        // sees, for control/inspection.
+        let mut app = HttpApp::new_serve();
+        app.context()
+            .store(ProxyState::new(router, client.clone(), "http"));
+        let state = app
+            .context()
+            .get::<ProxyState>()
+            .expect("ProxyState was just stored");
+        app.route_any::<ProxyHandler>("/*");
+
+        let shutdown = Arc::new(OnSignal::new());
+        let server = HttpServer::with_config(app, &bind_addr, ServerConfig::defaults());
+
+        // Serve on a dedicated thread with the pre-bound listener.
+        let serve_shutdown = shutdown.clone();
+        let server_thread = std::thread::spawn(move || {
+            server.serve_with_listener(&listener, &serve_shutdown);
+        });
+
+        // Spawn health probes for every service that configured one.
+        let health: Vec<HealthMonitor> = services
+            .iter()
+            .map(|svc| spawn_service_probes(svc, client.clone(), shutdown.clone()))
+            .collect();
+
+        tracing::info!(%local_addr, "proxy started");
+        Ok(Self {
+            config,
+            local_addr,
+            shutdown,
+            server_thread: Some(server_thread),
+            health,
+            state,
+        })
+    }
+
+    /// The address the front end is bound to.
+    #[must_use]
+    pub fn local_addr(&self) -> SocketAddr {
+        self.local_addr
     }
 
     #[must_use]
-    pub fn config(&self) -> &ProxyConfig { &self.config }
+    pub fn config(&self) -> &ProxyConfig {
+        &self.config
+    }
+
+    /// Access the shared runtime state (router, backends) for control/inspection.
+    #[must_use]
+    pub fn state(&self) -> &Arc<ProxyState> {
+        &self.state
+    }
+
+    /// Signal shutdown and join the server and probe threads.
+    ///
+    /// The accept loop stops taking connections, drains in-flight requests
+    /// within the server's grace window, and returns; probe threads exit at
+    /// their next checkpoint.
+    pub fn shutdown(mut self) {
+        self.shutdown.turn_on();
+        if let Some(handle) = self.server_thread.take() {
+            let _ = handle.join();
+        }
+        for monitor in self.health.drain(..) {
+            monitor.join();
+        }
+    }
+}
+
+impl Drop for ProxyServer {
+    fn drop(&mut self) {
+        self.shutdown.turn_on();
+        if let Some(handle) = self.server_thread.take() {
+            let _ = handle.join();
+        }
+        for monitor in self.health.drain(..) {
+            monitor.join();
+        }
+    }
 }

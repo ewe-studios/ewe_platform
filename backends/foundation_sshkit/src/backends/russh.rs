@@ -1,7 +1,6 @@
 //! russh (pure Rust, async/tokio-native) backend.
 //! Enable with `features = ["russh-backend"]`.
 
-use std::io::Read;
 use std::path::Path;
 use std::time::Instant;
 

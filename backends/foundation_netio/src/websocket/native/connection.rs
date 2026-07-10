@@ -29,6 +29,7 @@ use crate::websocket::native::task::{WebSocketProgress, WebSocketTask};
 use crate::websocket::shared::batch_writer::BatchFrameWriter;
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
+
 use crate::websocket::shared::message::WebSocketMessage;
 
 /// WHY: Users need a simple blocking API for WebSocket communication.
@@ -633,6 +634,44 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
             },
             delivery,
         ))
+    }
+
+    /// Connect with byte pipes — for Transport use.
+    ///
+    /// Returns the three parts the caller needs:
+    /// - `WsTask<R>` — spawned on the valtron pool. Use `execute()` to drive it.
+    /// - `MessageDelivery` — push `Binary(bytes)` to send data to the task.
+    /// - `PipeReceiver<Bytes>` — the task receives inbound bytes here.
+    ///
+    /// The caller spawns bridge tasks: one that wraps `Bytes → Binary → delivery`,
+    /// one that drains the task stream → `Binary → Bytes → body_tx`.
+    /// See `WsTransport::open()` for the canonical wiring.
+    pub fn connect_parts(
+        resolver: R,
+        url: impl Into<String>,
+        reconnect: Reconnect,
+        read_timeout: Duration,
+        sleep_timeout: Duration,
+    ) -> Result<(WsTask<R>, MessageDelivery), WebSocketError> {
+        let url_str = url.into();
+        let (delivery, msg_rx) = MessageDelivery::new();
+
+        let task = match reconnect {
+            Reconnect::No => WsTask::Single(WebSocketTask::connect_with_delivery(
+                resolver.clone(),
+                url_str.clone(),
+                None,
+                Vec::new(),
+                msg_rx,
+                read_timeout,
+                sleep_timeout,
+            )?),
+            Reconnect::Yes => {
+                WsTask::Reconnecting(ReconnectingWebSocketTask::connect(resolver, &url_str)?)
+            }
+        };
+
+        Ok((task, delivery))
     }
 
     /// Connect using an existing connection pool.

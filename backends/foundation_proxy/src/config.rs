@@ -1,7 +1,18 @@
 //! Proxy configuration types — shared by all three config paths.
+//!
+//! WHY: The macro, programmatic builder, and `proxy.toml` file all converge on
+//! these types. They must be ergonomic for hand-written Rust and forgiving for
+//! TOML (a bare backend URL string must deserialize into a full `BackendTarget`).
+//!
+//! WHAT: `ProxyConfig`, `ServiceConfig`, `SslConfig`, `HealthCheckConfig`,
+//! `BackendTarget`, `BackendState`, and the `BackendProtocol` inferred from a
+//! backend URL scheme.
+//!
+//! HOW: Standard `serde` derives, plus a hand-written `Deserialize` for
+//! `BackendTarget` that accepts either a bare string or a table.
 
 use derive_more::Display;
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 use std::path::PathBuf;
 use std::time::Duration;
 
@@ -11,6 +22,10 @@ pub struct ProxyConfig {
     pub domain: String,
     pub public_ip: String,
     pub ssl: SslConfig,
+    /// Address the proxy's HTTP front end binds to. Defaults to `0.0.0.0:80`
+    /// when unset; tests bind `127.0.0.1:0` for an ephemeral port.
+    #[serde(default)]
+    pub bind_addr: Option<String>,
     #[serde(default)]
     pub services: Vec<ServiceConfig>,
 }
@@ -22,8 +37,16 @@ impl ProxyConfig {
             domain: domain.to_string(),
             public_ip: public_ip.to_string(),
             ssl: SslConfig::default(),
+            bind_addr: None,
             services: Vec::new(),
         }
+    }
+
+    /// Set the front-end bind address (e.g. `127.0.0.1:0`).
+    #[must_use]
+    pub fn bind(mut self, addr: &str) -> Self {
+        self.bind_addr = Some(addr.to_string());
+        self
     }
 
     #[must_use]
@@ -39,16 +62,24 @@ impl ProxyConfig {
     }
 
     #[must_use]
-    pub fn build(self) -> Self { self }
+    pub fn build(self) -> Self {
+        self
+    }
 
     /// Load from a `proxy.toml` file.
+    ///
+    /// # Errors
+    /// Returns `ProxyError::Config` if the file cannot be read or parsed.
     pub fn load_file(path: &str) -> Result<Self, ProxyError> {
         let contents = std::fs::read_to_string(path)
             .map_err(|e| ProxyError::Config(format!("read {path}: {e}")))?;
-        toml::from_str(&contents)
-            .map_err(|e| ProxyError::Config(format!("parse {path}: {e}")))
+        toml::from_str(&contents).map_err(|e| ProxyError::Config(format!("parse {path}: {e}")))
     }
 
+    /// Start the proxy from this configuration.
+    ///
+    /// # Errors
+    /// Returns `ProxyError` if validation fails or the listener cannot bind.
     pub async fn start(self) -> Result<crate::server::ProxyServer, ProxyError> {
         crate::server::ProxyServer::start(self).await
     }
@@ -56,27 +87,46 @@ impl ProxyConfig {
 
 /// SSL configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SslConfig { pub provider: SslProvider }
+pub struct SslConfig {
+    pub provider: SslProvider,
+}
 
 impl SslConfig {
     #[must_use]
     pub fn lets_encrypt(email: &str) -> Self {
-        Self { provider: SslProvider::LetsEncrypt { email: email.to_string() } }
+        Self {
+            provider: SslProvider::LetsEncrypt {
+                email: email.to_string(),
+            },
+        }
     }
 
     #[must_use]
     pub fn cloudflare(zone_id: &str) -> Self {
-        Self { provider: SslProvider::Cloudflare { zone_id: zone_id.to_string() } }
+        Self {
+            provider: SslProvider::Cloudflare {
+                zone_id: zone_id.to_string(),
+            },
+        }
     }
 
     #[must_use]
     pub fn static_cert(cert: &str, key: &str) -> Self {
-        Self { provider: SslProvider::Static { cert: PathBuf::from(cert), key: PathBuf::from(key) } }
+        Self {
+            provider: SslProvider::Static {
+                cert: PathBuf::from(cert),
+                key: PathBuf::from(key),
+            },
+        }
     }
 }
 
 impl Default for SslConfig {
-    fn default() -> Self { Self { provider: SslProvider::None } }
+    fn default() -> Self {
+        Self {
+            provider: SslProvider::None,
+        }
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -94,7 +144,7 @@ pub struct ServiceConfig {
     pub host: String,
     #[serde(default)]
     pub path_prefix: Option<String>,
-    pub backends: Vec<String>,
+    pub backends: Vec<BackendTarget>,
     #[serde(default)]
     pub health_check: Option<HealthCheckConfig>,
 }
@@ -103,39 +153,201 @@ impl ServiceConfig {
     #[must_use]
     pub fn new(name: &str, host: &str) -> Self {
         Self {
-            name: name.to_string(), host: host.to_string(),
-            path_prefix: None, backends: Vec::new(), health_check: None,
+            name: name.to_string(),
+            host: host.to_string(),
+            path_prefix: None,
+            backends: Vec::new(),
+            health_check: None,
         }
     }
 
+    /// Set a path prefix (e.g. `/api`) this service matches under its host.
+    #[must_use]
+    pub fn path_prefix(mut self, prefix: &str) -> Self {
+        self.path_prefix = Some(prefix.to_string());
+        self
+    }
+
+    /// Add a backend by bare URL (default weight and `max_connections`).
     #[must_use]
     pub fn backend(mut self, url: &str) -> Self {
-        self.backends.push(url.to_string());
+        self.backends.push(BackendTarget::new(url));
+        self
+    }
+
+    /// Add a fully-specified backend target.
+    #[must_use]
+    pub fn backend_target(mut self, target: BackendTarget) -> Self {
+        self.backends.push(target);
         self
     }
 
     #[must_use]
     pub fn health_check(mut self, path: &str, interval: Duration) -> Self {
         self.health_check = Some(HealthCheckConfig {
-            path: path.to_string(), interval, timeout: Duration::from_secs(2),
-            healthy_threshold: 2, unhealthy_threshold: 3,
+            path: path.to_string(),
+            interval,
+            ..HealthCheckConfig::default()
         });
+        self
+    }
+
+    /// Set the full health-check configuration.
+    #[must_use]
+    pub fn health_check_config(mut self, config: HealthCheckConfig) -> Self {
+        self.health_check = Some(config);
         self
     }
 }
 
+/// Which wire protocol a backend speaks, inferred from its URL scheme.
+///
+/// WHY: Decision 14 §"Protocol inference" — the scheme selects the protocol, so
+/// there is no separate `proto` config field. `http`/`https` mean an HTTP
+/// reverse proxy (headers, WebSocket upgrade, health checks); `tcp` means raw
+/// byte-level passthrough (RDP, VNC, noVNC — no HTTP semantics).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Display)]
+pub enum BackendProtocol {
+    #[display("http")]
+    Http,
+    #[display("https")]
+    Https,
+    #[display("tcp")]
+    Tcp,
+}
+
 /// Backend target — where traffic is routed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+///
+/// Deserializes from either a bare string (`"http://host:3000"`) or a table
+/// (`{ url = "...", weight = 2, max_connections = 64 }`). A bare string takes
+/// the default weight (1) and `max_connections` (1024).
+#[derive(Debug, Clone, Serialize, PartialEq, Eq)]
 pub struct BackendTarget {
     pub url: String,
-    #[serde(default = "default_weight")]
     pub weight: u32,
-    #[serde(default = "default_max_conns")]
     pub max_connections: u32,
 }
 
-fn default_weight() -> u32 { 1 }
-fn default_max_conns() -> u32 { 1024 }
+impl BackendTarget {
+    #[must_use]
+    pub fn new(url: impl Into<String>) -> Self {
+        Self {
+            url: url.into(),
+            weight: default_weight(),
+            max_connections: default_max_conns(),
+        }
+    }
+
+    #[must_use]
+    pub fn with_weight(mut self, weight: u32) -> Self {
+        self.weight = weight;
+        self
+    }
+
+    #[must_use]
+    pub fn with_max_connections(mut self, max_connections: u32) -> Self {
+        self.max_connections = max_connections;
+        self
+    }
+
+    /// Infer the wire protocol from the URL scheme.
+    ///
+    /// WHAT: `http://` → `Http`, `https://` → `Https`, `tcp://` → `Tcp`.
+    /// Anything with no recognised scheme defaults to `Http`.
+    #[must_use]
+    pub fn protocol(&self) -> BackendProtocol {
+        let lower = self.url.to_ascii_lowercase();
+        if lower.starts_with("tcp://") {
+            BackendProtocol::Tcp
+        } else if lower.starts_with("https://") {
+            BackendProtocol::Https
+        } else {
+            BackendProtocol::Http
+        }
+    }
+
+    /// The `host:port` authority, stripped of scheme and path.
+    ///
+    /// WHAT: `tcp://127.0.0.1:9000/x` → `127.0.0.1:9000`. Used by the TCP
+    /// passthrough path, which connects to a raw socket address.
+    #[must_use]
+    pub fn authority(&self) -> String {
+        let without_scheme = self
+            .url
+            .split_once("://")
+            .map_or(self.url.as_str(), |(_, rest)| rest);
+        without_scheme
+            .split(['/', '?'])
+            .next()
+            .unwrap_or(without_scheme)
+            .to_string()
+    }
+}
+
+fn default_weight() -> u32 {
+    1
+}
+fn default_max_conns() -> u32 {
+    1024
+}
+
+impl<'de> Deserialize<'de> for BackendTarget {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        // Accept either a bare string or a full table. `untagged` tries each
+        // variant in order, so a plain TOML string maps to `Bare` and a table
+        // to `Full`.
+        #[derive(Deserialize)]
+        #[serde(untagged)]
+        enum Repr {
+            Bare(String),
+            Full {
+                url: String,
+                #[serde(default = "default_weight")]
+                weight: u32,
+                #[serde(default = "default_max_conns")]
+                max_connections: u32,
+            },
+        }
+
+        Ok(match Repr::deserialize(deserializer)? {
+            Repr::Bare(url) => BackendTarget::new(url),
+            Repr::Full {
+                url,
+                weight,
+                max_connections,
+            } => BackendTarget {
+                url,
+                weight,
+                max_connections,
+            },
+        })
+    }
+}
+
+/// Lifecycle state of a backend in the rotation.
+///
+/// WHY: Zero-downtime deploys (stage 3) drain old backends and pause misbehaving
+/// ones. The load balancer only ever selects `Active` backends; `Draining` and
+/// `Paused` are excluded from new traffic while in-flight requests finish.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Display)]
+#[serde(rename_all = "lowercase")]
+pub enum BackendState {
+    #[display("active")]
+    Active,
+    #[display("draining")]
+    Draining,
+    #[display("paused")]
+    Paused,
+}
+
+impl Default for BackendState {
+    fn default() -> Self {
+        Self::Active
+    }
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct HealthCheckConfig {
@@ -148,13 +360,31 @@ pub struct HealthCheckConfig {
     pub unhealthy_threshold: u32,
 }
 
+impl Default for HealthCheckConfig {
+    fn default() -> Self {
+        Self {
+            path: "/".to_string(),
+            interval: Duration::from_secs(5),
+            timeout: Duration::from_secs(2),
+            healthy_threshold: 2,
+            unhealthy_threshold: 3,
+        }
+    }
+}
+
 mod duration_secs {
     use serde::{Deserialize, Deserializer, Serializer};
     use std::time::Duration;
     pub fn serialize<S>(d: &Duration, s: S) -> Result<S::Ok, S::Error>
-    where S: Serializer { s.serialize_u64(d.as_secs()) }
+    where
+        S: Serializer,
+    {
+        s.serialize_u64(d.as_secs())
+    }
     pub fn deserialize<'de, D>(d: D) -> Result<Duration, D::Error>
-    where D: Deserializer<'de> {
+    where
+        D: Deserializer<'de>,
+    {
         let secs: u64 = Deserialize::deserialize(d)?;
         Ok(Duration::from_secs(secs))
     }

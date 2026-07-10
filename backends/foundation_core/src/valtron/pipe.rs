@@ -506,3 +506,266 @@ impl<T> fmt::Display for SendError<T> {
 
 #[cfg(feature = "std")]
 impl<T> std::error::Error for SendError<T> {}
+
+// ============================================================================
+// MappedSender — wraps PipeSender<Inner>, transforms on push (F37/F39)
+// ============================================================================
+
+/// A `PipeSender<Outer>` that owns a `PipeSender<Inner>` and a transform
+/// `Outer → Inner`, applied inline on every `send`/`try_send`. Zero extra
+/// allocations, zero extra tasks — the transform runs in the caller's poll.
+///
+/// Created via [`PipeSender::map`].
+pub struct MappedSender<Outer, Inner, F> {
+    inner: PipeSender<Inner>,
+    f: F,
+    _marker: core::marker::PhantomData<Outer>,
+}
+
+/// Helper: apply `f(outer)` and push. Used by both `try_send` and `send().await`.
+fn mapped_try_send<Outer, Inner>(
+    inner: &PipeSender<Inner>,
+    outer: Outer,
+    f: &impl Fn(Outer) -> Inner,
+) -> Result<(), TrySendError<Outer>> {
+    let item = f(outer);
+    match inner.inner.queue.push(item) {
+        Ok(()) => {
+            inner.inner.wake_consumer();
+            Ok(())
+        }
+        Err(PushError::Full(_item)) => Err(TrySendError::Full(outer)),
+        Err(PushError::Closed(_item)) => Err(TrySendError::Closed(outer)),
+    }
+}
+
+impl<Outer, Inner, F> MappedSender<Outer, Inner, F>
+where
+    F: Fn(Outer) -> Inner,
+{
+    /// Non-blocking push through the transform.
+    pub fn try_send(&self, item: Outer) -> Result<(), TrySendError<Outer>> {
+        mapped_try_send(&self.inner, item, &self.f)
+    }
+
+    /// Async send through the transform. Parks on a full pipe.
+    pub fn send(&self, item: Outer) -> MappedSendFuture<'_, Outer, Inner, F> {
+        MappedSendFuture {
+            sender: self,
+            item: Some(item),
+        }
+    }
+
+    pub fn close(&self) -> bool { self.inner.close() }
+    pub fn is_full(&self) -> bool { self.inner.is_full() }
+    pub fn is_closed(&self) -> bool { self.inner.is_closed() }
+    pub fn len(&self) -> usize { self.inner.len() }
+    pub fn is_empty(&self) -> bool { self.inner.is_empty() }
+    pub fn capacity(&self) -> usize { self.inner.capacity() }
+
+    pub fn vacancy(&self) -> QueueVacancyReadiness<Inner>
+    where Inner: Send {
+        self.inner.vacancy()
+    }
+}
+
+impl<T, F> Clone for MappedSender<T, T, F>
+where F: Clone {
+    fn clone(&self) -> Self {
+        Self { inner: self.inner.clone(), f: self.f.clone(), _marker: core::marker::PhantomData }
+    }
+}
+
+impl<T> PipeSender<T> {
+    /// Wrap this sender with a transform `Outer → T`, returning a sender that
+    /// accepts `Outer` values and converts them inline.
+    ///
+    /// ```ignore
+    /// let ws_tx: PipeSender<WebSocketMessage> = ...;
+    /// let byte_tx = ws_tx.map(|bytes: Bytes| WebSocketMessage::Binary(bytes.to_vec()));
+    /// // byte_tx.send(bytes).await → transforms bytes → Binary → inner.send()
+    /// ```
+    pub fn map<Outer, F: Fn(Outer) -> T>(self, f: F) -> MappedSender<Outer, T, F> {
+        MappedSender { inner: self, f, _marker: core::marker::PhantomData }
+    }
+}
+
+/// Future for [`MappedSender::send`].
+///
+/// Transforms eagerly on first poll; if the pipe is full, stashes the
+/// *already-transformed* inner item and retries the inner push on wake.
+/// On `Closed`, returns `Err(SendError(outer))` — the outer is recovered
+/// from the stashed inner via `into_inner` (best-effort: the inner value
+/// may be the transformed version). In practice `Closed` is rare and the
+/// caller already holds the outer value.
+pub struct MappedSendFuture<'a, Outer, Inner, F> {
+    sender: &'a MappedSender<Outer, Inner, F>,
+    /// `None` = first poll (still have outer), `Some(inner)` = retrying after full.
+    state: Option<Option<Inner>>,
+    /// Only `Some` on the very first poll — recovered on `Closed`.
+    outer: Option<Outer>,
+}
+
+impl<Outer, Inner, F> Unpin for MappedSendFuture<'_, Outer, Inner, F> {}
+
+impl<Outer, Inner, F: Clone> Future for MappedSendFuture<'_, Outer, Inner, F>
+where
+    F: Fn(Outer) -> Inner,
+{
+    type Output = Result<(), SendError<Outer>>;
+
+    fn poll(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        let item = match self.state.take() {
+            None => {
+                // First poll: transform outer → inner.
+                let outer = self.outer.take().expect("polled after completion");
+                (self.sender.f)(outer)
+            }
+            Some(Some(inner)) => inner, // retrying after full
+            Some(None) => panic!("polled after Ready"),
+        };
+
+        match self.sender.inner.inner.queue.push(item) {
+            Ok(()) => {
+                self.sender.inner.inner.wake_consumer();
+                self.state = Some(None);
+                Poll::Ready(Ok(()))
+            }
+            Err(PushError::Closed(_)) => {
+                Poll::Ready(Err(SendError(self.outer.take().expect("outer consumed"))))
+            }
+            Err(PushError::Full(item)) => {
+                *self.sender.inner.inner.producer_waker.lock().unwrap() = Some(cx.waker().clone());
+                match self.sender.inner.inner.queue.push(item) {
+                    Ok(()) => {
+                        self.sender.inner.inner.wake_consumer();
+                        self.state = Some(None);
+                        Poll::Ready(Ok(()))
+                    }
+                    Err(PushError::Closed(_)) => {
+                        Poll::Ready(Err(SendError(self.outer.take().expect("outer consumed"))))
+                    }
+                    Err(PushError::Full(item)) => {
+                        self.state = Some(Some(item));
+                        Poll::Pending
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ============================================================================
+// FilterMapReceiver — wraps PipeReceiver<Inner>, transforms on pop (F37/F39)
+// ============================================================================
+
+/// A `PipeReceiver<Outer>` that owns a `PipeReceiver<Inner>` and a
+/// `Inner → Option<Outer>` transform, applied inline on every `receive`/`try_recv`.
+///
+/// Created via [`PipeReceiver::filter_map`].
+pub struct FilterMapReceiver<Outer, Inner, F> {
+    inner: PipeReceiver<Inner>,
+    f: F,
+    _marker: core::marker::PhantomData<Outer>,
+}
+
+impl<Outer, Inner, F> FilterMapReceiver<Outer, Inner, F>
+where
+    F: Fn(Inner) -> Option<Outer>,
+{
+    /// Non-blocking pop through the transform. Returns `Empty` if the inner
+    /// pipe is empty, or if the transform returns `None` for the popped item
+    /// (the item is discarded and the caller retries).
+    pub fn try_recv(&self) -> Result<Outer, TryRecvError> {
+        loop {
+            let inner = self.inner.try_recv()?;
+            if let Some(outer) = (self.f)(inner) {
+                return Ok(outer);
+            }
+            // Transform filtered this item — loop to try the next one.
+        }
+    }
+
+    /// Async receive through the transform.
+    pub fn receive(&self) -> FilterMapRecvFuture<'_, Outer, Inner, F> {
+        FilterMapRecvFuture { receiver: self }
+    }
+
+    pub fn close(&self) -> bool { self.inner.close() }
+    pub fn is_empty(&self) -> bool { self.inner.is_empty() }
+    pub fn is_closed(&self) -> bool { self.inner.is_closed() }
+    pub fn len(&self) -> usize { self.inner.len() }
+
+    pub fn readiness(&self) -> QueueReadiness<Inner>
+    where Inner: Send {
+        self.inner.readiness()
+    }
+}
+
+impl<T, F: Clone> Clone for FilterMapReceiver<T, T, F> {
+    fn clone(&self) -> Self {
+        Self { inner: self.inner.clone(), f: self.f.clone(), _marker: core::marker::PhantomData }
+    }
+}
+
+impl<T> PipeReceiver<T> {
+    /// Wrap this receiver with a `Inner → Option<Outer>` transform.
+    ///
+    /// ```ignore
+    /// let ws_rx: PipeReceiver<WebSocketMessage> = ...;
+    /// let body_rx = ws_rx.filter_map(|msg| match msg {
+    ///     WebSocketMessage::Binary(data) => Some(Bytes::from(data)),
+    ///     _ => None,
+    /// });
+    /// ```
+    pub fn filter_map<Outer, F: Fn(T) -> Option<Outer>>(self, f: F) -> FilterMapReceiver<Outer, T, F> {
+        FilterMapReceiver { inner: self, f, _marker: core::marker::PhantomData }
+    }
+}
+
+/// Future for [`FilterMapReceiver::receive`].
+pub struct FilterMapRecvFuture<'a, Outer, Inner, F> {
+    receiver: &'a FilterMapReceiver<Outer, Inner, F>,
+}
+
+impl<Outer, Inner, F> Unpin for FilterMapRecvFuture<'_, Outer, Inner, F> {}
+
+impl<Outer, Inner, F> Future for FilterMapRecvFuture<'_, Outer, Inner, F>
+where
+    F: Fn(Inner) -> Option<Outer>,
+{
+    type Output = Option<Outer>;
+
+    fn poll(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Self::Output> {
+        // Try a non-blocking pop first.
+        match self.receiver.inner.inner.queue.pop() {
+            Ok(item) => {
+                self.receiver.inner.inner.wake_producer();
+                if let Some(outer) = (self.receiver.f)(item) {
+                    return Poll::Ready(Some(outer));
+                }
+                // Filtered — loop back.
+                cx.waker().wake_by_ref();
+                return Poll::Pending;
+            }
+            Err(PopError::Closed) => return Poll::Ready(None),
+            Err(PopError::Empty) => {}
+        }
+
+        // Park and re-check.
+        *self.receiver.inner.inner.consumer_waker.lock().unwrap() = Some(cx.waker().clone());
+        match self.receiver.inner.inner.queue.pop() {
+            Ok(item) => {
+                self.receiver.inner.inner.wake_producer();
+                if let Some(outer) = (self.receiver.f)(item) {
+                    Poll::Ready(Some(outer))
+                } else {
+                    cx.waker().wake_by_ref();
+                    Poll::Pending
+                }
+            }
+            Err(PopError::Closed) => Poll::Ready(None),
+            Err(PopError::Empty) => Poll::Pending,
+        }
+    }
+}

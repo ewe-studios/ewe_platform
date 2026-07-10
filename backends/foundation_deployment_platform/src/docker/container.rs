@@ -7,7 +7,7 @@ use bollard::query_parameters::{
     CreateContainerOptionsBuilder, CreateImageOptionsBuilder, InspectContainerOptions,
     RemoveContainerOptionsBuilder, StartContainerOptions, StopContainerOptionsBuilder,
 };
-use tracing::warn;
+use tracing::{info, warn};
 
 use crate::docker::config::ContainerConfig;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
@@ -30,9 +30,7 @@ impl ContainerHandle {
             )))
         })?;
 
-        if config.always_pull {
-            Self::pull_image(&docker, &config.image).await?;
-        }
+        Self::ensure_image(&docker, &config.image, config.always_pull).await?;
 
         let body = Self::build_body(&config);
 
@@ -147,12 +145,46 @@ impl ContainerHandle {
 
     // ── Private ──
 
+    /// Pull the image when forced, or when it is not already in the local cache.
+    ///
+    /// Decision 09 fixes the lifecycle as pull → create → start; feature 05 adds
+    /// the local cache. Pulling only on `always_pull` left a missing image to
+    /// fail at `create_container` with an opaque `404: No such image`, which
+    /// breaks every container test on a cold machine or in CI.
+    async fn ensure_image(
+        docker: &bollard::Docker,
+        image: &str,
+        always_pull: bool,
+    ) -> DockerResult<()> {
+        if !always_pull && docker.inspect_image(image).await.is_ok() {
+            return Ok(());
+        }
+        Self::pull_image(docker, image).await
+    }
+
+    /// Qualify a bare repository with `:latest`.
+    ///
+    /// `create_image` treats a missing tag as "every tag in the repository", so
+    /// an unqualified name would pull the entire repo. A colon in the final
+    /// path segment is the tag; a colon before the last `/` is a registry port.
+    fn with_default_tag(image: &str) -> String {
+        let last_segment = image.rsplit('/').next().unwrap_or(image);
+        if last_segment.contains(':') {
+            image.to_string()
+        } else {
+            format!("{image}:latest")
+        }
+    }
+
     async fn pull_image(docker: &bollard::Docker, image: &str) -> DockerResult<()> {
         use futures_util::StreamExt;
 
+        let tagged = Self::with_default_tag(image);
+        info!(image = %tagged, "pulling image");
+
         let options = Some(
             CreateImageOptionsBuilder::default()
-                .from_image(image)
+                .from_image(&tagged)
                 .build(),
         );
 

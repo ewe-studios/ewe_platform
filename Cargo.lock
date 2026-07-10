@@ -4723,14 +4723,20 @@ version = "0.1.0"
 dependencies = [
  "chrono",
  "derive_more",
+ "foundation_core",
  "foundation_db",
  "foundation_deployment_cloudflare",
+ "foundation_deployment_platform",
  "foundation_errstacks",
+ "foundation_http",
  "foundation_netio",
  "serde",
  "serde_json",
+ "serial_test",
+ "tokio",
  "toml 0.9.8",
  "tracing",
+ "tracing-test",
 ]
 
 [[package]]
@@ -4780,6 +4786,7 @@ dependencies = [
  "async-trait",
  "derive_more",
  "foundation_core",
+ "foundation_deployment_platform",
  "foundation_errstacks",
  "futures-lite",
  "russh",
@@ -4790,6 +4797,7 @@ dependencies = [
  "ssh2",
  "tokio",
  "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -29,5 +29,13 @@ tracing.workspace = true
 default = []
 russh-backend = ["russh", "russh-keys", "russh-sftp", "async-trait"]
 
+[dev-dependencies]
+# Real SSH server containers for backend integration tests, via
+# `foundation_deployment_platform::docker`. Not `foundation_testbed` — the
+# platform crate owns container lifecycle; the testbed is a consumer of it.
+foundation_deployment_platform = { path = "../foundation_deployment_platform", version = "0.1.0" }
+tokio = { version = "1", features = ["rt", "rt-multi-thread", "time", "macros"] }
+tracing-subscriber = "0.3"
+
 [lints]
 workspace = true

@@ -19,7 +19,8 @@ fn test_proxy_config_builder() {
     assert_eq!(config.services.len(), 1);
     assert_eq!(config.services[0].name, "app");
     assert_eq!(config.services[0].host, "app.example.com");
-    assert_eq!(config.services[0].backends, vec!["http://localhost:3000"]);
+    assert_eq!(config.services[0].backends.len(), 1);
+    assert_eq!(config.services[0].backends[0].url, "http://localhost:3000");
 }
 
 #[test]
