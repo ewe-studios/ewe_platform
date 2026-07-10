@@ -12,6 +12,8 @@ pub mod simple_http;
 pub mod websocket;
 pub mod netcap;
 pub mod http2;
+#[cfg(feature = "quic")]
+pub mod quic;
 
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub mod http_stream;
