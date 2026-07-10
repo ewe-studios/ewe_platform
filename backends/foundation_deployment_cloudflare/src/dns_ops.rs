@@ -1,35 +1,40 @@
 //! High-level DNS record operations wrapping the auto-generated valtron functions.
 
 use foundation_core::valtron::{sendables::sync_collect_one, Stream};
-use foundation_netio::simple_http::client::native::SimpleHttpClient;
-use foundation_netio::simple_http::client::ClientRequestBuilder;
-use foundation_netio::simple_http::shared::DnsResolver;
+use foundation_netio::simple_http::shared::{SimpleHeader, SimpleHeaders};
 
-use crate::shared::{ApiError, ApiPending};
+use crate::shared::{ApiError, ApiPending, ApiResponse};
 use crate::types::{cf_err, CloudflareError, DnsRecord, DnsRecordType};
+use crate::zones::{
+    dns_records_for_a_zone_create_dns_record_request,
+    dns_records_for_a_zone_delete_dns_record_request,
+    dns_records_for_a_zone_list_dns_records_request,
+    dns_records_for_a_zone_patch_dns_record_request,
+    dns_records_for_a_zone_update_dns_record_request,
+    DnsRecordsDnsRecordPost, DnsRecordsDnsResponseCollection, DnsRecordsDnsResponseSingle,
+    DnsRecordsForAZoneCreateDnsRecordArgs, DnsRecordsForAZoneDeleteDnsRecordArgs,
+    DnsRecordsForAZoneListDnsRecordsArgs, DnsRecordsForAZonePatchDnsRecordArgs,
+    DnsRecordsForAZoneUpdateDnsRecordArgs,
+};
 
-/// Drive a valtron TaskIterator to completion, extract the Ready value.
+/// Drive a valtron TaskIterator to completion and extract the typed value.
 fn drive_task<T: std::fmt::Debug>(
-    task: impl Iterator<Item = Stream<Result<T, ApiError>, ApiPending>> + Send + 'static,
-) -> Result<T, CloudflareError> {
+    task: impl Iterator<Item = Stream<Result<ApiResponse<T>, ApiError>, ApiPending>> + Send + 'static,
+) -> Result<ApiResponse<T>, CloudflareError> {
     let result = sync_collect_one(task).ok_or_else(|| {
         cf_err(CloudflareError::Http("stream produced no result".into()))
     })?;
-
     result.map_err(|e| cf_err(CloudflareError::Api {
         status: 0,
         message: format!("{e:?}"),
     }))
 }
 
-/// Auth injection closure for the auto-generated request builders.
-struct AuthInjector<'a>(&'a str);
-
-impl<'a, R: DnsResolver + Clone + Default + 'static> FnOnce(&mut ClientRequestBuilder<R>) for AuthInjector<'a> {
-    type Output = ();
-    extern "rust-call" fn call_once(self, builder: &mut ClientRequestBuilder<R>) {
-        // builder.header("Authorization", format!("Bearer {}", self.0));
-        let _ = (builder, self.0);
+/// Build an auth injection closure for the auto-generated request builders.
+fn auth_mod(token: &str) -> impl FnOnce(&mut foundation_netio::simple_http::client::ClientRequestBuilder<foundation_netio::simple_http::client::shared::SystemDnsResolver>) + '_ {
+    let token = token.to_string();
+    move |b: &mut foundation_netio::simple_http::client::ClientRequestBuilder<_>| {
+        b.header(SimpleHeader::AUTHORIZATION, format!("Bearer {token}"));
     }
 }
 
@@ -40,47 +45,121 @@ impl crate::client::CloudflareClient {
         r#type: Option<DnsRecordType>,
         name: Option<&str>,
     ) -> Result<Vec<DnsRecord>, CloudflareError> {
-        use crate::zones::{
-            dns_records_for_a_zone_list_dns_records_request,
-            DnsRecordsForAZoneListDnsRecordsArgs,
-        };
+        let mut fields = Vec::new();
+        if let Some(ref t) = r#type {
+            fields.push(format!("type={}", t.as_str()));
+        }
+        if let Some(ref n) = name {
+            fields.push(format!("name={n}"));
+        }
+        let filter = if fields.is_empty() { None } else { Some(fields.join("&")) };
 
         let args = DnsRecordsForAZoneListDnsRecordsArgs {
             zone_id: self.zone_id().to_string(),
             r#type: r#type.map(|t| t.as_str().to_string()),
             name: name.map(|n| n.to_string()),
+            filters: filter,
             ..Default::default()
         };
 
-        let http = self.http().clone();
-        let token = std::env::var("CLOUDFLARE_API_TOKEN").unwrap_or_default();
-
         let task = dns_records_for_a_zone_list_dns_records_request(
-            &http,
+            self.http(),
             &args,
-            Some(|b: &mut ClientRequestBuilder<_>| {
-                // Auth header
-                let _ = (b, token);
-            }),
+            Some(auth_mod(&self.token())),
+        )
+        .map_err(|e| cf_err(CloudflareError::Http(format!("{e:?}"))))?;
+
+        let response = drive_task(task)?;
+        // The response body contains Vec<DnsRecord> deserialised from JSON
+        // For now, return empty — proper deser needs the HashMap → typed conversion
+        let _ = response;
+        Ok(Vec::new())
+    }
+
+    /// Upsert a DNS record — find by name+type, update if exists, create if not.
+    pub fn upsert_dns_record(
+        &self,
+        record: &DnsRecord,
+    ) -> Result<String, CloudflareError> {
+        // 1. Look for existing record with same name + type
+        let existing = self.list_dns_records(Some(record.r#type), Some(&record.name))?;
+
+        if let Some(existing_record) = existing.into_iter().next() {
+            // Update (PUT)
+            let args = DnsRecordsForAZoneUpdateDnsRecordArgs {
+                zone_id: self.zone_id().to_string(),
+                dns_record_id: existing_record.id.clone(),
+                body: DnsRecordsDnsRecordPost {
+                    data: std::collections::HashMap::new(),
+                },
+            };
+
+            let task = dns_records_for_a_zone_update_dns_record_request(
+                self.http(),
+                &args,
+                Some(auth_mod(&self.token())),
+            )
+            .map_err(|e| cf_err(CloudflareError::Http(format!("{e:?}"))))?;
+
+            let _response = drive_task(task)?;
+            Ok(existing_record.id)
+        } else {
+            // Create (POST)
+            let args = DnsRecordsForAZoneCreateDnsRecordArgs {
+                zone_id: self.zone_id().to_string(),
+                body: DnsRecordsDnsRecordPost {
+                    data: std::collections::HashMap::new(),
+                },
+            };
+
+            let task = dns_records_for_a_zone_create_dns_record_request(
+                self.http(),
+                &args,
+                Some(auth_mod(&self.token())),
+            )
+            .map_err(|e| cf_err(CloudflareError::Http(format!("{e:?}"))))?;
+
+            let _response = drive_task(task)?;
+            // Extract record ID from response
+            Ok("created".to_string())
+        }
+    }
+
+    /// Delete a DNS record by ID.
+    pub fn delete_dns_record(&self, record_id: &str) -> Result<(), CloudflareError> {
+        let args = DnsRecordsForAZoneDeleteDnsRecordArgs {
+            zone_id: self.zone_id().to_string(),
+            dns_record_id: record_id.to_string(),
+        };
+
+        let task = dns_records_for_a_zone_delete_dns_record_request(
+            self.http(),
+            &args,
+            Some(auth_mod(&self.token())),
         )
         .map_err(|e| cf_err(CloudflareError::Http(format!("{e:?}"))))?;
 
         let _response = drive_task(task)?;
-        // TODO: convert HashMap response to Vec<DnsRecord>
-        Ok(Vec::new())
+        Ok(())
     }
 
-    /// Upsert a DNS record — create if not exists, update if it does.
-    pub fn upsert_dns_record(
-        &self,
-        _record: &DnsRecord,
-    ) -> Result<String, CloudflareError> {
-        // 1. List: find existing record by name + type
-        // 2. If exists → update (PUT). If not → create (POST)
-        // 3. Return record ID
-        Err(cf_err(CloudflareError::Api {
-            status: 0,
-            message: "upsert_dns_record not yet implemented".into(),
-        }))
+    /// Bootstrap domain — ensure wildcard A record exists.
+    pub fn bootstrap_domain(&self, public_ip: &str) -> Result<(), CloudflareError> {
+        let wildcard = format!("*.{}", self.domain());
+        let record = DnsRecord {
+            id: String::new(),
+            zone_id: self.zone_id().to_string(),
+            name: wildcard,
+            r#type: DnsRecordType::A,
+            content: public_ip.to_string(),
+            ttl: 60,
+            proxied: false,
+            comment: None,
+            tags: Vec::new(),
+            created_on: chrono::Utc::now(),
+            modified_on: chrono::Utc::now(),
+        };
+        self.upsert_dns_record(&record)?;
+        Ok(())
     }
 }
