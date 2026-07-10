@@ -22,10 +22,12 @@ base85rs = "0.1"
 derive_more.workspace = true
 chrono.workspace = true
 tracing.workspace = true
+urlencoding = "2.1"
 
 [features]
 default = ["zones"]
 zones = []
+cloudflare_zones = ["zones"]
 full = ["zones"]
 
 [lints]

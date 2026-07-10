@@ -510,12 +510,17 @@ fn fix_flat_features(
 
 /// Register the `gen_api` subcommand.
 pub fn register(cmd: clap::Command) -> clap::Command {
-    cmd.subcommand(
-        clap::Command::new("gen_api")
-            .about("Unified generator - generates types, clients, and providers from OpenAPI specs")
-            .subcommand_required(true)
-            .arg_required_else_help(true)
-            .subcommand(
+    cmd.subcommand(command())
+}
+
+/// Build a standalone `gen_api` command (for use as a binary).
+#[must_use]
+pub fn command() -> clap::Command {
+    clap::Command::new("gen_api")
+        .about("Unified generator - generates types, clients, and providers from OpenAPI specs")
+        .subcommand_required(true)
+        .arg_required_else_help(true)
+        .subcommand(
                 clap::Command::new("generate")
                     .about("Generate all artifacts (types, clients, providers) from OpenAPI specs")
                     .arg(
@@ -598,7 +603,6 @@ pub fn register(cmd: clap::Command) -> clap::Command {
                             .value_name("N")
                             .default_value("200"),
                     ),
-            ),
     )
 }
 

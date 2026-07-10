@@ -21079,6 +21079,26 @@ where
         args.zone_id,
     );
 
+    // Append query params (manually fixed — generator will produce this properly
+    // once regeneration is unblocked; see Decision 24 progress.md).
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("name="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.r#type { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("type="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.name_exact { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("name.exact="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.name_contains { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("name.contains="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.name_startswith { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("name.startswith="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.name_endswith { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("name.endswith="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.content { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("content="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.proxied { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("proxied="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.comment { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("comment="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.tag { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("tag="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.page { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("page="); url.push_str(&urlencoding::encode(v)); }
+        if let Some(ref v) = args.per_page { if first { url.push('?'); first = false; } else { url.push('&'); } url.push_str("per_page="); url.push_str(&urlencoding::encode(v)); }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;

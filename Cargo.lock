@@ -3597,7 +3597,6 @@ dependencies = [
  "foundation_macros",
  "foundation_netio",
  "foundation_nostd",
- "foundation_openapi",
  "foundation_packager",
  "foundation_runtimes",
  "foundation_testbed",
@@ -4184,6 +4183,7 @@ version = "0.1.0"
 dependencies = [
  "clap",
  "foundation_codegen",
+ "foundation_openapi",
  "serde",
  "serde_json",
  "syn 2.0.114",
@@ -4371,6 +4371,7 @@ dependencies = [
  "serde_json",
  "sha2",
  "tracing",
+ "urlencoding",
 ]
 
 [[package]]

@@ -15,6 +15,7 @@ cli = ["dep:clap"]
 [dependencies]
 clap = { version = "4", features = ["derive"], optional = true }
 foundation_codegen = { path = "../foundation_codegen", version = "0.1.0", features = ["wat"] }
+foundation_openapi = { path = "../foundation_openapi", version = "0.0.1" }
 toml = { workspace = true }
 toml_edit = { workspace = true }
 serde = { version = "1.0", features = ["derive"] }
@@ -24,6 +25,11 @@ syn = { version = "2", features = ["full", "parsing"] }
 [dev-dependencies]
 serde_json = { workspace = true }
 tempfile = "3.10"
+
+[[bin]]
+name = "genapi"
+path = "src/bin/genapi.rs"
+required-features = ["cli"]
 
 [lints]
 workspace = true

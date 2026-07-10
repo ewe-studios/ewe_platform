@@ -1282,10 +1282,9 @@ impl UnifiedGenerator {
             writeln!(out, "        let mut first = true;")?;
             for qp in &ep.query_params {
                 let safe_qp = escape_rust_keyword(&to_snake_case(&sanitize_identifier(qp)));
-                let url_qp_name = sanitize_identifier(qp);
                 writeln!(out, "        if let Some(ref v) = args.{safe_qp} {{")?;
                 writeln!(out, "            if first {{ url.push('?'); first = false; }} else {{ url.push('&'); }}")?;
-                writeln!(out, "            url.push_str(\"{url_qp_name}=\");")?;
+                writeln!(out, "            url.push_str(\"{qp}=\");")?;
                 writeln!(out, "            url.push_str(&urlencoding::encode(v));")?;
                 writeln!(out, "        }}")?;
             }

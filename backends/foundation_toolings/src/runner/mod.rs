@@ -110,7 +110,7 @@ impl BinaryRunnerTask {
             .spawn()
     }
 
-    pub fn readiness(&self) -> Arc<dyn EventReadiness> {
+    pub fn readiness(&self) -> Arc<dyn EventReadiness + Send + Sync> {
         match self.state {
             RunnerState::Idle => Arc::new(self.build_ready.clone()),
             RunnerState::ReloadDelay => Arc::new(self.reload_sleeper.clone()),
