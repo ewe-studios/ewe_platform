@@ -1,7 +1,7 @@
 ---
 feature: "WebSocketServerTask + WsServerConfig + Pipe migration"
 description: "Progress-driven server task with Pipe seam; ConcurrentQueue→Pipe migration for wake+backpressure"
-status: "in-progress"
+status: "complete"
 priority: "medium"
 phase: 4
 depends_on: ["36-ws-resumable-decoder", "02-pipe-primitive"]

@@ -558,11 +558,19 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
     }
 
     /// Get the message delivery handle for sending messages.
-    ///
-    /// This can be cloned and shared across threads.
     #[must_use]
     pub fn delivery(&self) -> MessageDelivery {
         self.delivery.clone()
+    }
+
+    /// Consume the client, returning the inner stream for direct iteration.
+    /// Used by `WsTransport` to spawn a collector that bridges WS messages
+    /// into byte pipes — avoids the borrow issue with `messages()`.
+    #[must_use]
+    pub fn into_parts(
+        self,
+    ) -> (DrivenStreamIterator<WebSocketTask<R>>, MessageDelivery) {
+        (self.inner, self.delivery)
     }
 
     /// Get an iterator over incoming messages.

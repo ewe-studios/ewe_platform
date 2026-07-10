@@ -1,7 +1,7 @@
 ---
 feature: "WebSocketTransport: Connect-over-WS bidi via WebSocketClient + MessageDelivery (D13 F1)"
 description: "WsTransport built on the existing WebSocketClient + MessageDelivery (Pipe-backed); full-duplex bidi on h1 with reconnection"
-status: "in-progress"
+status: "complete"
 priority: "medium"
 phase: 4
 depends_on: ["37-ws-server-task", "22-router-dispatch", "02-pipe-primitive"]
