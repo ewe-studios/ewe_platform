@@ -43,7 +43,7 @@ use std::thread;
 use std::time::Duration;
 
 use crate::native::fd::Ready;
-use crate::native::poll::{Events, Interest, Poll, Registry, Token};
+use crate::native::poll::{Backend, Events, Interest, Poll, Registry, Token};
 
 /// Per-registration readiness tracking.
 ///
@@ -169,18 +169,18 @@ impl Reactor {
     }
 
     /// WHY: observability — which backend the process actually selected
-    /// (Decision 14 OQ#14.3).
+    /// (Decision 14 OQ#14.3). Operators need the backend in use, not the one
+    /// that was preferred.
     ///
     /// WHAT: the selector backend this reactor is driving.
     ///
-    /// HOW: reported by the compiled-in selector; a runtime probe ladder
-    /// replaces this in F42.
+    /// HOW: asks the selector, which was chosen at construction by the F42
+    /// probe ladder.
     ///
     /// # Panics
     /// Never panics.
     pub fn backend(&self) -> Backend {
-        let _ = &self.poll;
-        Backend::CURRENT
+        self.poll.backend()
     }
 
     /// WHY: one `epoll_ctl` per connection, into the shared selector.
@@ -280,43 +280,6 @@ impl Reactor {
         if let Some(entry) = self.entries.read().expect("entries lock poisoned").get(&token) {
             entry.ready.fetch_and(!ready.bits(), Ordering::AcqRel);
         }
-    }
-}
-
-/// Which selector backend the reactor is driving.
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Backend {
-    /// Linux `epoll`.
-    Epoll,
-    /// Linux `io_uring` in readiness (multishot poll) mode.
-    UringReadiness,
-    /// Linux `io_uring` in completion (buffer ring) mode.
-    UringCompletion,
-    /// BSD/macOS `kqueue`.
-    Kqueue,
-}
-
-impl Backend {
-    /// The backend compiled into this build.
-    #[cfg(all(target_os = "linux", feature = "uring"))]
-    pub const CURRENT: Backend = Backend::UringReadiness;
-    /// The backend compiled into this build.
-    #[cfg(all(target_os = "linux", not(feature = "uring")))]
-    pub const CURRENT: Backend = Backend::Epoll;
-    /// The backend compiled into this build.
-    #[cfg(not(target_os = "linux"))]
-    pub const CURRENT: Backend = Backend::Kqueue;
-}
-
-impl std::fmt::Display for Backend {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let name = match self {
-            Backend::Epoll => "epoll",
-            Backend::UringReadiness => "io_uring(readiness)",
-            Backend::UringCompletion => "io_uring(completion)",
-            Backend::Kqueue => "kqueue",
-        };
-        f.write_str(name)
     }
 }
 

@@ -18,6 +18,9 @@ pub mod selector {
 
     #[cfg(feature = "uring")]
     pub mod uring;
+
+    /// Runtime dispatch over the compiled-in Linux backends.
+    pub mod dispatch;
 }
 
 #[cfg(any(

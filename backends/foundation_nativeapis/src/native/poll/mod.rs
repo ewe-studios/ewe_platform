@@ -33,6 +33,15 @@ pub use event::{Events, Source};
 pub mod sys;
 pub use sys::SourceFd;
 
+pub mod backend;
+pub use backend::{Backend, BackendPreference, SelectionError};
+
+/// The functional io_uring capability probe (Decision 14 OQ#14.3).
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub mod probe;
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub use probe::{ProbeError, UringCapabilities};
+
 use std::io;
 use std::sync::Arc;
 use std::time::Duration;
@@ -95,6 +104,12 @@ pub struct Poll {
     selector: Arc<sys::Selector>,
 }
 
+impl std::fmt::Debug for Poll {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Poll").field("backend", &self.backend()).finish()
+    }
+}
+
 impl Poll {
     /// Create a new `Poll` instance.
     ///
@@ -109,6 +124,51 @@ impl Poll {
         // `Registry` is parameterised over.
         let selector = Arc::new(sys::Selector::new()?);
         Ok(Self { selector })
+    }
+
+    /// WHY: Decision 14 OQ#14.3 makes an explicit backend request a
+    /// *requirement*. A deployment that asks for io_uring and silently gets
+    /// epoll discovers it from latency graphs months later.
+    ///
+    /// WHAT: create a `Poll` on a specific backend preference.
+    ///
+    /// HOW: [`BackendPreference::Auto`] walks the probe ladder
+    /// (uring-completion → uring-readiness → epoll) and logs the choice.
+    /// [`BackendPreference::Uring`] fails hard if the probe says io_uring is
+    /// unusable. [`BackendPreference::Epoll`] skips the probe entirely.
+    ///
+    /// # Errors
+    /// `io::ErrorKind::Unsupported` carrying the concrete probe failure when an
+    /// explicitly requested backend is unavailable, or the platform selector's
+    /// own `io::Error`.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(target_os = "linux")]
+    pub fn with_preference(preference: BackendPreference) -> io::Result<Self> {
+        let selector = Arc::new(sys::Selector::with_preference(preference)?);
+        Ok(Self { selector })
+    }
+
+    /// WHY: observability — operators need to see which backend a process
+    /// actually landed on, not which one it was configured to prefer.
+    ///
+    /// WHAT: the backend this `Poll` is driving.
+    ///
+    /// HOW: reported by the runtime dispatch selector on Linux; a constant on
+    /// platforms with a single backend.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn backend(&self) -> Backend {
+        #[cfg(target_os = "linux")]
+        {
+            self.selector.backend()
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            Backend::Kqueue
+        }
     }
 
     /// Returns a [`Registry`] for registering/deregistering sources.

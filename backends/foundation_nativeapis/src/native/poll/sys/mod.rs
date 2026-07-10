@@ -4,10 +4,10 @@
 /// On macOS/BSD: kqueue
 /// On Windows: IOCP
 
-#[cfg(all(target_os = "linux", not(feature = "uring")))]
-pub use self::unix::selector::epoll::{Selector, RawFd};
-#[cfg(all(target_os = "linux", feature = "uring"))]
-pub use self::unix::selector::uring::{Selector, RawFd};
+/// On Linux the concrete backend is chosen at runtime by the F42 probe ladder,
+/// so `Selector` is the dispatch enum rather than one of the leaf selectors.
+#[cfg(target_os = "linux")]
+pub use self::unix::selector::dispatch::{RawFd, Selector};
 
 #[cfg(any(
     target_os = "macos",

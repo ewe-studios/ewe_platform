@@ -21,6 +21,14 @@ pub struct Selector {
     waker_token: Mutex<Option<Token>>,
 }
 
+impl std::fmt::Debug for Selector {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("epoll::Selector")
+            .field("epoll_fd", &self.epoll.as_raw_fd())
+            .finish()
+    }
+}
+
 impl Selector {
     /// Create a new epoll selector.
     pub fn new() -> io::Result<Self> {

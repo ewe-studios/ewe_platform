@@ -13,7 +13,7 @@ use std::{fs, mem};
 
 use crate::shared::error::{Result, WatchError};
 use crate::shared::event::{WatchEvent, WatchEventKind};
-use crate::native::poll::{Interest, Poll, SourceFd, Token};
+use crate::native::poll::{Interest, Poll, Token};
 use crate::shared::watcher::NativeWatcher;
 
 /// Maximum inotify buffer size for a single read.
