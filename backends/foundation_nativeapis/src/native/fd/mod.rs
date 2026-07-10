@@ -109,6 +109,58 @@ impl Ready {
 
     /// Check if this readiness contains all flags in `other`.
     pub fn contains(self, other: Ready) -> bool { self.0 & other.0 == other.0 }
+
+    /// WHY: the shared reactor stores readiness in an `AtomicU8` so the drain
+    /// thread can set bits and consumers can clear them without taking a write
+    /// lock on the registration map.
+    ///
+    /// WHAT: the raw bit pattern backing this `Ready`.
+    ///
+    /// HOW: direct field read; the bit layout is the `Ready::*` constants.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub const fn bits(self) -> u8 { self.0 }
+
+    /// WHY: counterpart to [`Ready::bits`] for reading back an atomically
+    /// stored readiness set.
+    ///
+    /// WHAT: rebuild a `Ready` from a raw bit pattern.
+    ///
+    /// HOW: unknown high bits are masked off, so a corrupted or future-widened
+    /// value can never produce a `Ready` claiming flags this build doesn't know.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub const fn from_bits(bits: u8) -> Ready { Ready(bits & Self::ALL.0) }
+
+    /// Every readiness flag this build understands.
+    pub const ALL: Ready = Ready(0b11111);
+}
+
+impl std::fmt::Display for Ready {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if self.is_empty() {
+            return write!(f, "EMPTY");
+        }
+        let mut first = true;
+        for (flag, name) in [
+            (Self::READABLE, "READABLE"),
+            (Self::WRITABLE, "WRITABLE"),
+            (Self::READ_CLOSED, "READ_CLOSED"),
+            (Self::WRITE_CLOSED, "WRITE_CLOSED"),
+            (Self::ERROR, "ERROR"),
+        ] {
+            if self.contains(flag) {
+                if !first {
+                    write!(f, "|")?;
+                }
+                write!(f, "{name}")?;
+                first = false;
+            }
+        }
+        Ok(())
+    }
 }
 
 /// Result of a readiness poll.
@@ -194,13 +246,11 @@ impl FdRegistration {
 
     /// Poll the selector and update the readiness cache.
     fn query_readiness(&self) -> io::Result<Ready> {
-        // F40: shared reactor path — zero syscalls.
+        // F40: shared reactor path — zero syscalls. Return the *actual* latched
+        // flags: collapsing them to READABLE|WRITABLE would make READ_CLOSED and
+        // ERROR unobservable, so EOF and socket errors would look like readable.
         if let Some(ref reactor) = self.reactor {
-            return Ok(if reactor.is_ready(self.token) {
-                Ready::READABLE.union(Ready::WRITABLE)
-            } else {
-                Ready::EMPTY
-            });
+            return Ok(reactor.readiness(self.token));
         }
 
         // Legacy: private poll with zero-timeout syscall.
@@ -237,8 +287,39 @@ impl FdRegistration {
         Ok(ready)
     }
 
+    /// WHY: the Linux selector is edge-triggered, so the kernel reports each
+    /// readiness transition exactly once and the reactor latches it. A consumer
+    /// that has drained the fd to `WouldBlock` must clear the latch, otherwise
+    /// `is_ready()` stays true and the parked task spins instead of sleeping.
+    ///
+    /// WHAT: clear the flags in `ready` from this registration's readiness, both
+    /// in the local cache and in the shared reactor.
+    ///
+    /// HOW: masks the bits out of the local `readiness` cache, then clears them
+    /// in the reactor entry. On the legacy private-`Poll` path there is no
+    /// shared entry, so only the local cache is updated — the next
+    /// `query_readiness` re-polls the selector anyway.
+    ///
+    /// # Panics
+    /// Panics if the local readiness lock is poisoned.
+    pub fn clear_readiness(&self, ready: Ready) {
+        let mut local = self.readiness.lock().expect("readiness lock poisoned");
+        *local = local.difference(ready);
+        drop(local);
+
+        if let Some(ref reactor) = self.reactor {
+            reactor.clear(self.token, ready);
+        }
+    }
+
     /// Deregister from the poll selector.
+    ///
+    /// # Errors
+    /// Returns the selector's `io::Error` if deregistration fails.
     pub fn deregister(&self, fd: RawFd) -> io::Result<()> {
+        if let Some(ref reactor) = self.reactor {
+            return reactor.deregister(fd, self.token);
+        }
         self.registry.deregister_fd(fd)
     }
 }
@@ -306,6 +387,12 @@ impl<T: AsRawFd> RegisteredFd<T> {
             }),
             Err(e) => Err(FdRegistrationError::Failed { error: e, inner }),
         }
+    }
+
+    /// The underlying registration — used by `ReadyGuard` to clear latched
+    /// readiness in the shared reactor when an I/O op reports `WouldBlock`.
+    pub(crate) fn registration(&self) -> &FdRegistration {
+        &self.registration
     }
 
     /// Get a shared reference to the inner object.

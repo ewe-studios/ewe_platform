@@ -12,68 +12,128 @@
 //!
 //! HOW: On first access, creates the selector and spawns the drain thread.
 //! Registration calls `epoll_ctl(ADD)`. The drain thread blocks in
-//! `poll(timeout)`, and on each event sets the token's readiness bits.
-//! Tasks parked via `TaskStatus::Depends(event_readiness)` are re-polled by
-//! the executor when `is_ready()` returns true.
+//! `poll(timeout)` on **the same selector registrations land in**, and on each
+//! event ORs the token's readiness bits into its cache entry. Tasks parked via
+//! `TaskStatus::Depends(event_readiness)` are re-polled by the executor when
+//! `is_ready()` returns true.
+//!
+//! ## The edge-triggered clear protocol
+//!
+//! The Linux selector registers fds edge-triggered (`EPOLLET`), so the kernel
+//! reports a readiness transition exactly once. The cache therefore *latches*
+//! that edge: bits stay set until a consumer clears them. A consumer that reads
+//! until `WouldBlock` must call [`Reactor::clear`] (via
+//! `ReadyGuard::clear_ready`), otherwise the entry stays permanently ready and
+//! the task spins instead of parking. Clearing re-arms the entry: the next
+//! kernel edge sets the bit again.
+//!
+//! Set (drain thread) and clear (consumer) race by construction. They are both
+//! atomic read-modify-writes on the same `AtomicU8`, and the ordering that
+//! matters is the safe one: a `fetch_or` landing after a `fetch_and` leaves the
+//! bit *set* — a spurious wake, which every consumer already tolerates by
+//! re-reading and getting `WouldBlock`. The unsafe direction (losing a real
+//! edge) cannot happen, because the kernel only reports the edge after the data
+//! is queued, so the `fetch_or` always happens-after the data is observable.
 
 use std::collections::HashMap;
 use std::io;
+use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
 use std::sync::{Arc, Mutex, OnceLock, RwLock};
 use std::thread;
 use std::time::Duration;
 
-use crate::native::poll::{Events, Interest, Poll, Registry, Token};
 use crate::native::fd::Ready;
+use crate::native::poll::{Events, Interest, Poll, Registry, Token};
 
 /// Per-registration readiness tracking.
+///
+/// `ready` is atomic so the drain thread can OR bits in, and consumers can mask
+/// bits out, while both hold only a *read* lock on the entry map.
 struct Entry {
-    ready: Ready,
+    ready: AtomicU8,
+    #[allow(dead_code)]
     interest: Interest,
+}
+
+impl std::fmt::Debug for Entry {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Entry")
+            .field("ready", &Ready::from_bits(self.ready.load(Ordering::Acquire)))
+            .field("interest", &self.interest)
+            .finish()
+    }
 }
 
 /// The shared process-level reactor singleton.
 pub struct Reactor {
-    poll: Poll,
+    /// The one selector. Shared with the drain thread — registrations and
+    /// `poll()` **must** target the same instance or no wake ever fires.
+    poll: Arc<Poll>,
+    /// Registry over `poll`'s selector.
     registry: Registry,
     /// Token → readiness cache. Arc'd so the drain thread holds a ref.
     entries: Arc<RwLock<HashMap<Token, Entry>>>,
-    /// Registration lock — serialises epoll_ctl calls.
+    /// Registration lock — serialises `epoll_ctl` calls.
     reg_lock: Mutex<()>,
     /// Drain thread.
     _drain: thread::JoinHandle<()>,
     /// Signal the drain thread to stop.
-    shutdown: Arc<std::sync::atomic::AtomicBool>,
+    shutdown: Arc<AtomicBool>,
+}
+
+impl std::fmt::Debug for Reactor {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("Reactor")
+            .field("registered", &self.entries.read().map(|e| e.len()).unwrap_or(0))
+            .field("shutdown", &self.shutdown.load(Ordering::Acquire))
+            .finish()
+    }
 }
 
 /// Global singleton.
 static REACTOR: OnceLock<Arc<Reactor>> = OnceLock::new();
 
-/// Poll timeout for the drain thread.
+/// Poll timeout for the drain thread. Bounds shutdown latency only — a real
+/// event returns from `poll()` immediately.
 const DRAIN_TIMEOUT_MS: u64 = 100;
 
 impl Reactor {
-    /// Get or initialise the shared reactor.
-    /// Returns `Err` if the reactor could not be created (unsupported platform).
+    /// WHY: every `FdRegistration` parks on this one instance instead of
+    /// building a private epoll fd per socket.
+    ///
+    /// WHAT: get or initialise the shared reactor.
+    ///
+    /// HOW: `OnceLock` doesn't support fallible init, so this checks for an
+    /// existing instance, otherwise builds one and races to `set()` it; a
+    /// loser of that race drops its instance and returns the winner's.
+    ///
+    /// # Errors
+    /// Returns the underlying `io::Error` if the platform selector or the drain
+    /// thread cannot be created.
+    ///
+    /// # Panics
+    /// Never panics.
     pub fn get() -> io::Result<Arc<Self>> {
-        // get_or_init doesn't support Result, so we use a two-phase approach:
-        // if already initialised, return it. Otherwise, init and store.
         if let Some(reactor) = REACTOR.get() {
             return Ok(Arc::clone(reactor));
         }
 
-        let poll = Poll::new()?;
+        let poll = Arc::new(Poll::new()?);
         let registry = poll.registry();
-        let shutdown = Arc::new(std::sync::atomic::AtomicBool::new(false));
+        let shutdown = Arc::new(AtomicBool::new(false));
 
-        let entries = Arc::new(RwLock::new(HashMap::new()));
-        let drain_entries = entries.clone();
-        let drain_poll = Poll::new()?;
-        let drain_shutdown = shutdown.clone();
+        let entries: Arc<RwLock<HashMap<Token, Entry>>> = Arc::new(RwLock::new(HashMap::new()));
+
+        // The drain thread polls the *same* selector registrations land in.
+        // Handing it a second `Poll::new()` here silently breaks every wake.
+        let drain_poll = Arc::clone(&poll);
+        let drain_entries = Arc::clone(&entries);
+        let drain_shutdown = Arc::clone(&shutdown);
 
         let drain = thread::Builder::new()
             .name("reactor-drain".into())
             .spawn(move || {
-                drain_loop(drain_poll, &drain_entries, &drain_shutdown);
+                drain_loop(&drain_poll, &drain_entries, &drain_shutdown);
             })?;
 
         let reactor = Arc::new(Reactor {
@@ -85,73 +145,203 @@ impl Reactor {
             shutdown,
         });
 
-        // set() returns Err(reactor) if already initialised (race).
-        // In that case, just return the already-initialised instance.
         match REACTOR.set(Arc::clone(&reactor)) {
-            Ok(()) => Ok(reactor),
-            Err(_) => Ok(Arc::clone(REACTOR.get().unwrap())),
+            Ok(()) => {
+                tracing::info!(backend = ?reactor.backend(), "shared fd reactor initialised");
+                Ok(reactor)
+            }
+            // Lost the init race — the winner's instance is authoritative.
+            Err(_) => Ok(Arc::clone(REACTOR.get().expect("set() raced, so it is populated"))),
         }
     }
 
-    /// Access the shared Registry (for direct epoll ops).
+    /// WHY: callers that need to drive the selector directly (tests, examples)
+    /// should share the reactor's selector rather than build their own.
+    ///
+    /// WHAT: the shared `Registry`.
+    ///
+    /// HOW: returns a borrow of the registry cloned from the shared `Poll`.
+    ///
+    /// # Panics
+    /// Never panics.
     pub fn registry(&self) -> &Registry {
         &self.registry
     }
 
-    /// Register a raw fd with the shared selector and readiness cache.
+    /// WHY: observability — which backend the process actually selected
+    /// (Decision 14 OQ#14.3).
+    ///
+    /// WHAT: the selector backend this reactor is driving.
+    ///
+    /// HOW: reported by the compiled-in selector; a runtime probe ladder
+    /// replaces this in F42.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn backend(&self) -> Backend {
+        let _ = &self.poll;
+        Backend::CURRENT
+    }
+
+    /// WHY: one `epoll_ctl` per connection, into the shared selector.
+    ///
+    /// WHAT: register `fd` under `token` with `interest`, and start tracking
+    /// its readiness.
+    ///
+    /// HOW: takes `reg_lock` to serialise selector mutation, registers, then
+    /// installs a zeroed cache entry.
+    ///
+    /// # Errors
+    /// Returns the selector's `io::Error` if registration fails; the cache entry
+    /// is not installed in that case.
+    ///
+    /// # Panics
+    /// Panics if the registration map lock is poisoned.
     pub fn register(&self, fd: std::os::fd::RawFd, token: Token, interest: Interest) -> io::Result<()> {
-        let _guard = self.reg_lock.lock().unwrap();
+        let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
         self.registry.register_fd(fd, token, interest)?;
-        self.entries.write().unwrap().insert(
+        self.entries.write().expect("entries lock poisoned").insert(
             token,
-            Entry { ready: Ready::EMPTY, interest },
+            Entry { ready: AtomicU8::new(Ready::EMPTY.bits()), interest },
         );
         Ok(())
     }
 
-    /// Deregister a raw fd and remove its readiness tracking.
+    /// WHY: a closed connection must stop consuming a selector slot and a cache
+    /// entry.
+    ///
+    /// WHAT: deregister `fd` and drop its readiness tracking.
+    ///
+    /// HOW: `ENOENT` from the selector is expected (the fd may already be gone,
+    /// e.g. closed before deregistration) and is treated as success.
+    ///
+    /// # Errors
+    /// Returns the selector's `io::Error` for any failure other than `ENOENT`.
+    ///
+    /// # Panics
+    /// Panics if the registration map lock is poisoned.
     pub fn deregister(&self, fd: std::os::fd::RawFd, token: Token) -> io::Result<()> {
-        let _guard = self.reg_lock.lock().unwrap();
-        // ENOENT is expected if the fd was already removed.
+        let _guard = self.reg_lock.lock().expect("reg_lock poisoned");
         if let Err(e) = self.registry.deregister_fd(fd) {
             if e.raw_os_error() != Some(libc::ENOENT) {
                 return Err(e);
             }
         }
-        self.entries.write().unwrap().remove(&token);
+        self.entries.write().expect("entries lock poisoned").remove(&token);
         Ok(())
     }
 
-    /// Check whether `token` is ready — reads cached readiness, zero syscalls.
+    /// WHY: the `EventReadiness` check runs on every scheduler pass, so it must
+    /// not syscall.
+    ///
+    /// WHAT: whether `token` has any latched readiness.
+    ///
+    /// HOW: an atomic load behind a read lock. Unregistered tokens are not
+    /// ready.
+    ///
+    /// # Panics
+    /// Panics if the registration map lock is poisoned.
     pub fn is_ready(&self, token: Token) -> bool {
-        self.entries.read().unwrap()
+        !self.readiness(token).is_empty()
+    }
+
+    /// WHY: `poll_readable` must distinguish READABLE from READ_CLOSED/ERROR;
+    /// collapsing them loses EOF and error detection.
+    ///
+    /// WHAT: the latched readiness flags for `token`.
+    ///
+    /// HOW: an atomic load behind a read lock. Unregistered tokens read
+    /// `Ready::EMPTY`.
+    ///
+    /// # Panics
+    /// Panics if the registration map lock is poisoned.
+    pub fn readiness(&self, token: Token) -> Ready {
+        self.entries
+            .read()
+            .expect("entries lock poisoned")
             .get(&token)
-            .map(|e| !e.ready.is_empty())
-            .unwrap_or(false)
+            .map(|e| Ready::from_bits(e.ready.load(Ordering::Acquire)))
+            .unwrap_or(Ready::EMPTY)
+    }
+
+    /// WHY: edge-triggered registration reports each transition once. A
+    /// consumer that has drained the fd to `WouldBlock` must clear the latched
+    /// bit, or `is_ready()` stays true forever and the task spins.
+    ///
+    /// WHAT: clear the flags in `ready` from `token`'s latched readiness.
+    ///
+    /// HOW: `fetch_and` of the complement — atomic, and safe against a
+    /// concurrent `fetch_or` from the drain thread (worst case: a bit the drain
+    /// thread just set survives, producing a spurious wake).
+    ///
+    /// # Panics
+    /// Panics if the registration map lock is poisoned.
+    pub fn clear(&self, token: Token, ready: Ready) {
+        if let Some(entry) = self.entries.read().expect("entries lock poisoned").get(&token) {
+            entry.ready.fetch_and(!ready.bits(), Ordering::AcqRel);
+        }
+    }
+}
+
+/// Which selector backend the reactor is driving.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Backend {
+    /// Linux `epoll`.
+    Epoll,
+    /// Linux `io_uring` in readiness (multishot poll) mode.
+    UringReadiness,
+    /// Linux `io_uring` in completion (buffer ring) mode.
+    UringCompletion,
+    /// BSD/macOS `kqueue`.
+    Kqueue,
+}
+
+impl Backend {
+    /// The backend compiled into this build.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub const CURRENT: Backend = Backend::UringReadiness;
+    /// The backend compiled into this build.
+    #[cfg(all(target_os = "linux", not(feature = "uring")))]
+    pub const CURRENT: Backend = Backend::Epoll;
+    /// The backend compiled into this build.
+    #[cfg(not(target_os = "linux"))]
+    pub const CURRENT: Backend = Backend::Kqueue;
+}
+
+impl std::fmt::Display for Backend {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let name = match self {
+            Backend::Epoll => "epoll",
+            Backend::UringReadiness => "io_uring(readiness)",
+            Backend::UringCompletion => "io_uring(completion)",
+            Backend::Kqueue => "kqueue",
+        };
+        f.write_str(name)
     }
 }
 
 impl Drop for Reactor {
     fn drop(&mut self) {
-        self.shutdown.store(true, std::sync::atomic::Ordering::SeqCst);
+        self.shutdown.store(true, Ordering::SeqCst);
     }
 }
 
-/// The drain loop: blocks in poll(), updates readiness bits for signaled tokens.
+/// The drain loop: blocks in `poll()`, latches readiness bits for signalled tokens.
+///
+/// Takes the reactor's own `Poll` by shared reference — a second selector here
+/// would receive no registrations and no wake would ever fire.
 fn drain_loop(
-    poll: Poll,
+    poll: &Poll,
     entries: &Arc<RwLock<HashMap<Token, Entry>>>,
-    shutdown: &std::sync::atomic::AtomicBool,
+    shutdown: &AtomicBool,
 ) {
     let mut events = Events::with_capacity(1024);
-    loop {
-        if shutdown.load(std::sync::atomic::Ordering::SeqCst) {
-            break;
-        }
+    while !shutdown.load(Ordering::Acquire) {
         events.clear();
         match poll.poll(&mut events, Some(Duration::from_millis(DRAIN_TIMEOUT_MS))) {
             Ok(()) => {
-                let mut entries = entries.write().unwrap();
+                // Read lock only: bits are latched with an atomic OR.
+                let entries = entries.read().expect("entries lock poisoned");
                 for event in events.iter() {
                     let mut ready = Ready::EMPTY;
                     if event.is_readable() { ready = ready.union(Ready::READABLE); }
@@ -159,28 +349,63 @@ fn drain_loop(
                     if event.is_read_closed() { ready = ready.union(Ready::READ_CLOSED); }
                     if event.is_write_closed() { ready = ready.union(Ready::WRITE_CLOSED); }
                     if event.is_error() { ready = ready.union(Ready::ERROR); }
-                    if let Some(entry) = entries.get_mut(&event.token()) {
-                        entry.ready = entry.ready.union(ready);
+
+                    if let Some(entry) = entries.get(&event.token()) {
+                        entry.ready.fetch_or(ready.bits(), Ordering::AcqRel);
                     }
                 }
             }
-            Err(_) => {
-                // EINTR etc. — retry.
+            Err(e) if e.kind() == io::ErrorKind::Interrupted => {}
+            Err(e) => {
+                tracing::warn!(error = %e, "reactor drain poll failed; retrying");
             }
         }
     }
 }
 
-/// Convenience: wrap a raw fd into an `EventReadiness` via the shared reactor.
+/// Wrap a raw fd into an `EventReadiness` backed by the shared reactor.
 pub struct SharedReadiness {
     reactor: Arc<Reactor>,
     token: Token,
 }
 
+impl std::fmt::Debug for SharedReadiness {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("SharedReadiness")
+            .field("token", &self.token)
+            .field("ready", &self.reactor.readiness(self.token))
+            .finish()
+    }
+}
+
 impl SharedReadiness {
+    /// WHY: lets a caller park on an fd without owning an `FdRegistration`.
+    ///
+    /// WHAT: register `fd` with the shared reactor and return an
+    /// `EventReadiness` view of its latched readiness.
+    ///
+    /// HOW: delegates to [`Reactor::register`].
+    ///
+    /// # Errors
+    /// Returns the selector's `io::Error` if registration fails.
+    ///
+    /// # Panics
+    /// Never panics.
     pub fn new(fd: std::os::fd::RawFd, reactor: Arc<Reactor>, token: Token, interest: Interest) -> io::Result<Self> {
         reactor.register(fd, token, interest)?;
         Ok(Self { reactor, token })
+    }
+
+    /// WHY: an edge consumed without clearing latches the entry ready forever.
+    ///
+    /// WHAT: clear `ready` from this token's latched readiness.
+    ///
+    /// HOW: delegates to [`Reactor::clear`].
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn clear(&self, ready: Ready) {
+        self.reactor.clear(self.token, ready);
     }
 }
 

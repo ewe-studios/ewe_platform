@@ -20,8 +20,8 @@ use std::thread;
 use std::time::Duration;
 
 use foundation_core::valtron::{
-    collect_result, execute, initialize_pool, BoxedSendExecutionAction, EventReadiness, PoolGuard,
-    TaskIterator, TaskStatus,
+    collect_result, execute, initialize_pool, BoxedSendExecutionAction, EventReadiness,
+    EventReadinessPtr, PoolGuard, TaskIterator, TaskStatus,
 };
 use foundation_nativeapis::native::fd::RegisteredFd;
 use foundation_nativeapis::{Poll, Token};
@@ -46,7 +46,10 @@ impl EventReadiness for FlipReadiness {
 /// When the signal becomes ready the executor re-runs the task → `Ready`. The
 /// next tick terminates the iterator.
 struct ParkUntilReady {
-    readiness: Arc<dyn EventReadiness>,
+    /// `EventReadinessPtr` rather than a bare `Arc<dyn EventReadiness>`: under
+    /// the `multi` feature `TaskStatus::Depends` carries a `Send + Sync` trait
+    /// object so `State` can cross the global task queue.
+    readiness: EventReadinessPtr,
     done: bool,
 }
 
@@ -100,7 +103,7 @@ impl TaskIterator for ReadOnReady {
             // Nothing buffered yet (EAGAIN) — park until the reactor signals the
             // fd readable, then this task is re-run and the read above succeeds.
             Some(TaskStatus::Depends(
-                Arc::clone(&self.fd) as Arc<dyn EventReadiness>,
+                Arc::clone(&self.fd) as EventReadinessPtr,
             ))
         }
     }
