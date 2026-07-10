@@ -193,6 +193,7 @@ automatic fallback. The `EventReadiness` seam and all transports are unchanged.*
 | 14-F2 | **io_uring selector** `poll/sys/unix/selector/uring.rs` (multishot poll) behind `cfg(linux, feature="uring")`, plugged into `Poll`/`Registry`. | 14-F1 |
 | 14-F3 | **Runtime selection + fallback** — fix `shared/api.rs`/`Poll::new` so `NativeAPI::IOUring` builds io_uring, gated by the functional opcode probe (OQ#14.3); `Auto` = surfaced ladder fallback, explicit `IOUring` = hard error on probe failure; `reactor.backend()` observability. | 14-F2 |
 | 14-F4 | **Completion-mode read path** — `CompletionSource` seam in nativeapis (`take_completions` + buffer-ring `recycle`); `RECV`/`SEND` with registered buffer rings; transports opt read path into inbox-pop (decoder unchanged — `step(&mut &buf[..])`); per-worker rings re-eval (OQ#14.1 trigger); extended kernel probe (≥ 5.19/6.0), fallback to F2 readiness mode. Starts only after F2's parity suite is green. | 14-F2, 14-F3 |
+| 14-F5 | **Transport opt-in** — netio's `Connection` gains a `ConnectionSource` byte source so real connections read from the completion inbox; TLS comes free because rustls reads *through* `Connection`. Proposed in feature 48. | 14-F4 |
 
 ## Success Criteria
 

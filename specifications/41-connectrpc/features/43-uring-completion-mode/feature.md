@@ -142,11 +142,28 @@ tested, but **nothing in-tree opts in**, because `foundation_netio` does not dep
 `foundation_nativeapis` — its transports read through `SharedByteBufferStream<RawStream>` and
 never touch `RegisteredFd`. Only `foundation_http` depends on nativeapis, and only from a test.
 
-Wiring netio's read path to the inbox means adding a `netio → nativeapis` dependency edge, which
-is an architectural decision (netio is currently reactor-agnostic, and its `ReadModel::Depends`
-takes readiness from the caller) with TLS interplay to think through. That is deliberately **not**
-done here rather than smuggled in. The seam is ready for it: a transport swaps `read()` for
-`read_bytes()`, or steps its decoder straight over `take_completions()`.
+Wiring netio's read path to the inbox is an architectural decision (netio is reactor-agnostic and
+wasm-capable; its `ReadModel::Depends` takes readiness from the caller) with TLS interplay and a
+`split_connection` problem to think through. That is deliberately **not** done here rather than
+smuggled in.
+
+**Written up as [feature 48](../48-transport-completion-read-path/feature.md)** — proposed, for
+review. Short version: `Connection` (not `RawStream`) is the seam, because it is the one place a
+`read(2)` is issued and because rustls reads *through* it, so TLS comes free. The recommendation
+adds a `ConnectionSource` trait object to `Connection` and **no new dependency** to netio.
+
+## Completion mode is opt-in per registration
+
+Discovered later, when the orphaned `tests/poll` suite was first wired up (see the commit that
+enabled the six missing `[[test]]` targets): `register_fd` originally armed a multishot `RECV`
+for *every* readable socket. On a completion-mode reactor the kernel then drained sockets that
+their owners intended to `accept()`/`recv_from()`/`read()` themselves, and those calls found
+nothing. A TCP listener never reported readable; a UDP datagram vanished.
+
+`register_fd` is now byte-transparent on every backend. `register_recv_fd` is the opt-in, and it
+falls back to `POLL_ADD` (returning `false`) for non-sockets, listening sockets, and write-only
+interests. `Reactor::register_completion` and `RegisteredFd::with_completion` carry it through.
+This is what D14 F4 means by transports *opting in*, and it is the contract feature 48 builds on.
 
 ## Tests
 
