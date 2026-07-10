@@ -84,6 +84,9 @@ pub struct WebSocketServerTask {
     config: WsServerConfig,
     /// Completed inbound messages awaiting delivery.
     delivery: PipeSender<WebSocketMessage>,
+    /// Caller-injected fd readiness signal (F38). When `Some`, the task parks
+    /// via `Depends(fd_readiness)` on idle; when `None`, falls back to `Delayed`.
+    fd_readiness: Option<Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>>,
     /// The task is draining (close frame sent, waiting for final flush).
     draining: bool,
 }
@@ -95,6 +98,7 @@ impl WebSocketServerTask {
         stream: SharedByteBufferStream<RawStream>,
         config: WsServerConfig,
         delivery: PipeSender<WebSocketMessage>,
+        fd_readiness: Option<Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>>,
     ) -> Self {
         let writer = BatchFrameWriter::with_defaults(stream.clone());
         Self {
@@ -104,6 +108,7 @@ impl WebSocketServerTask {
             writer,
             config,
             delivery,
+            fd_readiness,
             draining: false,
         }
     }
@@ -210,14 +215,16 @@ impl TaskIterator for WebSocketServerTask {
                 }
             }
             Ok(DecodeStep::Pending) => {
-                // No data available. With Poll: yield the worker briefly.
-                // With Depends: would return Depends(registered_fd) once
-                // the shared reactor (F40) provides a Registry. The fallback
-                // is an explicit short delay — avoids a hot spin while
-                // keeping the task schedulable without a reactor.
-                return Some(TaskStatus::Delayed(Duration::from_millis(
-                    IDLE_POLL_DELAY_MS,
-                )));
+                // Park on the caller-injected readiness signal if one was
+                // provided; otherwise fall back to a short poll delay.
+                return match &self.fd_readiness {
+                    Some(fd) => {
+                        Some(TaskStatus::Depends(Arc::clone(fd) as Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>))
+                    }
+                    None => Some(TaskStatus::Delayed(Duration::from_millis(
+                        IDLE_POLL_DELAY_MS,
+                    ))),
+                };
             }
             Err(_e) => {
                 self.draining = true;
@@ -308,7 +315,7 @@ mod tests {
         let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
         let (tx, _rx) = Pipe::with_depth(8);
         let delivery = tx;
-        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
+        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery, None);
 
         let msgs = drain(&mut task, 10);
         assert_eq!(msgs.len(), 1);
@@ -324,7 +331,7 @@ mod tests {
         let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
         let (tx, _rx) = Pipe::with_depth(8);
         let delivery = tx;
-        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
+        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery, None);
 
         let msgs = drain(&mut task, 5);
         // Ping → no Ready message (control frame handled internally).
@@ -341,7 +348,7 @@ mod tests {
         let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
         let (tx, _rx) = Pipe::with_depth(8);
         let delivery = tx;
-        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
+        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery, None);
 
         let msgs = drain(&mut task, 10);
         assert!(msgs.is_empty());
@@ -358,7 +365,7 @@ mod tests {
         let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
         let (tx, _rx) = Pipe::with_depth(8);
         let delivery = tx;
-        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
+        let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery, None);
 
         let msgs = drain(&mut task, 10);
         // No messages — violation sends close and drains.
