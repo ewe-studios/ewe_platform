@@ -98,6 +98,8 @@ pub use transport::{
 pub use transport::h1::H1Transport;
 #[cfg(not(target_family = "wasm"))]
 pub use transport::h2::H2Transport;
+#[cfg(all(not(target_family = "wasm"), feature = "h3"))]
+pub use transport::h3::H3Transport;
 #[cfg(not(target_family = "wasm"))]
 pub use transport::ws::WsTransport;
 

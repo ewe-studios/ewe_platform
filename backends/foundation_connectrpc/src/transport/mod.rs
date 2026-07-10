@@ -21,6 +21,9 @@ pub mod frame;
 pub mod h1;
 #[cfg(not(target_family = "wasm"))]
 pub mod h2;
+/// HTTP/3 over QUIC (F35). Behind the `h3` feature: it pulls `quinn-proto`.
+#[cfg(all(not(target_family = "wasm"), feature = "h3"))]
+pub mod h3;
 pub mod wasm;
 #[cfg(not(target_family = "wasm"))]
 pub mod ws;

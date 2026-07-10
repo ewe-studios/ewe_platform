@@ -43,6 +43,12 @@ pub use quinn_driver::{
 #[cfg(feature = "quic")]
 pub use quinn_impl::{QuinnBidiStream, QuinnConnection, QuinnRecvStream, QuinnSendStream};
 
+/// QUIC configuration, re-exported so callers need no `quinn-proto` dependency of
+/// their own. `H3Transport` takes a [`ClientConfig`]; leaking `quinn_proto` into a
+/// downstream crate's public API would force that crate to depend on it.
+#[cfg(feature = "quic")]
+pub use quinn_proto::{ClientConfig, ServerConfig};
+
 /// A QUIC stream identifier.
 ///
 /// WHY: the trait set is backend-agnostic, so it must not expose
