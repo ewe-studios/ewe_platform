@@ -1,28 +1,26 @@
 //! WebSocket Transport — Connect envelopes over WS messages (F39).
 //!
-//! `WsTransport::open()` calls `WebSocketClient::connect_parts()`, spawns the
-//! WS task + collector on the pool, and returns a `TransportStream` whose
-//! `send_body` is a `MappedSender` — `Bytes` pushed by the caller are
-//! converted to `WebSocketMessage::Binary` inline and pushed into the task's
-//! outbound pipe. Zero outbound bridge tasks.
+//! `WsTransport::open()` splits the WS task's output with `split_collector_map`
+//! (same pattern as `h1.rs`): `ConnectionEstablished` → head observer,
+//! `Binary(data)` → body observer. No spawned bridge tasks — both sides
+//! are zero-task.
 
 use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{self, Pipe, Stream};
-use foundation_core::valtron::execute;
+use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
 use foundation_netio::simple_http::client::shared::dns::SystemDnsResolver;
 use foundation_netio::simple_http::shared::{
     Proto, RequestDescriptor, SimpleHeaders, Status,
 };
 use foundation_netio::websocket::native::connection::{Reconnect, WebSocketClient};
+use foundation_netio::websocket::shared::error::WebSocketError;
 use foundation_netio::websocket::shared::message::WebSocketMessage;
 
 use super::{
-    body_stream_from_pipe, head_stream_from_pipe, Transport, TransportCapabilities,
-    TransportError, TransportStream,
+    SendBody, Transport, TransportCapabilities, TransportError, TransportStream,
 };
 
 const WS_CAPS: TransportCapabilities = TransportCapabilities {
@@ -62,7 +60,7 @@ impl Transport for WsTransport {
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
         let ws_url = Self::to_ws_url(&request.request_url.url)?;
 
-        // 1. Get spawned WS task + MessageDelivery from the client.
+        // 1. Get spawned WS task + MessageDelivery from WebSocketClient.
         let (task, delivery) = WebSocketClient::connect_parts(
             SystemDnsResolver::default(),
             ws_url,
@@ -72,62 +70,75 @@ impl Transport for WsTransport {
         )
         .map_err(|e| TransportError::Protocol(format!("ws connect: {e}")))?;
 
-        // 2. Pipes.
-        let (head_tx, head_rx) = Pipe::<(Status, SimpleHeaders)>::with_depth(1);
-        let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
-        let (body_tx, body_rx) = Pipe::<Bytes>::with_depth(64);
-
-        // 3. Outbound: caller pushes Bytes → MappedSender converts to Binary
-        //    → pushed into delivery's inner PipeSender<WebSocketMessage>.
-        //    The WS task's outbound_rx drains it. Zero bridge tasks.
+        // 2. Outbound: MappedSender converts Bytes → Binary → delivery's pipe.
+        //    Zero bridge tasks.
         let outbound_pipe = delivery.pipe().clone();
-        let send_body: Arc<dyn super::SendBody> = Arc::new(
+        let send_body: Arc<dyn SendBody> = Arc::new(
             outbound_pipe.map_to(|b: &Bytes| WebSocketMessage::Binary(b.to_vec()))
         );
 
-        // 4. Spawn the WS task on valtron, bridge its output stream → body_tx.
-        let inner = execute(task, None).map_err(|e| {
+        // 3. Inbound: split the task's Ready values into head + body observers
+        //    (same pattern as h1.rs — split_collector_map fans output into pipes).
+        //
+        //    First split: head (ConnectionEstablished → 101 + Ok, close after one).
+        let (head_obs, head_tail) = task.split_collect_until_map(
+            |item: &Result<WebSocketMessage, WebSocketError>| match item {
+                Ok(WebSocketMessage::ConnectionEstablished) => (
+                    CollectionState::Close(true),
+                    Some(Ok((Status::SwitchingProtocols, SimpleHeaders::new()))),
+                ),
+                Err(e) => (
+                    CollectionState::Close(true),
+                    Some(Err(TransportError::Connect(Arc::new(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("ws handshake failed: {e}"),
+                    ))))),
+                ),
+                _ => (CollectionState::Skip, None),
+            },
+            1,
+        );
+
+        //    Second split: body (Binary → Bytes).
+        let (body_obs, body_tail) = head_tail.split_collector_map(
+            |item: &Result<WebSocketMessage, WebSocketError>| match item {
+                Ok(WebSocketMessage::Binary(data)) => (
+                    true,
+                    Some(Ok(Bytes::from(data.clone()))),
+                ),
+                Ok(WebSocketMessage::Close(..)) => (true, None),
+                Err(e) => (
+                    true,
+                    Some(Err(TransportError::Connect(Arc::new(std::io::Error::new(
+                        std::io::ErrorKind::Other,
+                        format!("ws stream error: {e}"),
+                    ))))),
+                ),
+                _ => (false, None),
+            },
+            64,
+        );
+
+        //    Drive: the final continuation must still be consumed. map_ready(|_| ())
+        //    terminates it — no buffered delivery queue leaking.
+        let drive = body_tail.map_ready(|_| ());
+        valtron::send(drive).map_err(|e| {
             TransportError::Connect(Arc::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
-                format!("execute ws task: {e}"),
+                e.to_string(),
             )))
         })?;
 
-        valtron::send(valtron::from_future(async move {
-            let mut stream = inner;
-            loop {
-                match stream.next() {
-                    Some(Stream::Next(Ok(WebSocketMessage::ConnectionEstablished))) => {
-                        let _ = head_tx.try_send((
-                            Status::SwitchingProtocols,
-                            SimpleHeaders::new(),
-                        ));
-                    }
-                    Some(Stream::Next(Ok(WebSocketMessage::Binary(data)))) => {
-                        if body_tx.send(Bytes::from(data)).await.is_err() {
-                            break;
-                        }
-                    }
-                    Some(Stream::Next(Ok(WebSocketMessage::Close(..)))) | None => {
-                        body_tx.close();
-                        trailer_tx.close();
-                        break;
-                    }
-                    _ => continue,
-                }
-            }
-        }))
-        .map_err(|e| {
-            TransportError::Connect(Arc::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("spawn inbound bridge: {e}"),
-            )))
-        })?;
+        // 4. TransportStream — head/body as erased streams, send_body as Arc<dyn SendBody>.
+        let head = Box::pin(head_obs.into_next_stream());
+        let recv_body = Box::pin(body_obs.into_next_stream());
+        let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
+        trailer_tx.close(); // WS has no h2 trailers
 
         Ok(TransportStream {
             send_body,
-            head: head_stream_from_pipe(head_rx),
-            recv_body: body_stream_from_pipe(body_rx),
+            head,
+            recv_body,
             trailers: trailer_rx,
         })
     }
