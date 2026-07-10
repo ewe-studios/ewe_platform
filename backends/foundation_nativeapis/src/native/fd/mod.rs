@@ -42,16 +42,18 @@
 
 pub mod guard;
 pub mod error;
+pub mod reactor;
 
 pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
+pub use reactor::{Reactor, SharedReadiness};
 
 use crate::native::poll::{Events, Interest, Token};
 use crate::native::poll::sys::RawFd;
 
 use std::io;
 use std::os::unix::io::{AsRawFd, RawFd as StdRawFd};
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 use std::time::Duration;
 
 use foundation_core::valtron::EventReadiness;
@@ -147,8 +149,10 @@ impl<T: std::fmt::Debug> std::fmt::Debug for PollResult<T> {
 pub struct FdRegistration {
     registry: crate::native::poll::Registry,
     token: Token,
-    /// Mutex-protected Poll instance for readiness queries.
-    poll: crate::native::poll::Poll,
+    /// Private Poll for readiness queries (legacy — unused when reactor is Some).
+    poll: Option<crate::native::poll::Poll>,
+    /// Shared reactor (F40). When Some, is_ready() consults cached bits — zero syscalls.
+    reactor: Option<Arc<Reactor>>,
     /// Last known readiness state — cached between poll calls.
     readiness: Mutex<Ready>,
 }
@@ -156,33 +160,53 @@ pub struct FdRegistration {
 impl FdRegistration {
     /// Create a new FdRegistration for the given raw fd.
     ///
-    /// The fd is immediately registered with the poll::Selector.
-    /// The fd MUST be in nonblocking mode for correct operation.
+    /// When the shared reactor (F40) is available, the fd is registered into it —
+    /// no private epoll fd, no per-check syscall. Falls back to per-fd Poll if
+    /// the reactor can't be initialised.
     pub fn new(
         fd: RawFd,
         registry: &crate::native::poll::Registry,
         token: Token,
         interest: Interest,
     ) -> io::Result<Self> {
-        registry.register_fd(fd, token, interest)?;
-
-        // Create a new Poll instance and register the fd with it
-        let poll = crate::native::poll::Poll::new()?;
-        poll.registry().register_fd(fd, token, interest)?;
+        // F40: try shared reactor first. Fall back to per-fd Poll.
+        let (poll, reactor) = match Reactor::get() {
+            Ok(r) => {
+                r.register(fd, token, interest)?;
+                (None, Some(r))
+            }
+            Err(_) => {
+                registry.register_fd(fd, token, interest)?;
+                let poll = crate::native::poll::Poll::new()?;
+                poll.registry().register_fd(fd, token, interest)?;
+                (Some(poll), None)
+            }
+        };
 
         Ok(Self {
             registry: registry.clone(),
             token,
             poll,
+            reactor,
             readiness: Mutex::new(Ready::EMPTY),
         })
     }
 
     /// Poll the selector and update the readiness cache.
-    /// Returns the updated readiness bitmask.
     fn query_readiness(&self) -> io::Result<Ready> {
+        // F40: shared reactor path — zero syscalls.
+        if let Some(ref reactor) = self.reactor {
+            return Ok(if reactor.is_ready(self.token) {
+                Ready::READABLE.union(Ready::WRITABLE)
+            } else {
+                Ready::EMPTY
+            });
+        }
+
+        // Legacy: private poll with zero-timeout syscall.
+        let poll = self.poll.as_ref().expect("poll or reactor must be set");
         let mut events = Events::with_capacity(16);
-        self.poll.poll(&mut events, Some(Duration::ZERO))?;
+        poll.poll(&mut events, Some(Duration::ZERO))?;
 
         let mut ready = Ready::EMPTY;
         for event in events.iter() {
