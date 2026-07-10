@@ -34,8 +34,10 @@ pub use self::windows::{Selector, RawFd};
 )))]
 pub use self::shell::{Selector, RawFd};
 
+/// Public so the F41 parity suite can construct `epoll::Selector` and
+/// `uring::Selector` side by side in one test process.
 #[cfg(unix)]
-mod unix;
+pub mod unix;
 #[cfg(unix)]
 pub use self::unix::SourceFd;
 

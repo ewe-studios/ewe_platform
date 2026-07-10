@@ -103,7 +103,11 @@ impl Poll {
     /// - macOS/BSD: `kqueue()`
     /// - Windows: `CreateIoCompletionPort`
     pub fn new() -> io::Result<Self> {
-        let (selector, _) = sys::Selector::new_with_registry()?;
+        // Construct the selector and wrap it here rather than asking the
+        // selector to hand back a `Registry`: on Linux both `epoll::Selector`
+        // and `uring::Selector` are compiled, so only `Poll` knows which one
+        // `Registry` is parameterised over.
+        let selector = Arc::new(sys::Selector::new()?);
         Ok(Self { selector })
     }
 
