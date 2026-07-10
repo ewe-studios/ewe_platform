@@ -15,8 +15,8 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
@@ -25,60 +25,12 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `VectorizeCreateMetadataIndexRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorizeCreateMetadataIndexRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `VectorizeIndexGetVectorsByIdRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorizeIndexGetVectorsByIdRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `VectorizeDeleteMetadataIndexRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorizeDeleteMetadataIndexRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `VectorizeCreateIndexRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorizeCreateIndexRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `VectorizeIndexDeleteVectorsByIdRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorizeIndexDeleteVectorsByIdRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `VectorizeIndexQueryV2Request` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VectorizeIndexQueryV2Request {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 // =============================================================================
 // ARGS TYPES (per-endpoint)
 // =============================================================================
 
 /// Arguments for [`aig-config-list-evaluators_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListEvaluatorsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -93,7 +45,7 @@ pub struct AigConfigListEvaluatorsArgs {
 }
 
 /// Arguments for [`aig-config-list-gateway_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListGatewayArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -106,14 +58,14 @@ pub struct AigConfigListGatewayArgs {
 }
 
 /// Arguments for [`aig-config-create-gateway_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigCreateGatewayArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`aig-config-list-dataset_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListDatasetArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -132,7 +84,7 @@ pub struct AigConfigListDatasetArgs {
 }
 
 /// Arguments for [`aig-config-create-dataset_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigCreateDatasetArgs {
     /// Path parameter: `gateway_id`.
     pub gateway_id: String,
@@ -141,7 +93,7 @@ pub struct AigConfigCreateDatasetArgs {
 }
 
 /// Arguments for [`aig-config-fetch-dataset_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigFetchDatasetArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -152,7 +104,7 @@ pub struct AigConfigFetchDatasetArgs {
 }
 
 /// Arguments for [`aig-config-update-dataset_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigUpdateDatasetArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -163,7 +115,7 @@ pub struct AigConfigUpdateDatasetArgs {
 }
 
 /// Arguments for [`aig-config-delete-dataset_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigDeleteDatasetArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -174,7 +126,7 @@ pub struct AigConfigDeleteDatasetArgs {
 }
 
 /// Arguments for [`aig-config-list-evaluations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListEvaluationsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -193,7 +145,7 @@ pub struct AigConfigListEvaluationsArgs {
 }
 
 /// Arguments for [`aig-config-create-evaluations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigCreateEvaluationsArgs {
     /// Path parameter: `gateway_id`.
     pub gateway_id: String,
@@ -202,7 +154,7 @@ pub struct AigConfigCreateEvaluationsArgs {
 }
 
 /// Arguments for [`aig-config-fetch-evaluations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigFetchEvaluationsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -213,7 +165,7 @@ pub struct AigConfigFetchEvaluationsArgs {
 }
 
 /// Arguments for [`aig-config-delete-evaluations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigDeleteEvaluationsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -224,7 +176,7 @@ pub struct AigConfigDeleteEvaluationsArgs {
 }
 
 /// Arguments for [`aig-config-list-gateway-logs_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListGatewayLogsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -289,7 +241,7 @@ pub struct AigConfigListGatewayLogsArgs {
 }
 
 /// Arguments for [`aig-config-delete-gateway-logs_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigDeleteGatewayLogsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -306,7 +258,7 @@ pub struct AigConfigDeleteGatewayLogsArgs {
 }
 
 /// Arguments for [`aig-config-get-gateway-log-detail_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayLogDetailArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -317,7 +269,7 @@ pub struct AigConfigGetGatewayLogDetailArgs {
 }
 
 /// Arguments for [`aig-config-patch-gateway-log_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigPatchGatewayLogArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -328,7 +280,7 @@ pub struct AigConfigPatchGatewayLogArgs {
 }
 
 /// Arguments for [`aig-config-get-gateway-log-request_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayLogRequestArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -339,7 +291,7 @@ pub struct AigConfigGetGatewayLogRequestArgs {
 }
 
 /// Arguments for [`aig-config-get-gateway-log-response_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayLogResponseArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -350,7 +302,7 @@ pub struct AigConfigGetGatewayLogResponseArgs {
 }
 
 /// Arguments for [`aig-config-list-providers_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListProvidersArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -363,7 +315,7 @@ pub struct AigConfigListProvidersArgs {
 }
 
 /// Arguments for [`aig-config-create-providers_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigCreateProvidersArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -372,7 +324,7 @@ pub struct AigConfigCreateProvidersArgs {
 }
 
 /// Arguments for [`aig-config-update-providers_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigUpdateProvidersArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -383,7 +335,7 @@ pub struct AigConfigUpdateProvidersArgs {
 }
 
 /// Arguments for [`aig-config-delete-providers_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigDeleteProvidersArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -394,7 +346,7 @@ pub struct AigConfigDeleteProvidersArgs {
 }
 
 /// Arguments for [`aig-config-list-gateway-dynamic-routes_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListGatewayDynamicRoutesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -403,7 +355,7 @@ pub struct AigConfigListGatewayDynamicRoutesArgs {
 }
 
 /// Arguments for [`aig-config-post-gateway-dynamic-route_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigPostGatewayDynamicRouteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -412,7 +364,7 @@ pub struct AigConfigPostGatewayDynamicRouteArgs {
 }
 
 /// Arguments for [`aig-config-get-gateway-dynamic-route_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayDynamicRouteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -423,7 +375,7 @@ pub struct AigConfigGetGatewayDynamicRouteArgs {
 }
 
 /// Arguments for [`aig-config-update-gateway-dynamic-route_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigUpdateGatewayDynamicRouteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -434,7 +386,7 @@ pub struct AigConfigUpdateGatewayDynamicRouteArgs {
 }
 
 /// Arguments for [`aig-config-delete-gateway-dynamic-route_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigDeleteGatewayDynamicRouteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -445,7 +397,7 @@ pub struct AigConfigDeleteGatewayDynamicRouteArgs {
 }
 
 /// Arguments for [`aig-config-list-gateway-dynamic-route-deployments_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListGatewayDynamicRouteDeploymentsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -456,7 +408,7 @@ pub struct AigConfigListGatewayDynamicRouteDeploymentsArgs {
 }
 
 /// Arguments for [`aig-config-post-gateway-dynamic-route-deployment_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigPostGatewayDynamicRouteDeploymentArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -467,7 +419,7 @@ pub struct AigConfigPostGatewayDynamicRouteDeploymentArgs {
 }
 
 /// Arguments for [`aig-config-list-gateway-dynamic-route-versions_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigListGatewayDynamicRouteVersionsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -478,7 +430,7 @@ pub struct AigConfigListGatewayDynamicRouteVersionsArgs {
 }
 
 /// Arguments for [`aig-config-post-gateway-dynamic-route-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigPostGatewayDynamicRouteVersionArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -489,7 +441,7 @@ pub struct AigConfigPostGatewayDynamicRouteVersionArgs {
 }
 
 /// Arguments for [`aig-config-get-gateway-dynamic-route-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayDynamicRouteVersionArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -502,7 +454,7 @@ pub struct AigConfigGetGatewayDynamicRouteVersionArgs {
 }
 
 /// Arguments for [`aig-config-get-gateway-url_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigGetGatewayUrlArgs {
     /// Path parameter: `gateway_id`.
     pub gateway_id: String,
@@ -513,7 +465,7 @@ pub struct AigConfigGetGatewayUrlArgs {
 }
 
 /// Arguments for [`aig-config-fetch-gateway_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigFetchGatewayArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -522,7 +474,7 @@ pub struct AigConfigFetchGatewayArgs {
 }
 
 /// Arguments for [`aig-config-update-gateway_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigUpdateGatewayArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -531,7 +483,7 @@ pub struct AigConfigUpdateGatewayArgs {
 }
 
 /// Arguments for [`aig-config-delete-gateway_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AigConfigDeleteGatewayArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -540,7 +492,7 @@ pub struct AigConfigDeleteGatewayArgs {
 }
 
 /// Arguments for [`ai-search-list-instances_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchListInstancesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -559,14 +511,14 @@ pub struct AiSearchListInstancesArgs {
 }
 
 /// Arguments for [`ai-search-create-instances_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchCreateInstancesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-fetch-instances_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchFetchInstancesArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -575,7 +527,7 @@ pub struct AiSearchFetchInstancesArgs {
 }
 
 /// Arguments for [`ai-search-update-instances_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchUpdateInstancesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -584,7 +536,7 @@ pub struct AiSearchUpdateInstancesArgs {
 }
 
 /// Arguments for [`ai-search-delete-instances_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchDeleteInstancesArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -593,7 +545,7 @@ pub struct AiSearchDeleteInstancesArgs {
 }
 
 /// Arguments for [`ai-search-instance-chat-completion_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchInstanceChatCompletionArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -602,7 +554,7 @@ pub struct AiSearchInstanceChatCompletionArgs {
 }
 
 /// Arguments for [`ai-search-instance-list-jobs_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchInstanceListJobsArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -615,7 +567,7 @@ pub struct AiSearchInstanceListJobsArgs {
 }
 
 /// Arguments for [`ai-search-instance-create-job_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchInstanceCreateJobArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -624,7 +576,7 @@ pub struct AiSearchInstanceCreateJobArgs {
 }
 
 /// Arguments for [`ai-search-instance-get-job_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchInstanceGetJobArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -635,7 +587,7 @@ pub struct AiSearchInstanceGetJobArgs {
 }
 
 /// Arguments for [`ai-search-instance-change-job-status_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchInstanceChangeJobStatusArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -646,7 +598,7 @@ pub struct AiSearchInstanceChangeJobStatusArgs {
 }
 
 /// Arguments for [`ai-search-instance-list-job-logs_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchInstanceListJobLogsArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -661,7 +613,7 @@ pub struct AiSearchInstanceListJobLogsArgs {
 }
 
 /// Arguments for [`ai-search-instance-search_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchInstanceSearchArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -670,7 +622,7 @@ pub struct AiSearchInstanceSearchArgs {
 }
 
 /// Arguments for [`ai-search-stats_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchStatsArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -679,7 +631,7 @@ pub struct AiSearchStatsArgs {
 }
 
 /// Arguments for [`ai-search-list-tokens_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchListTokensArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -694,14 +646,14 @@ pub struct AiSearchListTokensArgs {
 }
 
 /// Arguments for [`ai-search-create-tokens_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchCreateTokensArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`ai-search-fetch-tokens_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchFetchTokensArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -710,7 +662,7 @@ pub struct AiSearchFetchTokensArgs {
 }
 
 /// Arguments for [`ai-search-update-tokens_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchUpdateTokensArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -719,7 +671,7 @@ pub struct AiSearchUpdateTokensArgs {
 }
 
 /// Arguments for [`ai-search-delete-tokens_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AiSearchDeleteTokensArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -728,28 +680,28 @@ pub struct AiSearchDeleteTokensArgs {
 }
 
 /// Arguments for [`workers-ai-search-author_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiSearchAuthorArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-list-finetunes_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiListFinetunesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-create-finetune_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiCreateFinetuneArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-list-public-finetunes_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiListPublicFinetunesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -762,7 +714,7 @@ pub struct WorkersAiListPublicFinetunesArgs {
 }
 
 /// Arguments for [`workers-ai-upload-finetune-asset_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiUploadFinetuneAssetArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -771,7 +723,7 @@ pub struct WorkersAiUploadFinetuneAssetArgs {
 }
 
 /// Arguments for [`workers-ai-get-model-schema_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiGetModelSchemaArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -780,7 +732,7 @@ pub struct WorkersAiGetModelSchemaArgs {
 }
 
 /// Arguments for [`workers-ai-search-model_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiSearchModelArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -801,7 +753,7 @@ pub struct WorkersAiSearchModelArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-ai4bharat-indictrans2-en-indic-1B_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfAi4BharatIndictrans2EnIndic1BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -812,7 +764,7 @@ pub struct WorkersAiPostRunCfAi4BharatIndictrans2EnIndic1BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-ai4bharat-nonomni-indictrans2-en-indic-1b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfAi4BharatNonomniIndictrans2EnIndic1BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -823,7 +775,7 @@ pub struct WorkersAiPostRunCfAi4BharatNonomniIndictrans2EnIndic1BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-aisingapore-gemma-sea-lion-v4-27b-it_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfAisingaporeGemmaSeaLionV427BItArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -834,7 +786,7 @@ pub struct WorkersAiPostRunCfAisingaporeGemmaSeaLionV427BItArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-base-en-v1-5_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeBaseEnV15Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -845,7 +797,7 @@ pub struct WorkersAiPostRunCfBaaiBgeBaseEnV15Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-large-en-v1-5_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeLargeEnV15Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -856,7 +808,7 @@ pub struct WorkersAiPostRunCfBaaiBgeLargeEnV15Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-m3_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeM3Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -867,7 +819,7 @@ pub struct WorkersAiPostRunCfBaaiBgeM3Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-reranker-base_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeRerankerBaseArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -878,7 +830,7 @@ pub struct WorkersAiPostRunCfBaaiBgeRerankerBaseArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-bge-small-en-v1-5_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiBgeSmallEnV15Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -889,7 +841,7 @@ pub struct WorkersAiPostRunCfBaaiBgeSmallEnV15Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-nonomni-bge-base-en-v1-5_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeBaseEnV15Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -900,7 +852,7 @@ pub struct WorkersAiPostRunCfBaaiNonomniBgeBaseEnV15Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-nonomni-bge-large-en-v1-5_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeLargeEnV15Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -911,7 +863,7 @@ pub struct WorkersAiPostRunCfBaaiNonomniBgeLargeEnV15Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-nonomni-bge-m3_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeM3Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -922,7 +874,7 @@ pub struct WorkersAiPostRunCfBaaiNonomniBgeM3Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-baai-nonomni-bge-small-en-v1-5_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBaaiNonomniBgeSmallEnV15Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -933,7 +885,7 @@ pub struct WorkersAiPostRunCfBaaiNonomniBgeSmallEnV15Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-black-forest-labs-flux-1-schnell_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBlackForestLabsFlux1SchnellArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -944,7 +896,7 @@ pub struct WorkersAiPostRunCfBlackForestLabsFlux1SchnellArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-black-forest-labs-flux-2-dev_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBlackForestLabsFlux2DevArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -955,7 +907,7 @@ pub struct WorkersAiPostRunCfBlackForestLabsFlux2DevArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-black-forest-labs-flux-2-klein-4b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBlackForestLabsFlux2Klein4BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -966,7 +918,7 @@ pub struct WorkersAiPostRunCfBlackForestLabsFlux2Klein4BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-black-forest-labs-flux-2-klein-9b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBlackForestLabsFlux2Klein9BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -977,7 +929,7 @@ pub struct WorkersAiPostRunCfBlackForestLabsFlux2Klein9BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-bytedance-stable-diffusion-xl-lightning_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfBytedanceStableDiffusionXlLightningArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -988,21 +940,21 @@ pub struct WorkersAiPostRunCfBytedanceStableDiffusionXlLightningArgs {
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAuraArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-1_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura1Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-aura-1_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramAura1Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1013,28 +965,28 @@ pub struct WorkersAiPostRunCfDeepgramAura1Args {
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-1-internal_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura1InternalArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-2_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura2Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-2-en_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura2EnArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-aura-2-en_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramAura2EnArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1045,14 +997,14 @@ pub struct WorkersAiPostRunCfDeepgramAura2EnArgs {
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-aura-2-es_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramAura2EsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-aura-2-es_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramAura2EsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1063,14 +1015,14 @@ pub struct WorkersAiPostRunCfDeepgramAura2EsArgs {
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-flux_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramFluxArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-flux_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramFluxArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1081,14 +1033,14 @@ pub struct WorkersAiPostRunCfDeepgramFluxArgs {
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-nova-3_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramNova3Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepgram-nova-3_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepgramNova3Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1099,21 +1051,21 @@ pub struct WorkersAiPostRunCfDeepgramNova3Args {
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-nova-3-internal_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramNova3InternalArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-deepgram-nova-3-ws_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfDeepgramNova3WsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepseek-ai-deepseek-math-7b-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepseekAiDeepseekMath7BInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1124,7 +1076,7 @@ pub struct WorkersAiPostRunCfDeepseekAiDeepseekMath7BInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-deepseek-ai-deepseek-r1-distill-qwen-32b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDeepseekAiDeepseekR1DistillQwen32BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1135,7 +1087,7 @@ pub struct WorkersAiPostRunCfDeepseekAiDeepseekR1DistillQwen32BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-defog-sqlcoder-7b-2_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfDefogSqlcoder7B2Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1146,7 +1098,7 @@ pub struct WorkersAiPostRunCfDefogSqlcoder7B2Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-facebook-bart-large-cnn_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfFacebookBartLargeCnnArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1157,7 +1109,7 @@ pub struct WorkersAiPostRunCfFacebookBartLargeCnnArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-facebook-nonomni-bart-large-cnn_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfFacebookNonomniBartLargeCnnArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1168,7 +1120,7 @@ pub struct WorkersAiPostRunCfFacebookNonomniBartLargeCnnArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-facebook-nonomni-detr-resnet-50_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfFacebookNonomniDetrResnet50Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1179,7 +1131,7 @@ pub struct WorkersAiPostRunCfFacebookNonomniDetrResnet50Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-fblgit-una-cybertron-7b-v2-bf16_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfFblgitUnaCybertron7BV2Bf16Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1190,7 +1142,7 @@ pub struct WorkersAiPostRunCfFblgitUnaCybertron7BV2Bf16Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-embeddinggemma-300m_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleEmbeddinggemma300MArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1201,7 +1153,7 @@ pub struct WorkersAiPostRunCfGoogleEmbeddinggemma300MArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-gemma-2b-it-lora_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleGemma2BItLoraArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1212,7 +1164,7 @@ pub struct WorkersAiPostRunCfGoogleGemma2BItLoraArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-gemma-3-12b-it_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleGemma312BItArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1223,7 +1175,7 @@ pub struct WorkersAiPostRunCfGoogleGemma312BItArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-gemma-7b-it-lora_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleGemma7BItLoraArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1234,7 +1186,7 @@ pub struct WorkersAiPostRunCfGoogleGemma7BItLoraArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-google-nonomni-embeddinggemma-300m_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfGoogleNonomniEmbeddinggemma300MArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1245,7 +1197,7 @@ pub struct WorkersAiPostRunCfGoogleNonomniEmbeddinggemma300MArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-huggingface-distilbert-sst-2-int8_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfHuggingfaceDistilbertSst2Int8Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1256,7 +1208,7 @@ pub struct WorkersAiPostRunCfHuggingfaceDistilbertSst2Int8Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-huggingface-nonomni-distilbert-sst-2-int8_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfHuggingfaceNonomniDistilbertSst2Int8Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1267,7 +1219,7 @@ pub struct WorkersAiPostRunCfHuggingfaceNonomniDistilbertSst2Int8Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-ibm-granite-granite-4-0-h-micro_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfIbmGraniteGranite40HMicroArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1278,7 +1230,7 @@ pub struct WorkersAiPostRunCfIbmGraniteGranite40HMicroArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-leonardo-lucid-origin_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfLeonardoLucidOriginArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1289,7 +1241,7 @@ pub struct WorkersAiPostRunCfLeonardoLucidOriginArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-leonardo-phoenix-1-0_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfLeonardoPhoenix10Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1300,7 +1252,7 @@ pub struct WorkersAiPostRunCfLeonardoPhoenix10Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-lykon-dreamshaper-8-lcm_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfLykonDreamshaper8LcmArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1311,7 +1263,7 @@ pub struct WorkersAiPostRunCfLykonDreamshaper8LcmArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-llama-2-7b-chat-hf-lora_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlamaLlama27BChatHfLoraArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1322,7 +1274,7 @@ pub struct WorkersAiPostRunCfMetaLlamaLlama27BChatHfLoraArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-2-7b-chat-fp16_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama27BChatFp16Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1333,7 +1285,7 @@ pub struct WorkersAiPostRunCfMetaLlama27BChatFp16Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-2-7b-chat-int8_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama27BChatInt8Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1344,7 +1296,7 @@ pub struct WorkersAiPostRunCfMetaLlama27BChatInt8Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-8b-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama38BInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1355,7 +1307,7 @@ pub struct WorkersAiPostRunCfMetaLlama38BInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-8b-instruct-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama38BInstructAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1366,7 +1318,7 @@ pub struct WorkersAiPostRunCfMetaLlama38BInstructAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-1-70b-instruct-fp8-fast_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama3170BInstructFp8FastArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1377,7 +1329,7 @@ pub struct WorkersAiPostRunCfMetaLlama3170BInstructFp8FastArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-1-8b-instruct-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama318BInstructAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1388,7 +1340,7 @@ pub struct WorkersAiPostRunCfMetaLlama318BInstructAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-1-8b-instruct-fp8_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama318BInstructFp8Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1399,7 +1351,7 @@ pub struct WorkersAiPostRunCfMetaLlama318BInstructFp8Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-1-8b-instruct-fp8-fast_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama318BInstructFp8FastArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1410,7 +1362,7 @@ pub struct WorkersAiPostRunCfMetaLlama318BInstructFp8FastArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-2-11b-vision-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama3211BVisionInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1421,7 +1373,7 @@ pub struct WorkersAiPostRunCfMetaLlama3211BVisionInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-2-1b-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama321BInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1432,7 +1384,7 @@ pub struct WorkersAiPostRunCfMetaLlama321BInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-2-3b-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama323BInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1443,7 +1395,7 @@ pub struct WorkersAiPostRunCfMetaLlama323BInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-3-3-70b-instruct-fp8-fast_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama3370BInstructFp8FastArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1454,7 +1406,7 @@ pub struct WorkersAiPostRunCfMetaLlama3370BInstructFp8FastArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-4-scout-17b-16e-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlama4Scout17B16EInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1465,7 +1417,7 @@ pub struct WorkersAiPostRunCfMetaLlama4Scout17B16EInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-llama-guard-3-8b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaLlamaGuard38BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1476,7 +1428,7 @@ pub struct WorkersAiPostRunCfMetaLlamaGuard38BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-meta-m2m100-1-2b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMetaM2M10012BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1487,7 +1439,7 @@ pub struct WorkersAiPostRunCfMetaM2M10012BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-microsoft-nonomni-resnet-50_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMicrosoftNonomniResnet50Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1498,7 +1450,7 @@ pub struct WorkersAiPostRunCfMicrosoftNonomniResnet50Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-microsoft-phi-2_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMicrosoftPhi2Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1509,7 +1461,7 @@ pub struct WorkersAiPostRunCfMicrosoftPhi2Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-microsoft-resnet-50_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMicrosoftResnet50Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1520,7 +1472,7 @@ pub struct WorkersAiPostRunCfMicrosoftResnet50Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-mistral-mistral-7b-instruct-v0-1_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMistralMistral7BInstructV01Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1531,7 +1483,7 @@ pub struct WorkersAiPostRunCfMistralMistral7BInstructV01Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-mistral-mistral-7b-instruct-v0-2-lora_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMistralMistral7BInstructV02LoraArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1542,7 +1494,7 @@ pub struct WorkersAiPostRunCfMistralMistral7BInstructV02LoraArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-mistralai-mistral-small-3-1-24b-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMistralaiMistralSmall3124BInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1553,7 +1505,7 @@ pub struct WorkersAiPostRunCfMistralaiMistralSmall3124BInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-moonshotai-kimi-k2-5_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMoonshotaiKimiK25Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1564,7 +1516,7 @@ pub struct WorkersAiPostRunCfMoonshotaiKimiK25Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-myshell-ai-melotts_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfMyshellAiMelottsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1575,7 +1527,7 @@ pub struct WorkersAiPostRunCfMyshellAiMelottsArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-nvidia-nemotron-3-120b-a12b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfNvidiaNemotron3120BA12BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1586,7 +1538,7 @@ pub struct WorkersAiPostRunCfNvidiaNemotron3120BA12BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-gpt-oss-120b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiGptOss120BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1597,7 +1549,7 @@ pub struct WorkersAiPostRunCfOpenaiGptOss120BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-gpt-oss-20b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiGptOss20BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1608,7 +1560,7 @@ pub struct WorkersAiPostRunCfOpenaiGptOss20BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-whisper_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiWhisperArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1619,7 +1571,7 @@ pub struct WorkersAiPostRunCfOpenaiWhisperArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-whisper-large-v3-turbo_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiWhisperLargeV3TurboArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1630,7 +1582,7 @@ pub struct WorkersAiPostRunCfOpenaiWhisperLargeV3TurboArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openai-whisper-tiny-en_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenaiWhisperTinyEnArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1641,7 +1593,7 @@ pub struct WorkersAiPostRunCfOpenaiWhisperTinyEnArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-openchat-openchat-3-5-0106_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfOpenchatOpenchat350106Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1652,7 +1604,7 @@ pub struct WorkersAiPostRunCfOpenchatOpenchat350106Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-pfnet-plamo-embedding-1b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfPfnetPlamoEmbedding1BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1663,21 +1615,21 @@ pub struct WorkersAiPostRunCfPfnetPlamoEmbedding1BArgs {
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-pipecat-ai-smart-turn-v2_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfPipecatAiSmartTurnV2Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-pipecat-ai-smart-turn-v3_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfPipecatAiSmartTurnV3Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen1-5-0-5b-chat_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen1505BChatArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1688,7 +1640,7 @@ pub struct WorkersAiPostRunCfQwenQwen1505BChatArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen1-5-1-8b-chat_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen1518BChatArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1699,7 +1651,7 @@ pub struct WorkersAiPostRunCfQwenQwen1518BChatArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen1-5-14b-chat-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen1514BChatAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1710,7 +1662,7 @@ pub struct WorkersAiPostRunCfQwenQwen1514BChatAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen1-5-7b-chat-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen157BChatAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1721,7 +1673,7 @@ pub struct WorkersAiPostRunCfQwenQwen157BChatAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen2-5-coder-32b-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen25Coder32BInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1732,7 +1684,7 @@ pub struct WorkersAiPostRunCfQwenQwen25Coder32BInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen3-30b-a3b-fp8_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen330BA3BFp8Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1743,7 +1695,7 @@ pub struct WorkersAiPostRunCfQwenQwen330BA3BFp8Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwen3-embedding-0-6b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwen3Embedding06BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1754,7 +1706,7 @@ pub struct WorkersAiPostRunCfQwenQwen3Embedding06BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-qwen-qwq-32b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfQwenQwq32BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1765,7 +1717,7 @@ pub struct WorkersAiPostRunCfQwenQwq32BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-runwayml-stable-diffusion-v1-5-img2img_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfRunwaymlStableDiffusionV15Img2ImgArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1776,7 +1728,7 @@ pub struct WorkersAiPostRunCfRunwaymlStableDiffusionV15Img2ImgArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-runwayml-stable-diffusion-v1-5-inpainting_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfRunwaymlStableDiffusionV15InpaintingArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1787,7 +1739,7 @@ pub struct WorkersAiPostRunCfRunwaymlStableDiffusionV15InpaintingArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-stabilityai-stable-diffusion-xl-base-1-0_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfStabilityaiStableDiffusionXlBase10Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1798,21 +1750,21 @@ pub struct WorkersAiPostRunCfStabilityaiStableDiffusionXlBase10Args {
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-sven-test-pipe-http_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfSvenTestPipeHttpArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-websocket-run-cf-test-hello-world-cog_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostWebsocketRunCfTestHelloWorldCogArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-run-cf-thebloke-discolm-german-7b-v1-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfTheblokeDiscolmGerman7BV1AwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1823,7 +1775,7 @@ pub struct WorkersAiPostRunCfTheblokeDiscolmGerman7BV1AwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-tiiuae-falcon-7b-instruct_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfTiiuaeFalcon7BInstructArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1834,7 +1786,7 @@ pub struct WorkersAiPostRunCfTiiuaeFalcon7BInstructArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-tinyllama-tinyllama-1-1b-chat-v1-0_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfTinyllamaTinyllama11BChatV10Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1845,7 +1797,7 @@ pub struct WorkersAiPostRunCfTinyllamaTinyllama11BChatV10Args {
 }
 
 /// Arguments for [`workers-ai-post-run-cf-zai-org-glm-4-7-flash_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunCfZaiOrgGlm47FlashArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1856,7 +1808,7 @@ pub struct WorkersAiPostRunCfZaiOrgGlm47FlashArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-google-gemma-7b-it_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfGoogleGemma7BItArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1867,7 +1819,7 @@ pub struct WorkersAiPostRunHfGoogleGemma7BItArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-mistral-mistral-7b-instruct-v0-2_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfMistralMistral7BInstructV02Args {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1878,7 +1830,7 @@ pub struct WorkersAiPostRunHfMistralMistral7BInstructV02Args {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-nexusflow-starling-lm-7b-beta_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfNexusflowStarlingLm7BBetaArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1889,7 +1841,7 @@ pub struct WorkersAiPostRunHfNexusflowStarlingLm7BBetaArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-nousresearch-hermes-2-pro-mistral-7b_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfNousresearchHermes2ProMistral7BArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1900,7 +1852,7 @@ pub struct WorkersAiPostRunHfNousresearchHermes2ProMistral7BArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-deepseek-coder-6-7b-base-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeDeepseekCoder67BBaseAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1911,7 +1863,7 @@ pub struct WorkersAiPostRunHfTheblokeDeepseekCoder67BBaseAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-deepseek-coder-6-7b-instruct-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeDeepseekCoder67BInstructAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1922,7 +1874,7 @@ pub struct WorkersAiPostRunHfTheblokeDeepseekCoder67BInstructAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-llama-2-13b-chat-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeLlama213BChatAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1933,7 +1885,7 @@ pub struct WorkersAiPostRunHfTheblokeLlama213BChatAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-mistral-7b-instruct-v0-1-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeMistral7BInstructV01AwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1944,7 +1896,7 @@ pub struct WorkersAiPostRunHfTheblokeMistral7BInstructV01AwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-neural-chat-7b-v3-1-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeNeuralChat7BV31AwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1955,7 +1907,7 @@ pub struct WorkersAiPostRunHfTheblokeNeuralChat7BV31AwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-openhermes-2-5-mistral-7b-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeOpenhermes25Mistral7BAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1966,7 +1918,7 @@ pub struct WorkersAiPostRunHfTheblokeOpenhermes25Mistral7BAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-hf-thebloke-zephyr-7b-beta-awq_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunHfTheblokeZephyr7BBetaAwqArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1977,7 +1929,7 @@ pub struct WorkersAiPostRunHfTheblokeZephyr7BBetaAwqArgs {
 }
 
 /// Arguments for [`workers-ai-post-run-model_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostRunModelArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -1986,28 +1938,28 @@ pub struct WorkersAiPostRunModelArgs {
 }
 
 /// Arguments for [`workers-ai-search-task_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiSearchTaskArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-post-to-markdown_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiPostToMarkdownArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`workers-ai-get-to-markdown-supported_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorkersAiGetToMarkdownSupportedArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`autorag-config-ai-search_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AutoragConfigAiSearchArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -2016,7 +1968,7 @@ pub struct AutoragConfigAiSearchArgs {
 }
 
 /// Arguments for [`autorag-config-files_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AutoragConfigFilesArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -2033,7 +1985,7 @@ pub struct AutoragConfigFilesArgs {
 }
 
 /// Arguments for [`autorag-config-list-jobs_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AutoragConfigListJobsArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -2046,7 +1998,7 @@ pub struct AutoragConfigListJobsArgs {
 }
 
 /// Arguments for [`autorag-config-get-job_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AutoragConfigGetJobArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -2057,7 +2009,7 @@ pub struct AutoragConfigGetJobArgs {
 }
 
 /// Arguments for [`autorag-config-list-job-logs_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AutoragConfigListJobLogsArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -2072,7 +2024,7 @@ pub struct AutoragConfigListJobLogsArgs {
 }
 
 /// Arguments for [`autorag-config-search_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AutoragConfigSearchArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -2081,7 +2033,7 @@ pub struct AutoragConfigSearchArgs {
 }
 
 /// Arguments for [`autorag-config-sync_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AutoragConfigSyncArgs {
     /// Path parameter: `id`.
     pub id: String,
@@ -2090,7 +2042,7 @@ pub struct AutoragConfigSyncArgs {
 }
 
 /// Arguments for [`GetSessionChat_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetSessionChatArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -2101,23 +2053,21 @@ pub struct GetSessionChatArgs {
 }
 
 /// Arguments for [`vectorize-list-vectorize-indexes_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeListVectorizeIndexesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`vectorize-create-vectorize-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeCreateVectorizeIndexArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: VectorizeCreateIndexRequest,
 }
 
 /// Arguments for [`vectorize-get-vectorize-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeGetVectorizeIndexArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -2126,7 +2076,7 @@ pub struct VectorizeGetVectorizeIndexArgs {
 }
 
 /// Arguments for [`vectorize-delete-vectorize-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeDeleteVectorizeIndexArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -2135,29 +2085,25 @@ pub struct VectorizeDeleteVectorizeIndexArgs {
 }
 
 /// Arguments for [`vectorize-delete-vectors-by-id_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeDeleteVectorsByIdArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `index_name`.
     pub index_name: String,
-    /// Request body.
-    pub body: VectorizeIndexDeleteVectorsByIdRequest,
 }
 
 /// Arguments for [`vectorize-get-vectors-by-id_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeGetVectorsByIdArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `index_name`.
     pub index_name: String,
-    /// Request body.
-    pub body: VectorizeIndexGetVectorsByIdRequest,
 }
 
 /// Arguments for [`vectorize-index-info_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeIndexInfoArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -2166,7 +2112,7 @@ pub struct VectorizeIndexInfoArgs {
 }
 
 /// Arguments for [`vectorize-insert-vector_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeInsertVectorArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -2177,7 +2123,7 @@ pub struct VectorizeInsertVectorArgs {
 }
 
 /// Arguments for [`vectorize-list-vectors_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeListVectorsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -2190,29 +2136,25 @@ pub struct VectorizeListVectorsArgs {
 }
 
 /// Arguments for [`vectorize-create-metadata-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeCreateMetadataIndexArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `index_name`.
     pub index_name: String,
-    /// Request body.
-    pub body: VectorizeCreateMetadataIndexRequest,
 }
 
 /// Arguments for [`vectorize-delete-metadata-index_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeDeleteMetadataIndexArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `index_name`.
     pub index_name: String,
-    /// Request body.
-    pub body: VectorizeDeleteMetadataIndexRequest,
 }
 
 /// Arguments for [`vectorize-list-metadata-indexes_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeListMetadataIndexesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -2221,18 +2163,16 @@ pub struct VectorizeListMetadataIndexesArgs {
 }
 
 /// Arguments for [`vectorize-query-vector_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeQueryVectorArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `index_name`.
     pub index_name: String,
-    /// Request body.
-    pub body: VectorizeIndexQueryV2Request,
 }
 
 /// Arguments for [`vectorize-upsert-vector_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct VectorizeUpsertVectorArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -2243,7 +2183,7 @@ pub struct VectorizeUpsertVectorArgs {
 }
 
 /// Arguments for [`radar-get-ai-bots-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAiBotsSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -2278,7 +2218,7 @@ pub struct RadarGetAiBotsSummaryArgs {
 }
 
 /// Arguments for [`radar-get-ai-bots-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAiBotsTimeseriesArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
@@ -2313,7 +2253,7 @@ pub struct RadarGetAiBotsTimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-ai-bots-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAiBotsTimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -2352,7 +2292,7 @@ pub struct RadarGetAiBotsTimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-ai-inference-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAiInferenceSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -2377,7 +2317,7 @@ pub struct RadarGetAiInferenceSummaryArgs {
 }
 
 /// Arguments for [`radar-get-ai-inference-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAiInferenceTimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -2454,6 +2394,52 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by_direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by_direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2464,9 +2450,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2540,6 +2528,42 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2550,9 +2574,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2636,9 +2662,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2712,6 +2740,62 @@ where
         args.account_id, args.gateway_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.enable {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("enable=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2722,9 +2806,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2808,9 +2894,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2894,9 +2982,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2980,9 +3070,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3066,9 +3158,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3142,6 +3236,62 @@ where
         args.account_id, args.gateway_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.processed {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("processed=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3152,9 +3302,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3238,9 +3390,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3324,9 +3478,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3410,9 +3566,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3486,6 +3644,292 @@ where
         args.account_id, args.gateway_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by_direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by_direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filters {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filters=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.meta_info {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("meta_info=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.start_date {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("start_date=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.end_date {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("end_date=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.min_cost {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("min_cost=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_cost {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("max_cost=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.min_tokens_in {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("min_tokens_in=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_tokens_in {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("max_tokens_in=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.min_tokens_out {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("min_tokens_out=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_tokens_out {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("max_tokens_out=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.min_total_tokens {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("min_total_tokens=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_total_tokens {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("max_total_tokens=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.min_duration {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("min_duration=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.max_duration {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("max_duration=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.feedback {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("feedback=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.success {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("success=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.cached {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("cached=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.model {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("model=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.model_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("model_type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.provider {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("provider=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.request_content_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("request_content_type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_content_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("response_content_type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3496,9 +3940,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3572,6 +4018,52 @@ where
         args.account_id, args.gateway_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by_direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by_direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filters {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filters=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3582,9 +4074,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3668,9 +4162,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3754,9 +4250,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3840,9 +4338,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3859,7 +4359,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3932,9 +4434,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3951,7 +4455,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4014,6 +4520,32 @@ where
         args.account_id, args.gateway_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4024,9 +4556,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4110,9 +4644,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4198,9 +4734,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4286,9 +4824,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4372,9 +4912,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4458,9 +5000,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4544,9 +5088,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4630,9 +5176,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4716,9 +5264,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4804,9 +5354,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4892,9 +5444,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4980,9 +5534,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5068,9 +5624,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5157,9 +5715,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5243,9 +5803,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5329,9 +5891,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5415,9 +5979,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5501,9 +6067,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5577,6 +6145,72 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.namespace {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("namespace=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by_direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by_direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5587,9 +6221,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5673,9 +6309,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5759,9 +6397,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5845,9 +6485,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5931,9 +6573,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6017,9 +6661,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6093,6 +6739,32 @@ where
         args.account_id, args.id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6103,9 +6775,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6189,9 +6863,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6275,9 +6951,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6361,9 +7039,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6437,6 +7117,32 @@ where
         args.account_id, args.id, args.job_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6447,9 +7153,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6533,9 +7241,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6619,9 +7329,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6695,6 +7407,52 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by_direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by_direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6705,9 +7463,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6791,9 +7551,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6877,9 +7639,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6963,9 +7727,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7049,9 +7815,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7135,9 +7903,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7221,9 +7991,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7307,9 +8079,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7383,6 +8157,42 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7393,9 +8203,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7479,9 +8291,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7555,6 +8369,22 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.model {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("model=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7565,9 +8395,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7641,6 +8473,82 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.task {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("task=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.author {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("author=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.source {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("source=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.hide_experimental {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("hide_experimental=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7651,9 +8559,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7727,6 +8637,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7737,9 +8673,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -7756,7 +8694,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7819,6 +8759,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7829,9 +8795,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -7848,7 +8816,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -7911,6 +8881,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7921,9 +8917,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -7940,7 +8938,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8003,6 +9003,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8013,9 +9039,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8032,7 +9060,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8095,6 +9125,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8105,9 +9161,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8124,7 +9182,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8187,6 +9247,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8197,9 +9283,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8216,7 +9304,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8279,6 +9369,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8289,9 +9405,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8308,7 +9426,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8371,6 +9491,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8381,9 +9527,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8400,7 +9548,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8463,6 +9613,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8473,9 +9649,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8492,7 +9670,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8555,6 +9735,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8565,9 +9771,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8584,7 +9792,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8647,6 +9857,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8657,9 +9893,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8676,7 +9914,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8739,6 +9979,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8749,9 +10015,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8768,7 +10036,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8831,6 +10101,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8841,9 +10137,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8860,7 +10158,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -8923,6 +10223,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8933,9 +10259,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -8952,7 +10280,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9015,6 +10345,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9025,9 +10381,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9044,7 +10402,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9107,6 +10467,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9117,9 +10503,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9136,7 +10524,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9199,6 +10589,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9209,9 +10625,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9228,7 +10646,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9301,9 +10721,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -9387,9 +10809,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -9463,6 +10887,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9473,9 +10923,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9492,7 +10944,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9565,9 +11019,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -9651,9 +11107,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -9737,9 +11195,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -9813,6 +11273,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -9823,9 +11309,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -9842,7 +11330,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -9915,9 +11405,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -9991,6 +11483,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -10001,9 +11519,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -10020,7 +11540,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -10093,9 +11615,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -10169,6 +11693,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -10179,9 +11729,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -10198,7 +11750,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -10271,9 +11825,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -10347,6 +11903,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -10357,9 +11939,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -10376,7 +11960,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -10449,9 +12035,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -10535,9 +12123,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -10611,6 +12201,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -10621,9 +12237,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -10640,7 +12258,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -10703,6 +12323,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -10713,9 +12359,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -10732,7 +12380,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -10795,6 +12445,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -10805,9 +12481,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -10824,7 +12502,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -10887,6 +12567,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -10897,9 +12603,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -10916,7 +12624,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -10979,6 +12689,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -10989,9 +12725,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11008,7 +12746,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11071,6 +12811,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11081,9 +12847,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11100,7 +12868,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11163,6 +12933,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11173,9 +12969,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11192,7 +12990,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11255,6 +13055,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11265,9 +13091,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11284,7 +13112,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11347,6 +13177,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11357,9 +13213,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11376,7 +13234,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11439,6 +13299,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11449,9 +13335,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11468,7 +13356,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11531,6 +13421,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11541,9 +13457,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11560,7 +13478,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11623,6 +13543,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11633,9 +13579,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11652,7 +13600,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11715,6 +13665,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11725,9 +13701,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11744,7 +13722,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11807,6 +13787,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11817,9 +13823,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11836,7 +13844,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11899,6 +13909,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -11909,9 +13945,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -11928,7 +13966,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -11991,6 +14031,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12001,9 +14067,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12020,7 +14088,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12083,6 +14153,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12093,9 +14189,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12112,7 +14210,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12175,6 +14275,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12185,9 +14311,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12204,7 +14332,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12267,6 +14397,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12277,9 +14433,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12296,7 +14454,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12359,6 +14519,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12369,9 +14555,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12388,7 +14576,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12451,6 +14641,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12461,9 +14677,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12480,7 +14698,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12543,6 +14763,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12553,9 +14799,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12572,7 +14820,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12635,6 +14885,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12645,9 +14921,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12664,7 +14942,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12727,6 +15007,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12737,9 +15043,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12756,7 +15064,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12819,6 +15129,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12829,9 +15165,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12848,7 +15186,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -12911,6 +15251,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -12921,9 +15287,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -12940,7 +15308,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13003,6 +15373,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13013,9 +15409,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13032,7 +15430,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13095,6 +15495,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13105,9 +15531,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13124,7 +15552,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13187,6 +15617,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13197,9 +15653,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13216,7 +15674,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13279,6 +15739,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13289,9 +15775,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13308,7 +15796,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13371,6 +15861,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13381,9 +15897,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13400,7 +15918,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13463,6 +15983,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13473,9 +16019,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13492,7 +16040,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13555,6 +16105,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13565,9 +16141,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13584,7 +16162,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13647,6 +16227,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13657,9 +16263,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13676,7 +16284,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13739,6 +16349,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13749,9 +16385,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13768,7 +16406,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13831,6 +16471,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13841,9 +16507,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13860,7 +16528,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -13923,6 +16593,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -13933,9 +16629,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -13952,7 +16650,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14015,6 +16715,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14025,9 +16751,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14044,7 +16772,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14107,6 +16837,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14117,9 +16873,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14136,7 +16894,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14199,6 +16959,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14209,9 +16995,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14228,7 +17016,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14291,6 +17081,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14301,9 +17117,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14320,7 +17138,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14383,6 +17203,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14393,9 +17239,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14412,7 +17260,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14475,6 +17325,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14485,9 +17361,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14504,7 +17382,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14567,6 +17447,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14577,9 +17483,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14596,7 +17504,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14659,6 +17569,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14669,9 +17605,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14688,7 +17626,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14751,6 +17691,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14761,9 +17727,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14780,7 +17748,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14843,6 +17813,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14853,9 +17849,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14872,7 +17870,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -14935,6 +17935,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -14945,9 +17971,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -14964,7 +17992,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15027,6 +18057,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15037,9 +18093,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15056,7 +18114,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15119,6 +18179,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15129,9 +18215,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15148,7 +18236,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15221,9 +18311,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -15307,9 +18399,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -15383,6 +18477,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15393,9 +18513,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15412,7 +18534,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15475,6 +18599,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15485,9 +18635,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15504,7 +18656,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15567,6 +18721,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15577,9 +18757,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15596,7 +18778,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15659,6 +18843,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15669,9 +18879,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15688,7 +18900,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15751,6 +18965,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15761,9 +19001,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15780,7 +19022,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15843,6 +19087,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15853,9 +19123,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15872,7 +19144,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -15935,6 +19209,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -15945,9 +19245,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -15964,7 +19266,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16027,6 +19331,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16037,9 +19367,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16056,7 +19388,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16119,6 +19453,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16129,9 +19489,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16148,7 +19510,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16211,6 +19575,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16221,9 +19611,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16240,7 +19632,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16303,6 +19697,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16313,9 +19733,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16332,7 +19754,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16405,9 +19829,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -16491,9 +19917,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -16567,6 +19995,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16577,9 +20031,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16596,7 +20052,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16659,6 +20117,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16669,9 +20153,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16688,7 +20174,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16751,6 +20239,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16761,9 +20275,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16780,7 +20296,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16843,6 +20361,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16853,9 +20397,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16872,7 +20418,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -16935,6 +20483,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -16945,9 +20519,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -16964,7 +20540,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17027,6 +20605,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17037,9 +20641,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17056,7 +20662,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17119,6 +20727,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17129,9 +20763,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17148,7 +20784,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17211,6 +20849,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17221,9 +20885,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17240,7 +20906,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17303,6 +20971,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17313,9 +21007,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17332,7 +21028,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17395,6 +21093,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17405,9 +21129,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17424,7 +21150,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17487,6 +21215,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17497,9 +21251,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17516,7 +21272,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17579,6 +21337,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17589,9 +21373,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17608,7 +21394,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17671,6 +21459,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17681,9 +21495,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17700,7 +21516,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17763,6 +21581,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17773,9 +21617,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17792,7 +21638,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17855,6 +21703,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.queue_request {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queueRequest=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tags {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tags=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -17865,9 +21739,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -17884,7 +21760,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -17957,9 +21835,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18043,9 +21923,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18129,9 +22011,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18215,9 +22099,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18301,9 +22187,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18377,6 +22265,52 @@ where
         args.account_id, args.id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.status {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("status=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -18387,9 +22321,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18463,6 +22399,32 @@ where
         args.account_id, args.id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -18473,9 +22435,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18559,9 +22523,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18635,6 +22601,32 @@ where
         args.account_id, args.id, args.job_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -18645,9 +22637,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18731,9 +22725,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18817,9 +22813,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18903,9 +22901,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -18989,9 +22989,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19069,19 +23071,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19165,9 +23165,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19251,9 +23253,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19331,19 +23335,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19421,19 +23423,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19517,9 +23517,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19593,6 +23595,22 @@ where
         args.account_id, args.index_name,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.unparsable_behavior {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("unparsable-behavior=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -19603,9 +23621,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19679,6 +23699,32 @@ where
         args.account_id, args.index_name,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.count {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("count=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.cursor {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("cursor=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -19689,9 +23735,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19770,19 +23818,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19861,19 +23907,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -19958,9 +24002,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -20038,19 +24084,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -20124,6 +24168,22 @@ where
         args.account_id, args.index_name,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.unparsable_behavior {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("unparsable-behavior=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -20134,9 +24194,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -20210,6 +24272,152 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.crawl_purpose {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("crawlPurpose=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.user_agent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("userAgent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.vertical {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("vertical=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.industry {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("industry=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.content_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("contentType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -20220,9 +24428,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -20263,6 +24473,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -20275,6 +24486,7 @@ where
 #[inline]
 pub fn radar_get_ai_bots_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetAiBotsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -20291,6 +24503,162 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/ai/bots/timeseries",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.crawl_purpose {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("crawlPurpose=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.user_agent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("userAgent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.industry {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("industry=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.vertical {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("vertical=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.content_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("contentType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -20301,9 +24669,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -20377,6 +24747,172 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.crawl_purpose {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("crawlPurpose=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.user_agent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("userAgent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.industry {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("industry=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.vertical {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("vertical=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.content_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("contentType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -20387,9 +24923,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -20463,6 +25001,102 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -20473,9 +25107,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -20549,6 +25185,122 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -20559,9 +25311,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

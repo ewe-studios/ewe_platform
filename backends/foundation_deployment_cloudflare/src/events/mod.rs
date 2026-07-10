@@ -15,8 +15,8 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
@@ -29,96 +29,48 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `AaaHistoryComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaHistoryComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSilencesComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilencesComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSchemasApiResponseCommon` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSchemasApiResponseCommon {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSilenceCreateRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceCreateRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaSilenceComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceTaggingTagKeysResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingTagKeysResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `ResourceTaggingTaggedResourceResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTaggedResourceResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `AaaSchemasApiResponseCommon` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSchemasApiResponseCommon {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSilenceComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilenceComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaSilencesComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaSilencesComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `AaaSensitiveIdResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaSensitiveIdResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaWebhooksComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaWebhooksComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceTaggingSetTagsRequestAccountLevel` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingSetTagsRequestAccountLevel {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `AaaComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaComponentsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `AaaAlertsResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaAlertsResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
@@ -126,7 +78,7 @@ pub struct AaaAlertsResponseCollection {
 }
 
 /// `AaaSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaSchemasResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
@@ -134,32 +86,48 @@ pub struct AaaSchemasResponseCollection {
 }
 
 /// `AaaSchemasSingleResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct AaaSchemasSingleResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `AaaSilenceUpdateRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct AaaSilenceUpdateRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `ResourceTaggingDeleteTagsRequestAccountLevel` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ResourceTaggingDeleteTagsRequestAccountLevel {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `ResourceTaggingTagValuesResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTaggingTagValuesResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaHistoryComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaHistoryComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `ResourceTaggingTagKeysResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct ResourceTaggingTagKeysResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `AaaWebhooksComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct AaaWebhooksComponentsSchemasResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -170,56 +138,56 @@ pub struct ResourceTaggingTagValuesResponseCollection {
 // =============================================================================
 
 /// Arguments for [`notification-alert-types-get-alert-types_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationAlertTypesGetAlertTypesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-mechanism-eligibility-get-delivery-mechanism-eligibility_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationMechanismEligibilityGetDeliveryMechanismEligibilityArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-destinations-with-pager-duty-list-pager-duty-services_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationDestinationsWithPagerDutyListPagerDutyServicesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-destinations-with-pager-duty-delete-pager-duty-services_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationDestinationsWithPagerDutyDeletePagerDutyServicesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-destinations-with-pager-duty-connect-pager-duty_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationDestinationsWithPagerDutyConnectPagerDutyArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-webhooks-list-webhooks_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationWebhooksListWebhooksArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-webhooks-create-a-webhook_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationWebhooksCreateAWebhookArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-webhooks-get-a-webhook_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationWebhooksGetAWebhookArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -228,7 +196,7 @@ pub struct NotificationWebhooksGetAWebhookArgs {
 }
 
 /// Arguments for [`notification-webhooks-update-a-webhook_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationWebhooksUpdateAWebhookArgs {
     /// Path parameter: `webhook_id`.
     pub webhook_id: String,
@@ -237,7 +205,7 @@ pub struct NotificationWebhooksUpdateAWebhookArgs {
 }
 
 /// Arguments for [`notification-webhooks-delete-a-webhook_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationWebhooksDeleteAWebhookArgs {
     /// Path parameter: `webhook_id`.
     pub webhook_id: String,
@@ -246,7 +214,7 @@ pub struct NotificationWebhooksDeleteAWebhookArgs {
 }
 
 /// Arguments for [`notification-history-list-history_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationHistoryListHistoryArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -261,32 +229,28 @@ pub struct NotificationHistoryListHistoryArgs {
 }
 
 /// Arguments for [`notification-silences-list-silences_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationSilencesListSilencesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`notification-silences-create-silences_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationSilencesCreateSilencesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: Vec<AaaSilenceCreateRequest>,
 }
 
 /// Arguments for [`notification-silences-update-silences_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationSilencesUpdateSilencesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: Vec<AaaSilenceUpdateRequest>,
 }
 
 /// Arguments for [`notification-silences-get-silence_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationSilencesGetSilenceArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -295,7 +259,7 @@ pub struct NotificationSilencesGetSilenceArgs {
 }
 
 /// Arguments for [`notification-silences-delete-silences_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct NotificationSilencesDeleteSilencesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -304,7 +268,7 @@ pub struct NotificationSilencesDeleteSilencesArgs {
 }
 
 /// Arguments for [`tags-get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TagsGetArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -317,32 +281,28 @@ pub struct TagsGetArgs {
 }
 
 /// Arguments for [`tags-set_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TagsSetArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: ResourceTaggingSetTagsRequestAccountLevel,
 }
 
 /// Arguments for [`tags-delete_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TagsDeleteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: ResourceTaggingDeleteTagsRequestAccountLevel,
 }
 
 /// Arguments for [`tags-list-keys_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TagsListKeysArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`tags-list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TagsListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -351,7 +311,7 @@ pub struct TagsListArgs {
 }
 
 /// Arguments for [`tags-list-values_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct TagsListValuesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -360,7 +320,7 @@ pub struct TagsListValuesArgs {
 }
 
 /// Arguments for [`wor-send-event-workflow-instance_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WorSendEventWorkflowInstanceArgs {
     /// Path parameter: `workflow_name`.
     pub workflow_name: String,
@@ -431,9 +391,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -450,7 +412,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaAlertsResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -523,9 +487,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -542,7 +508,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSchemasResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -618,9 +586,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -637,7 +607,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaComponentsSchemasResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -710,9 +682,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -729,7 +703,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSchemasApiResponseCommon =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -802,9 +778,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -821,7 +799,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSensitiveIdResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -897,9 +877,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -916,7 +898,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaWebhooksComponentsSchemasResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -989,9 +973,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1008,7 +994,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaIdResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1081,9 +1069,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1100,7 +1090,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSchemasSingleResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1173,9 +1165,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1192,7 +1186,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaIdResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1265,9 +1261,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1284,7 +1282,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSchemasApiResponseCommon =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1350,6 +1350,52 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.before {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("before=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.since {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("since=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1360,9 +1406,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1379,7 +1427,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaHistoryComponentsSchemasResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1455,9 +1505,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1474,7 +1526,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSilencesComponentsSchemasResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1541,19 +1595,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1570,7 +1622,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSchemasApiResponseCommon =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1640,19 +1694,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1669,7 +1721,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSilencesComponentsSchemasResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1745,9 +1799,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1764,7 +1820,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSilenceComponentsSchemasResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1837,9 +1895,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1856,7 +1916,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AaaSchemasApiResponseCommon =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1922,6 +1984,42 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.resource_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("resource_id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.resource_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("resource_type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.worker_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("worker_id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1932,9 +2030,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1951,7 +2051,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: ResourceTaggingTaggedResourceResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2021,19 +2123,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2050,7 +2150,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: ResourceTaggingTaggedResourceResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2117,19 +2219,17 @@ where
         .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2216,9 +2316,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2235,7 +2337,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: ResourceTaggingTagKeysResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2301,6 +2405,22 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.r#type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2311,9 +2431,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2330,7 +2452,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: ResourceTaggingTaggedResourceResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2406,9 +2530,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2425,7 +2551,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: ResourceTaggingTagValuesResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2498,9 +2626,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

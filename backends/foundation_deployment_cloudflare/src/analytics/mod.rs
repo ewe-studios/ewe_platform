@@ -15,8 +15,8 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
@@ -25,81 +25,49 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `RumCreateRuleRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumCreateRuleRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RumSiteTagResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumSiteTagResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RumModifyRulesRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumModifyRulesRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RumCreateSiteRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumCreateSiteRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RumRuleIdResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumRuleIdResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RumRulesResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumRulesResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `RumSiteResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RumSiteResponseSingle {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `RumSitesResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumSitesResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RumUpdateSiteRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RumUpdateSiteRequest {
+/// `RumRulesResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RumRulesResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `RumRuleResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct RumRuleResponseSingle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RumSiteTagResponseSingle` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RumSiteTagResponseSingle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RumSitesResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RumSitesResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `RumRuleIdResponseSingle` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RumRuleIdResponseSingle {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -110,16 +78,14 @@ pub struct RumRuleResponseSingle {
 // =============================================================================
 
 /// Arguments for [`web-analytics-create-site_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsCreateSiteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: RumCreateSiteRequest,
 }
 
 /// Arguments for [`web-analytics-list-sites_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsListSitesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -132,7 +98,7 @@ pub struct WebAnalyticsListSitesArgs {
 }
 
 /// Arguments for [`web-analytics-get-site_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsGetSiteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -141,18 +107,16 @@ pub struct WebAnalyticsGetSiteArgs {
 }
 
 /// Arguments for [`web-analytics-update-site_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsUpdateSiteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `site_id`.
     pub site_id: String,
-    /// Request body.
-    pub body: RumUpdateSiteRequest,
 }
 
 /// Arguments for [`web-analytics-delete-site_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsDeleteSiteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -161,18 +125,16 @@ pub struct WebAnalyticsDeleteSiteArgs {
 }
 
 /// Arguments for [`web-analytics-create-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsCreateRuleArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Request body.
-    pub body: RumCreateRuleRequest,
 }
 
 /// Arguments for [`web-analytics-update-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsUpdateRuleArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -180,12 +142,10 @@ pub struct WebAnalyticsUpdateRuleArgs {
     pub ruleset_id: String,
     /// Path parameter: `rule_id`.
     pub rule_id: String,
-    /// Request body.
-    pub body: RumCreateRuleRequest,
 }
 
 /// Arguments for [`web-analytics-delete-rule_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsDeleteRuleArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -196,7 +156,7 @@ pub struct WebAnalyticsDeleteRuleArgs {
 }
 
 /// Arguments for [`web-analytics-list-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsListRulesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -205,14 +165,12 @@ pub struct WebAnalyticsListRulesArgs {
 }
 
 /// Arguments for [`web-analytics-modify-rules_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct WebAnalyticsModifyRulesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `ruleset_id`.
     pub ruleset_id: String,
-    /// Request body.
-    pub body: RumModifyRulesRequest,
 }
 
 // =============================================================================
@@ -268,19 +226,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -297,7 +253,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumSiteResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -360,6 +318,42 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order_by=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -370,9 +364,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -389,7 +385,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumSitesResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -462,9 +460,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -481,7 +481,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumSiteResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -548,19 +550,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -577,7 +577,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumSiteResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -650,9 +652,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -669,7 +673,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumSiteTagResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -736,19 +742,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -765,7 +769,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumRuleResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -832,19 +838,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -861,7 +865,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumRuleResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -934,9 +940,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -953,7 +961,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumRuleIdResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1026,9 +1036,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1045,7 +1057,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumRulesResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1112,19 +1126,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1141,7 +1153,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RumRulesResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

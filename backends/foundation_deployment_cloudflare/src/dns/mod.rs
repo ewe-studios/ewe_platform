@@ -15,8 +15,8 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
@@ -28,104 +28,128 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
+/// `DnsRecordsDnsResponseAccountUsage` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsRecordsDnsResponseAccountUsage {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelHostnameRouteResponseSingle` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelHostnameRouteResponseSingle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsComponentsSchemasResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsComponentsSchemasResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsDnsViewResponseSingle` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsViewResponseSingle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `DnsCustomNameserversAcnsResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DnsCustomNameserversAcnsResponseSingle {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `SecondaryDnsComponentsSchemasIdResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsComponentsSchemasIdResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsTsig` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsTsig {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallReverseDnsResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallReverseDnsResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsDnsResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsSchemasSingleResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSchemasSingleResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsCustomNameserversCustomNSInput` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsCustomNameserversCustomNSInput {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `DnsCustomNameserversAcnsResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DnsCustomNameserversAcnsResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `DnsSettingsAccountSettingsPatch` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsAccountSettingsPatch {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsAcl` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsAcl {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
 /// `DnsCustomNameserversEmptyResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DnsCustomNameserversEmptyResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `DnsFirewallDnsFirewallSingleResponse` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallSingleResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsSettingsDnsResponseSingle` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsSettingsDnsResponseSingle {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `DnsFirewallDnsFirewallReverseDnsResponse` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallReverseDnsResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsSingleResponse` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSingleResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TunnelHostnameRouteResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TunnelHostnameRouteResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `SecondaryDnsSchemasIdResponse` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSchemasIdResponse {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `DnsSettingsDnsViewResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct DnsSettingsDnsViewResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
@@ -133,136 +157,32 @@ pub struct DnsSettingsDnsViewResponseCollection {
 }
 
 /// `SecondaryDnsComponentsSchemasSingleResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct SecondaryDnsComponentsSchemasSingleResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `TunnelHostnameRouteResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TunnelHostnameRouteResponseCollection {
+/// `SecondaryDnsComponentsSchemasIdResponse` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsComponentsSchemasIdResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `SecondaryDnsSingleResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSingleResponse {
+/// `DnsFirewallDnsFirewallResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct DnsFirewallDnsFirewallResponseCollection {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
-/// `SecondaryDnsResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsRecordsDnsResponseAccountUsage` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsRecordsDnsResponseAccountUsage {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsDnsViewPost` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsViewPost {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TunnelHostnameRouteResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TunnelHostnameRouteResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallReverseDnsPatch` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallReverseDnsPatch {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSchemasResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallSingleResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallSingleResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsDnsViewResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsViewResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsSchemasIdResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsSchemasIdResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsSettingsDnsViewPatch` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsSettingsDnsViewPatch {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsPeer` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsPeer {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallClusterPatch` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallClusterPatch {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `DnsFirewallDnsFirewallClusterPost` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DnsFirewallDnsFirewallClusterPost {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `SecondaryDnsComponentsSchemasResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct SecondaryDnsComponentsSchemasResponseCollection {
+/// `SecondaryDnsSchemasSingleResponse` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct SecondaryDnsSchemasSingleResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -273,37 +193,35 @@ pub struct SecondaryDnsComponentsSchemasResponseCollection {
 // =============================================================================
 
 /// Arguments for [`access-mtls-authentication-list-mtls-certificates-hostname-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AccessMtlsAuthenticationListMtlsCertificatesHostnameSettingsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dls-account-regional-hostnames-account-list-regions_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DlsAccountRegionalHostnamesAccountListRegionsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-level-custom-nameservers-list-account-custom-nameservers_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AccountLevelCustomNameserversListAccountCustomNameserversArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`account-level-custom-nameservers-add-account-custom-nameserver_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AccountLevelCustomNameserversAddAccountCustomNameserverArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: DnsCustomNameserversCustomNSInput,
 }
 
 /// Arguments for [`account-level-custom-nameservers-delete-account-custom-nameserver_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct AccountLevelCustomNameserversDeleteAccountCustomNameserverArgs {
     /// Path parameter: `custom_ns_id`.
     pub custom_ns_id: String,
@@ -312,7 +230,7 @@ pub struct AccountLevelCustomNameserversDeleteAccountCustomNameserverArgs {
 }
 
 /// Arguments for [`dns-firewall-list-dns-firewall-clusters_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallListDnsFirewallClustersArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -323,16 +241,14 @@ pub struct DnsFirewallListDnsFirewallClustersArgs {
 }
 
 /// Arguments for [`dns-firewall-create-dns-firewall-cluster_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallCreateDnsFirewallClusterArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: DnsFirewallDnsFirewallClusterPost,
 }
 
 /// Arguments for [`dns-firewall-dns-firewall-cluster-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallDnsFirewallClusterDetailsArgs {
     /// Path parameter: `dns_firewall_id`.
     pub dns_firewall_id: String,
@@ -341,18 +257,16 @@ pub struct DnsFirewallDnsFirewallClusterDetailsArgs {
 }
 
 /// Arguments for [`dns-firewall-update-dns-firewall-cluster_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallUpdateDnsFirewallClusterArgs {
     /// Path parameter: `dns_firewall_id`.
     pub dns_firewall_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: DnsFirewallDnsFirewallClusterPatch,
 }
 
 /// Arguments for [`dns-firewall-delete-dns-firewall-cluster_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallDeleteDnsFirewallClusterArgs {
     /// Path parameter: `dns_firewall_id`.
     pub dns_firewall_id: String,
@@ -361,7 +275,7 @@ pub struct DnsFirewallDeleteDnsFirewallClusterArgs {
 }
 
 /// Arguments for [`dns-firewall-analytics-table_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallAnalyticsTableArgs {
     /// Path parameter: `dns_firewall_id`.
     pub dns_firewall_id: String,
@@ -384,7 +298,7 @@ pub struct DnsFirewallAnalyticsTableArgs {
 }
 
 /// Arguments for [`dns-firewall-analytics-by-time_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallAnalyticsByTimeArgs {
     /// Path parameter: `dns_firewall_id`.
     pub dns_firewall_id: String,
@@ -409,7 +323,7 @@ pub struct DnsFirewallAnalyticsByTimeArgs {
 }
 
 /// Arguments for [`dns-firewall-show-dns-firewall-cluster-reverse-dns_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallShowDnsFirewallClusterReverseDnsArgs {
     /// Path parameter: `dns_firewall_id`.
     pub dns_firewall_id: String,
@@ -418,41 +332,37 @@ pub struct DnsFirewallShowDnsFirewallClusterReverseDnsArgs {
 }
 
 /// Arguments for [`dns-firewall-update-dns-firewall-cluster-reverse-dns_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsFirewallUpdateDnsFirewallClusterReverseDnsArgs {
     /// Path parameter: `dns_firewall_id`.
     pub dns_firewall_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: DnsFirewallDnsFirewallReverseDnsPatch,
 }
 
 /// Arguments for [`dns-records-for-an-account-get-usage_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsRecordsForAnAccountGetUsageArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dns-settings-for-an-account-list-dns-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsSettingsForAnAccountListDnsSettingsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`dns-settings-for-an-account-update-dns-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsSettingsForAnAccountUpdateDnsSettingsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: DnsSettingsAccountSettingsPatch,
 }
 
 /// Arguments for [`dns-views-for-an-account-list-internal-dns-views_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsViewsForAnAccountListInternalDnsViewsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -483,16 +393,14 @@ pub struct DnsViewsForAnAccountListInternalDnsViewsArgs {
 }
 
 /// Arguments for [`dns-views-for-an-account-create-internal-dns-views_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsViewsForAnAccountCreateInternalDnsViewsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: DnsSettingsDnsViewPost,
 }
 
 /// Arguments for [`dns-views-for-an-account-get-internal-dns-view_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsViewsForAnAccountGetInternalDnsViewArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -501,18 +409,16 @@ pub struct DnsViewsForAnAccountGetInternalDnsViewArgs {
 }
 
 /// Arguments for [`dns-views-for-an-account-update-internal-dns-view_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsViewsForAnAccountUpdateInternalDnsViewArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `view_id`.
     pub view_id: String,
-    /// Request body.
-    pub body: DnsSettingsDnsViewPatch,
 }
 
 /// Arguments for [`dns-views-for-an-account-delete-internal-dns-view_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DnsViewsForAnAccountDeleteInternalDnsViewArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -521,21 +427,21 @@ pub struct DnsViewsForAnAccountDeleteInternalDnsViewArgs {
 }
 
 /// Arguments for [`secondary-dns-(-acl)-list-ac-ls_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsAclListAcLsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-acl)-create-acl_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsAclCreateAclArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-acl)-acl-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsAclAclDetailsArgs {
     /// Path parameter: `acl_id`.
     pub acl_id: String,
@@ -544,18 +450,16 @@ pub struct SecondaryDnsAclAclDetailsArgs {
 }
 
 /// Arguments for [`secondary-dns-(-acl)-update-acl_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsAclUpdateAclArgs {
     /// Path parameter: `acl_id`.
     pub acl_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: SecondaryDnsAcl,
 }
 
 /// Arguments for [`secondary-dns-(-acl)-delete-acl_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsAclDeleteAclArgs {
     /// Path parameter: `acl_id`.
     pub acl_id: String,
@@ -564,21 +468,21 @@ pub struct SecondaryDnsAclDeleteAclArgs {
 }
 
 /// Arguments for [`secondary-dns-(-peer)-list-peers_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsPeerListPeersArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-peer)-create-peer_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsPeerCreatePeerArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-peer)-peer-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsPeerPeerDetailsArgs {
     /// Path parameter: `peer_id`.
     pub peer_id: String,
@@ -587,18 +491,16 @@ pub struct SecondaryDnsPeerPeerDetailsArgs {
 }
 
 /// Arguments for [`secondary-dns-(-peer)-update-peer_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsPeerUpdatePeerArgs {
     /// Path parameter: `peer_id`.
     pub peer_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: SecondaryDnsPeer,
 }
 
 /// Arguments for [`secondary-dns-(-peer)-delete-peer_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsPeerDeletePeerArgs {
     /// Path parameter: `peer_id`.
     pub peer_id: String,
@@ -607,23 +509,21 @@ pub struct SecondaryDnsPeerDeletePeerArgs {
 }
 
 /// Arguments for [`secondary-dns-(-tsig)-list-tsi-gs_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsTsigListTsiGsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`secondary-dns-(-tsig)-create-tsig_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsTsigCreateTsigArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: SecondaryDnsTsig,
 }
 
 /// Arguments for [`secondary-dns-(-tsig)-tsig-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsTsigTsigDetailsArgs {
     /// Path parameter: `tsig_id`.
     pub tsig_id: String,
@@ -632,18 +532,16 @@ pub struct SecondaryDnsTsigTsigDetailsArgs {
 }
 
 /// Arguments for [`secondary-dns-(-tsig)-update-tsig_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsTsigUpdateTsigArgs {
     /// Path parameter: `tsig_id`.
     pub tsig_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: SecondaryDnsTsig,
 }
 
 /// Arguments for [`secondary-dns-(-tsig)-delete-tsig_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct SecondaryDnsTsigDeleteTsigArgs {
     /// Path parameter: `tsig_id`.
     pub tsig_id: String,
@@ -652,7 +550,7 @@ pub struct SecondaryDnsTsigDeleteTsigArgs {
 }
 
 /// Arguments for [`zero-trust-networks-route-hostname-list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksRouteHostnameListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -675,14 +573,14 @@ pub struct ZeroTrustNetworksRouteHostnameListArgs {
 }
 
 /// Arguments for [`zero-trust-networks-route-hostname-create_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksRouteHostnameCreateArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`zero-trust-networks-route-hostname-get_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksRouteHostnameGetArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -691,7 +589,7 @@ pub struct ZeroTrustNetworksRouteHostnameGetArgs {
 }
 
 /// Arguments for [`zero-trust-networks-route-hostname-update_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksRouteHostnameUpdateArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -700,7 +598,7 @@ pub struct ZeroTrustNetworksRouteHostnameUpdateArgs {
 }
 
 /// Arguments for [`zero-trust-networks-route-hostname-delete_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ZeroTrustNetworksRouteHostnameDeleteArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -709,7 +607,7 @@ pub struct ZeroTrustNetworksRouteHostnameDeleteArgs {
 }
 
 /// Arguments for [`radar-get-dns-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -758,7 +656,7 @@ pub struct RadarGetDnsSummaryArgs {
 }
 
 /// Arguments for [`radar-get-dns-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsTimeseriesArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
@@ -805,7 +703,7 @@ pub struct RadarGetDnsTimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-dns-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsTimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -858,7 +756,7 @@ pub struct RadarGetDnsTimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-dns-top-ases_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsTopAsesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -905,7 +803,7 @@ pub struct RadarGetDnsTopAsesArgs {
 }
 
 /// Arguments for [`radar-get-dns-top-locations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsTopLocationsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1012,9 +910,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1031,7 +931,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: AccessResponseCollectionHostnames = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1104,9 +1006,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1193,9 +1097,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1212,7 +1118,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsCustomNameserversAcnsResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1282,19 +1190,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1311,7 +1217,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsCustomNameserversAcnsResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1384,9 +1292,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1403,7 +1313,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsCustomNameserversEmptyResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1469,6 +1381,32 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1479,9 +1417,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1498,7 +1438,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsFirewallDnsFirewallResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1568,19 +1510,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1597,7 +1537,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsFirewallDnsFirewallSingleResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1673,9 +1615,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1692,7 +1636,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsFirewallDnsFirewallSingleResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1762,19 +1708,17 @@ where
         .patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1791,7 +1735,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsFirewallDnsFirewallSingleResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1864,9 +1810,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1940,6 +1888,82 @@ where
         args.account_id, args.dns_firewall_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.metrics {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("metrics=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dimensions {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dimensions=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.since {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("since=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.until {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("until=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sort {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sort=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filters {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filters=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1950,9 +1974,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2027,6 +2053,92 @@ where
         args.dns_firewall_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.metrics {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("metrics=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dimensions {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dimensions=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.since {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("since=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.until {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("until=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.sort {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("sort=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.filters {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("filters=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.time_delta {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("time_delta=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2037,9 +2149,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2126,9 +2240,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2145,7 +2261,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsFirewallDnsFirewallReverseDnsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2215,19 +2333,17 @@ where
         .patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2244,7 +2360,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsFirewallDnsFirewallReverseDnsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2317,9 +2435,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2336,7 +2456,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsRecordsDnsResponseAccountUsage = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2409,9 +2531,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2428,7 +2552,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsSettingsDnsResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2495,19 +2621,17 @@ where
         .patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2524,7 +2648,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsSettingsDnsResponseSingle =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2590,6 +2716,132 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name_exact {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name.exact=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name_contains {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name.contains=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name_startswith {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name.startswith=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name_endswith {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name.endswith=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.zone_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("zone_id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.zone_name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("zone_name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.r#match {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("match=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2600,9 +2852,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2619,7 +2873,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsSettingsDnsViewResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2686,19 +2942,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2715,7 +2969,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsSettingsDnsViewResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2788,9 +3044,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2807,7 +3065,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsSettingsDnsViewResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2874,19 +3134,17 @@ where
         .patch(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2903,7 +3161,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: DnsSettingsDnsViewResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2976,9 +3236,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3065,9 +3327,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3084,7 +3348,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsComponentsSchemasResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3160,9 +3426,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3179,7 +3447,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsComponentsSchemasSingleResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3255,9 +3525,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3274,7 +3546,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsComponentsSchemasSingleResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3344,19 +3618,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3373,7 +3645,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsComponentsSchemasSingleResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3449,9 +3723,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3468,7 +3744,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsComponentsSchemasIdResponse = serde_json::from_str(&body)
                     .map_err(
                     |e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()),
@@ -3544,9 +3822,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3563,7 +3843,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsSchemasResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3636,9 +3918,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3655,7 +3939,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsSchemasSingleResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3728,9 +4014,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3747,7 +4035,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsSchemasSingleResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3814,19 +4104,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3843,7 +4131,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsSchemasSingleResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3919,9 +4209,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3938,7 +4230,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsComponentsSchemasIdResponse = serde_json::from_str(&body)
                     .map_err(
                     |e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()),
@@ -4011,9 +4305,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4030,7 +4326,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4097,19 +4395,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4126,7 +4422,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsSingleResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4199,9 +4497,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4218,7 +4518,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsSingleResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4285,19 +4587,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4314,7 +4614,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsSingleResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4387,9 +4689,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4406,7 +4710,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecondaryDnsSchemasIdResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4472,6 +4778,92 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.hostname {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("hostname=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tunnel_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tunnel_id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.comment {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("comment=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.existed_at {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("existed_at=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.is_deleted {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("is_deleted=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4482,9 +4874,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4501,7 +4895,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TunnelHostnameRouteResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4574,9 +4970,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4593,7 +4991,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TunnelHostnameRouteResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4666,9 +5066,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4685,7 +5087,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TunnelHostnameRouteResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4758,9 +5162,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4777,7 +5183,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TunnelHostnameRouteResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4850,9 +5258,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -4869,7 +5279,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TunnelHostnameRouteResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4932,6 +5344,222 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.cache_hit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("cacheHit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.nodata {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("nodata=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("protocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_ttl {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseTtl=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssec=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_aware {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecAware=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_e2e {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecE2e=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.matching_answer {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("matchingAnswer=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tld=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4942,9 +5570,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4985,6 +5615,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4997,6 +5628,7 @@ where
 #[inline]
 pub fn radar_get_dns_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetDnsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5013,6 +5645,222 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/dns/timeseries",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.cache_hit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("cacheHit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.nodata {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("nodata=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("protocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_ttl {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseTtl=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssec=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_aware {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecAware=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_e2e {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecE2e=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.matching_answer {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("matchingAnswer=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tld=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5023,9 +5871,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5099,6 +5949,242 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.cache_hit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("cacheHit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.nodata {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("nodata=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("protocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_ttl {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseTtl=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssec=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_aware {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecAware=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_e2e {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecE2e=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.matching_answer {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("matchingAnswer=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tld=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5109,9 +6195,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5152,6 +6240,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5164,6 +6253,7 @@ where
 #[inline]
 pub fn radar_get_dns_top_ases_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetDnsTopAsesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5180,6 +6270,222 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/dns/top/ases",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.domain {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domain=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.cache_hit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("cacheHit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.nodata {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("nodata=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("protocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_ttl {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseTtl=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssec=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_aware {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecAware=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_e2e {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecE2e=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.matching_answer {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("matchingAnswer=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5190,9 +6496,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5233,6 +6541,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5245,6 +6554,7 @@ where
 #[inline]
 pub fn radar_get_dns_top_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetDnsTopLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5261,6 +6571,232 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/dns/top/locations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.domain {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domain=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.cache_hit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("cacheHit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.nodata {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("nodata=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("protocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_ttl {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseTtl=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssec=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_aware {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecAware=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dnssec_e2e {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dnssecE2e=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.matching_answer {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("matchingAnswer=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tld=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5271,9 +6807,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

@@ -15,8 +15,8 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
@@ -25,32 +25,40 @@ use super::shared::ApiResponse;
 // TYPE DECLARATIONS
 // =============================================================================
 
-/// `R2EditCustomDomainRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct R2EditCustomDomainRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesFallbackDomain` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesFallbackDomain {
+/// `RegistrarApiDomainResponseSingle` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiDomainResponseSingle {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
 /// `IntelSingleResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IntelSingleResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
 }
 
+/// `RegistrarApiDomainResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct RegistrarApiDomainResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
+/// `TeamsDevicesFallbackDomainResponseCollection` response type.
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
+pub struct TeamsDevicesFallbackDomainResponseCollection {
+    /// Raw JSON value - full schema generated from `OpenAPI`
+    #[serde(flatten)]
+    pub data: std::collections::HashMap<String, serde_json::Value>,
+}
+
 /// `IntelResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IntelResponse {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
@@ -58,48 +66,8 @@ pub struct IntelResponse {
 }
 
 /// `IntelCollectionResponse` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]
 pub struct IntelCollectionResponse {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `TeamsDevicesFallbackDomainResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct TeamsDevicesFallbackDomainResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiDomainResponseCollection` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiDomainResponseCollection {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `RegistrarApiDomainResponseSingle` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegistrarApiDomainResponseSingle {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `R2AddCustomDomainRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct R2AddCustomDomainRequest {
-    /// Raw JSON value - full schema generated from `OpenAPI`
-    #[serde(flatten)]
-    pub data: std::collections::HashMap<String, serde_json::Value>,
-}
-
-/// `R2EditManagedDomainRequest` response type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct R2EditManagedDomainRequest {
     /// Raw JSON value - full schema generated from `OpenAPI`
     #[serde(flatten)]
     pub data: std::collections::HashMap<String, serde_json::Value>,
@@ -110,7 +78,7 @@ pub struct R2EditManagedDomainRequest {
 // =============================================================================
 
 /// Arguments for [`get_DomainMatchList_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetDomainMatchListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -133,7 +101,7 @@ pub struct GetDomainMatchListArgs {
 }
 
 /// Arguments for [`get_GetDomainQueries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetGetDomainQueriesArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -142,23 +110,21 @@ pub struct GetGetDomainQueriesArgs {
 }
 
 /// Arguments for [`devices-get-local-domain-fallback-list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DevicesGetLocalDomainFallbackListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`devices-set-local-domain-fallback-list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DevicesSetLocalDomainFallbackListArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: Vec<TeamsDevicesFallbackDomain>,
 }
 
 /// Arguments for [`devices-get-local-domain-fallback-list-for-a-device-settings-policy_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DevicesGetLocalDomainFallbackListForADeviceSettingsPolicyArgs {
     /// Path parameter: `policy_id`.
     pub policy_id: String,
@@ -167,18 +133,16 @@ pub struct DevicesGetLocalDomainFallbackListForADeviceSettingsPolicyArgs {
 }
 
 /// Arguments for [`devices-set-local-domain-fallback-list-for-a-device-settings-policy_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DevicesSetLocalDomainFallbackListForADeviceSettingsPolicyArgs {
     /// Path parameter: `policy_id`.
     pub policy_id: String,
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: Vec<TeamsDevicesFallbackDomain>,
 }
 
 /// Arguments for [`email_security_list_domains_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityListDomainsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -203,16 +167,14 @@ pub struct EmailSecurityListDomainsArgs {
 }
 
 /// Arguments for [`email_security_delete_domains_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteDomainsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
-    /// Request body.
-    pub body: Vec<serde_json::Value>,
 }
 
 /// Arguments for [`email_security_get_domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityGetDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -221,7 +183,7 @@ pub struct EmailSecurityGetDomainArgs {
 }
 
 /// Arguments for [`email_security_update_domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityUpdateDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -230,7 +192,7 @@ pub struct EmailSecurityUpdateDomainArgs {
 }
 
 /// Arguments for [`email_security_delete_domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -239,14 +201,14 @@ pub struct EmailSecurityDeleteDomainArgs {
 }
 
 /// Arguments for [`email_security_batch_sending_domain_restrictions_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityBatchSendingDomainRestrictionsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_list_trusted_domains_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityListTrustedDomainsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -269,21 +231,21 @@ pub struct EmailSecurityListTrustedDomainsArgs {
 }
 
 /// Arguments for [`email_security_create_trusted_domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityCreateTrustedDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_batch_trusted_domains_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityBatchTrustedDomainsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`email_security_get_trusted_domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityGetTrustedDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -292,7 +254,7 @@ pub struct EmailSecurityGetTrustedDomainArgs {
 }
 
 /// Arguments for [`email_security_update_trusted_domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityUpdateTrustedDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -301,7 +263,7 @@ pub struct EmailSecurityUpdateTrustedDomainArgs {
 }
 
 /// Arguments for [`email_security_delete_trusted_domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct EmailSecurityDeleteTrustedDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -310,7 +272,7 @@ pub struct EmailSecurityDeleteTrustedDomainArgs {
 }
 
 /// Arguments for [`domain-intelligence-get-domain-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DomainIntelligenceGetDomainDetailsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -319,7 +281,7 @@ pub struct DomainIntelligenceGetDomainDetailsArgs {
 }
 
 /// Arguments for [`domain-history-get-domain-history_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DomainHistoryGetDomainHistoryArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -328,7 +290,7 @@ pub struct DomainHistoryGetDomainHistoryArgs {
 }
 
 /// Arguments for [`domain-intelligence-get-multiple-domain-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct DomainIntelligenceGetMultipleDomainDetailsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -337,7 +299,7 @@ pub struct DomainIntelligenceGetMultipleDomainDetailsArgs {
 }
 
 /// Arguments for [`r2-list-custom-domains_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct R2ListCustomDomainsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -346,18 +308,16 @@ pub struct R2ListCustomDomainsArgs {
 }
 
 /// Arguments for [`r2-add-custom-domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct R2AddCustomDomainArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Request body.
-    pub body: R2AddCustomDomainRequest,
 }
 
 /// Arguments for [`r2-get-custom-domain-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct R2GetCustomDomainSettingsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -368,7 +328,7 @@ pub struct R2GetCustomDomainSettingsArgs {
 }
 
 /// Arguments for [`r2-edit-custom-domain-settings_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct R2EditCustomDomainSettingsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -376,12 +336,10 @@ pub struct R2EditCustomDomainSettingsArgs {
     pub bucket_name: String,
     /// Path parameter: `domain`.
     pub domain: String,
-    /// Request body.
-    pub body: R2EditCustomDomainRequest,
 }
 
 /// Arguments for [`r2-delete-custom-domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct R2DeleteCustomDomainArgs {
     /// Path parameter: `bucket_name`.
     pub bucket_name: String,
@@ -392,7 +350,7 @@ pub struct R2DeleteCustomDomainArgs {
 }
 
 /// Arguments for [`r2-get-bucket-public-policy_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct R2GetBucketPublicPolicyArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -401,25 +359,23 @@ pub struct R2GetBucketPublicPolicyArgs {
 }
 
 /// Arguments for [`r2-put-bucket-public-policy_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct R2PutBucketPublicPolicyArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
     /// Path parameter: `bucket_name`.
     pub bucket_name: String,
-    /// Request body.
-    pub body: R2EditManagedDomainRequest,
 }
 
 /// Arguments for [`registrar-domains-list-domains_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RegistrarDomainsListDomainsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
 }
 
 /// Arguments for [`registrar-domains-get-domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RegistrarDomainsGetDomainArgs {
     /// Path parameter: `domain_name`.
     pub domain_name: String,
@@ -428,7 +384,7 @@ pub struct RegistrarDomainsGetDomainArgs {
 }
 
 /// Arguments for [`registrar-domains-update-domain_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RegistrarDomainsUpdateDomainArgs {
     /// Path parameter: `domain_name`.
     pub domain_name: String,
@@ -437,7 +393,7 @@ pub struct RegistrarDomainsUpdateDomainArgs {
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-messages_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTopTldsByMessagesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -466,7 +422,7 @@ pub struct RadarGetEmailSecurityTopTldsByMessagesArgs {
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-malicious_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTopTldsByMaliciousArgs {
     /// Path parameter: `malicious`.
     pub malicious: String,
@@ -497,7 +453,7 @@ pub struct RadarGetEmailSecurityTopTldsByMaliciousArgs {
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-spam_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTopTldsBySpamArgs {
     /// Path parameter: `spam`.
     pub spam: String,
@@ -528,7 +484,7 @@ pub struct RadarGetEmailSecurityTopTldsBySpamArgs {
 }
 
 /// Arguments for [`radar-get-email-security-top-tlds-by-spoof_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEmailSecurityTopTldsBySpoofArgs {
     /// Path parameter: `spoof`.
     pub spoof: String,
@@ -559,7 +515,7 @@ pub struct RadarGetEmailSecurityTopTldsBySpoofArgs {
 }
 
 /// Arguments for [`radar-get-ranking-domain-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetRankingDomainDetailsArgs {
     /// Path parameter: `domain`.
     pub domain: String,
@@ -578,7 +534,7 @@ pub struct RadarGetRankingDomainDetailsArgs {
 }
 
 /// Arguments for [`radar-get-ranking-domain-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetRankingDomainTimeseriesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -603,7 +559,7 @@ pub struct RadarGetRankingDomainTimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-ranking-top-domains_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetRankingTopDomainsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -622,7 +578,7 @@ pub struct RadarGetRankingTopDomainsArgs {
 }
 
 /// Arguments for [`radar-get-robots-txt-top-domain-categories-by-files-parsed_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -637,7 +593,7 @@ pub struct RadarGetRobotsTxtTopDomainCategoriesByFilesParsedArgs {
 }
 
 /// Arguments for [`radar-get-tlds_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetTldsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -654,7 +610,7 @@ pub struct RadarGetTldsArgs {
 }
 
 /// Arguments for [`radar-get-tld-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetTldDetailsArgs {
     /// Path parameter: `tld`.
     pub tld: String,
@@ -711,6 +667,92 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("query_id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.include_domain_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("include_domain_id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.include_dismissed {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("include_dismissed=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.domain_search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domain_search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -721,9 +763,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -797,6 +841,22 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -807,9 +867,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -826,7 +888,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: serde_json::Value =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -902,9 +966,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -921,7 +987,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TeamsDevicesFallbackDomainResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -991,19 +1059,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1020,7 +1086,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TeamsDevicesFallbackDomainResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1096,9 +1164,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1115,7 +1185,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TeamsDevicesFallbackDomainResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1185,19 +1257,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -1214,7 +1284,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: TeamsDevicesFallbackDomainResponseCollection =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1277,6 +1349,102 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.allowed_delivery_mode {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("allowed_delivery_mode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.domain {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domain=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.active_delivery_mode {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("active_delivery_mode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.integration_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("integration_id=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1287,9 +1455,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1367,19 +1537,17 @@ where
         .delete(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1463,9 +1631,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1549,9 +1719,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1635,9 +1807,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1721,9 +1895,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1797,6 +1973,92 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("order=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.direction {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("direction=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.search {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("search=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.is_recent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("is_recent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.is_similarity {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("is_similarity=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.pattern {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("pattern=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -1807,9 +2069,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1893,9 +2157,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -1979,9 +2245,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2066,9 +2334,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2153,9 +2423,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2240,9 +2512,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2316,6 +2590,22 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.domain {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domain=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2326,9 +2616,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2345,7 +2637,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: IntelSingleResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2408,6 +2702,22 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.domain {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domain=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2418,9 +2728,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2437,7 +2749,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: IntelResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2500,6 +2814,22 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.domain {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domain=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2510,9 +2840,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -2529,7 +2861,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: IntelCollectionResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2602,9 +2936,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2682,19 +3018,17 @@ where
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2778,9 +3112,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2858,19 +3194,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2954,9 +3288,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3040,9 +3376,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3120,19 +3458,17 @@ where
         .put(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
 
-    builder = builder
-        .body_json(&args.body)
-        .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
-
     if let Some(f) = builder_mod {
         f(&mut builder);
     }
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3219,9 +3555,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3238,7 +3576,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RegistrarApiDomainResponseCollection = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3311,9 +3651,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3330,7 +3672,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RegistrarApiDomainResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3403,9 +3747,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -3422,7 +3768,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: RegistrarApiDomainResponseSingle = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3452,6 +3800,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3464,6 +3813,7 @@ where
 #[inline]
 pub fn radar_get_email_security_top_tlds_by_messages_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetEmailSecurityTopTldsByMessagesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3481,6 +3831,132 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/email/security/top/tlds",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.arc {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("arc=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dkim {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dkim=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dmarc {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dmarc=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.spf {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("spf=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tldCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3491,9 +3967,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3567,6 +4045,132 @@ where
         args.malicious,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.arc {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("arc=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dkim {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dkim=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dmarc {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dmarc=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.spf {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("spf=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tldCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3577,9 +4181,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3653,6 +4259,132 @@ where
         args.spam,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.arc {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("arc=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dkim {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dkim=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dmarc {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dmarc=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.spf {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("spf=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tldCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3663,9 +4395,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3739,6 +4473,132 @@ where
         args.spoof,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.arc {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("arc=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dkim {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dkim=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dmarc {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dmarc=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.spf {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("spf=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tldCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3749,9 +4609,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3825,6 +4687,72 @@ where
         args.domain,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ranking_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("rankingType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.include_top_locations {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("includeTopLocations=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("date=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3835,9 +4763,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3878,6 +4808,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3890,6 +4821,7 @@ where
 #[inline]
 pub fn radar_get_ranking_domain_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetRankingDomainTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3907,6 +4839,112 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/ranking/timeseries_groups",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ranking_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("rankingType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.domains {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domains=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.domain_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domainCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3917,9 +4955,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3960,6 +5000,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3972,6 +5013,7 @@ where
 #[inline]
 pub fn radar_get_ranking_top_domains_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetRankingTopDomainsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3988,6 +5030,82 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/ranking/top",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.domain_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("domainCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("date=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ranking_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("rankingType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3998,9 +5116,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4041,6 +5161,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4053,6 +5174,7 @@ where
 #[inline]
 pub fn radar_get_robots_txt_top_domain_categories_by_files_parsed_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetRobotsTxtTopDomainCategoriesByFilesParsedArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4070,6 +5192,62 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/robots_txt/top/domain_categories",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.user_agent_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("userAgentCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("date=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4080,9 +5258,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4123,6 +5303,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4135,6 +5316,7 @@ where
 #[inline]
 pub fn radar_get_tlds_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetTldsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4151,6 +5333,72 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/tlds",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld_manager {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tldManager=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tldType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tld=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4161,9 +5409,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4237,6 +5487,22 @@ where
         args.tld,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4247,9 +5513,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

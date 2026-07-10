@@ -625,6 +625,10 @@ fn update_cargo_toml(
 /// Unified generator that produces cohesive per-endpoint units.
 pub struct UnifiedGenerator {
     output_dir: PathBuf,
+    /// Optional override: write files directly to this directory instead of
+    /// `output_dir.join(provider)`. Used for providers split into their own
+    /// crate (e.g. cloudflare → foundation_deployment_cloudflare/src).
+    provider_dir_override: Option<PathBuf>,
 }
 
 /// Error type for generation failures.
@@ -665,7 +669,15 @@ impl From<std::fmt::Error> for GenError {
 
 impl UnifiedGenerator {
     pub fn new(output_dir: PathBuf) -> Self {
-        Self { output_dir }
+        Self { output_dir, provider_dir_override: None }
+    }
+
+    /// Override the provider output directory. When set, `generate()` writes
+    /// files to this path instead of `output_dir.join(provider)`.
+    #[must_use]
+    pub fn with_provider_dir(mut self, dir: PathBuf) -> Self {
+        self.provider_dir_override = Some(dir);
+        self
     }
 
     /// Generate all artifacts for a provider as cohesive per-endpoint units.
@@ -681,7 +693,10 @@ impl UnifiedGenerator {
         let analysis = analyze_spec(spec_content, provider, options)
             .map_err(|e| GenError::AnalysisFailed(e.to_string()))?;
 
-        let provider_output_dir = self.output_dir.join(provider);
+        let provider_output_dir = self
+            .provider_dir_override
+            .clone()
+            .unwrap_or_else(|| self.output_dir.join(provider));
         fs::create_dir_all(&provider_output_dir)?;
 
         // Generate shared/ module (always needed for ApiError/ApiResponse types)
@@ -701,18 +716,19 @@ impl UnifiedGenerator {
         // Generate provider mod.rs with feature guards
         self.generate_provider_mod(provider, &analysis.groups, &analysis.shared_resources)?;
 
-        // Update Cargo.toml with missing feature flags
-        // output_dir is typically "backends/foundation_deployment/src/providers"
-        // We need to go up 2 levels to reach the crate root where Cargo.toml is:
-        // - ancestors[0] = backends/foundation_deployment/src/providers
-        // - ancestors[1] = backends/foundation_deployment/src
-        // - ancestors[2] = backends/foundation_deployment (crate root with Cargo.toml)
-        let cargo_toml_path = self
-            .output_dir
-            .ancestors()
-            .nth(2)
-            .map(|p| p.join("Cargo.toml"))
-            .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"));
+        // Update Cargo.toml with missing feature flags.
+        // For split-out providers (provider_dir_override set), output_dir IS the
+        // crate root. For monolith providers, output_dir is
+        // foundation_deployment/src/providers and the crate root is 2 levels up.
+        let cargo_toml_path = if self.provider_dir_override.is_some() {
+            self.output_dir.join("Cargo.toml")
+        } else {
+            self.output_dir
+                .ancestors()
+                .nth(2)
+                .map(|p| p.join("Cargo.toml"))
+                .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"))
+        };
 
         if cargo_toml_path.exists() {
             update_cargo_toml(provider, &analysis.groups, &cargo_toml_path).map_err(|e| {
@@ -1499,7 +1515,10 @@ impl UnifiedGenerator {
             writeln!(out, "pub mod {safe_name:};")?;
         }
 
-        let provider_dir = self.output_dir.join(provider);
+        let provider_dir = self
+            .provider_dir_override
+            .clone()
+            .unwrap_or_else(|| self.output_dir.join(provider));
         fs::create_dir_all(&provider_dir)?;
         fs::write(provider_dir.join("mod.rs"), out)?;
 

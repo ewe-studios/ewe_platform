@@ -45,20 +45,12 @@ impl crate::client::CloudflareClient {
         r#type: Option<DnsRecordType>,
         name: Option<&str>,
     ) -> Result<Vec<DnsRecord>, CloudflareError> {
-        let mut fields = Vec::new();
-        if let Some(ref t) = r#type {
-            fields.push(format!("type={}", t.as_str()));
-        }
-        if let Some(ref n) = name {
-            fields.push(format!("name={n}"));
-        }
-        let filter = if fields.is_empty() { None } else { Some(fields.join("&")) };
-
+        // Query params are now serialised automatically by the regenerated
+        // request function — no manual URL building needed.
         let args = DnsRecordsForAZoneListDnsRecordsArgs {
             zone_id: self.zone_id().to_string(),
             r#type: r#type.map(|t| t.as_str().to_string()),
             name: name.map(|n| n.to_string()),
-            filters: filter,
             ..Default::default()
         };
 

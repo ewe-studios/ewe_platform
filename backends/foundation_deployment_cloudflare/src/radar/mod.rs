@@ -15,8 +15,8 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
@@ -30,7 +30,7 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// Arguments for [`radar-get-annotations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAnnotationsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -57,7 +57,7 @@ pub struct RadarGetAnnotationsArgs {
 }
 
 /// Arguments for [`radar-get-annotations-outages_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAnnotationsOutagesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -80,7 +80,7 @@ pub struct RadarGetAnnotationsOutagesArgs {
 }
 
 /// Arguments for [`radar-get-annotations-outages-top_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAnnotationsOutagesTopArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -95,7 +95,7 @@ pub struct RadarGetAnnotationsOutagesTopArgs {
 }
 
 /// Arguments for [`radar-get-dns-as112-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112SummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -124,7 +124,7 @@ pub struct RadarGetDnsAs112SummaryArgs {
 }
 
 /// Arguments for [`radar-get-dns-as112-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TimeseriesArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
@@ -151,7 +151,7 @@ pub struct RadarGetDnsAs112TimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-dns-as112-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -182,7 +182,7 @@ pub struct RadarGetDnsAs112TimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-dns-as112-top-locations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TopLocationsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -203,7 +203,7 @@ pub struct RadarGetDnsAs112TopLocationsArgs {
 }
 
 /// Arguments for [`radar-get-dns-as112-top-locations-by-dnssec_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TopLocationsByDnssecArgs {
     /// Path parameter: `dnssec`.
     pub dnssec: String,
@@ -226,7 +226,7 @@ pub struct RadarGetDnsAs112TopLocationsByDnssecArgs {
 }
 
 /// Arguments for [`radar-get-dns-as112-top-locations-by-edns_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TopLocationsByEdnsArgs {
     /// Path parameter: `edns`.
     pub edns: String,
@@ -249,7 +249,7 @@ pub struct RadarGetDnsAs112TopLocationsByEdnsArgs {
 }
 
 /// Arguments for [`radar-get-dns-as112-top-locations-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetDnsAs112TopLocationsByIpVersionArgs {
     /// Path parameter: `ip_version`.
     pub ip_version: String,
@@ -272,7 +272,7 @@ pub struct RadarGetDnsAs112TopLocationsByIpVersionArgs {
 }
 
 /// Arguments for [`radar-get-certificate-authorities_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetCertificateAuthoritiesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -283,7 +283,7 @@ pub struct RadarGetCertificateAuthoritiesArgs {
 }
 
 /// Arguments for [`radar-get-certificate-authority-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetCertificateAuthorityDetailsArgs {
     /// Path parameter: `ca_slug`.
     pub ca_slug: String,
@@ -292,7 +292,7 @@ pub struct RadarGetCertificateAuthorityDetailsArgs {
 }
 
 /// Arguments for [`radar-get-certificate-logs_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetCertificateLogsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -303,7 +303,7 @@ pub struct RadarGetCertificateLogsArgs {
 }
 
 /// Arguments for [`radar-get-certificate-log-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetCertificateLogDetailsArgs {
     /// Path parameter: `log_slug`.
     pub log_slug: String,
@@ -312,7 +312,7 @@ pub struct RadarGetCertificateLogDetailsArgs {
 }
 
 /// Arguments for [`radar-get-ct-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetCtSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -363,7 +363,7 @@ pub struct RadarGetCtSummaryArgs {
 }
 
 /// Arguments for [`radar-get-ct-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetCtTimeseriesArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
@@ -410,7 +410,7 @@ pub struct RadarGetCtTimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-ct-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetCtTimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -463,7 +463,7 @@ pub struct RadarGetCtTimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-reports-datasets_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetReportsDatasetsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -478,21 +478,21 @@ pub struct RadarGetReportsDatasetsArgs {
 }
 
 /// Arguments for [`radar-post-reports-dataset-download-url_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarPostReportsDatasetDownloadUrlArgs {
     /// Query parameter: `format`.
     pub format: Option<String>,
 }
 
 /// Arguments for [`radar-get-reports-dataset-download_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetReportsDatasetDownloadArgs {
     /// Path parameter: `alias`.
     pub alias: String,
 }
 
 /// Arguments for [`radar-get-entities-asn-list_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEntitiesAsnListArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -509,7 +509,7 @@ pub struct RadarGetEntitiesAsnListArgs {
 }
 
 /// Arguments for [`radar-get-entities-asn-by-ip_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEntitiesAsnByIpArgs {
     /// Query parameter: `ip`.
     pub ip: Option<String>,
@@ -518,7 +518,7 @@ pub struct RadarGetEntitiesAsnByIpArgs {
 }
 
 /// Arguments for [`radar-get-entities-asn-by-id_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEntitiesAsnByIdArgs {
     /// Path parameter: `asn`.
     pub asn: String,
@@ -527,7 +527,7 @@ pub struct RadarGetEntitiesAsnByIdArgs {
 }
 
 /// Arguments for [`radar-get-asns-as-set_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAsnsAsSetArgs {
     /// Path parameter: `asn`.
     pub asn: String,
@@ -536,7 +536,7 @@ pub struct RadarGetAsnsAsSetArgs {
 }
 
 /// Arguments for [`radar-get-asns-rel_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetAsnsRelArgs {
     /// Path parameter: `asn`.
     pub asn: String,
@@ -547,7 +547,7 @@ pub struct RadarGetAsnsRelArgs {
 }
 
 /// Arguments for [`radar-get-entities-ip_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEntitiesIpArgs {
     /// Query parameter: `ip`.
     pub ip: Option<String>,
@@ -556,7 +556,7 @@ pub struct RadarGetEntitiesIpArgs {
 }
 
 /// Arguments for [`radar-get-entities-locations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEntitiesLocationsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -575,7 +575,7 @@ pub struct RadarGetEntitiesLocationsArgs {
 }
 
 /// Arguments for [`radar-get-entities-location-by-alpha2_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetEntitiesLocationByAlpha2Args {
     /// Path parameter: `location`.
     pub location: String,
@@ -584,7 +584,7 @@ pub struct RadarGetEntitiesLocationByAlpha2Args {
 }
 
 /// Arguments for [`radar-get-geolocations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetGeolocationsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -599,7 +599,7 @@ pub struct RadarGetGeolocationsArgs {
 }
 
 /// Arguments for [`radar-get-geolocation-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetGeolocationDetailsArgs {
     /// Path parameter: `geo_id`.
     pub geo_id: String,
@@ -608,7 +608,7 @@ pub struct RadarGetGeolocationDetailsArgs {
 }
 
 /// Arguments for [`radar-get-http-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -649,7 +649,7 @@ pub struct RadarGetHttpSummaryArgs {
 }
 
 /// Arguments for [`radar-get-http-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTimeseriesArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
@@ -692,7 +692,7 @@ pub struct RadarGetHttpTimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-http-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -737,7 +737,7 @@ pub struct RadarGetHttpTimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-http-requests_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByHttpRequestsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -778,7 +778,7 @@ pub struct RadarGetHttpTopAsesByHttpRequestsArgs {
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-browser-family_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByBrowserFamilyArgs {
     /// Path parameter: `browser_family`.
     pub browser_family: String,
@@ -819,7 +819,7 @@ pub struct RadarGetHttpTopAsesByBrowserFamilyArgs {
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-device-type_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByDeviceTypeArgs {
     /// Path parameter: `device_type`.
     pub device_type: String,
@@ -860,7 +860,7 @@ pub struct RadarGetHttpTopAsesByDeviceTypeArgs {
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-http-protocol_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByHttpProtocolArgs {
     /// Path parameter: `http_protocol`.
     pub http_protocol: String,
@@ -901,7 +901,7 @@ pub struct RadarGetHttpTopAsesByHttpProtocolArgs {
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-http-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByHttpVersionArgs {
     /// Path parameter: `http_version`.
     pub http_version: String,
@@ -942,7 +942,7 @@ pub struct RadarGetHttpTopAsesByHttpVersionArgs {
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByIpVersionArgs {
     /// Path parameter: `ip_version`.
     pub ip_version: String,
@@ -983,7 +983,7 @@ pub struct RadarGetHttpTopAsesByIpVersionArgs {
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-operating-system_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByOperatingSystemArgs {
     /// Path parameter: `os`.
     pub os: String,
@@ -1024,7 +1024,7 @@ pub struct RadarGetHttpTopAsesByOperatingSystemArgs {
 }
 
 /// Arguments for [`radar-get-http-top-ases-by-tls-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopAsesByTlsVersionArgs {
     /// Path parameter: `tls_version`.
     pub tls_version: String,
@@ -1065,7 +1065,7 @@ pub struct RadarGetHttpTopAsesByTlsVersionArgs {
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-http-requests_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByHttpRequestsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1106,7 +1106,7 @@ pub struct RadarGetHttpTopLocationsByHttpRequestsArgs {
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-browser-family_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByBrowserFamilyArgs {
     /// Path parameter: `browser_family`.
     pub browser_family: String,
@@ -1147,7 +1147,7 @@ pub struct RadarGetHttpTopLocationsByBrowserFamilyArgs {
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-device-type_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByDeviceTypeArgs {
     /// Path parameter: `device_type`.
     pub device_type: String,
@@ -1188,7 +1188,7 @@ pub struct RadarGetHttpTopLocationsByDeviceTypeArgs {
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-http-protocol_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByHttpProtocolArgs {
     /// Path parameter: `http_protocol`.
     pub http_protocol: String,
@@ -1229,7 +1229,7 @@ pub struct RadarGetHttpTopLocationsByHttpProtocolArgs {
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-http-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByHttpVersionArgs {
     /// Path parameter: `http_version`.
     pub http_version: String,
@@ -1270,7 +1270,7 @@ pub struct RadarGetHttpTopLocationsByHttpVersionArgs {
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-ip-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByIpVersionArgs {
     /// Path parameter: `ip_version`.
     pub ip_version: String,
@@ -1311,7 +1311,7 @@ pub struct RadarGetHttpTopLocationsByIpVersionArgs {
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-operating-system_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByOperatingSystemArgs {
     /// Path parameter: `os`.
     pub os: String,
@@ -1352,7 +1352,7 @@ pub struct RadarGetHttpTopLocationsByOperatingSystemArgs {
 }
 
 /// Arguments for [`radar-get-http-top-locations-by-tls-version_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetHttpTopLocationsByTlsVersionArgs {
     /// Path parameter: `tls_version`.
     pub tls_version: String,
@@ -1393,7 +1393,7 @@ pub struct RadarGetHttpTopLocationsByTlsVersionArgs {
 }
 
 /// Arguments for [`radar-get-leaked-credential-checks-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetLeakedCredentialChecksSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -1422,7 +1422,7 @@ pub struct RadarGetLeakedCredentialChecksSummaryArgs {
 }
 
 /// Arguments for [`radar-get-leaked-credential-checks-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetLeakedCredentialChecksTimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -1457,7 +1457,7 @@ pub struct RadarGetLeakedCredentialChecksTimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-netflows-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetNetflowsSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -1486,7 +1486,7 @@ pub struct RadarGetNetflowsSummaryArgs {
 }
 
 /// Arguments for [`radar-get-netflows-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetNetflowsTimeseriesArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
@@ -1515,7 +1515,7 @@ pub struct RadarGetNetflowsTimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-netflows-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetNetflowsTimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -1548,7 +1548,7 @@ pub struct RadarGetNetflowsTimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-netflows-top-ases_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetNetflowsTopAsesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1573,7 +1573,7 @@ pub struct RadarGetNetflowsTopAsesArgs {
 }
 
 /// Arguments for [`radar-get-netflows-top-locations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetNetflowsTopLocationsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1598,7 +1598,7 @@ pub struct RadarGetNetflowsTopLocationsArgs {
 }
 
 /// Arguments for [`radar-get-origins_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetOriginsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1609,7 +1609,7 @@ pub struct RadarGetOriginsArgs {
 }
 
 /// Arguments for [`radar-get-origins-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetOriginsSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -1634,7 +1634,7 @@ pub struct RadarGetOriginsSummaryArgs {
 }
 
 /// Arguments for [`radar-get-origins-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetOriginsTimeseriesArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
@@ -1657,7 +1657,7 @@ pub struct RadarGetOriginsTimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-origins-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetOriginsTimeseriesGroupArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -1686,7 +1686,7 @@ pub struct RadarGetOriginsTimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-origin-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetOriginDetailsArgs {
     /// Path parameter: `slug`.
     pub slug: String,
@@ -1695,7 +1695,7 @@ pub struct RadarGetOriginDetailsArgs {
 }
 
 /// Arguments for [`radar-get-origin-post-quantum-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetOriginPostQuantumSummaryArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -1712,7 +1712,7 @@ pub struct RadarGetOriginPostQuantumSummaryArgs {
 }
 
 /// Arguments for [`radar-get-origin-post-quantum-timeseries-groups_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetOriginPostQuantumTimeseriesGroupsArgs {
     /// Path parameter: `dimension`.
     pub dimension: String,
@@ -1729,14 +1729,14 @@ pub struct RadarGetOriginPostQuantumTimeseriesGroupsArgs {
 }
 
 /// Arguments for [`radar-get-post-quantum-tls-support_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetPostQuantumTlsSupportArgs {
     /// Query parameter: `host`.
     pub host: Option<String>,
 }
 
 /// Arguments for [`radar-get-quality-speed-histogram_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetQualitySpeedHistogramArgs {
     /// Query parameter: `name`.
     pub name: Option<String>,
@@ -1757,7 +1757,7 @@ pub struct RadarGetQualitySpeedHistogramArgs {
 }
 
 /// Arguments for [`radar-get-quality-speed-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetQualitySpeedSummaryArgs {
     /// Query parameter: `name`.
     pub name: Option<String>,
@@ -1774,7 +1774,7 @@ pub struct RadarGetQualitySpeedSummaryArgs {
 }
 
 /// Arguments for [`radar-get-quality-speed-top-ases_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetQualitySpeedTopAsesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1797,7 +1797,7 @@ pub struct RadarGetQualitySpeedTopAsesArgs {
 }
 
 /// Arguments for [`radar-get-quality-speed-top-locations_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetQualitySpeedTopLocationsArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1820,7 +1820,7 @@ pub struct RadarGetQualitySpeedTopLocationsArgs {
 }
 
 /// Arguments for [`radar-get-ranking-internet-services-categories_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetRankingInternetServicesCategoriesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1833,7 +1833,7 @@ pub struct RadarGetRankingInternetServicesCategoriesArgs {
 }
 
 /// Arguments for [`radar-get-ranking-internet-services-timeseries_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetRankingInternetServicesTimeseriesArgs {
     /// Query parameter: `serviceCategory`.
     pub service_category: Option<String>,
@@ -1852,7 +1852,7 @@ pub struct RadarGetRankingInternetServicesTimeseriesArgs {
 }
 
 /// Arguments for [`radar-get-ranking-top-internet-services_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetRankingTopInternetServicesArgs {
     /// Query parameter: `serviceCategory`.
     pub service_category: Option<String>,
@@ -1867,7 +1867,7 @@ pub struct RadarGetRankingTopInternetServicesArgs {
 }
 
 /// Arguments for [`radar-get-search-global_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetSearchGlobalArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1884,7 +1884,7 @@ pub struct RadarGetSearchGlobalArgs {
 }
 
 /// Arguments for [`radar-get-tcp-resets-timeouts-summary_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetTcpResetsTimeoutsSummaryArgs {
     /// Query parameter: `name`.
     pub name: Option<String>,
@@ -1905,7 +1905,7 @@ pub struct RadarGetTcpResetsTimeoutsSummaryArgs {
 }
 
 /// Arguments for [`radar-get-tcp-resets-timeouts-timeseries-group_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupArgs {
     /// Query parameter: `aggInterval`.
     pub agg_interval: Option<String>,
@@ -1928,7 +1928,7 @@ pub struct RadarGetTcpResetsTimeoutsTimeseriesGroupArgs {
 }
 
 /// Arguments for [`radar-get-traffic-anomalies_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetTrafficAnomaliesArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1955,7 +1955,7 @@ pub struct RadarGetTrafficAnomaliesArgs {
 }
 
 /// Arguments for [`radar-get-traffic-anomalies-top_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct RadarGetTrafficAnomaliesTopArgs {
     /// Query parameter: `limit`.
     pub limit: Option<String>,
@@ -1987,6 +1987,7 @@ pub struct RadarGetTrafficAnomaliesTopArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -1999,6 +2000,7 @@ pub struct RadarGetTrafficAnomaliesTopArgs {
 #[inline]
 pub fn radar_get_annotations_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetAnnotationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -2015,6 +2017,122 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/annotations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.data_source {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dataSource=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.event_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("eventType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.origin {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("origin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2025,9 +2143,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2068,6 +2188,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -2080,6 +2201,7 @@ where
 #[inline]
 pub fn radar_get_annotations_outages_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetAnnotationsOutagesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -2096,6 +2218,102 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/annotations/outages",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.origin {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("origin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2106,9 +2324,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2149,6 +2369,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -2161,6 +2382,7 @@ where
 #[inline]
 pub fn radar_get_annotations_outages_top_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetAnnotationsOutagesTopArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -2178,6 +2400,62 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/annotations/outages/locations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2188,9 +2466,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2264,6 +2544,122 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("protocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2274,9 +2670,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2317,6 +2715,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -2329,6 +2728,7 @@ where
 #[inline]
 pub fn radar_get_dns_as112_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetDnsAs112TimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -2345,6 +2745,122 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/as112/timeseries",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("protocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2355,9 +2871,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2431,6 +2949,132 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("queryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("protocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.response_code {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("responseCode=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2441,9 +3085,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2484,6 +3130,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -2496,6 +3143,7 @@ where
 #[inline]
 pub fn radar_get_dns_as112_top_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetDnsAs112TopLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -2512,6 +3160,92 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/as112/top/locations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2522,9 +3256,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2598,6 +3334,92 @@ where
         args.dnssec,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2608,9 +3430,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2684,6 +3508,92 @@ where
         args.edns,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2694,9 +3604,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2770,6 +3682,92 @@ where
         args.ip_version,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2780,9 +3778,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2823,6 +3823,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -2835,6 +3836,7 @@ where
 #[inline]
 pub fn radar_get_certificate_authorities_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetCertificateAuthoritiesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -2851,6 +3853,42 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/ct/authorities",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2861,9 +3899,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2937,6 +3977,22 @@ where
         args.ca_slug,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -2947,9 +4003,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -2990,6 +4048,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3002,6 +4061,7 @@ where
 #[inline]
 pub fn radar_get_certificate_logs_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetCertificateLogsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3018,6 +4078,42 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/ct/logs",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3028,9 +4124,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3104,6 +4202,22 @@ where
         args.log_slug,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3114,9 +4228,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3190,6 +4306,232 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ca {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ca=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ca_owner {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("caOwner=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.duration {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("duration=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.entry_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("entryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.expiration_status {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("expirationStatus=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.has_ips {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("hasIps=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.has_wildcards {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("hasWildcards=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("log=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log_api {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("logApi=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log_operator {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("logOperator=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.public_key_algorithm {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("publicKeyAlgorithm=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.signature_algorithm {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("signatureAlgorithm=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tld=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validation_level {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validationLevel=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.unique_entries {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("uniqueEntries=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3200,9 +4542,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3243,6 +4587,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3255,6 +4600,7 @@ where
 #[inline]
 pub fn radar_get_ct_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetCtTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3271,6 +4617,222 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/ct/timeseries",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ca {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ca=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ca_owner {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("caOwner=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.duration {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("duration=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.entry_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("entryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.expiration_status {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("expirationStatus=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.has_ips {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("hasIps=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.has_wildcards {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("hasWildcards=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("log=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log_api {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("logApi=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log_operator {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("logOperator=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.public_key_algorithm {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("publicKeyAlgorithm=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.signature_algorithm {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("signatureAlgorithm=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tld=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validation_level {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validationLevel=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.unique_entries {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("uniqueEntries=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3281,9 +4843,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3357,6 +4921,242 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ca {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ca=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ca_owner {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("caOwner=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.duration {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("duration=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.entry_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("entryType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.expiration_status {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("expirationStatus=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.has_ips {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("hasIps=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.has_wildcards {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("hasWildcards=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("log=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log_api {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("logApi=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.log_operator {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("logOperator=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.public_key_algorithm {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("publicKeyAlgorithm=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.signature_algorithm {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("signatureAlgorithm=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.validation_level {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("validationLevel=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tld {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tld=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.unique_entries {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("uniqueEntries=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3367,9 +5167,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3410,6 +5212,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3422,6 +5225,7 @@ where
 #[inline]
 pub fn radar_get_reports_datasets_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetReportsDatasetsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3438,6 +5242,62 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/datasets",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.dataset_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("datasetType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("date=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3448,9 +5308,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3491,6 +5353,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3503,6 +5366,7 @@ where
 #[inline]
 pub fn radar_post_reports_dataset_download_url_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarPostReportsDatasetDownloadUrlArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3519,6 +5383,22 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/datasets/download",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .post(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3529,9 +5409,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3615,9 +5497,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3658,6 +5542,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3670,6 +5555,7 @@ where
 #[inline]
 pub fn radar_get_entities_asn_list_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetEntitiesAsnListArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3686,6 +5572,72 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/entities/asns",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3696,9 +5648,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3739,6 +5693,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -3751,6 +5706,7 @@ where
 #[inline]
 pub fn radar_get_entities_asn_by_ip_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetEntitiesAsnByIpArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -3767,6 +5723,32 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/entities/asns/ip",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.ip {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ip=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3777,9 +5759,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3853,6 +5837,22 @@ where
         args.asn,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3863,9 +5863,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -3939,6 +5941,22 @@ where
         args.asn,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -3949,9 +5967,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4025,6 +6045,32 @@ where
         args.asn,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.asn2 {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn2=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4035,9 +6081,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4078,6 +6126,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4090,6 +6139,7 @@ where
 #[inline]
 pub fn radar_get_entities_ip_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetEntitiesIpArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4106,6 +6156,32 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/entities/ip",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.ip {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ip=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4116,9 +6192,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4159,6 +6237,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4171,6 +6250,7 @@ where
 #[inline]
 pub fn radar_get_entities_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetEntitiesLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4187,6 +6267,82 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/entities/locations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.region {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("region=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subregion {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subregion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4197,9 +6353,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4273,6 +6431,22 @@ where
         args.location,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4283,9 +6457,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4326,6 +6502,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4338,6 +6515,7 @@ where
 #[inline]
 pub fn radar_get_geolocations_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetGeolocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4354,6 +6532,62 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/geolocations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4364,9 +6598,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4440,6 +6676,22 @@ where
         args.geo_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4450,9 +6702,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4526,6 +6780,182 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4536,9 +6966,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4579,6 +7011,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4591,6 +7024,7 @@ where
 #[inline]
 pub fn radar_get_http_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetHttpTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4607,6 +7041,202 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/http/timeseries",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4617,9 +7247,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4693,6 +7325,202 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4703,9 +7531,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4746,6 +7576,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -4758,6 +7589,7 @@ where
 #[inline]
 pub fn radar_get_http_top_ases_by_http_requests_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetHttpTopAsesByHttpRequestsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -4774,6 +7606,192 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/http/top/ases",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4784,9 +7802,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4860,6 +7880,182 @@ where
         args.browser_family,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4870,9 +8066,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -4946,6 +8144,182 @@ where
         args.device_type,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -4956,9 +8330,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5032,6 +8408,182 @@ where
         args.http_protocol,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5042,9 +8594,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5118,6 +8672,182 @@ where
         args.http_version,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5128,9 +8858,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5204,6 +8936,182 @@ where
         args.ip_version,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5214,9 +9122,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5290,6 +9200,182 @@ where
         args.os,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5300,9 +9386,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5376,6 +9464,182 @@ where
         args.tls_version,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5386,9 +9650,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5429,6 +9695,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -5441,6 +9708,7 @@ where
 #[inline]
 pub fn radar_get_http_top_locations_by_http_requests_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetHttpTopLocationsByHttpRequestsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -5457,6 +9725,192 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/http/top/locations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5467,9 +9921,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5543,6 +9999,182 @@ where
         args.browser_family,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5553,9 +10185,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5629,6 +10263,182 @@ where
         args.device_type,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5639,9 +10449,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5715,6 +10527,182 @@ where
         args.http_protocol,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5725,9 +10713,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5801,6 +10791,182 @@ where
         args.http_version,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5811,9 +10977,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5887,6 +11055,182 @@ where
         args.ip_version,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5897,9 +11241,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -5973,6 +11319,182 @@ where
         args.os,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.tls_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("tlsVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -5983,9 +11505,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6059,6 +11583,182 @@ where
         args.tls_version,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.device_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("deviceType=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_protocol {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpProtocol=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.http_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("httpVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.ip_version {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("ipVersion=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.os {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("os=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.browser_family {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("browserFamily=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6069,9 +11769,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6145,6 +11847,122 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.compromised {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("compromised=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6155,9 +11973,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6231,6 +12051,152 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bot_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("botClass=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.compromised {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("compromised=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.check_result {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("checkResult=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6241,9 +12207,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6317,6 +12285,122 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6327,9 +12411,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6370,6 +12456,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -6382,6 +12469,7 @@ where
 #[inline]
 pub fn radar_get_netflows_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetNetflowsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -6398,6 +12486,132 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/netflows/timeseries",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6408,9 +12622,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6484,6 +12700,142 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6494,9 +12846,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6537,6 +12891,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -6549,6 +12904,7 @@ where
 #[inline]
 pub fn radar_get_netflows_top_ases_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetNetflowsTopAsesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -6565,6 +12921,112 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/netflows/top/ases",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6575,9 +13037,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6618,6 +13082,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -6630,6 +13095,7 @@ where
 #[inline]
 pub fn radar_get_netflows_top_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetNetflowsTopLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -6647,6 +13113,112 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/netflows/top/locations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.geo_id {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("geoId=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6657,9 +13229,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6700,6 +13274,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -6712,6 +13287,7 @@ where
 #[inline]
 pub fn radar_get_origins_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetOriginsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -6728,6 +13304,42 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/origins",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6738,9 +13350,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6814,6 +13428,102 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.origin {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("origin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.metric {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("metric=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.region {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("region=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6824,9 +13534,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6867,6 +13579,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -6879,6 +13592,7 @@ where
 #[inline]
 pub fn radar_get_origins_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetOriginsTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -6895,6 +13609,102 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/origins/timeseries",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.origin {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("origin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.metric {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("metric=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.region {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("region=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6905,9 +13715,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -6981,6 +13793,122 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.origin {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("origin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.metric {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("metric=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.region {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("region=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.normalization {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("normalization=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -6991,9 +13919,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7067,6 +13997,22 @@ where
         args.slug,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7077,9 +14023,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7153,6 +14101,62 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7163,9 +14167,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7239,6 +14245,62 @@ where
         args.dimension,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7249,9 +14311,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7292,6 +14356,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7304,6 +14369,7 @@ where
 #[inline]
 pub fn radar_get_post_quantum_tls_support_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetPostQuantumTlsSupportArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7321,6 +14387,22 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/post_quantum/tls/support",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.host {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("host=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7331,9 +14413,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7374,6 +14458,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7386,6 +14471,7 @@ where
 #[inline]
 pub fn radar_get_quality_speed_histogram_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetQualitySpeedHistogramArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7403,6 +14489,92 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/quality/speed/histogram",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.bucket_size {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("bucketSize=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.metric_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("metricGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7413,9 +14585,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7456,6 +14630,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7468,6 +14643,7 @@ where
 #[inline]
 pub fn radar_get_quality_speed_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetQualitySpeedSummaryArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7484,6 +14660,72 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/quality/speed/summary",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7494,9 +14736,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7537,6 +14781,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7549,6 +14794,7 @@ where
 #[inline]
 pub fn radar_get_quality_speed_top_ases_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetQualitySpeedTopAsesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7566,6 +14812,102 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/quality/speed/top/ases",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.reverse {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("reverse=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7576,9 +14918,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7619,6 +14963,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7631,6 +14976,7 @@ where
 #[inline]
 pub fn radar_get_quality_speed_top_locations_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetQualitySpeedTopLocationsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7648,6 +14994,102 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/quality/speed/top/locations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.order_by {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("orderBy=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.reverse {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("reverse=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7658,9 +15100,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7701,6 +15145,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7713,6 +15158,7 @@ where
 #[inline]
 pub fn radar_get_ranking_internet_services_categories_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetRankingInternetServicesCategoriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7730,6 +15176,52 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/ranking/internet_services/categories",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("date=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7740,9 +15232,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7783,6 +15277,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7795,6 +15290,7 @@ where
 #[inline]
 pub fn radar_get_ranking_internet_services_timeseries_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetRankingInternetServicesTimeseriesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7813,6 +15309,82 @@ where
         "https://api.cloudflare.com/client/v4/radar/ranking/internet_services/timeseries_groups",
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.service_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("serviceCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7823,9 +15395,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7866,6 +15440,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7878,6 +15453,7 @@ where
 #[inline]
 pub fn radar_get_ranking_top_internet_services_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetRankingTopInternetServicesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7895,6 +15471,62 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/ranking/internet_services/top",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.service_category {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("serviceCategory=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("date=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7905,9 +15537,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -7948,6 +15582,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -7960,6 +15595,7 @@ where
 #[inline]
 pub fn radar_get_search_global_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetSearchGlobalArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -7976,6 +15612,72 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/search/global",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.limit_per_group {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limitPerGroup=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.query {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("query=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.include {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("include=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.exclude {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("exclude=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -7986,9 +15688,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8029,6 +15733,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -8041,6 +15746,7 @@ where
 #[inline]
 pub fn radar_get_tcp_resets_timeouts_summary_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetTcpResetsTimeoutsSummaryArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -8058,6 +15764,92 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/tcp_resets_timeouts/summary",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8068,9 +15860,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8111,6 +15905,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -8123,6 +15918,7 @@ where
 #[inline]
 pub fn radar_get_tcp_resets_timeouts_timeseries_group_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetTcpResetsTimeoutsTimeseriesGroupArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -8141,6 +15937,102 @@ where
         "https://api.cloudflare.com/client/v4/radar/tcp_resets_timeouts/timeseries_groups",
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.agg_interval {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("aggInterval=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.name {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("name=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.continent {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("continent=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8151,9 +16043,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8194,6 +16088,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -8206,6 +16101,7 @@ where
 #[inline]
 pub fn radar_get_traffic_anomalies_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetTrafficAnomaliesArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -8222,6 +16118,122 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/radar/traffic_anomalies",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.offset {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("offset=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.status {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("status=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.r#type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.asn {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("asn=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.location {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("location=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.origin {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("origin=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8232,9 +16244,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -8275,6 +16289,7 @@ where
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -8287,6 +16302,7 @@ where
 #[inline]
 pub fn radar_get_traffic_anomalies_top_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &RadarGetTrafficAnomaliesTopArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -8304,6 +16320,72 @@ where
     let endpoint_url =
         format!("https://api.cloudflare.com/client/v4/radar/traffic_anomalies/locations",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.limit {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("limit=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_range {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateRange=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_start {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateStart=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.date_end {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dateEnd=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.status {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("status=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.format {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("format=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -8314,9 +16396,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

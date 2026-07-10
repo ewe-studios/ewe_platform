@@ -1,34 +1,205 @@
-[package]
-name = "foundation_deployment_cloudflare"
-version = "0.1.0"
-edition.workspace = true
-rust-version.workspace = true
-license.workspace = true
-authors.workspace = true
-repository.workspace = true
-description = "Cloudflare API v4 client — DNS records, zones, certificates"
-
 [dependencies]
-foundation_core = { path = "../foundation_core", version = "0.0.3" }
-foundation_netio = { path = "../foundation_netio", version = "0.0.1", features = ["ssl", "multi"] }
-foundation_deployment = { path = "../foundation_deployment", version = "0.0.1" }
-foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
-
-serde.workspace = true
-serde_json.workspace = true
-sha2 = "0.10"
 base85rs = "0.1"
-derive_more.workspace = true
-chrono.workspace = true
-tracing.workspace = true
+sha2 = "0.10"
 urlencoding = "2.1"
 
+[dependencies.chrono]
+workspace = true
+
+[dependencies.derive_more]
+workspace = true
+
+[dependencies.foundation_core]
+path = "../foundation_core"
+version = "0.0.3"
+
+[dependencies.foundation_deployment]
+path = "../foundation_deployment"
+version = "0.0.1"
+
+[dependencies.foundation_errstacks]
+path = "../foundation_errstacks"
+version = "0.0.1"
+
+[dependencies.foundation_macros]
+path = "../foundation_macros"
+version = "0.0.4"
+
+[dependencies.foundation_netio]
+features = [
+    "ssl",
+    "multi",
+]
+path = "../foundation_netio"
+version = "0.0.1"
+
+[dependencies.serde]
+workspace = true
+
+[dependencies.serde_json]
+workspace = true
+
+[dependencies.tracing]
+workspace = true
+
 [features]
+cloudflare = [
+    "cloudflare_access",
+    "cloudflare_accounts",
+    "cloudflare_ai",
+    "cloudflare_analytics",
+    "cloudflare_apps",
+    "cloudflare_billing",
+    "cloudflare_cache",
+    "cloudflare_certificates",
+    "cloudflare_data",
+    "cloudflare_devices",
+    "cloudflare_dns",
+    "cloudflare_domains",
+    "cloudflare_email",
+    "cloudflare_entitlements",
+    "cloudflare_events",
+    "cloudflare_ips",
+    "cloudflare_load_balancers",
+    "cloudflare_logs",
+    "cloudflare_magic_wan",
+    "cloudflare_media",
+    "cloudflare_migration",
+    "cloudflare_network",
+    "cloudflare_profile",
+    "cloudflare_queues",
+    "cloudflare_radar",
+    "cloudflare_reports",
+    "cloudflare_resources",
+    "cloudflare_routes",
+    "cloudflare_rules",
+    "cloudflare_secrets",
+    "cloudflare_security",
+    "cloudflare_security_center",
+    "cloudflare_shares",
+    "cloudflare_storage",
+    "cloudflare_stream",
+    "cloudflare_targets",
+    "cloudflare_tasks",
+    "cloudflare_tenants",
+    "cloudflare_tokens",
+    "cloudflare_tracer",
+    "cloudflare_waiting_rooms",
+    "cloudflare_workers",
+    "cloudflare_zones",
+]
+cloudflare_access = []
+cloudflare_accounts = []
+cloudflare_ai = []
+cloudflare_all = [
+    "cloudflare_access",
+    "cloudflare_accounts",
+    "cloudflare_ai",
+    "cloudflare_analytics",
+    "cloudflare_apps",
+    "cloudflare_billing",
+    "cloudflare_cache",
+    "cloudflare_certificates",
+    "cloudflare_data",
+    "cloudflare_devices",
+    "cloudflare_dns",
+    "cloudflare_domains",
+    "cloudflare_email",
+    "cloudflare_entitlements",
+    "cloudflare_events",
+    "cloudflare_ips",
+    "cloudflare_load_balancers",
+    "cloudflare_logs",
+    "cloudflare_magic_wan",
+    "cloudflare_media",
+    "cloudflare_migration",
+    "cloudflare_network",
+    "cloudflare_profile",
+    "cloudflare_queues",
+    "cloudflare_radar",
+    "cloudflare_reports",
+    "cloudflare_resources",
+    "cloudflare_routes",
+    "cloudflare_rules",
+    "cloudflare_secrets",
+    "cloudflare_security",
+    "cloudflare_security_center",
+    "cloudflare_shares",
+    "cloudflare_storage",
+    "cloudflare_stream",
+    "cloudflare_targets",
+    "cloudflare_tasks",
+    "cloudflare_tenants",
+    "cloudflare_tokens",
+    "cloudflare_tracer",
+    "cloudflare_waiting_rooms",
+    "cloudflare_workers",
+    "cloudflare_zones",
+]
+cloudflare_analytics = []
+cloudflare_apps = []
+cloudflare_billing = []
+cloudflare_cache = []
+cloudflare_certificates = []
+cloudflare_data = []
+cloudflare_devices = []
+cloudflare_dns = []
+cloudflare_domains = []
+cloudflare_email = []
+cloudflare_entitlements = []
+cloudflare_events = []
+cloudflare_ips = []
+cloudflare_load_balancers = []
+cloudflare_logs = []
+cloudflare_magic_wan = []
+cloudflare_media = []
+cloudflare_migration = []
+cloudflare_network = []
+cloudflare_profile = []
+cloudflare_queues = []
+cloudflare_radar = []
+cloudflare_reports = []
+cloudflare_resources = []
+cloudflare_routes = []
+cloudflare_rules = []
+cloudflare_secrets = []
+cloudflare_security = []
+cloudflare_security_center = []
+cloudflare_shares = []
+cloudflare_storage = []
+cloudflare_stream = []
+cloudflare_targets = []
+cloudflare_tasks = []
+cloudflare_tenants = []
+cloudflare_tokens = []
+cloudflare_tracer = []
+cloudflare_waiting_rooms = []
+cloudflare_workers = []
+cloudflare_zones = []
 default = ["zones"]
-zones = []
-cloudflare_zones = ["zones"]
 full = ["zones"]
+zones = []
 
 [lints]
 workspace = true
+
+[package]
+description = "Cloudflare API v4 client — DNS records, zones, certificates"
+name = "foundation_deployment_cloudflare"
+version = "0.1.0"
+
+[package.authors]
+workspace = true
+
+[package.edition]
+workspace = true
+
+[package.license]
+workspace = true
+
+[package.repository]
+workspace = true
+
+[package.rust-version]
+workspace = true
+

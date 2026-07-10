@@ -14,6 +14,29 @@ use std::path::{Path, PathBuf};
 type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 // ---------------------------------------------------------------------------
+// Provider output paths
+// ---------------------------------------------------------------------------
+
+/// Providers that have been split into their own crate.
+/// Key = provider name, Value = crate root (relative to workspace or absolute).
+const SPLIT_OUT_PROVIDERS: &[(&str, &str)] = &[
+    ("cloudflare", "backends/foundation_deployment_cloudflare"),
+];
+
+/// Return `(crate_root, is_split_out)` for a provider name.
+fn provider_crate_info(provider: &str) -> (PathBuf, bool) {
+    for (name, crate_path) in SPLIT_OUT_PROVIDERS {
+        if *name == provider {
+            return (PathBuf::from(crate_path), true);
+        }
+    }
+    (
+        PathBuf::from("backends/foundation_deployment/src/providers"),
+        false,
+    )
+}
+
+// ---------------------------------------------------------------------------
 // Feature flag fix-up for hierarchical providers
 // ---------------------------------------------------------------------------
 
@@ -154,10 +177,10 @@ fn camel_to_snake(name: &str) -> String {
 /// the current directory structure.
 fn fix_hierarchical_features(
     provider: &str,
-    output_dir: &Path,
+    provider_dir: &Path,
     regenerated: &BTreeSet<String>,
+    cargo_toml_path: &Path,
 ) -> Result<(), BoxedError> {
-    let provider_dir = output_dir.join(provider);
     if !provider_dir.exists() {
         return Ok(());
     }
@@ -165,7 +188,7 @@ fn fix_hierarchical_features(
     // Collect all sub-provider directories (ones that contain mod.rs)
     let mut sub_providers: BTreeSet<String> = BTreeSet::new();
 
-    if let Ok(entries) = std::fs::read_dir(&provider_dir) {
+    if let Ok(entries) = std::fs::read_dir(provider_dir) {
         for entry in entries.flatten() {
             let path = entry.path();
             if path.is_dir() {
@@ -191,12 +214,6 @@ fn fix_hierarchical_features(
         sub_providers.len(),
         sub_providers
     );
-
-    let cargo_toml_path = output_dir
-        .ancestors()
-        .nth(2)
-        .map(|p| p.join("Cargo.toml"))
-        .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"));
 
     if !cargo_toml_path.exists() {
         return Err(format!("Cargo.toml not found at {}", cargo_toml_path.display()).into());
@@ -687,6 +704,27 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 println!("Filtering to spec: {}", spec_filter);
             }
 
+            // ── Determine output paths ──
+            let (crate_root, is_split) = provider_crate_info(provider);
+            let output_dir = if is_split {
+                crate_root.clone()
+            } else {
+                crate_root.clone()
+            };
+            // The directory where generated files actually land:
+            //  - monolith: <crate_root>/<provider>/  (e.g. foundation_deployment/src/providers/cloudflare/)
+            //  - split:    <crate_root>/src/          (generated directly into crate src/)
+            let actual_provider_dir = if is_split {
+                crate_root.join("src")
+            } else {
+                output_dir.join(provider)
+            };
+
+            println!("Output directory: {}", actual_provider_dir.display());
+            if is_split {
+                println!("Mode: split-out crate");
+            }
+
             // Discover all OpenAPI specs for this provider from artefacts directory
             let artefacts_dir = PathBuf::from("artefacts/cloud_providers");
             let provider_dir = artefacts_dir.join(provider);
@@ -753,8 +791,6 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             if let Some(spec_filter) = spec_filter {
                 let original_count = specs.len();
                 specs.retain(|(api_name, _)| {
-                    // Match if the api_name equals the filter or ends with the filter
-                    // e.g., filter "admin" matches "admin" or "gcp/admin"
                     api_name.as_str() == spec_filter.as_str()
                         || api_name.ends_with(&format!("/{}", spec_filter))
                 });
@@ -798,8 +834,6 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                 }
 
                 // Use full provider path for sub-providers (e.g., "gcp/admin").
-                // Check is_multi_spec_provider (before filtering), NOT specs.len(),
-                // so that filtering to one spec doesn't cause it to overwrite the parent.
                 let safe_api_name = camel_to_snake(api_name);
                 let gen_provider = if is_multi_spec_provider {
                     format!("{}/{}", provider, safe_api_name)
@@ -807,7 +841,13 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
                     provider.clone()
                 };
 
-                let generator = UnifiedGenerator::new(output_dir.clone());
+                let mut generator = UnifiedGenerator::new(output_dir.clone());
+                if is_split {
+                    // Split-out crate: generated files go to crate_root/src/
+                    // (no provider subdirectory — files live directly alongside
+                    // hand-written client.rs, types.rs, dns_ops.rs)
+                    generator = generator.with_provider_dir(actual_provider_dir.clone());
+                }
                 generator.generate(&gen_provider, &spec_content, &options)?;
                 println!("    Generated: {}", gen_provider);
 
@@ -821,25 +861,44 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             }
 
             // Post-step: Fix up feature flags for all providers with sub-groups.
-            // This ensures *_all features exist for both multi-spec (gcp) and
-            // single-spec multi-group (cloudflare, stripe, etc.) providers.
             if is_multi_spec_provider {
-                generate_parent_mod_rs(&provider, &output_dir)?;
+                generate_parent_mod_rs(&provider, &actual_provider_dir)?;
             }
-            fix_hierarchical_features(&provider, &output_dir, &regenerated)?;
+            // For split-out crates, the Cargo.toml is at crate_root;
+            // for monolith crates, it's 2 levels up from output_dir.
+            let cargo_toml_path = if is_split {
+                crate_root.join("Cargo.toml")
+            } else {
+                output_dir
+                    .ancestors()
+                    .nth(2)
+                    .map(|p| p.join("Cargo.toml"))
+                    .unwrap_or_else(|| PathBuf::from("backends/foundation_deployment/Cargo.toml"))
+            };
+            fix_hierarchical_features(
+                &provider,
+                &actual_provider_dir,
+                &regenerated,
+                &cargo_toml_path,
+            )?;
 
             println!("\n=== Generation Complete ===");
-            println!("Output directory: {}", output_dir.display());
+            println!("Output directory: {}", actual_provider_dir.display());
 
             // Auto-fix common issues (unused imports, snake_case, etc.)
             println!("\n=== Running cargo fix ===");
             let feature_name = provider.replace('-', "_").replace('/', "_");
+            let crate_name = if is_split {
+                format!("foundation_deployment_{}", provider)
+            } else {
+                "foundation_deployment".to_string()
+            };
             let fix_output = std::process::Command::new("cargo")
                 .args([
                     "fix",
                     "--lib",
                     "-p",
-                    "foundation_deployment",
+                    &crate_name,
                     "--allow-dirty",
                     "--features",
                     &feature_name,

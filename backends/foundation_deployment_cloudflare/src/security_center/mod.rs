@@ -15,8 +15,8 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
@@ -33,7 +33,7 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// Arguments for [`get-security-center-insights_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightsArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -66,7 +66,7 @@ pub struct GetSecurityCenterInsightsArgs {
 }
 
 /// Arguments for [`get-security-center-insight-counts-by-class_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightCountsByClassArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -95,7 +95,7 @@ pub struct GetSecurityCenterInsightCountsByClassArgs {
 }
 
 /// Arguments for [`get-security-center-insight-counts-by-severity_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightCountsBySeverityArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -124,7 +124,7 @@ pub struct GetSecurityCenterInsightCountsBySeverityArgs {
 }
 
 /// Arguments for [`get-security-center-insight-counts-by-type_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightCountsByTypeArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -153,7 +153,7 @@ pub struct GetSecurityCenterInsightCountsByTypeArgs {
 }
 
 /// Arguments for [`get-security-center-insight-context_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct GetSecurityCenterInsightContextArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -162,7 +162,7 @@ pub struct GetSecurityCenterInsightContextArgs {
 }
 
 /// Arguments for [`archive-security-center-insight_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct ArchiveSecurityCenterInsightArgs {
     /// Path parameter: `account_id`.
     pub account_id: String,
@@ -219,6 +219,142 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.dismissed {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dismissed=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_class=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.severity {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("severity=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subject {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subject=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_class_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_class~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_type_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_type~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.severity_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("severity~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subject_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subject~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.per_page {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("per_page=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -229,9 +365,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -305,6 +443,122 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.dismissed {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dismissed=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_class=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.severity {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("severity=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subject {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subject=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_class_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_class~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_type_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_type~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.severity_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("severity~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subject_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subject~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -315,9 +569,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -334,7 +590,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecurityCenterValueCountsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -397,6 +655,122 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.dismissed {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dismissed=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_class=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.severity {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("severity=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subject {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subject=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_class_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_class~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_type_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_type~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.severity_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("severity~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subject_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subject~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -407,9 +781,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -426,7 +802,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecurityCenterValueCountsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -489,6 +867,122 @@ where
         args.account_id,
     );
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.dismissed {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("dismissed=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_class {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_class=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_type {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_type=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.severity {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("severity=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subject {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subject=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_class_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_class~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.issue_type_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("issue_type~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.product_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("product~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.severity_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("severity~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        if let Some(ref v) = args.subject_neq {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("subject~neq=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -499,9 +993,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream,
@@ -518,7 +1014,9 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                        stream,
+                    );
                 let parsed: SecurityCenterValueCountsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -591,9 +1089,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
@@ -677,9 +1177,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,

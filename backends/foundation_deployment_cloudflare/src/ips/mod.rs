@@ -15,8 +15,8 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
+use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
@@ -30,7 +30,7 @@ use super::shared::ApiResponse;
 // =============================================================================
 
 /// Arguments for [`cloudflare-ips-cloudflare-ip-details_builder`].
-#[derive(Debug, Clone, Serialize, JsonHash)]
+#[derive(Debug, Clone, Default, Serialize, JsonHash)]
 pub struct CloudflareIpsCloudflareIpDetailsArgs {
     /// Query parameter: `networks`.
     pub networks: Option<String>,
@@ -52,6 +52,7 @@ pub struct CloudflareIpsCloudflareIpDetailsArgs {
 /// # Arguments
 ///
 /// * `client` - HTTP client for making the request
+/// * `args` - Request arguments (path params, query params, body)
 /// * `builder_mod` - Optional closure to modify the request builder (e.g., add headers)
 ///
 /// # Example
@@ -64,6 +65,7 @@ pub struct CloudflareIpsCloudflareIpDetailsArgs {
 #[inline]
 pub fn cloudflare_ips_cloudflare_ip_details_request<R, F>(
     client: &SimpleHttpClient<R>,
+    args: &CloudflareIpsCloudflareIpDetailsArgs,
     builder_mod: Option<F>,
 ) -> Result<
     impl TaskIterator<
@@ -80,6 +82,22 @@ where
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/ips",);
 
+    let endpoint_url = {
+        let mut url = endpoint_url;
+        let mut first = true;
+        if let Some(ref v) = args.networks {
+            if first {
+                url.push('?');
+                first = false;
+            } else {
+                url.push('&');
+            }
+            url.push_str("networks=");
+            url.push_str(&urlencoding::encode(v));
+        }
+        url
+    };
+
     let mut builder = client
         .get(&endpoint_url)
         .map_err(|e| super::shared::ApiError::RequestBuildFailed(e.to_string()))?;
@@ -90,9 +108,11 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
-            super::shared::ApiError::RequestBuildFailed(e.to_string())
-        })?
+        .map_err(
+            |e: foundation_netio::simple_http::shared::HttpClientError| {
+                super::shared::ApiError::RequestBuildFailed(e.to_string())
+            },
+        )?
         .map_ready(|intro| match intro {
             super::shared::RequestIntro::Success {
                 stream: _,
