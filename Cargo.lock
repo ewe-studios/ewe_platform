@@ -4731,6 +4731,7 @@ dependencies = [
  "foundation_deployment_platform",
  "foundation_errstacks",
  "foundation_http",
+ "foundation_macros",
  "foundation_netio",
  "serde",
  "serde_json",

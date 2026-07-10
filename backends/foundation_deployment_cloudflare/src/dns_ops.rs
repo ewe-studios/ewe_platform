@@ -70,10 +70,15 @@ impl crate::client::CloudflareClient {
         .map_err(|e| cf_err(CloudflareError::Http(format!("{e:?}"))))?;
 
         let response = drive_task(task)?;
-        // The response body contains Vec<DnsRecord> deserialised from JSON
-        // For now, return empty — proper deser needs the HashMap → typed conversion
-        let _ = response;
-        Ok(Vec::new())
+        // Cloudflare API wraps everything in { success, errors, messages, result }.
+        // The auto-generated type flattens this into a HashMap.  Extract "result"
+        // and deserialize as Vec<DnsRecord>.
+        let result_value = response.body.data.get("result").cloned().ok_or_else(|| {
+            cf_err(CloudflareError::Json("response missing 'result' field".into()))
+        })?;
+        let records: Vec<DnsRecord> = serde_json::from_value(result_value)
+            .map_err(|e| cf_err(CloudflareError::Json(format!("deserialize DnsRecord list: {e}"))))?;
+        Ok(records)
     }
 
     /// Upsert a DNS record — find by name+type, update if exists, create if not.
@@ -84,14 +89,14 @@ impl crate::client::CloudflareClient {
         // 1. Look for existing record with same name + type
         let existing = self.list_dns_records(Some(record.r#type), Some(&record.name))?;
 
+        let body = record_to_body(record);
+
         if let Some(existing_record) = existing.into_iter().next() {
             // Update (PUT)
             let args = DnsRecordsForAZoneUpdateDnsRecordArgs {
                 zone_id: self.zone_id().to_string(),
                 dns_record_id: existing_record.id.clone(),
-                body: DnsRecordsDnsRecordPost {
-                    data: std::collections::HashMap::new(),
-                },
+                body,
             };
 
             let task = dns_records_for_a_zone_update_dns_record_request(
@@ -107,9 +112,7 @@ impl crate::client::CloudflareClient {
             // Create (POST)
             let args = DnsRecordsForAZoneCreateDnsRecordArgs {
                 zone_id: self.zone_id().to_string(),
-                body: DnsRecordsDnsRecordPost {
-                    data: std::collections::HashMap::new(),
-                },
+                body,
             };
 
             let task = dns_records_for_a_zone_create_dns_record_request(
@@ -119,11 +122,33 @@ impl crate::client::CloudflareClient {
             )
             .map_err(|e| cf_err(CloudflareError::Http(format!("{e:?}"))))?;
 
-            let _response = drive_task(task)?;
-            // Extract record ID from response
-            Ok("created".to_string())
+            let response = drive_task(task)?;
+            // Extract the created record from `result`
+            let result_value = response.body.data.get("result").cloned().ok_or_else(|| {
+                cf_err(CloudflareError::Json("response missing 'result' field".into()))
+            })?;
+            let created: DnsRecord = serde_json::from_value(result_value)
+                .map_err(|e| cf_err(CloudflareError::Json(format!("deserialize created record: {e}"))))?;
+            Ok(created.id)
         }
     }
+}
+
+/// Build a body HashMap from a DnsRecord for create/update requests.
+fn record_to_body(record: &DnsRecord) -> DnsRecordsDnsRecordPost {
+    let mut data = std::collections::HashMap::new();
+    data.insert("type".to_string(), serde_json::Value::String(record.r#type.as_str().to_string()));
+    data.insert("name".to_string(), serde_json::Value::String(record.name.clone()));
+    data.insert("content".to_string(), serde_json::Value::String(record.content.clone()));
+    data.insert("ttl".to_string(), serde_json::Value::Number(record.ttl.into()));
+    data.insert("proxied".to_string(), serde_json::Value::Bool(record.proxied));
+    if let Some(ref comment) = record.comment {
+        data.insert("comment".to_string(), serde_json::Value::String(comment.clone()));
+    }
+    if !record.tags.is_empty() {
+        data.insert("tags".to_string(), serde_json::to_value(&record.tags).unwrap_or_default());
+    }
+    DnsRecordsDnsRecordPost { data }
 
     /// Delete a DNS record by ID.
     pub fn delete_dns_record(&self, record_id: &str) -> Result<(), CloudflareError> {

@@ -15,9 +15,11 @@
 //! the server's lifetime, exactly as the framework's own server tests do.
 
 use std::collections::HashSet;
+use std::io::{Read, Write};
 use std::net::{SocketAddr, TcpListener};
 use std::sync::Arc;
 use std::thread::JoinHandle;
+use std::time::Duration;
 
 use foundation_core::synca::OnSignal;
 use foundation_http::native::server::{HttpServer, ServerConfig};
@@ -25,12 +27,13 @@ use foundation_http::shared::app::HttpApp;
 use foundation_netio::simple_http::client::native::{HttpConnectionPool, SimpleHttpClient};
 use foundation_netio::simple_http::client::shared::ClientConfig;
 
-use crate::config::{ProxyConfig, ProxyError};
+use crate::config::{ProxyConfig, ProxyError, SslProvider};
 use crate::handler::ProxyHandler;
 use crate::health::{spawn_service_probes, HealthMonitor};
 use crate::router::Router;
 use crate::runtime::ServiceRuntime;
 use crate::state::ProxyState;
+use crate::tls;
 
 const DEFAULT_BIND: &str = "0.0.0.0:80";
 
@@ -115,12 +118,32 @@ impl ProxyServer {
         app.route_any::<ProxyHandler>("/*");
 
         let shutdown = Arc::new(OnSignal::new());
-        let server = HttpServer::with_config(app, &bind_addr, ServerConfig::defaults());
+        let use_tls = !matches!(config.ssl.provider, SslProvider::None);
+        let mut server_config = ServerConfig::defaults();
+
+        // TLS: build acceptor and configure.
+        let mut _redirect_thread: Option<std::thread::JoinHandle<()>> = None;
+        if use_tls {
+            let acceptor = tls::build_acceptor(&config.ssl)?;
+            server_config = server_config.with_tls(acceptor);
+
+            // SSL redirect: spawn a plain-HTTP listener on :80 that 301s to https.
+            let redirect_shutdown = shutdown.clone();
+            _redirect_thread = Some(std::thread::spawn(move || {
+                ssl_redirect_loop(&redirect_shutdown);
+            }));
+        }
+
+        let server = HttpServer::with_config(app, &bind_addr, server_config);
 
         // Serve on a dedicated thread with the pre-bound listener.
         let serve_shutdown = shutdown.clone();
         let server_thread = std::thread::spawn(move || {
-            server.serve_with_listener(&listener, &serve_shutdown);
+            if use_tls {
+                server.serve_tls_with_listener(&listener, &serve_shutdown);
+            } else {
+                server.serve_with_listener(&listener, &serve_shutdown);
+            }
         });
 
         // Spawn health probes for every service that configured one.
@@ -129,7 +152,7 @@ impl ProxyServer {
             .map(|svc| spawn_service_probes(svc, client.clone(), shutdown.clone()))
             .collect();
 
-        tracing::info!(%local_addr, "proxy started");
+        tracing::info!(%local_addr, tls = use_tls, "proxy started");
         Ok(Self {
             config,
             local_addr,
@@ -183,4 +206,75 @@ impl Drop for ProxyServer {
             monitor.join();
         }
     }
+}
+
+/// SSL redirect: plain-HTTP listener on :80 that answers every request with
+/// `301 Moved Permanently` to `https://{host}{path}`.
+///
+/// WHY: Decision 25 — when TLS is enabled, plain-HTTP traffic must be
+/// redirected rather than dropped or answered with connection-refused.
+///
+/// HOW: Reads just the request line + Host header, constructs the redirect,
+/// and closes the connection.  No buffering, no keep-alive, no full HTTP parse.
+const REDIRECT_PORT: &str = "0.0.0.0:80";
+
+fn ssl_redirect_loop(shutdown: &Arc<OnSignal>) {
+    let listener = match TcpListener::bind(REDIRECT_PORT) {
+        Ok(l) => l,
+        Err(e) => {
+            tracing::warn!("SSL redirect: cannot bind {REDIRECT_PORT}: {e}");
+            return;
+        }
+    };
+    let _ = listener.set_nonblocking(true);
+    tracing::info!("SSL redirect listening on {REDIRECT_PORT}");
+
+    let mut buf = [0u8; 4096];
+    loop {
+        if shutdown.probe() {
+            return;
+        }
+        match listener.accept() {
+            Ok((mut stream, _addr)) => {
+                let _ = stream.set_read_timeout(Some(Duration::from_secs(2)));
+                match stream.read(&mut buf) {
+                    Ok(n) if n > 0 => {
+                        let head = String::from_utf8_lossy(&buf[..n]);
+                        let host = extract_header(&head, "host:").unwrap_or("localhost");
+                        let path = extract_path(&head);
+                        let redirect = format!(
+                            "HTTP/1.1 301 Moved Permanently\r\n\
+                             Location: https://{host}{path}\r\n\
+                             Connection: close\r\n\r\n"
+                        );
+                        let _ = stream.write_all(redirect.as_bytes());
+                    }
+                    _ => {}
+                }
+            }
+            Err(ref e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                std::thread::sleep(Duration::from_millis(10));
+            }
+            Err(e) => {
+                tracing::error!("SSL redirect accept error: {e}");
+            }
+        }
+    }
+}
+
+/// Best-effort: extract the first header value matching `prefix:` (case-insensitive).
+fn extract_header<'a>(head: &'a str, prefix: &str) -> Option<&'a str> {
+    let prefix_lower = prefix.to_lowercase();
+    head.lines()
+        .find(|line| line.to_lowercase().starts_with(&prefix_lower))
+        .and_then(|line| line[prefix.len()..].trim().split(',').next())
+        .map(|v| v.trim())
+}
+
+/// Extract the path from an HTTP request line (e.g. "GET /path HTTP/1.1" → "/path").
+fn extract_path(head: &str) -> &str {
+    head.lines()
+        .next()
+        .and_then(|line| line.split_whitespace().nth(1))
+        .unwrap_or("/")
 }

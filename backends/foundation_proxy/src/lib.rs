@@ -31,6 +31,7 @@ pub mod router;
 pub mod runtime;
 pub mod server;
 pub mod state;
+pub mod tls;
 
 pub use config::{
     BackendProtocol, BackendState, BackendTarget, HealthCheckConfig, ProxyConfig, ProxyError,
@@ -44,3 +45,4 @@ pub use router::Router;
 pub use runtime::{BackendLease, BackendRuntime, ServiceRuntime};
 pub use server::ProxyServer;
 pub use state::ProxyState;
+pub use foundation_macros::proxy;

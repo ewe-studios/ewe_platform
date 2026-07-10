@@ -5,6 +5,7 @@ mod arrow_json_schema;
 mod arrow_schema;
 mod crate_paths;
 mod docker_container;
+mod proxy;
 mod embedders;
 mod from_arrow;
 mod json_hash;
@@ -662,6 +663,33 @@ pub fn wasm_ui_server(attr: TokenStream, item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn docker_container(attr: TokenStream, item: TokenStream) -> TokenStream {
     docker_container::docker_container(attr, item)
+}
+
+/// `proxy!` — compile-time proxy configuration (Decision 19).
+///
+/// Desugars a custom block syntax into a `ProxyConfig` builder chain.
+/// Unknown keys and missing required fields are compile errors.
+///
+/// ```ignore
+/// use foundation_proxy::proxy;
+///
+/// let config = proxy! {
+///     domain: "example.com",
+///     public_ip: "1.2.3.4",
+///     ssl: lets_encrypt { email: "admin@example.com" },
+///     services: {
+///         app: {
+///             host: "app.example.com",
+///             backends: ["http://localhost:3000"],
+///             health_check: { path: "/up", interval: 5, timeout: 2 },
+///         },
+///     },
+/// };
+/// config.start()?;
+/// ```
+#[proc_macro]
+pub fn proxy(input: TokenStream) -> TokenStream {
+    proxy::proxy_impl(input)
 }
 
 /// `html!` — compile-time HTML templates producing typed
