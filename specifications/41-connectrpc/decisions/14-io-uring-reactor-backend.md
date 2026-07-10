@@ -114,6 +114,26 @@ automatic fallback. The `EventReadiness` seam and all transports are unchanged.*
   needs fd→worker placement rules, a home for non-worker registrations, N-way
   drain/observability, and makes valtron task-pinning a load-bearing invariant of the I/O
   layer — costs paid up front for a benefit that only materializes in completion mode.
+  - **Re-evaluated 2026-07-10, on 14-F4 landing: the trigger did not fire. Keep the single
+    shared reactor.** The premise — "per-op submissions" — is false for the implementation
+    that shipped. Multishot `RECV` (`IORING_RECV_MULTISHOT`) arms an fd with **one** SQE for
+    its entire lifetime; the kernel then delivers every subsequent message without any
+    further submission. Submissions are therefore `O(registrations)`, exactly as in readiness
+    mode, not `O(reads)`. Measured, not assumed: `submissions_are_per_registration_not_per_read`
+    registers one socket (1 SQE) and drives 64 message round-trips, asserting the SQE count is
+    unchanged. It is. The SQ lock is still taken only on accept/close, so it is not a
+    contention point and per-worker rings buy nothing here. If that test ever fails the
+    premise has returned and this question re-opens.
+  - **Where the contention actually moved:** to `BufRing`'s tail mutex, taken once per
+    `ProvidedBuf` drop — i.e. once per delivered message, from whichever thread finished with
+    the bytes. That is a short critical section (two stores) with no syscall, and it is a
+    *different* problem from SQ contention: it is fixed by making the tail a lock-free atomic
+    CAS, not by sharding rings per worker. Left as-is until a profile says otherwise.
+  - The one case that would restore the original premise is the documented
+    **re-arm-per-recv fallback** for kernels with buffer rings but without `RECV_MULTISHOT`
+    (5.19 ≤ kernel < 6.0). There, each delivery costs a fresh SQE. The functional probe
+    already distinguishes this tier (`recv_multishot`), so if that fallback is ever
+    implemented it should carry its own SQ-contention measurement.
 - **OQ#14.2 — resolved: both modes, as two committed, sequenced features** (readiness first
   with cover tests, completion next — not "completion maybe later").
   - **14-F2 (readiness, kernel ≥ 5.13):** multishot `POLL_ADD` behind the existing internal

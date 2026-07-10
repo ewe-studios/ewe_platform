@@ -171,6 +171,42 @@ impl Poll {
         }
     }
 
+    /// WHY: in completion mode the kernel has already read the bytes; the
+    /// transport pops them here rather than issuing `read(2)` (Decision 14 F4).
+    ///
+    /// WHAT: drain everything the kernel delivered for `token`.
+    ///
+    /// HOW: forwards to the selector. `None` on every backend without an inbox,
+    /// which tells the caller to use its ordinary read path.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn take_completions(
+        &self,
+        token: Token,
+    ) -> Option<Vec<sys::unix::selector::uring_completion::Completion>> {
+        self.selector.take_completions(token)
+    }
+
+    /// Whether `token` has kernel-delivered bytes waiting.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_completions(&self, token: Token) -> bool {
+        self.selector.has_completions(token)
+    }
+
+    /// Whether `token`'s bytes arrive as completions rather than needing a read.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn is_recv_token(&self, token: Token) -> bool {
+        self.selector.is_recv_token(token)
+    }
+
     /// Returns a [`Registry`] for registering/deregistering sources.
     pub fn registry(&self) -> Registry {
         Registry {

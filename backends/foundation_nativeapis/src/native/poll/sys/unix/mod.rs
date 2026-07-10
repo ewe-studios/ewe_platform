@@ -19,6 +19,14 @@ pub mod selector {
     #[cfg(feature = "uring")]
     pub mod uring;
 
+    /// Registered provided-buffer ring for io_uring completion mode.
+    #[cfg(feature = "uring")]
+    pub mod bufring;
+
+    /// io_uring completion-mode selector (kernel-filled buffer rings).
+    #[cfg(feature = "uring")]
+    pub mod uring_completion;
+
     /// Runtime dispatch over the compiled-in Linux backends.
     pub mod dispatch;
 }

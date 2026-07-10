@@ -169,20 +169,36 @@ mod with_uring {
         }
     }
 
-    /// Until F43 lands the completion selector, the ladder must stop at
-    /// readiness rather than naming a backend it cannot construct.
+    /// The ladder must never name a backend this build cannot construct, and
+    /// must climb to the top rung the kernel actually supports. Both directions
+    /// matter, so this asserts against `COMPLETION_IMPLEMENTED` rather than
+    /// short-circuiting on it — a flipped constant with no selector behind it
+    /// would fail here.
     #[test]
-    fn ladder_does_not_select_completion_before_it_is_implemented() {
-        if COMPLETION_IMPLEMENTED {
+    fn ladder_climbs_to_the_highest_implemented_tier() {
+        let Ok(poll) = foundation_nativeapis::Poll::with_preference(BackendPreference::Auto) else {
             return;
-        }
-        if let Ok(poll) = foundation_nativeapis::Poll::with_preference(BackendPreference::Auto) {
-            assert_ne!(
+        };
+        let Ok(caps) = probe::probe() else {
+            assert_eq!(
                 poll.backend(),
-                Backend::UringCompletion,
-                "the ladder selected completion mode, but this build has no completion selector"
+                Backend::Epoll,
+                "a failed probe must land on epoll"
             );
-        }
+            return;
+        };
+
+        let expected = if caps.supports_completion() && COMPLETION_IMPLEMENTED {
+            Backend::UringCompletion
+        } else {
+            Backend::UringReadiness
+        };
+        assert_eq!(
+            poll.backend(),
+            expected,
+            "with caps {caps} and COMPLETION_IMPLEMENTED={COMPLETION_IMPLEMENTED}, the \
+             ladder must select {expected}"
+        );
     }
 
     // ── The failure branches, driven with a synthetic probe result ──────────
@@ -257,15 +273,34 @@ mod with_uring {
         );
     }
 
+    /// `COMPLETION_IMPLEMENTED` claims a selector exists for the
+    /// `UringCompletion` rung. Hold it to that claim: constructing the backend
+    /// directly must succeed when the constant is true and the kernel supports
+    /// it, and be refused as `Unsupported` when it is false.
     #[test]
-    fn constructing_completion_mode_directly_is_refused_before_f43() {
+    fn completion_backend_construction_matches_its_implemented_flag() {
         use foundation_nativeapis::native::poll::sys::unix::selector::dispatch::Selector;
 
-        if COMPLETION_IMPLEMENTED {
+        let built = Selector::with_backend(Backend::UringCompletion);
+
+        if !COMPLETION_IMPLEMENTED {
+            let err = built.expect_err("completion mode has no selector in this build");
+            assert_eq!(err.kind(), io::ErrorKind::Unsupported);
             return;
         }
-        let err = Selector::with_backend(Backend::UringCompletion)
-            .expect_err("completion mode has no selector until F43");
-        assert_eq!(err.kind(), io::ErrorKind::Unsupported);
+
+        match probe::probe() {
+            Ok(caps) if caps.supports_completion() => {
+                let sel = built.expect("completion mode is implemented and the kernel supports it");
+                assert_eq!(sel.backend(), Backend::UringCompletion);
+            }
+            // A kernel below the 5.19/6.0 matrix: construction may fail, but it
+            // must fail with the kernel's reason, not silently yield readiness.
+            _ => {
+                if let Ok(sel) = built {
+                    assert_eq!(sel.backend(), Backend::UringCompletion);
+                }
+            }
+        }
     }
 }

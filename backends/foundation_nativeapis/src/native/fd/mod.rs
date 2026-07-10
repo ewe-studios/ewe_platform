@@ -44,9 +44,15 @@ pub mod guard;
 pub mod error;
 pub mod reactor;
 
+/// The `CompletionSource` seam — byte acquisition for io_uring completion mode.
+pub mod completion;
+
 pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
 pub use reactor::{Reactor, SharedReadiness};
+
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub use completion::{Completion, CompletionSource};
 
 use crate::native::poll::{Events, Interest, Token};
 use crate::native::poll::sys::RawFd;
@@ -207,6 +213,10 @@ pub struct FdRegistration {
     reactor: Option<Arc<Reactor>>,
     /// Last known readiness state — cached between poll calls.
     readiness: Mutex<Ready>,
+    /// Completion-mode read state: buffers taken from the inbox but not yet
+    /// fully copied out by [`FdRegistration::read_bytes`] (F43).
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    staged: Mutex<completion::StagedReads>,
 }
 
 impl FdRegistration {
@@ -241,6 +251,8 @@ impl FdRegistration {
             poll,
             reactor,
             readiness: Mutex::new(Ready::EMPTY),
+            #[cfg(all(target_os = "linux", feature = "uring"))]
+            staged: Mutex::new(completion::StagedReads::default()),
         })
     }
 
@@ -322,6 +334,129 @@ impl FdRegistration {
         }
         self.registry.deregister_fd(fd)
     }
+
+    /// WHY: this is the opt-in Decision 14 F4 asks of transports — "opt read
+    /// paths into inbox-pop". A transport calls this instead of `read(2)` and
+    /// gets bytes from whichever source the reactor's backend provides, with no
+    /// per-backend branching of its own.
+    ///
+    /// WHAT: read up to `buf.len()` bytes from `fd`, nonblocking.
+    ///
+    /// HOW: in io_uring completion mode the kernel has already read the bytes,
+    /// so this copies them out of the inbox — **no syscall**. On every other
+    /// backend it issues an ordinary `read(2)`. Both report end-of-stream as
+    /// `Ok(0)` and "nothing available" as `WouldBlock`, so a caller's loop is
+    /// identical either way.
+    ///
+    /// Zero-copy callers should prefer [`completion::CompletionSource::take_completions`]
+    /// and step their decoder straight over `&buf[..]`; this method exists so an
+    /// existing `read`-shaped transport can adopt completion mode by changing one
+    /// call.
+    ///
+    /// # Errors
+    /// `WouldBlock` when no bytes are available; the socket's error otherwise. A
+    /// `WouldBlock` clears the latched readiness, re-arming the park.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn read_bytes(&self, fd: RawFd, buf: &mut [u8]) -> io::Result<usize> {
+        use completion::CompletionSource;
+
+        if !self.is_completion_source() {
+            return Self::read_syscall(fd, buf);
+        }
+
+        if buf.is_empty() {
+            return Ok(0);
+        }
+
+        /// What the head of the staging queue yielded, decided before the queue
+        /// is mutated so the borrow of the head buffer has already ended.
+        enum Step {
+            /// Copied `n` bytes; the head buffer is now exhausted if `true`.
+            Copied(usize, bool),
+            Eof,
+            Failed,
+            Empty,
+        }
+
+        let mut guard = self.staged.lock().expect("staged reads lock poisoned");
+
+        loop {
+            let staged = &mut *guard;
+
+            let step = match staged.queue.front() {
+                Some(completion::Completion::Data(provided)) => {
+                    let remaining = &provided[staged.offset..];
+                    let n = remaining.len().min(buf.len());
+                    buf[..n].copy_from_slice(&remaining[..n]);
+                    Step::Copied(n, staged.offset + n >= provided.len())
+                }
+                Some(completion::Completion::Eof) => Step::Eof,
+                Some(completion::Completion::Error(_)) => Step::Failed,
+                None => Step::Empty,
+            };
+
+            match step {
+                Step::Copied(n, exhausted) => {
+                    staged.offset += n;
+                    if exhausted {
+                        // Dropping the ProvidedBuf returns its buffer to the pool.
+                        staged.queue.pop_front();
+                        staged.offset = 0;
+                    }
+                    return Ok(n);
+                }
+                Step::Eof => {
+                    staged.eof = true;
+                    staged.queue.pop_front();
+                    return Ok(0);
+                }
+                Step::Failed => {
+                    let Some(completion::Completion::Error(e)) = staged.queue.pop_front() else {
+                        unreachable!("front was just matched as Error");
+                    };
+                    return Err(e);
+                }
+                Step::Empty => {}
+            }
+
+            // Nothing staged. A latched EOF keeps reporting end-of-stream rather
+            // than WouldBlock, or the caller would park forever on a dead socket.
+            if staged.eof {
+                return Ok(0);
+            }
+
+            let Some(ref reactor) = self.reactor else {
+                return Err(io::Error::new(io::ErrorKind::WouldBlock, "no completions pending"));
+            };
+            let refill = reactor.take_completions(self.token).unwrap_or_default();
+            if refill.is_empty() {
+                // Inbox drained: clear the latch so the task parks again. Same
+                // contract as a `WouldBlock` from `read(2)` in readiness mode.
+                drop(guard);
+                self.clear_readiness(Ready::READABLE);
+                return Err(io::Error::new(io::ErrorKind::WouldBlock, "no completions pending"));
+            }
+            staged.queue.extend(refill);
+        }
+    }
+
+    /// The readiness-mode read: an ordinary nonblocking `read(2)`.
+    ///
+    /// # Errors
+    /// The socket's `io::Error`, including `WouldBlock`.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    fn read_syscall(fd: RawFd, buf: &mut [u8]) -> io::Result<usize> {
+        // SAFETY: `buf` is a valid writable slice of `buf.len()` bytes and `fd`
+        // is a registered, open descriptor.
+        let n = unsafe { libc::read(fd, buf.as_mut_ptr().cast(), buf.len()) };
+        if n < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(n as usize)
+    }
 }
 
 impl EventReadiness for FdRegistration {
@@ -329,6 +464,41 @@ impl EventReadiness for FdRegistration {
         match self.query_readiness() {
             Ok(r) => !r.is_empty(),
             Err(_) => false,
+        }
+    }
+}
+
+#[cfg(all(target_os = "linux", feature = "uring"))]
+impl completion::CompletionSource for FdRegistration {
+    fn is_completion_source(&self) -> bool {
+        // Must be non-destructive: `take_completions` would drain the inbox and
+        // discard the bytes. A pipe on a completion-mode reactor is *not* a
+        // completion source — `RECV` is a socket operation, so the selector put
+        // it on the poll path and its bytes still need a `read`.
+        match self.reactor {
+            Some(ref reactor) => reactor.is_recv_token(self.token),
+            None => false,
+        }
+    }
+
+    fn take_completions(&self) -> Vec<completion::Completion> {
+        let Some(ref reactor) = self.reactor else {
+            return Vec::new();
+        };
+        let taken = reactor.take_completions(self.token).unwrap_or_default();
+
+        // Draining the inbox is completion mode's "read until WouldBlock": with
+        // nothing left, the latched readiness must clear or the task spins.
+        if !taken.is_empty() && !reactor.has_completions(self.token) {
+            self.clear_readiness(Ready::READABLE);
+        }
+        taken
+    }
+
+    fn has_completions(&self) -> bool {
+        match self.reactor {
+            Some(ref reactor) => reactor.has_completions(self.token),
+            None => false,
         }
     }
 }
@@ -345,6 +515,25 @@ pub struct RegisteredFd<T: AsRawFd> {
 impl<T: AsRawFd + Send + Sync> EventReadiness for RegisteredFd<T> {
     fn is_ready(&self, dur: Option<Duration>) -> bool {
         self.registration.is_ready(dur)
+    }
+}
+
+/// The completion seam, forwarded from the registration.
+///
+/// A task parks on `Depends(RegisteredFd)` in both modes; when it wakes it asks
+/// here whether its bytes are already in hand, or whether it must `read` them.
+#[cfg(all(target_os = "linux", feature = "uring"))]
+impl<T: AsRawFd> completion::CompletionSource for RegisteredFd<T> {
+    fn is_completion_source(&self) -> bool {
+        completion::CompletionSource::is_completion_source(&self.registration)
+    }
+
+    fn take_completions(&self) -> Vec<completion::Completion> {
+        completion::CompletionSource::take_completions(&self.registration)
+    }
+
+    fn has_completions(&self) -> bool {
+        completion::CompletionSource::has_completions(&self.registration)
     }
 }
 
@@ -393,6 +582,26 @@ impl<T: AsRawFd> RegisteredFd<T> {
     /// readiness in the shared reactor when an I/O op reports `WouldBlock`.
     pub(crate) fn registration(&self) -> &FdRegistration {
         &self.registration
+    }
+
+    /// WHY: the one call a transport changes to adopt completion mode. In
+    /// io_uring completion mode the bytes are copied out of the kernel-filled
+    /// inbox with **no syscall**; on every other backend this is `read(2)`.
+    ///
+    /// WHAT: read up to `buf.len()` bytes, nonblocking.
+    ///
+    /// HOW: see [`FdRegistration::read_bytes`]. `Ok(0)` is end-of-stream and
+    /// `WouldBlock` means "park again", identically on both paths.
+    ///
+    /// # Errors
+    /// `WouldBlock` when nothing is available; the socket's error otherwise.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn read_bytes(&self, buf: &mut [u8]) -> io::Result<usize> {
+        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        self.registration.read_bytes(fd, buf)
     }
 
     /// Get a shared reference to the inner object.

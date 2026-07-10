@@ -281,6 +281,51 @@ impl Reactor {
             entry.ready.fetch_and(!ready.bits(), Ordering::AcqRel);
         }
     }
+
+    /// WHY: completion mode's whole point — the bytes are already here, so the
+    /// transport takes them instead of calling `read(2)` (Decision 14 F4).
+    ///
+    /// WHAT: drain the kernel-delivered buffers queued for `token`.
+    ///
+    /// HOW: forwards to the selector's inbox. Returns `None` on backends without
+    /// one (epoll, kqueue, io_uring readiness mode), which tells the caller to
+    /// read the fd itself.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn take_completions(&self, token: Token) -> Option<Vec<super::completion::Completion>> {
+        self.poll.take_completions(token)
+    }
+
+    /// Whether `token` has kernel-delivered bytes waiting.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_completions(&self, token: Token) -> bool {
+        self.poll.has_completions(token)
+    }
+
+    /// Whether `token`'s bytes arrive as completions rather than needing a read.
+    ///
+    /// Non-destructive, unlike [`Reactor::take_completions`].
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn is_recv_token(&self, token: Token) -> bool {
+        self.poll.is_recv_token(token)
+    }
+
+    /// Whether this reactor delivers bytes through completions rather than
+    /// readiness.
+    ///
+    /// # Panics
+    /// Never panics.
+    pub fn is_completion_mode(&self) -> bool {
+        self.backend() == Backend::UringCompletion
+    }
 }
 
 impl Drop for Reactor {

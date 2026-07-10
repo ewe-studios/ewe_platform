@@ -32,12 +32,12 @@ use super::probe;
 
 /// Whether the completion-mode selector exists in this build.
 ///
-/// F42 ships the probe and the ladder; F43 ships the completion selector that
-/// the `UringCompletion` rung actually needs. Until then the ladder detects the
-/// completion tier, reports it, and still selects readiness — rather than
-/// naming a backend it cannot construct.
+/// F42 shipped the probe and the ladder; F43 shipped the completion selector
+/// (`uring_completion.rs`) the `UringCompletion` rung needs. With both in place
+/// the ladder may name that rung, and does so whenever the kernel's completion
+/// tier probes green.
 #[cfg(all(target_os = "linux", feature = "uring"))]
-pub const COMPLETION_IMPLEMENTED: bool = false;
+pub const COMPLETION_IMPLEMENTED: bool = true;
 
 /// The selector backend actually in use.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
