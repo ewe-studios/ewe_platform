@@ -26,6 +26,13 @@ Wiring HTTP/3 into the seam: the third ConnectionHandler branch and client trans
   2026-07-10:* D12 §9 pairs these with the `ConnectionHandler` branch, and its item 3 makes
   `Connection` the byte stream for "individual QUIC streams" — which only means something once
   HTTP/3 maps streams onto the Router. F34 does not need them.
+- **Alt-Svc advertisement (T2) and `ConnectionContext` population.** *Moved here from feature 34
+  on 2026-07-10:* `Alt-Svc: h3=...` is a header an HTTP/1.1 or HTTP/2 **response** carries to
+  advertise that the origin also speaks HTTP/3. It is emitted by the TCP server, not by the
+  HTTP/3 module, and there is no TCP server to emit it from until this feature routes
+  `HttpServer` through netcap's `Listener`. `ConnectionContext` is populated by the front end at
+  accept/handshake time (D12 §13); `H3Connection` already threads an `Arc<ConnectionContext>`
+  through `request_from_fields`, so only the filling-in remains.
 
 ## Acceptance criteria
 

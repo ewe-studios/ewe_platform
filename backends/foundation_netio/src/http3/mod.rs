@@ -18,12 +18,15 @@
 //! and consumes `SimpleOutgoingResponse` exactly as HTTP/1.1 and HTTP/2 do — no new
 //! handler-facing types (Decision 01 §"Type sufficiency").
 
+pub mod connection;
 pub mod frame;
 pub mod qpack;
+pub mod stream;
 pub mod types;
 pub mod varint;
 
 pub use frame::{Frame, FrameDecoder};
 pub use qpack::{decode_field_section, encode_field_section, QpackError};
+pub use connection::{H3Connection, H3Error, H3Request};
 pub use types::{request_from_fields, response_to_fields, MalformedRequest};
 pub use varint::VarInt;
