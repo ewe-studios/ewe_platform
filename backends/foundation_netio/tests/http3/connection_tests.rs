@@ -279,3 +279,52 @@ fn a_control_stream_whose_first_frame_is_not_settings_is_rejected() {
         "must be H3_MISSING_SETTINGS: {text}"
     );
 }
+
+#[test]
+fn a_trailing_headers_frame_is_surfaced_as_trailers() {
+    // A second HEADERS frame after the body is the trailers section (RFC 9114
+    // §4.1). gRPC puts its status there, so a transport that discarded it would
+    // make every gRPC call over HTTP/3 fail to report its outcome.
+    let (mut sq, mut cq, server_conn, client_conn) = quic_pair();
+
+    let mut server = H3Connection::new(server_conn);
+    let mut client = H3Connection::new(client_conn);
+    until!(sq, cq, server.poll_setup());
+    until!(sq, cq, client.poll_setup());
+
+    let mut req: H3Request<QuinnBidiStream> = until!(sq, cq, client.poll_open_request());
+
+    let head: Vec<(&[u8], &[u8])> = vec![
+        (b":method", b"POST"),
+        (b":scheme", b"https"),
+        (b":path", b"/svc/Grpc"),
+    ];
+    let mut headers = H3Request::<QuinnBidiStream>::encode_headers(&head);
+    until!(sq, cq, req.poll_send_headers(&mut headers));
+
+    let mut data = H3Request::<QuinnBidiStream>::encode_data(Bytes::from_static(b"payload"));
+    until!(sq, cq, req.poll_send_data(&mut data));
+
+    // The trailers are just another HEADERS frame.
+    let trailing: Vec<(&[u8], &[u8])> = vec![(b"grpc-status", b"0"), (b"grpc-message", b"ok")];
+    let mut trailers = H3Request::<QuinnBidiStream>::encode_headers(&trailing);
+    until!(sq, cq, req.poll_send_headers(&mut trailers));
+    until!(sq, cq, req.poll_finish());
+
+    let mut inbound = until!(sq, cq, server.poll_accept());
+    let _ = until!(sq, cq, inbound.poll_headers());
+
+    assert!(inbound.trailers().is_none(), "no trailers before the body is drained");
+
+    let body = until!(sq, cq, inbound.poll_body()).expect("DATA");
+    assert_eq!(&body[..], b"payload");
+
+    let end = until!(sq, cq, inbound.poll_body());
+    assert!(end.is_none(), "the trailers section ends the body");
+
+    let trailers = inbound.trailers().expect("trailers must be surfaced, not discarded");
+    assert!(
+        trailers.iter().any(|(n, v)| &n[..] == b"grpc-status" && &v[..] == b"0"),
+        "gRPC's status lives in the trailers: {trailers:?}"
+    );
+}

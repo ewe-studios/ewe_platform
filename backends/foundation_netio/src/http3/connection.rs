@@ -373,6 +373,10 @@ pub struct H3Request<S: QuicBidiStream> {
     framed: FramedRecv<S>,
     max_field_section_size: u64,
     headers_read: bool,
+    /// The trailers section, if the peer sent one. A second HEADERS frame after
+    /// the body *is* the trailers — and gRPC puts its status there, so discarding
+    /// it would make every gRPC call over HTTP/3 fail to report its outcome.
+    trailers: Option<Vec<(Bytes, Bytes)>>,
 }
 
 impl<S: QuicBidiStream> H3Request<S> {
@@ -381,7 +385,17 @@ impl<S: QuicBidiStream> H3Request<S> {
             framed: FramedRecv::new(stream),
             max_field_section_size,
             headers_read: false,
+            trailers: None,
         }
+    }
+
+    /// The trailers section, once [`Self::poll_body`] has reached the end of the
+    /// body. `None` means the peer sent no trailers.
+    ///
+    /// gRPC's status lives here.
+    #[must_use]
+    pub fn trailers(&self) -> Option<&[(Bytes, Bytes)]> {
+        self.trailers.as_deref()
     }
 
     /// WHY: a request begins with exactly one HEADERS frame (RFC 9114 §4.1).
@@ -438,8 +452,18 @@ impl<S: QuicBidiStream> H3Request<S> {
             match self.framed.poll_frame() {
                 Stream::Next(Ok(Some(Frame::Data(bytes)))) => return Stream::Next(Ok(Some(bytes))),
                 // A second HEADERS frame is the trailers section; the body is over.
-                Stream::Next(Ok(Some(Frame::Headers(_)))) if self.headers_read => {
-                    return Stream::Next(Ok(None))
+                Stream::Next(Ok(Some(Frame::Headers(encoded)))) if self.headers_read => {
+                    let max = usize::try_from(self.max_field_section_size).unwrap_or(usize::MAX);
+                    return match super::qpack::decode_field_section(&encoded, max) {
+                        Ok(fields) => {
+                            self.trailers = Some(fields);
+                            Stream::Next(Ok(None))
+                        }
+                        Err(e) => Stream::Next(Err(H3Error::Protocol {
+                            code: error_code::QPACK_DECOMPRESSION_FAILED,
+                            message: e.to_string(),
+                        })),
+                    };
                 }
                 Stream::Next(Ok(Some(Frame::Unknown { .. }))) => continue,
                 Stream::Next(Ok(Some(other))) => {
