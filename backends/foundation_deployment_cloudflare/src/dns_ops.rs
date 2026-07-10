@@ -134,21 +134,17 @@ impl crate::client::CloudflareClient {
     }
 }
 
-/// Build a body HashMap from a DnsRecord for create/update requests.
+/// Build a body HashMap from a DnsRecord.  Uses serde serialization so the
+/// body automatically matches whatever fields `DnsRecord` declares — no
+/// manual field-by-field construction.
 fn record_to_body(record: &DnsRecord) -> DnsRecordsDnsRecordPost {
-    let mut data = std::collections::HashMap::new();
-    data.insert("type".to_string(), serde_json::Value::String(record.r#type.as_str().to_string()));
-    data.insert("name".to_string(), serde_json::Value::String(record.name.clone()));
-    data.insert("content".to_string(), serde_json::Value::String(record.content.clone()));
-    data.insert("ttl".to_string(), serde_json::Value::Number(record.ttl.into()));
-    data.insert("proxied".to_string(), serde_json::Value::Bool(record.proxied));
-    if let Some(ref comment) = record.comment {
-        data.insert("comment".to_string(), serde_json::Value::String(comment.clone()));
-    }
-    if !record.tags.is_empty() {
-        data.insert("tags".to_string(), serde_json::to_value(&record.tags).unwrap_or_default());
-    }
+    let value = serde_json::to_value(record).unwrap_or_default();
+    let data = match value {
+        serde_json::Value::Object(map) => map.into_iter().collect(),
+        _ => std::collections::HashMap::new(),
+    };
     DnsRecordsDnsRecordPost { data }
+}
 
     /// Delete a DNS record by ID.
     pub fn delete_dns_record(&self, record_id: &str) -> Result<(), CloudflareError> {
