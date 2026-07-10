@@ -22,7 +22,7 @@ use foundation_deployment_platform::docker::{ContainerConfig, ContainerHandle, W
 use foundation_proxy::config::HealthCheckConfig;
 use foundation_proxy::{ProxyConfig, ProxyServer, ServiceConfig, TcpPassthrough, UdpPassthrough};
 
-/// Shared tokio runtime — used only for container lifecycle (bollard needs it).
+/// Shared tokio runtime for container lifecycle (bollard needs tokio).
 static RT: LazyLock<tokio::runtime::Runtime> = LazyLock::new(|| {
     tokio::runtime::Builder::new_multi_thread()
         .enable_all()
@@ -106,7 +106,7 @@ fn test_forward_roundtrips_to_backend() {
         return;
     }
     let _pool = initialize_pool(53, Some(4));
-    let backend = RT.block_on(async { ContainerHandle::start_async(echo_config("backend-solo")).await })
+    let backend = block_with_reactor(async { ContainerHandle::start_async(echo_config("backend-solo")).await })
         .expect("start echo");
     let url = backend_url(&backend, ECHO_PORT);
 
@@ -127,7 +127,7 @@ fn test_round_robin_spreads_across_backends() {
         return;
     }
     let _pool = initialize_pool(53, Some(4));
-    let (a, b) = RT.block_on(async {
+    let (a, b) = block_with_reactor(async {
         let a = ContainerHandle::start_async(echo_config("backend-A")).await.expect("A");
         let b = ContainerHandle::start_async(echo_config("backend-B")).await.expect("B");
         (a, b)
@@ -162,7 +162,7 @@ fn test_host_routing_and_unknown_host_404() {
         return;
     }
     let _pool = initialize_pool(53, Some(4));
-    let (a, b) = RT.block_on(async {
+    let (a, b) = block_with_reactor(async {
         let a = ContainerHandle::start_async(echo_config("host-A")).await.expect("A");
         let b = ContainerHandle::start_async(echo_config("host-B")).await.expect("B");
         (a, b)
@@ -187,7 +187,7 @@ fn test_path_prefix_longest_wins() {
         return;
     }
     let _pool = initialize_pool(53, Some(4));
-    let (root, api) = RT.block_on(async {
+    let (root, api) = block_with_reactor(async {
         let r = ContainerHandle::start_async(echo_config("root-backend")).await.expect("root");
         let a = ContainerHandle::start_async(echo_config("api-backend")).await.expect("api");
         (r, a)
@@ -215,7 +215,7 @@ fn test_no_healthy_backend_returns_503() {
         return;
     }
     let _pool = initialize_pool(53, Some(4));
-    let backend = RT.block_on(async { ContainerHandle::start_async(echo_config("doomed")).await })
+    let backend = block_with_reactor(async { ContainerHandle::start_async(echo_config("doomed")).await })
         .expect("start backend");
     let url = backend_url(&backend, ECHO_PORT);
 
@@ -253,7 +253,7 @@ fn test_hop_by_hop_stripped_and_xff_added() {
         return;
     }
     let _pool = initialize_pool(53, Some(4));
-    let a = RT.block_on(async { ContainerHandle::start_async(echo_config("hop-backend")).await })
+    let a = block_with_reactor(async { ContainerHandle::start_async(echo_config("hop-backend")).await })
         .expect("start echo A");
     let proxy = start_proxy(vec![ServiceConfig::new("app", "app.local")
         .backend(&backend_url(&a, ECHO_PORT))]);
@@ -277,7 +277,7 @@ fn test_tcp_passthrough_roundtrips_raw_bytes() {
     if !docker_available() {
         return;
     }
-    let backend = RT.block_on(async { ContainerHandle::start_async(echo_config("tcp-backend")).await })
+    let backend = block_with_reactor(async { ContainerHandle::start_async(echo_config("tcp-backend")).await })
         .expect("start backend");
     let port = backend.host_port(ECHO_PORT).expect("mapped");
 
@@ -296,7 +296,7 @@ fn test_udp_passthrough_roundtrips_bytes() {
     if !docker_available() {
         return;
     }
-    let backend = RT.block_on(async {
+    let backend = block_with_reactor(async {
         ContainerHandle::start_async(
             ContainerConfig::new("alpine/socat:latest")
                 .command(vec!["UDP-LISTEN:9000,fork".into(), "EXEC:cat".into()])
@@ -331,7 +331,7 @@ fn test_health_ejects_and_readmits_backend() {
         return;
     }
     let _pool = initialize_pool(53, Some(8));
-    let backend = RT.block_on(async { ContainerHandle::start_async(echo_config("health-me")).await })
+    let backend = block_with_reactor(async { ContainerHandle::start_async(echo_config("health-me")).await })
         .expect("start backend");
     let url = backend_url(&backend, ECHO_PORT);
 
