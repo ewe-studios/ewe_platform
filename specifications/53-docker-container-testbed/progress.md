@@ -86,7 +86,7 @@
 - pipe_mapped.rs: MappedSender/FilterMapReceiver with borrow-based transforms
   (zero-allocation, no extra valtron tasks). Extracted from pipe.rs for clarity.
 
-## Spec-53 decisions (24 total — all written)
+## Spec-53 decisions (29 total — all written)
 
 | # | Decision | Status |
 |---|----------|--------|
@@ -95,19 +95,25 @@
 | 15 | Cloudflare client transition | ✅ Implemented |
 | 16 | Deployment crate split | ✅ Implemented |
 | 17 | UDP proxying | ✅ Implemented |
-| 18 | TLS termination + auto-cert (ACME/Cloudflare) | 📋 Decision written — Stage 2 |
-| 19 | `proxy!` macro | 📋 Decision written — Stage 2 |
-| 20 | Unix-socket RPC | 📋 Decision written — Stage 3 |
-| 21 | State persistence (foundation_db) | 📋 Decision written — Stage 3 |
-| 22 | Zero-downtime deploy + canary | 📋 Decision written — Stage 3 |
-| 23 | Writer affinity (cookie stickiness) | 📋 Decision written — Stage 3 |
-| 24 | Cloudflare typed DNS records | 📋 Decision written — Stage 2 |
+| 18 | TLS termination + auto-cert | 📋 Stage 2 |
+| 19 | `proxy!` macro | 📋 Stage 2 |
+| 20 | Unix-socket RPC | 📋 Stage 3 |
+| 21 | State persistence | 📋 Stage 3 |
+| 22 | Zero-downtime deploy + canary | 📋 Stage 3 |
+| 23 | Writer affinity | 📋 Stage 3 |
+| 24 | Cloudflare typed DNS records | 📋 Stage 2 |
+| 25 | SSL redirect (HTTP→HTTPS) | 📋 Bundled with 18 |
+| 26 | HTTP/2 proxy integration | 📋 Stage 4 |
+| 27 | HTTP/3 (QUIC) proxy integration | 📋 Stage 4+ |
+| 28 | Testbed migration: vms/ → platform | 📋 Minor refactor |
+| 29 | Docker test `block_on` tokio fix | 📋 Bug fix |
 
 ## Stage 2 (next up)
 
 | Feature | Decision | Dependencies |
 |---------|----------|-------------|
 | TLS + auto-cert | 18 | rustls, acme-micro, VFS, CloudflareClient |
+| SSL redirect | 25 | Bundled with 18 — same PR |
 | `proxy!` macro | 19 | foundation_macros |
 | Cloudflare typed records | 24 | serde, Cloudflare API |
 
@@ -115,7 +121,21 @@
 
 | Feature | Decision | Dependencies |
 |---------|----------|-------------|
-| Unix-socket RPC | 20 | foundation_nativeapis, serde_json |
+| Unix-socket RPC | 20 | foundation_nativeapis |
 | State persistence | 21 | foundation_db |
-| Zero-downtime deploy | 22 | RPC (20), state persistence (21) |
+| Zero-downtime deploy | 22 | RPC (20) + state persistence (21) |
 | Writer affinity | 23 | Cookie parsing in handler |
+
+## Stage 4 (protocol upgrades)
+
+| Feature | Decision | Dependencies |
+|---------|----------|-------------|
+| HTTP/2 proxy | 26 | foundation_netio HTTP/2 (landed) |
+| HTTP/3 (QUIC) proxy | 27 | foundation_netio QUIC driver (F33) |
+
+## Housekeeping
+
+| Task | Decision |
+|------|----------|
+| Testbed vms/ migration | 28 |
+| Docker test tokio fix | 29 |
