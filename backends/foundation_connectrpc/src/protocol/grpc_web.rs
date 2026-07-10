@@ -35,7 +35,7 @@ use crate::error::{Code, ConnectError, ConnectResult};
 use crate::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::transport::{
     body_stream_from_pipe, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
-    PipeHandlerConn, TransportStream, DEFAULT_PIPE_DEPTH,
+    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
@@ -447,7 +447,7 @@ async fn read_frames(
 
 async fn write_frames(
     resp_rx: PipeReceiver<Frame>,
-    sink: ByteSink,
+    sink: Arc<dyn SendBody>,
     writer: EnvelopeWriter,
     text: bool,
     server: bool,
@@ -465,13 +465,12 @@ async fn write_frames(
             Some(Frame::Message(frame)) => {
                 let enveloped = writer.write(frame)?;
                 let out = emit(enveloped, &mut encoder);
-                if !out.is_empty() && sink.send(Bytes::from(out)).await.is_err() {
+                if !out.is_empty() && sink.send_async(Bytes::from(out)).await.is_err() {
                     return Ok(());
                 }
             }
             Some(Frame::EndStream { error, trailers }) => {
                 if server {
-                    // Render the 0x80 trailer frame with gRPC status.
                     let status_trailers = build_status_trailers(error.as_ref(), &trailers);
                     let body = render_trailer_frame_body(&status_trailers);
                     let mut frame = Vec::with_capacity(ENVELOPE_HEADER_LEN + body.len());
@@ -480,12 +479,12 @@ async fn write_frames(
                     frame.extend_from_slice(&body);
                     let out = emit(frame, &mut encoder);
                     if !out.is_empty() {
-                        let _ = sink.send(Bytes::from(out)).await;
+                        let _ = sink.send_async(Bytes::from(out)).await;
                     }
                 }
                 let tail = encoder.finish();
                 if !tail.is_empty() {
-                    let _ = sink.send(Bytes::from(tail)).await;
+                    let _ = sink.send_async(Bytes::from(tail)).await;
                 }
                 sink.close();
                 return Ok(());
@@ -493,7 +492,7 @@ async fn write_frames(
             None => {
                 let tail = encoder.finish();
                 if !tail.is_empty() {
-                    let _ = sink.send(Bytes::from(tail)).await;
+                    let _ = sink.send_async(Bytes::from(tail)).await;
                 }
                 sink.close();
                 return Ok(());
@@ -613,7 +612,7 @@ impl ProtocolHandler for GrpcWebHandler {
         ));
         let writer: BoxedTask = Box::pin(write_frames(
             ends.response_rx,
-            responder,
+            Arc::new(responder),
             EnvelopeWriter::new(negotiated.response_compressor, 0, 0),
             text,
             true,
@@ -832,7 +831,7 @@ impl ProtocolClient for GrpcWebClient {
 
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
-            stream.send_body,
+            Arc::clone(&stream.send_body),
             EnvelopeWriter::new(None, 0, 0),
             self.text,
             false,

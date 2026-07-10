@@ -34,7 +34,7 @@ use crate::error::{ConnectError, ConnectResult};
 use crate::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::transport::{
     body_stream_from_pipe, BodyStream, ByteSink, ByteSource, Frame, PipeClientConn,
-    PipeHandlerConn, TransportStream, DEFAULT_PIPE_DEPTH,
+    PipeHandlerConn, SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::grpc_web::build_status_trailers;
@@ -124,22 +124,18 @@ async fn read_frames(
 
 async fn write_frames(
     resp_rx: PipeReceiver<Frame>,
-    sink: ByteSink,
+    sink: Arc<dyn SendBody>,
     writer: EnvelopeWriter,
 ) -> ConnectResult<()> {
     loop {
         match resp_rx.receive().await {
             Some(Frame::Message(frame)) => {
                 let enveloped = writer.write(frame)?;
-                if !enveloped.is_empty() && sink.send(Bytes::from(enveloped)).await.is_err() {
+                if !enveloped.is_empty() && sink.send_async(Bytes::from(enveloped)).await.is_err() {
                     return Ok(());
                 }
             }
             Some(Frame::EndStream { error: _, trailers: _ }) => {
-                // gRPC errors ride HTTP/2 trailing HEADERS, not the body.
-                // The EndStream frame is consumed without writing body bytes;
-                // the writer task ends here and the transport layer emits
-                // trailing HEADERS from SimpleOutgoingResponse.trailers.
                 sink.close();
                 return Ok(());
             }
@@ -253,7 +249,7 @@ impl ProtocolHandler for GrpcHandler {
         ));
         let writer: BoxedTask = Box::pin(write_frames(
             ends.response_rx,
-            responder,
+            Arc::new(responder),
             EnvelopeWriter::new(negotiated.response_compressor, 0, 0),
         ));
 
@@ -435,7 +431,7 @@ impl ProtocolClient for GrpcClient {
 
         let writer: BoxedTask = Box::pin(write_frames(
             ends.request_rx,
-            stream.send_body,
+            Arc::clone(&stream.send_body),
             EnvelopeWriter::new(None, 0, 0),
         ));
         let reader: BoxedTask = Box::pin(read_frames(

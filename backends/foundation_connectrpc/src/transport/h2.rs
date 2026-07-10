@@ -152,7 +152,7 @@ impl Transport for H2Transport {
         let head: HeadStream = head_stream_from_pipe(head_rx);
         let recv_body: BodyStream = body_stream_from_pipe(body_rx);
 
-        Ok(TransportStream { send_body: send_tx, head, recv_body, trailers: trailer_rx })
+        Ok(TransportStream { send_body: Arc::new(send_tx), head, recv_body, trailers: trailer_rx })
     }
 }
 

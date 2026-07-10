@@ -198,7 +198,7 @@ fn roundtrip(text: bool) {
             },
             SimpleHeaders::new(),
             TransportStream {
-                send_body: req_tx,
+                send_body: Arc::new(req_tx),
                 // F45 Part D: TransportStream now speaks FutureStream; bridge the
                 // pipe-fed test harness through the pipe→FutureStream adapters.
                 head: foundation_connectrpc::transport::head_stream_from_pipe(client_head_rx),

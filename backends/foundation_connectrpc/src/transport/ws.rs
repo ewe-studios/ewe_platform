@@ -1,19 +1,18 @@
 //! WebSocket Transport — Connect envelopes over WS messages (F39).
 //!
-//! `WsTransport::open()` calls `WebSocketClient::connect_parts()` to get a
-//! spawned `WsTask` + `MessageDelivery`, then wires byte pipes with bridge
-//! tasks: `send_rx` bytes → `Binary` → `MessageDelivery`, and task stream →
-//! `body_tx` bytes. The task handles TCP, handshake, frame I/O, Ping/Pong,
-//! Close — everything the WS crate already does.
+//! `WsTransport::open()` calls `WebSocketClient::connect_parts()`, spawns the
+//! WS task + collector on the pool, and returns a `TransportStream` whose
+//! `send_body` is a `MappedSender` — `Bytes` pushed by the caller are
+//! converted to `WebSocketMessage::Binary` inline and pushed into the task's
+//! outbound pipe. Zero outbound bridge tasks.
 
 use std::sync::Arc;
 use std::time::Duration;
 
 use bytes::Bytes;
 use foundation_core::url::Uri;
-use foundation_core::valtron::{self, Pipe};
+use foundation_core::valtron::{self, Pipe, Stream};
 use foundation_core::valtron::execute;
-use foundation_core::valtron::Stream;
 use foundation_netio::simple_http::client::shared::dns::SystemDnsResolver;
 use foundation_netio::simple_http::shared::{
     Proto, RequestDescriptor, SimpleHeaders, Status,
@@ -73,13 +72,20 @@ impl Transport for WsTransport {
         )
         .map_err(|e| TransportError::Protocol(format!("ws connect: {e}")))?;
 
-        // 2. Byte pipes for the caller-facing TransportStream.
+        // 2. Pipes.
         let (head_tx, head_rx) = Pipe::<(Status, SimpleHeaders)>::with_depth(1);
         let (trailer_tx, trailer_rx) = Pipe::<SimpleHeaders>::with_depth(1);
-        let (send_tx, send_rx) = Pipe::<Bytes>::with_depth(64);
         let (body_tx, body_rx) = Pipe::<Bytes>::with_depth(64);
 
-        // 3. Spawn the WS task on the valtron pool, bridge its output to body_tx.
+        // 3. Outbound: caller pushes Bytes → MappedSender converts to Binary
+        //    → pushed into delivery's inner PipeSender<WebSocketMessage>.
+        //    The WS task's outbound_rx drains it. Zero bridge tasks.
+        let outbound_pipe = delivery.pipe().clone();
+        let send_body: Arc<dyn super::SendBody> = Arc::new(
+            outbound_pipe.map_to(|b: &Bytes| WebSocketMessage::Binary(b.to_vec()))
+        );
+
+        // 4. Spawn the WS task on valtron, bridge its output stream → body_tx.
         let inner = execute(task, None).map_err(|e| {
             TransportError::Connect(Arc::new(std::io::Error::new(
                 std::io::ErrorKind::Other,
@@ -118,32 +124,8 @@ impl Transport for WsTransport {
             )))
         })?;
 
-        // 4. Bridge: send_rx bytes → Binary → delivery (outbound).
-        valtron::send(valtron::from_future(async move {
-            loop {
-                match send_rx.receive().await {
-                    Some(bytes) => {
-                        if delivery
-                            .send(WebSocketMessage::Binary(bytes.to_vec()))
-                            .is_err()
-                        {
-                            break;
-                        }
-                    }
-                    None => break,
-                }
-            }
-        }))
-        .map_err(|e| {
-            TransportError::Connect(Arc::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("spawn outbound bridge: {e}"),
-            )))
-        })?;
-
-        // 5. Return TransportStream with byte pipes.
         Ok(TransportStream {
-            send_body: send_tx,
+            send_body,
             head: head_stream_from_pipe(head_rx),
             recv_body: body_stream_from_pipe(body_rx),
             trailers: trailer_rx,

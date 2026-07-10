@@ -140,7 +140,7 @@ impl Transport for H1Transport {
         trailer_tx.close();
 
         Ok(TransportStream {
-            send_body,
+            send_body: Arc::new(send_body),
             head,
             recv_body,
             trailers: trailer_rx,

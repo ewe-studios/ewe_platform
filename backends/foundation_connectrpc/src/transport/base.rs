@@ -21,12 +21,13 @@
 //! I/O, and the caller is already in a valtron context (or uses the pipe's own
 //! `receive().await` / `try_recv()` + `readiness()` surface).
 
+use std::future::Future;
 use std::pin::Pin;
 use std::sync::Arc;
 
 use bytes::Bytes;
 use futures::{Stream, StreamExt};
-use foundation_core::valtron::{PipeReceiver, PipeSender};
+use foundation_core::valtron::{MappedSender, PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::simple_http::shared::{RequestDescriptor, SimpleHeaders, Status};
 
@@ -36,6 +37,47 @@ use super::capabilities::TransportCapabilities;
 
 /// The wire-body byte sink (request bytes out).
 pub type ByteSink = PipeSender<Bytes>;
+
+/// Trait for the `send_body` field on [`TransportStream`] — lets transports
+/// supply a `PipeSender<Bytes>` (the default) or a `MappedSender` wrapping one,
+/// so outbound bytes flow through a transform without a bridge task (F39).
+pub trait SendBody: Send + Sync + 'static {
+    /// Non-blocking push. `Err(())` when full — caller retries.
+    fn try_send(&self, item: Bytes) -> Result<(), ()>;
+    /// Async send — parks on backpressure. Protocol writers use this path.
+    fn send_async(&self, item: Bytes) -> SendBodyFuture<'_>;
+    fn close(&self);
+    fn is_closed(&self) -> bool;
+}
+
+/// Boxed future from [`SendBody::send_async`].
+pub type SendBodyFuture<'a> = Pin<Box<dyn Future<Output = Result<(), ()>> + Send + 'a>>;
+
+impl SendBody for PipeSender<Bytes> {
+    fn try_send(&self, item: Bytes) -> Result<(), ()> {
+        self.try_send(item).map_err(|_| ())
+    }
+    fn send_async(&self, item: Bytes) -> SendBodyFuture<'_> {
+        Box::pin(async move { self.send(item).await.map_err(|_| ()) })
+    }
+    fn close(&self) { self.close(); }
+    fn is_closed(&self) -> bool { self.is_closed() }
+}
+
+impl<Inner: Send + 'static, F> SendBody for MappedSender<Inner, Bytes, F>
+where
+    F: Fn(&Bytes) -> Inner + Send + Sync + 'static,
+{
+    fn try_send(&self, item: Bytes) -> Result<(), ()> {
+        self.try_send(&item)
+    }
+    fn send_async(&self, item: Bytes) -> SendBodyFuture<'_> {
+        Box::pin(async move { self.send(item).await.map_err(|_| ()) })
+    }
+    fn close(&self) { self.close(); }
+    fn is_closed(&self) -> bool { self.is_closed() }
+}
+
 /// The wire-body byte source (response bytes in) — the pipe-backed variant still
 /// used by server-side readers and pipe-fed test harnesses.
 pub type ByteSource = PipeReceiver<Bytes>;
@@ -128,8 +170,8 @@ pub trait Transport: Send + Sync + 'static {
 
 /// A live transport exchange (F45 Part D, design D1). Four caller-facing halves.
 pub struct TransportStream {
-    /// Wire request-body bytes out (the one surviving `Pipe`).
-    pub send_body: ByteSink,
+    /// Wire request-body bytes out (trait object — Pipe, MappedSender, etc.).
+    pub send_body: Arc<dyn SendBody>,
     /// The response head(s). RPC protocols emit exactly one, so consumers take the
     /// first item (`head.next().await`); an h2/h3 transport may emit interim heads
     /// (`1xx`) before the final one. Each item is `Ok(head)` or `Err(TransportError)`

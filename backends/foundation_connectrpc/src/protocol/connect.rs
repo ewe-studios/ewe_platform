@@ -34,7 +34,7 @@ use crate::error::{Code, ConnectError, ConnectResult, EndStreamResponse, WireErr
 use crate::envelope::{Envelope, EnvelopeWriter, ENVELOPE_HEADER_LEN};
 use crate::transport::{
     BodyStream, ByteSink, ByteSource, Frame, PipeClientConn, PipeHandlerConn,
-    TransportStream, DEFAULT_PIPE_DEPTH,
+    SendBody, TransportStream, DEFAULT_PIPE_DEPTH,
 };
 
 use super::{
@@ -309,14 +309,14 @@ async fn read_response_frames(
 /// Client/writer: envelope + compress request frames onto the request body.
 async fn write_request_frames(
     req_rx: PipeReceiver<Frame>,
-    sink: ByteSink,
+    sink: Arc<dyn SendBody>,
     writer: EnvelopeWriter,
 ) -> ConnectResult<()> {
     loop {
         match req_rx.receive().await {
             Some(Frame::Message(frame)) => {
                 let bytes = writer.write(frame)?;
-                if sink.send(Bytes::from(bytes)).await.is_err() {
+                if sink.send_async(Bytes::from(bytes)).await.is_err() {
                     return Ok(());
                 }
             }
@@ -673,7 +673,7 @@ impl ProtocolClient for ConnectClient {
         // response head in the client core, F24); identity by default.
         let writer_impl = EnvelopeWriter::new(None, 0, 0);
         let writer: BoxedTask =
-            Box::pin(write_request_frames(ends.request_rx, stream.send_body, writer_impl));
+            Box::pin(write_request_frames(ends.request_rx, Arc::clone(&stream.send_body), writer_impl));
         let reader: BoxedTask =
             Box::pin(read_response_frames(stream.recv_body, ends.response_tx, None, 0));
 
