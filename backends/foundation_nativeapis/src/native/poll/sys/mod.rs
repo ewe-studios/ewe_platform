@@ -4,8 +4,10 @@
 /// On macOS/BSD: kqueue
 /// On Windows: IOCP
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(feature = "uring")))]
 pub use self::unix::selector::epoll::{Selector, RawFd};
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub use self::unix::selector::uring::{Selector, RawFd};
 
 #[cfg(any(
     target_os = "macos",

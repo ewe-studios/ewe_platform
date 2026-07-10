@@ -1,9 +1,15 @@
 /// Unix platform selector and utilities.
 
-#[cfg(target_os = "linux")]
+#[cfg(all(target_os = "linux", not(feature = "uring")))]
 pub mod selector {
     pub mod epoll;
-    
+    pub use epoll::{Selector, RawFd};
+}
+
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub mod selector {
+    pub mod uring;
+    pub use uring::{Selector, RawFd};
 }
 
 #[cfg(any(
