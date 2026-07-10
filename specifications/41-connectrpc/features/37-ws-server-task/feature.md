@@ -103,10 +103,13 @@ After:
     on Close → drop(tx)                           // caller's rx.try_recv() → Closed
 ```
 
-#### WebSocketTask (client)
+#### WebSocketTask (client) — single-shot, Pipe-based
 
-This is the existing task in `foundation_netio` — authored before F02 Pipe
-existed. Migration:
+This is the existing single-shot client task in `foundation_netio`. It connects,
+handshakes, then enters a read/write loop. One connection = one task. No
+reconnection — if the TCP connection drops, the task drains and completes.
+
+Migration from `Arc<ConcurrentQueue>` to `PipeReceiver`:
 
 ```
 Before:
@@ -126,51 +129,40 @@ After:
     }
 ```
 
-`try_recv()` is the task-path counterpart to `receive().await` — non-blocking,
-returns `Empty` when the pipe has no data, and the task parks via
-`TaskStatus::Depends(pipe.readiness())`. When the caller calls `tx.send()` or
-`tx.try_send()`, the pipe fires the stashed consumer waker, the executor
-re-polls the task, and `try_recv()` returns the message.
+#### ReconnectingWebSocketTask — wraps WebSocketTask, adds reconnection
 
-#### ReconnectingWebSocketTask
+Layers reconnection over the single-shot `WebSocketTask`. On disconnect:
+exponential backoff → new `WebSocketTask` → resume. The caller sees a
+single stable task that never completes unless the retry limit is hit.
 
-Wraps `WebSocketTask` and inherits its Pipe ends. Key benefit:
-**reconnection transparency for the caller**.
+Already surfaces connection state via `type Pending = ReconnectingWebSocketProgress`:
+`Connecting` / `Handshaking` / `Reading` / `Reconnecting`. Callers that want to
+expose reconnect status already have it through the task's pending messages.
+
+After Pipe migration, the reconnect cycle preserves the caller's Pipe ends:
 
 ```
 Before:
-  Each reconnect creates a new inner task with a new Arc<ConcurrentQueue>.
-  The caller must detect reconnection and re-subscribe — the old queue is
-  orphaned, messages sent to it after disconnect are silently lost.
+  Each reconnect creates a new inner WebSocketTask with a new queue.
+  The caller's old queue is orphaned; messages sent during reconnect are lost.
 
 After:
   The caller holds the SAME PipeSender<WebSocketMessage> across reconnects.
-  On disconnect: the inner task's PipeReceiver drops, the old task drains.
-  On reconnect: a new WebSocketTask is created with a fresh Pipe pair.
-  The caller's PipeSender is SWAPPED atomically — it points at the new
-  pipe, and messages already queued in the old pipe are drained first.
-
   ReconnectingWebSocketTask stores:
     outbound_tx: Arc<Mutex<PipeSender<WebSocketMessage>>>  // shared with caller
     outbound_rx: Option<PipeReceiver<WebSocketMessage>>    // current inner task's rx
 
   On reconnect:
     1. Create new Pipe pair.
-    2. Swap the shared tx to point at the new pipe.
-    3. Spawn a drainer: empty any remaining messages from the OLD rx,
-       forward them to the new tx (preserves in-flight messages).
-    4. Give the new rx to the fresh inner WebSocketTask.
-    5. Drop the old inner task.
+    2. Swap shared_tx to point at the new pipe.
+    3. Spawn drainer (via BoxedSendExecutionAction): forward remaining messages
+       from old rx into new tx.
+    4. Give new rx to the fresh inner WebSocketTask.
+    5. Drop old inner task.
 
-  Caller sees `tx.send(msg).await` succeed as long as the reconnect
-  completes before the pipe fills. On permanent failure (max retries
-  exhausted), `tx` is closed → caller sees `send() → Err(Closed)`.
+  Caller sees tx.send(msg).await succeed across reconnect cycles. On permanent
+  failure → tx closes → caller sees send() → Err(Closed).
 ```
-
-The caller supplies `Option<Arc<Mutex<PipeSender<WebSocketMessage>>>>` —
-`Some(shared_tx)` means "keep this sender stable across reconnects." `None`
-means the task creates its own (caller reads `outbound_sender()` to get the
-shared handle).
 
 ### WsTransport (F39) built on ReconnectingWebSocketTask
 
@@ -197,7 +189,7 @@ No raw TCP, no handshake duplication — the existing proven
 - [ ] WsServerConfig { auto_pong, max_message_size, graceful_close, read_model }
 - [ ] Retrofit blocking `WebSocketServerConnection::recv` with the assembler
 - [ ] Accept `Option<Arc<dyn EventReadiness + Send + Sync>>` in all three task constructors — caller injects fd readiness (F38)
-- [ ] **Spawner**: all three WS task types use `BoxedSendExecutionAction` — never `NoSpawner`. Tasks need spawn capability (drainer during reconnect, collector bridging pipe halves)
+- [ ] Fix `WebSocketServerTask::Spawner = BoxedSendExecutionAction` (currently `NoSpawner` in the committed code; `WebSocketTask` and `ReconnectingWebSocketTask` already use `BoxedSendExecutionAction` correctly — no change needed there)
 
 ## Acceptance criteria
 
@@ -206,5 +198,6 @@ No raw TCP, no handshake duplication — the existing proven
 - [ ] `WebSocketServerTask` sender returns `TaskStatus::Depends(pipe.vacancy())` on full inbound pipe, wakes on consumer drain
 - [ ] `ReconnectingWebSocketTask` reconnects transparently; caller's `PipeSender` survives the reconnect cycle
 - [ ] `WsTransport::open()` spawns `ReconnectingWebSocketTask`, returns `TransportStream` with pipe-backed send/recv — no raw TCP
+- [ ] `ReconnectingWebSocketProgress` (already `type Pending`) surfaces reconnect state — callers observe `Connecting`/`Handshaking`/`Reading`/`Reconnecting` without polling internals
 - [ ] Caller-supplied `Option<PipeHalf>` — `Some(half)` uses it, `None` creates internally and exposes via accessor
-- [ ] All tasks: `type Spawner = BoxedSendExecutionAction`
+- [ ] `WebSocketServerTask::Spawner` fixed to `BoxedSendExecutionAction` (`WebSocketTask` + `ReconnectingWebSocketTask` already use it)

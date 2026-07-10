@@ -57,6 +57,11 @@ The task's inbound `Ready(WebSocketMessage)` values are bridged to `body_tx`
 by a thin collector adapter. The 101 head is emitted once on handshake
 completion (the task surfaces `ConnectionEstablished`).
 
+Reconnection status is already surfaced via `type Pending =
+ReconnectingWebSocketProgress` — `Connecting` / `Handshaking` / `Reading` /
+`Reconnecting`. The transport can expose this if desired, but the default is
+transparent: the caller just sees a `TransportStream`.
+
 ### Why Pipe instead of ConcurrentQueue
 
 See [F37 design revision](../37-ws-server-task/feature.md#design-revision-concurrentqueue--pipe) —
