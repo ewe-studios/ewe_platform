@@ -240,6 +240,7 @@ impl TaskIterator for WebSocketServerTask {
 mod tests {
     use super::*;
     use foundation_core::io::ioutils::SharedByteBufferStream;
+    use foundation_core::valtron::Pipe;
     use std::io::Write;
 
     /// A helper to get a TcpStream pair for tests.
