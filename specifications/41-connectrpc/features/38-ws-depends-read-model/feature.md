@@ -1,7 +1,7 @@
 ---
 feature: "WS Depends read model — caller-injected EventReadiness (D13 E2)"
 description: "Caller wraps fd in Arc<dyn EventReadiness>, passes it to the task. Reactor-backed or timer-fallback — task code is identical."
-status: "in-progress"
+status: "complete"
 priority: "medium"
 phase: 4
 depends_on: ["36-ws-resumable-decoder", "10-reactor-parking", "02-pipe-primitive"]
