@@ -114,8 +114,24 @@
 |---------|----------|-------------|
 | TLS + auto-cert | 18 | rustls, acme-micro, VFS, CloudflareClient |
 | SSL redirect | 25 | Bundled with 18 — same PR |
-| `proxy!` macro | 19 | foundation_macros |
+| ~~`proxy!` macro tests~~ | 19 | ✅ **COMPLETE** — 7 compile-fail + 13 round-trip tests |
 | Cloudflare typed records | 24 | serde, Cloudflare API |
+
+### ✅ `proxy!` macro test suite (Decision 19) — COMPLETE 2026-07-10
+
+**Bugs found and fixed during testing:**
+- `ServiceBlock::parse` missing `:` consumption between name and braced block
+- `SslBlock::parse` missing trailing comma consumption inside `lets_encrypt`/`cloudflare`/`static_cert` blocks, and between `cert`/`key` fields
+
+**Test coverage:**
+- 7 trybuild compile-fail tests in `foundation_macros/tests/trybuild/fail/proxy_*.rs`
+  (missing domain, missing public_ip, unknown top-level key, unknown service key,
+  unknown health_check key, unknown SSL provider, missing service host)
+- 13 round-trip tests in `foundation_proxy/tests/proxy_macro_tests.rs`
+  (minimal, bind_addr, lets_encrypt/static_cert/cloudflare/none SSL, empty services,
+  no backends, multiple backends, multiple services, path_prefix, health_check all fields,
+  type check)
+- All existing tests pass (28 macros + 52 trybuild + 41 proxy)
 
 ## Stage 3 (control plane)
 

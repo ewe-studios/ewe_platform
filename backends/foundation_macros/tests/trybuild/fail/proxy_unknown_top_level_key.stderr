@@ -1,0 +1,5 @@
+error: unknown key: foo
+ --> tests/trybuild/fail/proxy_unknown_top_level_key.rs:8:9
+  |
+8 |         foo: "bar",
+  |         ^^^

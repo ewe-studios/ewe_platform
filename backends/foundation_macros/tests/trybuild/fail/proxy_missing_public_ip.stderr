@@ -1,0 +1,11 @@
+error: unexpected end of input, missing required field: public_ip
+ --> tests/trybuild/fail/proxy_missing_public_ip.rs:5:19
+  |
+5 |       let _config = proxy! {
+  |  ___________________^
+6 | |         domain: "example.com",
+7 | |         services: {},
+8 | |     };
+  | |_____^
+  |
+  = note: this error originates in the macro `proxy` (in Nightly builds, run with -Z macro-backtrace for more info)

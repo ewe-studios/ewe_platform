@@ -86,19 +86,31 @@ impl Parse for SslBlock {
                 let content;
                 braced!(content in input);
                 let email = parse_field(&content, "email")?;
+                if content.peek(Token![,]) {
+                    content.parse::<Token![,]>()?;
+                }
                 Ok(SslBlock::LetsEncrypt { email })
             }
             "cloudflare" => {
                 let content;
                 braced!(content in input);
                 let zone_id = parse_field(&content, "zone_id")?;
+                if content.peek(Token![,]) {
+                    content.parse::<Token![,]>()?;
+                }
                 Ok(SslBlock::Cloudflare { zone_id })
             }
             "static_cert" => {
                 let content;
                 braced!(content in input);
                 let cert = parse_field(&content, "cert")?;
+                if content.peek(Token![,]) {
+                    content.parse::<Token![,]>()?;
+                }
                 let key = parse_field(&content, "key")?;
+                if content.peek(Token![,]) {
+                    content.parse::<Token![,]>()?;
+                }
                 Ok(SslBlock::StaticCert { cert, key })
             }
             "none" => Ok(SslBlock::None),
@@ -120,6 +132,7 @@ struct ServiceBlock {
 impl Parse for ServiceBlock {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let name: Ident = input.parse()?;
+        input.parse::<Token![:]>()?;
         let content;
         braced!(content in input);
 
