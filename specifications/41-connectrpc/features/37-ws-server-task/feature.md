@@ -196,11 +196,15 @@ No raw TCP, no handshake duplication — the existing proven
 - [ ] Delete `WsBytePump` (raw TCP pump in pump.rs) — replaced by ReconnectingWebSocketTask + Pipe
 - [ ] WsServerConfig { auto_pong, max_message_size, graceful_close, read_model }
 - [ ] Retrofit blocking `WebSocketServerConnection::recv` with the assembler
+- [ ] Accept `Option<Arc<dyn EventReadiness + Send + Sync>>` in all three task constructors — caller injects fd readiness (F38)
+- [ ] **Spawner**: all three WS task types use `BoxedSendExecutionAction` — never `NoSpawner`. Tasks need spawn capability (drainer during reconnect, collector bridging pipe halves)
 
 ## Acceptance criteria
 
 - [x] Multi-frame messages assemble on the server; Ping auto-answered per config; Close handshake completes per config (F37 as committed)
-- [ ] `WebSocketTask.next_status()` returns `Depends(pipe.readiness())` on empty outbound — zero polls on idle connection
-- [ ] `WebSocketServerTask` sender parks on full inbound pipe, wakes on consumer drain
+- [ ] `WebSocketTask.next_status()` returns `TaskStatus::Depends(pipe.readiness())` on empty outbound — zero polls on idle connection
+- [ ] `WebSocketServerTask` sender returns `TaskStatus::Depends(pipe.vacancy())` on full inbound pipe, wakes on consumer drain
 - [ ] `ReconnectingWebSocketTask` reconnects transparently; caller's `PipeSender` survives the reconnect cycle
 - [ ] `WsTransport::open()` spawns `ReconnectingWebSocketTask`, returns `TransportStream` with pipe-backed send/recv — no raw TCP
+- [ ] Caller-supplied `Option<PipeHalf>` — `Some(half)` uses it, `None` creates internally and exposes via accessor
+- [ ] All tasks: `type Spawner = BoxedSendExecutionAction`
