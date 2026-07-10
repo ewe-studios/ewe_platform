@@ -1,7 +1,7 @@
 ---
 feature: "io_uring readiness selector (D14 F2)"
 description: "Multishot-poll io_uring backend behind the existing Selector interface, with the uring↔epoll parity suite"
-status: "pending"
+status: "complete"
 priority: "medium"
 phase: 2
 depends_on: ["40-shared-reactor"]

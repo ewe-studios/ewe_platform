@@ -77,7 +77,15 @@ impl WatcherBuilder {
     fn try_build_api(api: NativeAPI, _timeout: Duration) -> Result<Box<dyn NativeWatcher>> {
         match api {
             #[cfg(feature = "uring")]
-            NativeAPI::IOUring => Err(WatchError::UnsupportedPlatform),
+            NativeAPI::IOUring => {
+                // F42: probe — the uring Selector constructor tries IoUring::new()
+                // which fails on unsupported kernels. If it succeeds, the uring
+                // backend is operational.
+                match crate::native::poll::sys::Selector::new() {
+                    Ok(_) => Self::build_poll_watcher(),
+                    Err(e) => Err(e.into()),
+                }
+            }
             #[cfg(not(feature = "uring"))]
             NativeAPI::IOUring => Err(WatchError::UnsupportedPlatform),
             #[cfg(all(target_os = "linux", feature = "watcher-linux"))]
