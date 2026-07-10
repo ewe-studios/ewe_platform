@@ -11,8 +11,14 @@ created: 2026-07-10
 # Feature 48: Transport opt-in to the completion read path
 
 > **Status: proposed, for review.** This document is a design proposal, not a
-> plan of record. It ends with a recommendation and the two alternatives I
-> rejected, with the reasons. Nothing is implemented.
+> plan of record. It ends with a recommendation and the alternatives I rejected,
+> with the reasons. Nothing is implemented.
+>
+> **Supersedes and absorbs** spec-53 Decision 30 (`30-iouring-completion-netio.md`),
+> which is merged into this document and deleted. See *Relationship to Decision 30*
+> below: its problem statement stands, several of its premises were overtaken by
+> feature 43, and its recommended shape is not the one recommended here. Its proxy,
+> splice, phasing and benchmark work is carried forward.
 
 ## Why this exists
 
@@ -102,6 +108,47 @@ Not the types. The **dependency direction** and the **registration lifecycle**.
   readiness *from the caller* precisely so netio owns none of that.
 - Only `foundation_http` depends on `foundation_nativeapis` today, and only from
   a test.
+
+## Relationship to Decision 30
+
+Decision 30 (`30-iouring-completion-netio.md`, same date) asked the same question
+and reached a different answer. It was written against the tree *before* feature
+43 merged, and four of its premises no longer hold:
+
+| Decision 30 says | Actually true after F43 |
+|---|---|
+| "`foundation_nativeapis` now has a full io_uring **readiness** selector (F41–F43)… The selector replaces epoll, not the I/O path." | F43 *is* the completion path. `uring_completion::Selector` arms multishot `RECV` against a registered buffer ring and delivers bytes. Measured at 0 read syscalls. |
+| Proposes building `UringBufPool` (a `Vec<Vec<u8>>` + `ArrayQueue<u16>`). | `BufRing` exists: a page-aligned `io_uring_buf` ring registered with `IORING_REGISTER_PBUF_RING`, with `ProvidedBuf` returning buffers on `Drop`. A `Vec<Vec<u8>>` is *not* a kernel buffer ring; the kernel needs one contiguous, page-aligned, registered region. |
+| Proposes `UringDriver` with its own thread and `wake_task(token)`. | The shared `Reactor` already owns a drain thread, a `Token → Ready` cache, and the `EventReadiness` wake. A second driver would be a second reactor. |
+| Proposes `IORING_OP_READ` per read. | `RECV_MULTISHOT` arms **once per fd** for its lifetime. This is why D14 OQ#14.1's SQ-contention worry did not materialise: submissions are `O(registrations)`, not `O(reads)` — measured, 64 round-trips push zero extra SQEs. |
+| `Connection` is `Tcp | Unix`. | It is `Tcp | Unix | Tls`, and `RustlsStream<T>` wraps a `Connection`. That is the fact this design turns on. |
+
+Its `UringStream::read` also **parks inside `Read::read`** (`self.ring.wait_one(fd)?`
+then recurses). That inverts the valtron model: a leaf task must return
+`Depends(source)` and be re-polled, not block a worker thread inside a `read`.
+`RegisteredFd::read_bytes` instead returns `WouldBlock`, and the task parks — the
+same contract as `read(2)` on a nonblocking socket, which is precisely why no
+transport code needs to change.
+
+**What Decision 30 got right, and this document keeps:**
+
+- The framing: readiness is half the story; data movement is the other half.
+- That `RawStream`'s `Read` impl is the compatibility surface, and nothing above
+  it should change.
+- The buffer-swap trade-off: one `memcpy` from the registered buffer into the
+  caller's `&mut [u8]`, in exchange for working with every existing `Read` caller.
+  Its "eliminating the copy requires `fn read_direct(&self) -> &[u8]`" is exactly
+  this document's open question 3 (`take_completions()` zero-copy).
+- Its rejection of per-read submission (its Solution 2) and of a wholesale trait
+  migration (its Solution 3), for the same reasons.
+- The proxy integration, `splice_bidirectional`, phasing, and benchmark plan —
+  carried forward below.
+
+**Where it differs, and why this document overrides it:** Decision 30's Solution 1
+adds a `RawStream::Uring` variant. That is one layer too high. See *Considered and
+unnecessary: expanding `RawStream`* — it leaves both TLS variants unable to use
+completion mode, whereas seating the source at `Connection` gives TLS the path for
+free, because `RustlsStream` reads through a `Connection`.
 
 ## Constraints the design must respect
 
@@ -417,6 +464,29 @@ argument). Inverting that for one backend buys a `Box` and costs the layering.
 Worth revisiting only if the `Box<dyn>` shows up in a profile, which it will not
 — it is one indirect call per `read`, against a 16 KiB memcpy.
 
+## Rejected: Decision 30's Solution 2 — submit an op per `read()`
+
+Submit `IORING_OP_READ` against the caller's `&mut [u8]`, then `io_uring_enter`
+and wait for the single CQE.
+
+**Why not** — and Decision 30 reaches the same conclusion: it is *one syscall per
+read*, strictly worse than `libc::read()` for a single call, with the batching win
+only appearing when several reads ride one `enter`. It also requires the caller's
+buffer to stay put across the `enter`. Multishot `RECV` gets the batching without
+either problem: the kernel already holds the buffers, and one SQE covers the fd's
+entire lifetime.
+
+## Rejected: Decision 30's Solution 3 — migrate `RawStream` to a trait
+
+`trait Transport: Read + Write + AsRawFd { fn submit_read(..); }`.
+
+**Why not.** Decision 30's own objection is right: the `RawStream` enum is deeply
+embedded across `foundation_netio`, `foundation_http` and `foundation_connectrpc`,
+and turning it into dynamic dispatch is a separate, larger project. Note that the
+recommendation here *does* introduce dynamic dispatch, but at `Connection` and for
+one variant only — a `Box<dyn ConnectionSource>` behind an existing enum, not a
+migration of the enum itself.
+
 ## Rejected: Option C — a parallel "completion transport"
 
 Build `CompletionH1Transport` / `CompletionWsServerTask` alongside the existing
@@ -451,17 +521,80 @@ top. What is needed is to change where bytes come *from*, not to re-expose the f
 
 ---
 
+## Where the win actually shows up: the proxy
+
+Carried forward from Decision 30, whose hot-path analysis is the strongest
+argument for doing this at all. `foundation_proxy`'s path is
+`ProxyHandler::serve()` → `forward_http()` → `SimpleHttpClient::send()` →
+`RawStream::read()`. With `Connection::Source`:
+
+1. **Accept.** The listener stays on `POLL_ADD` — `RECV` on a listening socket is
+   meaningless, and F43 already falls back for `SO_ACCEPTCONN` fds.
+2. **Read request.** `RawStream::read()` → `Connection::Source::read()` → pop the
+   inbox. No syscall. On an empty inbox: `WouldBlock`, and the task parks on
+   `Depends`.
+3. **Forward upstream.** `SimpleHttpClient` holds its own `RawStream` for the
+   backend connection; the same `Connection::Source` applies, so both legs of a
+   proxied request read without syscalls.
+4. **`splice_bidirectional`.** This is the biggest single win and the clearest
+   correctness improvement. It currently spin-polls two nonblocking `Read` handles
+   with a **1 ms sleep** between passes. In completion mode both fds are armed
+   multishot; the task parks on a composite readiness over the two inboxes and
+   wakes when either has bytes. The sleep — and the latency floor it imposes —
+   disappears. This works today with the existing seam and does not need the
+   zero-copy path.
+
+Note this is *not* zero-copy end to end. The kernel fills a registered buffer;
+we `memcpy` it into the caller's slice. Decision 30's phase 4 — both directions
+sharing one buffer ring so bytes move fd→buffer→fd without touching user memory —
+needs `IORING_OP_SEND` against a provided buffer, which is out of scope here.
+
 ## Scope
 
 - `foundation_netio`: `ConnectionSource` trait; `Connection::Source` variant;
-  `Read`/`Write`/`AsRawFd`/`Debug` arms. **No new dependency.**
+  `Read`/`Write`/`AsRawFd`/`AsFd`/`Debug` arms, plus the `PeekableReadStream`,
+  `SplitReadStream`, `ReadTimeoutOperations`, and addr/shutdown obligations
+  enumerated above. **No new dependency.**
 - `foundation_nativeapis`: `CompletionSocket<T>` wrapper over the existing
-  `RegisteredFd::with_completion` + `read_bytes`. Small.
+  `RegisteredFd::with_completion` + `read_bytes`. Small — the machinery is done.
 - `foundation_http`: the `ConnectionSource` impl, and an accept path that builds
   `Connection::Source`.
+- `foundation_proxy`: `splice_bidirectional` parks on composite readiness instead
+  of sleeping 1 ms.
 - A `completion-io` runtime switch (env or server-builder option) so an operator
   can force the readiness path without recompiling, and so the parity tests can
   drive both.
+
+## Phased rollout
+
+Adapted from Decision 30, with the phases that F43 already completed struck out.
+
+- ~~**Phase 1: buffer pool + driver.**~~ **Done in F43.** `BufRing` (registered
+  `PBUF_RING`, `ProvidedBuf` recycle-on-drop) and the shared `Reactor` drain
+  thread already exist and are tested, including pool starvation and recovery.
+- **Phase 2: `CompletionSocket` + `Connection::Source`.** The trait, the variant,
+  the arms. Gate behind `completion-io`. Read/write parity against `TcpStream`.
+- **Phase 3: server + proxy integration.** Accept path builds `Connection::Source`.
+  Benchmark proxy throughput with the switch on and off.
+- **Phase 4: `splice_bidirectional` without the sleep.** Composite readiness over
+  both inboxes.
+- **Phase 5 (separate feature): `IORING_OP_SEND` and the zero-copy relay.**
+  Out of scope here; needs write-side buffer accounting.
+
+## Verification
+
+- `cargo test -p foundation_netio --features completion-io` — `Connection::Source`
+  read/write/peek/split parity against `Connection::Tcp`.
+- The ptrace syscall counter from `uring_completion_syscall_tests.rs`, pointed at a
+  real served connection rather than a bare socketpair: **zero** read-family
+  syscalls on the connection fd, with the epoll-forced run as the control arm.
+  (`strace -f -e trace=read,recvfrom,recvmsg` corroborates; `perf stat -e
+  raw_syscalls:sys_enter` gives the aggregate Decision 30 asks for.)
+- `cargo test -p foundation_proxy --features docker-tests,completion-io`.
+- `wrk -c 100 -t 4` against the proxy, io_uring vs epoll. Decision 30 predicts
+  2–4× for small requests and 1.2–1.5× for large bodies; treat those as hypotheses
+  to test, not targets. The syscall count is the measurement that is not
+  hardware-dependent.
 
 ## Out of scope
 
