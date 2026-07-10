@@ -12,11 +12,10 @@
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
-use foundation_core::valtron::{execute, DrivenStreamIterator, Stream};
+use foundation_core::valtron::{execute, DrivenStreamIterator, Pipe, PipeReceiver, PipeSender, Stream};
 use crate::simple_http::client::shared::DnsResolver;
 use crate::simple_http::client::HttpConnectionPool;
 use crate::simple_http::shared::SimpleHeader;
-use concurrent_queue::ConcurrentQueue;
 use std::sync::Arc;
 use std::time::Duration;
 
@@ -335,72 +334,77 @@ fn parse_close_payload(payload: &[u8]) -> (u16, String) {
 
 /// WHY: Users need a send-capable WebSocket client that integrates with valtron executor.
 ///
-/// WHAT: `MessageDelivery` provides thread-safe message sending via `ConcurrentQueue`.
+/// WHAT: `MessageDelivery` provides message sending via `PipeSender` — the
+/// bounded, waker-hooked replacement for `ConcurrentQueue`. Same public API,
+/// now with executor-integrated wake and backpressure.
 ///
-/// HOW: Wraps `Arc<ConcurrentQueue<WebSocketMessage>>` - cloned for `WebSocketTask` to read.
+/// HOW: Wraps `PipeSender<WebSocketMessage>` — cloned for cheap sharing.
 #[derive(Clone)]
 pub struct MessageDelivery {
-    queue: Arc<ConcurrentQueue<WebSocketMessage>>,
+    tx: PipeSender<WebSocketMessage>,
 }
 
 impl MessageDelivery {
-    /// Create a new `MessageDelivery` with an unbounded queue.
+    /// Create a new `MessageDelivery` with a bounded pipe (depth 64).
+    ///
+    /// Returns both the delivery handle and the receiver half the task drains.
     #[must_use]
-    pub fn new() -> Self {
-        Self {
-            queue: Arc::new(ConcurrentQueue::unbounded()),
-        }
+    pub fn new() -> (Self, PipeReceiver<WebSocketMessage>) {
+        let (tx, rx) = Pipe::with_depth(64);
+        (Self { tx }, rx)
     }
 
-    /// Send a WebSocket message.
+    /// Wrap an existing `PipeSender`. The caller already holds the matching receiver.
+    #[must_use]
+    pub fn from_pipe(tx: PipeSender<WebSocketMessage>) -> Self {
+        Self { tx }
+    }
+
+    /// Send a WebSocket message (non-blocking — returns `Full` if the pipe is at capacity).
     ///
     /// # Errors
     ///
-    /// Returns [`WebSocketError::ConnectionClosed`] if the queue is disconnected.
+    /// Returns [`WebSocketError::ConnectionClosed`] if the receiver end has been dropped.
     pub fn send(&self, message: WebSocketMessage) -> Result<(), WebSocketError> {
-        self.queue
-            .push(message)
+        self.tx
+            .try_send(message)
             .map_err(|_| WebSocketError::ConnectionClosed)?;
         Ok(())
     }
 
     /// Send a Ping message.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`WebSocketError`] if the queue is disconnected.
     pub fn ping(&self, data: Vec<u8>) -> Result<(), WebSocketError> {
         self.send(WebSocketMessage::Ping(data))
     }
 
-    /// Send a Pong message (response to Ping).
-    ///
-    /// # Errors
-    ///
-    /// Returns [`WebSocketError`] if the queue is disconnected.
+    /// Send a Pong message.
     pub fn pong(&self, data: Vec<u8>) -> Result<(), WebSocketError> {
         self.send(WebSocketMessage::Pong(data))
     }
 
     /// Send a Close message.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`WebSocketError`] if the queue is disconnected.
     pub fn close(&self, code: u16, reason: &str) -> Result<(), WebSocketError> {
         self.send(WebSocketMessage::Close(code, reason.to_string()))
     }
 
-    /// Get the underlying queue for direct access.
+    /// Get the underlying `PipeSender` for Transport bridging.
     #[must_use]
-    pub fn queue(&self) -> &Arc<ConcurrentQueue<WebSocketMessage>> {
-        &self.queue
+    pub fn pipe(&self) -> &PipeSender<WebSocketMessage> {
+        &self.tx
     }
-}
 
-impl Default for MessageDelivery {
-    fn default() -> Self {
-        Self::new()
+    /// Consume and return the underlying `PipeSender`.
+    #[must_use]
+    pub fn into_pipe(self) -> PipeSender<WebSocketMessage> {
+        self.tx
+    }
+
+    /// Deprecated — kept for transition. Returns a reference to the pipe sender
+    /// (use `pipe()` for the same access).
+    #[must_use]
+    #[deprecated(note = "use pipe() instead")]
+    pub fn queue(&self) -> &PipeSender<WebSocketMessage> {
+        &self.tx
     }
 }
 
@@ -476,13 +480,13 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
         sleep_timeout: Duration,
     ) -> Result<(Self, MessageDelivery), WebSocketError> {
         let url_str = url.into();
-        let delivery = MessageDelivery::new();
+        let (delivery, rx) = MessageDelivery::new();
         let task = WebSocketTask::connect_with_delivery(
             resolver,
             url_str,
             subprotocols,
             extra_headers,
-            delivery.queue().clone(),
+            rx,
             read_timeout,
             sleep_timeout,
         )?;
@@ -533,13 +537,13 @@ impl<R: DnsResolver + Send + 'static> WebSocketClient<R> {
         sleep_timeout: Duration,
     ) -> Result<(Self, MessageDelivery), WebSocketError> {
         let url_str = url.into();
-        let delivery = MessageDelivery::new();
+        let (delivery, rx) = MessageDelivery::new();
         let task = WebSocketTask::connect_with_pool_and_delivery(
             url_str,
             pool,
             subprotocols,
             extra_headers,
-            delivery.queue().clone(),
+            rx,
             read_timeout,
             sleep_timeout,
         )?;

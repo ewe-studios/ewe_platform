@@ -122,6 +122,12 @@ pub struct PipeSender<T> {
     inner: Arc<PipeInner<T>>,
 }
 
+impl<T> Clone for PipeSender<T> {
+    fn clone(&self) -> Self {
+        Self { inner: self.inner.clone() }
+    }
+}
+
 impl<T> PipeSender<T> {
     /// Non-blocking push (valtron-task producer path). On success, wakes a parked
     /// consumer.
@@ -279,6 +285,12 @@ impl<T> Future for SendFuture<'_, T> {
 /// The consumer half of a [`Pipe<T>`]. Not `Clone` — one receiver per pipe.
 pub struct PipeReceiver<T> {
     inner: Arc<PipeInner<T>>,
+}
+
+impl<T> Clone for PipeReceiver<T> {
+    fn clone(&self) -> Self {
+        Self { inner: self.inner.clone() }
+    }
 }
 
 impl<T> PipeReceiver<T> {

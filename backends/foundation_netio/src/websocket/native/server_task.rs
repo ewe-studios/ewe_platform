@@ -18,9 +18,9 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use concurrent_queue::ConcurrentQueue;
+
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_core::valtron::{NoSpawner, TaskIterator, TaskStatus};
+use foundation_core::valtron::{BoxedSendExecutionAction, Pipe, PipeSender, TaskIterator, TaskStatus};
 
 use crate::netcap::RawStream;
 use crate::websocket::shared::assembler::MessageAssembler;
@@ -83,7 +83,7 @@ pub struct WebSocketServerTask {
     writer: BatchFrameWriter<SharedByteBufferStream<RawStream>>,
     config: WsServerConfig,
     /// Completed inbound messages awaiting delivery.
-    delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
+    delivery: PipeSender<WebSocketMessage>,
     /// The task is draining (close frame sent, waiting for final flush).
     draining: bool,
 }
@@ -94,7 +94,7 @@ impl WebSocketServerTask {
     pub fn new(
         stream: SharedByteBufferStream<RawStream>,
         config: WsServerConfig,
-        delivery: Arc<ConcurrentQueue<WebSocketMessage>>,
+        delivery: PipeSender<WebSocketMessage>,
     ) -> Self {
         let writer = BatchFrameWriter::with_defaults(stream.clone());
         Self {
@@ -144,7 +144,7 @@ impl WebSocketServerTask {
 impl TaskIterator for WebSocketServerTask {
     type Ready = WebSocketMessage;
     type Pending = ();
-    type Spawner = NoSpawner;
+    type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // Flush pending outbound writes every poll.
@@ -197,7 +197,7 @@ impl TaskIterator for WebSocketServerTask {
 
                 match self.assembler.process_frame(frame) {
                     Ok(Some(message)) => {
-                        let _ = self.delivery.push(message.clone());
+                        let _ = self.delivery.try_send(message.clone());
                         return Some(TaskStatus::Ready(message));
                     }
                     Ok(None) => {
@@ -306,7 +306,8 @@ mod tests {
         client.write_all(&wire).unwrap();
 
         let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
-        let delivery = Arc::new(ConcurrentQueue::unbounded());
+        let (tx, _rx) = Pipe::with_depth(8);
+        let delivery = tx;
         let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
 
         let msgs = drain(&mut task, 10);
@@ -321,7 +322,8 @@ mod tests {
         client.write_all(&wire).unwrap();
 
         let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
-        let delivery = Arc::new(ConcurrentQueue::unbounded());
+        let (tx, _rx) = Pipe::with_depth(8);
+        let delivery = tx;
         let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
 
         let msgs = drain(&mut task, 5);
@@ -337,7 +339,8 @@ mod tests {
         client.write_all(&wire).unwrap();
 
         let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
-        let delivery = Arc::new(ConcurrentQueue::unbounded());
+        let (tx, _rx) = Pipe::with_depth(8);
+        let delivery = tx;
         let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
 
         let msgs = drain(&mut task, 10);
@@ -353,7 +356,8 @@ mod tests {
         client.write_all(&wire).unwrap();
 
         let stream = SharedByteBufferStream::rwrite(RawStream::from_tcp(server).unwrap());
-        let delivery = Arc::new(ConcurrentQueue::unbounded());
+        let (tx, _rx) = Pipe::with_depth(8);
+        let delivery = tx;
         let mut task = WebSocketServerTask::new(stream, WsServerConfig::default(), delivery);
 
         let msgs = drain(&mut task, 10);
