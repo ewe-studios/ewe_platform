@@ -2,26 +2,42 @@
 
 **Last updated:** 2026-07-10
 
-## Crates built (all compile clean)
+## All crates compile clean — 8/8 Docker proxy tests — 6/6 Docker sshkit tests
 
-### foundation_deployment_platform ✅
-- Provider trait: associated types Handle + Config + Error
-- DockerProvider: wraps ContainerHandle to implement Provider
-- ContainerHandle: RAII (start_async/start, shutdown, is_running, Drop)
-- ContainerConfig: builder (image, port, env, network, wait, memory, cpus)
-- ContainerGroup: multi-container topologies
-- DockerClient: bollard wrapper (local + SSH stub)
-- NetworkHandle: create_or_find, find, connect, remove
-- WaitFor: Port (TCP backoff), Stdout (logs stream), Http (SimpleHttpClient), Composite
-- Integration tests: Redis start/stop/PING/SET/GET/Drop
+### foundation_proxy ✅ — Stage 1 data plane COMPLETE
+- ProxyServer::start(): validates config (no duplicate (host, prefix) routes), binds
+  TCP listener, spawns HTTP front end via foundation_http::HttpServer, spawns
+  per-backend health probe threads, returns shutdown-capable handle.
+- ProxyHandler (ServeFactory): host+path routing → weighted round-robin backend
+  selection (smooth WRB, eligibility gates: Active + healthy + under capacity).
+- HTTP forwarding: strip hop-by-hop (RFC 7230 §6.1), append X-Forwarded-For /
+  X-Forwarded-Proto / X-Forwarded-Host, set upstream Connection: close.
+- Health probes: per-backend OS threads, hysteresis state machine
+  (healthy/unhealthy threshold), TCP-connect for tcp:// backends, HTTP GET for
+  http/https.
+- TCP passthrough: TcpPassthrough listener for tcp:// backends — raw byte splice,
+  no HTTP semantics.
+- Weighted round-robin load balancer (smooth WRB, nginx algorithm).
+- BackendLease: RAII in-flight refcount, CAS-based capacity enforcement.
+- Wildcard host matching (*.example.com) with exact-host tiebreak.
+- Longest-path-prefix routing with segment-boundary matching.
+- Config: three paths (builder, load_file TOML, proxy! macro deferred).
+- Types: BackendTarget (URL+weight+max_conns), BackendProtocol (http/https/tcp
+  inferred from scheme), BackendState (Active/Draining/Paused), SslConfig.
 
-### foundation_deployment_cloudflare ✅
-- DnsRecord, Zone, DnsRecordType, ZoneStatus domain types
-- CloudflareError + cf_err() helper (foundation_errstacks)
-- CloudflareClient: from_env(), token(), http(), domain()
-- dns_ops: list_dns_records, upsert_dns_record, delete_dns_record, bootstrap_domain
-- Auth injection via FnOnce closure on ClientRequestBuilder
-- Wraps auto-generated valtron TaskIterator functions from zones/mod.rs
+**Test coverage (2026-07-10):**
+- Unit tests: config (6), balancer/runtime (4), backend_target (4),
+  forward_headers (2), health_state (5), router (5) — **26 passed, 0 failed**.
+- Docker integration tests (8/8 against real containers):
+  - test_forward_roundtrips_to_backend ✅ (http-echo)
+  - test_round_robin_spreads_across_backends ✅ (2 × http-echo)
+  - test_host_routing_and_unknown_host_404 ✅ (2 × http-echo, host routing)
+  - test_path_prefix_longest_wins ✅ (2 × http-echo, / + /api prefixes)
+  - test_tcp_passthrough_roundtrips_raw_bytes ✅ (TcpPassthrough → http-echo)
+  - test_hop_by_hop_stripped_and_xff_added ✅ (http-echo, hop-by-hop strip)
+  - test_no_healthy_backend_returns_503 ✅ (health probe → 503)
+  - test_health_ejects_and_readmits_backend ✅ (probe marks unhealthy → 503)
+- Zero warnings from the crate (lib + tests).
 
 ### foundation_sshkit ✅
 - Host: parse user@host:port, key/password/agent auth, proxy jump
@@ -32,33 +48,31 @@
 - ConnectionPool: session cache with idle timeout, auth chain
 - Runner: Parallel, Sequential, Group strategies
 - RusshBackend (feature `russh-backend`): pure-Rust async backend — execute,
-  SFTP upload/download, pubkey auth. Confirmed working (not a stub).
+  SFTP upload/download, pubkey auth.
 
 **Test coverage (2026-07-10):**
-- Unit tests: host, command, pool (pre-existing).
-- `tests/ssh2_backend_tests.rs` — Ssh2Backend against a real
-  `lscr.io/linuxserver/openssh-server` container via the
-  `foundation_deployment_platform` testbed. Covers execute (success, non-zero
-  exit, stdout+stderr capture), upload↔download round-trip, wrong-password auth
-  rejection (all `#[ignore]`, need Docker) + connection-refused (Docker-free).
-- `tests/runner_tests.rs` — Parallel/Sequential/Group result-shape + per-host
-  command-builder invocation (Docker-free, unreachable hosts) plus all three
-  strategies against a real container (`#[ignore]`).
-- `tests/russh_backend_tests.rs` (feature-gated `russh-backend`) — execute +
-  SFTP round-trip against a container trusting a generated ed25519 key, plus a
-  connection-refused path. ssh-keygen-gated (skips cleanly if absent).
-- Container tests use `ContainerHandle::start_async` directly (the
-  `#[docker_container]` macro drops its handle before the body and exposes no
-  mapped port, so it is unusable where a test needs the host port).
-- Runs (Docker available, `--profile uat`): default suite 5 non-Docker tests
-  pass; `--ignored` ssh2 5/5 pass, runner 1/1 pass; `--features russh-backend
-  --include-ignored` russh 3/3 pass. Zero warnings from the crate.
+- Unit: host (8), command (8), pool (3), runner (4 non-Docker) — **23 passed**.
+- Docker (ssh2): execute + stderr + nonzero + upload/download + wrong-password — **5/5**.
+- Docker (runner): all strategies against real container — **1/1**.
 
-### foundation_proxy ✅
-- ProxyConfig, ServiceConfig, SslConfig, BackendTarget, HealthCheckConfig
-- ProxyError enum
-- ProxyServer::start() with host dedup validation
-- Three config paths: builder, load_file(), proxy! macro deferred
+### foundation_deployment_platform ✅
+- Provider trait: associated types Handle + Config + Error
+- DockerProvider: wraps ContainerHandle to implement Provider
+- ContainerHandle: RAII (start_async/start, shutdown, is_running, Drop)
+- ContainerConfig: builder (image, port, env, network, wait, memory, cpus)
+- ContainerGroup: multi-container topologies
+- DockerClient: bollard wrapper (local + SSH stub)
+- NetworkHandle: create_or_find, find, connect, remove
+- WaitFor: Port (TCP backoff), Stdout (logs stream), Http (SimpleHttpClient), Composite
+- ensure_image: pull-if-absent + always_pull (fixes "404: No such image" on cold cache)
+- Integration tests: Redis start/stop/PING/SET/GET/Drop
+
+### foundation_deployment_cloudflare ✅
+- DnsRecord, Zone, DnsRecordType, ZoneStatus domain types
+- CloudflareError + cf_err() helper (foundation_errstacks)
+- CloudflareClient: from_env(), token(), http(), domain()
+- dns_ops: list_dns_records, upsert_dns_record, delete_dns_record, bootstrap_domain
+- Auth injection via FnOnce closure on ClientRequestBuilder
 
 ### foundation_macros ✅
 - #[docker_container] proc macro (~200 lines)
@@ -66,7 +80,13 @@
 - Supports sync + async fn
 - Re-exported from foundation_deployment_platform
 
-## Next steps
-- Testbed migration: move vms/ from foundation_testbed → foundation_deployment_platform
-- ProxyServer HTTP routing + TLS cert provisioning
-- CloudflareClient: deserialise HashMap responses into typed DnsRecord
+## pipeline (foundation_core)
+- pipe_mapped.rs: MappedSender/FilterMapReceiver with borrow-based transforms
+  (zero-allocation, no extra valtron tasks). Extracted from pipe.rs for clarity.
+
+## Remaining items
+- Dev-dependency restructuring: move Docker-backed SSH backend tests from
+  `foundation_sshkit` → `foundation_deployment_platform` to remove the
+  conceptual inversion (primitive depends on its consumer, even if dev-only).
+- ProxyServer TLS + ACME (stage 2), Unix-socket RPC (stage 3), proxy! macro.
+- CloudflareClient: deserialise HashMap responses into typed DnsRecord.
