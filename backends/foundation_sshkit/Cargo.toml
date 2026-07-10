@@ -13,6 +13,10 @@ foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 foundation_core = { path = "../foundation_core", version = "0.0.3" }
 
 ssh2 = "0.9"
+russh = { version = "0.45", optional = true }
+russh-keys = { version = "0.45", optional = true }
+russh-sftp = { version = "2.0", optional = true }
+async-trait = { version = "0.1", optional = true }
 tokio = { version = "1", features = ["rt", "time"] }
 futures-lite = "2"
 
@@ -20,6 +24,10 @@ serde.workspace = true
 serde_json.workspace = true
 derive_more.workspace = true
 tracing.workspace = true
+
+[features]
+default = []
+russh-backend = ["russh", "russh-keys", "russh-sftp", "async-trait"]
 
 [lints]
 workspace = true

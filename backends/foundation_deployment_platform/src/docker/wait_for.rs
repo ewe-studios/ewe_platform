@@ -54,6 +54,20 @@ impl WaitFor {
         Self::Composite { strategies }
     }
 
+    /// Returns the timeout duration, or `None` for `WaitFor::None`.
+    pub fn timeout(&self) -> Option<Duration> {
+        match self {
+            Self::Port { timeout, .. } | Self::Http { timeout, .. } | Self::Stdout { timeout, .. } => Some(*timeout),
+            Self::Composite { strategies } => {
+                strategies.iter().fold(Some(Duration::ZERO), |acc, s| match (acc, s.timeout()) {
+                    (Some(a), Some(b)) => Some(a + b),
+                    _ => acc,
+                })
+            }
+            Self::None => None,
+        }
+    }
+
     /// Apply this wait strategy. Called by ContainerHandle::start_async().
     /// Composite strategies run each child iteratively (no recursion).
     pub(crate) async fn apply(

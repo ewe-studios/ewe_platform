@@ -1,6 +1,6 @@
 //! Runner strategies for executing commands across multiple hosts.
 
-use crate::backend::Backend;
+use crate::backends::Backend;
 use crate::command::{Command, CommandResult};
 use crate::host::Host;
 use std::time::Duration;

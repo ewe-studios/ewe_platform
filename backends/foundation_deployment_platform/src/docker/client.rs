@@ -1,12 +1,4 @@
 //! Docker client — bollard wrapper.
-//!
-//! **WHY:** The bollard `Docker` client needs connection management.
-//!
-//! **WHAT:** `DockerClient` wraps bollard's `Docker` with convenience
-//! methods for local socket and SSH connections.
-//!
-//! **HOW:** Stores the bollard handle. `connect_local()` tries the
-//! default socket path; `connect_ssh()` tunnels over SSH.
 
 use bollard::Docker;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
@@ -27,15 +19,36 @@ impl DockerClient {
         Ok(Self { inner: docker })
     }
 
+    /// Connect to a remote Docker daemon over SSH using bollard's native
+    /// SSH transport. Requires the `ssh` feature on bollard.
+    #[cfg(feature = "bollard-ssh")]
     pub async fn connect_ssh(
-        _host: &str,
-        _key_paths: &[&str],
-        _user: &str,
-        _port: u16,
+        host: &str,
+        key_paths: &[&str],
+        user: &str,
+        port: u16,
     ) -> DockerResult<Self> {
-        Err(docker_err(DockerError::Connection(
-            "SSH transport not yet implemented".to_string(),
-        )))
+        let docker = Docker::connect_with_ssh(
+            host,
+            &key_paths.iter().map(|p| p.to_string()).collect::<Vec<_>>(),
+            user,
+            port,
+        ).map_err(|e| {
+            docker_err(DockerError::Connection(format!(
+                "SSH connection to {user}@{host}:{port} failed: {e}"
+            )))
+        })?;
+        Ok(Self { inner: docker })
+    }
+
+    /// Connect via SSH using a pre-configured Host from foundation_sshkit.
+    /// The Host provides key_paths, user, hostname, and port.
+    #[cfg(feature = "sshkit")]
+    pub async fn connect_via_host(ssh_host: &foundation_sshkit::Host) -> DockerResult<Self> {
+        let keys: Vec<&str> = ssh_host.key_paths.iter()
+            .filter_map(|p| p.to_str())
+            .collect();
+        Self::connect_ssh(&ssh_host.hostname, &keys, &ssh_host.user, ssh_host.port).await
     }
 
     pub async fn is_available(&self) -> bool {

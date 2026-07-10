@@ -16,6 +16,7 @@ use crate::docker::error::{docker_err, DockerError, DockerResult};
 pub struct ContainerHandle {
     docker: bollard::Docker,
     container_id: String,
+    container_name: Option<String>,
     stop_timeout: u64,
     ports: HashMap<String, u16>,
 }
@@ -61,6 +62,7 @@ impl ContainerHandle {
         Ok(Self {
             docker,
             container_id,
+            container_name: config.name.clone(),
             stop_timeout: config.stop_timeout,
             ports,
         })
@@ -74,6 +76,12 @@ impl ContainerHandle {
     #[must_use]
     pub fn id(&self) -> &str {
         &self.container_id
+    }
+
+    /// The container name, if set via ContainerConfig::name().
+    #[must_use]
+    pub fn name(&self) -> Option<&str> {
+        self.container_name.as_deref()
     }
 
     #[must_use]

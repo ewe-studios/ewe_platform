@@ -40,12 +40,10 @@ impl ContainerGroup {
         crate::block_on(Self::start_async(configs))
     }
 
-    /// Get a handle to an individual container by its name. Returns
-    /// `None` if no container with that name exists in the group.
+    /// Get a handle to an individual container by its name.
     #[must_use]
-    pub fn container(&self, _name: &str) -> Option<&ContainerHandle> {
-        // TODO: match by container name once ContainerHandle stores a name
-        self.handles.first()
+    pub fn container(&self, name: &str) -> Option<&ContainerHandle> {
+        self.handles.iter().find(|h| h.name() == Some(name))
     }
 
     /// Get all container handles.
