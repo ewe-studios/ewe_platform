@@ -4428,6 +4428,7 @@ dependencies = [
  "foundation_errstacks",
  "foundation_macros",
  "foundation_netio",
+ "foundation_sshkit",
  "futures-lite",
  "futures-util",
  "serde",
@@ -4786,7 +4787,6 @@ dependencies = [
  "async-trait",
  "derive_more",
  "foundation_core",
- "foundation_deployment_platform",
  "foundation_errstacks",
  "futures-lite",
  "russh",
@@ -4797,7 +4797,6 @@ dependencies = [
  "ssh2",
  "tokio",
  "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]

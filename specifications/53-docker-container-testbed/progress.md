@@ -52,8 +52,10 @@
 
 **Test coverage (2026-07-10):**
 - Unit: host (8), command (8), pool (3), runner (4 non-Docker) — **23 passed**.
-- Docker (ssh2): execute + stderr + nonzero + upload/download + wrong-password — **5/5**.
-- Docker (runner): all strategies against real container — **1/1**.
+- Docker-backed SSH tests moved to `foundation_deployment_platform/tests/` to
+  remove the conceptual inversion (leaf primitive depending on its consumer).
+  - `ssh_backend_tests.rs`: execute + stderr + nonzero + upload/download + wrong-password — **5/5**.
+  - `runner_integration_tests.rs`: all strategies against real container — **1/1**.
 
 ### foundation_deployment_platform ✅
 - Provider trait: associated types Handle + Config + Error
@@ -85,8 +87,5 @@
   (zero-allocation, no extra valtron tasks). Extracted from pipe.rs for clarity.
 
 ## Remaining items
-- Dev-dependency restructuring: move Docker-backed SSH backend tests from
-  `foundation_sshkit` → `foundation_deployment_platform` to remove the
-  conceptual inversion (primitive depends on its consumer, even if dev-only).
 - ProxyServer TLS + ACME (stage 2), Unix-socket RPC (stage 3), proxy! macro.
 - CloudflareClient: deserialise HashMap responses into typed DnsRecord.

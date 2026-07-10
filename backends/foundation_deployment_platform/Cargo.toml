@@ -45,6 +45,7 @@ default = []
 multi = ["foundation_core/multi", "foundation_netio/multi"]
 
 [dev-dependencies]
+foundation_sshkit = { path = "../foundation_sshkit", version = "0.1.0", features = ["russh-backend"] }
 tracing-subscriber = "0.3"
 
 [lints]
