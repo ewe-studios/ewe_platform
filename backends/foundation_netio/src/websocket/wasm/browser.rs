@@ -33,14 +33,16 @@
 use std::cell::Cell;
 use std::rc::Rc;
 
-use foundation_core::valtron::{Pipe, PipeReceiver, Stream, TryRecvError};
+use foundation_core::valtron::{BoxedSendExecutionAction, Pipe, PipeReceiver, Stream, TaskSpread, TaskStatus, TryRecvError};
 use wasm_bindgen::closure::Closure;
 use wasm_bindgen::JsCast;
 use web_sys::{BinaryType, CloseEvent, Event, MessageEvent, WebSocket};
 
 use crate::websocket::shared::client::{
-    MessageDelivery, WebSocketClient, WebSocketConnectConfig, WebSocketStreamItem, WsProgress,
+    BoxedWebSocketStream, MessageDelivery, WebSocketClient, WebSocketConnectConfig,
+    WebSocketStreamItem, WsProgress,
 };
+use crate::websocket::shared::connector::WsExchangeTask;
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::message::WebSocketMessage;
 
@@ -237,4 +239,61 @@ impl Iterator for WasmWebSocketBridge {
             }
         }
     }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Stream → TaskStatus adapter for the TaskIterator (transport) path
+// ═══════════════════════════════════════════════════════════════════════════
+
+/// Wraps a [`BoxedWebSocketStream`] (`Iterator<Item = Stream<R, P>>`) and
+/// yields `TaskStatus<R, P, BoxedSendExecutionAction>` items, satisfying the
+/// `TaskIterator` trait via the blanket impl for `Iterator<Item = TaskStatus<...>>`.
+///
+/// The wasm bridge has no sub-tasks to spawn, so `Spawner = BoxedSendExecutionAction`
+/// is never emitted — it exists only for type unification with the native path.
+pub(super) struct StreamToTaskAdapter {
+    inner: BoxedWebSocketStream,
+}
+
+impl Iterator for StreamToTaskAdapter {
+    type Item = TaskStatus<
+        Result<WebSocketMessage, WebSocketError>,
+        WsProgress,
+        BoxedSendExecutionAction,
+    >;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        match self.inner.next()? {
+            Stream::Next(data) => Some(TaskStatus::Ready(data)),
+            Stream::Pending(progress) => Some(TaskStatus::Pending(progress)),
+            Stream::Init => Some(TaskStatus::Init),
+            Stream::Ignore => Some(TaskStatus::Ignore),
+            Stream::Delayed(d) => Some(TaskStatus::Delayed(d)),
+            Stream::Wait => Some(TaskStatus::Wait),
+            Stream::Spread(items) => {
+                let mapped: Vec<_> = items
+                    .into_iter()
+                    .map(|spread| match spread {
+                        foundation_core::valtron::StreamSpread::Done(d) => TaskSpread::Ready(d),
+                        foundation_core::valtron::StreamSpread::Pending(p) => TaskSpread::Pending(p),
+                    })
+                    .collect();
+                Some(TaskStatus::Spread(mapped))
+            }
+        }
+    }
+}
+
+// SAFETY: single-threaded wasm only — same gate as WasmWebSocketBridge.
+#[cfg(all(
+    target_family = "wasm",
+    not(target_os = "emscripten"),
+    not(target_feature = "atomics")
+))]
+unsafe impl Send for StreamToTaskAdapter {}
+
+/// Wrap a [`BoxedWebSocketStream`] into a [`WsExchangeTask`] suitable for
+/// the transport pump path (`WebSocketConnector::open_websocket_task`).
+pub(super) fn boxed_stream_to_task(inner: BoxedWebSocketStream) -> WsExchangeTask {
+    Box::new(StreamToTaskAdapter { inner })
 }

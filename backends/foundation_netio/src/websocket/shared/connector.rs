@@ -12,12 +12,52 @@
 //! vs `FetchHttpClient`) the caller holds — the returned type and the
 //! [`WebSocketConnectConfig`] are identical on both targets.
 //!
+//! `WebSocketConnector::open_websocket_task` returns a boxed
+//! [`WsExchangeTask`] + [`MessageDelivery`](client::MessageDelivery), mirroring
+//! `HttpClient::open_exchange()` — the transport pump spawns the task on its own
+//! pool and drives it with `split_collector_map`. The caller decides when to
+//! execute; the connector hides all platform differences behind the boxed type.
+//!
 //! HOW: Native performs the HTTP/1.1 Upgrade over its own dial/TLS and drives a
 //! valtron task; wasm hands off to the browser `WebSocket` API. Both box their
-//! inbound stream into the shared [`WebSocketClient`].
+//! inbound stream into the shared [`WebSocketClient`] or [`WsExchangeTask`].
 
-use crate::websocket::shared::client::{WebSocketClient, WebSocketConnectConfig};
+use std::sync::Arc;
+
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator};
+
+use crate::shared::client::http_client::HttpClient;
+use crate::websocket::shared::client::{MessageDelivery, WebSocketClient, WebSocketConnectConfig};
 use crate::websocket::shared::error::WebSocketError;
+use crate::websocket::shared::message::WebSocketMessage;
+
+/// A client that implements both `HttpClient` and `WebSocketConnector`.
+///
+/// The platform's concrete client (`NativeHttpClient` or `FetchHttpClient`)
+/// implements both traits, so an `Arc<dyn FullHttpClient>` serves as the
+/// single shared handle for the HTTP transport, the WS transport, and
+/// everything else that needs a client.
+pub trait FullHttpClient: HttpClient + WebSocketConnector {}
+impl<T: HttpClient + WebSocketConnector> FullHttpClient for T {}
+
+/// Shared, clonable handle to a platform client that does HTTP + WebSocket.
+pub type DynHttpClient = Arc<dyn FullHttpClient>;
+
+/// Boxed, platform-erased WebSocket task — `Box<dyn TaskIterator>` with shared
+/// Ready/Pending/Spawner types. Mirrors
+/// [`HttpExchangeClientTask`](crate::shared::client::request_task::HttpExchangeClientTask).
+///
+/// No platform types in the signature: native spawns a `WsTask` and maps
+/// `WsPending → WsProgress`; wasm wraps the browser `WebSocket` bridge.
+/// Both produce the same boxed type so the transport pump code is
+/// platform-agnostic.
+pub type WsExchangeTask = Box<
+    dyn TaskIterator<
+        Ready = Result<WebSocketMessage, WebSocketError>,
+        Pending = crate::websocket::shared::client::WsProgress,
+        Spawner = BoxedSendExecutionAction,
+    > + Send,
+>;
 
 /// Trait for opening WebSocket connections through a client.
 ///
@@ -49,4 +89,24 @@ pub trait WebSocketConnector: Send + Sync {
         url: &str,
         config: WebSocketConnectConfig,
     ) -> Result<WebSocketClient, WebSocketError>;
+
+    /// Open a WebSocket connection returning a platform-erased [`WsExchangeTask`]
+    /// + [`MessageDelivery`], mirroring `HttpClient::open_exchange()`.
+    ///
+    /// The returned task is **not spawned** — the caller decides when to
+    /// `valtron::execute()` it on their own pool. This is the cross-platform
+    /// entry point for the transport pump.
+    ///
+    /// On native, spawns the single-shot or reconnecting task via
+    /// `valtron::execute` and boxes the driven iterator. On wasm, wraps the
+    /// browser `WebSocket` bridge in a `Stream → TaskStatus` adapter and boxes it.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WebSocketError`] if the URL is invalid or the executor fails.
+    fn open_websocket_task(
+        &self,
+        url: &str,
+        config: WebSocketConnectConfig,
+    ) -> Result<(WsExchangeTask, MessageDelivery), WebSocketError>;
 }

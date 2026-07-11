@@ -4,6 +4,10 @@
 //! (same pattern as `h1.rs`): `ConnectionEstablished` → head observer,
 //! `Binary(data)` → body observer. No spawned bridge tasks — both sides
 //! are zero-task.
+//!
+//! F52: de-leaked — holds `Arc<dyn WebSocketConnector>` instead of calling
+//! `WebSocketClient::connect_parts` directly. The caller passes in the same
+//! client that implements both `HttpClient` + `WebSocketConnector`.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -11,11 +15,11 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::shared::client::dns::SystemDnsResolver;
 use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeaders, Status,
 };
-use foundation_netio::websocket::native::connection::{Reconnect, WebSocketClient};
+use foundation_netio::websocket::shared::client::WebSocketConnectConfig;
+use foundation_netio::websocket::shared::connector::{DynHttpClient, WebSocketConnector};
 use foundation_netio::websocket::shared::error::WebSocketError;
 use foundation_netio::websocket::shared::message::WebSocketMessage;
 
@@ -34,9 +38,31 @@ const WS_CAPS: TransportCapabilities = TransportCapabilities {
 const READ_TIMEOUT: Duration = Duration::from_secs(30);
 const SLEEP_TIMEOUT: Duration = Duration::from_millis(100);
 
-pub struct WsTransport;
+#[derive(Clone)]
+pub struct WsTransport {
+    connector: DynHttpClient,
+}
 
 impl WsTransport {
+    /// Create a WsTransport backed by any `WebSocketConnector`.
+    ///
+    /// The transport is platform-agnostic — it holds an `Arc<dyn WebSocketConnector>`
+    /// so the same code works with a native client or a wasm client. Typically
+    /// the caller passes the same concrete client to both `H1Transport::new()` and
+    /// `WsTransport::new()`.
+    #[must_use]
+    pub fn new(connector: DynHttpClient) -> Self {
+        Self { connector }
+    }
+
+    /// Build the platform's default client and wrap it in a `WsTransport`.
+    #[must_use]
+    #[cfg(all(feature = "multi", not(target_family = "wasm")))]
+    pub fn from_default_client() -> Self {
+        use foundation_netio::shared::client::dns::SystemDnsResolver;
+        Self::new(Arc::new(foundation_netio::http::NativeHttpClient::new(SystemDnsResolver)))
+    }
+
     fn to_ws_url(http_url: &str) -> Result<String, TransportError> {
         let uri = Uri::parse(http_url)
             .map_err(|e| TransportError::Protocol(format!("invalid URL: {e}")))?;
@@ -60,15 +86,17 @@ impl Transport for WsTransport {
     fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
         let ws_url = Self::to_ws_url(&request.request_url.url)?;
 
-        // 1. Get spawned WS task + MessageDelivery from WebSocketClient.
-        let (task, delivery) = WebSocketClient::connect_parts(
-            SystemDnsResolver::default(),
-            ws_url,
-            Reconnect::No,
-            READ_TIMEOUT,
-            SLEEP_TIMEOUT,
-        )
-        .map_err(|e| TransportError::Protocol(format!("ws connect: {e}")))?;
+        // 1. Get WS task (un-executed) + MessageDelivery via the cross-platform
+        //    connector. The transport drives the task — no platform types leak.
+        let config = WebSocketConnectConfig {
+            read_timeout: READ_TIMEOUT,
+            sleep_timeout: SLEEP_TIMEOUT,
+            ..WebSocketConnectConfig::new()
+        };
+        let (task, delivery) = self
+            .connector
+            .open_websocket_task(&ws_url, config)
+            .map_err(|e| TransportError::Protocol(format!("ws connect: {e}")))?;
 
         // 2. Outbound: MappedSender converts Bytes → Binary → delivery's pipe.
         //    Zero bridge tasks.

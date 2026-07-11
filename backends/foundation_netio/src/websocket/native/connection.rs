@@ -426,7 +426,7 @@ fn remap_task_status<D, P1, P2>(
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /// Map the native `WsPending` progress into the shared [`WsProgress`].
-fn native_progress(pending: WsPending) -> WsProgress {
+pub(crate) fn native_progress(pending: WsPending) -> WsProgress {
     match pending {
         WsPending::Task(WebSocketProgress::Connecting)
         | WsPending::Reconnecting(ReconnectingWebSocketProgress::Connecting) => WsProgress::Connecting,
