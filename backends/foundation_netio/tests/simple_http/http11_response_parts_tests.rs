@@ -11,7 +11,7 @@
 //! lowercase rendering.
 
 use bytes::Bytes;
-use foundation_netio::simple_http::shared::*;
+use foundation_netio::shared::http::*;
 
 /// Collect a single `Http11` part's rendered wire bytes into a `String`.
 fn render(part: Http11) -> String {

@@ -3,7 +3,7 @@
 //! WebSocket `ReconnectingWebSocketTask` state machine tests.
 
 use foundation_core::valtron::{TaskIterator, TaskStatus};
-use foundation_netio::simple_http::client::shared::SystemDnsResolver;
+use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use tracing_test::traced_test;
 
@@ -149,7 +149,7 @@ fn test_with_subprotocols() {
 #[test]
 #[traced_test]
 fn test_with_header() {
-    use foundation_netio::simple_http::shared::SimpleHeader;
+    use foundation_netio::shared::http::SimpleHeader;
 
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
@@ -236,7 +236,7 @@ fn test_failing_connection_eventual_exhaust() {
 #[test]
 #[traced_test]
 fn test_builder_chain() {
-    use foundation_netio::simple_http::shared::SimpleHeader;
+    use foundation_netio::shared::http::SimpleHeader;
 
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")

@@ -34,7 +34,7 @@ use foundation_core::url::InvalidUri;
 
 use crate::http2::types::{header_from_hpack, SimpleIncomingRequestHeader};
 use crate::netcap::context::ConnectionContext;
-use crate::simple_http::shared::SimpleOutgoingResponse;
+use crate::shared::http::SimpleOutgoingResponse;
 
 /// Why a field section cannot become a request.
 #[derive(Debug)]

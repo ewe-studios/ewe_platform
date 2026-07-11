@@ -18,7 +18,7 @@ use foundation_core::url::{InvalidUri, Uri};
 
 use crate::http2::frame::ErrorCode;
 use crate::netcap::context::ConnectionContext;
-use crate::simple_http::shared::{SimpleHeaders, SimpleMethod, SimpleUrl};
+use crate::shared::http::{SimpleHeaders, SimpleMethod, SimpleUrl};
 
 /// Decoded HTTP/2 HEADERS frame — everything except the body.
 ///
@@ -75,7 +75,7 @@ pub fn header_from_hpack(
             b":path" => path = String::from_utf8_lossy(value).into_owned(),
             b":status" => {} // response pseudo-header — ignore
             _ => {
-                let k = crate::simple_http::shared::SimpleHeader::from(
+                let k = crate::shared::http::SimpleHeader::from(
                     String::from_utf8_lossy(name).to_string(),
                 );
                 headers

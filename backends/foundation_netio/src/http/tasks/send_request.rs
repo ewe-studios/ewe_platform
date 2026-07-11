@@ -17,8 +17,8 @@
 
 use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
 use crate::shared::client::{redirects, ClientConfig, DnsResolver, PreparedRequest};
-use crate::simple_http::client::HttpConnectionPool;
-use crate::simple_http::shared::{
+use crate::http::HttpConnectionPool;
+use crate::shared::http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
 };

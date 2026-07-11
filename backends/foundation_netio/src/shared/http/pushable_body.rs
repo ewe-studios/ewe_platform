@@ -27,7 +27,7 @@ use foundation_core::valtron::{
     TrySendError,
 };
 
-use crate::simple_http::shared::impls::SendSafeBody;
+use crate::shared::http::impls::SendSafeBody;
 
 /// Default depth of a pushable request-body pipe (matches the seam pipe default).
 pub const DEFAULT_PUSHABLE_DEPTH: usize = 4;

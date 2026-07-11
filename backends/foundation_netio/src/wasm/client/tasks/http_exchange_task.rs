@@ -25,7 +25,7 @@ use crate::shared::client::body_reader::{SendSafeBodyBytesItem, SendSafeBodyByte
 use crate::shared::client::http_client::HttpClient;
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
-use crate::simple_http::shared::{HttpClientError, SendSafeBody};
+use crate::shared::http::{HttpClientError, SendSafeBody};
 use crate::wasm::client::client::FetchHttpClient;
 
 // ---------------------------------------------------------------------------
@@ -34,8 +34,8 @@ use crate::wasm::client::client::FetchHttpClient;
 
 /// Output from the async fetch — all response data needed for the exchange.
 struct FetchOutput {
-    status: crate::simple_http::shared::Status,
-    headers: crate::simple_http::shared::SimpleHeaders,
+    status: crate::shared::http::Status,
+    headers: crate::shared::http::SimpleHeaders,
     body: SendSafeBody,
 }
 
@@ -179,7 +179,7 @@ pub fn new_http_exchange_task(request: PreparedRequest) -> WasmHttpExchangeTask 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::simple_http::shared::{Extensions, SimpleHeaders, SimpleMethod};
+    use crate::shared::http::{Extensions, SimpleHeaders, SimpleMethod};
     use foundation_core::url::Uri;
 
     #[test]

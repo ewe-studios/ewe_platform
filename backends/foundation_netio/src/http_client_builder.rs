@@ -17,8 +17,8 @@ use std::time::Duration;
 
 use crate::shared::client::http_client::HttpClient;
 use crate::shared::client::{ClientConfig, SystemDnsResolver};
-use crate::simple_http::shared::timeout::TimeoutCalculator;
-use crate::simple_http::shared::{HttpClientError, SimpleHeader, SimpleHeaders};
+use crate::shared::http::timeout::TimeoutCalculator;
+use crate::shared::http::{HttpClientError, SimpleHeader, SimpleHeaders};
 
 /// Platform-agnostic builder for `Arc<dyn HttpClient>`.
 ///

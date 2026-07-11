@@ -24,8 +24,8 @@ use crate::http::tasks::{RequestIntro, SendRequestTask};
 use crate::shared::client::body_reader::{SendSafeBodyBytesItem, SendSafeBodyBytesIterator};
 use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
-use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
-use crate::simple_http::shared::IncomingResponseParts;
+use crate::http::{HttpClientConnection, HttpConnectionPool};
+use crate::shared::http::IncomingResponseParts;
 
 type ChildReceiver<R> = foundation_core::valtron::DrivenRecvIterator<SendRequestTask<R>>;
 
@@ -46,7 +46,7 @@ enum State<R: DnsResolver + Send + 'static> {
             dyn Iterator<
                     Item = Result<
                         IncomingResponseParts,
-                        crate::simple_http::shared::HttpReaderError,
+                        crate::shared::http::HttpReaderError,
                     >,
                 > + Send,
         >,

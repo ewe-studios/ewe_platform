@@ -5,7 +5,7 @@
 //! ensure the TLS handshake task exposes the expected types and trait bounds.
 
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator};
-use foundation_netio::simple_http::client::{TlsHandshakeState, TlsHandshakeTask};
+use foundation_netio::http::{TlsHandshakeState, TlsHandshakeTask};
 
 /// WHY: Verify all `TlsHandshakeState` variants exist and are constructible
 /// WHAT: Ensure enum variants are present (compile-time / runtime sanity)

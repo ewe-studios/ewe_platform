@@ -3,7 +3,7 @@
 //! WHY: HTTP clients need proxy configuration. These types are pure data
 //! with no native socket/TLS dependencies, so they can be shared with wasm32.
 
-use crate::simple_http::shared::HttpClientError;
+use crate::shared::http::HttpClientError;
 use foundation_core::url::Scheme;
 
 /// Proxy protocol type.

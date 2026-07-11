@@ -12,7 +12,7 @@
 //! # Example
 //!
 //! ```
-//! use foundation_netio::simple_http::shared::load_tracker::LoadTracker;
+//! use foundation_netio::shared::http::load_tracker::LoadTracker;
 //!
 //! let tracker = LoadTracker::new();
 //!

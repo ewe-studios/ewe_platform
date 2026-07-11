@@ -1,5 +1,5 @@
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator};
-use foundation_netio::simple_http::client::{TlsHandshakeState, TlsHandshakeTask};
+use foundation_netio::http::{TlsHandshakeState, TlsHandshakeTask};
 
 #[test]
 fn test_tls_handshake_state_variants() {

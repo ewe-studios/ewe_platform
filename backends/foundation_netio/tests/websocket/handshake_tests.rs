@@ -1,7 +1,7 @@
 //! WebSocket handshake tests (RFC 6455 Section 4).
 
 use base64::Engine;
-use foundation_netio::simple_http::shared::{SimpleHeader, Status};
+use foundation_netio::shared::http::{SimpleHeader, Status};
 use foundation_netio::websocket::{
     build_upgrade_request, compute_accept_key, generate_websocket_key, validate_upgrade_response,
 };
@@ -36,7 +36,7 @@ fn test_generate_websocket_key_valid_base64() {
 
 /// Helper to get first header value from a `SimpleHeaders` map.
 fn first_header_value(
-    headers: &foundation_netio::simple_http::shared::SimpleHeaders,
+    headers: &foundation_netio::shared::http::SimpleHeaders,
     key: &SimpleHeader,
 ) -> Option<String> {
     headers.get(key).and_then(|v| v.first()).cloned()
@@ -102,7 +102,7 @@ fn test_validate_upgrade_response_valid() {
     let client_key = "dGhlIHNhbXBsZSBub25jZQ==";
     let expected_accept = compute_accept_key(client_key);
 
-    let mut headers = foundation_netio::simple_http::shared::SimpleHeaders::new();
+    let mut headers = foundation_netio::shared::http::SimpleHeaders::new();
     headers.insert(
         SimpleHeader::SEC_WEBSOCKET_ACCEPT,
         vec![expected_accept.clone()],
@@ -118,7 +118,7 @@ fn test_validate_upgrade_response_wrong_status() {
     let client_key = "dGhlIHNhbXBsZSBub25jZQ==";
     let expected_accept = compute_accept_key(client_key);
 
-    let headers = foundation_netio::simple_http::shared::SimpleHeaders::new();
+    let headers = foundation_netio::shared::http::SimpleHeaders::new();
 
     let result = validate_upgrade_response(&Status::OK, &headers, &expected_accept);
     assert!(matches!(
@@ -135,7 +135,7 @@ fn test_validate_upgrade_response_missing_accept() {
     let client_key = "dGhlIHNhbXBsZSBub25jZQ==";
     let expected_accept = compute_accept_key(client_key);
 
-    let headers = foundation_netio::simple_http::shared::SimpleHeaders::new();
+    let headers = foundation_netio::shared::http::SimpleHeaders::new();
 
     let result = validate_upgrade_response(&Status::SwitchingProtocols, &headers, &expected_accept);
     assert!(matches!(
@@ -150,7 +150,7 @@ fn test_validate_upgrade_response_invalid_accept() {
     let client_key = "dGhlIHNhbXBsZSBub25jZQ==";
     let expected_accept = compute_accept_key(client_key);
 
-    let mut headers = foundation_netio::simple_http::shared::SimpleHeaders::new();
+    let mut headers = foundation_netio::shared::http::SimpleHeaders::new();
     headers.insert(
         SimpleHeader::SEC_WEBSOCKET_ACCEPT,
         vec!["wrong_accept_key".to_string()],

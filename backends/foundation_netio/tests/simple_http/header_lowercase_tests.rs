@@ -2,7 +2,7 @@
 //! variants + first-class gRPC/Connect protocol header variants, with
 //! case-insensitive inbound parsing preserved (RFC 9110).
 
-use foundation_netio::simple_http::shared::*;
+use foundation_netio::shared::http::*;
 
 /// Known variants render canonical lowercase on the wire (HTTP/2 mandates it).
 #[test]

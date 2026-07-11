@@ -9,8 +9,8 @@
 use foundation_core::valtron::TaskIterator;
 use foundation_core::valtron::TaskStatus;
 use foundation_netio::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
-use foundation_netio::simple_http::client::shared::{MockDnsResolver, StaticSocketAddr};
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
+use foundation_netio::shared::client::{MockDnsResolver, StaticSocketAddr};
+use foundation_netio::shared::http::{SendSafeBody, SimpleMethod};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -405,7 +405,7 @@ fn test_event_source_task_with_body_uses_post() {
     let server = TestHttpServer::with_response(move |req| {
         *method_clone.lock().unwrap() = Some(req.method.clone());
         let bytes = match &req.body {
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => b.clone(),
+            foundation_netio::shared::http::SendSafeBody::Bytes(b) => b.clone(),
             _ => Vec::new(),
         };
         *body_clone.lock().unwrap() = if bytes.is_empty() {

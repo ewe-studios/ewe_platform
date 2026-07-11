@@ -16,8 +16,8 @@
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
-use crate::simple_http::client::HttpConnectionPool;
-use crate::simple_http::shared::{Http11, HttpClientError, RenderHttp};
+use crate::http::HttpConnectionPool;
+use crate::shared::http::{Http11, HttpClientError, RenderHttp};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use std::io::Write;
 use std::sync::Arc;
@@ -102,7 +102,7 @@ where
                 // Determine effective proxy configuration
                 // First check if proxy_from_env is set and try environment
                 let env_proxy = if self.1.config.proxy_from_env {
-                    crate::simple_http::client::ProxyConfig::from_env(request.url.scheme())
+                    crate::shared::client::ProxyConfig::from_env(request.url.scheme())
                 } else {
                     None
                 };

@@ -8,14 +8,14 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{self, Stream, TaskIteratorExt, TaskStatus};
-use foundation_netio::simple_http::client::shared::request_task::{
+use foundation_netio::shared::client::request_task::{
     HttpExchange, HttpExchangePending,
 };
-use foundation_netio::simple_http::client::shared::{
+use foundation_netio::shared::client::{
     ClientConfig, PreparedRequest, SystemDnsResolver,
 };
-use foundation_netio::simple_http::client::{HttpConnectionPool, HttpExchangeTask};
-use foundation_netio::simple_http::shared::{
+use foundation_netio::http::{HttpConnectionPool, HttpExchangeTask};
+use foundation_netio::shared::http::{
     pushable_request_body_with_depth, Extensions, SimpleHeaders, SimpleMethod, Status,
     DEFAULT_PUSHABLE_DEPTH,
 };
@@ -54,7 +54,7 @@ fn request_to(method: SimpleMethod, url: &str) -> PreparedRequest {
         headers: {
             let mut h = SimpleHeaders::new();
             h.insert(
-                foundation_netio::simple_http::shared::SimpleHeader::HOST,
+                foundation_netio::shared::http::SimpleHeader::HOST,
                 vec!["127.0.0.1".to_string()],
             );
             h

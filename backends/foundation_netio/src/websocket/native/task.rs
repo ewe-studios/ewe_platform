@@ -16,8 +16,8 @@ use crate::http::HttpClientConnection;
 use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
-use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
-use crate::simple_http::shared::{
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::shared::http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
 };
 use foundation_core::io::ioutils::ReadTimeoutOperations;
@@ -105,7 +105,7 @@ pub struct WebSocketHandshakeReadingState {
 /// `HandshakeValidating` state data.
 pub struct WebSocketHandshakeValidatingState {
     pub connection: HttpClientConnection,
-    pub headers: crate::simple_http::shared::SimpleHeaders,
+    pub headers: crate::shared::http::SimpleHeaders,
     pub ws_key: String,
     pub subprotocols: Option<String>,
     pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
@@ -176,7 +176,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::simple_http::client::ConnectionPool::default(),
+            crate::http::ConnectionPool::default(),
             resolver,
         ));
 
@@ -273,7 +273,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::simple_http::client::ConnectionPool::default(),
+            crate::http::ConnectionPool::default(),
             resolver,
         ));
 
@@ -525,7 +525,7 @@ where
                 match state.reader.next() {
                     Some(Ok(part)) => {
                         match part {
-                            crate::simple_http::shared::IncomingResponseParts::Intro(
+                            crate::shared::http::IncomingResponseParts::Intro(
                                 status,
                                 _proto,
                                 _text,
@@ -544,7 +544,7 @@ where
                                 self.state = Some(WebSocketState::HandshakeReading(Some(state)));
                                 Some(TaskStatus::Pending(WebSocketProgress::Handshaking))
                             }
-                            crate::simple_http::shared::IncomingResponseParts::Headers(headers) => {
+                            crate::shared::http::IncomingResponseParts::Headers(headers) => {
                                 debug!("Received headers, transitioning to validation");
                                 self.state = Some(WebSocketState::HandshakeValidating(Some(
                                     Box::new(WebSocketHandshakeValidatingState {

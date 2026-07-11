@@ -5,7 +5,7 @@
 //! Tests automatic reconnection with exponential backoff.
 
 use foundation_core::valtron::{PoolGuard, TaskIterator, TaskStatus};
-use foundation_netio::simple_http::client::shared::SystemDnsResolver;
+use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{ReconnectingWebSocketProgress, ReconnectingWebSocketTask};
 use serial_test::serial;
 use tracing_test::traced_test;
@@ -118,7 +118,7 @@ fn test_reconnecting_task_with_subprotocols() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_reconnecting_task_with_header() {
-    use foundation_netio::simple_http::shared::SimpleHeader;
+    use foundation_netio::shared::http::SimpleHeader;
 
     let resolver = SystemDnsResolver;
 

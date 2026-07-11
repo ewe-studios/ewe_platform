@@ -1,4 +1,4 @@
-use foundation_netio::simple_http::client::shared::{
+use foundation_netio::shared::client::{
     Cookie, CookieJar, CookieParseError, SameSite,
 };
 use std::time::{Duration, SystemTime};

@@ -3,7 +3,7 @@
 //! This module provides `ResponseIntro` wrapper that holds the initial
 //! response information from `IncomingResponseParts::Intro`.
 
-use crate::simple_http::shared::{Proto, Status};
+use crate::shared::http::{Proto, Status};
 
 /// HTTP response intro (status line).
 ///

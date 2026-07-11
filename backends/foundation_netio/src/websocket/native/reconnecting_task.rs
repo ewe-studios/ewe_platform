@@ -14,7 +14,7 @@
 //! PHASE 2 SCOPE: Max reconnect duration support, exponential backoff with jitter.
 
 use crate::shared::client::DnsResolver;
-use crate::simple_http::shared::SimpleHeader;
+use crate::shared::http::SimpleHeader;
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};

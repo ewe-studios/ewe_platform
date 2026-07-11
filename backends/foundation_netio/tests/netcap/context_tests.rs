@@ -9,7 +9,7 @@
 use std::sync::Arc;
 
 use foundation_netio::netcap::{ConnectionContext, PeerIdentity, TlsInfo};
-use foundation_netio::simple_http::shared::SimpleIncomingRequest;
+use foundation_netio::shared::http::SimpleIncomingRequest;
 
 /// WHY: The default must be a valid "nothing known" value so callers that build
 /// requests directly (tests, wasm client rendering) pay nothing and change no

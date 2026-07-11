@@ -9,8 +9,8 @@
 use foundation_core::valtron::TaskIterator;
 use foundation_core::valtron::TaskStatus;
 use foundation_netio::event_source::{Event, ParseResult, ReconnectingEventSourceTask};
-use foundation_netio::simple_http::client::shared::StaticSocketAddr;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleMethod};
+use foundation_netio::shared::client::StaticSocketAddr;
+use foundation_netio::shared::http::{SendSafeBody, SimpleMethod};
 use foundation_testing::http::{HttpResponse, TestHttpServer};
 use std::net::SocketAddr;
 use std::sync::{Arc, Mutex};
@@ -445,7 +445,7 @@ fn test_reconnecting_task_with_body_uses_post() {
         *method_clone.lock().unwrap() = Some(req.method.clone());
         tracing::trace!("Reading requests body from received requets");
         let bytes = match &req.body {
-            foundation_netio::simple_http::shared::SendSafeBody::Bytes(b) => b.clone(),
+            foundation_netio::shared::http::SendSafeBody::Bytes(b) => b.clone(),
             _ => Vec::new(),
         };
 

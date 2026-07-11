@@ -27,7 +27,7 @@ use foundation_netio::quic::{
     client_config_trusting_pem, server_config_from_pem, QuicDriver, QuinnBidiStream,
     QuinnConnection,
 };
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SimpleHeader, SimpleMethod, SimpleOutgoingResponse, Status,
 };
 

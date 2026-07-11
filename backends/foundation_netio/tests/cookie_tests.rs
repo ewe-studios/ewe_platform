@@ -1,6 +1,6 @@
 //! Tests extracted from simple_http/client/shared/cookie.rs
 mod tests {
-    use foundation_netio::simple_http::client::shared::cookie::*;
+    use foundation_netio::shared::client::cookie::*;
     use std::time::{Duration, SystemTime};
 
     #[test]

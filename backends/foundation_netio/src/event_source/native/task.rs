@@ -22,8 +22,8 @@ use crate::http::HttpClientConnection;
 use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
-use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
-use crate::simple_http::shared::{
+use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use crate::shared::http::{
     Http11, HttpSendResponseReader, IncomingResponseParts, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, SimpleMethod, Status,
 };
@@ -133,7 +133,7 @@ where
         debug!(scheme = ?uri.scheme(), host = ?uri.host_str(), "URL validated");
 
         let pool = Arc::new(HttpConnectionPool::new(
-            crate::simple_http::client::ConnectionPool::default(),
+            crate::http::ConnectionPool::default(),
             resolver,
         ));
 
@@ -384,7 +384,7 @@ where
                 // This ensures HTTP headers are not parsed as SSE events
                 // stream is already SharedByteBufferStream<RawStream>, so we use new() directly
                 let reader = HttpSendResponseReader::from(
-                    crate::simple_http::shared::HttpResponseReader::new(
+                    crate::shared::http::HttpResponseReader::new(
                         stream,
                         SimpleHttpBody::default(),
                     ),

@@ -4,7 +4,7 @@
 
 use foundation_core::valtron;
 use foundation_netio::http::SimpleHttpClient;
-use foundation_netio::simple_http::shared::HttpClientError;
+use foundation_netio::shared::http::HttpClientError;
 use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;
 use serial_test::serial;
@@ -230,7 +230,7 @@ fn test_redirect_after_100_continue() {
             // Build absolute URL from request's Host header
             let host = req
                 .headers
-                .get(&foundation_netio::simple_http::shared::SimpleHeader::HOST);
+                .get(&foundation_netio::shared::http::SimpleHeader::HOST);
             let host_str = host
                 .and_then(|v| v.first())
                 .map(|s| s.as_str())

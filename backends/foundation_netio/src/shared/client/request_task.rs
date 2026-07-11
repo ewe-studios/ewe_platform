@@ -11,7 +11,7 @@
 
 use std::sync::Arc;
 
-use crate::simple_http::shared::{SimpleHeaders, Status};
+use crate::shared::http::{SimpleHeaders, Status};
 use bytes::Bytes;
 
 /// What a platform HTTP request task yields on each poll.

@@ -12,7 +12,7 @@
 //!
 //! HOW: Implementors wire the handshake through their connection infrastructure.
 
-use crate::simple_http::shared::SimpleHeaders;
+use crate::shared::http::SimpleHeaders;
 use crate::websocket::native::connection::WebSocketConnection;
 use crate::websocket::shared::error::WebSocketError;
 

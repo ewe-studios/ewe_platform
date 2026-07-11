@@ -2,7 +2,7 @@
 // on wasm32, these are excluded unless you have alternative netcap bindings (use `wire-native` feature
 // with your own netcap wasm implementation).
 
-// event_source and simple_http have native-only client code but shared types are wasm-compatible.
+// event_source and the http client have native-only client code but shared types are wasm-compatible.
 // their modules internally gate native parts behind cfg(not(target_family = "wasm")).
 
 #![cfg_attr(feature = "nightly", feature(unix_socket_peek, tcp_linger))]
@@ -26,9 +26,9 @@ pub use crate::wasm::client::default_http_client;
 
 /// Unified HTTP client module (F51 Stage 4 canonical path).
 ///
-/// Re-exports native client types at `foundation_netio::http::*`. The old
-/// `simple_http::client` paths remain valid through the migration window.
-/// Callers should migrate to this path.
+/// Native client types live at `foundation_netio::http::*`; shared client
+/// types at `foundation_netio::shared::client::*`; shared HTTP types at
+/// `foundation_netio::shared::http::*`. (The old `simple_http` shim was removed.)
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub mod http;
 
@@ -45,7 +45,6 @@ pub mod wasm;
 
 pub mod event_source;
 pub mod netcap;
-pub mod simple_http;
 pub mod websocket;
 
 #[cfg(not(target_family = "wasm"))]

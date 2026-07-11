@@ -13,7 +13,7 @@
 use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
-use crate::simple_http::shared::SimpleHeader;
+use crate::shared::http::SimpleHeader;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{
     execute, BoxedSendExecutionAction, DrivenStreamIterator, Pipe, PipeReceiver, PipeSender,

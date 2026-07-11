@@ -12,14 +12,14 @@ use foundation_core::retries::{
 use foundation_core::valtron::delayed_iterators::Delayed;
 use foundation_core::valtron::delayed_iterators::{DelayedIterator, SleepIterator};
 
-use super::simple_http;
+use super::shared::http;
 
-pub fn create_simple_http_reader<T: simple_http::shared::BodyExtractor>(
+pub fn create_simple_http_reader<T: http::BodyExtractor>(
     stream: RawStream,
     extractor: T,
-) -> simple_http::shared::HttpRequestReader<T, RawStream> {
+) -> http::HttpRequestReader<T, RawStream> {
     let byte_reader = ioutils::SharedByteBufferStream::rwrite(stream);
-    simple_http::shared::HttpRequestReader::new(byte_reader, extractor)
+    http::HttpRequestReader::new(byte_reader, extractor)
 }
 
 /// Representing the different state a connection goes through

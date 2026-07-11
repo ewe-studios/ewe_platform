@@ -9,7 +9,7 @@
 //! # Example
 //!
 //! ```
-//! use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
+//! use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 //! use std::time::Duration;
 //!
 //! let calculator = TimeoutCalculator::new();
@@ -17,9 +17,9 @@
 //! let timeout = calculator.calculate_read_timeout(&context);
 //! ```
 
-use crate::simple_http::shared::client_classifier::ClientClassifier;
-use crate::simple_http::shared::latency_tracker::LatencyTracker;
-use crate::simple_http::shared::load_tracker::LoadTracker;
+use crate::shared::http::client_classifier::ClientClassifier;
+use crate::shared::http::latency_tracker::LatencyTracker;
+use crate::shared::http::load_tracker::LoadTracker;
 use std::time::Duration;
 
 /// Configuration for 100-continue expect delay behavior.
@@ -218,7 +218,7 @@ impl TimeoutContext {
     /// # Example
     ///
     /// ```
-    /// use foundation_netio::simple_http::shared::timeout::TimeoutContext;
+    /// use foundation_netio::shared::http::timeout::TimeoutContext;
     /// use std::time::Duration;
     ///
     /// let ctx = TimeoutContext::with_size(1024)
@@ -247,7 +247,7 @@ impl TimeoutContext {
 /// # Example
 ///
 /// ```
-/// use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
+/// use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 /// use std::time::Duration;
 ///
 /// let calc = TimeoutCalculator::new();
@@ -413,7 +413,7 @@ impl TimeoutCalculator {
     pub fn classify_client(
         &self,
         client_ip: &str,
-    ) -> Option<crate::simple_http::shared::client_classifier::ClientClassification> {
+    ) -> Option<crate::shared::http::client_classifier::ClientClassification> {
         self.client_classifier
             .as_ref()
             .map(|c| c.classify(client_ip))
@@ -575,7 +575,7 @@ impl TimeoutCalculator {
     /// # Examples
     ///
     /// ```
-    /// use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
+    /// use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
     ///
     /// let calc = TimeoutCalculator::new();
     ///

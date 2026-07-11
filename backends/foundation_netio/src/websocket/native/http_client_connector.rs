@@ -23,7 +23,7 @@ use foundation_core::url::Uri;
 
 use crate::http::NativeHttpClient;
 use crate::shared::client::DnsResolver;
-use crate::simple_http::shared::{
+use crate::shared::http::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeaders, SimpleHttpBody,
 };
 use crate::websocket::native::connection::WebSocketConnection;
@@ -94,14 +94,14 @@ impl<R: DnsResolver + Clone + Send + Sync + 'static> WebSocketConnector for Nati
         let mut response_headers = SimpleHeaders::new();
         for part in reader.by_ref() {
             match part {
-                Ok(crate::simple_http::shared::IncomingResponseParts::Intro(
+                Ok(crate::shared::http::IncomingResponseParts::Intro(
                     status,
                     _proto,
                     _reason,
                 )) => {
                     response_status = Some(status);
                 }
-                Ok(crate::simple_http::shared::IncomingResponseParts::Headers(headers)) => {
+                Ok(crate::shared::http::IncomingResponseParts::Headers(headers)) => {
                     response_headers = headers;
                 }
                 Ok(_) => {}

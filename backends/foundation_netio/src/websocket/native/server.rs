@@ -8,7 +8,7 @@
 //! builds 101 response. Server connection does NOT mask outgoing frames (per RFC 6455).
 
 use crate::netcap::RawStream;
-use crate::simple_http::shared::{
+use crate::shared::http::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
 use foundation_core::io::ioutils::SharedByteBufferStream;

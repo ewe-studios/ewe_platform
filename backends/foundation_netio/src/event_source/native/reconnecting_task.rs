@@ -15,8 +15,8 @@
 
 use crate::event_source::{Event, EventSourceProgress, EventSourceTask, ParseResult};
 use crate::shared::client::DnsResolver;
-use crate::simple_http::shared::timeout::TimeoutCalculator;
-use crate::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleMethod};
+use crate::shared::http::timeout::TimeoutCalculator;
+use crate::shared::http::{SendSafeBody, SimpleHeader, SimpleMethod};
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
 use std::time::{Duration, Instant};

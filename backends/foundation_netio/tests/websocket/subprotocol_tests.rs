@@ -3,7 +3,7 @@
 //! Tests Sec-WebSocket-Protocol header handling during handshake.
 
 use foundation_core::valtron::PoolGuard;
-use foundation_netio::simple_http::client::shared::SystemDnsResolver;
+use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use serial_test::serial;
@@ -209,7 +209,7 @@ fn test_server_without_subprotocol_support() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_subprotocol_header_extraction() {
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         SimpleHeader, SimpleIncomingRequest, SimpleMethod,
     };
 
@@ -242,7 +242,7 @@ fn test_subprotocol_header_extraction() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_missing_subprotocol_returns_none() {
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         SimpleHeader, SimpleIncomingRequest, SimpleMethod,
     };
 
@@ -272,7 +272,7 @@ fn test_missing_subprotocol_returns_none() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_empty_subprotocol_string() {
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         SimpleHeader, SimpleIncomingRequest, SimpleMethod,
     };
 
@@ -304,7 +304,7 @@ fn test_empty_subprotocol_string() {
 #[traced_test]
 #[serial(valtron_pool)]
 fn test_server_includes_selected_protocol() {
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         SimpleHeader, SimpleIncomingRequest, SimpleMethod,
     };
     use foundation_netio::websocket::native::server::WebSocketUpgrade;

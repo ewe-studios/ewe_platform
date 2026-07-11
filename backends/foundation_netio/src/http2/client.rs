@@ -33,6 +33,10 @@ impl<S: Read + Write> H2Client<S> {
     }
 
     /// Complete the HTTP/2 handshake (send preface, exchange SETTINGS).
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the handshake fails.
     pub fn connect(&mut self) -> io::Result<()> {
         self.conn.client_handshake()
     }
@@ -40,6 +44,10 @@ impl<S: Read + Write> H2Client<S> {
     /// Send an HTTP/2 request on a new stream.
     ///
     /// Returns the stream ID for correlating with the response.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if the request cannot be sent.
     pub fn send(&mut self, request: H2Request) -> io::Result<u32> {
         self.conn.send_request(request)
     }
@@ -48,11 +56,19 @@ impl<S: Read + Write> H2Client<S> {
     ///
     /// Returns `Some((stream_id, response))` for a response HEADERS frame,
     /// or `None` when the connection closes (GOAWAY received).
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if reading from the connection fails.
     pub fn recv(&mut self) -> io::Result<Option<(u32, H2Request)>> {
         self.conn.recv_response()
     }
 
     /// Flush any pending writes.
+    ///
+    /// # Errors
+    ///
+    /// Returns an I/O error if flushing fails.
     pub fn flush(&mut self) -> io::Result<()> {
         self.conn.flush()
     }

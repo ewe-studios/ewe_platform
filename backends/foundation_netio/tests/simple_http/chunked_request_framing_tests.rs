@@ -20,7 +20,7 @@ use bytes::Bytes;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::url::Uri;
 use foundation_core::valtron::PipeSender;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     ensure_chunked_transfer_encoding, pushable_request_body_with_depth, HTTPStreams, Http11,
     IncomingRequestParts, Proto, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, SimpleUrl, Status,
@@ -190,7 +190,7 @@ fn server_reads_chunked_request_body_instead_of_nobody() {
         .expect("render head");
     let body_bytes = {
         let mut out = Vec::new();
-        for chunk in foundation_netio::simple_http::shared::Http11RequestBodyIterator::new(req) {
+        for chunk in foundation_netio::shared::http::Http11RequestBodyIterator::new(req) {
             out.extend_from_slice(&chunk.expect("render chunk"));
         }
         out

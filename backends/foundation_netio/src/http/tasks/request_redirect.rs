@@ -17,8 +17,8 @@
 
 use crate::netcap::RawStream;
 use crate::shared::client::{redirects, ClientConfig, DnsResolver};
-use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
-use crate::simple_http::shared::{
+use crate::http::{HttpClientConnection, HttpConnectionPool};
+use crate::shared::http::{
     ensure_chunked_transfer_encoding, Http11, HttpClientError, HttpResponseReader,
     IncomingResponseParts, RenderHttp, RequestDescriptor, SendSafeBody, SimpleHeader,
     SimpleHttpBody, SimpleIncomingRequest, Status,
@@ -34,14 +34,14 @@ use super::HttpOperationState;
 type InitData<R> = Box<(
     SimpleIncomingRequest,
     Arc<HttpConnectionPool<R>>,
-    crate::simple_http::client::shared::ClientConfig,
+    crate::shared::client::ClientConfig,
     u8,
 )>;
 
 type TryingData<R> = Box<(
     SimpleIncomingRequest,
     Arc<HttpConnectionPool<R>>,
-    crate::simple_http::client::shared::ClientConfig,
+    crate::shared::client::ClientConfig,
     RequestDescriptor,
     u8,
 )>;
@@ -149,7 +149,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     let read_timeout =
                         config.get_expect_continue_read_timeout();
 
-                    // let is_head_request = matches!(data.method, crate::simple_http::shared::SimpleMethod::HEAD);
+                    // let is_head_request = matches!(data.method, crate::shared::http::SimpleMethod::HEAD);
                     // let read_timeout = if is_head_request {
                     //     // HEAD requests have no body, use minimum timeout
                     //     config.get_expect_continue_read_timeout()
@@ -164,7 +164,7 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
 
                     // Determine effective proxy configuration
                     let env_proxy = if config.proxy_from_env {
-                        crate::simple_http::client::ProxyConfig::from_env(
+                        crate::shared::client::ProxyConfig::from_env(
                             descriptor.request_uri.scheme(),
                         )
                     } else {

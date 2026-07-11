@@ -1,6 +1,6 @@
 use super::request::PreparedRequest;
-use crate::simple_http::shared::Extensions;
-use crate::simple_http::shared::{
+use crate::shared::http::Extensions;
+use crate::shared::http::{
     HttpClientError, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     SimpleUrl,
 };
@@ -187,7 +187,7 @@ pub fn build_followup_request_from(
     );
 
     PreparedRequest {
-        method: crate::simple_http::shared::SimpleMethod::GET,
+        method: crate::shared::http::SimpleMethod::GET,
         url: new_url,
         headers,
         body: SendSafeBody::None,
@@ -255,7 +255,7 @@ mod tests {
     fn descriptor_with_headers(url: &str, headers: SimpleHeaders) -> RequestDescriptor {
         let uri = Uri::parse(url).expect("valid test url");
         RequestDescriptor {
-            proto: crate::simple_http::shared::Proto::HTTP11,
+            proto: crate::shared::http::Proto::HTTP11,
             request_url: SimpleUrl::url_with_query(uri.to_string()),
             request_uri: uri,
             headers,

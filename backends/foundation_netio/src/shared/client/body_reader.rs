@@ -27,7 +27,7 @@
 
 use crate::event_source::shared::ParseResult;
 use crate::event_source::Event;
-use crate::simple_http::shared::{
+use crate::shared::http::{
     ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
 };
 use bytes::Bytes;
@@ -1488,7 +1488,7 @@ where
 
 // Re-export from shared so the import path `client::body_reader::ContentLengthEnforcingIterator`
 // continues to work for existing callers
-pub use crate::simple_http::shared::ContentLengthEnforcingIterator;
+pub use crate::shared::http::ContentLengthEnforcingIterator;
 
 // ============================================================================
 // LineFeed Content-Length Enforcement (body_reader-internal)

@@ -10,7 +10,7 @@
 use base64::Engine;
 use sha1::{Digest, Sha1};
 
-use crate::simple_http::shared::{
+use crate::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleIncomingRequestBuilder, SimpleMethod,
     Status,
 };

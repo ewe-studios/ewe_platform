@@ -1,4 +1,4 @@
-use crate::simple_http::shared::{SimpleHeader, SimpleHeaders};
+use crate::shared::http::{SimpleHeader, SimpleHeaders};
 use std::collections::BTreeMap;
 use wasm_bindgen::JsValue;
 

@@ -1,6 +1,6 @@
 //! WebSocket server-side upgrade tests (RFC 6455 Section 4.2).
 
-use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
+use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest, SimpleMethod};
 use foundation_netio::websocket::{WebSocketServerConnection, WebSocketUpgrade};
 use tracing_test::traced_test;
 

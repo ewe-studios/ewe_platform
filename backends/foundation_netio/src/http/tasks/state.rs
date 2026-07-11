@@ -1,7 +1,7 @@
 use crate::netcap::RawStream;
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
-use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool, HttpRequestPending};
-use crate::simple_http::shared::{
+use crate::http::{HttpClientConnection, HttpConnectionPool, HttpRequestPending};
+use crate::shared::http::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,
 };
 use std::sync::{Arc, Mutex};
@@ -502,7 +502,7 @@ impl Iterator for IncomingResponseMapper {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::simple_http::client::HttpRequestPending;
+    use crate::http::HttpRequestPending;
 
     #[test]
     fn test_fetch_pending_display() {

@@ -14,7 +14,7 @@ use foundation_core::url::Uri;
 use serde::Serialize;
 
 use super::request::PreparedRequest;
-use crate::simple_http::shared::{
+use crate::shared::http::{
     Extensions, HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
 };
 

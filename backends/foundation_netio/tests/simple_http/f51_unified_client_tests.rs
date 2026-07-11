@@ -16,14 +16,14 @@ use std::time::Duration;
 use foundation_core::valtron::{self, valtron_test, Stream, TaskIterator, TaskIteratorExt};
 use foundation_netio::http::NativeHttpClient;
 use foundation_netio::http_client_builder::HttpClientBuilder;
-use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_netio::simple_http::client::shared::request_task::{
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::shared::client::request_task::{
     HttpExchange, HttpExchangeClientTask, HttpExchangePending,
 };
-use foundation_netio::simple_http::client::shared::{
+use foundation_netio::shared::client::{
     ClientConfig, PreparedRequest, SystemDnsResolver,
 };
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Extensions, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
 };
 use foundation_netio::websocket::shared::connector::WebSocketConnector;

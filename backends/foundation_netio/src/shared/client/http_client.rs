@@ -22,7 +22,7 @@ use foundation_core::valtron::Stream;
 use super::request::PreparedRequest;
 use super::request_task::HttpExchangeClientTask;
 use crate::event_source::ParseResult;
-use crate::simple_http::shared::{HttpClientError, SendSafeBody, SimpleResponse};
+use crate::shared::http::{HttpClientError, SendSafeBody, SimpleResponse};
 
 /// Progress indicator for SSE streams.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

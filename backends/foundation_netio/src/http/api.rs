@@ -13,10 +13,10 @@
 //! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
 use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, ResponseIntro};
-use crate::simple_http::client::{
+use crate::http::{
     HttpClientConnection, HttpConnectionPool, HttpRequestPending, RequestIntro, SendRequestTask,
 };
-use crate::simple_http::shared::{
+use crate::shared::http::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleResponse, Status,
 };

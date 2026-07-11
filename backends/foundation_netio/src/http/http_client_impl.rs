@@ -27,9 +27,9 @@ use crate::shared::client::http_client::{
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
 use crate::shared::client::{BoxedDnsResolver, ClientConfig, DnsResolver, SystemDnsResolver};
-use crate::simple_http::client::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
-use crate::simple_http::shared::timeout::TimeoutCalculator;
-use crate::simple_http::shared::{HttpClientError, SendSafeBody, SimpleMethod, SimpleResponse};
+use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
+use crate::shared::http::timeout::TimeoutCalculator;
+use crate::shared::http::{HttpClientError, SendSafeBody, SimpleMethod, SimpleResponse};
 
 /// The native HTTP client — owns the connection pool, configuration, and resolver.
 ///

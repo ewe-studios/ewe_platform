@@ -2,11 +2,11 @@
 
 use crate::netcap::ConnectionContext;
 use crate::shared::client::body_reader::AsyncSendSafeBody;
-use crate::simple_http::shared::errors::{
+use crate::shared::http::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, SimpleRequestError, StringHandlingError,
 };
-use crate::simple_http::shared::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
+use crate::shared::http::{ContentLengthEnforcingIterator, Extensions as ClientExtensions};
 use derive_more::From;
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::extensions::strings_ext::{TryIntoString, TryIntoStringError};

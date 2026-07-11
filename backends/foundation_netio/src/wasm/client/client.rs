@@ -32,7 +32,7 @@ use crate::shared::client::http_client::{BoxedSseFutureStream, BoxedSseIterator,
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
 use crate::shared::client::ClientConfig;
-use crate::simple_http::shared::{
+use crate::shared::http::{
     HttpClientError, LineFeed, SendSafeBody, SimpleMethod, SimpleResponse, Status,
 };
 

@@ -10,7 +10,7 @@ use std::sync::Arc;
 
 use crate::netcap::{Connection, RawStream};
 use crate::shared::client::dns::DnsResolver;
-use crate::simple_http::shared::HttpClientError;
+use crate::shared::http::HttpClientError;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use std::time::Duration;
 
@@ -675,13 +675,13 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     /// - Invalid proxy responses
     pub fn connect_via_http_proxy(
         &self,
-        proxy: &crate::simple_http::client::ProxyConfig,
+        proxy: &crate::shared::client::ProxyConfig,
         target_host: &str,
         target_port: u16,
         timeout: Option<Duration>,
     ) -> Result<Connection, HttpClientError> {
-        use crate::simple_http::client::ProxyProtocol;
-        use crate::simple_http::shared::{HttpResponseReader, SimpleHttpBody};
+        use crate::shared::client::ProxyProtocol;
+        use crate::shared::http::{HttpResponseReader, SimpleHttpBody};
         use std::io::Write;
 
         // Verify proxy protocol
@@ -782,7 +782,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             })?;
 
         // Extract status code from Intro variant
-        use crate::simple_http::shared::IncomingResponseParts;
+        use crate::shared::http::IncomingResponseParts;
         let status_code = match intro_response {
             IncomingResponseParts::Intro(status, _proto, _text) => {
                 let code: usize = status.into();
@@ -806,7 +806,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
 
         // Step 7: Drain headers from reader
         while let Some(Ok(part)) = reader.next() {
-            use crate::simple_http::shared::IncomingResponseParts;
+            use crate::shared::http::IncomingResponseParts;
             match part {
                 IncomingResponseParts::Headers(_) => continue,
                 IncomingResponseParts::NoBody | IncomingResponseParts::SKIP => break,
@@ -852,13 +852,13 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     ))]
     pub fn connect_via_https_proxy(
         &self,
-        proxy: &crate::simple_http::client::ProxyConfig,
+        proxy: &crate::shared::client::ProxyConfig,
         target_host: &str,
         target_port: u16,
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {
-        use crate::simple_http::client::ProxyProtocol;
-        use crate::simple_http::shared::{HttpResponseReader, SimpleHttpBody};
+        use crate::shared::client::ProxyProtocol;
+        use crate::shared::http::{HttpResponseReader, SimpleHttpBody};
         use std::io::Write;
 
         // Verify proxy protocol
@@ -922,7 +922,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
             })?;
 
         // Extract status code from Intro variant
-        use crate::simple_http::shared::IncomingResponseParts;
+        use crate::shared::http::IncomingResponseParts;
         let status_code = match intro_response {
             IncomingResponseParts::Intro(status, _proto, _text) => {
                 let code: usize = status.into();
@@ -960,7 +960,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     )))]
     pub fn connect_via_https_proxy(
         &self,
-        _proxy: &crate::simple_http::client::ProxyConfig,
+        _proxy: &crate::shared::client::ProxyConfig,
         _target_host: &str,
         _target_port: u16,
         _timeout: Option<Duration>,
@@ -1019,10 +1019,10 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
     pub fn create_connection_with_proxy(
         &self,
         url: &Uri,
-        proxy: Option<&crate::simple_http::client::ProxyConfig>,
+        proxy: Option<&crate::shared::client::ProxyConfig>,
         timeout: Option<Duration>,
     ) -> Result<HttpClientConnection, HttpClientError> {
-        use crate::simple_http::client::{ProxyConfig, ProxyProtocol};
+        use crate::http::{ProxyConfig, ProxyProtocol};
 
         // Extract target host and port
         let target_host = url

@@ -20,9 +20,9 @@ use derive_more::From;
 use crate::netcap::RawStream;
 use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
 use crate::shared::client::ResponseIntro;
-use crate::simple_http::client::HttpClientConnection;
-use crate::simple_http::shared::IncomingResponseParts;
-use crate::simple_http::shared::{
+use crate::http::HttpClientConnection;
+use crate::shared::http::IncomingResponseParts;
+use crate::shared::http::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody, Status,
 };
@@ -268,7 +268,7 @@ impl TaskIterator for GetRequestIntroTask {
                         }
                     };
 
-                    let crate::simple_http::shared::IncomingResponseParts::Headers(headers) =
+                    let crate::shared::http::IncomingResponseParts::Headers(headers) =
                         header_response
                     else {
                         return Some(TaskStatus::Ready(RequestIntro::Failed(

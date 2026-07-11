@@ -6,7 +6,7 @@
 #![allow(clippy::naive_bytecount)]
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::simple_http::shared::{ChunkedData, SimpleHeaders, SimpleHttpChunkIterator};
+use foundation_netio::shared::http::{ChunkedData, SimpleHeaders, SimpleHttpChunkIterator};
 use std::io::Cursor;
 
 /// Test: Multi-chunk JSON body - verifies CRLFs are not included in data.

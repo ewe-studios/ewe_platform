@@ -14,7 +14,7 @@ use bytes::Bytes;
 
 use foundation_netio::http3::types::{request_from_fields, response_to_fields, MalformedRequest};
 use foundation_netio::netcap::context::ConnectionContext;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SimpleHeader, SimpleMethod, SimpleOutgoingResponse, Status,
 };
 

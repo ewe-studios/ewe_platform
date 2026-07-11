@@ -7,7 +7,7 @@ use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::sync::Arc;
 
-use crate::simple_http::shared::errors::Result;
+use crate::shared::http::errors::Result;
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::readers::Data;
 
