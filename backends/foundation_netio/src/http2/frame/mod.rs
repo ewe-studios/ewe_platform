@@ -147,6 +147,7 @@ impl DataFrame {
         }
     }
 
+    #[must_use]
     pub fn with_end_stream(mut self) -> Self {
         self.flags |= data_flags::END_STREAM;
         self
@@ -243,6 +244,7 @@ impl HeadersFrame {
         }
     }
 
+    #[must_use]
     pub fn with_end_stream(mut self) -> Self {
         self.flags |= headers_flags::END_STREAM;
         self

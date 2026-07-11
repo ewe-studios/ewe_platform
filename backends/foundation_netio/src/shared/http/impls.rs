@@ -4034,6 +4034,7 @@ where
 {
     /// [`branch`] will create a new `HttpSendResponseReader`
     /// with state reset which will allow you to continue reading a response from the reader.
+    #[must_use]
     pub fn branch_reader(self) -> Self {
         Self(self.0.branch_reader())
     }
@@ -4080,6 +4081,7 @@ where
 {
     /// [`branch`] will create a new `HttpSendResponseReader`
     /// with state reset which will allow you to continue reading a response from the reader.
+    #[must_use]
     pub fn branch_reader(self) -> Self {
         Self::new(self.reader, self.bodies)
     }
@@ -4604,7 +4606,7 @@ impl LineFeed {
             }
             false
         }) {
-            continue;
+            ;
         }
 
         let line_feed_result = match pointer
@@ -4898,7 +4900,7 @@ impl ChunkState {
 
             false
         }) {
-            continue;
+            ;
         }
 
         match pointer.do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume) {
@@ -4957,7 +4959,7 @@ impl ChunkState {
             }
             false
         }) {
-            continue;
+            ;
         }
 
         // NOTE: Some chunk encoding use \r\n and others \n\n for
@@ -6204,6 +6206,7 @@ impl ServiceActionBuilder {
         self
     }
 
+    #[must_use]
     pub fn add_header<H: Into<SimpleHeader>, J: Into<String>>(mut self, key: H, value: J) -> Self {
         let mut headers = self.headers.unwrap_or_default();
 
@@ -6219,11 +6222,13 @@ impl ServiceActionBuilder {
         self
     }
 
+    #[must_use]
     pub fn with_body(mut self, body: impl CloneableSimpleServer + 'static) -> Self {
         self.body = Some(Box::new(body));
         self
     }
 
+    #[must_use]
     pub fn with_route<I: Into<String>>(mut self, route: I) -> Self {
         self.route = Some(SimpleUrl::url_with_query(route.into()));
         self

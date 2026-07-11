@@ -76,7 +76,7 @@ impl HttpClientConnection {
                 Ok(n) => {
                     total_drained += n;
                     tracing::trace!("drain_stream: read {} bytes (total: {})", n, total_drained);
-                    continue; // More data read, keep draining
+                    ; // More data read, keep draining
                 }
                 Err(e) => {
                     tracing::trace!(

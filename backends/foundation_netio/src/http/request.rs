@@ -131,6 +131,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         self
     }
 
+    #[must_use]
     pub fn with_client_confg(mut self, changer: impl FnOnce(&mut ClientConfig)) -> Self {
         let mut current = self.config.unwrap_or_default();
         changer(&mut current);
@@ -138,6 +139,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         self
     }
 
+    #[must_use]
     pub fn client_config_follow_other_redirects_response(
         self,
         follow_other_redirects_response: bool,
@@ -147,12 +149,14 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         })
     }
 
+    #[must_use]
     pub fn client_config_headers_to_add(self, headers: SimpleHeaders) -> Self {
         self.with_client_confg(|config| {
             config.headers_to_add = Some(headers);
         })
     }
 
+    #[must_use]
     pub fn client_config_headers_to_pass_on(self, headers: Vec<SimpleHeader>) -> Self {
         self.with_client_confg(|config| {
             config.headers_to_pass_on_redirect = Some(headers);
