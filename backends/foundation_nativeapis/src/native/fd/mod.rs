@@ -49,6 +49,10 @@ pub mod reactor;
 /// The `CompletionSource` seam — byte acquisition for io_uring completion mode.
 pub mod completion;
 
+/// The `SendPool` — user-filled buffer pool for the `IORING_OP_SEND` write path.
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub mod send_pool;
+
 // `CompletionSocket` — the transport-facing byte-source wrapper — moved to
 // `foundation_iogate::native`, the one crate that owns both this reactor and
 // the netio `Connection`/`CompletionReadWrite` seam it plugs into. Keeping it
@@ -60,6 +64,8 @@ pub use reactor::{AlreadyInitialised, Reactor, SharedReadiness};
 
 #[cfg(all(target_os = "linux", feature = "uring"))]
 pub use completion::{Completion, CompletionSource};
+#[cfg(all(target_os = "linux", feature = "uring"))]
+pub use send_pool::{SendBuf, SendPool};
 
 use crate::native::poll::{Events, Interest, Token};
 use crate::native::poll::sys::RawFd;
