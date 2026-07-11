@@ -28,12 +28,12 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
 
-use crate::simple_http::client::shared::http_client::{
+use crate::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient,
 };
-use crate::simple_http::client::shared::request::PreparedRequest;
-use crate::simple_http::client::shared::request_task::HttpExchangeClientTask;
-use crate::simple_http::client::shared::ClientConfig;
+use crate::shared::client::request::PreparedRequest;
+use crate::shared::client::request_task::HttpExchangeClientTask;
+use crate::shared::client::ClientConfig;
 use crate::simple_http::shared::{
     HttpClientError, LineFeed, SendSafeBody, SimpleMethod, SimpleResponse, Status,
 };

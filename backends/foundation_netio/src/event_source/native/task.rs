@@ -21,9 +21,9 @@ use foundation_core::extensions::result_ext::SendableBoxedError;
 use crate::netcap::RawStream;
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 use crate::event_source::{EventSourceError, ParseResult, SseParser};
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::client::HttpClientConnection;
-use crate::simple_http::client::HttpConnectionPool;
+use crate::shared::client::DnsResolver;
+use crate::http::HttpClientConnection;
+use crate::http::HttpConnectionPool;
 use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 use foundation_core::url::Uri;
 use crate::simple_http::shared::{

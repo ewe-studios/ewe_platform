@@ -1,24 +1,28 @@
-// HTTP 1.1 Client Module
+// HTTP 1.1 Client Module — re-exports from canonical paths (F51 Stage 4).
+//
+// Shared → foundation_netio::shared::client
+// Native → foundation_netio::http
+// Wasm   → foundation_netio::wasm::client
 
-// Shared types — always compiled, including on wasm32
-pub mod shared;
-
+pub mod shared {
+    pub use crate::shared::client::*;
+}
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
-pub use crate::simple_http::client::native::default_http_client;
-
+pub mod native {
+    pub use crate::http::*;
+}
 #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
-pub use crate::simple_http::client::wasm::default_http_client;
+pub mod wasm {
+    pub use crate::wasm::client::*;
+}
 
-// Native types — gated behind not(target_family = "wasm")
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
-pub mod native;
+pub use crate::http::default_http_client;
+#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
+pub use crate::wasm::client::default_http_client;
 
+pub use shared::*;
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub use native::*;
-
-// Wasm fetch client — gated behind wasm32 + wasm-fetch feature
-#[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
-pub mod wasm;
-
 #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
 pub use wasm::*;

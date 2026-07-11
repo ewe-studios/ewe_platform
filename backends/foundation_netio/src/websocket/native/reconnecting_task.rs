@@ -15,7 +15,7 @@
 
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
-use crate::simple_http::client::shared::DnsResolver;
+use crate::shared::client::DnsResolver;
 use crate::simple_http::shared::SimpleHeader;
 use concurrent_queue::ConcurrentQueue;
 use std::sync::Arc;

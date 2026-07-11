@@ -12,13 +12,13 @@
 //! Run with: cargo test -- --ignored
 
 // Note: Uncomment these when HTTP client public API is ready
-// use foundation_netio::simple_http::client::SimpleHttpClient;
+// use foundation_netio::http::SimpleHttpClient;
 
 // ========================================================================
 // External HTTP Server Validation Tests
 // ========================================================================
 
-use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::http::SimpleHttpClient;
 
 /// WHY: Verify HTTP client works with real external HTTP server
 /// WHAT: Tests basic GET request against httpbin.org

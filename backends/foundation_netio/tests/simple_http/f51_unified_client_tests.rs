@@ -22,7 +22,7 @@ use foundation_netio::simple_http::client::shared::request_task::{
 use foundation_netio::simple_http::client::shared::{
     ClientConfig, PreparedRequest, SystemDnsResolver,
 };
-use foundation_netio::simple_http::client::NativeHttpClient;
+use foundation_netio::http::NativeHttpClient;
 use foundation_netio::simple_http::shared::{
     Extensions, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
 };
@@ -351,7 +351,7 @@ fn websocket_connector_accepts_valid_101() {
 #[test]
 #[allow(deprecated)]
 fn simple_http_client_alias_works() {
-    use foundation_netio::simple_http::client::SimpleHttpClient;
+    use foundation_netio::http::SimpleHttpClient;
     let client = SimpleHttpClient::<SystemDnsResolver>::default();
     assert_eq!(client.client_config().max_redirects, 5);
 }

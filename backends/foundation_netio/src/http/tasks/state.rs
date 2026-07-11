@@ -1,5 +1,5 @@
 use crate::netcap::RawStream;
-use crate::simple_http::client::shared::{ClientConfig, DnsResolver, PreparedRequest};
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest};
 use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool, HttpRequestPending};
 use crate::simple_http::shared::{
     HttpClientError, HttpResponseReader, IncomingResponseParts, SimpleHttpBody,

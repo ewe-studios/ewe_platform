@@ -55,7 +55,7 @@ impl Default for H1Transport {
         // (wasm uses a different transport), but the default is still sound.
         #[cfg(not(target_family = "wasm"))]
         {
-            use foundation_netio::simple_http::client::NativeHttpClient;
+            use foundation_netio::http::NativeHttpClient;
             Self::new(Arc::new(NativeHttpClient::default()))
         }
         #[cfg(target_family = "wasm")]

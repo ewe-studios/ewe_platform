@@ -1,9 +1,21 @@
-//! HTTP client module — the new home for the unified HTTP client (F51 Stage 4).
-//!
-//! This module re-exports the native client types at their new canonical path.
-//! The old `simple_http::client` paths continue to work through the migration
-//! window; callers should migrate to these paths gradually.
+//! HTTP client module — canonical home for the unified HTTP client (F51 Stage 4).
 
-// Re-export the native client at the new canonical location.
-#[cfg(all(feature = "multi", not(target_family = "wasm")))]
-pub use crate::simple_http::client::native::*;
+mod api;
+mod client;
+mod connection;
+mod http_client_impl;
+mod pool;
+mod proxy;
+mod request;
+mod tasks;
+mod tls_task;
+
+pub use api::*;
+pub use client::*;
+pub use connection::*;
+pub use http_client_impl::*;
+pub use pool::*;
+pub use proxy::*;
+pub use request::*;
+pub use tasks::*;
+pub use tls_task::*;

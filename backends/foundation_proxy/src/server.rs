@@ -26,7 +26,7 @@ use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_netio::simple_http::client::native::HttpConnectionPool;
 use foundation_netio::simple_http::client::shared::{ClientConfig, SystemDnsResolver};
-use foundation_netio::simple_http::client::NativeHttpClient;
+use foundation_netio::http::NativeHttpClient;
 
 use crate::config::{ProxyConfig, ProxyError, SslProvider};
 use crate::handler::ProxyHandler;

@@ -27,7 +27,7 @@ use wasm_bindgen_futures::JsFuture;
 
 use crate::event_source::shared::sse::SseParser;
 use crate::event_source::ParseResult;
-use crate::simple_http::client::shared::http_client::SseProgress;
+use crate::shared::client::http_client::SseProgress;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 
 /// `Read` adapter over a `ConcurrentQueue<Vec<u8>>` with shared done flag.

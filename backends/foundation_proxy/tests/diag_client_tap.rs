@@ -12,7 +12,7 @@ use foundation_netio::simple_http::client::native::{
     ClientRequestBuilder, HttpConnectionPool,
 };
 use foundation_netio::simple_http::client::shared::{ClientConfig, SystemDnsResolver};
-use foundation_netio::simple_http::client::NativeHttpClient;
+use foundation_netio::http::NativeHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 use std::sync::Arc;
 

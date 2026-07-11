@@ -20,12 +20,12 @@ use foundation_core::valtron::{
     inlined_task, BoxedSendExecutionAction, InlineActionBehaviour, Stream, TaskIterator, TaskStatus,
 };
 
-use crate::simple_http::client::native::tasks::{RequestIntro, SendRequestTask};
-use crate::simple_http::client::shared::body_reader::{
+use crate::http::tasks::{RequestIntro, SendRequestTask};
+use crate::shared::client::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };
-use crate::simple_http::client::shared::request_task::{HttpExchange, HttpExchangePending};
-use crate::simple_http::client::shared::{
+use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
+use crate::shared::client::{
     ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver,
 };
 use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};

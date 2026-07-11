@@ -16,7 +16,7 @@
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
 use crate::netcap::RawStream;
-use crate::simple_http::client::shared::{redirects, ClientConfig, DnsResolver};
+use crate::shared::client::{redirects, ClientConfig, DnsResolver};
 use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
 use crate::simple_http::shared::{
     ensure_chunked_transfer_encoding, Http11, HttpClientError, HttpResponseReader,

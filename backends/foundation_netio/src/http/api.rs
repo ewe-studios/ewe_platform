@@ -16,7 +16,7 @@ use foundation_core::valtron::{
     self, DrivenStreamIterator, MapDone, SplitCollectorMapContinuation, SplitCollectorMapObserver,
     Stream, StreamIteratorExt, TaskIteratorExt,
 };
-use crate::simple_http::client::shared::{
+use crate::shared::client::{
     ClientConfig, DnsResolver, PreparedRequest, ResponseIntro,
 };
 use crate::simple_http::client::{

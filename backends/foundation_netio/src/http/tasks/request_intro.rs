@@ -18,8 +18,8 @@
 use derive_more::From;
 
 use crate::netcap::RawStream;
-use crate::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
-use crate::simple_http::client::shared::ResponseIntro;
+use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
+use crate::shared::client::ResponseIntro;
 use crate::simple_http::client::HttpClientConnection;
 use crate::simple_http::shared::IncomingResponseParts;
 use crate::simple_http::shared::{

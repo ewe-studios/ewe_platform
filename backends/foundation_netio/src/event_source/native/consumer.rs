@@ -15,8 +15,8 @@ use foundation_core::valtron::{execute, DrivenStreamIterator, Stream};
 use crate::event_source::{
     Event, EventSourceError, EventSourceTask, ParseResult, ReconnectingEventSourceTask,
 };
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::client::HttpConnectionPool;
+use crate::shared::client::DnsResolver;
+use crate::http::HttpConnectionPool;
 use std::sync::Arc;
 
 /// SSE event wrapper that indicates whether to process or skip.

@@ -11,8 +11,8 @@
 //! provides `MessageDelivery` for sending messages via `ConcurrentQueue`.
 
 use crate::netcap::RawStream;
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::client::HttpConnectionPool;
+use crate::shared::client::DnsResolver;
+use crate::http::HttpConnectionPool;
 use crate::simple_http::shared::SimpleHeader;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{

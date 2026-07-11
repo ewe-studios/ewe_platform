@@ -21,8 +21,8 @@ use std::time::Duration;
 
 use foundation_core::url::Uri;
 
-use crate::simple_http::client::shared::DnsResolver;
-use crate::simple_http::client::NativeHttpClient;
+use crate::shared::client::DnsResolver;
+use crate::http::NativeHttpClient;
 use crate::simple_http::shared::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeaders, SimpleHttpBody,
 };

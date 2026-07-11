@@ -3,7 +3,7 @@
 // WHAT: Ensure correct status transitions, header/semantic mutability, limit enforcement, and sensitive header stripping per sync-only project mandate
 
 use foundation_core::valtron;
-use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::http::SimpleHttpClient;
 use foundation_netio::simple_http::shared::HttpClientError;
 use foundation_testing::http::HttpResponse;
 use foundation_testing::TestHttpServer;

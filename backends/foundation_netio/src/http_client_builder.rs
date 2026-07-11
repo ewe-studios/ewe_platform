@@ -15,8 +15,8 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-use crate::simple_http::client::shared::http_client::HttpClient;
-use crate::simple_http::client::shared::{ClientConfig, SystemDnsResolver};
+use crate::shared::client::http_client::HttpClient;
+use crate::shared::client::{ClientConfig, SystemDnsResolver};
 use crate::simple_http::shared::timeout::TimeoutCalculator;
 use crate::simple_http::shared::HttpClientError;
 
@@ -145,7 +145,7 @@ impl HttpClientBuilder {
     pub fn proxy(mut self, proxy_url: &str) -> Result<Self, HttpClientError> {
         #[cfg(not(target_family = "wasm"))]
         {
-            use crate::simple_http::client::shared::proxy::ProxyConfig;
+            use crate::shared::client::proxy::ProxyConfig;
             let proxy_config = ProxyConfig::parse(proxy_url)?;
             self.config.proxy = Some(proxy_config);
         }
@@ -174,7 +174,7 @@ impl HttpClientBuilder {
         #[cfg(all(feature = "multi", not(target_family = "wasm")))]
         {
             let config = self.finalize_config();
-            Arc::new(crate::simple_http::client::NativeHttpClient::new(
+            Arc::new(crate::http::NativeHttpClient::new(
                 SystemDnsResolver::default(),
             )
             .config(config))
@@ -182,7 +182,7 @@ impl HttpClientBuilder {
         #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
         {
             Arc::new(
-                crate::simple_http::client::wasm::client::FetchHttpClient::with_config(
+                crate::wasm::client::FetchHttpClient::with_config(
                     self.finalize_config(),
                 ),
             )

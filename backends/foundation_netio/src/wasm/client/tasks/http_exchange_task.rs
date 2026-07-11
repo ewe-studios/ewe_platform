@@ -21,13 +21,13 @@ use foundation_core::valtron::{
     from_future, BoxedSendExecutionAction, FutureTask, Stream, TaskIterator, TaskStatus,
 };
 
-use crate::simple_http::client::shared::request_task::{HttpExchange, HttpExchangePending};
-use crate::simple_http::client::shared::request::PreparedRequest;
-use crate::simple_http::client::shared::body_reader::{
+use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
+use crate::shared::client::request::PreparedRequest;
+use crate::shared::client::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };
-use crate::simple_http::client::shared::http_client::HttpClient;
-use crate::simple_http::client::wasm::client::FetchHttpClient;
+use crate::shared::client::http_client::HttpClient;
+use crate::wasm::client::client::FetchHttpClient;
 use crate::simple_http::shared::{HttpClientError, SendSafeBody};
 
 // ---------------------------------------------------------------------------

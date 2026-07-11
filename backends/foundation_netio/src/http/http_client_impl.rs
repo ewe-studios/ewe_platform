@@ -19,16 +19,16 @@ use std::time::Duration;
 use foundation_core::valtron::{execute, StreamIteratorExt};
 
 use crate::event_source::{ReconnectingEventSourceTask, ReconnectingProgress};
-use crate::simple_http::client::shared::http_client::{
+use crate::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
-use crate::simple_http::client::shared::request::PreparedRequest;
-use crate::simple_http::client::shared::request_task::HttpExchangeClientTask;
-use crate::simple_http::client::shared::{
+use crate::shared::client::request::PreparedRequest;
+use crate::shared::client::request_task::HttpExchangeClientTask;
+use crate::shared::client::{
     BoxedDnsResolver, ClientConfig, DnsResolver, SystemDnsResolver,
 };
-use crate::simple_http::client::native::pool::ConnectionPool;
-use crate::simple_http::client::native::tasks::HttpExchangeTask;
+use crate::http::pool::ConnectionPool;
+use crate::http::tasks::HttpExchangeTask;
 use crate::simple_http::client::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::simple_http::shared::timeout::TimeoutCalculator;
 use crate::simple_http::shared::{HttpClientError, SendSafeBody, SimpleMethod, SimpleResponse};
@@ -314,7 +314,7 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
     }
 
     pub fn proxy(mut self, proxy_url: &str) -> Result<Self, HttpClientError> {
-        use crate::simple_http::client::shared::proxy::ProxyConfig;
+        use crate::shared::client::proxy::ProxyConfig;
         let proxy_config = ProxyConfig::parse(proxy_url)?;
         self.config.proxy = Some(proxy_config);
         Ok(self)
@@ -322,7 +322,7 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
 
     #[must_use]
     pub fn proxy_auth(mut self, username: impl Into<String>, password: impl Into<String>) -> Self {
-        use crate::simple_http::client::shared::proxy::ProxyAuth;
+        use crate::shared::client::proxy::ProxyAuth;
         if let Some(ref mut proxy) = self.config.proxy {
             proxy.auth = Some(ProxyAuth::new(username, password));
         }

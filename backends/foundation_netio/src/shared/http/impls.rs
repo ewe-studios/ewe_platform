@@ -1,7 +1,7 @@
 #![allow(clippy::type_complexity)]
 
 use crate::netcap::ConnectionContext;
-use crate::simple_http::client::shared::body_reader::AsyncSendSafeBody;
+use crate::shared::client::body_reader::AsyncSendSafeBody;
 use crate::simple_http::shared::errors::{
     ChunkStateError, Http11RenderError, HttpReaderError, LineFeedError, Result, SimpleHttpError,
     SimpleHttpResult, SimpleRequestError, StringHandlingError,

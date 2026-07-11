@@ -20,8 +20,8 @@ use foundation_core::valtron::{
     drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineAction,
     TaskIterator, TaskStatus,
 };
-use crate::simple_http::client::shared::body_reader::drain_stream_iterator_from_send_safe;
-use crate::simple_http::client::shared::{
+use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
+use crate::shared::client::{
     redirects, ClientConfig, DnsResolver, PreparedRequest,
 };
 use crate::simple_http::client::HttpConnectionPool;

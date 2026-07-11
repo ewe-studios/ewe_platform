@@ -1,5 +1,3 @@
-//! Shared client types — always compiled, including on wasm32.
-
 pub mod body_reader;
 pub mod compression;
 pub mod config;
@@ -8,7 +6,6 @@ pub mod cookie;
 pub mod dns;
 pub mod http_client;
 pub mod intro;
-pub mod middleware;
 pub mod proxy;
 pub mod redirects;
 pub mod request;
@@ -24,6 +21,5 @@ pub use cookie::*;
 pub use dns::*;
 pub use http_client::*;
 pub use intro::*;
-pub use middleware::*;
 pub use proxy::*;
 pub use redirects::*;
