@@ -11,7 +11,7 @@
 
 use foundation_core::valtron::ThreadedValue;
 use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 
 use crate::core::errors::{StorageError, StorageResult};
@@ -41,7 +41,7 @@ pub struct R2Store {
     api_token: String,
     account_id: String,
     base_url: String,
-    client: SimpleHttpClient,
+    client: NativeHttpClient,
     mode: R2Mode,
 }
 
@@ -63,7 +63,7 @@ impl R2Store {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: SimpleHttpClient::from_system(),
+            client: NativeHttpClient::from_system(),
             mode: R2Mode::Blob { bucket: bucket_name.to_string(), prefix: prefix.to_string() },
         }
     }
@@ -100,7 +100,7 @@ impl R2Store {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             base_url: base_url.trim_end_matches('/').to_string(),
-            client: SimpleHttpClient::from_system(),
+            client: NativeHttpClient::from_system(),
             mode: R2Mode::State { bucket: bucket_name.to_string(), project: project.to_string(), stage: stage.to_string() },
         }
     }

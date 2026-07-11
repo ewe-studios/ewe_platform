@@ -156,12 +156,13 @@ pub fn accept_connection(
 /// Never panics.
 pub fn connect_completion(addr: SocketAddr, mode: ServerIo) -> io::Result<Connection> {
     let tcp = TcpStream::connect(addr)?;
+    // A dialed upstream is always spliced non-blocking (the reactor read paths
+    // require it, and the `Std` splice loop expects `WouldBlock` too).
+    tcp.set_nonblocking(true)?;
 
     if mode == ServerIo::Std {
         return Ok(Connection::Tcp(tcp));
     }
-    // The reactor read paths require a non-blocking fd (parked via `Depends`).
-    tcp.set_nonblocking(true)?;
 
     let reactor = match mode {
         ServerIo::Completion => Reactor::init(BackendPreference::Uring)?,

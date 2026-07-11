@@ -12,6 +12,7 @@
 //! `BackendTarget` that accepts either a bare string or a table.
 
 use derive_more::Display;
+use foundation_iogate::ServerIo;
 use serde::{Deserialize, Deserializer, Serialize};
 use std::path::PathBuf;
 use std::time::Duration;
@@ -28,6 +29,13 @@ pub struct ProxyConfig {
     pub bind_addr: Option<String>,
     #[serde(default)]
     pub services: Vec<ServiceConfig>,
+    /// I/O mode for both the accept path and the dialed upstream legs (F50). The
+    /// upstream mode tracks the front-end mode: `Completion` reads both legs from
+    /// the io_uring inbox and writes via `IORING_OP_SEND`. Defaults to `Std`
+    /// (today's `read(2)`/`write(2)`), so nothing changes unless asked. Not
+    /// serialised — set it via the programmatic builder.
+    #[serde(skip)]
+    pub io_mode: ServerIo,
 }
 
 impl ProxyConfig {
@@ -39,7 +47,15 @@ impl ProxyConfig {
             ssl: SslConfig::default(),
             bind_addr: None,
             services: Vec::new(),
+            io_mode: ServerIo::default(),
         }
+    }
+
+    /// Set the I/O mode for the front end and the dialed upstream legs (F50).
+    #[must_use]
+    pub fn io_mode(mut self, mode: ServerIo) -> Self {
+        self.io_mode = mode;
+        self
     }
 
     /// Set the front-end bind address (e.g. `127.0.0.1:0`).

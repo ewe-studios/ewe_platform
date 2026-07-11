@@ -10,6 +10,8 @@
 
 use std::sync::Arc;
 
+use foundation_iogate::ServerIo;
+
 use crate::forward::SharedHttpClient;
 use crate::router::Router;
 
@@ -18,6 +20,7 @@ pub struct ProxyState {
     router: Arc<Router>,
     client: SharedHttpClient,
     scheme: String,
+    io_mode: ServerIo,
 }
 
 impl std::fmt::Debug for ProxyState {
@@ -35,11 +38,17 @@ impl ProxyState {
     /// `scheme` is what the front end speaks to clients (`http` in stage 1); it
     /// becomes the `X-Forwarded-Proto` value sent upstream.
     #[must_use]
-    pub fn new(router: Arc<Router>, client: SharedHttpClient, scheme: impl Into<String>) -> Self {
+    pub fn new(
+        router: Arc<Router>,
+        client: SharedHttpClient,
+        scheme: impl Into<String>,
+        io_mode: ServerIo,
+    ) -> Self {
         Self {
             router,
             client,
             scheme: scheme.into(),
+            io_mode,
         }
     }
 
@@ -56,5 +65,13 @@ impl ProxyState {
     #[must_use]
     pub fn scheme(&self) -> &str {
         &self.scheme
+    }
+
+    /// The I/O mode for dialing upstream legs (F50). `Completion` dials through
+    /// `iogate::connect_completion` so the upstream reads from the io_uring inbox
+    /// and writes via `IORING_OP_SEND`.
+    #[must_use]
+    pub fn io_mode(&self) -> ServerIo {
+        self.io_mode
     }
 }

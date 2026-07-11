@@ -115,7 +115,7 @@ impl ProxyServer {
         // sees, for control/inspection.
         let mut app = HttpApp::new_serve();
         app.context()
-            .store(ProxyState::new(router, client.clone(), "http"));
+            .store(ProxyState::new(router, client.clone(), "http", config.io_mode));
         let state = app
             .context()
             .get::<ProxyState>()
@@ -124,7 +124,8 @@ impl ProxyServer {
 
         let shutdown = Arc::new(OnSignal::new());
         let use_tls = !matches!(config.ssl.provider, SslProvider::None);
-        let mut server_config = ServerConfig::defaults();
+        // The accept path uses the same I/O mode as the dialed upstream legs (F50).
+        let mut server_config = ServerConfig::defaults().with_io(config.io_mode);
 
         // TLS: build acceptor and configure.
         let mut _redirect_thread: Option<std::thread::JoinHandle<()>> = None;

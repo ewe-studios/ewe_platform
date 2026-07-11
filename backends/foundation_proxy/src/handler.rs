@@ -18,9 +18,11 @@
 //! in stage 1 (responses carry `Connection: close`).
 
 use std::io::Write;
+use std::net::ToSocketAddrs;
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_iogate::ServerIo;
 use foundation_netio::netcap::RawStream;
 use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
 
@@ -81,11 +83,12 @@ impl Serve for ProxyHandler {
         let scheme = self.state.scheme().to_string();
         let client = self.state.client().clone();
         let protocol = lease.backend().protocol();
+        let io_mode = self.state.io_mode();
 
         // Relay on a dedicated thread; keep the pool worker free. The lease moves
         // into the thread so the in-flight count is held for the whole exchange.
         std::thread::spawn(move || {
-            relay(conn, req, lease, &client_ip, &scheme, protocol, &client);
+            relay(conn, req, lease, &client_ip, &scheme, protocol, &client, io_mode);
         });
 
         ConnectionResult::Take
@@ -101,12 +104,13 @@ fn relay(
     scheme: &str,
     protocol: BackendProtocol,
     client: &crate::forward::SharedHttpClient,
+    io_mode: ServerIo,
 ) {
     let backend = Arc::clone(lease.backend());
     let mut conn = conn;
     match protocol {
         BackendProtocol::Tcp => {
-            if let Err(e) = tunnel_tcp(conn, &backend) {
+            if let Err(e) = tunnel_tcp(conn, &backend, io_mode) {
                 tracing::warn!(url = %backend.url(), "tcp tunnel failed: {e}");
             }
         }
@@ -118,7 +122,7 @@ fn relay(
         BackendProtocol::Http | BackendProtocol::Https => {
             if is_upgrade_request(&req) {
                 // The upgrade splice consumes the connection; log on failure.
-                if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme) {
+                if let Err(e) = forward_upgrade(conn, &backend, &req, client_ip, scheme, io_mode) {
                     tracing::warn!(url = %backend.url(), "upgrade relay failed: {e}");
                 }
             } else if let Err(e) = forward_http(&mut conn, &backend, req, client_ip, scheme, client) {
@@ -136,16 +140,24 @@ fn relay(
 }
 
 /// Tunnel a taken connection to a raw TCP backend.
+///
+/// The upstream is dialed through [`foundation_iogate::connect_completion`] under
+/// `io_mode` (F50 Part A/B): in `Completion` mode both legs read from the io_uring
+/// inbox and write via `IORING_OP_SEND`; in `Std` mode it is an ordinary
+/// non-blocking `TcpStream`, so the splice is byte-for-byte unchanged.
 fn tunnel_tcp(
     conn: SharedByteBufferStream<RawStream>,
     backend: &Arc<crate::runtime::BackendRuntime>,
+    io_mode: ServerIo,
 ) -> Result<(), String> {
     let authority = backend.target().authority();
-    let upstream = std::net::TcpStream::connect(&authority)
+    let addr = authority
+        .to_socket_addrs()
+        .map_err(|e| format!("resolve tcp backend {authority}: {e}"))?
+        .next()
+        .ok_or_else(|| format!("no address for tcp backend {authority}"))?;
+    let upstream = foundation_iogate::connect_completion(addr, io_mode)
         .map_err(|e| format!("connect tcp backend {authority}: {e}"))?;
-    upstream
-        .set_nonblocking(true)
-        .map_err(|e| format!("set upstream nonblocking: {e}"))?;
     splice_bidirectional(conn, upstream);
     Ok(())
 }

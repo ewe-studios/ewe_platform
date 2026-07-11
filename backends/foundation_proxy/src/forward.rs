@@ -12,20 +12,22 @@
 //! [`forward_upgrade`] (WebSocket/other `Upgrade`), plus the header helpers
 //! [`strip_hop_by_hop`] and [`is_upgrade_request`].
 //!
-//! HOW: Ordinary requests go through `SimpleHttpClient`, reusing its
+//! HOW: Ordinary requests go through `NativeHttpClient`, reusing its
 //! `HttpConnectionPool` so upstream sockets are not reopened per request. The
 //! response is rendered straight onto the client connection and the upstream
 //! socket is returned to the pool. Upgrades bypass the client: the request is
 //! re-serialized onto a raw upstream socket and both directions are spliced.
 
 use std::collections::HashSet;
-use std::io::Write;
-use std::net::TcpStream;
+use std::io::{ErrorKind, Write};
+use std::net::ToSocketAddrs;
 use std::sync::Arc;
+use std::time::{Duration, Instant};
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::RawStream;
-use foundation_netio::http::{SimpleHttpClient, ClientRequestBuilder};
+use foundation_iogate::ServerIo;
+use foundation_netio::netcap::{Connection, RawStream};
+use foundation_netio::http::{NativeHttpClient, ClientRequestBuilder};
 use foundation_netio::shared::client::SystemDnsResolver;
 use foundation_netio::shared::http::{
     Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
@@ -36,7 +38,7 @@ use crate::passthrough::splice_bidirectional;
 use crate::runtime::BackendRuntime;
 
 /// The shared, pooled HTTP client type used for all upstream forwarding.
-pub type SharedHttpClient = SimpleHttpClient<SystemDnsResolver>;
+pub type SharedHttpClient = NativeHttpClient<SystemDnsResolver>;
 
 /// Hop-by-hop headers (RFC 7230 §6.1) that a proxy must not forward. Compared
 /// case-insensitively against each header's canonical lowercase name.
@@ -233,9 +235,17 @@ pub fn forward_upgrade(
     req: &SimpleIncomingRequest,
     client_ip: &str,
     scheme: &str,
+    io_mode: ServerIo,
 ) -> Result<(), String> {
     let authority = backend.target().authority();
-    let mut upstream = TcpStream::connect(&authority)
+    let addr = authority
+        .to_socket_addrs()
+        .map_err(|e| format!("resolve upstream {authority}: {e}"))?
+        .next()
+        .ok_or_else(|| format!("no address for upstream {authority}"))?;
+    // Dial through iogate (F50): `Completion` reads the upstream from the io_uring
+    // inbox and writes via `IORING_OP_SEND`; `Std` is a plain non-blocking socket.
+    let mut upstream = foundation_iogate::connect_completion(addr, io_mode)
         .map_err(|e| format!("connect upstream {authority}: {e}"))?;
 
     // Preserve the upgrade-relevant headers (Connection/Upgrade must survive),
@@ -250,16 +260,46 @@ pub fn forward_upgrade(
 
     let request_bytes =
         serialize_request_head(&req.method.to_string(), &req.request_url.url, &headers);
-    upstream
-        .write_all(request_bytes.as_bytes())
-        .map_err(|e| format!("write upgrade request: {e}"))?;
-    upstream
-        .flush()
-        .map_err(|e| format!("flush upgrade request: {e}"))?;
+    // The dialed upstream is non-blocking; write the head tolerating `WouldBlock`
+    // (in `Completion` mode `flush` parks until the SEND's CQE lands).
+    write_head_blocking(&mut upstream, request_bytes.as_bytes())?;
 
     // From here the connection is opaque: splice both directions.
     splice_bidirectional(conn, upstream);
     Ok(())
+}
+
+/// Write `bytes` in full to a non-blocking upstream and flush, retrying on
+/// `WouldBlock` up to a bounded deadline. `flush` on a completion socket returns
+/// `WouldBlock` until its SEND completes; on a plain socket it is a no-op.
+fn write_head_blocking(upstream: &mut Connection, bytes: &[u8]) -> Result<(), String> {
+    let deadline = Instant::now() + Duration::from_secs(5);
+    let mut written = 0;
+    while written < bytes.len() {
+        match upstream.write(&bytes[written..]) {
+            Ok(0) => return Err("upstream closed during upgrade write".to_string()),
+            Ok(n) => written += n,
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+                if Instant::now() > deadline {
+                    return Err("upgrade request write timed out".to_string());
+                }
+                std::thread::sleep(Duration::from_millis(1));
+            }
+            Err(e) => return Err(format!("write upgrade request: {e}")),
+        }
+    }
+    loop {
+        match upstream.flush() {
+            Ok(()) => return Ok(()),
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => {
+                if Instant::now() > deadline {
+                    return Err("upgrade request flush timed out".to_string());
+                }
+                std::thread::sleep(Duration::from_millis(1));
+            }
+            Err(e) => return Err(format!("flush upgrade request: {e}")),
+        }
+    }
 }
 
 /// Serialize an HTTP/1.1 request head (request line + headers + blank line).

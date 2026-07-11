@@ -1,7 +1,7 @@
 ---
 feature: "Client-side completion + zero-syscall proxy relay (D14 F4 relay half)"
 description: "Outbound-dial completion registration and a readiness-aware splice, so both legs of a proxied connection read from the io_uring inbox and the relay wakes on data instead of a 1 ms sleep — culminating in the SEND_ZC zero-copy handoff"
-status: "in-progress (Part A connect_completion landed + tested; Parts B/C deferred)"
+status: "in-progress (Part A + Part B1 dial-wiring landed + tested; Part B2 readiness-splice + Part C deferred)"
 priority: "medium"
 phase: 4
 depends_on: ["48-transport-completion-read-path", "49-write-side-completion"]
@@ -22,13 +22,26 @@ created: 2026-07-11
 > `connect_completion_dials_a_completion_backed_upstream` and the `Std` variant in
 > `iogate_tests.rs`.
 >
-> **Deferred — Part B (readiness-aware splice + proxy wiring):** `splice_bidirectional`
-> is generic `<A: Read+Write, B: Read+Write>`, so the `ReadinessSource` capability
-> and the `CompositeReadiness` park (replacing the 1 ms sleep) require a signature
-> change across all splice callers plus the thread-vs-valtron concurrency decision.
-> `foundation_proxy` also has no `foundation_iogate` dep and no `ServerIo` config
-> yet, so wiring `tunnel_tcp`/`forward_upgrade` to dial via `connect_completion` is
-> its own change. Not started.
+> **Done — Part B1 (proxy dial wiring, 2026-07-12):** `foundation_proxy` gained a
+> direct `foundation_iogate` dep and an `io_mode: ServerIo` config knob
+> (`ProxyConfig::io_mode`, default `Std`), threaded through `ProxyState` →
+> `relay` → `tunnel_tcp`/`forward_upgrade`, both of which now dial the upstream via
+> `iogate::connect_completion(addr, io_mode)`. In `Completion` mode the upstream
+> leg reads from the io_uring inbox and writes via `IORING_OP_SEND` (F49); in `Std`
+> mode it is a plain non-blocking socket, so the splice is byte-for-byte unchanged.
+> `connect_completion` now always sets the dialed socket non-blocking. The upstream
+> mode tracks the front-end mode (`ServerConfig::with_io(config.io_mode)`). The
+> upgrade path got a `WouldBlock`-tolerant head write (`Completion`'s `flush` parks
+> until the SEND CQE). Verified: all 41 proxy tests pass on the `Std` default (no
+> behaviour change); `connect_completion` itself is covered in `iogate_tests.rs`.
+> Also migrated the proxy + `foundation_db` off the deprecated `SimpleHttpClient`
+> alias while here.
+>
+> **Deferred — Part B2 (readiness-aware splice):** replacing the 1 ms sleep floor
+> with a `CompositeReadiness` park needs a `ReadinessSource` capability threaded
+> through the netcap `CompletionReadWrite` seam plus a `splice_bidirectional`
+> signature change and the thread-vs-valtron concurrency decision. Part B1 already
+> removes the upstream-leg *syscalls*; B2 removes the *latency floor*. Not started.
 >
 > **Deferred — Part C (SEND_ZC zero-copy relay):** F49's SEND pool now exists, but
 > `IORING_OP_SEND_ZC` has distinct two-notification completion semantics and needs
