@@ -44,10 +44,9 @@ async fn open_websocket_refused_surfaces_close() {
 }
 
 /// `open_websocket_task` returns a `Box<dyn TaskIterator>` — the same
-/// cross-platform pattern as `HttpClient::open_exchange()`. Before the browser
-/// delivers any WebSocket events, the first poll should yield
-/// `TaskStatus::Pending(WsProgress::Connecting)`, proving the `Stream → TaskStatus`
-/// adapter in `browser.rs` works.
+/// cross-platform pattern as `HttpClient::open_exchange()`. The wasm bridge
+/// wraps its `Iterator<Item=Stream>` in a `StreamToTaskAdapter`; driving
+/// the task directly with `next_status()` proves the adapter works.
 #[wasm_bindgen_test]
 fn open_websocket_task_yields_pending_connecting_on_wasm() {
     let client = FetchHttpClient::new();
