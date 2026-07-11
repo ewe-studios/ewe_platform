@@ -9,9 +9,10 @@ use std::collections::BTreeMap;
 
 use foundation_core::valtron::initialize_pool;
 use foundation_netio::simple_http::client::native::{
-    ClientRequestBuilder, HttpConnectionPool, SimpleHttpClient,
+    ClientRequestBuilder, HttpConnectionPool,
 };
 use foundation_netio::simple_http::client::shared::{ClientConfig, SystemDnsResolver};
+use foundation_netio::simple_http::client::NativeHttpClient;
 use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 use std::sync::Arc;
 
@@ -43,7 +44,11 @@ fn diag_tap() {
     });
 
     let pool: Arc<HttpConnectionPool<SystemDnsResolver>> = Arc::new(HttpConnectionPool::default());
-    let client = SimpleHttpClient::new(ClientConfig::default(), pool);
+    let client = NativeHttpClient::with_config_and_pool(
+        ClientConfig::default(),
+        pool,
+        SystemDnsResolver::default(),
+    );
     let url = format!("http://127.0.0.1:{}/headers", addr.port());
 
     // Mimic exactly what forward_http builds: a replaced header map with the

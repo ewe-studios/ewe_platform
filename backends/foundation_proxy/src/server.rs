@@ -24,8 +24,9 @@ use std::time::Duration;
 use foundation_core::synca::OnSignal;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_netio::simple_http::client::native::{HttpConnectionPool, SimpleHttpClient};
-use foundation_netio::simple_http::client::shared::ClientConfig;
+use foundation_netio::simple_http::client::native::HttpConnectionPool;
+use foundation_netio::simple_http::client::shared::{ClientConfig, SystemDnsResolver};
+use foundation_netio::simple_http::client::NativeHttpClient;
 
 use crate::config::{ProxyConfig, ProxyError, SslProvider};
 use crate::handler::ProxyHandler;
@@ -94,7 +95,11 @@ impl ProxyServer {
         let router = Arc::new(Router::new(services.clone()));
 
         let pool = Arc::new(HttpConnectionPool::default());
-        let client = SimpleHttpClient::new(ClientConfig::default(), pool);
+        let client = NativeHttpClient::with_config_and_pool(
+            ClientConfig::default(),
+            pool,
+            SystemDnsResolver::default(),
+        );
 
         // Bind the front-end listener (ephemeral port support for tests).
         let bind_addr = config.bind_addr.clone().unwrap_or_else(|| DEFAULT_BIND.to_string());
