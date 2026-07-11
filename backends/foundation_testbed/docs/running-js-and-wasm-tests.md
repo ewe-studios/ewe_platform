@@ -2,17 +2,35 @@
 
 The platform has three testing paths for JS/WASM/browser code:
 
-1. **Owned `#[wasm_test]`** — foundation_wasm ABI, no wasm-bindgen. Runs in
-   embedded Deno (in-process V8) or Chromium via CDP. Used by
-   `foundation_core`, `foundation_wasm`.
-2. **Wasm-bindgen `#[wasm_bindgen_test]`** — for crates that use `web_sys`
-   / `js_sys` (browser APIs like WebSocket, fetch, DOM). Runs in Chromium
-   via CDP. Used by `foundation_netio`'s wasm client tests.
+1. **Owned `#[wasm_test]` / `#[valtron_wasm_test]`** — foundation_wasm ABI,
+   no wasm-bindgen. Runs in embedded Deno (in-process V8) or Chromium via
+   CDP. Used by `foundation_core`, `foundation_wasm`.
+2. **Wasm-bindgen `#[wasm_bindgen_test]` / `#[valtron_bindgen]`** — for
+   crates that use `web_sys` / `js_sys` (browser APIs like WebSocket, fetch,
+   DOM). Runs in Chromium via CDP. Used by `foundation_netio`'s wasm client
+   tests.
 3. **Native browser tests via `foundation_browser::test::Harness`** —
    plain `#[test]` functions, no wasm32. Launches real Chromium/Firefox,
    serves HTML via `foundation_http`, drives the page over CDP/BiDi. Used
    by `foundation_browser`'s own smoke tests and `foundation_wasm_ui`'s
    cross-browser UI tests.
+
+### Valtron-pool macros (F52)
+
+Two convenience macros auto-init the valtron pool so `valtron::execute()`
+and `valtron::spawn()` work without manual setup:
+
+| Macro | Path | Use with |
+|---|---|---|
+| `#[valtron_wasm_test]` | `foundation_macros` | Owned `#[wasm_test]` tests |
+| `#[valtron_bindgen]` | `foundation_macros` | Wasm-bindgen `#[wasm_bindgen_test]` tests |
+
+Both initialise a single-threaded pool before the test body and tear it
+down afterwards. For the owned path, replace `#[wasm_test]` with
+`#[valtron_wasm_test]`. For bindgen, use `#[valtron_bindgen]` instead of
+`#[wasm_bindgen_test]` — it also emits the browser-mode link-section marker
+(`wasm_bindgen_test_configure!(run_in_browser)` equivalent) so no separate
+`configure!()` call is needed.
 
 ## Quick Reference
 
@@ -117,6 +135,8 @@ foundation_testbed = { path = "../foundation_testbed", default-features = false,
 # wasm-bindgen-test must be a direct dev-dep (proc-macro attributes cannot be
 # re-exported across crate boundaries).
 wasm-bindgen-test = "=0.3.76"
+# For #[valtron_bindgen] — the one-step macro with pool init.
+foundation_macros = { path = "../foundation_macros" }
 
 [[test]]
 name = "wasm"
@@ -146,19 +166,71 @@ Write tests in `tests/wasm/`:
 
 ```rust
 use wasm_bindgen_test::wasm_bindgen_test;
-// Re-exports from foundation_testbed — no need for js-sys/web-sys directly.
 use foundation_testbed::bindgen::{js_sys, web_sys};
 
 #[wasm_bindgen_test]
 fn my_browser_test() {
     let window = web_sys::window().expect("window in browser");
-    // ...
 }
+```
 
-#[wasm_bindgen_test]
-async fn my_async_test() {
-    // yield to browser event loop
+### Valtron-pool bindgen macro
+
+For tests that need `valtron::execute()` / `valtron::spawn()`, use
+`#[valtron_bindgen]` (from `foundation_macros`) — it combines browser-mode
+marker + single-threaded pool init + wasm-bindgen test discovery:
+
+```rust
+use foundation_macros::valtron_bindgen;
+use foundation_core::valtron::{self, Stream};
+use foundation_testbed::bindgen::{js_sys, web_sys};
+
+#[valtron_bindgen]
+fn my_test_with_valtron() {
+    let (task, delivery) = client.open_websocket_task("ws://...", config).unwrap();
+    let mut stream = valtron::execute(task, None).unwrap();
+    // pool is live, use execute()/spawn() freely
 }
+```
+
+No separate `wasm_bindgen_test_configure!(run_in_browser)` needed.
+
+### `open_websocket_task` — boxed TaskIterator for the transport path
+
+`WebSocketConnector` has two open methods:
+
+| Method | Returns | Use case |
+|---|---|---|
+| `open_websocket()` | `WebSocketClient` | Simple iteration (`client.messages()`) |
+| `open_websocket_task()` | `(WsExchangeTask, MessageDelivery)` | Transport pump — the task is a `Box<dyn TaskIterator>` you spawn on your own pool |
+
+`WsExchangeTask` mirrors `HttpExchangeClientTask` — same `TaskIterator` shape
+with shared `Ready`/`Pending`/`Spawner` types. Native spawns the task via
+`valtron::execute()`; wasm wraps the browser bridge in a `Stream → TaskStatus`
+adapter. The caller never sees platform-specific types.
+
+```rust
+use foundation_netio::websocket::shared::connector::WebSocketConnector;
+
+let (task, delivery) = client
+    .open_websocket_task("ws://...", WebSocketConnectConfig::new())
+    .expect("open_websocket_task");
+// task: Box<dyn TaskIterator<Ready=Result<WebSocketMessage,WebSocketError>, Pending=WsProgress, Spawner=BoxedSendExecutionAction> + Send>
+let stream = valtron::execute(task, None).unwrap();
+```
+
+### The unified client handle
+
+`NetClient` (supertrait of `HttpClient + WebSocketConnector`) and
+`DynNetClient` (`Arc<dyn NetClient>`) let transports hold one handle for both
+HTTP and WebSocket:
+
+```rust
+use foundation_netio::network_client::{DynNetClient, NetClient};
+use foundation_netio::HttpClientBuilder;
+
+let client: DynNetClient = HttpClientBuilder::new().build().into();
+// client can do both: client.open_exchange(...) and client.open_websocket_task(...)
 ```
 
 ### Running
@@ -453,11 +525,14 @@ for the driver. No external tools.
 
 | Scenario | Use |
 |---|---|
-| Testing Rust wasm logic (no browser APIs) | `#[wasm_test]` + `wasm-testbed deno` |
-| Testing Rust wasm logic that needs `window`/DOM | `#[wasm_test]` + `wasm-testbed browser` |
-| Testing `web_sys` bridges (fetch, WebSocket, etc.) | `#[wasm_bindgen_test]` + `wasm-testbed bindgen` |
-| Testing CDP/BiDi protocol, Locator, screenshots | `foundation_browser::test::Harness` (native `#[test]`) |
-| Testing `foundation_wasm_ui` components in real browser | `#[wasm_ui_server]` or `Harness` with SSE |
+| Rust wasm logic (no browser APIs) | `#[wasm_test]` + `wasm-testbed deno` |
+| Rust wasm logic + browser APIs (window, DOM) | `#[wasm_test]` + `wasm-testbed browser` |
+| `web_sys` bridges (fetch, WebSocket, etc.) | `#[wasm_bindgen_test]` + `wasm-testbed bindgen` |
+| Above + need `valtron::execute()`/`spawn()` | `#[valtron_bindgen]` or `#[valtron_wasm_test]` |
+| Transport pump (boxed TaskIterator) | `open_websocket_task()` via `WebSocketConnector` |
+| Unified HTTP+WS client handle | `NetClient` / `DynNetClient` from `network_client` |
+| CDP/BiDi protocol, Locator, screenshots | `foundation_browser::test::Harness` (native `#[test]`) |
+| `foundation_wasm_ui` components in real browser | `#[wasm_ui_server]` or `Harness` with SSE |
 | Cross-browser parity (Chromium + Firefox) | `Harness` with `Browser::Chromium` / `Browser::Firefox` |
 
 ### Can `#[wasm_test]` and `#[wasm_bindgen_test]` coexist?

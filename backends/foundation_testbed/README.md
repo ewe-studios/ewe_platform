@@ -44,9 +44,17 @@ Cargo feature:
   `wasm-testbed browser` (Chromium CDP) for `#[wasm_test]` cases
 - **Bindgen runner (F52)** — `wasm-testbed bindgen` builds with `--tests`,
   runs `wasm-bindgen --target web`, and executes in Chromium CDP for
-  `#[wasm_bindgen_test]` cases. `foundation_testbed` re-exports
-  `js-sys`, `web-sys`, and `wasm-bindgen-futures` — consumer crates add one
-  dev-dep.
+  `#[wasm_bindgen_test]` cases. `foundation_testbed` re-exports `js-sys`,
+  `web-sys`, and `wasm-bindgen-futures` — consumer crates add one dev-dep.
+- **Valtron-pool macros (F52)** — `#[valtron_wasm_test]` (owned path) and
+  `#[valtron_bindgen]` (bindgen path) in `foundation_macros` auto-init the
+  single-threaded pool so `valtron::execute()` and `valtron::spawn()` work
+  without manual setup.
+- **Unified client (F52)** — `NetClient` / `DynNetClient` supertrait
+  (`HttpClient + WebSocketConnector`) in `foundation_netio::network_client`
+  — transports hold one `Arc<dyn NetClient>` for both protocols.
+  `WebSocketConnector::open_websocket_task()` returns a boxed `TaskIterator`
+  (`WsExchangeTask`) mirroring `HttpClient::open_exchange()`.
 - **Native browser tests** — `foundation_browser::test::Harness` for plain
   `#[test]` functions that launch Chromium/Firefox, serve HTML over
   `foundation_http`, and drive pages over CDP/BiDi — no wasm32 needed
