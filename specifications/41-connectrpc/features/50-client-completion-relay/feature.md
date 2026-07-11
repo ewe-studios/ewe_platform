@@ -1,7 +1,7 @@
 ---
 feature: "Client-side completion + zero-syscall proxy relay (D14 F4 relay half)"
 description: "Outbound-dial completion registration and a readiness-aware splice, so both legs of a proxied connection read from the io_uring inbox and the relay wakes on data instead of a 1 ms sleep — culminating in the SEND_ZC zero-copy handoff"
-status: "in-progress (Part A + Part B1 dial-wiring landed + tested; Part B2 readiness-splice + Part C deferred)"
+status: "in-progress (Parts A + B1 + B2 landed + tested; Part C SEND_ZC deferred)"
 priority: "medium"
 phase: 4
 depends_on: ["48-transport-completion-read-path", "49-write-side-completion"]
@@ -37,34 +37,41 @@ created: 2026-07-11
 > Also migrated the proxy + `foundation_db` off the deprecated `SimpleHttpClient`
 > alias while here.
 >
-> **Blocked — Part B2 (readiness-aware splice): the design's "block the thread on
-> `CompositeReadiness`" is not implementable as written.** Investigation
-> (2026-07-12) found that `EventReadiness::is_ready(dur)` is **non-blocking** for fd
-> readiness: `FdRegistration::is_ready` and `SharedReadiness::is_ready` both *ignore*
-> the `dur` argument and return the current latch state
-> (`reactor.is_ready(token)`). `CompositeReadiness::is_ready` just ORs the two, so it
-> is non-blocking too. There is **no condvar/park primitive** that blocks a raw
-> thread until an fd becomes ready — blocking-until-ready exists only inside the
-> reactor's `poll()` loop and is consumed by valtron tasks through
-> `TaskStatus::Depends`. So parking the splice thread on a composite readiness would
-> **busy-spin**, not sleep.
+> **Done — Part B2 (readiness-aware splice, 2026-07-12).** Investigation first
+> showed the design's "block the thread on `CompositeReadiness`" was *not*
+> implementable as written: `EventReadiness::is_ready(dur)` is **non-blocking** for
+> fd readiness (`FdRegistration`/`SharedReadiness::is_ready` ignore `dur` and return
+> the current latch), so parking on it would busy-spin. Rather than defer, the
+> missing **blocking primitive was built** — chosen as option 1 (a reactor-level
+> condvar) but scoped to avoid the "per-fd readiness through the netcap seam"
+> plumbing:
 >
-> B2 therefore needs one of two larger changes, both flagged in this doc's
-> concurrency-model open question:
-> 1. **A new blocking-readiness primitive** — e.g. a `Condvar` on `SharedReadiness`
->    that the reactor's wake path notifies. This touches the reactor's hot wake path
->    and every readiness consumer (high blast radius, correctness surface: lost
->    wakeups, spurious wakeups).
-> 2. **Convert the splice to a valtron task** returning `Depends(CompositeReadiness)`
->    — but the passthrough is *deliberately* on a dedicated OS thread (see
->    `handler.rs`: "keeps upstream I/O off the valtron worker pool… doing that from a
->    pool worker risks a cross-executor stall"), so this reverses an explicit design
->    choice.
+> - **`Reactor` event generation + condvar** (`fd/reactor.rs`): the drain thread
+>   bumps a `u64` generation and `notify_all`s **after** latching each batch of
+>   readiness. New API: `Reactor::events_generation()` and
+>   `Reactor::wait_for_events(since, timeout)` — a non-task thread snapshots the
+>   generation *before* reading its fds, then blocks until it advances or the
+>   timeout fires. Snapshotting first makes it **lost-wakeup-safe** (an event in the
+>   read→park race window bumps the generation, so the wait returns at once). Only a
+>   `notify_all` per drain batch is added to the hot path (cheap with no waiters).
+> - **Readiness-aware `splice_bidirectional`** (`passthrough.rs`): gained a
+>   `use_reactor_park` flag; when set it replaces the fixed 1 ms sleep with
+>   `reactor.wait_for_events(...)`, so a data event on either fd wakes it at once and
+>   idle relays stop busy-polling. The trick that avoids threading per-fd readiness:
+>   the reactor generation is a global "something happened" signal and the splice
+>   simply re-reads its two (inbox-backed) fds. `tunnel_tcp`/`forward_upgrade` pass
+>   `io_mode.uses_reactor()`; the standalone `TcpPassthrough` passes `false` (plain
+>   sockets, unchanged 1 ms sleep).
+> - **`WouldBlock`-tolerant relay writes** (`relay_write`): required for completion
+>   mode (a write can `WouldBlock` on SEND-pool exhaustion; `flush` returns
+>   `WouldBlock` while a SEND is in flight — the old `write_all().flush().is_err()`
+>   would have dropped the connection on the first SEND). As a bonus this fixes the
+>   pre-existing Std-mode bug where a full socket buffer dropped the relay.
 >
-> Part B1 already delivered the syscall-removal (upstream reads from the inbox,
-> writes via SEND). B2 is only the *latency-floor* removal, and it is gated on
-> picking one of the two primitives above — a design decision with real trade-offs,
-> not a mechanical change. Deferred pending that decision.
+> Verified: `reactor_event_gen_tests.rs` (parked thread wakes on the event before
+> the timeout; a stale generation returns immediately) + all 41 proxy tests + 19
+> nativeapis reactor/uring tests green (no regression from the drain-loop change or
+> the splice rework).
 >
 > **Deferred — Part C (SEND_ZC zero-copy relay):** F49's SEND pool now exists, but
 > `IORING_OP_SEND_ZC` has distinct two-notification completion semantics and needs

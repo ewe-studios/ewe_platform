@@ -22,24 +22,47 @@ use std::time::{Duration, Instant};
 
 use foundation_core::synca::OnSignal;
 
+/// Upper bound on how long a parked splice sleeps before re-checking its fds —
+/// the shutdown/lost-wakeup safety net. In reactor mode a data event wakes it
+/// sooner; this only caps the worst case.
+const PARK_TIMEOUT: Duration = Duration::from_millis(25);
+
 /// Copy bytes in both directions between `a` and `b` until one side closes.
 ///
 /// WHAT: Reads whatever is available on each side and writes it to the other,
 /// looping until an EOF (`Ok(0)`) or a non-`WouldBlock` error on either side.
 ///
+/// When `use_reactor_park` is set (the connection is reactor-backed — F50 B2),
+/// an idle iteration parks on the shared reactor's event generation instead of a
+/// fixed 1 ms sleep: a data event on either fd wakes it immediately, and the
+/// splice stops busy-polling. Off the reactor (plain sockets) it falls back to
+/// the 1 ms sleep, unchanged.
+///
 /// # Preconditions
 /// Both streams must already be in non-blocking mode; otherwise a read on an
 /// idle side blocks the other direction. Callers own that setup because the two
 /// stream types differ.
-pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(mut a: A, mut b: B) {
+pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(
+    mut a: A,
+    mut b: B,
+    use_reactor_park: bool,
+) {
+    let reactor = if use_reactor_park {
+        foundation_nativeapis::native::fd::Reactor::get().ok()
+    } else {
+        None
+    };
     let mut buf = [0u8; 16 * 1024];
     loop {
+        // Snapshot the reactor generation *before* the reads: an event that lands
+        // in the read→park race window bumps it, so the park returns at once.
+        let gen = reactor.as_ref().map(|r| r.events_generation());
         let mut progressed = false;
 
         match a.read(&mut buf) {
             Ok(0) => break,
             Ok(n) => {
-                if b.write_all(&buf[..n]).and_then(|()| b.flush()).is_err() {
+                if !relay_write(&mut b, &buf[..n], reactor.as_ref()) {
                     break;
                 }
                 progressed = true;
@@ -51,7 +74,7 @@ pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(mut a: A, mut b: B
         match b.read(&mut buf) {
             Ok(0) => break,
             Ok(n) => {
-                if a.write_all(&buf[..n]).and_then(|()| a.flush()).is_err() {
+                if !relay_write(&mut a, &buf[..n], reactor.as_ref()) {
                     break;
                 }
                 progressed = true;
@@ -61,8 +84,52 @@ pub fn splice_bidirectional<A: Read + Write, B: Read + Write>(mut a: A, mut b: B
         }
 
         if !progressed {
-            std::thread::sleep(Duration::from_millis(1));
+            match (reactor.as_ref(), gen) {
+                (Some(r), Some(g)) => {
+                    r.wait_for_events(g, PARK_TIMEOUT);
+                }
+                _ => std::thread::sleep(Duration::from_millis(1)),
+            }
         }
+    }
+}
+
+/// Write all of `data` to `w`, tolerating `WouldBlock` (a full socket buffer, or
+/// a momentarily exhausted `IORING_OP_SEND` pool in completion mode) by parking
+/// briefly and retrying rather than dropping the connection. Returns `false` on a
+/// hard error or peer close.
+///
+/// The final `flush` treats `WouldBlock` as success: in completion mode the SEND
+/// has been submitted and the reactor drains its CQE — the bytes are on their way.
+fn relay_write<W: Write>(
+    w: &mut W,
+    mut data: &[u8],
+    reactor: Option<&std::sync::Arc<foundation_nativeapis::native::fd::Reactor>>,
+) -> bool {
+    while !data.is_empty() {
+        match w.write(data) {
+            Ok(0) => return false,
+            Ok(n) => data = &data[n..],
+            Err(ref e) if e.kind() == ErrorKind::WouldBlock => park_briefly(reactor),
+            Err(_) => return false,
+        }
+    }
+    match w.flush() {
+        Ok(()) => true,
+        Err(ref e) if e.kind() == ErrorKind::WouldBlock => true,
+        Err(_) => false,
+    }
+}
+
+/// Park briefly on reactor activity (or sleep off the reactor) — used when a write
+/// hits backpressure.
+fn park_briefly(reactor: Option<&std::sync::Arc<foundation_nativeapis::native::fd::Reactor>>) {
+    match reactor {
+        Some(r) => {
+            let gen = r.events_generation();
+            r.wait_for_events(gen, Duration::from_millis(5));
+        }
+        None => std::thread::sleep(Duration::from_millis(1)),
     }
 }
 
@@ -161,7 +228,7 @@ fn splice_client_to_backend(client: TcpStream, backend_authority: &str) -> std::
     let backend = TcpStream::connect(backend_authority)?;
     client.set_nonblocking(true)?;
     backend.set_nonblocking(true)?;
-    splice_bidirectional(client, backend);
+    splice_bidirectional(client, backend, false);
     Ok(())
 }
 

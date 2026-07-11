@@ -158,7 +158,7 @@ fn tunnel_tcp(
         .ok_or_else(|| format!("no address for tcp backend {authority}"))?;
     let upstream = foundation_iogate::connect_completion(addr, io_mode)
         .map_err(|e| format!("connect tcp backend {authority}: {e}"))?;
-    splice_bidirectional(conn, upstream);
+    splice_bidirectional(conn, upstream, io_mode.uses_reactor());
     Ok(())
 }
 

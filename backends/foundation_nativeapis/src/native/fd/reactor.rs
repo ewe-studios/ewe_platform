@@ -38,7 +38,7 @@
 use std::collections::HashMap;
 use std::io;
 use std::sync::atomic::{AtomicBool, AtomicU8, Ordering};
-use std::sync::{Arc, Mutex, OnceLock, RwLock};
+use std::sync::{Arc, Condvar, Mutex, OnceLock, RwLock};
 use std::thread;
 use std::time::Duration;
 
@@ -79,6 +79,13 @@ pub struct Reactor {
     _drain: thread::JoinHandle<()>,
     /// Signal the drain thread to stop.
     shutdown: Arc<AtomicBool>,
+    /// Event generation + condvar (F50 B2). The drain thread bumps the counter and
+    /// notifies after each batch of latched readiness, so a *non-task* thread (e.g.
+    /// a proxy splice) can block until the reactor observes new events instead of
+    /// busy-polling. The generation makes the wait lost-wakeup-safe: a waiter that
+    /// snapshots the count before reading its fds only sleeps if nothing has
+    /// happened since.
+    events_gen: Arc<(Mutex<u64>, Condvar)>,
 }
 
 impl std::fmt::Debug for Reactor {
@@ -212,14 +219,17 @@ impl Reactor {
 
         // The drain thread polls the *same* selector registrations land in.
         // Handing it a second `Poll` instance here silently breaks every wake.
+        let events_gen: Arc<(Mutex<u64>, Condvar)> = Arc::new((Mutex::new(0), Condvar::new()));
+
         let drain_poll = Arc::clone(&poll);
         let drain_entries = Arc::clone(&entries);
         let drain_shutdown = Arc::clone(&shutdown);
+        let drain_events_gen = Arc::clone(&events_gen);
 
         let drain = thread::Builder::new()
             .name("reactor-drain".into())
             .spawn(move || {
-                drain_loop(&drain_poll, &drain_entries, &drain_shutdown);
+                drain_loop(&drain_poll, &drain_entries, &drain_shutdown, &drain_events_gen);
             })?;
 
         let reactor = Arc::new(Reactor {
@@ -229,6 +239,7 @@ impl Reactor {
             reg_lock: Mutex::new(()),
             _drain: drain,
             shutdown,
+            events_gen,
         });
 
         match REACTOR.set(Arc::clone(&reactor)) {
@@ -509,6 +520,47 @@ impl Reactor {
     pub fn is_completion_mode(&self) -> bool {
         self.backend() == Backend::UringCompletion
     }
+
+    /// The current event generation (F50 B2). Snapshot this *before* reading your
+    /// registered fds; pass it to [`Reactor::wait_for_events`] to block only if the
+    /// reactor has observed no new events since — the lost-wakeup guard.
+    ///
+    /// # Panics
+    /// Never panics (poisoned lock aside).
+    #[must_use]
+    pub fn events_generation(&self) -> u64 {
+        *self.events_gen.0.lock().expect("events_gen lock poisoned")
+    }
+
+    /// Block the calling thread until the reactor latches new readiness (its
+    /// generation advances past `since`) or `timeout` elapses; returns the
+    /// generation observed on wake. Lets a **non-task** thread — e.g. a proxy
+    /// splice — park on reactor activity instead of a fixed sleep, without
+    /// busy-polling (F50 B2). A caller loops:
+    ///
+    /// ```ignore
+    /// let gen = reactor.events_generation();
+    /// // ... read both registered fds; if data moved, continue ...
+    /// reactor.wait_for_events(gen, Duration::from_millis(50));
+    /// ```
+    ///
+    /// Because the generation is snapshotted before the fds are read, an event
+    /// that lands in the race window bumps the generation and this returns at once
+    /// rather than sleeping through it.
+    ///
+    /// # Panics
+    /// Never panics (poisoned lock aside).
+    pub fn wait_for_events(&self, since: u64, timeout: Duration) -> u64 {
+        let (lock, cvar) = &*self.events_gen;
+        let gen = lock.lock().expect("events_gen lock poisoned");
+        if *gen != since {
+            return *gen;
+        }
+        let (gen, _timed_out) = cvar
+            .wait_timeout(gen, timeout)
+            .expect("events_gen lock poisoned");
+        *gen
+    }
 }
 
 impl Drop for Reactor {
@@ -538,25 +590,40 @@ fn drain_loop(
     poll: &Poll,
     entries: &Arc<RwLock<HashMap<Token, Entry>>>,
     shutdown: &AtomicBool,
+    events_gen: &Arc<(Mutex<u64>, Condvar)>,
 ) {
     let mut events = Events::with_capacity(1024);
     while !shutdown.load(Ordering::Acquire) {
         events.clear();
         match poll.poll(&mut events, Some(Duration::from_millis(DRAIN_TIMEOUT_MS))) {
             Ok(()) => {
-                // Read lock only: bits are latched with an atomic OR.
-                let entries = entries.read().expect("entries lock poisoned");
-                for event in events.iter() {
-                    let mut ready = Ready::EMPTY;
-                    if event.is_readable() { ready = ready.union(Ready::READABLE); }
-                    if event.is_writable() { ready = ready.union(Ready::WRITABLE); }
-                    if event.is_read_closed() { ready = ready.union(Ready::READ_CLOSED); }
-                    if event.is_write_closed() { ready = ready.union(Ready::WRITE_CLOSED); }
-                    if event.is_error() { ready = ready.union(Ready::ERROR); }
+                let mut latched = 0usize;
+                {
+                    // Read lock only: bits are latched with an atomic OR.
+                    let entries = entries.read().expect("entries lock poisoned");
+                    for event in events.iter() {
+                        let mut ready = Ready::EMPTY;
+                        if event.is_readable() { ready = ready.union(Ready::READABLE); }
+                        if event.is_writable() { ready = ready.union(Ready::WRITABLE); }
+                        if event.is_read_closed() { ready = ready.union(Ready::READ_CLOSED); }
+                        if event.is_write_closed() { ready = ready.union(Ready::WRITE_CLOSED); }
+                        if event.is_error() { ready = ready.union(Ready::ERROR); }
 
-                    if let Some(entry) = entries.get(&event.token()) {
-                        entry.ready.fetch_or(ready.bits(), Ordering::AcqRel);
+                        if let Some(entry) = entries.get(&event.token()) {
+                            entry.ready.fetch_or(ready.bits(), Ordering::AcqRel);
+                        }
+                        latched += 1;
                     }
+                }
+                // Publish a new event generation *after* the readiness bits are
+                // latched, so any thread woken here sees them. Notify parked
+                // non-task waiters (F50 B2). Only on real events — a bare poll
+                // timeout latched nothing.
+                if latched > 0 {
+                    let (lock, cvar) = &**events_gen;
+                    let mut gen = lock.lock().expect("events_gen lock poisoned");
+                    *gen = gen.wrapping_add(1);
+                    cvar.notify_all();
                 }
             }
             Err(e) if e.kind() == io::ErrorKind::Interrupted => {}

@@ -265,7 +265,7 @@ pub fn forward_upgrade(
     write_head_blocking(&mut upstream, request_bytes.as_bytes())?;
 
     // From here the connection is opaque: splice both directions.
-    splice_bidirectional(conn, upstream);
+    splice_bidirectional(conn, upstream, io_mode.uses_reactor());
     Ok(())
 }
 
