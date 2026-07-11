@@ -34,4 +34,4 @@ pub mod wasm;
 pub use shared::ServerIo;
 
 #[cfg(all(not(target_family = "wasm"), unix))]
-pub use native::{accept_connection, init_reactor_for, CompletionSocket};
+pub use native::{accept_connection, connect_completion, init_reactor_for, CompletionSocket};

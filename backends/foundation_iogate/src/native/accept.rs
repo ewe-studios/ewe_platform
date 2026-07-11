@@ -130,3 +130,57 @@ pub fn accept_connection(
 
     Ok(Connection::Completion(Box::new(socket)))
 }
+
+/// Dial `addr` and build the netio [`Connection`] for it under `mode` — the
+/// client mirror of [`accept_connection`] (Feature 50 Part A).
+///
+/// WHY: a proxy's *upstream* leg is an outbound `TcpStream::connect`, never
+/// registered with the reactor, so its reads are `read(2)` and there is no inbox
+/// to park on. Dialing through here registers the connected socket exactly as the
+/// accept path does, so both legs of a relay read from the io_uring inbox. RECV
+/// on a freshly connected client socket is as valid as on an accepted one.
+///
+/// WHAT: `Std` yields a plain `Connection::Tcp`; every other mode registers the
+/// fd with the shared reactor and yields `Connection::Completion`, arming a
+/// multishot `RECV` for `Completion`/`Auto` and readiness only for `Readiness`.
+///
+/// HOW: `TcpStream::connect`, set non-blocking (required by `RegisteredFd`), then
+/// the same registry/token/`CompletionSocket` path as [`accept_connection`]. The
+/// dialed address doubles as the captured peer address.
+///
+/// # Errors
+/// The dial's error, the reactor's initialisation error, or the socket's
+/// registration error.
+///
+/// # Panics
+/// Never panics.
+pub fn connect_completion(addr: SocketAddr, mode: ServerIo) -> io::Result<Connection> {
+    let tcp = TcpStream::connect(addr)?;
+
+    if mode == ServerIo::Std {
+        return Ok(Connection::Tcp(tcp));
+    }
+    // The reactor read paths require a non-blocking fd (parked via `Depends`).
+    tcp.set_nonblocking(true)?;
+
+    let reactor = match mode {
+        ServerIo::Completion => Reactor::init(BackendPreference::Uring)?,
+        _ => Reactor::get()?,
+    };
+    let registry = reactor.registry();
+    let token = next_token();
+
+    let socket = match mode {
+        ServerIo::Readiness => CompletionSocket::readiness(tcp, registry, token, Some(addr))?,
+        _ => CompletionSocket::completion(tcp, registry, token, Some(addr))?,
+    };
+
+    tracing::debug!(
+        kernel_read = socket.is_kernel_read(),
+        %addr,
+        mode = %mode,
+        "upstream dialed through iogate",
+    );
+
+    Ok(Connection::Completion(Box::new(socket)))
+}

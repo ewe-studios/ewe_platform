@@ -129,3 +129,54 @@ fn completion_mode_carries_bytes() {
     let got = read_until(&mut conn, b"hello completion".len(), Duration::from_secs(5));
     assert_eq!(&got, b"hello completion");
 }
+
+/// Spawn a one-shot server that accepts a connection, writes `msg`, and holds the
+/// socket open briefly so the client can read before EOF. Returns its address.
+fn one_shot_writer(msg: &'static [u8]) -> (std::net::SocketAddr, std::thread::JoinHandle<()>) {
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("local_addr");
+    let handle = std::thread::spawn(move || {
+        let (mut s, _) = listener.accept().expect("accept");
+        s.write_all(msg).expect("server write");
+        s.flush().ok();
+        std::thread::sleep(Duration::from_millis(200));
+    });
+    (addr, handle)
+}
+
+#[test]
+#[traced_test]
+fn connect_completion_std_yields_plain_tcp_and_carries_bytes() {
+    let (addr, server) = one_shot_writer(b"std upstream");
+
+    let mut conn = foundation_iogate::connect_completion(addr, ServerIo::Std).expect("dial");
+    // Std never touches the reactor.
+    assert!(matches!(conn, Connection::Tcp(_)));
+
+    let got = read_until(&mut conn, b"std upstream".len(), Duration::from_secs(5));
+    assert_eq!(&got, b"std upstream");
+    server.join().ok();
+}
+
+#[test]
+#[serial]
+#[traced_test]
+fn connect_completion_dials_a_completion_backed_upstream() {
+    // The client mirror of `completion_mode_carries_bytes`: the *outbound* dial is
+    // registered with the reactor, so an upstream leg reads from the io_uring inbox
+    // (Feature 50 Part A). Skip loudly without io_uring.
+    if foundation_iogate::init_reactor_for(ServerIo::Completion).is_err() {
+        tracing::warn!("io_uring unavailable — skipping completion-mode dial test");
+        return;
+    }
+
+    let (addr, server) = one_shot_writer(b"from a completion upstream");
+
+    let mut conn =
+        foundation_iogate::connect_completion(addr, ServerIo::Completion).expect("dial");
+    assert!(matches!(conn, Connection::Completion(_)));
+
+    let got = read_until(&mut conn, b"from a completion upstream".len(), Duration::from_secs(5));
+    assert_eq!(&got, b"from a completion upstream");
+    server.join().ok();
+}

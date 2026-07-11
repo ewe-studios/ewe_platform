@@ -18,5 +18,5 @@
 mod accept;
 mod completion_socket;
 
-pub use accept::{accept_connection, init_reactor_for};
+pub use accept::{accept_connection, connect_completion, init_reactor_for};
 pub use completion_socket::CompletionSocket;

@@ -1,7 +1,7 @@
 ---
 feature: "Client-side completion + zero-syscall proxy relay (D14 F4 relay half)"
 description: "Outbound-dial completion registration and a readiness-aware splice, so both legs of a proxied connection read from the io_uring inbox and the relay wakes on data instead of a 1 ms sleep — culminating in the SEND_ZC zero-copy handoff"
-status: "proposed"
+status: "in-progress (Part A connect_completion landed + tested; Parts B/C deferred)"
 priority: "medium"
 phase: 4
 depends_on: ["48-transport-completion-read-path", "49-write-side-completion"]
@@ -10,11 +10,31 @@ created: 2026-07-11
 ---
 # Feature 50: Client-side completion + zero-syscall proxy relay
 
-> **Status: proposed, for review.** A design proposal, not a plan of record.
-> Nothing is implemented. It is the home for what Feature 48 designed *out* of
-> its scope (its "Phase 4") and what Feature 49 defers to "a separate feature
-> (tentatively Feature 50)": the client-dial completion path, the readiness-aware
-> splice, and the eventual `IORING_OP_SEND_ZC` zero-copy relay.
+> **Status: Part A landed (2026-07-12); Parts B and C deferred.**
+>
+> **Done — Part A (`connect_completion`):** the outbound-dial mirror of
+> `accept_connection` is implemented in `foundation_iogate::native::accept` and
+> exported as `foundation_iogate::connect_completion(addr, mode)`. It dials, sets
+> the socket non-blocking, registers it with the shared reactor, and returns a
+> `Connection::Completion` (or a plain `Connection::Tcp` for `ServerIo::Std`) —
+> reusing the same `CompletionSocket` + token allocator as the accept path, so an
+> upstream leg reads from the io_uring inbox. Verified by
+> `connect_completion_dials_a_completion_backed_upstream` and the `Std` variant in
+> `iogate_tests.rs`.
+>
+> **Deferred — Part B (readiness-aware splice + proxy wiring):** `splice_bidirectional`
+> is generic `<A: Read+Write, B: Read+Write>`, so the `ReadinessSource` capability
+> and the `CompositeReadiness` park (replacing the 1 ms sleep) require a signature
+> change across all splice callers plus the thread-vs-valtron concurrency decision.
+> `foundation_proxy` also has no `foundation_iogate` dep and no `ServerIo` config
+> yet, so wiring `tunnel_tcp`/`forward_upgrade` to dial via `connect_completion` is
+> its own change. Not started.
+>
+> **Deferred — Part C (SEND_ZC zero-copy relay):** F49's SEND pool now exists, but
+> `IORING_OP_SEND_ZC` has distinct two-notification completion semantics and needs
+> the Part B splice first.
+>
+> The original design proposal follows, retained for context.
 
 ## Why this exists
 
