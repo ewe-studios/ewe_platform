@@ -5,29 +5,44 @@
 
 ## Decision
 
-Use `foundation_openapi::UnifiedGenerator` to generate the initial API surface from the Docker
-Engine OpenAPI spec, then hand-refine the generated output where the spec → code mapping is
-lossy or produces awkward types.
+Generate the initial API surface using `gen_api` (the `foundation_codegentools` binary), then
+hand-refine the generated output where the spec → code mapping is lossy or produces awkward types.
 
 This is a hybrid approach: **generate first, refine second** — not pure hand-writing, and not
 raw codegen without intervention.
 
-## How UnifiedGenerator works
+## How gen_api / UnifiedGenerator works
 
-The generator at `foundation_openapi/src/unified/generator.rs` takes an OpenAPI spec and produces:
+The binary at `foundation_codegentools/src/cli/gen_api.rs` wraps
+`foundation_openapi::UnifiedGenerator` and handles:
 
-1. **`shared/mod.rs`** — Re-exports `ApiError`, `ApiResponse`, `ApiPending`, `Empty`, `Operation`
-   from `crate::providers::common`. Generates stub structs for shared resource types.
+1. **Spec discovery** from `artefacts/cloud_providers/<provider>/` (single or multiple specs)
+2. **Analysis** → `analyze_spec()` groups endpoints by path prefix, identifies shared resource types
+3. **Code generation** via `UnifiedGenerator::generate()`:
+   - **`shared/mod.rs`** — Re-exports `ApiError`, `ApiResponse`, `ApiPending`, `Empty`, `Operation`
+     from `crate::providers::common`. Generates stub structs for shared resource types.
+   - **Per-group `mod.rs`** — For each API group (containers, images, networks, volumes, etc.):
+     - **Type declarations** from `$ref` schemas — proper structs with properties, `Box<>` for recursive types
+     - **Args types** — `{OperationId}Args` with path params, query params, and body
+     - **Client functions** — `{operation_id}_request(client, args, builder_mod)` returning
+       `impl TaskIterator<Ready = Result<ApiResponse<T>, ApiError>, Pending = ApiPending, ...>`
+   - **Provider `mod.rs`** — Feature-guarded module tree with all groups.
+   - **Cargo.toml updates** — Auto-adds feature flags for provider and groups (hierarchical + flat).
+4. **Feature flag fix-up** — `fix_hierarchical_features()` / `fix_flat_features()` rebuilds
+   `provider_all`, `provider_group` features from the directory structure.
+5. **`cargo fix`** — Auto-cleans unused imports, style issues.
 
-2. **Per-group `mod.rs`** — For each API group (containers, images, networks, volumes, etc.):
-   - **Type declarations** from `$ref` schemas — proper structs with properties, `Box<>` for recursive types
-   - **Args types** — `{OperationId}Args` with path params, query params, and body
-   - **Client functions** — `{operation_id}_request(client, args, builder_mod)` returning
-     `impl TaskIterator<Ready = Result<ApiResponse<T>, ApiError>, Pending = ApiPending, ...>`
+### CLI invocation
 
-3. **Provider `mod.rs`** — Feature-guarded module tree with all groups.
+```bash
+# Analyze (dry run — shows groups, types, endpoints)
+cargo run --bin ewe_platform gen_api analyze --provider docker \
+  --spec artefacts/cloud_providers/docker/docker-engine-v1.53.json
 
-4. **Cargo.toml updates** — Auto-adds feature flags for provider and groups.
+# Generate (writes files)
+cargo run --bin ewe_platform gen_api generate --provider docker \
+  --output-dir backends/foundation_deployment_docker/src
+```
 
 ### Generated client function pattern
 
@@ -126,20 +141,30 @@ this so the client can use `http://localhost` with Unix socket transport.
 
 ## Type organization (post-generation)
 
+Docker is a **split-out crate** (like cloudflare), so `gen_api` generates directly into
+`foundation_deployment_docker/src/`:
+
 ```
 foundation_deployment_docker/src/
-  providers/
-    shared/mod.rs         # Generated: ApiError, ApiResponse, shared types
-    containers/mod.rs     # Generated: Container types + client functions
-    images/mod.rs         # Generated: Image types + client functions
-    networks/mod.rs       # Generated: Network types + client functions
-    volumes/mod.rs        # Generated: Volume types + client functions
-    system/mod.rs         # Generated: System types + client functions
-    exec/mod.rs           # Generated: Exec types + client functions
-  docker_client.rs        # Hand-written: DockerClient struct, Unix socket setup, auth
-  deployable.rs           # Hand-written: Deployable impl for containers/networks/volumes
+  shared/mod.rs         # Generated: ApiError, ApiResponse, shared types
+  containers/mod.rs     # Generated: Container types + {op}_request() TaskIterators
+  images/mod.rs         # Generated: Image types + {op}_request() TaskIterators
+  networks/mod.rs       # Generated: Network types + {op}_request() TaskIterators
+  volumes/mod.rs        # Generated: Volume types + {op}_request() TaskIterators
+  system/mod.rs         # Generated: System types + {op}_request() TaskIterators
+  exec/mod.rs           # Generated: Exec types + {op}_request() TaskIterators
+  docker_client.rs      # Hand-written: DockerClient struct, Unix socket setup, auth
+  deployable.rs         # Hand-written: Deployable impl for containers/networks/volumes
   streaming/
-    mod.rs                # Hand-written: LogFrameDecoder, JsonLineDecoder
+    mod.rs              # Hand-written: SendSafeBodyBytesIterator chains, LogFrameDecoder
+```
+
+The generator also updates `Cargo.toml` with feature flags:
+```toml
+docker = []
+docker_containers = []
+docker_images = []
+docker_all = ["docker_containers", "docker_images", "docker_networks", "docker_volumes", "docker_system", "docker_exec"]
 ```
 
 ## Priority order

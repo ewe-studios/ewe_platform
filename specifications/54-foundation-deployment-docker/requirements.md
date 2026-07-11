@@ -15,9 +15,22 @@ deps creates runtime conflicts and executor mismatches.
 
 ## Approach
 
-Use `foundation_openapi::UnifiedGenerator` to generate the initial API surface from the Docker
-Engine OpenAPI spec, then hand-refine where needed. This gives us proper types + TaskIterator
-client functions from the spec, with bollard's source as reference for Docker-specific quirks.
+Generate the initial API surface using `gen_api` (the `foundation_codegentools` binary), which
+wraps `foundation_openapi::UnifiedGenerator`. Workflow:
+
+1. **Vendored spec** → `artefacts/cloud_providers/docker/docker-engine-v1.53.json`
+2. **Analyze** → `gen_api analyze --provider docker --spec artefacts/.../docker-engine-v1.53.json`
+   (shows endpoint groups, type counts, shared resources)
+3. **Generate** → `gen_api generate --provider docker --output-dir backends/foundation_deployment_docker/src`
+   (produces `shared/`, `containers/`, `images/`, `networks/`, `volumes/`, `system/`, `exec/` modules
+   with types from `$ref` schemas, `{OperationId}Args` structs, and `{op}_request()` functions
+   returning `impl TaskIterator<Ready = Result<ApiResponse<T>, ApiError>>`)
+4. **Refine** → hand-write what the generator can't do: `DockerClient` (Unix socket setup, auth,
+   version negotiation), streaming endpoints (logs/events via `SendSafeBodyBytesIterator` +
+   `StreamIteratorExt`), `Deployable` impls, `LogFrameDecoder` (~50 lines for Docker's 8-byte
+   multiplexed log frames)
+
+The generator handles ~90% of the HTTP CRUD surface. We hand-write the Docker-specific glue.
 
 For the BuildKit RPC API, implement on top of `foundation_connectrpc` using bollard's protobuf
 definitions as a guide.
