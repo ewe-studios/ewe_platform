@@ -74,15 +74,33 @@ Wiring HTTP/3 into the seam: the third ConnectionHandler branch and client trans
 
 ### Remaining — the server half
 
-> **Sequencing note (2026-07-12):** the four items below are one interlocking
-> block, and item 2 (the netcap `Quic` `Listener`/`Connection` variants + routing
-> `HttpServer` through netcap's listener — D12 §9, carried over from F33) is the
-> **prerequisite** for the rest. `H3Serve` + `ConnectRpcServeH3` + `dispatch_h3`
-> (item 1) mirror the h2 path mechanically, but they are *undriven* — and therefore
-> scaffolding — until a real HTTP/3 connection handler exists, and that handler
-> needs the netcap listener from item 2. So the server half cannot land as small
-> additive slices; it is a single feature-sized effort rooted in the netcap
-> listener refactor. The client transport (above) is complete and independent.
+> **Sequencing note (2026-07-12, revised after investigation):** the four items
+> below are one interlocking block. Two findings sharpen the scope:
+>
+> 1. **`dispatch_h3` is an adapter, not a mirror of `dispatch_h2`.** h2 serving is
+>    frame-pipe based (`H2Serve` takes `PipeReceiver<H2IncomingFrame>` +
+>    `PipeSender<H2Frame>`, and `dispatch_h2` drives those pipes). HTTP/3 is
+>    *stream*-oriented: `H3Request` exposes `poll_headers()` / `poll_body()` /
+>    `poll_send_headers()/data()/finish()` directly on the QUIC bidi stream. So
+>    `dispatch_h3` must **bridge** that poll-based stream API to the ConnectRPC
+>    dispatcher (which consumes `SimpleIncomingRequest`/byte pipes and emits framed
+>    responses) — converting inbound QPACK fields via `request_from_fields`, feeding
+>    `poll_body` chunks into the protocol's byte pipe, and pumping the response pipe
+>    back out through `poll_send_*`. That adapter is real async code with its own
+>    correctness surface, roughly the size of `dispatch_h2` itself.
+> 2. **It is testable without the full netcap refactor.** netio's
+>    `tests/http3/connection_tests.rs` already stands up a live QUIC pair
+>    (`quic_pair()`, `drive_until`, `H3Connection::poll_accept`) and drives real
+>    request/response/trailers by stepping the `QuicDriver`s by hand. A
+>    connectrpc-side conformance test can reuse that shape to drive `dispatch_h3`
+>    end-to-end over real QUIC/H3 — so the driven test does **not** block on item 2
+>    (the netcap `Quic` `Listener` for the *production* accept path still does).
+>
+> Net: the server half is a single **feature-sized effort** — the `dispatch_h3`
+> adapter + `H3Serve` trait (`foundation_http`) + `ConnectRpcServeH3` + a
+> QUIC-driven conformance test, then (for production serving) the netcap `Quic`
+> `Listener`/`Connection` variants + `ServerApp::Http3` + Alt-Svc. The client
+> transport (above) is complete and independent; this is the next feature to build.
 
 1. **`H3Serve` + the third `ConnectionHandler` branch.** `ServerApp` is
    `Http1 | Http2 | Both`; it needs `Http3`. `H2Serve` is the model: one task per stream, the
