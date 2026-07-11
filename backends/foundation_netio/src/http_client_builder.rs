@@ -18,7 +18,7 @@ use std::time::Duration;
 use crate::shared::client::http_client::HttpClient;
 use crate::shared::client::{ClientConfig, SystemDnsResolver};
 use crate::simple_http::shared::timeout::TimeoutCalculator;
-use crate::simple_http::shared::HttpClientError;
+use crate::simple_http::shared::{HttpClientError, SimpleHeader, SimpleHeaders};
 
 /// Platform-agnostic builder for `Arc<dyn HttpClient>`.
 ///
@@ -33,7 +33,6 @@ use crate::simple_http::shared::HttpClientError;
 /// ```
 pub struct HttpClientBuilder {
     config: ClientConfig,
-    default_headers: Vec<(String, String)>,
 }
 
 impl Default for HttpClientBuilder {
@@ -47,7 +46,6 @@ impl HttpClientBuilder {
     pub fn new() -> Self {
         Self {
             config: ClientConfig::default(),
-            default_headers: Vec::new(),
         }
     }
 
@@ -88,13 +86,46 @@ impl HttpClientBuilder {
         self
     }
 
+    /// Control whether the client follows non-standard redirect responses
+    /// (i.e. not 301/302/303/307/308).
+    #[must_use]
+    pub fn follow_other_redirects_response(mut self, follow: bool) -> Self {
+        self.config.redirect.follow_other_redirects_response = follow;
+        self
+    }
+
     // -- headers ----------------------------------------------------------
 
     /// Add a default header sent with every request. Request-level headers
     /// take precedence over builder defaults.
     #[must_use]
     pub fn default_header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
-        self.default_headers.push((key.into(), value.into()));
+        self.config
+            .headers_to_add
+            .get_or_insert_with(Default::default)
+            .entry(SimpleHeader::custom(&key.into()))
+            .or_default()
+            .push(value.into());
+        self
+    }
+
+    /// Set the full map of default headers added to every request.
+    ///
+    /// Replaces any headers set via `default_header()`. Request-level headers
+    /// take precedence over these defaults.
+    #[must_use]
+    pub fn headers_to_add(mut self, headers: SimpleHeaders) -> Self {
+        self.config.headers_to_add = Some(headers);
+        self
+    }
+
+    /// Set the set of header names that are preserved across redirects.
+    ///
+    /// When following a redirect, only headers in this set are forwarded
+    /// to the new target.
+    #[must_use]
+    pub fn headers_to_pass_on_redirect(mut self, headers: Vec<SimpleHeader>) -> Self {
+        self.config.headers_to_pass_on_redirect = Some(headers);
         self
     }
 
@@ -173,47 +204,22 @@ impl HttpClientBuilder {
     pub fn build(self) -> Arc<dyn HttpClient> {
         #[cfg(all(feature = "multi", not(target_family = "wasm")))]
         {
-            let config = self.finalize_config();
             Arc::new(crate::http::NativeHttpClient::new(
                 SystemDnsResolver::default(),
             )
-            .config(config))
+            .config(self.config))
         }
         #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
         {
-            Arc::new(
-                crate::wasm::client::FetchHttpClient::with_config(
-                    self.finalize_config(),
-                ),
-            )
+            Arc::new(crate::wasm::client::FetchHttpClient::with_config(self.config))
         }
         #[cfg(not(any(
             all(feature = "multi", not(target_family = "wasm")),
             all(target_family = "wasm", feature = "wasm-fetch")
         )))]
         {
-            // Neither native multi nor wasm-fetch available — return a stub
-            // that will error when used. This path only compiles when both
-            // features are off, which shouldn't happen in practice.
             let _ = self;
             unimplemented!("HttpClientBuilder::build: no HTTP client backend available")
         }
-    }
-
-    /// Internal: fold default headers into `ClientConfig` before building.
-    fn finalize_config(mut self) -> ClientConfig {
-        if !self.default_headers.is_empty() {
-            use crate::simple_http::shared::SimpleHeader;
-            use std::collections::BTreeMap;
-            let mut headers = BTreeMap::new();
-            for (key, value) in self.default_headers {
-                headers
-                    .entry(SimpleHeader::custom(&key))
-                    .or_insert_with(Vec::new)
-                    .push(value);
-            }
-            self.config.headers_to_add = Some(headers);
-        }
-        self.config
     }
 }
