@@ -26,7 +26,7 @@ use crate::simple_http::shared::{
     HttpClientError, HttpReaderError, HttpResponseIntro, HttpResponseReader, SimpleHeaders,
     SimpleHttpBody, Status,
 };
-use foundation_core::valtron::{NoSpawner, TaskIterator, TaskStatus};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
 
 /// Cloneable subset of `RequestIntro` for observer patterns.
 ///
@@ -124,7 +124,7 @@ impl GetRequestIntroTask {
 impl TaskIterator for GetRequestIntroTask {
     type Pending = ();
     type Ready = RequestIntro;
-    type Spawner = NoSpawner;
+    type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self.0.take()? {

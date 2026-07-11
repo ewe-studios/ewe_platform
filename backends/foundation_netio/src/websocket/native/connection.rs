@@ -750,11 +750,13 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
 }
 
 /// Iterator over messages from a `WebSocketClient`.
-pub struct WebSocketMessageIterator<'a, R: DnsResolver + Send + 'static> {
+// `+ Clone` is explicit now that `DnsResolver` no longer requires it (F51 Stage 1);
+// `WebSocketClient<R>` clones the resolver. Folded into the unified client in Stage 6.
+pub struct WebSocketMessageIterator<'a, R: DnsResolver + Clone + Send + 'static> {
     client: &'a mut WebSocketClient<R>,
 }
 
-impl<R: DnsResolver + Send + 'static> Iterator for WebSocketMessageIterator<'_, R> {
+impl<R: DnsResolver + Clone + Send + 'static> Iterator for WebSocketMessageIterator<'_, R> {
     type Item = Result<WebSocketEvent, WebSocketError>;
 
     fn next(&mut self) -> Option<Self::Item> {

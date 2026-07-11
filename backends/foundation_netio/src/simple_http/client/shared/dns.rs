@@ -9,8 +9,18 @@ type MockDnsResponses = Arc<Mutex<HashMap<String, Result<Vec<SocketAddr>, DnsErr
 
 /// Trait for DNS resolution.
 ///
-/// Allows pluggable DNS resolvers for testing and customization.
-pub trait DnsResolver: Send + Sync + Clone {
+/// WHY: pluggable DNS resolvers for testing and customization. Kept **object-safe**
+/// (no `Clone` supertrait, no generic methods) so it can be erased to
+/// [`BoxedDnsResolver`] — a `Arc<dyn DnsResolver>` the client holds instead of a
+/// resolver type parameter. Cloning is provided by the `Arc`, not the resolver.
+///
+/// WHAT: a single `resolve(host, port)` method.
+///
+/// HOW: implementors are concrete resolvers ([`SystemDnsResolver`],
+/// [`StaticSocketAddr`], [`CachingDnsResolver`], [`MockDnsResolver`],
+/// [`NoopDnsResolver`]); the client erases whichever it is built with into an
+/// `Arc<dyn DnsResolver>`.
+pub trait DnsResolver: Send + Sync {
     /// Resolves a hostname and port to socket addresses.
     ///
     /// # Arguments
@@ -28,9 +38,49 @@ pub trait DnsResolver: Send + Sync + Clone {
     fn resolve(&self, host: &str, port: u16) -> Result<Vec<SocketAddr>, DnsError>;
 }
 
-impl<T: DnsResolver> DnsResolver for Arc<T> {
+/// A DNS resolver erased to a shared trait object.
+///
+/// WHY: lets the client hold one concrete resolver type (`R = BoxedDnsResolver`)
+/// instead of a type parameter, so `dyn HttpClient` stays object-safe. `Arc`
+/// provides the cloning the (now `Clone`-free) trait no longer requires.
+pub type BoxedDnsResolver = Arc<dyn DnsResolver>;
+
+impl<T: DnsResolver + ?Sized> DnsResolver for Arc<T> {
     fn resolve(&self, host: &str, port: u16) -> Result<Vec<SocketAddr>, DnsError> {
         self.as_ref().resolve(host, port)
+    }
+}
+
+/// The default resolver for the current target.
+///
+/// Native resolves through the system ([`SystemDnsResolver`]); wasm delegates to
+/// the platform (the browser resolves for `fetch`/`WebSocket`), so it defaults to
+/// [`NoopDnsResolver`]. This keeps the client's default surface identical on both
+/// targets — only the alias target differs.
+#[cfg(not(target_family = "wasm"))]
+pub type DefaultResolver = SystemDnsResolver;
+/// The default resolver for the current target (wasm — the browser resolves).
+#[cfg(target_family = "wasm")]
+pub type DefaultResolver = NoopDnsResolver;
+
+/// A resolver that resolves nothing — the platform owns resolution.
+///
+/// WHY: on wasm there is no system resolver; the browser resolves hostnames when
+/// it performs the `fetch`/`WebSocket`, so this resolver's `resolve` is never on
+/// the hot path. It exists so the generic client surface has a `Default` resolver
+/// on wasm identical in shape to native.
+///
+/// WHAT: `resolve` returns an error (never a silent localhost/empty default —
+/// calling it means something bypassed the platform path).
+#[derive(Debug, Clone, Copy, Default)]
+pub struct NoopDnsResolver;
+
+impl DnsResolver for NoopDnsResolver {
+    fn resolve(&self, host: &str, _port: u16) -> Result<Vec<SocketAddr>, DnsError> {
+        Err(DnsError::ResolutionFailed(format!(
+            "NoopDnsResolver cannot resolve '{host}': resolution is delegated to the \
+             platform (browser fetch/WebSocket). Configure a real resolver to resolve here."
+        )))
     }
 }
 

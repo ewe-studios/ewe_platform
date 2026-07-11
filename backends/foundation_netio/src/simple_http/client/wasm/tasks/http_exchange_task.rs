@@ -18,7 +18,7 @@ use std::pin::Pin;
 use foundation_compact::SendWrapper;
 use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::{
-    from_future, FutureTask, NoSpawner, Stream, TaskIterator, TaskStatus,
+    from_future, BoxedSendExecutionAction, FutureTask, Stream, TaskIterator, TaskStatus,
 };
 
 use crate::simple_http::client::shared::request_task::{HttpExchange, HttpExchangePending};
@@ -85,7 +85,10 @@ impl WasmHttpExchangeTask {
 impl TaskIterator for WasmHttpExchangeTask {
     type Ready = HttpExchange;
     type Pending = HttpExchangePending;
-    type Spawner = NoSpawner;
+    // House law: always `BoxedSendExecutionAction`, never `NoSpawner`/`NoAction`.
+    // This task never returns `TaskStatus::Spawn`, but the Spawner type is uniform
+    // so it can unify with the native task behind `HttpExchangeClientTask` (F51).
+    type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match &mut self.state {
