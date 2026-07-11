@@ -100,10 +100,11 @@ impl HttpClientBuilder {
     /// take precedence over builder defaults.
     #[must_use]
     pub fn default_header(mut self, key: impl Into<String>, value: impl Into<String>) -> Self {
+        let key: String = key.into();
         self.config
             .headers_to_add
             .get_or_insert_with(Default::default)
-            .entry(SimpleHeader::custom(&key.into()))
+            .entry(SimpleHeader::custom(&key))
             .or_default()
             .push(value.into());
         self
@@ -127,6 +128,41 @@ impl HttpClientBuilder {
     pub fn headers_to_pass_on_redirect(mut self, headers: Vec<SimpleHeader>) -> Self {
         self.config.headers_to_pass_on_redirect = Some(headers);
         self
+    }
+
+    // -- auth -------------------------------------------------------------
+
+    /// Set a `Basic` auth header. Encodes `username:password` as base64.
+    #[must_use]
+    pub fn basic_auth(self, username: &str, password: &str) -> Self {
+        use base64::prelude::*;
+        let credentials = format!("{username}:{password}");
+        let encoded = BASE64_STANDARD.encode(credentials.as_bytes());
+        self.default_header("Authorization", format!("Basic {encoded}"))
+    }
+
+    /// Set a `Bearer` token header.
+    #[must_use]
+    pub fn bearer_token(self, token: &str) -> Self {
+        self.default_header("Authorization", format!("Bearer {token}"))
+    }
+
+    /// Set an arbitrary API key in a custom header.
+    #[must_use]
+    pub fn api_key(self, header_name: &str, key: &str) -> Self {
+        self.default_header(header_name, key)
+    }
+
+    /// Set the `X-API-Key` header.
+    #[must_use]
+    pub fn x_api_key(self, key: &str) -> Self {
+        self.default_header("X-API-Key", key)
+    }
+
+    /// Set an `Authorization` header with an arbitrary scheme and credentials.
+    #[must_use]
+    pub fn authorization(self, scheme: &str, credentials: &str) -> Self {
+        self.default_header("Authorization", format!("{scheme} {credentials}"))
     }
 
     // -- body limits ------------------------------------------------------
@@ -205,7 +241,7 @@ impl HttpClientBuilder {
         #[cfg(all(feature = "multi", not(target_family = "wasm")))]
         {
             Arc::new(crate::http::NativeHttpClient::new(
-                SystemDnsResolver::default(),
+                SystemDnsResolver,
             )
             .config(self.config))
         }

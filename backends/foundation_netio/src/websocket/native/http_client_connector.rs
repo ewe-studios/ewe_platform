@@ -1,7 +1,7 @@
-//! `WebSocketConnector` impl for `NativeHttpClient` (F51 Stage 6).
+//! [`WebSocketConnector`] impl for [`NativeHttpClient`] (F51 Stage 6).
 //!
 //! WHY: F51 unifies the client — the same concrete type that serves HTTP also
-//! opens WebSockets through the `WebSocketConnector` trait. This impl reuses
+//! opens `WebSocket` connections through the [`WebSocketConnector`] trait. This impl reuses
 //! the client's connection pool (DNS, TCP, TLS) for the HTTP/1.1 Upgrade
 //! handshake.
 //!
@@ -105,7 +105,7 @@ impl<R: DnsResolver + Clone + Send + Sync + 'static> WebSocketConnector for Nati
                 Ok(crate::simple_http::shared::IncomingResponseParts::Headers(headers)) => {
                     response_headers = headers;
                 }
-                Ok(_) => continue,
+                Ok(_) => {}
                 Err(e) => {
                     return Err(WebSocketError::ProtocolError(format!(
                         "response read failed: {e}"
