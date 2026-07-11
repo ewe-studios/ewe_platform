@@ -233,6 +233,7 @@ enum RouteSource {
 
     /// Content is served from the local cache.
     /// The cache layer provides the stored rendered page.
+**TODO**: This is rather odd, because content can be cached regardless of the first 3, so why make it a source, probably better to add a cache, and then its that a cache wraps existing sources.
     Cache,
 }
 ```
@@ -243,7 +244,11 @@ Convenience constructors:
 RouteDecision::local_wasm()    // RouteSource::LocalWasm
 RouteDecision::ipc_shell()     // RouteSource::IpcShell
 RouteDecision::remote_fetch()  // RouteSource::RemoteServer
-RouteDecision::from_cache()    // RouteSource::Cache
+```
+
+A from_cache that indicates cache delivers the content first before going to source
+```rust
+RouteDecision::from_cache(RouteDecision::local_wasm/ipc_shell/remote_fetch, CachePolicy)    // RouteSource::Cache
 ```
 
 ### `Presentation` — how navigation appears in the UI stack
