@@ -873,13 +873,47 @@ impl UnifiedGenerator {
             }
         }
 
-        // Second pass: collect all transitively referenced types from schemas
-        // This ensures nested types (e.g., types referenced via $ref in properties) are also generated
+        // Second pass: collect all transitively referenced types from schemas.
+        // This ensures nested types (e.g., types referenced via $ref in properties)
+        // are also generated.
+        //
+        // all_types contains PascalCase names, but schemas are keyed by the spec's
+        // original names. Use resolve_schema_key to bridge the gap.
         let mut types_to_process: Vec<String> = all_types.iter().cloned().collect();
+        let mut already_traversed: std::collections::HashSet<String> = std::collections::HashSet::new();
 
         while let Some(type_name) = types_to_process.pop() {
-            if let Some(schema) = schemas.get(&type_name) {
+            if already_traversed.contains(&type_name.to_lowercase()) {
+                continue;
+            }
+            if let Some(schema) = Self::resolve_schema_key(&type_name, schemas) {
+                already_traversed.insert(type_name.to_lowercase());
                 collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
+            }
+        }
+        // Converging pass: after traversing all $ref chains, scan every generated
+        // type's schema for properties that reference other schemas via $ref. Any
+        // target type not yet known gets generated too. Repeat until no new types
+        // are discovered.
+        loop {
+            let before = all_types.len();
+            let snapshot: Vec<String> = all_types.iter().cloned().collect();
+            for type_name in &snapshot {
+                if let Some(schema) = Self::resolve_schema_key(type_name, schemas) {
+                    collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
+                }
+            }
+            while let Some(type_name) = types_to_process.pop() {
+                if already_traversed.contains(&type_name.to_lowercase()) {
+                    continue;
+                }
+                if let Some(schema) = Self::resolve_schema_key(&type_name, schemas) {
+                    already_traversed.insert(type_name.to_lowercase());
+                    collect_referenced_type_names(schema, &mut all_types, &mut types_to_process);
+                }
+            }
+            if all_types.len() == before {
+                break;
             }
         }
 
@@ -1190,6 +1224,15 @@ impl UnifiedGenerator {
             let ref_name = ref_path
                 .trim_start_matches("#/components/schemas/")
                 .trim_start_matches("#/schemas/");
+
+            // If the referenced schema is an array, resolve to Vec<…> inline
+            // instead of returning a PascalCase wrapper name.  Array schemas
+            // should never be generated as standalone structs.
+            if let Some(target) = schemas.get(ref_name) {
+                if target.schema_type.as_deref() == Some("array") {
+                    return self.schema_to_rust_type(target, schemas);
+                }
+            }
 
             // Rename std type conflicts
             let pascal_name = crate::to_pascal_case(ref_name);
