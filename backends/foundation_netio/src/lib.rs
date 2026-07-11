@@ -13,6 +13,14 @@ pub mod shared;
 // ── Cross-platform client builder (F51) ──────────────────────────────
 pub mod http_client_builder;
 
+/// Unified HTTP client module (F51 Stage 4 canonical path).
+///
+/// Re-exports native client types at `foundation_netio::http::*`. The old
+/// `simple_http::client` paths remain valid through the migration window.
+/// Callers should migrate to this path.
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
+pub mod http;
+
 // ── Native-only modules ─────────────────────────────────────────────
 #[cfg(not(target_family = "wasm"))]
 pub mod native;

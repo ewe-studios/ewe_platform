@@ -21,7 +21,7 @@ use std::io::Write;
 use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
-use foundation_netio::netcap::{RawStream, SocketAddr as NetcapSocketAddr};
+use foundation_netio::netcap::RawStream;
 use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest};
 
 use foundation_http::shared::context::ContextBag;
@@ -158,9 +158,7 @@ fn header_first(req: &SimpleIncomingRequest, name: &SimpleHeader) -> Option<Stri
 /// Best-effort client IP from the connection's peer address.
 fn client_ip(req: &SimpleIncomingRequest) -> String {
     match &req.connection.peer_addr {
-        Some(NetcapSocketAddr::Tcp(addr)) => addr.ip().to_string(),
-        #[cfg(unix)]
-        Some(NetcapSocketAddr::Unix(_)) => "unix".to_string(),
+        Some(addr) => addr.ip().to_string(),
         None => "unknown".to_string(),
     }
 }

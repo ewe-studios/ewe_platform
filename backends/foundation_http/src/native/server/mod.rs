@@ -11,7 +11,6 @@ use std::time::Duration;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_iogate::ServerIo;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
-use foundation_netio::netcap::SocketAddr as NetcapSocketAddr;
 use foundation_core::synca::{OnSignal, WaitGroup};
 use foundation_netio::simple_http::shared::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
@@ -623,7 +622,7 @@ impl HttpServer {
                     // address; richer fields are populated by the TLS/h2/h3 front
                     // ends as those transports land.
                     let connection = Arc::new(ConnectionContext {
-                        peer_addr: Some(NetcapSocketAddr::Tcp(addr)),
+                        peer_addr: Some(addr),
                         ..ConnectionContext::default()
                     });
 

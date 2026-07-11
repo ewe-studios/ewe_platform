@@ -24,8 +24,6 @@
 //! `netcap` socket type) is the sole target-gated field.
 
 #[cfg(not(target_family = "wasm"))]
-use crate::native::connection::SocketAddr;
-
 /// Cryptographic identity of the connection peer.
 ///
 /// WHY: Some transports authenticate the peer with a public key rather than (or
@@ -102,10 +100,10 @@ impl core::fmt::Display for TlsInfo {
 /// request that carries it so cloning the request is a refcount bump.
 #[derive(Clone, Debug, Default)]
 pub struct ConnectionContext {
-    /// Remote peer network address. Native transports only (wasm has no accept
-    /// path); `None` when the address is unknown (e.g. directly-built requests).
-    #[cfg(not(target_family = "wasm"))]
-    pub peer_addr: Option<SocketAddr>,
+    /// Remote peer network address. Uses the cross-platform `core::net::SocketAddr`
+    /// so the context compiles on wasm. `None` when the address is unknown (e.g.
+    /// directly-built requests or browser-originated connections).
+    pub peer_addr: Option<core::net::SocketAddr>,
     /// Peer cryptographic identity (iroh Ed25519 key / verified key), when known.
     pub peer_identity: PeerIdentity,
     /// TLS/mTLS negotiation details; `None` on cleartext connections.
@@ -139,7 +137,6 @@ impl ConnectionContext {
 impl core::fmt::Display for ConnectionContext {
     fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
         write!(f, "ConnectionContext(peer_identity={}", self.peer_identity)?;
-        #[cfg(not(target_family = "wasm"))]
         if let Some(addr) = &self.peer_addr {
             write!(f, ", peer_addr={addr:?}")?;
         }
