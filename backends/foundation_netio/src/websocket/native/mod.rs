@@ -1,4 +1,5 @@
 pub mod connection;
+pub mod http_client_connector;
 pub mod readiness;
 pub mod reconnecting_task;
 pub mod server;
