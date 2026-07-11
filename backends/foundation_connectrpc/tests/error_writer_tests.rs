@@ -3,7 +3,7 @@
 //! typed-detail base64 (RawStdEncoding) round-trip.
 
 use bytes::Bytes;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };

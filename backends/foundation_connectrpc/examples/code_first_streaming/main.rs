@@ -23,7 +23,7 @@ use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
-use foundation_netio::simple_http::client::SimpleHttpClient;
+use foundation_netio::http::SimpleHttpClient;
 
 use foundation_connectrpc::transport::Transport;
 use foundation_connectrpc::{

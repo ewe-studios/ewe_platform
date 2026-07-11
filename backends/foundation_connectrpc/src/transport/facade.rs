@@ -15,7 +15,7 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use crate::codec::CodecFor;
 use crate::error::{ConnectError, ConnectResult};

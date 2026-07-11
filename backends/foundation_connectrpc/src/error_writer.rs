@@ -19,7 +19,7 @@
 //! > buffa-types `Any` integration lands with codegen (spec-41 F26).
 
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };

@@ -23,7 +23,7 @@ use bytes::{Bytes, BytesMut};
 use futures::StreamExt;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };

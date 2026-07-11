@@ -17,7 +17,7 @@ use std::task::{Context, Poll};
 use bytes::Bytes;
 use foundation_core::valtron::Pipe;
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use crate::error::ConnectError;
 

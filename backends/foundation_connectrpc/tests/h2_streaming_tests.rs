@@ -321,7 +321,7 @@ async fn two_concurrent_calls_both_complete() {
 async fn h2_pump_closes_the_body_pipe_at_end_of_stream() {
     use foundation_connectrpc::protocol::connect::streaming_content_type;
     use foundation_core::url::Uri;
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,
     };
 

@@ -8,7 +8,7 @@
 //! WHAT: [`ProtocolKind`], [`TransportCapabilities`], [`CallRequirements`],
 //! [`requirements`], and [`check_compatible`].
 
-use foundation_netio::simple_http::shared::Proto;
+use foundation_netio::shared::http::Proto;
 
 use crate::context::StreamType;
 use crate::error::{ConnectError, ConnectResult};

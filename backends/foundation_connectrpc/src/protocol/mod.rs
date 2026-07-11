@@ -22,7 +22,7 @@ pub mod grpc_web;
 use std::time::Duration;
 
 use bytes::Bytes;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse,
 };
 

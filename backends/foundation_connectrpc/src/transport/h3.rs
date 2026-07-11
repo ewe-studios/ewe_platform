@@ -41,7 +41,7 @@ use foundation_core::valtron::{
 use foundation_netio::http3::connection::{error_code, H3Connection, H3Request};
 use foundation_netio::http3::H3Error;
 use foundation_netio::quic::{ClientConfig, QuicDriver, QuinnBidiStream, QuinnConnection};
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
 };
 

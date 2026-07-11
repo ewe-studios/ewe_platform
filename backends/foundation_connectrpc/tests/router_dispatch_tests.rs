@@ -16,7 +16,7 @@ use buffa::{DecodeContext, DecodeError, DefaultInstance, Message, SizeCache};
 use bytes::{Buf, BufMut, Bytes};
 
 use foundation_http::shared::context::ContextBag;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
 };
 
@@ -136,7 +136,7 @@ fn enveloped(msg: &TestMsg) -> Vec<u8> {
         .expect("envelope")
 }
 
-fn body_bytes(response: &foundation_netio::simple_http::shared::SimpleOutgoingResponse) -> Vec<u8> {
+fn body_bytes(response: &foundation_netio::shared::http::SimpleOutgoingResponse) -> Vec<u8> {
     match &response.body {
         Some(SendSafeBody::Bytes(b)) => b.clone(),
         Some(SendSafeBody::Text(t)) => t.clone().into_bytes(),
@@ -145,7 +145,7 @@ fn body_bytes(response: &foundation_netio::simple_http::shared::SimpleOutgoingRe
 }
 
 fn header(
-    response: &foundation_netio::simple_http::shared::SimpleOutgoingResponse,
+    response: &foundation_netio::shared::http::SimpleOutgoingResponse,
     name: &str,
 ) -> Option<String> {
     response

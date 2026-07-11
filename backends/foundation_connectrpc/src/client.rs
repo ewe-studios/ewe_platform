@@ -22,7 +22,7 @@ use bytes::Bytes;
 use foundation_core::url::Uri;
 use foundation_core::valtron;
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,
 };
 use futures::{Stream, StreamExt};

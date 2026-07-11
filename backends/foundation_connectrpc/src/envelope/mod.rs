@@ -31,7 +31,7 @@ use foundation_core::io::{
     read_frame_blocking, AccumulatingBuffer, DecodeError, DecodeStep, IncrementalDecoder,
 };
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use crate::compression::Compressor;
 use crate::error::{Code, ConnectError, ConnectResult, EndStreamResponse};

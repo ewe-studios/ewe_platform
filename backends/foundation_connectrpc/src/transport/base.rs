@@ -29,7 +29,7 @@ use bytes::Bytes;
 use futures::{Stream, StreamExt};
 use foundation_core::valtron::{MappedSender, PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::{RequestDescriptor, SimpleHeaders, Status};
+use foundation_netio::shared::http::{RequestDescriptor, SimpleHeaders, Status};
 
 use crate::error::{Code, ConnectError};
 

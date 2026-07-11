@@ -11,7 +11,7 @@ use std::time::{Duration, Instant};
 
 use bytes::Bytes;
 use foundation_core::valtron::Pipe;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
 
@@ -197,8 +197,8 @@ fn streaming_roundtrip_normalizes_endstream() {
     // receiver whose sender stays parked for the test's lifetime.
     let (_client_head_tx, client_head_rx): (
         foundation_core::valtron::PipeSender<(
-            foundation_netio::simple_http::shared::Status,
-            foundation_netio::simple_http::shared::SimpleHeaders,
+            foundation_netio::shared::http::Status,
+            foundation_netio::shared::http::SimpleHeaders,
         )>,
         foundation_connectrpc::transport::HeadSource,
     ) = foundation_core::valtron::Pipe::with_depth(1);

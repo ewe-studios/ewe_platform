@@ -18,7 +18,7 @@
 use std::error::Error as StdError;
 
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use super::code::Code;
 use super::detail::ErrorDetail;

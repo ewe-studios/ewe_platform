@@ -29,7 +29,7 @@ use std::time::{Duration, Instant};
 
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::netcap::ConnectionContext;
-use foundation_netio::simple_http::shared::{Extensions, SimpleHeaders};
+use foundation_netio::shared::http::{Extensions, SimpleHeaders};
 
 /// The RPC's streaming shape.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]

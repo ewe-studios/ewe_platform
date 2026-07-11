@@ -25,7 +25,7 @@ use foundation_core::valtron::{
     self, BoxedSendExecutionAction, Pipe, PipeReceiver, PipeSender, TaskIterator, TaskStatus,
     TryRecvError,
 };
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, Status,
 };
 use foundation_netio::http2::channel::{H2Channel, H2StreamEvent};

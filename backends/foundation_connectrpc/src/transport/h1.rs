@@ -19,14 +19,15 @@ use std::sync::Arc;
 
 use foundation_core::url::Uri;
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::simple_http::client::shared::http_client::HttpClient;
-use foundation_netio::simple_http::client::shared::request_task::HttpExchange;
-use foundation_netio::simple_http::client::shared::PreparedRequest;
-use foundation_netio::simple_http::shared::Extensions;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::client::http_client::HttpClient;
+use foundation_netio::shared::client::request_task::HttpExchange;
+use foundation_netio::shared::client::PreparedRequest;
+use foundation_netio::shared::http::Extensions;
+use foundation_netio::shared::http::{
     pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
     SimpleHeaders, DEFAULT_PUSHABLE_DEPTH,
 };
+use foundation_netio::HttpClientBuilder;
 
 use super::{
     BodyStream, ByteSink, HeadStream, Transport, TransportCapabilities, TransportError,
@@ -41,8 +42,9 @@ pub struct H1Transport {
 impl H1Transport {
     /// Create an H1 transport backed by any `HttpClient`.
     ///
-    /// On native, pass a `NativeHttpClient` (or any `HttpClient` impl). On
-    /// wasm, pass a `FetchHttpClient`. The transport is platform-agnostic.
+    /// The transport is platform-agnostic — it holds an `Arc<dyn HttpClient>`
+    /// and never names a concrete client type. Callers that want the platform
+    /// default can use `H1Transport::default()`.
     #[must_use]
     pub fn new(client: Arc<dyn HttpClient>) -> Self {
         Self { client }
@@ -51,18 +53,10 @@ impl H1Transport {
 
 impl Default for H1Transport {
     fn default() -> Self {
-        // Default to native system client. On wasm this path is never hit
-        // (wasm uses a different transport), but the default is still sound.
-        #[cfg(not(target_family = "wasm"))]
-        {
-            use foundation_netio::http::NativeHttpClient;
-            Self::new(Arc::new(NativeHttpClient::default()))
-        }
-        #[cfg(target_family = "wasm")]
-        {
-            use foundation_netio::simple_http::client::wasm::client::FetchHttpClient;
-            Self::new(Arc::new(FetchHttpClient::new()))
-        }
+        // `HttpClientBuilder::build()` returns the platform's default
+        // `Arc<dyn HttpClient>` (native pool client or wasm fetch client). The
+        // transport stays free of any native/wasm cfg gating (F51 de-leak).
+        Self::new(HttpClientBuilder::new().build())
     }
 }
 

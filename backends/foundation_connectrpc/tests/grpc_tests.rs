@@ -38,7 +38,7 @@ use foundation_connectrpc::{
     Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
     ProcedureCodecs, Request, RequestStream, Response, Router,
 };
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeader, SimpleHeaders, SimpleMethod, SimpleUrl, Status,
 };
 

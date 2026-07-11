@@ -27,8 +27,8 @@ use bytes::Bytes;
 use foundation_core::valtron::{Pipe, PipeReceiver, PipeSender};
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
-use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
 };
@@ -363,7 +363,7 @@ fn build_ctx(
         peer,
         request.headers.clone(),
         deadline,
-        foundation_netio::simple_http::shared::Extensions::new(),
+        foundation_netio::shared::http::Extensions::new(),
         request.connection.clone(),
         CancelSignal::new(),
     );

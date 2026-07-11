@@ -16,7 +16,7 @@
 //! HOW: plain owned structs — no `Arc`, no interior mutability. Built once per
 //! call at the codec boundary and moved into / out of the handler future.
 
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use crate::context::{Peer, Spec};
 

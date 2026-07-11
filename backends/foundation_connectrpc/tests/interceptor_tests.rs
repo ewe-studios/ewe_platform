@@ -8,7 +8,7 @@ use std::sync::{Arc, Mutex};
 use std::task::{Context, Poll, Wake, Waker};
 
 use bytes::Bytes;
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use foundation_connectrpc::context::{CancelSignal, Ctx, Peer, Spec};
 use foundation_connectrpc::interceptor::{

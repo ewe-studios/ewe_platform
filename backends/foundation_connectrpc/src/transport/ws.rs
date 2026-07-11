@@ -11,8 +11,8 @@ use std::time::Duration;
 use bytes::Bytes;
 use foundation_core::url::Uri;
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::simple_http::client::shared::dns::SystemDnsResolver;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::client::dns::SystemDnsResolver;
+use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeaders, Status,
 };
 use foundation_netio::websocket::native::connection::{Reconnect, WebSocketClient};

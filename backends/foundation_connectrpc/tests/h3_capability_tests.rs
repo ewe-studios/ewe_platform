@@ -16,7 +16,7 @@
 
 #![cfg(feature = "h3")]
 
-use foundation_netio::simple_http::shared::Proto;
+use foundation_netio::shared::http::Proto;
 
 use foundation_connectrpc::context::StreamType;
 use foundation_connectrpc::transport::capabilities::{

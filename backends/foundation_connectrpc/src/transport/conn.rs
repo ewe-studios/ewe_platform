@@ -23,7 +23,7 @@ use std::sync::{Arc, Mutex};
 use bytes::Bytes;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use crate::context::{CancelSignal, Peer, Spec};
 use crate::error::{ConnectError, ConnectResult};

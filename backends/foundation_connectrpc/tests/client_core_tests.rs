@@ -10,7 +10,7 @@ use std::sync::Arc;
 use bytes::Bytes;
 use foundation_core::valtron::{self, Pipe, PipeReceiver, PipeSender};
 use foundation_core::valtron::valtron_test;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeaders, Status,
 };
 

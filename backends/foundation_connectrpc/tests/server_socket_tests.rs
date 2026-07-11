@@ -390,8 +390,8 @@ fn connect_with_retry(addr: std::net::SocketAddr) -> TcpStream {
 fn h1_transport_capabilities_are_correct() {
     use foundation_connectrpc::transport::Transport;
     use foundation_connectrpc::H1Transport;
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::shared::Proto;
+    use foundation_netio::http::SimpleHttpClient;
+    use foundation_netio::shared::http::Proto;
 
     let client = SimpleHttpClient::from_system();
     let transport = H1Transport::new(Arc::new(client));
@@ -424,8 +424,8 @@ fn h1_transport_capabilities_are_correct() {
 async fn h1_client_transport_over_real_socket() {
     use foundation_connectrpc::transport::Transport;
     use foundation_connectrpc::H1Transport;
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::http::SimpleHttpClient;
+    use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
     };
     use foundation_core::url::Uri;
@@ -465,7 +465,7 @@ async fn h1_client_transport_over_real_socket() {
             // (the enveloped `application/connect+json` form is for streaming).
             let mut h = SimpleHeaders::new();
             h.insert(
-                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
+                foundation_netio::shared::http::SimpleHeader::CONTENT_TYPE,
                 vec!["application/json".to_string()],
             );
             h
@@ -502,7 +502,7 @@ async fn h1_client_transport_over_real_socket() {
         .await
         .expect("response head chunk")
         .expect("response head ok");
-    assert_eq!(status, foundation_netio::simple_http::shared::Status::OK);
+    assert_eq!(status, foundation_netio::shared::http::Status::OK);
 
     let body_bytes = recv_body
         .next()
@@ -538,8 +538,8 @@ async fn h1_client_server_stream_over_real_socket() {
     use foundation_connectrpc::transport::Transport;
     use foundation_connectrpc::H1Transport;
     use foundation_core::url::Uri;
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::http::SimpleHttpClient;
+    use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
     };
 
@@ -573,7 +573,7 @@ async fn h1_client_server_stream_over_real_socket() {
         headers: {
             let mut h = SimpleHeaders::new();
             h.insert(
-                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
+                foundation_netio::shared::http::SimpleHeader::CONTENT_TYPE,
                 vec!["application/connect+json".to_string()],
             );
             h
@@ -607,7 +607,7 @@ async fn h1_client_server_stream_over_real_socket() {
         .await
         .expect("response head chunk")
         .expect("response head ok");
-    assert_eq!(status, foundation_netio::simple_http::shared::Status::OK);
+    assert_eq!(status, foundation_netio::shared::http::Status::OK);
 
     // Drain the whole streamed body (many BodyChunk frames), reassemble, parse.
     let mut body = Vec::new();

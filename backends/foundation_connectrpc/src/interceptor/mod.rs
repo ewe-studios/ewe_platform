@@ -23,7 +23,7 @@ use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use bytes::Bytes;
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use crate::context::{Ctx, Spec};
 use crate::error::{ConnectError, ConnectResult};

@@ -15,7 +15,7 @@ use foundation_auth::AuthContext;
 use foundation_connectrpc::{AuthInfo, AuthFunc, bearer_token, Interceptor};
 use foundation_connectrpc::CompositeAuthenticator;
 use foundation_connectrpc::PerProcedureAuth;
-use foundation_netio::simple_http::shared::{SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleUrl};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod, SimpleUrl};
 
 // ---------------------------------------------------------------------------
 // Test 1: AuthInfo construction
@@ -178,7 +178,7 @@ fn test_infer_protocol_unknown() {
 /// WHAT: URLs with /service/method paths produce correct procedure strings.
 #[test]
 fn test_infer_procedure_standard_url() {
-    let url = foundation_netio::simple_http::shared::SimpleUrl::url_only(
+    let url = foundation_netio::shared::http::SimpleUrl::url_only(
         "http://example.com/connectrpc.greet.v1.GreetService/Greet".to_string()
     );
     assert_eq!(
@@ -189,7 +189,7 @@ fn test_infer_procedure_standard_url() {
 
 #[test]
 fn test_infer_procedure_deep_path() {
-    let url = foundation_netio::simple_http::shared::SimpleUrl::url_only(
+    let url = foundation_netio::shared::http::SimpleUrl::url_only(
         "http://example.com/v1/packages/pkg.Service/Method".to_string()
     );
     assert_eq!(
@@ -200,7 +200,7 @@ fn test_infer_procedure_deep_path() {
 
 #[test]
 fn test_infer_procedure_root_path() {
-    let url = foundation_netio::simple_http::shared::SimpleUrl::url_only(
+    let url = foundation_netio::shared::http::SimpleUrl::url_only(
         "http://example.com".to_string()
     );
     assert!(foundation_connectrpc::infer_procedure(&url).is_none());
@@ -208,7 +208,7 @@ fn test_infer_procedure_root_path() {
 
 #[test]
 fn test_infer_procedure_single_segment() {
-    let url = foundation_netio::simple_http::shared::SimpleUrl::url_only(
+    let url = foundation_netio::shared::http::SimpleUrl::url_only(
         "http://example.com/just-one".to_string()
     );
     assert!(foundation_connectrpc::infer_procedure(&url).is_none());
@@ -468,7 +468,7 @@ fn test_jwt_authenticator_invalid_token() {
 fn test_authz_interceptor_grants_access() {
     use std::sync::Arc;
     use foundation_connectrpc::context::Ctx;
-    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_netio::shared::http::Extensions;
 
     let interceptor = foundation_connectrpc::AuthzInterceptor::new(
         vec!["read".to_string()],
@@ -493,8 +493,8 @@ fn test_authz_interceptor_grants_access() {
     let next_func: foundation_connectrpc::UnaryFunc = Arc::new(|_ctx, _call| {
         Box::pin(async {
             Ok(foundation_connectrpc::UnaryReply {
-                headers: foundation_netio::simple_http::shared::SimpleHeaders::new(),
-                trailers: foundation_netio::simple_http::shared::SimpleHeaders::new(),
+                headers: foundation_netio::shared::http::SimpleHeaders::new(),
+                trailers: foundation_netio::shared::http::SimpleHeaders::new(),
                 frame: bytes::Bytes::new(),
             })
         })
@@ -502,7 +502,7 @@ fn test_authz_interceptor_grants_access() {
 
     let wrapped = interceptor.wrap_unary(next_func);
     let call = foundation_connectrpc::UnaryCall {
-        headers: foundation_netio::simple_http::shared::SimpleHeaders::new(),
+        headers: foundation_netio::shared::http::SimpleHeaders::new(),
         codec_name: "proto".to_string(),
         frame: bytes::Bytes::new(),
     };
@@ -517,7 +517,7 @@ fn test_authz_interceptor_grants_access() {
 fn test_authz_interceptor_denies_insufficient_scope() {
     use std::sync::Arc;
     use foundation_connectrpc::context::Ctx;
-    use foundation_netio::simple_http::shared::Extensions;
+    use foundation_netio::shared::http::Extensions;
 
     let interceptor = foundation_connectrpc::AuthzInterceptor::new(
         vec!["admin".to_string()],
@@ -546,7 +546,7 @@ fn test_authz_interceptor_denies_insufficient_scope() {
 
     let wrapped = interceptor.wrap_unary(next_func);
     let call = foundation_connectrpc::UnaryCall {
-        headers: foundation_netio::simple_http::shared::SimpleHeaders::new(),
+        headers: foundation_netio::shared::http::SimpleHeaders::new(),
         codec_name: "proto".to_string(),
         frame: bytes::Bytes::new(),
     };
@@ -637,6 +637,6 @@ fn test_authenticate_request_failure() {
     };
     assert_eq!(
         resp.status,
-        foundation_netio::simple_http::shared::Status::Unauthorized
+        foundation_netio::shared::http::Status::Unauthorized
     );
 }

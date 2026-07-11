@@ -31,7 +31,7 @@ use foundation_auth::{
 };
 use foundation_auth::{JwtVerifier, JwtVerifierConfig};
 use foundation_errstacks::ErrorTrace;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Extensions, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, SimpleUrl,
 };

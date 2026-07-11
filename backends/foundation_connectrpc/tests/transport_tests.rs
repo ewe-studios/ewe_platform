@@ -10,7 +10,7 @@ use std::task::{Context, Poll, Wake, Waker};
 use std::time::{Duration, Instant};
 
 use bytes::Bytes;
-use foundation_netio::simple_http::shared::{Proto, SimpleHeaders};
+use foundation_netio::shared::http::{Proto, SimpleHeaders};
 
 use foundation_connectrpc::context::{CancelSignal, Peer, Spec, StreamType};
 use foundation_connectrpc::transport::{

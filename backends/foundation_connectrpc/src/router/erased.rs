@@ -25,7 +25,7 @@ use std::sync::Arc;
 
 use bytes::Bytes;
 use futures::stream::{Stream, StreamExt};
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use crate::codec::ProcedureCodecs;
 use crate::context::Ctx;

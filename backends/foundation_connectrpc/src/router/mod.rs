@@ -22,7 +22,7 @@ mod erased;
 use std::future::Future;
 use std::sync::Arc;
 
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 use std::any::Any;
 use std::collections::HashMap;
 

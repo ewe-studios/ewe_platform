@@ -149,7 +149,7 @@ fn send_max_checked_after_compression() {
 
 #[test]
 fn write_end_stream_frame() {
-    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleHeaders};
+    use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
     let writer = EnvelopeWriter::new(None, 0, 0);
     let mut trailers = SimpleHeaders::new();
     trailers.insert(SimpleHeader::from("x-trailer".to_string()), vec!["v".to_string()]);
@@ -167,7 +167,7 @@ fn write_end_stream_frame() {
 
 #[test]
 fn write_trailer_frame_grpc_web() {
-    use foundation_netio::simple_http::shared::{SimpleHeader, SimpleHeaders};
+    use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders};
     let writer = EnvelopeWriter::new(None, 0, 0);
     let mut trailers = SimpleHeaders::new();
     trailers.insert(SimpleHeader::from("grpc-status".to_string()), vec!["0".to_string()]);
