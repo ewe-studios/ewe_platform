@@ -25,17 +25,21 @@ use crate::simple_http::client::shared::body_reader::{
     SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
 };
 use crate::simple_http::client::shared::request_task::{HttpExchange, HttpExchangePending};
-use crate::simple_http::client::shared::{ClientConfig, PreparedRequest, SystemDnsResolver};
+use crate::simple_http::client::shared::{
+    ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver,
+};
 use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
 use crate::simple_http::shared::IncomingResponseParts;
 
-type Child = SendRequestTask<SystemDnsResolver>;
-type ChildReceiver = foundation_core::valtron::DrivenRecvIterator<Child>;
+type ChildReceiver<R> = foundation_core::valtron::DrivenRecvIterator<SendRequestTask<R>>;
 
 /// State for the HTTP exchange pump.
-enum State {
+///
+/// Generic over the DNS resolver `R` so the exchange inherits whatever resolver
+/// the client stack was built with — the pump never pins a concrete resolver.
+enum State<R: DnsResolver + Send + 'static> {
     /// Awaiting the next result from the spawned `SendRequestTask` child.
-    Polling(ChildReceiver),
+    Polling(ChildReceiver<R>),
     /// Head received; draining the body from the `HttpResponseReader`.  The
     /// sub-state tracks whether we are in the middle of iterating a single
     /// `SizedBody`/`StreamedBody` payload — one `SendSafeBodyBytesIterator`
@@ -59,21 +63,25 @@ enum State {
 
 /// Native HTTP exchange task — wraps `SendRequestTask<R>` and yields platform-
 /// agnostic `HttpExchange` items.
-pub struct HttpExchangeTask {
-    state: State,
+///
+/// Generic over the DNS resolver `R`, defaulting to [`SystemDnsResolver`]. The
+/// resolver flows in through the `pool`/child `SendRequestTask`, so a client
+/// built with a custom resolver keeps it end-to-end — the exchange pins nothing.
+pub struct HttpExchangeTask<R: DnsResolver + Send + 'static = SystemDnsResolver> {
+    state: State<R>,
     /// The spawn action, returned once on the first `next_status()` call.
     spawn: Option<BoxedSendExecutionAction>,
     /// Pool reference for returning the connection when the exchange completes.
-    pool: Arc<HttpConnectionPool<SystemDnsResolver>>,
+    pool: Arc<HttpConnectionPool<R>>,
 }
 
-impl HttpExchangeTask {
+impl<R: DnsResolver + Send + 'static> HttpExchangeTask<R> {
     /// Create the underlying `SendRequestTask` and prepare the spawn action.
     #[must_use]
     pub fn new(
         request: PreparedRequest,
         max_redirects: u8,
-        pool: Arc<HttpConnectionPool<SystemDnsResolver>>,
+        pool: Arc<HttpConnectionPool<R>>,
         config: ClientConfig,
     ) -> Self {
         let pool_for_conn = Arc::clone(&pool);
@@ -91,24 +99,19 @@ impl HttpExchangeTask {
     }
 }
 
-impl TaskIterator for HttpExchangeTask {
+impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
     type Ready = HttpExchange;
     type Pending = HttpExchangePending;
     type Spawner = BoxedSendExecutionAction;
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         // First call — emit the Spawn so the executor runs the child.
-        tracing::info!("calling next_status");
-
         if let Some(action) = self.spawn.take() {
-            tracing::info!("calling next_status, sending spawn action");
             return Some(TaskStatus::Spawn(action));
         }
 
-        tracing::info!("checking current state");
         match &mut self.state {
             State::Polling(ref mut rx) => {
-                tracing::info!("polling state from spawned task under State::Polling");
                 match rx.next() {
                     Some(TaskStatus::Ready(RequestIntro::Success {
                         intro,
@@ -128,10 +131,11 @@ impl TaskIterator for HttpExchangeTask {
                         }))
                     }
                     Some(TaskStatus::Ready(RequestIntro::Failed(e))) => {
-                        let err: SendableBoxedError = Box::new(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            format!("{e}"),
-                        ));
+                        // Carry the concrete `HttpClientError` object — it is
+                        // `Send + Sync`, so it goes straight into the boxed error
+                        // with its type and source chain intact, rather than being
+                        // flattened to an `io::Error` display string.
+                        let err: SendableBoxedError = Box::new(e);
                         self.state = State::Failed(Some(err));
                         // Yield the error on the next call.
                         Some(TaskStatus::Pending(HttpExchangePending::Waiting))
@@ -159,7 +163,6 @@ impl TaskIterator for HttpExchangeTask {
                 ref mut body_reader,
                 ref mut chunk_iter,
             } => {
-                tracing::info!("polling state from spawned task under State::StreamingBody");
                 // 1. If we have an active chunk iterator, drain it first.
                 if let Some(ref mut iter) = chunk_iter {
                     match iter.next() {
@@ -167,6 +170,13 @@ impl TaskIterator for HttpExchangeTask {
                             return Some(TaskStatus::Ready(HttpExchange::BodyChunk(bytes)));
                         }
                         Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
+                            // Unlike the other failure arms, this error cannot be
+                            // carried as an object: `SendSafeBodyBytesItem::StreamError`
+                            // holds a `BoxedError` (`Box<dyn Error + 'static>`, no
+                            // `Send + Sync`), and `HttpExchange::Failed` demands a
+                            // `Send + Sync` error that crosses the task/split boundary.
+                            // A non-`Send` trait object cannot enter that container, so
+                            // we preserve the message via an `io::Error`.
                             let se: SendableBoxedError = Box::new(std::io::Error::new(
                                 std::io::ErrorKind::Other,
                                 e.to_string(),
@@ -212,10 +222,8 @@ impl TaskIterator for HttpExchangeTask {
                         | IncomingResponseParts::SKIP,
                     )) => Some(TaskStatus::Pending(HttpExchangePending::Waiting)),
                     Some(Err(e)) => {
-                        let se: SendableBoxedError = Box::new(std::io::Error::new(
-                            std::io::ErrorKind::Other,
-                            e.to_string(),
-                        ));
+                        // `HttpReaderError` is `Send + Sync` — carry it intact.
+                        let se: SendableBoxedError = Box::new(e);
                         let taken_conn = conn.take();
                         self.state = State::Failed(Some(se));
                         if let Some(mut c) = taken_conn {
