@@ -49,7 +49,13 @@ What shipped, bottom-up, all behind `#[cfg(all(target_os = "linux", feature = "u
   are the remaining nice-to-haves.
 
 **Deferred:** Phase C (`split_read_write`'s write half as a second-registration
-`CompletionSocket`) and Phase D / SEND_ZC (→ Feature 50).
+`CompletionSocket`) and Phase D / SEND_ZC (→ Feature 50). Phase C is deferred on
+purpose, not merely unfinished: `ReadWriteStream::split_read_write` currently has
+**no callers** in the tree (only the trait definition and a doc reference), so a
+completion-backed write half would optimise a path nothing exercises — and it also
+faces the netio↔iogate cycle (the write half cannot name `CompletionSocket` from
+`foundation_netio`). It should land when a real half-duplex split consumer appears
+(the natural driver is F50's SEND_ZC relay or a future H2/H3 split).
 
 ---
 
