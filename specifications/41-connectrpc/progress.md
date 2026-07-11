@@ -33,7 +33,7 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
 | 51b | connectrpc shared/native restructure | Crate split into `shared/` (codec, compression, context, envelope, error, error_writer, interceptor, message, protocol, client, router, transport incl. H1+WS) + `native/` (server, h2_serve, transport h2/h3). h2 dispatch method cfg-gated in place. foundation_http H2Serve moved shared/serve → native/serve (native http2 leak). 180/180 tests pass; native + wasm warning-free. |
 | 52 | Browser test harness | Implemented, **diverged from design**: shipped `#[valtron_bindgen]` + `#[valtron_wasm_test]` macros (valtron-pool-aware) instead of a bare `#[wasm_bindgen_test]` re-export. `foundation_wasm_testbed` deleted, tests relocated to `foundation_netio/tests/wasm/`, docs updated. CLI shipped as top-level `deno`/`browser`/`bindgen` commands + wasm-bindgen version check (CLI ≥ crate). **Not shipped:** the design's 4-way `test` auto-detect (still legacy mode-based); `bindgen-web` kept with an INTEROP warning, not a formal deprecation. **Not re-verified:** end-to-end Chromium browser run (blocked earlier on a testbed feature-combo build issue). |
 
-| 50 | Client completion + zero-syscall proxy relay | **Parts A + B1 implemented + tested 2026-07-12** (commits 813d29e7b, b113e706a): `iogate::connect_completion` (outbound-dial mirror of `accept_connection`) + proxy dial wiring — `ProxyConfig::io_mode` threaded to `tunnel_tcp`/`forward_upgrade`, so upstream legs read from the inbox + write via SEND in `Completion` mode (Std unchanged; 41 proxy tests green). Also migrated proxy + foundation_db off deprecated `SimpleHttpClient`. **Deferred:** Part B2 (readiness-aware splice — needs a `ReadinessSource` through the netcap seam + `splice_bidirectional` signature change), Part C (`IORING_OP_SEND_ZC`). |
+| 50 | Client completion + zero-syscall proxy relay | **Parts A + B1 + B2 + C-mechanism implemented + tested 2026-07-12** (commits 813d29e7b, b113e706a, 8bd9e5810, 96c2c0f28). A/B1: `iogate::connect_completion` + proxy dial wiring (`ProxyConfig::io_mode`). B2: reactor `wait_for_events` event-generation+condvar primitive (the design's `is_ready`-blocks assumption was false — `is_ready` is non-blocking; built the primitive) + readiness-aware `splice_bidirectional` (parks instead of the 1ms sleep) + WouldBlock-tolerant relay writes. C: `Selector::submit_send_zc` — `IORING_OP_SEND_ZC` two-phase (F_MORE/F_NOTIF) completion, verified on TCP. **Remaining Part C:** wire SEND_ZC into `CompletionSocket` + the true `ProvidedBuf`-direct-handoff relay (measurement-gated). |
 
 ## HTTP/3 (F34 done, F35 client-side done)
 
@@ -44,9 +44,10 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
 
 ## Truly-remaining work (next steps)
 
-1. **F50 Part B2** — the `ReadinessSource` capability + `CompositeReadiness`-parked
-   `splice_bidirectional` (replacing the 1 ms sleep floor; the dial wiring is done
-   in B1). Then **Part C** — the `IORING_OP_SEND_ZC` zero-copy relay.
+1. **F50 Part C tail** — wire `submit_send_zc` into `CompletionSocket` as a
+   zero-copy write mode, and the true `ProvidedBuf`-direct-handoff relay (send an
+   inbound RECV buffer via SEND_ZC with no user-memory copy). Measurement-gated per
+   the design. The SEND_ZC *mechanism* is done + tested.
 2. **F49 Phase C** — `split_read_write`'s write half as a second-registration
    `CompletionSocket` (the SEND mechanism it needs is done).
 3. **F35 server half** — `H3Serve` + `ServerApp::Http3`, netcap `Quic` listener
