@@ -356,6 +356,10 @@ pub struct PriorityFrame {
 
 impl PriorityFrame {
     /// Parse a PRIORITY frame (always 5 bytes payload).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if payload.len() < 5 {
             return Err("PRIORITY: payload < 5 bytes");
@@ -446,6 +450,10 @@ pub struct ResetFrame {
 }
 
 impl ResetFrame {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if payload.len() < 4 {
             return Err("RST_STREAM: payload < 4 bytes");
@@ -607,6 +615,10 @@ pub struct PushPromiseFrame {
 
 impl PushPromiseFrame {
     /// Parse a `PUSH_PROMISE` frame.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         let mut data = payload;
         let mut pad_len = None;
@@ -800,6 +812,10 @@ pub struct WindowUpdateFrame {
 
 impl WindowUpdateFrame {
     /// Parse a `WINDOW_UPDATE` frame (always 4 bytes, but last bit reserved).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         if payload.len() != 4 {
             return Err("WINDOW_UPDATE: payload != 4 bytes");

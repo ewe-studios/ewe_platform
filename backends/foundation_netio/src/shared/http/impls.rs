@@ -4786,6 +4786,10 @@ impl ChunkState {
     /// # Errors
     ///
     /// Returns an error if the operation fails.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn new(chunk_size_octet: String, chunk_extension: Option<Extensions>) -> Self {
         Self::try_new(chunk_size_octet, chunk_extension).expect("should parse octet string")
     }
@@ -4926,6 +4930,10 @@ impl ChunkState {
     /// body chunk just right till the last CRLF before the actual data it refers to.
     /// This allows you easily know how far to read out from a stream reader so you know how much
     /// data to skip to get to the actual data of the chunk.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn get_http_chunk_header_length_from_pointer<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<usize, ChunkStateError> {
@@ -5004,6 +5012,10 @@ impl ChunkState {
         })
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse_http_chunk_from_pointer<T: Read>(
         pointer: SharedByteBufferStream<T>,
     ) -> Result<Self, ChunkStateError> {
@@ -5136,6 +5148,10 @@ impl ChunkState {
         })
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse_http_chunk_extension<T: Read>(
         acc: &mut ByteBufferPointer<T>,
     ) -> Result<(String, Option<String>), ChunkStateError> {
