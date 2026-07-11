@@ -62,8 +62,14 @@ fn headers_roundtrip() {
 #[test]
 fn settings_roundtrip() {
     let frame = SettingsFrame::new(vec![
-        Setting { id: SettingId::MaxConcurrentStreams, value: 100 },
-        Setting { id: SettingId::InitialWindowSize, value: 65535 },
+        Setting {
+            id: SettingId::MaxConcurrentStreams,
+            value: 100,
+        },
+        Setting {
+            id: SettingId::InitialWindowSize,
+            value: 65535,
+        },
     ]);
     let mut buf = BytesMut::new();
     frame.encode(&mut buf);
@@ -127,7 +133,10 @@ fn goaway_roundtrip() {
 
 #[test]
 fn window_update_roundtrip() {
-    let frame = WindowUpdateFrame { stream_id: 0, size_increment: 65535 };
+    let frame = WindowUpdateFrame {
+        stream_id: 0,
+        size_increment: 65535,
+    };
     let mut buf = BytesMut::new();
     frame.encode(&mut buf);
     let mut hdr = [0u8; 9];
@@ -141,7 +150,12 @@ fn window_update_roundtrip() {
 #[test]
 fn window_update_zero_increment_is_error() {
     let mut buf = BytesMut::new();
-    Head { kind: Kind::WindowUpdate, flag: 0, stream_id: 1 }.encode(4, &mut buf);
+    Head {
+        kind: Kind::WindowUpdate,
+        flag: 0,
+        stream_id: 1,
+    }
+    .encode(4, &mut buf);
     buf.put_u32(0);
     let mut hdr = [0u8; 9];
     hdr.copy_from_slice(&buf[..9]);
@@ -153,7 +167,10 @@ fn window_update_zero_increment_is_error() {
 
 #[test]
 fn reset_roundtrip() {
-    let frame = ResetFrame { stream_id: 3, error_code: ErrorCode::Cancel };
+    let frame = ResetFrame {
+        stream_id: 3,
+        error_code: ErrorCode::Cancel,
+    };
     let mut buf = BytesMut::new();
     frame.encode(&mut buf);
     let mut hdr = [0u8; 9];
@@ -194,7 +211,11 @@ fn all_ten_kinds_roundtrip() {
         (Kind::Continuation, 2),
     ];
     for (kind, payload_len) in &frames {
-        let head = Head { kind: *kind, flag: 0, stream_id: 1 };
+        let head = Head {
+            kind: *kind,
+            flag: 0,
+            stream_id: 1,
+        };
         let mut buf = BytesMut::new();
         head.encode(*payload_len as u32, &mut buf);
         buf.put_bytes(0xAA, *payload_len);
@@ -202,6 +223,9 @@ fn all_ten_kinds_roundtrip() {
         hdr.copy_from_slice(&buf[..9]);
         let (parsed, plen) = Head::parse_with_len(&hdr);
         assert_eq!(parsed.kind, *kind, "kind mismatch for {kind:?}");
-        assert_eq!(plen, *payload_len as u32, "payload len mismatch for {kind:?}");
+        assert_eq!(
+            plen, *payload_len as u32,
+            "payload len mismatch for {kind:?}"
+        );
     }
 }

@@ -53,7 +53,7 @@ fn test_batch_writer_auto_flush_on_size() {
     let mut buffer: Vec<u8> = Vec::new();
     let mut writer = BatchFrameWriter::new(
         &mut buffer,
-        50,                      // Small limit for testing
+        50,                                 // Small limit for testing
         std::time::Duration::from_secs(10), // Long timeout
     );
 

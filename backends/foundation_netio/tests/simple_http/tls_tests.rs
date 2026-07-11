@@ -34,7 +34,11 @@ fn test_tls_handshake_task_associated_types() {
 
     fn check_types<T>()
     where
-        T: TaskIterator<Pending = TlsHandshakeState, Ready = (), Spawner = BoxedSendExecutionAction>,
+        T: TaskIterator<
+            Pending = TlsHandshakeState,
+            Ready = (),
+            Spawner = BoxedSendExecutionAction,
+        >,
     {
     }
 

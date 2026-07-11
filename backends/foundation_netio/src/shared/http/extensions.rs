@@ -1,4 +1,4 @@
-//! Shared types between simple_http modules that must compile on all targets.
+//! Shared types between `simple_http` modules that must compile on all targets.
 //!
 //! WHY: `impls.rs` (always compiled) needs `ContentLengthEnforcingIterator` and `Extensions`,
 //! which previously lived inside `client/` (native-only). Moving them here breaks the cycle.
@@ -7,9 +7,9 @@ use std::any::{Any, TypeId};
 use std::collections::HashMap;
 use std::sync::Arc;
 
+use crate::simple_http::shared::errors::Result;
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::readers::Data;
-use crate::simple_http::shared::errors::Result;
 
 // ============================================================================
 // Extensions — type-safe extension storage for middleware
@@ -127,7 +127,9 @@ where
                 Some(other)
             }
             None => {
-                if self.bytes_read != self.expected {
+                if self.bytes_read == self.expected {
+                    None
+                } else {
                     Some(Err(Box::new(std::io::Error::new(
                         std::io::ErrorKind::UnexpectedEof,
                         format!(
@@ -135,8 +137,6 @@ where
                             self.expected, self.bytes_read
                         ),
                     ))))
-                } else {
-                    None
                 }
             }
         }

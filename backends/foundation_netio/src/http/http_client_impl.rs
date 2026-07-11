@@ -19,16 +19,14 @@ use std::time::Duration;
 use foundation_core::valtron::{execute, StreamIteratorExt};
 
 use crate::event_source::{ReconnectingEventSourceTask, ReconnectingProgress};
+use crate::http::pool::ConnectionPool;
+use crate::http::tasks::HttpExchangeTask;
 use crate::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
-use crate::shared::client::{
-    BoxedDnsResolver, ClientConfig, DnsResolver, SystemDnsResolver,
-};
-use crate::http::pool::ConnectionPool;
-use crate::http::tasks::HttpExchangeTask;
+use crate::shared::client::{BoxedDnsResolver, ClientConfig, DnsResolver, SystemDnsResolver};
 use crate::simple_http::client::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::simple_http::shared::timeout::TimeoutCalculator;
 use crate::simple_http::shared::{HttpClientError, SendSafeBody, SimpleMethod, SimpleResponse};
@@ -76,9 +74,9 @@ impl Default for NativeHttpClient<SystemDnsResolver> {
             config: ClientConfig::default(),
             pool: Some(Arc::new(HttpConnectionPool::new(
                 ConnectionPool::default(),
-                SystemDnsResolver::default(),
+                SystemDnsResolver,
             ))),
-            resolver: SystemDnsResolver::default(),
+            resolver: SystemDnsResolver,
         }
     }
 }
@@ -504,10 +502,7 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
         Ok(Box::pin(future_stream))
     }
 
-    fn send(
-        &self,
-        req: PreparedRequest,
-    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+    fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
         let mut builder = self.build_request(&req)?;
 
         if !matches!(req.body, SendSafeBody::None) {
@@ -537,11 +532,8 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
         let config = self.config.clone();
-        let resolver: BoxedDnsResolver = Arc::new(SystemDnsResolver::default());
-        let pool = Arc::new(HttpConnectionPool::new(
-            ConnectionPool::default(),
-            resolver,
-        ));
+        let resolver: BoxedDnsResolver = Arc::new(SystemDnsResolver);
+        let pool = Arc::new(HttpConnectionPool::new(ConnectionPool::default(), resolver));
         let task = HttpExchangeTask::new(req, config.max_redirects, pool, config);
         Box::new(task)
     }

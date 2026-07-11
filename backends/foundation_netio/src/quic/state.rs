@@ -78,7 +78,9 @@ pub(crate) type SharedConn = Arc<Mutex<ConnState>>;
 
 /// Lock the shared state, converting a poisoned mutex into a connection error
 /// rather than panicking a transport task.
-pub(crate) fn lock(state: &SharedConn) -> Result<std::sync::MutexGuard<'_, ConnState>, QuicConnError> {
+pub(crate) fn lock(
+    state: &SharedConn,
+) -> Result<std::sync::MutexGuard<'_, ConnState>, QuicConnError> {
     state
         .lock()
         .map_err(|_| QuicConnError::Internal("QUIC connection state lock poisoned".into()))

@@ -12,19 +12,17 @@
 //! to track progress through request lifecycle. Platform-aware executor driving
 //! (single-threaded on WASM/multi=off, multi-threaded with multi=on).
 
-use foundation_core::valtron::{
-    self, DrivenStreamIterator, MapDone, SplitCollectorMapContinuation, SplitCollectorMapObserver,
-    Stream, StreamIteratorExt, TaskIteratorExt,
-};
-use crate::shared::client::{
-    ClientConfig, DnsResolver, PreparedRequest, ResponseIntro,
-};
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, ResponseIntro};
 use crate::simple_http::client::{
     HttpClientConnection, HttpConnectionPool, HttpRequestPending, RequestIntro, SendRequestTask,
 };
 use crate::simple_http::shared::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleResponse, Status,
+};
+use foundation_core::valtron::{
+    self, DrivenStreamIterator, MapDone, SplitCollectorMapContinuation, SplitCollectorMapObserver,
+    Stream, StreamIteratorExt, TaskIteratorExt,
 };
 use std::sync::Arc;
 
@@ -491,7 +489,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// to completion using valtron's `into_ready_future()`, allowing the
     /// caller to `.await` without blocking the current thread.
     #[tracing::instrument(skip(self))]
-    pub async fn send_async(mut self) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
+    pub async fn send_async(
+        mut self,
+    ) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {
         let (intro_stream, body_stream) = self.start()?;
 
         // Drive body first — required by split_collect_one_map ordering:

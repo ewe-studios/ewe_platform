@@ -14,6 +14,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::valtron::{self, valtron_test, Stream, TaskIterator, TaskIteratorExt};
+use foundation_netio::http::NativeHttpClient;
 use foundation_netio::http_client_builder::HttpClientBuilder;
 use foundation_netio::simple_http::client::shared::http_client::HttpClient;
 use foundation_netio::simple_http::client::shared::request_task::{
@@ -22,7 +23,6 @@ use foundation_netio::simple_http::client::shared::request_task::{
 use foundation_netio::simple_http::client::shared::{
     ClientConfig, PreparedRequest, SystemDnsResolver,
 };
-use foundation_netio::http::NativeHttpClient;
 use foundation_netio::simple_http::shared::{
     Extensions, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
 };
@@ -40,7 +40,10 @@ fn system_client() -> NativeHttpClient<SystemDnsResolver> {
 fn get_request(url: &str) -> PreparedRequest {
     let uri = foundation_core::url::Uri::parse(url).expect("uri");
     let host = match uri.port() {
-        Some(p) => format!("{}:{p}", uri.host_str().unwrap_or_else(|| "127.0.0.1".to_string())),
+        Some(p) => format!(
+            "{}:{p}",
+            uri.host_str().unwrap_or_else(|| "127.0.0.1".to_string())
+        ),
         None => uri.host_str().unwrap_or_else(|| "127.0.0.1".to_string()),
     };
     let mut headers = SimpleHeaders::new();
@@ -117,7 +120,11 @@ fn native_http_client_max_redirects() {
 fn native_http_client_connect_timeout() {
     let client = system_client().connect_timeout(Duration::from_secs(5));
     assert_eq!(
-        client.client_config().timeout_calculator.config().connect_timeout,
+        client
+            .client_config()
+            .timeout_calculator
+            .config()
+            .connect_timeout,
         Duration::from_secs(5)
     );
 }
@@ -126,7 +133,11 @@ fn native_http_client_connect_timeout() {
 fn native_http_client_read_timeout() {
     let client = system_client().read_timeout(Duration::from_secs(15));
     assert_eq!(
-        client.client_config().timeout_calculator.config().min_read_timeout,
+        client
+            .client_config()
+            .timeout_calculator
+            .config()
+            .min_read_timeout,
         Duration::from_secs(15)
     );
 }
@@ -191,7 +202,9 @@ fn http_client_builder_body_limits() {
 
 #[test]
 fn http_client_builder_proxy() {
-    assert!(HttpClientBuilder::new().proxy("http://proxy.example.com:8080").is_ok());
+    assert!(HttpClientBuilder::new()
+        .proxy("http://proxy.example.com:8080")
+        .is_ok());
 }
 
 #[test]
@@ -324,7 +337,11 @@ fn websocket_connector_accepts_valid_101() {
                 .lines()
                 .find(|l| l.to_lowercase().starts_with("sec-websocket-key:"))
                 .expect("should have Sec-WebSocket-Key");
-            let client_key = key_line.split(':').nth(1).map(|s| s.trim()).expect("key value");
+            let client_key = key_line
+                .split(':')
+                .nth(1)
+                .map(|s| s.trim())
+                .expect("key value");
             let accept = compute_accept_key(client_key);
 
             let response = format!(

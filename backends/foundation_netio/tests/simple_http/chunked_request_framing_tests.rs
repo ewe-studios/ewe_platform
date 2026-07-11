@@ -21,7 +21,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::url::Uri;
 use foundation_core::valtron::PipeSender;
 use foundation_netio::simple_http::shared::{
-    ensure_chunked_transfer_encoding, pushable_request_body_with_depth, Http11, HTTPStreams,
+    ensure_chunked_transfer_encoding, pushable_request_body_with_depth, HTTPStreams, Http11,
     IncomingRequestParts, Proto, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders,
     SimpleIncomingRequest, SimpleMethod, SimpleOutgoingResponse, SimpleUrl, Status,
 };
@@ -50,7 +50,10 @@ fn build_request(body: SendSafeBody) -> SimpleIncomingRequest {
 #[test]
 fn request_stream_body_declares_chunked_te_and_no_content_length() {
     let req = build_request(SendSafeBody::Stream(None));
-    assert!(has_chunked_te(&req.headers), "Stream body must declare TE: chunked");
+    assert!(
+        has_chunked_te(&req.headers),
+        "Stream body must declare TE: chunked"
+    );
     assert!(
         !req.headers.contains_key(&SimpleHeader::CONTENT_LENGTH),
         "chunked body must not carry Content-Length"
@@ -60,14 +63,20 @@ fn request_stream_body_declares_chunked_te_and_no_content_length() {
 #[test]
 fn request_chunked_stream_body_declares_chunked_te() {
     let req = build_request(SendSafeBody::ChunkedStream(None));
-    assert!(has_chunked_te(&req.headers), "ChunkedStream body must declare TE: chunked");
+    assert!(
+        has_chunked_te(&req.headers),
+        "ChunkedStream body must declare TE: chunked"
+    );
     assert!(!req.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
 }
 
 #[test]
 fn request_linefeed_stream_body_declares_chunked_te() {
     let req = build_request(SendSafeBody::LineFeedStream(None));
-    assert!(has_chunked_te(&req.headers), "LineFeedStream body must declare TE: chunked");
+    assert!(
+        has_chunked_te(&req.headers),
+        "LineFeedStream body must declare TE: chunked"
+    );
     assert!(!req.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
 }
 
@@ -78,7 +87,10 @@ fn request_bytes_body_declares_content_length_not_te() {
         req.headers.contains_key(&SimpleHeader::CONTENT_LENGTH),
         "fixed-size Bytes body must declare Content-Length"
     );
-    assert!(!has_chunked_te(&req.headers), "fixed-size body must not be chunked");
+    assert!(
+        !has_chunked_te(&req.headers),
+        "fixed-size body must not be chunked"
+    );
 }
 
 #[test]
@@ -113,7 +125,10 @@ fn response_chunked_stream_declares_chunked_te() {
         .with_body(SendSafeBody::ChunkedStream(None))
         .build()
         .expect("build response");
-    assert!(has_chunked_te(&resp.headers), "chunked response must declare TE: chunked");
+    assert!(
+        has_chunked_te(&resp.headers),
+        "chunked response must declare TE: chunked"
+    );
     assert!(!resp.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
 }
 
@@ -126,7 +141,10 @@ fn response_raw_stream_declares_no_framing_header() {
         .with_body(SendSafeBody::Stream(None))
         .build()
         .expect("build response");
-    assert!(!has_chunked_te(&resp.headers), "raw Stream response must not declare TE: chunked");
+    assert!(
+        !has_chunked_te(&resp.headers),
+        "raw Stream response must not declare TE: chunked"
+    );
     assert!(!resp.headers.contains_key(&SimpleHeader::CONTENT_LENGTH));
 }
 
@@ -140,7 +158,11 @@ fn ensure_chunked_transfer_encoding_is_idempotent() {
     let values = headers
         .get(&SimpleHeader::TRANSFER_ENCODING)
         .expect("TE present");
-    assert_eq!(values, &vec![CHUNKED.to_string()], "chunked must not be duplicated");
+    assert_eq!(
+        values,
+        &vec![CHUNKED.to_string()],
+        "chunked must not be duplicated"
+    );
 }
 
 // ── the bug, end to end: a real server reader reads the body, not NoBody ─────
@@ -150,8 +172,12 @@ fn server_reads_chunked_request_body_instead_of_nobody() {
     // Client side: build a streaming POST and render exactly what goes on the
     // wire — head (from the builder-produced headers) + chunked body.
     let (producer, body) = pushable_request_body_with_depth(4);
-    producer.try_push(Bytes::from_static(b"hello")).expect("push");
-    producer.try_push(Bytes::from_static(b"world")).expect("push");
+    producer
+        .try_push(Bytes::from_static(b"hello"))
+        .expect("push");
+    producer
+        .try_push(Bytes::from_static(b"world"))
+        .expect("push");
     drop(producer); // close → renderer emits the terminating chunk
 
     let req = build_request(body);

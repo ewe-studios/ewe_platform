@@ -5,8 +5,8 @@
 //! request-building surface in a fast, deterministic manner suitable for unit
 //! test execution under `tests/backends/foundation_core/units/simple_http/`.
 
-use foundation_netio::simple_http::client::ClientRequestBuilder;
 use foundation_netio::simple_http::client::shared::{StaticSocketAddr, SystemDnsResolver};
+use foundation_netio::simple_http::client::ClientRequestBuilder;
 use foundation_netio::simple_http::shared::{Proto, SendSafeBody, SimpleHeader, SimpleMethod};
 use serde::Serialize;
 use std::net::SocketAddr as StdSocketAddr;

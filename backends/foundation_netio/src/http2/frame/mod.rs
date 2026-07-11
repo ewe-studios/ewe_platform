@@ -7,7 +7,7 @@
 //! WHAT: [`Head`] (the 9-byte header), [`Kind`] (the 10 frame types), and
 //! typed payload structs for each kind: [`Data`], [`Headers`], [`Priority`],
 //! [`Settings`], [`Ping`], [`GoAway`], [`WindowUpdate`], [`Continuation`],
-//! [`Reset`] (RST_STREAM), [`PushPromise`].
+//! [`Reset`] (`RST_STREAM`), [`PushPromise`].
 //!
 //! HOW: Pure encode/decode — no I/O, no state. Composes with
 //! [`IncrementalDecoder`] for resumable reads via the `parse` functions.
@@ -24,7 +24,7 @@ pub const HEADER_LEN: usize = 9;
 /// Default maximum frame payload size (RFC 7540 §6.5.2).
 pub const DEFAULT_MAX_FRAME_SIZE: u32 = 16_384;
 
-/// Maximum settable frame payload size via SETTINGS_MAX_FRAME_SIZE.
+/// Maximum settable frame payload size via `SETTINGS_MAX_FRAME_SIZE`.
 pub const MAX_MAX_FRAME_SIZE: u32 = 16_777_215; // 2^24 - 1
 
 // ── Frame kind ──────────────────────────────────────────────────────────────
@@ -85,12 +85,17 @@ impl Head {
         let payload_len = u32::from_be_bytes([0, header[0], header[1], header[2]]);
         let kind = Kind::from_byte(header[3]);
         let flag = header[4];
-        let stream_id = u32::from_be_bytes([header[5], header[6], header[7], header[8]]) & 0x7FFF_FFFF;
+        let stream_id =
+            u32::from_be_bytes([header[5], header[6], header[7], header[8]]) & 0x7FFF_FFFF;
         // Store payload_len in the unused bits of stream_id representation.
         // Actually, we need to track payload length for encoding. Store it
         // implicitly — the caller reads it via parse_with_len.
         let _ = payload_len;
-        Self { kind, flag, stream_id }
+        Self {
+            kind,
+            flag,
+            stream_id,
+        }
     }
 
     /// Parse a frame header, returning `(head, payload_length)`.
@@ -102,7 +107,7 @@ impl Head {
 
     /// Encode this header into a 9-byte buffer for the given payload length.
     pub fn encode(&self, payload_len: u32, dst: &mut BytesMut) {
-        dst.put_uint(payload_len as u64, 3);
+        dst.put_uint(u64::from(payload_len), 3);
         dst.put_u8(self.kind as u8);
         dst.put_u8(self.flag);
         dst.put_u32(self.stream_id);
@@ -134,7 +139,12 @@ pub struct DataFrame {
 
 impl DataFrame {
     pub fn new(stream_id: u32, data: impl Into<Bytes>) -> Self {
-        Self { stream_id, flags: 0, data: data.into(), pad_len: None }
+        Self {
+            stream_id,
+            flags: 0,
+            data: data.into(),
+            pad_len: None,
+        }
     }
 
     pub fn with_end_stream(mut self) -> Self {
@@ -177,7 +187,11 @@ impl DataFrame {
         if let Some(pl) = self.pad_len {
             payload_len += 1 + pl as usize;
         }
-        let head = Head { kind: Kind::Data, flag: self.flags, stream_id: self.stream_id };
+        let head = Head {
+            kind: Kind::Data,
+            flag: self.flags,
+            stream_id: self.stream_id,
+        };
         head.encode(payload_len as u32, dst);
         if let Some(pl) = self.pad_len {
             dst.put_u8(pl);
@@ -240,19 +254,27 @@ impl HeadersFrame {
         let mut pad_len = None;
 
         if head.flag & headers_flags::PADDED != 0 {
-            if data.is_empty() { return Err("HEADERS: PADDED but no pad-length"); }
+            if data.is_empty() {
+                return Err("HEADERS: PADDED but no pad-length");
+            }
             pad_len = Some(data[0]);
             data = &data[1..];
         }
 
         let priority = if head.flag & headers_flags::PRIORITY != 0 {
-            if data.len() < 5 { return Err("HEADERS: PRIORITY flag but < 5 bytes"); }
+            if data.len() < 5 {
+                return Err("HEADERS: PRIORITY flag but < 5 bytes");
+            }
             let dep = u32::from_be_bytes([data[0], data[1], data[2], data[3]]);
             let exclusive = dep & 0x8000_0000 != 0;
             let stream_dependency = dep & 0x7FFF_FFFF;
             let weight = data[4];
             data = &data[5..];
-            Some(StreamPriority { stream_dependency, exclusive, weight })
+            Some(StreamPriority {
+                stream_dependency,
+                exclusive,
+                weight,
+            })
         } else {
             None
         };
@@ -276,20 +298,36 @@ impl HeadersFrame {
     pub fn encode(&self, dst: &mut BytesMut) {
         let mut payload_len = self.header_block.len();
         let pad = self.pad_len.unwrap_or(0) as usize;
-        if pad > 0 { payload_len += 1 + pad; }
-        if self.priority.is_some() { payload_len += 5; }
+        if pad > 0 {
+            payload_len += 1 + pad;
+        }
+        if self.priority.is_some() {
+            payload_len += 5;
+        }
 
-        let head = Head { kind: Kind::Headers, flag: self.flags, stream_id: self.stream_id };
+        let head = Head {
+            kind: Kind::Headers,
+            flag: self.flags,
+            stream_id: self.stream_id,
+        };
         head.encode(payload_len as u32, dst);
 
-        if pad > 0 { dst.put_u8(pad as u8); }
+        if pad > 0 {
+            dst.put_u8(pad as u8);
+        }
         if let Some(ref pri) = self.priority {
-            let dep = if pri.exclusive { pri.stream_dependency | 0x8000_0000 } else { pri.stream_dependency };
+            let dep = if pri.exclusive {
+                pri.stream_dependency | 0x8000_0000
+            } else {
+                pri.stream_dependency
+            };
             dst.put_u32(dep);
             dst.put_u8(pri.weight);
         }
         dst.put_slice(&self.header_block);
-        if pad > 0 { dst.put_bytes(0, pad); }
+        if pad > 0 {
+            dst.put_bytes(0, pad);
+        }
     }
 }
 
@@ -321,7 +359,11 @@ impl PriorityFrame {
 
     /// Encode this PRIORITY frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
-        let head = Head { kind: Kind::Priority, flag: 0, stream_id: self.stream_id };
+        let head = Head {
+            kind: Kind::Priority,
+            flag: 0,
+            stream_id: self.stream_id,
+        };
         head.encode(5, dst);
         let dep = if self.priority.exclusive {
             self.priority.stream_dependency | 0x8000_0000
@@ -335,7 +377,7 @@ impl PriorityFrame {
 
 // ── RST_STREAM frame ────────────────────────────────────────────────────────
 
-/// Error codes for RST_STREAM and GOAWAY frames (RFC 7540 §7).
+/// Error codes for `RST_STREAM` and GOAWAY frames (RFC 7540 §7).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(u32)]
 pub enum ErrorCode {
@@ -378,7 +420,7 @@ impl ErrorCode {
     }
 }
 
-/// A RST_STREAM frame (RFC 7540 §6.4).
+/// A `RST_STREAM` frame (RFC 7540 §6.4).
 #[derive(Debug, Clone, Copy)]
 pub struct ResetFrame {
     pub stream_id: u32,
@@ -387,15 +429,23 @@ pub struct ResetFrame {
 
 impl ResetFrame {
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
-        if payload.len() < 4 { return Err("RST_STREAM: payload < 4 bytes"); }
+        if payload.len() < 4 {
+            return Err("RST_STREAM: payload < 4 bytes");
+        }
         Ok(Self {
             stream_id: head.stream_id,
-            error_code: ErrorCode::from_u32(u32::from_be_bytes([payload[0], payload[1], payload[2], payload[3]])),
+            error_code: ErrorCode::from_u32(u32::from_be_bytes([
+                payload[0], payload[1], payload[2], payload[3],
+            ])),
         })
     }
 
     pub fn encode(&self, dst: &mut BytesMut) {
-        let head = Head { kind: Kind::Reset, flag: 0, stream_id: self.stream_id };
+        let head = Head {
+            kind: Kind::Reset,
+            flag: 0,
+            stream_id: self.stream_id,
+        };
         head.encode(4, dst);
         dst.put_u32(self.error_code as u32);
     }
@@ -450,14 +500,20 @@ pub struct SettingsFrame {
 }
 
 impl SettingsFrame {
+    #[must_use]
     pub fn new(settings: Vec<Setting>) -> Self {
         Self { flags: 0, settings }
     }
 
+    #[must_use]
     pub fn ack() -> Self {
-        Self { flags: settings_flags::ACK, settings: Vec::new() }
+        Self {
+            flags: settings_flags::ACK,
+            settings: Vec::new(),
+        }
     }
 
+    #[must_use]
     pub fn is_ack(&self) -> bool {
         self.flags & settings_flags::ACK != 0
     }
@@ -471,7 +527,7 @@ impl SettingsFrame {
             }
             return Ok(Self::ack());
         }
-        if payload.len() % 6 != 0 {
+        if !payload.len().is_multiple_of(6) {
             return Err("SETTINGS: payload not multiple of 6");
         }
         let mut settings = Vec::with_capacity(payload.len() / 6);
@@ -483,13 +539,20 @@ impl SettingsFrame {
             }
             // Unknown setting IDs are ignored per RFC 7540 §6.5.2.
         }
-        Ok(Self { flags: head.flag, settings })
+        Ok(Self {
+            flags: head.flag,
+            settings,
+        })
     }
 
     /// Encode this SETTINGS frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
         let payload_len = self.settings.len() * 6;
-        let head = Head { kind: Kind::Settings, flag: self.flags, stream_id: 0 };
+        let head = Head {
+            kind: Kind::Settings,
+            flag: self.flags,
+            stream_id: 0,
+        };
         head.encode(payload_len as u32, dst);
         for s in &self.settings {
             dst.put_u16(s.id as u16);
@@ -500,13 +563,13 @@ impl SettingsFrame {
 
 // ── PUSH_PROMISE frame ──────────────────────────────────────────────────────
 
-/// PUSH_PROMISE frame flags.
+/// `PUSH_PROMISE` frame flags.
 pub mod push_promise_flags {
     pub const END_HEADERS: u8 = 0x04;
     pub const PADDED: u8 = 0x08;
 }
 
-/// A PUSH_PROMISE frame (RFC 7540 §6.6).
+/// A `PUSH_PROMISE` frame (RFC 7540 §6.6).
 #[derive(Debug, Clone)]
 pub struct PushPromiseFrame {
     pub stream_id: u32,
@@ -517,23 +580,30 @@ pub struct PushPromiseFrame {
 }
 
 impl PushPromiseFrame {
-    /// Parse a PUSH_PROMISE frame.
+    /// Parse a `PUSH_PROMISE` frame.
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
         let mut data = payload;
         let mut pad_len = None;
 
         if head.flag & push_promise_flags::PADDED != 0 {
-            if data.is_empty() { return Err("PUSH_PROMISE: PADDED but no pad-length"); }
+            if data.is_empty() {
+                return Err("PUSH_PROMISE: PADDED but no pad-length");
+            }
             pad_len = Some(data[0]);
             data = &data[1..];
         }
 
-        if data.len() < 4 { return Err("PUSH_PROMISE: no promised stream ID"); }
-        let promised_stream_id = u32::from_be_bytes([data[0], data[1], data[2], data[3]]) & 0x7FFF_FFFF;
+        if data.len() < 4 {
+            return Err("PUSH_PROMISE: no promised stream ID");
+        }
+        let promised_stream_id =
+            u32::from_be_bytes([data[0], data[1], data[2], data[3]]) & 0x7FFF_FFFF;
         data = &data[4..];
 
         let pl = pad_len.unwrap_or(0) as usize;
-        if data.len() < pl { return Err("PUSH_PROMISE: pad exceeds payload"); }
+        if data.len() < pl {
+            return Err("PUSH_PROMISE: pad exceeds payload");
+        }
         let header_block = Bytes::copy_from_slice(&data[..data.len() - pl]);
 
         Ok(Self {
@@ -545,18 +615,28 @@ impl PushPromiseFrame {
         })
     }
 
-    /// Encode this PUSH_PROMISE frame into `dst`.
+    /// Encode this `PUSH_PROMISE` frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
         let mut payload_len = 4 + self.header_block.len();
         let pad = self.pad_len.unwrap_or(0) as usize;
-        if pad > 0 { payload_len += 1 + pad; }
+        if pad > 0 {
+            payload_len += 1 + pad;
+        }
 
-        let head = Head { kind: Kind::PushPromise, flag: self.flags, stream_id: self.stream_id };
+        let head = Head {
+            kind: Kind::PushPromise,
+            flag: self.flags,
+            stream_id: self.stream_id,
+        };
         head.encode(payload_len as u32, dst);
-        if pad > 0 { dst.put_u8(pad as u8); }
+        if pad > 0 {
+            dst.put_u8(pad as u8);
+        }
         dst.put_u32(self.promised_stream_id);
         dst.put_slice(&self.header_block);
-        if pad > 0 { dst.put_bytes(0, pad); }
+        if pad > 0 {
+            dst.put_bytes(0, pad);
+        }
     }
 }
 
@@ -575,29 +655,47 @@ pub struct PingFrame {
 }
 
 impl PingFrame {
+    #[must_use]
     pub fn new(opaque_data: [u8; 8]) -> Self {
-        Self { flags: 0, opaque_data }
+        Self {
+            flags: 0,
+            opaque_data,
+        }
     }
 
+    #[must_use]
     pub fn ack(opaque_data: [u8; 8]) -> Self {
-        Self { flags: ping_flags::ACK, opaque_data }
+        Self {
+            flags: ping_flags::ACK,
+            opaque_data,
+        }
     }
 
+    #[must_use]
     pub fn is_ack(&self) -> bool {
         self.flags & ping_flags::ACK != 0
     }
 
     /// Parse a PING frame (always 8 bytes).
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
-        if payload.len() != 8 { return Err("PING: payload != 8 bytes"); }
+        if payload.len() != 8 {
+            return Err("PING: payload != 8 bytes");
+        }
         let mut data = [0u8; 8];
         data.copy_from_slice(payload);
-        Ok(Self { flags: head.flag, opaque_data: data })
+        Ok(Self {
+            flags: head.flag,
+            opaque_data: data,
+        })
     }
 
     /// Encode this PING frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
-        let head = Head { kind: Kind::Ping, flag: self.flags, stream_id: 0 };
+        let head = Head {
+            kind: Kind::Ping,
+            flag: self.flags,
+            stream_id: 0,
+        };
         head.encode(8, dst);
         dst.put_slice(&self.opaque_data);
     }
@@ -614,16 +712,26 @@ pub struct GoAwayFrame {
 }
 
 impl GoAwayFrame {
+    #[must_use]
     pub fn new(last_stream_id: u32, error_code: ErrorCode) -> Self {
-        Self { last_stream_id, error_code, debug_data: Bytes::new() }
+        Self {
+            last_stream_id,
+            error_code,
+            debug_data: Bytes::new(),
+        }
     }
 
     /// Parse a GOAWAY frame (8+ bytes: 4-byte last stream + 4-byte error + debug).
     pub fn parse(_head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
-        if payload.len() < 8 { return Err("GOAWAY: payload < 8 bytes"); }
+        if payload.len() < 8 {
+            return Err("GOAWAY: payload < 8 bytes");
+        }
         Ok(Self {
-            last_stream_id: u32::from_be_bytes([payload[0], payload[1], payload[2], payload[3]]) & 0x7FFF_FFFF,
-            error_code: ErrorCode::from_u32(u32::from_be_bytes([payload[4], payload[5], payload[6], payload[7]])),
+            last_stream_id: u32::from_be_bytes([payload[0], payload[1], payload[2], payload[3]])
+                & 0x7FFF_FFFF,
+            error_code: ErrorCode::from_u32(u32::from_be_bytes([
+                payload[4], payload[5], payload[6], payload[7],
+            ])),
             debug_data: Bytes::copy_from_slice(&payload[8..]),
         })
     }
@@ -631,7 +739,11 @@ impl GoAwayFrame {
     /// Encode this GOAWAY frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
         let payload_len = 8 + self.debug_data.len();
-        let head = Head { kind: Kind::GoAway, flag: 0, stream_id: 0 };
+        let head = Head {
+            kind: Kind::GoAway,
+            flag: 0,
+            stream_id: 0,
+        };
         head.encode(payload_len as u32, dst);
         dst.put_u32(self.last_stream_id);
         dst.put_u32(self.error_code as u32);
@@ -641,7 +753,7 @@ impl GoAwayFrame {
 
 // ── WINDOW_UPDATE frame ─────────────────────────────────────────────────────
 
-/// A WINDOW_UPDATE frame (RFC 7540 §6.9).
+/// A `WINDOW_UPDATE` frame (RFC 7540 §6.9).
 #[derive(Debug, Clone, Copy)]
 pub struct WindowUpdateFrame {
     pub stream_id: u32,
@@ -649,19 +761,29 @@ pub struct WindowUpdateFrame {
 }
 
 impl WindowUpdateFrame {
-    /// Parse a WINDOW_UPDATE frame (always 4 bytes, but last bit reserved).
+    /// Parse a `WINDOW_UPDATE` frame (always 4 bytes, but last bit reserved).
     pub fn parse(head: &Head, payload: &[u8]) -> Result<Self, &'static str> {
-        if payload.len() != 4 { return Err("WINDOW_UPDATE: payload != 4 bytes"); }
-        let increment = u32::from_be_bytes([payload[0], payload[1], payload[2], payload[3]]) & 0x7FFF_FFFF;
+        if payload.len() != 4 {
+            return Err("WINDOW_UPDATE: payload != 4 bytes");
+        }
+        let increment =
+            u32::from_be_bytes([payload[0], payload[1], payload[2], payload[3]]) & 0x7FFF_FFFF;
         if increment == 0 {
             return Err("WINDOW_UPDATE: increment must be > 0");
         }
-        Ok(Self { stream_id: head.stream_id, size_increment: increment })
+        Ok(Self {
+            stream_id: head.stream_id,
+            size_increment: increment,
+        })
     }
 
-    /// Encode this WINDOW_UPDATE frame into `dst`.
+    /// Encode this `WINDOW_UPDATE` frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
-        let head = Head { kind: Kind::WindowUpdate, flag: 0, stream_id: self.stream_id };
+        let head = Head {
+            kind: Kind::WindowUpdate,
+            flag: 0,
+            stream_id: self.stream_id,
+        };
         head.encode(4, dst);
         dst.put_u32(self.size_increment);
     }
@@ -684,7 +806,11 @@ pub struct ContinuationFrame {
 
 impl ContinuationFrame {
     pub fn new(stream_id: u32, header_block: impl Into<Bytes>) -> Self {
-        Self { stream_id, flags: continuation_flags::END_HEADERS, header_block: header_block.into() }
+        Self {
+            stream_id,
+            flags: continuation_flags::END_HEADERS,
+            header_block: header_block.into(),
+        }
     }
 
     /// Parse a CONTINUATION frame.
@@ -698,7 +824,11 @@ impl ContinuationFrame {
 
     /// Encode this CONTINUATION frame into `dst`.
     pub fn encode(&self, dst: &mut BytesMut) {
-        let head = Head { kind: Kind::Continuation, flag: self.flags, stream_id: self.stream_id };
+        let head = Head {
+            kind: Kind::Continuation,
+            flag: self.flags,
+            stream_id: self.stream_id,
+        };
         head.encode(self.header_block.len() as u32, dst);
         dst.put_slice(&self.header_block);
     }

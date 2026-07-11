@@ -18,7 +18,6 @@
 use std::sync::Arc;
 use std::time::Duration;
 
-
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{BoxedSendExecutionAction, PipeSender, TaskIterator, TaskStatus};
 
@@ -203,32 +202,29 @@ impl TaskIterator for WebSocketServerTask {
                 match self.assembler.process_frame(frame) {
                     Ok(Some(message)) => {
                         let _ = self.delivery.try_send(message.clone());
-                        return Some(TaskStatus::Ready(message));
+                        Some(TaskStatus::Ready(message))
                     }
-                    Ok(None) => {
-                        return Some(TaskStatus::Pending(()));
-                    }
+                    Ok(None) => Some(TaskStatus::Pending(())),
                     Err(_e) => {
                         self.draining = true;
-                        return None;
+                        None
                     }
                 }
             }
             Ok(DecodeStep::Pending) => {
                 // Park on the caller-injected readiness signal if one was
                 // provided; otherwise fall back to a short poll delay.
-                return match &self.fd_readiness {
-                    Some(fd) => {
-                        Some(TaskStatus::Depends(Arc::clone(fd) as Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>))
-                    }
+                match &self.fd_readiness {
+                    Some(fd) => Some(TaskStatus::Depends(Arc::clone(fd)
+                        as Arc<dyn foundation_core::valtron::EventReadiness + Send + Sync>)),
                     None => Some(TaskStatus::Delayed(Duration::from_millis(
                         IDLE_POLL_DELAY_MS,
                     ))),
-                };
+                }
             }
             Err(_e) => {
                 self.draining = true;
-                return None;
+                None
             }
         }
     }

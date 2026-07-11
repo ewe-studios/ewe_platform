@@ -425,6 +425,7 @@ impl SendSafeBody {
     /// - `Stream` / `ChunkedStream` / `LineFeedStream` / `SseStream` → yields each chunk from the inner iterator.
     /// - `None` → yields nothing.
     #[allow(clippy::wrong_self_convention)]
+    #[must_use]
     pub fn to_async(self) -> AsyncSendSafeBody {
         AsyncSendSafeBody::from(self)
     }
@@ -2353,9 +2354,10 @@ impl Iterator for Http11RequestBodyIterator {
                                 )));
 
                                 match inner {
-                                    LineFeed::Line(content) => {
-                                        Some(Ok(Http11Chunk::Chunked(content.into_bytes()).render()))
-                                    }
+                                    LineFeed::Line(content) => Some(Ok(Http11Chunk::Chunked(
+                                        content.into_bytes(),
+                                    )
+                                    .render())),
                                     LineFeed::SKIP => Some(Ok(b"".to_vec())),
                                     LineFeed::END => {
                                         self.0 = Some(Http11RequestBodyState::End);
@@ -2381,31 +2383,25 @@ impl Iterator for Http11RequestBodyIterator {
                 if let Some(mut body_iterator) = container {
                     if let Some(collected) = body_iterator.next() {
                         match collected {
-                            Ok(inner) => {
-                                match inner {
-                                    ChunkedData::Data(bytes, ext) => {
-                                        self.0 = Some(
-                                            Http11RequestBodyState::ChunkedBodyStreaming(Some(
-                                                body_iterator,
-                                            )),
-                                        );
-                                        let exts = ext.unwrap_or_default();
-                                        Some(Ok(Http11Chunk::ChunkedExt(bytes, exts).render()))
-                                    }
-                                    ChunkedData::Trailers(_) => {
-                                        self.0 = Some(
-                                            Http11RequestBodyState::ChunkedBodyStreaming(Some(
-                                                body_iterator,
-                                            )),
-                                        );
-                                        Some(Ok(b"".to_vec()))
-                                    }
-                                    ChunkedData::DataEnded => {
-                                        self.0 = Some(Http11RequestBodyState::End);
-                                        Some(Ok(b"0\r\n\r\n".to_vec()))
-                                    }
+                            Ok(inner) => match inner {
+                                ChunkedData::Data(bytes, ext) => {
+                                    self.0 = Some(Http11RequestBodyState::ChunkedBodyStreaming(
+                                        Some(body_iterator),
+                                    ));
+                                    let exts = ext.unwrap_or_default();
+                                    Some(Ok(Http11Chunk::ChunkedExt(bytes, exts).render()))
                                 }
-                            }
+                                ChunkedData::Trailers(_) => {
+                                    self.0 = Some(Http11RequestBodyState::ChunkedBodyStreaming(
+                                        Some(body_iterator),
+                                    ));
+                                    Some(Ok(b"".to_vec()))
+                                }
+                                ChunkedData::DataEnded => {
+                                    self.0 = Some(Http11RequestBodyState::End);
+                                    Some(Ok(b"0\r\n\r\n".to_vec()))
+                                }
+                            },
                             Err(err) => {
                                 self.0 = Some(Http11RequestBodyState::End);
                                 Some(Err(err.into()))
@@ -4036,7 +4032,7 @@ where
     F: BodyExtractor,
     T: std::io::Read + Send + 'static,
 {
-    /// [`branch`] will create a new HttpSendResponseReader
+    /// [`branch`] will create a new `HttpSendResponseReader`
     /// with state reset which will allow you to continue reading a response from the reader.
     pub fn branch_reader(self) -> Self {
         Self(self.0.branch_reader())
@@ -4082,7 +4078,7 @@ where
     F: BodyExtractor,
     T: std::io::Read + 'static,
 {
-    /// [`branch`] will create a new HttpSendResponseReader
+    /// [`branch`] will create a new `HttpSendResponseReader`
     /// with state reset which will allow you to continue reading a response from the reader.
     pub fn branch_reader(self) -> Self {
         Self::new(self.reader, self.bodies)
@@ -5422,7 +5418,7 @@ impl<T: std::io::Read + Send> Iterator for SimpleLineFeedIterator<T> {
 /// Iterator for SSE (Server-Sent Events) streams.
 ///
 /// WHY: SSE bodies need to be parsed as events, not just raw bytes or lines.
-/// WHAT: Wraps an SseParser to yield ParseResult items from an SSE stream.
+/// WHAT: Wraps an `SseParser` to yield `ParseResult` items from an SSE stream.
 pub struct SimpleSseIterator<T: std::io::Read + Send>(
     SimpleHeaders,
     crate::event_source::shared::SseParser<T>,
@@ -5440,7 +5436,7 @@ impl<T: std::io::Read + Send> SimpleSseIterator<T> {
     /// Create a new SSE iterator from headers and a stream.
     ///
     /// WHY: SSE streams are created after HTTP headers are parsed.
-    /// WHAT: Wraps the stream in an SseParser for event parsing.
+    /// WHAT: Wraps the stream in an `SseParser` for event parsing.
     #[must_use]
     pub fn new(headers: SimpleHeaders, stream: SharedByteBufferStream<T>) -> Self {
         let parser = crate::event_source::shared::SseParser::new(stream);
@@ -5724,13 +5720,12 @@ impl BodyExtractor for SimpleHttpBody {
                                 "content length {content_length:} exceeds max body size {max_size:}"
                             ),
                         )));
-                    } else {
-                        tracing::trace!(
-                            "LimitedBody: content length ({:?}) < max({:})",
-                            content_length,
-                            max_size
-                        );
                     }
+                    tracing::trace!(
+                        "LimitedBody: content length ({:?}) < max({:})",
+                        content_length,
+                        max_size
+                    );
                 }
 
                 // Always stream — no threshold check

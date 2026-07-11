@@ -73,7 +73,9 @@ pub enum QuicConnError {
 impl std::fmt::Display for QuicConnError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::ApplicationClose { code } => write!(f, "connection closed by application: code {code}"),
+            Self::ApplicationClose { code } => {
+                write!(f, "connection closed by application: code {code}")
+            }
             Self::Timeout => write!(f, "connection timed out"),
             Self::Internal(msg) => write!(f, "internal QUIC error: {msg}"),
             Self::Other(e) => write!(f, "QUIC error: {e}"),

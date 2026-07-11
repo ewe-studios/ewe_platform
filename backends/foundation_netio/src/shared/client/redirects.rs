@@ -1,10 +1,10 @@
-use foundation_core::url::Uri;
+use super::request::PreparedRequest;
+use crate::simple_http::shared::Extensions;
 use crate::simple_http::shared::{
     HttpClientError, RequestDescriptor, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     SimpleUrl,
 };
-use crate::simple_http::shared::Extensions;
-use super::request::PreparedRequest;
+use foundation_core::url::Uri;
 
 /// Resolve a `Location` header value against a base `Uri` (Uri).
 ///

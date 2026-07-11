@@ -7,11 +7,11 @@
 //! HOW: Checks Upgrade/Connection headers, validates Sec-WebSocket-Key, computes accept key,
 //! builds 101 response. Server connection does NOT mask outgoing frames (per RFC 6455).
 
-use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::RawStream;
 use crate::simple_http::shared::{
     Http11, RenderHttp, SimpleHeader, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
 };
+use foundation_core::io::ioutils::SharedByteBufferStream;
 
 use crate::websocket::shared::batch_writer::BatchFrameWriter;
 use crate::websocket::shared::error::WebSocketError;

@@ -1,10 +1,10 @@
-//! Client classification for DoS protection and resource fairness.
+//! Client classification for `DoS` protection and resource fairness.
 //!
 //! WHY: Slow clients (slowloris attacks, poor connections) can exhaust server
 //! resources. By classifying clients by transfer rate, we can apply progressive
 //! penalties and protect server capacity.
 //!
-//! WHAT: ClientClassifier tracks transfer rates and classifies clients as:
+//! WHAT: `ClientClassifier` tracks transfer rates and classifies clients as:
 //! - Normal (>10 KB/s): No penalty
 //! - Slow (1-10 KB/s): +50% timeout (tolerate slow connections)
 //! - Suspicious (<1 KB/s): -50% timeout (fail fast, log security)
@@ -233,8 +233,7 @@ impl ClientClassifier {
         let clients = self.clients.read().expect("poisoned lock");
         clients
             .get(client_ip)
-            .map(|s| s.classification)
-            .unwrap_or(ClientClassification::Normal)
+            .map_or(ClientClassification::Normal, |s| s.classification)
     }
 
     /// Get timeout multiplier for a client.

@@ -48,7 +48,8 @@ fn response_headers_part_ends_with_crlf() {
 
 #[test]
 fn response_head_part_is_status_line_plus_headers() {
-    let head = SimpleResponse::<()>::no_body(Status::OK, headers(&[("content-type", "text/plain")]));
+    let head =
+        SimpleResponse::<()>::no_body(Status::OK, headers(&[("content-type", "text/plain")]));
     assert_eq!(
         render(Http11::response_head(head)),
         "HTTP/1.1 200 Ok\r\ncontent-type: text/plain\r\n\r\n"
@@ -59,19 +60,26 @@ fn response_head_part_is_status_line_plus_headers() {
 fn chunked_body_chunk_carries_transfer_framing() {
     // "hello" is 5 bytes -> "5\r\nhello\r\n". The framing lives in the part iterator.
     assert_eq!(
-        render(Http11::response_body_chunk(Http11Chunk::Chunked(b"hello".to_vec()))),
+        render(Http11::response_body_chunk(Http11Chunk::Chunked(
+            b"hello".to_vec()
+        ))),
         "5\r\nhello\r\n"
     );
     // 16-byte payload uses hex length (0x10 = "10").
     let sixteen = vec![b'x'; 16];
     let rendered = render(Http11::response_body_chunk(Http11Chunk::Chunked(sixteen)));
-    assert!(rendered.starts_with("10\r\n"), "chunk length is hex: {rendered:?}");
+    assert!(
+        rendered.starts_with("10\r\n"),
+        "chunk length is hex: {rendered:?}"
+    );
 }
 
 #[test]
 fn raw_body_chunk_passes_through_unframed() {
     assert_eq!(
-        render(Http11::response_body_chunk(Http11Chunk::Raw(b"hello".to_vec()))),
+        render(Http11::response_body_chunk(Http11Chunk::Raw(
+            b"hello".to_vec()
+        ))),
         "hello"
     );
 }
@@ -93,10 +101,9 @@ fn trailers_part_emits_terminator_and_block() {
 #[test]
 fn streaming_handler_composes_head_chunks_trailers() {
     let mut wire = String::new();
-    wire.push_str(&render(Http11::response_head(SimpleResponse::<()>::no_body(
-        Status::OK,
-        headers(&[("transfer-encoding", "chunked")]),
-    ))));
+    wire.push_str(&render(Http11::response_head(
+        SimpleResponse::<()>::no_body(Status::OK, headers(&[("transfer-encoding", "chunked")])),
+    )));
     wire.push_str(&render(Http11::response_body_chunk(Http11Chunk::Chunked(
         b"first".to_vec(),
     ))));
@@ -202,7 +209,10 @@ fn chunked_ext_renders_hex_length() {
     let data = vec![b'A'; 31];
     let chunk = Http11Chunk::ChunkedExt(data, vec![]);
     let rendered = String::from_utf8(chunk.render()).unwrap();
-    assert!(rendered.starts_with("1f\r\n"), "hex length is 1f: {rendered:?}");
+    assert!(
+        rendered.starts_with("1f\r\n"),
+        "hex length is 1f: {rendered:?}"
+    );
     assert!(rendered.ends_with("\r\n"), "terminated with CRLF");
 }
 
@@ -232,16 +242,22 @@ fn collect_body(renderer: Http11RequestBodyIterator) -> Vec<u8> {
 fn body_streaming_yields_chunked_framed_output() {
     use foundation_core::valtron::PipeSender;
     let (producer, body) = pushable_request_body_with_depth(4);
-    producer.try_push(bytes::Bytes::from_static(b"abc")).unwrap();
-    producer.try_push(bytes::Bytes::from_static(b"12345")).unwrap();
+    producer
+        .try_push(bytes::Bytes::from_static(b"abc"))
+        .unwrap();
+    producer
+        .try_push(bytes::Bytes::from_static(b"12345"))
+        .unwrap();
     drop(producer); // close → consumer sees EOF
 
     let request = request_with_body(body);
     let output = collect_body(Http11RequestBodyIterator::new(request));
 
     let text = String::from_utf8(output).expect("valid UTF-8");
-    assert_eq!(text, "3\r\nabc\r\n5\r\n12345\r\n0\r\n\r\n",
-        "Stream body must be rendered with chunked transfer encoding framing and terminating chunk");
+    assert_eq!(
+        text, "3\r\nabc\r\n5\r\n12345\r\n0\r\n\r\n",
+        "Stream body must be rendered with chunked transfer encoding framing and terminating chunk"
+    );
 }
 
 #[test]
@@ -252,8 +268,11 @@ fn body_streaming_empty_stream_yields_only_terminator() {
     let request = request_with_body(body);
     let output = collect_body(Http11RequestBodyIterator::new(request));
 
-    assert_eq!(String::from_utf8(output).unwrap(), "0\r\n\r\n",
-        "empty Stream must yield just the terminating chunk");
+    assert_eq!(
+        String::from_utf8(output).unwrap(),
+        "0\r\n\r\n",
+        "empty Stream must yield just the terminating chunk"
+    );
 }
 
 #[test]
@@ -269,8 +288,10 @@ fn body_streaming_with_retry_skips_empty() {
     let output = collect_body(Http11RequestBodyIterator::new(request));
 
     let text = String::from_utf8(output).unwrap();
-    assert_eq!(text, "2\r\nok\r\n0\r\n\r\n",
-        "body with data should get chunk framing + terminator");
+    assert_eq!(
+        text, "2\r\nok\r\n0\r\n\r\n",
+        "body with data should get chunk framing + terminator"
+    );
 }
 
 #[test]
@@ -278,12 +299,18 @@ fn body_non_stream_types_are_unframed() {
     // Bytes body: no chunked framing.
     let req = request_with_body(SendSafeBody::Bytes(b"raw".to_vec()));
     let output = collect_body(Http11RequestBodyIterator::new(req));
-    assert_eq!(output, b"raw", "Bytes body should be rendered as-is, no framing");
+    assert_eq!(
+        output, b"raw",
+        "Bytes body should be rendered as-is, no framing"
+    );
 
     // Text body: no chunked framing.
     let req = request_with_body(SendSafeBody::Text("text".into()));
     let output = collect_body(Http11RequestBodyIterator::new(req));
-    assert_eq!(output, b"text", "Text body should be rendered as-is, no framing");
+    assert_eq!(
+        output, b"text",
+        "Text body should be rendered as-is, no framing"
+    );
 
     // None body.
     let req = request_with_body(SendSafeBody::None);

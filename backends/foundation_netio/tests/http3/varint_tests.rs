@@ -27,7 +27,10 @@ fn round_trip(value: u64, expected_len: usize) {
 fn rfc_9000_worked_examples() {
     // RFC 9000 §A.1 gives these exact encodings.
     let cases: &[(&[u8], u64)] = &[
-        (&[0xc2, 0x19, 0x7c, 0x5e, 0xff, 0x14, 0xe8, 0x8c], 151_288_809_941_952_652),
+        (
+            &[0xc2, 0x19, 0x7c, 0x5e, 0xff, 0x14, 0xe8, 0x8c],
+            151_288_809_941_952_652,
+        ),
         (&[0x9d, 0x7f, 0x3e, 0x7d], 494_878_333),
         (&[0x7b, 0xbd], 15_293),
         (&[0x25], 37),
@@ -78,7 +81,11 @@ fn non_canonical_encodings_are_accepted() {
     ];
     for form in zero_forms {
         let (v, used) = VarInt::decode(form).expect("decode ok").expect("complete");
-        assert_eq!(v.value(), 0, "all encodings of zero decode to zero: {form:02x?}");
+        assert_eq!(
+            v.value(),
+            0,
+            "all encodings of zero decode to zero: {form:02x?}"
+        );
         assert_eq!(used, form.len());
     }
 }
@@ -87,15 +94,26 @@ fn non_canonical_encodings_are_accepted() {
 fn short_input_is_pending_not_an_error() {
     // The frame decoder depends on this: a truncated varint means "come back with
     // more bytes", never "the wire is malformed".
-    assert!(VarInt::decode(&[]).expect("no error").is_none(), "empty input");
+    assert!(
+        VarInt::decode(&[]).expect("no error").is_none(),
+        "empty input"
+    );
 
     // A two-byte tag with only one byte present.
-    assert!(VarInt::decode(&[0x40]).expect("no error").is_none(), "truncated 2-byte");
+    assert!(
+        VarInt::decode(&[0x40]).expect("no error").is_none(),
+        "truncated 2-byte"
+    );
     // A four-byte tag with three bytes present.
-    assert!(VarInt::decode(&[0x80, 0, 0]).expect("no error").is_none(), "truncated 4-byte");
+    assert!(
+        VarInt::decode(&[0x80, 0, 0]).expect("no error").is_none(),
+        "truncated 4-byte"
+    );
     // An eight-byte tag with seven bytes present.
     assert!(
-        VarInt::decode(&[0xc0, 0, 0, 0, 0, 0, 0]).expect("no error").is_none(),
+        VarInt::decode(&[0xc0, 0, 0, 0, 0, 0, 0])
+            .expect("no error")
+            .is_none(),
         "truncated 8-byte"
     );
 }

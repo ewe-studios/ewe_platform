@@ -2,10 +2,10 @@
 
 #![cfg(not(target_family = "wasm"))]
 
-use foundation_core::io::ioutils::{PeekError, PeekableReadStream};
 use crate::native::connection::Connection;
 use crate::native::connection::{DataStreamAddr, Endpoint, EndpointConfig, SocketAddr};
 use crate::shared::errors::{DataStreamError, DataStreamResult};
+use foundation_core::io::ioutils::{PeekError, PeekableReadStream};
 use std::error::Error;
 use std::io::{Read, Write};
 use std::net::{Shutdown, TcpStream};

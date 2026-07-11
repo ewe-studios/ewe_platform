@@ -3,11 +3,11 @@
 //! WHY: Under high load, timeouts should be reduced to prevent resource exhaustion
 //! and cascading failures. Fast requests should get priority.
 //!
-//! WHAT: LoadTracker tracks active connections and connection rate, providing
+//! WHAT: `LoadTracker` tracks active connections and connection rate, providing
 //! a timeout adjustment factor (100% -> 90% -> 75% -> 60%).
 //!
 //! HOW: Atomic counters track active connections. Rate is calculated periodically.
-//! TimeoutCalculator applies the factor to reduce timeouts under load.
+//! `TimeoutCalculator` applies the factor to reduce timeouts under load.
 //!
 //! # Example
 //!
@@ -64,7 +64,7 @@ impl LoadLevel {
     }
 }
 
-/// Configuration for LoadTracker.
+/// Configuration for `LoadTracker`.
 #[derive(Debug, Clone, Copy)]
 pub struct LoadTrackerConfig {
     /// Threshold for medium load (connections/sec).
@@ -126,7 +126,7 @@ impl LoadTracker {
 
     /// Start tracking a new connection.
     ///
-    /// Returns a ConnectionGuard that decrements the counter when dropped.
+    /// Returns a `ConnectionGuard` that decrements the counter when dropped.
     #[must_use]
     pub fn track_connection(&self) -> ConnectionGuard {
         self.active_connections.fetch_add(1, Ordering::Relaxed);
@@ -238,4 +238,3 @@ impl Drop for ConnectionGuard {
 // for the lifetime of the program (it's owned by TimeoutCalculator)
 unsafe impl Send for ConnectionGuard {}
 unsafe impl Sync for ConnectionGuard {}
-

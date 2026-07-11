@@ -10,9 +10,9 @@
 //! `WebSocketClient` uses `execute_stream()` to integrate with valtron executor and
 //! provides `MessageDelivery` for sending messages via `ConcurrentQueue`.
 
+use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
-use crate::http::HttpConnectionPool;
 use crate::simple_http::shared::SimpleHeader;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{

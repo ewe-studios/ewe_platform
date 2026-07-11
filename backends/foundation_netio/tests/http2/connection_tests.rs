@@ -1,9 +1,9 @@
 //! Tests for `http2::connection` — H2Connection, StreamId, pseudo-header
 //! mapping, connection preface (Feature 29/30).
 
-use std::io::Cursor;
 use bytes::Bytes;
 use foundation_netio::http2::connection::*;
+use std::io::Cursor;
 
 #[test]
 fn client_preface_is_correct_length() {
@@ -26,9 +26,18 @@ fn h2_request_pseudo_header_mapping() {
     let headers: Vec<(Bytes, Bytes)> = vec![
         (Bytes::from_static(b":method"), Bytes::from_static(b"POST")),
         (Bytes::from_static(b":scheme"), Bytes::from_static(b"https")),
-        (Bytes::from_static(b":authority"), Bytes::from_static(b"example.com")),
-        (Bytes::from_static(b":path"), Bytes::from_static(b"/api/test")),
-        (Bytes::from_static(b"content-type"), Bytes::from_static(b"application/json")),
+        (
+            Bytes::from_static(b":authority"),
+            Bytes::from_static(b"example.com"),
+        ),
+        (
+            Bytes::from_static(b":path"),
+            Bytes::from_static(b"/api/test"),
+        ),
+        (
+            Bytes::from_static(b"content-type"),
+            Bytes::from_static(b"application/json"),
+        ),
     ];
     let req = conn.build_request(&headers, true);
     assert_eq!(&req.method[..], b"POST");

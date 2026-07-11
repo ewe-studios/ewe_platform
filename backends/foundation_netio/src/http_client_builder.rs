@@ -240,14 +240,13 @@ impl HttpClientBuilder {
     pub fn build(self) -> Arc<dyn HttpClient> {
         #[cfg(all(feature = "multi", not(target_family = "wasm")))]
         {
-            Arc::new(crate::http::NativeHttpClient::new(
-                SystemDnsResolver,
-            )
-            .config(self.config))
+            Arc::new(crate::http::NativeHttpClient::new(SystemDnsResolver).config(self.config))
         }
         #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
         {
-            Arc::new(crate::wasm::client::FetchHttpClient::with_config(self.config))
+            Arc::new(crate::wasm::client::FetchHttpClient::with_config(
+                self.config,
+            ))
         }
         #[cfg(not(any(
             all(feature = "multi", not(target_family = "wasm")),

@@ -203,7 +203,7 @@ impl<R: DnsResolver> CachingDnsResolver<R> {
 
     /// Gets the number of entries in the cache.
     pub fn cache_size(&self) -> usize {
-        self.cache.lock().map(|c| c.len()).unwrap_or(0)
+        self.cache.lock().map_or(0, |c| c.len())
     }
 }
 

@@ -113,7 +113,12 @@ impl WebSocketFrameDecoder {
         };
         let payload = std::mem::take(&mut self.payload);
         self.reset();
-        Ok(WebSocketFrame { fin, opcode, mask, payload })
+        Ok(WebSocketFrame {
+            fin,
+            opcode,
+            mask,
+            payload,
+        })
     }
 }
 
@@ -139,7 +144,9 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                         let n = view.len();
                         self.base_hdr[pos..pos + n].copy_from_slice(&view[..n]);
                         self.buffer.advance(n);
-                        self.phase = HeaderPhase::Base { pos: (pos + n) as u8 };
+                        self.phase = HeaderPhase::Base {
+                            pos: (pos + n) as u8,
+                        };
                         return Ok(DecodeStep::Pending);
                     }
                     self.base_hdr[pos..2].copy_from_slice(&view[..need]);
@@ -147,12 +154,23 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                     self.masked = (self.base_hdr[1] & 0x80) != 0;
                     let len7 = self.base_hdr[1] & 0x7F;
                     self.phase = match len7 {
-                        126 => HeaderPhase::ExtLen { need: 2, buf: [0u8; 8], pos: 0 },
-                        127 => HeaderPhase::ExtLen { need: 8, buf: [0u8; 8], pos: 0 },
+                        126 => HeaderPhase::ExtLen {
+                            need: 2,
+                            buf: [0u8; 8],
+                            pos: 0,
+                        },
+                        127 => HeaderPhase::ExtLen {
+                            need: 8,
+                            buf: [0u8; 8],
+                            pos: 0,
+                        },
                         n => {
                             self.payload_len = n as usize;
                             if self.masked {
-                                HeaderPhase::Mask { buf: [0u8; 4], pos: 0 }
+                                HeaderPhase::Mask {
+                                    buf: [0u8; 4],
+                                    pos: 0,
+                                }
                             } else {
                                 HeaderPhase::Payload
                             }
@@ -181,10 +199,15 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                         u16::from_be_bytes([buf[0], buf[1]]) as usize
                     } else {
                         #[allow(clippy::cast_possible_truncation)]
-                        { u64::from_be_bytes(buf) as usize }
+                        {
+                            u64::from_be_bytes(buf) as usize
+                        }
                     };
                     self.phase = if self.masked {
-                        HeaderPhase::Mask { buf: [0u8; 4], pos: 0 }
+                        HeaderPhase::Mask {
+                            buf: [0u8; 4],
+                            pos: 0,
+                        }
                     } else {
                         HeaderPhase::Payload
                     };
@@ -197,7 +220,10 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
                         let n = view.len();
                         buf[pos..pos + n].copy_from_slice(&view[..n]);
                         self.buffer.advance(n);
-                        self.phase = HeaderPhase::Mask { buf, pos: (pos + n) as u8 };
+                        self.phase = HeaderPhase::Mask {
+                            buf,
+                            pos: (pos + n) as u8,
+                        };
                         return Ok(DecodeStep::Pending);
                     }
                     buf[pos..4].copy_from_slice(&view[..need]);
@@ -228,8 +254,7 @@ impl IncrementalDecoder for WebSocketFrameDecoder {
     }
 
     fn has_partial(&self) -> bool {
-        !matches!(self.phase, HeaderPhase::Base { pos: 0 })
-            || !self.buffer.view().is_empty()
+        !matches!(self.phase, HeaderPhase::Base { pos: 0 }) || !self.buffer.view().is_empty()
     }
 }
 
@@ -269,10 +294,7 @@ mod tests {
     /// Two complete frames back-to-back in a single read.
     #[test]
     fn two_frames_in_one_read() {
-        let wire: Vec<u8> = vec![
-            0x81, 0x02, b'H', b'i',
-            0x81, 0x02, b'Y', b'o',
-        ];
+        let wire: Vec<u8> = vec![0x81, 0x02, b'H', b'i', 0x81, 0x02, b'Y', b'o'];
         let cursor = Cursor::new(wire);
         let mut dec = WebSocketFrameDecoder::new();
 
@@ -286,10 +308,7 @@ mod tests {
         // Actually step() advances the cursor. Let's re-approach.
         // The cursor must be the same across steps.
         // Let's just pass all bytes at once and step twice.
-        let wire: Vec<u8> = vec![
-            0x81, 0x02, b'H', b'i',
-            0x81, 0x02, b'Y', b'o',
-        ];
+        let wire: Vec<u8> = vec![0x81, 0x02, b'H', b'i', 0x81, 0x02, b'Y', b'o'];
         let mut cursor = Cursor::new(&wire);
         let mut dec = WebSocketFrameDecoder::new();
 

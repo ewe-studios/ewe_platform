@@ -130,7 +130,9 @@ impl ConnectionContext {
     /// valid UTF-8 (ALPN ids are ASCII tokens in practice).
     #[must_use]
     pub fn alpn_str(&self) -> Option<&str> {
-        self.alpn.as_deref().and_then(|b| core::str::from_utf8(b).ok())
+        self.alpn
+            .as_deref()
+            .and_then(|b| core::str::from_utf8(b).ok())
     }
 }
 

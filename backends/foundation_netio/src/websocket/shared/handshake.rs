@@ -10,11 +10,11 @@
 use base64::Engine;
 use sha1::{Digest, Sha1};
 
-use crate::websocket::shared::error::WebSocketError;
 use crate::simple_http::shared::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleIncomingRequestBuilder, SimpleMethod,
     Status,
 };
+use crate::websocket::shared::error::WebSocketError;
 
 /// The magic GUID defined in RFC 6455 Section 4.2.2 for Sec-WebSocket-Accept computation.
 const WEBSOCKET_GUID: &str = "258EAFA5-E914-47DA-95CA-C5AB0DC85B11";

@@ -37,7 +37,9 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use bytes::BytesMut;
-use foundation_core::valtron::{BoxedSendExecutionAction, EventReadinessPtr, TaskIterator, TaskStatus};
+use foundation_core::valtron::{
+    BoxedSendExecutionAction, EventReadinessPtr, TaskIterator, TaskStatus,
+};
 use quinn_proto::{
     ClientConfig, ConnectionHandle, DatagramEvent, Endpoint, EndpointConfig, ServerConfig,
     TransportConfig, VarInt,
@@ -127,8 +129,16 @@ impl QuicDriver {
     ///
     /// # Panics
     /// Never panics.
-    pub fn connect(addr: SocketAddr, cfg: ClientConfig, server_name: &str) -> io::Result<(Self, QuinnConnection)> {
-        let socket = UdpSocket::bind(if addr.is_ipv4() { "0.0.0.0:0" } else { "[::]:0" })?;
+    pub fn connect(
+        addr: SocketAddr,
+        cfg: ClientConfig,
+        server_name: &str,
+    ) -> io::Result<(Self, QuinnConnection)> {
+        let socket = UdpSocket::bind(if addr.is_ipv4() {
+            "0.0.0.0:0"
+        } else {
+            "[::]:0"
+        })?;
         socket.set_nonblocking(true)?;
 
         let endpoint = Endpoint::new(Arc::new(EndpointConfig::default()), None, true, None);
@@ -254,7 +264,9 @@ impl QuicDriver {
         self.scratch.clear();
         let local_ip = self.socket.local_addr().ok().map(|a| a.ip());
 
-        let Some(event) = self.endpoint.handle(now, from, local_ip, None, data, &mut self.scratch)
+        let Some(event) = self
+            .endpoint
+            .handle(now, from, local_ip, None, data, &mut self.scratch)
         else {
             return true;
         };
@@ -270,7 +282,9 @@ impl QuicDriver {
             // A stateless reply (retry / version negotiation). Send it verbatim.
             DatagramEvent::Response(transmit) => {
                 let len = transmit.size.min(self.scratch.len());
-                let _ = self.socket.send_to(&self.scratch[..len], transmit.destination);
+                let _ = self
+                    .socket
+                    .send_to(&self.scratch[..len], transmit.destination);
             }
             DatagramEvent::NewConnection(incoming) => {
                 self.scratch.clear();
@@ -283,7 +297,9 @@ impl QuicDriver {
                         // The endpoint may want to send a rejection datagram.
                         if let Some(transmit) = err.response {
                             let len = transmit.size.min(self.scratch.len());
-                            let _ = self.socket.send_to(&self.scratch[..len], transmit.destination);
+                            let _ = self
+                                .socket
+                                .send_to(&self.scratch[..len], transmit.destination);
                         }
                         tracing::debug!(error = %err.cause, "QUIC accept rejected");
                     }
@@ -297,13 +313,19 @@ impl QuicDriver {
     fn pump_transmit(&mut self, now: Instant) -> bool {
         let mut worked = false;
         for state in self.conns.values() {
-            let Ok(mut guard) = state.lock() else { continue };
+            let Ok(mut guard) = state.lock() else {
+                continue;
+            };
             let peer = guard.peer;
             // Bounded: one transmit per connection per poll keeps the task fair.
             self.tx_buf.clear();
             if let Some(transmit) = guard.conn.poll_transmit(now, 1, &mut self.tx_buf) {
                 let len = transmit.size.min(self.tx_buf.len());
-                let dest = if transmit.destination.port() == 0 { peer } else { transmit.destination };
+                let dest = if transmit.destination.port() == 0 {
+                    peer
+                } else {
+                    transmit.destination
+                };
                 let _ = self.socket.send_to(&self.tx_buf[..len], dest);
                 worked = true;
             }
@@ -318,8 +340,14 @@ impl QuicDriver {
     fn pump_timeouts(&mut self, now: Instant) -> bool {
         let mut worked = false;
         for state in self.conns.values() {
-            let Ok(mut guard) = state.lock() else { continue };
-            if guard.conn.poll_timeout().is_some_and(|deadline| deadline <= now) {
+            let Ok(mut guard) = state.lock() else {
+                continue;
+            };
+            if guard
+                .conn
+                .poll_timeout()
+                .is_some_and(|deadline| deadline <= now)
+            {
                 guard.conn.handle_timeout(now);
                 worked = true;
             }
@@ -333,7 +361,9 @@ impl QuicDriver {
         let mut closed_handles = Vec::new();
 
         for (handle, state) in &self.conns {
-            let Ok(mut guard) = state.lock() else { continue };
+            let Ok(mut guard) = state.lock() else {
+                continue;
+            };
 
             while let Some(event) = guard.conn.poll() {
                 match event {
@@ -376,9 +406,9 @@ impl QuicDriver {
 fn conn_error_from(reason: &quinn_proto::ConnectionError) -> QuicConnError {
     use quinn_proto::ConnectionError;
     match reason {
-        ConnectionError::ApplicationClosed(close) => {
-            QuicConnError::ApplicationClose { code: close.error_code.into_inner() }
-        }
+        ConnectionError::ApplicationClosed(close) => QuicConnError::ApplicationClose {
+            code: close.error_code.into_inner(),
+        },
         ConnectionError::TimedOut => QuicConnError::Timeout,
         other => QuicConnError::Internal(other.to_string()),
     }
@@ -450,7 +480,9 @@ fn quic_client_config(rustls_cfg: rustls::ClientConfig) -> io::Result<ClientConf
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e.to_string()))?;
 
     let mut transport = TransportConfig::default();
-    transport.max_idle_timeout(Some(quinn_proto::IdleTimeout::from(VarInt::from_u32(10_000))));
+    transport.max_idle_timeout(Some(quinn_proto::IdleTimeout::from(VarInt::from_u32(
+        10_000,
+    ))));
 
     let mut cfg = ClientConfig::new(Arc::new(crypto));
     cfg.transport_config(Arc::new(transport));
@@ -479,7 +511,9 @@ pub fn server_config_from_der(
         .map_err(|e| io::Error::new(io::ErrorKind::InvalidInput, e.to_string()))?;
 
     let mut transport = TransportConfig::default();
-    transport.max_idle_timeout(Some(quinn_proto::IdleTimeout::from(VarInt::from_u32(10_000))));
+    transport.max_idle_timeout(Some(quinn_proto::IdleTimeout::from(VarInt::from_u32(
+        10_000,
+    ))));
     // HTTP/3 needs both directions; allow a healthy number of concurrent streams.
     transport.max_concurrent_bidi_streams(VarInt::from_u32(100));
     transport.max_concurrent_uni_streams(VarInt::from_u32(100));

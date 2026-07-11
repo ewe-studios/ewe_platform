@@ -19,7 +19,10 @@ use foundation_netio::simple_http::shared::{
 };
 
 fn field(name: &str, value: &str) -> (Bytes, Bytes) {
-    (Bytes::copy_from_slice(name.as_bytes()), Bytes::copy_from_slice(value.as_bytes()))
+    (
+        Bytes::copy_from_slice(name.as_bytes()),
+        Bytes::copy_from_slice(value.as_bytes()),
+    )
 }
 
 /// A minimal well-formed request, plus whatever extra fields the caller wants.
@@ -59,7 +62,10 @@ fn a_well_formed_request_maps_onto_the_shared_simple_types() {
 
     // Pseudo-headers must not leak into the regular header map.
     assert!(
-        header.headers.get(&SimpleHeader::from(":method".to_string())).is_none(),
+        header
+            .headers
+            .get(&SimpleHeader::from(":method".to_string()))
+            .is_none(),
         "pseudo-headers are not regular fields"
     );
 }
@@ -104,9 +110,18 @@ fn a_request_without_authority_is_still_well_formed() {
 #[test]
 fn missing_mandatory_pseudo_headers_are_rejected() {
     for (missing, fields) in [
-        (":method", vec![field(":scheme", "https"), field(":path", "/")]),
-        (":scheme", vec![field(":method", "GET"), field(":path", "/")]),
-        (":path", vec![field(":method", "GET"), field(":scheme", "https")]),
+        (
+            ":method",
+            vec![field(":scheme", "https"), field(":path", "/")],
+        ),
+        (
+            ":scheme",
+            vec![field(":method", "GET"), field(":path", "/")],
+        ),
+        (
+            ":path",
+            vec![field(":method", "GET"), field(":scheme", "https")],
+        ),
     ] {
         match request_from_fields(&fields, ctx()) {
             Err(MalformedRequest::MissingPseudoHeader(p)) => assert_eq!(p, missing),
@@ -119,7 +134,13 @@ fn missing_mandatory_pseudo_headers_are_rejected() {
 fn connection_specific_fields_are_rejected() {
     // RFC 9114 §4.2. QUIC has no hop-by-hop framing for these to describe, and a
     // proxy that forwarded them would be smuggling.
-    for forbidden in ["connection", "keep-alive", "proxy-connection", "transfer-encoding", "upgrade"] {
+    for forbidden in [
+        "connection",
+        "keep-alive",
+        "proxy-connection",
+        "transfer-encoding",
+        "upgrade",
+    ] {
         let fields = request(&[(forbidden, "whatever")]);
         match request_from_fields(&fields, ctx()) {
             Err(MalformedRequest::ConnectionSpecificField(name)) => assert_eq!(name, forbidden),
@@ -168,9 +189,10 @@ fn a_response_carries_a_bare_status_pseudo_header_first() {
         .with_status(Status::OK)
         .build()
         .expect("response");
-    response
-        .headers
-        .insert(SimpleHeader::from("content-type".to_string()), vec!["application/grpc".into()]);
+    response.headers.insert(
+        SimpleHeader::from("content-type".to_string()),
+        vec!["application/grpc".into()],
+    );
 
     let fields = response_to_fields(&response);
 
@@ -183,7 +205,9 @@ fn a_response_carries_a_bare_status_pseudo_header_first() {
     );
 
     assert!(
-        fields.iter().any(|(n, v)| n == "content-type" && v == "application/grpc"),
+        fields
+            .iter()
+            .any(|(n, v)| n == "content-type" && v == "application/grpc"),
         "regular fields follow: {fields:?}"
     );
 }
@@ -194,9 +218,10 @@ fn a_response_lowercases_field_names() {
         .with_status(Status::OK)
         .build()
         .expect("response");
-    response
-        .headers
-        .insert(SimpleHeader::from("X-Custom-Header".to_string()), vec!["v".into()]);
+    response.headers.insert(
+        SimpleHeader::from("X-Custom-Header".to_string()),
+        vec!["v".into()],
+    );
 
     let fields = response_to_fields(&response);
     assert!(
@@ -217,16 +242,20 @@ fn a_response_drops_connection_specific_fields_rather_than_sending_them() {
         .with_status(Status::OK)
         .build()
         .expect("response");
-    response
-        .headers
-        .insert(SimpleHeader::from("Connection".to_string()), vec!["keep-alive".into()]);
-    response
-        .headers
-        .insert(SimpleHeader::from("transfer-encoding".to_string()), vec!["chunked".into()]);
+    response.headers.insert(
+        SimpleHeader::from("Connection".to_string()),
+        vec!["keep-alive".into()],
+    );
+    response.headers.insert(
+        SimpleHeader::from("transfer-encoding".to_string()),
+        vec!["chunked".into()],
+    );
 
     let fields = response_to_fields(&response);
     assert!(
-        !fields.iter().any(|(n, _)| n == "connection" || n == "transfer-encoding"),
+        !fields
+            .iter()
+            .any(|(n, _)| n == "connection" || n == "transfer-encoding"),
         "RFC 9114 §4.2 forbids these on the wire: {fields:?}"
     );
     assert_eq!(fields.len(), 1, "only :status survives: {fields:?}");
@@ -238,8 +267,7 @@ fn a_request_round_trips_through_qpack() {
     use foundation_netio::http3::{decode_field_section, encode_field_section};
 
     let original = request(&[("content-type", "application/grpc"), ("te", "trailers")]);
-    let pairs: Vec<(&[u8], &[u8])> =
-        original.iter().map(|(n, v)| (&n[..], &v[..])).collect();
+    let pairs: Vec<(&[u8], &[u8])> = original.iter().map(|(n, v)| (&n[..], &v[..])).collect();
 
     let wire = encode_field_section(&pairs);
     let decoded = decode_field_section(&wire, 1 << 20).expect("decode");

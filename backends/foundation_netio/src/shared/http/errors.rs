@@ -1,6 +1,6 @@
+use derive_more::From;
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::extensions::strings_ext::TryIntoStringError;
-use derive_more::From;
 use std::{
     string::{FromUtf16Error, FromUtf8Error},
     sync::PoisonError,

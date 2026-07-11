@@ -70,7 +70,11 @@ impl SettingsStore {
             let old = self.get(s.id);
             self.set(s.id, s.value)?;
             if old != s.value {
-                changes.push(SettingChange { id: s.id, old, new: s.value });
+                changes.push(SettingChange {
+                    id: s.id,
+                    old,
+                    new: s.value,
+                });
             }
         }
         Ok(changes)
@@ -116,7 +120,7 @@ impl SettingsStore {
                 self.initial_window_size = value;
             }
             SettingId::MaxFrameSize => {
-                if value < MIN_MAX_FRAME_SIZE || value > MAX_MAX_FRAME_SIZE {
+                if !(MIN_MAX_FRAME_SIZE..=MAX_MAX_FRAME_SIZE).contains(&value) {
                     return Err("SETTINGS_MAX_FRAME_SIZE out of range [16384, 16777215]");
                 }
                 self.max_frame_size = value;
@@ -133,12 +137,30 @@ impl SettingsStore {
     #[must_use]
     pub fn to_frame(&self) -> SettingsFrame {
         SettingsFrame::new(vec![
-            Setting { id: SettingId::HeaderTableSize, value: self.header_table_size },
-            Setting { id: SettingId::EnablePush, value: self.enable_push },
-            Setting { id: SettingId::MaxConcurrentStreams, value: self.max_concurrent_streams },
-            Setting { id: SettingId::InitialWindowSize, value: self.initial_window_size },
-            Setting { id: SettingId::MaxFrameSize, value: self.max_frame_size },
-            Setting { id: SettingId::MaxHeaderListSize, value: self.max_header_list_size },
+            Setting {
+                id: SettingId::HeaderTableSize,
+                value: self.header_table_size,
+            },
+            Setting {
+                id: SettingId::EnablePush,
+                value: self.enable_push,
+            },
+            Setting {
+                id: SettingId::MaxConcurrentStreams,
+                value: self.max_concurrent_streams,
+            },
+            Setting {
+                id: SettingId::InitialWindowSize,
+                value: self.initial_window_size,
+            },
+            Setting {
+                id: SettingId::MaxFrameSize,
+                value: self.max_frame_size,
+            },
+            Setting {
+                id: SettingId::MaxHeaderListSize,
+                value: self.max_header_list_size,
+            },
         ])
     }
 
@@ -146,12 +168,42 @@ impl SettingsStore {
     #[must_use]
     pub fn to_frame_non_default(&self) -> SettingsFrame {
         let mut settings = Vec::new();
-        self.push_if_non_default(&mut settings, SettingId::HeaderTableSize, self.header_table_size, DEFAULT_HEADER_TABLE_SIZE);
-        self.push_if_non_default(&mut settings, SettingId::EnablePush, self.enable_push, DEFAULT_ENABLE_PUSH);
-        self.push_if_non_default(&mut settings, SettingId::MaxConcurrentStreams, self.max_concurrent_streams, DEFAULT_MAX_CONCURRENT_STREAMS);
-        self.push_if_non_default(&mut settings, SettingId::InitialWindowSize, self.initial_window_size, DEFAULT_INITIAL_WINDOW_SIZE);
-        self.push_if_non_default(&mut settings, SettingId::MaxFrameSize, self.max_frame_size, DEFAULT_MAX_FRAME_SIZE);
-        self.push_if_non_default(&mut settings, SettingId::MaxHeaderListSize, self.max_header_list_size, DEFAULT_MAX_HEADER_LIST_SIZE);
+        self.push_if_non_default(
+            &mut settings,
+            SettingId::HeaderTableSize,
+            self.header_table_size,
+            DEFAULT_HEADER_TABLE_SIZE,
+        );
+        self.push_if_non_default(
+            &mut settings,
+            SettingId::EnablePush,
+            self.enable_push,
+            DEFAULT_ENABLE_PUSH,
+        );
+        self.push_if_non_default(
+            &mut settings,
+            SettingId::MaxConcurrentStreams,
+            self.max_concurrent_streams,
+            DEFAULT_MAX_CONCURRENT_STREAMS,
+        );
+        self.push_if_non_default(
+            &mut settings,
+            SettingId::InitialWindowSize,
+            self.initial_window_size,
+            DEFAULT_INITIAL_WINDOW_SIZE,
+        );
+        self.push_if_non_default(
+            &mut settings,
+            SettingId::MaxFrameSize,
+            self.max_frame_size,
+            DEFAULT_MAX_FRAME_SIZE,
+        );
+        self.push_if_non_default(
+            &mut settings,
+            SettingId::MaxHeaderListSize,
+            self.max_header_list_size,
+            DEFAULT_MAX_HEADER_LIST_SIZE,
+        );
         SettingsFrame::new(settings)
     }
 

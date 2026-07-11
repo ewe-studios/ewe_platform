@@ -11,7 +11,9 @@ use foundation_core::valtron::{self, Stream, TaskIteratorExt, TaskStatus};
 use foundation_netio::simple_http::client::shared::request_task::{
     HttpExchange, HttpExchangePending,
 };
-use foundation_netio::simple_http::client::shared::{ClientConfig, PreparedRequest, SystemDnsResolver};
+use foundation_netio::simple_http::client::shared::{
+    ClientConfig, PreparedRequest, SystemDnsResolver,
+};
 use foundation_netio::simple_http::client::{HttpConnectionPool, HttpExchangeTask};
 use foundation_netio::simple_http::shared::{
     pushable_request_body_with_depth, Extensions, SimpleHeaders, SimpleMethod, Status,
@@ -63,7 +65,10 @@ fn request_to(method: SimpleMethod, url: &str) -> PreparedRequest {
 }
 
 fn default_pool_and_config() -> (Arc<HttpConnectionPool<SystemDnsResolver>>, ClientConfig) {
-    (Arc::new(HttpConnectionPool::default()), ClientConfig::default())
+    (
+        Arc::new(HttpConnectionPool::default()),
+        ClientConfig::default(),
+    )
 }
 
 /// Test: `HttpExchangeTask` yields `Head` + `BodyChunk` for a 200 response.
@@ -74,7 +79,12 @@ fn yields_head_then_body_then_exhausts() {
     let url = format!("http://127.0.0.1:{}/test", addr.port());
     let (pool, config) = default_pool_and_config();
 
-    let task = HttpExchangeTask::new(request_to(SimpleMethod::GET, &url), config.max_redirects, pool, config);
+    let task = HttpExchangeTask::new(
+        request_to(SimpleMethod::GET, &url),
+        config.max_redirects,
+        pool,
+        config,
+    );
     let mut stream = valtron::execute(task, None).expect("execute");
 
     let mut saw_head = false;
@@ -227,8 +237,14 @@ fn map_ready_receives_both_head_and_body() {
     let mut stream = valtron::execute(task, None).expect("execute");
     while stream.next().is_some() {}
 
-    assert!(got_head.load(Ordering::SeqCst), "map_ready should have received Head");
-    assert!(got_body.load(Ordering::SeqCst), "map_ready should have received BodyChunk");
+    assert!(
+        got_head.load(Ordering::SeqCst),
+        "map_ready should have received Head"
+    );
+    assert!(
+        got_body.load(Ordering::SeqCst),
+        "map_ready should have received BodyChunk"
+    );
 
     // Verify data from pipes.
     let (status, _) = head_rx.try_recv().expect("head data");

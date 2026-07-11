@@ -359,7 +359,6 @@ fn test_reconnecting_task_close_reason_eof() {
 /// This test verifies the builder method works and task exhausts eventually.
 #[test]
 fn test_reconnecting_task_max_reconnect_duration() {
-
     let _pool_guard = foundation_core::valtron::initialize_pool(42, None);
     // Bind and immediately drop to get a port that's guaranteed unused
     let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();

@@ -16,8 +16,8 @@
 //! when the stream is fully consumed.
 
 use std::io::{Cursor, Read};
-use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
 
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::valtron::Stream;

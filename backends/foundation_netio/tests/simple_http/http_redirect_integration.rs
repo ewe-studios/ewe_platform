@@ -355,11 +355,7 @@ fn post_with_body_still_works() {
 #[serial(valtron_pool)]
 fn redirect_chain_bodyless_requests_skip_writebody() {
     let _pool_guard = foundation_core::valtron::initialize_pool(51, None);
-    let server = TestHttpServer::http_chain(vec![
-        (302, "/step2"),
-        (302, "/step3"),
-        (200, "final"),
-    ]);
+    let server = TestHttpServer::http_chain(vec![(302, "/step2"), (302, "/step3"), (200, "final")]);
     let client = SimpleHttpClient::from_system().max_redirects(5);
 
     let res = client
@@ -369,7 +365,10 @@ fn redirect_chain_bodyless_requests_skip_writebody() {
         .unwrap()
         .send();
 
-    assert!(res.is_ok(), "redirect chain of bodyless GETs should succeed");
+    assert!(
+        res.is_ok(),
+        "redirect chain of bodyless GETs should succeed"
+    );
     assert_eq!(
         res.unwrap().get_status().into_usize(),
         200,

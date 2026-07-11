@@ -13,8 +13,7 @@ mod tests {
 
     #[test]
     fn to_set_cookie_string_with_max_age() {
-        let cookie = Cookie::new("remember", "me")
-            .max_age(Duration::from_secs(86400));
+        let cookie = Cookie::new("remember", "me").max_age(Duration::from_secs(86400));
         let s = cookie.to_set_cookie_string();
         assert!(s.contains("Max-Age=86400"));
     }

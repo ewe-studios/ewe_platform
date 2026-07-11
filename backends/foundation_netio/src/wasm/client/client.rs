@@ -28,9 +28,7 @@ use wasm_bindgen::prelude::*;
 use wasm_bindgen_futures::JsFuture;
 use web_sys::{Request, RequestInit, Response};
 
-use crate::shared::client::http_client::{
-    BoxedSseFutureStream, BoxedSseIterator, HttpClient,
-};
+use crate::shared::client::http_client::{BoxedSseFutureStream, BoxedSseIterator, HttpClient};
 use crate::shared::client::request::PreparedRequest;
 use crate::shared::client::request_task::HttpExchangeClientTask;
 use crate::shared::client::ClientConfig;
@@ -91,7 +89,9 @@ impl FetchHttpClient {
     fn merge_default_headers(&self, mut req: PreparedRequest) -> PreparedRequest {
         if let Some(ref defaults) = self.config.headers_to_add {
             for (key, values) in defaults {
-                req.headers.entry(key.clone()).or_insert_with(|| values.clone());
+                req.headers
+                    .entry(key.clone())
+                    .or_insert_with(|| values.clone());
             }
         }
         req
@@ -164,10 +164,7 @@ impl HttpClient for FetchHttpClient {
         .await
     }
 
-    fn send(
-        &self,
-        req: PreparedRequest,
-    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+    fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
         let fut = self.send_async(req);
         let results = run_future(fut)
             .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
@@ -261,15 +258,15 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
             Ok(array.into())
         }
         SendSafeBody::Stream(opt_iter) => {
-            let iter = opt_iter.ok_or_else(|| {
-                HttpClientError::Reason("stream body already consumed".into())
-            })?;
+            let iter = opt_iter
+                .ok_or_else(|| HttpClientError::Reason("stream body already consumed".into()))?;
             let byte_iter = Box::new(iter.filter_map(|result| match result {
                 Ok(Data::Bytes(bytes)) => Some(bytes),
                 Ok(Data::Retry) | Err(_) => None,
             }));
-            let stream = js_stream::iterator_to_readable_stream(byte_iter)
-                .map_err(|e| HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}")))?;
+            let stream = js_stream::iterator_to_readable_stream(byte_iter).map_err(|e| {
+                HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}"))
+            })?;
             Ok(stream.into())
         }
         SendSafeBody::ChunkedStream(opt_iter) => {
@@ -279,12 +276,17 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
             let byte_iter = Box::new(iter.filter_map(|result| match result {
                 Ok(mut chunk) => {
                     let bytes = chunk.into_bytes();
-                    if bytes.is_empty() { None } else { Some(bytes) }
+                    if bytes.is_empty() {
+                        None
+                    } else {
+                        Some(bytes)
+                    }
                 }
                 Err(_) => None,
             }));
-            let stream = js_stream::iterator_to_readable_stream(byte_iter)
-                .map_err(|e| HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}")))?;
+            let stream = js_stream::iterator_to_readable_stream(byte_iter).map_err(|e| {
+                HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}"))
+            })?;
             Ok(stream.into())
         }
         SendSafeBody::LineFeedStream(opt_iter) => {
@@ -295,8 +297,9 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
                 Ok(LineFeed::Line(line)) => Some(format!("{line}\n").into_bytes()),
                 Ok(LineFeed::END) | Ok(LineFeed::SKIP) | Err(_) => None,
             }));
-            let stream = js_stream::iterator_to_readable_stream(byte_iter)
-                .map_err(|e| HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}")))?;
+            let stream = js_stream::iterator_to_readable_stream(byte_iter).map_err(|e| {
+                HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}"))
+            })?;
             Ok(stream.into())
         }
         SendSafeBody::SseStream(opt_iter) => {
@@ -308,7 +311,12 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
                     use crate::event_source::Event;
                     let mut buf = String::new();
                     match &parse_result.event {
-                        Event::Message { id, event_type, data, retry } => {
+                        Event::Message {
+                            id,
+                            event_type,
+                            data,
+                            retry,
+                        } => {
                             if let Some(id) = id {
                                 buf.push_str(&format!("id: {id}\n"));
                             }
@@ -328,12 +336,17 @@ fn send_safe_body_to_js(body: SendSafeBody) -> Result<JsValue, HttpClientError> 
                         }
                         Event::Reconnect => {}
                     }
-                    if buf.is_empty() { None } else { Some(buf.into_bytes()) }
+                    if buf.is_empty() {
+                        None
+                    } else {
+                        Some(buf.into_bytes())
+                    }
                 }
                 Err(_) => None,
             }));
-            let stream = js_stream::iterator_to_readable_stream(byte_iter)
-                .map_err(|e| HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}")))?;
+            let stream = js_stream::iterator_to_readable_stream(byte_iter).map_err(|e| {
+                HttpClientError::Reason(format!("ReadableStream creation failed: {e:?}"))
+            })?;
             Ok(stream.into())
         }
     }
@@ -355,8 +368,7 @@ async fn do_fetch(req: &Request) -> Result<Response, HttpClientError> {
 fn js_fetch(req: &Request) -> js_sys::Promise {
     let global = js_sys::global();
 
-    if let Ok(true) =
-        js_sys::Reflect::has(&global, &JsValue::from_str("ServiceWorkerGlobalScope"))
+    if let Ok(true) = js_sys::Reflect::has(&global, &JsValue::from_str("ServiceWorkerGlobalScope"))
     {
         global
             .unchecked_into::<web_sys::ServiceWorkerGlobalScope>()

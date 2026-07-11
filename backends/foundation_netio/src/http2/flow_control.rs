@@ -2,26 +2,26 @@
 //!
 //! WHY: HTTP/2 flow control is window-based — each side advertises how many bytes
 //! it is willing to receive, and the sender must not exceed that window. A
-//! SETTINGS_INITIAL_WINDOW_SIZE change can push a window negative (the peer has
+//! `SETTINGS_INITIAL_WINDOW_SIZE` change can push a window negative (the peer has
 //! already used capacity at the old, larger window), so the internal accumulator
 //! is signed. The wire type (`WindowSize`) is u31 (0 ..= 2³¹−1).
 //!
 //! WHAT: [`Window`] (signed accumulator), [`FlowControl`] (send-side tracker with
-//! WINDOW_UPDATE threshold), and the `WindowSize` / `MAX_WINDOW_SIZE` constants.
+//! `WINDOW_UPDATE` threshold), and the `WindowSize` / `MAX_WINDOW_SIZE` constants.
 //!
-//! HOW: Pure arithmetic — no I/O, no allocation. The WINDOW_UPDATE threshold uses
+//! HOW: Pure arithmetic — no I/O, no allocation. The `WINDOW_UPDATE` threshold uses
 //! integer ratio (1/2) to avoid float math; a window increment is sent only when
 //! the unclaimed capacity reaches half the peer-known window.
 
 /// The maximum flow-control window size (RFC 7540 §6.9.2: 2³¹−1).
 pub const MAX_WINDOW_SIZE: u32 = 2_147_483_647;
 
-/// Wire-level window increment — always a u31 (0 ..= MAX_WINDOW_SIZE).
+/// Wire-level window increment — always a u31 (0 ..= `MAX_WINDOW_SIZE`).
 pub type WindowSize = u32;
 
-/// The ratio applied to decide when to emit a WINDOW_UPDATE frame.
+/// The ratio applied to decide when to emit a `WINDOW_UPDATE` frame.
 ///
-/// We aggregate small increments: a WINDOW_UPDATE is sent only when the
+/// We aggregate small increments: a `WINDOW_UPDATE` is sent only when the
 /// unclaimed capacity reaches `window_size * NUMERATOR / DENOMINATOR`.
 const UNCLAIMED_NUMERATOR: i32 = 1;
 const UNCLAIMED_DENOMINATOR: i32 = 2;
@@ -43,7 +43,7 @@ impl std::error::Error for FlowControlError {}
 
 /// A signed window accumulator (RFC 7540 §6.9).
 ///
-/// WHY: The internal value is `i32` because a SETTINGS_INITIAL_WINDOW_SIZE
+/// WHY: The internal value is `i32` because a `SETTINGS_INITIAL_WINDOW_SIZE`
 /// reduction can push a window negative — the peer already consumed bytes at the
 /// old, larger window, so the effective window is `old - used - reduction`.
 /// Externally the window is clamped to non-negative (`as_size`).
@@ -63,7 +63,11 @@ impl Window {
     /// The window as a non-negative [`WindowSize`] — negative values are clamped to 0.
     #[must_use]
     pub fn as_size(self) -> WindowSize {
-        if self.0 < 0 { 0 } else { self.0 as WindowSize }
+        if self.0 < 0 {
+            0
+        } else {
+            self.0 as WindowSize
+        }
     }
 
     /// The window as a [`WindowSize`], panicking if negative.
@@ -96,6 +100,7 @@ impl Window {
     }
 
     /// The raw signed value — for tests and diagnostics.
+    #[must_use]
     pub fn raw(self) -> i32 {
         self.0
     }
@@ -109,7 +114,11 @@ impl std::fmt::Display for Window {
 
 impl PartialEq<usize> for Window {
     fn eq(&self, other: &usize) -> bool {
-        if self.0 < 0 { false } else { (self.0 as usize).eq(other) }
+        if self.0 < 0 {
+            false
+        } else {
+            (self.0 as usize).eq(other)
+        }
     }
 }
 
@@ -131,7 +140,7 @@ impl PartialOrd<usize> for Window {
 /// - `window_size` — what the **peer** knows (the window we've advertised to them).
 /// - `available` — what **we** know is available for the peer to consume.
 ///
-/// Both can go negative after a SETTINGS_INITIAL_WINDOW_SIZE reduction.
+/// Both can go negative after a `SETTINGS_INITIAL_WINDOW_SIZE` reduction.
 #[derive(Clone, Copy, Debug)]
 pub struct FlowControl {
     /// The window as known by the peer (the receive window we advertised).
@@ -144,7 +153,10 @@ impl FlowControl {
     /// Create a new flow-control tracker with both windows at zero.
     #[must_use]
     pub fn new() -> Self {
-        Self { window_size: Window::new(), available: Window::new() }
+        Self {
+            window_size: Window::new(),
+            available: Window::new(),
+        }
     }
 
     /// The window size the peer knows about (non-negative).
@@ -160,10 +172,14 @@ impl FlowControl {
     }
 
     /// True when the peer-known window exceeds available capacity — we have
-    /// bytes the peer hasn't been told about yet (WINDOW_UPDATE pending).
+    /// bytes the peer hasn't been told about yet (`WINDOW_UPDATE` pending).
     #[must_use]
     pub fn has_unavailable(&self) -> bool {
-        if self.window_size.0 < 0 { false } else { self.window_size > self.available }
+        if self.window_size.0 < 0 {
+            false
+        } else {
+            self.window_size > self.available
+        }
     }
 
     /// Claim capacity from the available window before sending data.
@@ -174,7 +190,7 @@ impl FlowControl {
         self.available.decrease_by(capacity)
     }
 
-    /// Return capacity to the available window (e.g. after receiving a WINDOW_UPDATE).
+    /// Return capacity to the available window (e.g. after receiving a `WINDOW_UPDATE`).
     ///
     /// # Errors
     /// [`FlowControlError`] if the window would overflow.
@@ -182,10 +198,10 @@ impl FlowControl {
         self.available.increase_by(capacity)
     }
 
-    /// How much capacity should be sent in a WINDOW_UPDATE frame, if any.
+    /// How much capacity should be sent in a `WINDOW_UPDATE` frame, if any.
     ///
     /// Returns `Some(increment)` when the unclaimed capacity reaches the
-    /// threshold (1/2 of the peer-known window), signalling a WINDOW_UPDATE
+    /// threshold (1/2 of the peer-known window), signalling a `WINDOW_UPDATE`
     /// should be emitted. Returns `None` otherwise — small increments are
     /// aggregated to avoid flooding the peer with tiny updates.
     #[must_use]
@@ -206,7 +222,7 @@ impl FlowControl {
         }
     }
 
-    /// Increase the peer-known window (called after receiving a WINDOW_UPDATE).
+    /// Increase the peer-known window (called after receiving a `WINDOW_UPDATE`).
     ///
     /// # Errors
     /// [`FlowControlError`] on overflow or if the result exceeds [`MAX_WINDOW_SIZE`].
@@ -219,7 +235,7 @@ impl FlowControl {
         Ok(())
     }
 
-    /// Decrease the send-side window (called when a lower SETTINGS_INITIAL_WINDOW_SIZE
+    /// Decrease the send-side window (called when a lower `SETTINGS_INITIAL_WINDOW_SIZE`
     /// is received). Only `window_size` is adjusted — the peer is reducing what it
     /// advertised.
     ///
@@ -230,7 +246,7 @@ impl FlowControl {
     }
 
     /// Decrease the receive-side window (called when our own SETTINGS ACK with a
-    /// lower INITIAL_WINDOW_SIZE is sent). Both `window_size` and `available` are
+    /// lower `INITIAL_WINDOW_SIZE` is sent). Both `window_size` and `available` are
     /// reduced — we are shrinking what we told the peer.
     ///
     /// # Errors
@@ -254,10 +270,13 @@ impl FlowControl {
         if sz == 0 {
             return Ok(());
         }
-        assert!(self.window_size.0 >= sz as i32, "send_data({sz}) exceeds window_size {}", self.window_size);
+        assert!(
+            self.window_size.0 >= sz as i32,
+            "send_data({sz}) exceeds window_size {}",
+            self.window_size
+        );
         self.window_size.decrease_by(sz)?;
         self.available.decrease_by(sz)?;
         Ok(())
     }
 }
-

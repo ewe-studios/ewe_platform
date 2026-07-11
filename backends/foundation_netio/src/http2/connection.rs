@@ -10,7 +10,7 @@
 //! layers plug in via callbacks: `on_new_stream` for incoming requests
 //! (server), and per-stream write queues for outgoing frames.
 //!
-//! HOW: The main loop reads one frame at a time. SETTINGS/WINDOW_UPDATE/PING/
+//! HOW: The main loop reads one frame at a time. `SETTINGS/WINDOW_UPDATE/PING`/
 //! GOAWAY are handled connection-locally. HEADERS frames create new stream
 //! entries and invoke the callback. DATA frames are routed to the stream's
 //! handler. Frames destined for the peer are queued in `write_buf` and flushed.
@@ -21,7 +21,10 @@ use std::io::{self, Read, Write};
 use bytes::{BufMut, Bytes, BytesMut};
 
 use crate::http2::flow_control::{FlowControl, WindowSize};
-use crate::http2::frame::*;
+use crate::http2::frame::{
+    data_flags, headers_flags, ping_flags, settings_flags, DataFrame, ErrorCode, GoAwayFrame, Head,
+    HeadersFrame, Kind, PingFrame, ResetFrame, SettingId, SettingsFrame, WindowUpdateFrame,
+};
 use crate::http2::hpack;
 use crate::http2::settings::SettingsStore;
 use crate::http2::stream::StreamState;
@@ -41,18 +44,28 @@ impl StreamId {
     pub const CONNECTION: Self = StreamId(0);
 
     /// Whether this is a client-initiated stream (odd stream ID).
-    pub fn is_client_initiated(self) -> bool { self.0 % 2 == 1 }
+    #[must_use]
+    pub fn is_client_initiated(self) -> bool {
+        self.0 % 2 == 1
+    }
 
     /// Whether this is a server-initiated (push) stream (even stream ID).
-    pub fn is_server_initiated(self) -> bool { self.0 > 0 && self.0 % 2 == 0 }
+    #[must_use]
+    pub fn is_server_initiated(self) -> bool {
+        self.0 > 0 && self.0.is_multiple_of(2)
+    }
 }
 
 impl From<u32> for StreamId {
-    fn from(id: u32) -> Self { StreamId(id) }
+    fn from(id: u32) -> Self {
+        StreamId(id)
+    }
 }
 
 impl From<StreamId> for u32 {
-    fn from(s: StreamId) -> u32 { s.0 }
+    fn from(s: StreamId) -> u32 {
+        s.0
+    }
 }
 
 /// A decoded HTTP/2 request/response — pseudo-headers + regular headers + body.
@@ -87,7 +100,7 @@ pub trait StreamHandler: Send {
         // Default: accumulate (overridden by streaming handlers)
     }
 
-    /// Called when a RST_STREAM arrives.
+    /// Called when a `RST_STREAM` arrives.
     fn handle_reset(&mut self, _stream_id: StreamId, _error_code: ErrorCode) {}
 }
 
@@ -191,14 +204,22 @@ impl<S: Read + Write> H2Connection<S> {
                         got_ack = true;
                     } else {
                         let sf = SettingsFrame::parse(&head, &payload).map_err(proto_err)?;
-                        let _changes = self.remote_settings.apply(&sf.settings).map_err(proto_err)?;
+                        let _changes = self
+                            .remote_settings
+                            .apply(&sf.settings)
+                            .map_err(proto_err)?;
                         // ACK the settings
                         SettingsFrame::ack().encode(&mut self.write_buf);
                         self.flush_write()?;
                         got_settings = true;
                     }
                 }
-                _ => return Err(io::Error::new(io::ErrorKind::InvalidData, "unexpected frame during handshake")),
+                _ => {
+                    return Err(io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "unexpected frame during handshake",
+                    ))
+                }
             }
         }
         self.preface_sent = true;
@@ -212,17 +233,26 @@ impl<S: Read + Write> H2Connection<S> {
         // 1. Read client preface (24 bytes)
         let mut preface_buf = [0u8; CLIENT_PREFACE_LEN];
         self.socket.read_exact(&mut preface_buf)?;
-        if &preface_buf != CLIENT_PREFACE {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "invalid HTTP/2 connection preface"));
+        if preface_buf != CLIENT_PREFACE {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "invalid HTTP/2 connection preface",
+            ));
         }
 
         // 2. Read client SETTINGS
         let (head, payload) = self.read_frame()?;
         if head.kind != Kind::Settings || head.flag & settings_flags::ACK != 0 {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "expected SETTINGS frame after preface"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "expected SETTINGS frame after preface",
+            ));
         }
         let sf = SettingsFrame::parse(&head, &payload).map_err(proto_err)?;
-        let _changes = self.remote_settings.apply(&sf.settings).map_err(proto_err)?;
+        let _changes = self
+            .remote_settings
+            .apply(&sf.settings)
+            .map_err(proto_err)?;
 
         // 3. ACK client SETTINGS
         SettingsFrame::ack().encode(&mut self.write_buf);
@@ -237,11 +267,17 @@ impl<S: Read + Write> H2Connection<S> {
         // 5. Wait for client SETTINGS ACK
         let (head, payload) = self.read_frame()?;
         if head.kind != Kind::Settings || head.flag & settings_flags::ACK == 0 {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "expected SETTINGS ACK"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "expected SETTINGS ACK",
+            ));
         }
         // Validate empty payload
         if !payload.is_empty() {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "SETTINGS ACK must have empty payload"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "SETTINGS ACK must have empty payload",
+            ));
         }
 
         self.waiting_for_settings_ack = false;
@@ -269,7 +305,7 @@ impl<S: Read + Write> H2Connection<S> {
     pub fn server_recv_preface(&mut self) -> io::Result<()> {
         let mut preface_buf = [0u8; CLIENT_PREFACE_LEN];
         self.socket.read_exact(&mut preface_buf)?;
-        if &preface_buf != CLIENT_PREFACE {
+        if preface_buf != CLIENT_PREFACE {
             return Err(io::Error::new(
                 io::ErrorKind::InvalidData,
                 "invalid HTTP/2 connection preface",
@@ -293,7 +329,10 @@ impl<S: Read + Write> H2Connection<S> {
             ));
         }
         let sf = SettingsFrame::parse(head, payload).map_err(proto_err)?;
-        let _changes = self.remote_settings.apply(&sf.settings).map_err(proto_err)?;
+        let _changes = self
+            .remote_settings
+            .apply(&sf.settings)
+            .map_err(proto_err)?;
 
         SettingsFrame::ack().encode(&mut self.write_buf);
         self.flush_write()?;
@@ -319,8 +358,10 @@ impl<S: Read + Write> H2Connection<S> {
         // Validate payload length against remote max frame size
         let max_frame = self.remote_settings.get(SettingId::MaxFrameSize);
         if payload_len > max_frame {
-            return Err(io::Error::new(io::ErrorKind::InvalidData,
-                format!("frame payload {} exceeds SETTINGS_MAX_FRAME_SIZE {}", payload_len, max_frame)));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                format!("frame payload {payload_len} exceeds SETTINGS_MAX_FRAME_SIZE {max_frame}"),
+            ));
         }
 
         // Read payload
@@ -356,10 +397,13 @@ impl<S: Read + Write> H2Connection<S> {
         }
         let id = self.next_outgoing_id;
         self.next_outgoing_id += 2;
-        self.streams.insert(id, StreamEntry {
-            state: StreamState::Idle,
-            flow: FlowControl::new(),
-        });
+        self.streams.insert(
+            id,
+            StreamEntry {
+                state: StreamState::Idle,
+                flow: FlowControl::new(),
+            },
+        );
         Some(id)
     }
 
@@ -401,8 +445,10 @@ impl<S: Read + Write> H2Connection<S> {
                 self.enqueue_reset(stream_id, ErrorCode::RefusedStream);
             }
             Kind::Continuation => {
-                return Err(io::Error::new(io::ErrorKind::InvalidData,
-                    "CONTINUATION not yet supported in this implementation"));
+                return Err(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "CONTINUATION not yet supported in this implementation",
+                ));
             }
         }
 
@@ -412,13 +458,16 @@ impl<S: Read + Write> H2Connection<S> {
 
     // ── Frame handlers ─────────────────────────────────────────────────
 
-    fn handle_headers<H: StreamHandler>(&mut self, head: Head, payload: &[u8], handler: &mut H) -> io::Result<()> {
-        let hf = HeadersFrame::parse(&head, payload)
-            .map_err(proto_err)?;
+    fn handle_headers<H: StreamHandler>(
+        &mut self,
+        head: Head,
+        payload: &[u8],
+        handler: &mut H,
+    ) -> io::Result<()> {
+        let hf = HeadersFrame::parse(&head, payload).map_err(proto_err)?;
 
         // Decode HPACK header block
-        let decoded = self.hpack_dec.decode(&hf.header_block)
-            .map_err(proto_err)?;
+        let decoded = self.hpack_dec.decode(&hf.header_block).map_err(proto_err)?;
 
         // Map pseudo-headers and regular headers
         let request = self.build_request(&decoded, hf.flags & headers_flags::END_STREAM != 0);
@@ -426,9 +475,10 @@ impl<S: Read + Write> H2Connection<S> {
         let stream_id = StreamId::from(head.stream_id);
 
         // Check if this is a new stream
-        let is_idle = self.streams.get(&head.stream_id)
-            .map(|e| e.state == StreamState::Idle)
-            .unwrap_or(false);
+        let is_idle = self
+            .streams
+            .get(&head.stream_id)
+            .is_some_and(|e| e.state == StreamState::Idle);
 
         if is_idle {
             // Transition to Open
@@ -440,8 +490,14 @@ impl<S: Read + Write> H2Connection<S> {
         } else if !self.streams.contains_key(&head.stream_id) {
             // New stream from peer
             let mut state = StreamState::Idle;
-            state.recv_headers(hf.flags & headers_flags::END_STREAM != 0)
-                .map_err(|_| io::Error::new(io::ErrorKind::InvalidData, "illegal stream state for HEADERS"))?;
+            state
+                .recv_headers(hf.flags & headers_flags::END_STREAM != 0)
+                .map_err(|_| {
+                    io::Error::new(
+                        io::ErrorKind::InvalidData,
+                        "illegal stream state for HEADERS",
+                    )
+                })?;
 
             let mut entry = StreamEntry {
                 state,
@@ -462,9 +518,13 @@ impl<S: Read + Write> H2Connection<S> {
         Ok(())
     }
 
-    fn handle_data<H: StreamHandler>(&mut self, head: Head, payload: &[u8], handler: &mut H) -> io::Result<()> {
-        let df = DataFrame::parse(&head, payload)
-            .map_err(proto_err)?;
+    fn handle_data<H: StreamHandler>(
+        &mut self,
+        head: Head,
+        payload: &[u8],
+        handler: &mut H,
+    ) -> io::Result<()> {
+        let df = DataFrame::parse(&head, payload).map_err(proto_err)?;
 
         let stream_id = StreamId::from(head.stream_id);
         let end_stream = df.flags & data_flags::END_STREAM != 0;
@@ -477,10 +537,20 @@ impl<S: Read + Write> H2Connection<S> {
         // Send WINDOW_UPDATE if needed
         self.conn_flow.assign_capacity(increment).ok();
         if let Some(inc) = self.conn_flow.unclaimed_capacity() {
-            let wu = WindowUpdateFrame { stream_id: 0, size_increment: inc };
+            let wu = WindowUpdateFrame {
+                stream_id: 0,
+                size_increment: inc,
+            };
             let mut buf = BytesMut::new();
             wu.encode(&mut buf);
-            self.queue_frame(&Head { kind: Kind::WindowUpdate, flag: 0, stream_id: 0 }, &buf);
+            self.queue_frame(
+                &Head {
+                    kind: Kind::WindowUpdate,
+                    flag: 0,
+                    stream_id: 0,
+                },
+                &buf,
+            );
         }
 
         // Update stream state
@@ -496,7 +566,10 @@ impl<S: Read + Write> H2Connection<S> {
 
     fn handle_settings(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "SETTINGS must be on stream 0"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "SETTINGS must be on stream 0",
+            ));
         }
 
         if head.flag & settings_flags::ACK != 0 {
@@ -505,15 +578,16 @@ impl<S: Read + Write> H2Connection<S> {
             return Ok(());
         }
 
-        let sf = SettingsFrame::parse(&head, payload)
-            .map_err(proto_err)?;
+        let sf = SettingsFrame::parse(&head, payload).map_err(proto_err)?;
 
-        let changes = self.remote_settings.apply(&sf.settings)
+        let changes = self
+            .remote_settings
+            .apply(&sf.settings)
             .map_err(proto_err)?;
 
         for change in &changes {
             if change.id == SettingId::InitialWindowSize {
-                let diff = change.new as i64 - change.old as i64;
+                let diff = i64::from(change.new) - i64::from(change.old);
                 if diff > 0 {
                     // Increase existing stream windows
                 } else {
@@ -526,16 +600,24 @@ impl<S: Read + Write> H2Connection<S> {
         let ack = SettingsFrame::ack();
         let mut buf = BytesMut::new();
         ack.encode(&mut buf);
-        self.queue_frame(&Head { kind: Kind::Settings, flag: settings_flags::ACK, stream_id: 0 }, &buf);
+        self.queue_frame(
+            &Head {
+                kind: Kind::Settings,
+                flag: settings_flags::ACK,
+                stream_id: 0,
+            },
+            &buf,
+        );
         Ok(())
     }
 
     fn handle_window_update(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
-        let wu = WindowUpdateFrame::parse(&head, payload)
-            .map_err(proto_err)?;
+        let wu = WindowUpdateFrame::parse(&head, payload).map_err(proto_err)?;
 
         if head.stream_id == 0 {
-            self.remote_conn_window = self.remote_conn_window.saturating_add(wu.size_increment as i32);
+            self.remote_conn_window = self
+                .remote_conn_window
+                .saturating_add(wu.size_increment as i32);
         } else if let Some(entry) = self.streams.get_mut(&head.stream_id) {
             entry.flow.inc_window(wu.size_increment).ok();
         }
@@ -544,25 +626,38 @@ impl<S: Read + Write> H2Connection<S> {
 
     fn handle_ping(&mut self, head: Head, payload: &[u8]) -> io::Result<()> {
         if head.stream_id != 0 {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "PING must be on stream 0"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "PING must be on stream 0",
+            ));
         }
         if head.flag & ping_flags::ACK != 0 {
             // PING ACK — nothing to do
             return Ok(());
         }
         // Respond with PING ACK
-        let pf = PingFrame::parse(&head, payload)
-            .map_err(proto_err)?;
+        let pf = PingFrame::parse(&head, payload).map_err(proto_err)?;
         let ack = PingFrame::ack(pf.opaque_data);
         let mut buf = BytesMut::new();
         ack.encode(&mut buf);
-        self.queue_frame(&Head { kind: Kind::Ping, flag: ping_flags::ACK, stream_id: 0 }, &buf);
+        self.queue_frame(
+            &Head {
+                kind: Kind::Ping,
+                flag: ping_flags::ACK,
+                stream_id: 0,
+            },
+            &buf,
+        );
         Ok(())
     }
 
-    fn handle_reset<H: StreamHandler>(&mut self, head: Head, payload: &[u8], handler: &mut H) -> io::Result<()> {
-        let rf = ResetFrame::parse(&head, payload)
-            .map_err(proto_err)?;
+    fn handle_reset<H: StreamHandler>(
+        &mut self,
+        head: Head,
+        payload: &[u8],
+        handler: &mut H,
+    ) -> io::Result<()> {
+        let rf = ResetFrame::parse(&head, payload).map_err(proto_err)?;
 
         if let Some(entry) = self.streams.get_mut(&head.stream_id) {
             entry.state = StreamState::Closed;
@@ -580,7 +675,11 @@ impl<S: Read + Write> H2Connection<S> {
 
         // Pseudo-header :status
         let status_bytes = response.status.to_string();
-        self.hpack_enc.encode_header_no_index(b":status", status_bytes.as_bytes(), &mut header_block);
+        self.hpack_enc.encode_header_no_index(
+            b":status",
+            status_bytes.as_bytes(),
+            &mut header_block,
+        );
 
         for (name, value) in &response.headers {
             self.hpack_enc.encode_header(name, value, &mut header_block);
@@ -607,7 +706,11 @@ impl<S: Read + Write> H2Connection<S> {
         if let Some(body) = &response.body {
             let df = DataFrame {
                 stream_id,
-                flags: if response.end_stream { data_flags::END_STREAM } else { 0 },
+                flags: if response.end_stream {
+                    data_flags::END_STREAM
+                } else {
+                    0
+                },
                 data: body.clone(),
                 pad_len: None,
             };
@@ -618,7 +721,10 @@ impl<S: Read + Write> H2Connection<S> {
 
         // Update stream state
         if let Some(entry) = self.streams.get_mut(&stream_id) {
-            entry.state.send_headers(response.body.is_none() && response.end_stream).ok();
+            entry
+                .state
+                .send_headers(response.body.is_none() && response.end_stream)
+                .ok();
         }
 
         Ok(())
@@ -633,29 +739,51 @@ impl<S: Read + Write> H2Connection<S> {
         };
         let mut buf = BytesMut::new();
         gf.encode(&mut buf);
-        self.queue_frame(&Head { kind: Kind::GoAway, flag: 0, stream_id: 0 }, &buf);
+        self.queue_frame(
+            &Head {
+                kind: Kind::GoAway,
+                flag: 0,
+                stream_id: 0,
+            },
+            &buf,
+        );
         self.goaway_sent = true;
     }
 
-    /// Send RST_STREAM on the given stream.
+    /// Send `RST_STREAM` on the given stream.
     fn enqueue_reset(&mut self, stream_id: u32, error_code: ErrorCode) {
-        let rf = ResetFrame { stream_id, error_code };
+        let rf = ResetFrame {
+            stream_id,
+            error_code,
+        };
         let mut buf = BytesMut::new();
         rf.encode(&mut buf);
-        self.queue_frame(&Head { kind: Kind::Reset, flag: 0, stream_id }, &buf);
+        self.queue_frame(
+            &Head {
+                kind: Kind::Reset,
+                flag: 0,
+                stream_id,
+            },
+            &buf,
+        );
     }
 
     /// Open a new outgoing stream (client-side) and send a request.
     pub fn send_request(&mut self, request: H2Request) -> io::Result<u32> {
-        let stream_id = self.alloc_stream_id()
+        let stream_id = self
+            .alloc_stream_id()
             .ok_or_else(|| io::Error::new(io::ErrorKind::WouldBlock, "no available streams"))?;
 
         // Build HPACK request
         let mut header_block = BytesMut::new();
-        self.hpack_enc.encode_header(b":method", &request.method, &mut header_block);
-        self.hpack_enc.encode_header(b":scheme", &request.scheme, &mut header_block);
-        self.hpack_enc.encode_header(b":authority", &request.authority, &mut header_block);
-        self.hpack_enc.encode_header(b":path", &request.path, &mut header_block);
+        self.hpack_enc
+            .encode_header(b":method", &request.method, &mut header_block);
+        self.hpack_enc
+            .encode_header(b":scheme", &request.scheme, &mut header_block);
+        self.hpack_enc
+            .encode_header(b":authority", &request.authority, &mut header_block);
+        self.hpack_enc
+            .encode_header(b":path", &request.path, &mut header_block);
         for (name, value) in &request.headers {
             self.hpack_enc.encode_header(name, value, &mut header_block);
         }
@@ -681,7 +809,11 @@ impl<S: Read + Write> H2Connection<S> {
         if let Some(body) = &request.body {
             let df = DataFrame {
                 stream_id,
-                flags: if request.end_stream { data_flags::END_STREAM } else { 0 },
+                flags: if request.end_stream {
+                    data_flags::END_STREAM
+                } else {
+                    0
+                },
                 data: body.clone(),
                 pad_len: None,
             };
@@ -692,7 +824,10 @@ impl<S: Read + Write> H2Connection<S> {
 
         // Update stream state
         if let Some(entry) = self.streams.get_mut(&stream_id) {
-            entry.state.send_headers(request.body.is_none() && request.end_stream).ok();
+            entry
+                .state
+                .send_headers(request.body.is_none() && request.end_stream)
+                .ok();
         }
 
         self.flush_write()?;
@@ -703,18 +838,36 @@ impl<S: Read + Write> H2Connection<S> {
     /// The caller follows up with [`send_data_frame`] calls and ends with
     /// `send_data_frame(stream_id, data, true)` or an empty
     /// `send_data_frame(stream_id, &[], true)`.
-    pub fn send_headers_response(&mut self, stream_id: u32, status: u16, headers: &[(Bytes, Bytes)], end_stream: bool) -> io::Result<()> {
+    pub fn send_headers_response(
+        &mut self,
+        stream_id: u32,
+        status: u16,
+        headers: &[(Bytes, Bytes)],
+        end_stream: bool,
+    ) -> io::Result<()> {
         let mut header_block = BytesMut::new();
         let status_bytes = status.to_string();
-        self.hpack_enc.encode_header_no_index(b":status", status_bytes.as_bytes(), &mut header_block);
+        self.hpack_enc.encode_header_no_index(
+            b":status",
+            status_bytes.as_bytes(),
+            &mut header_block,
+        );
         for (name, value) in headers {
             self.hpack_enc.encode_header(name, value, &mut header_block);
         }
 
         let mut flags = headers_flags::END_HEADERS;
-        if end_stream { flags |= headers_flags::END_STREAM; }
+        if end_stream {
+            flags |= headers_flags::END_STREAM;
+        }
 
-        let hf = HeadersFrame { stream_id, flags, header_block: header_block.freeze(), pad_len: None, priority: None };
+        let hf = HeadersFrame {
+            stream_id,
+            flags,
+            header_block: header_block.freeze(),
+            pad_len: None,
+            priority: None,
+        };
         let mut buf = BytesMut::new();
         hf.encode(&mut buf);
         self.write_buf.put_slice(&buf);
@@ -730,10 +883,19 @@ impl<S: Read + Write> H2Connection<S> {
     /// The first call after `send_headers_response` or `send_request` must have
     /// `end_stream: false` for multi-frame streaming; the final frame sets
     /// `end_stream: true`.
-    pub fn send_data_frame(&mut self, stream_id: u32, data: &[u8], end_stream: bool) -> io::Result<()> {
+    pub fn send_data_frame(
+        &mut self,
+        stream_id: u32,
+        data: &[u8],
+        end_stream: bool,
+    ) -> io::Result<()> {
         let df = DataFrame {
             stream_id,
-            flags: if end_stream { data_flags::END_STREAM } else { 0 },
+            flags: if end_stream {
+                data_flags::END_STREAM
+            } else {
+                0
+            },
             data: Bytes::copy_from_slice(data),
             pad_len: None,
         };
@@ -763,9 +925,18 @@ impl<S: Read + Write> H2Connection<S> {
                 Kind::Settings => self.handle_settings(head, &payload)?,
                 Kind::WindowUpdate => self.handle_window_update(head, &payload)?,
                 Kind::Ping => self.handle_ping(head, &payload)?,
-                Kind::GoAway => { self.goaway_received = true; return Ok(None); }
-                Kind::Reset => { /* pass through */ return Ok(None); }
-                Kind::Headers => { /* unexpected — pass through */ return Ok(None); }
+                Kind::GoAway => {
+                    self.goaway_received = true;
+                    return Ok(None);
+                }
+                Kind::Reset => {
+                    /* pass through */
+                    return Ok(None);
+                }
+                Kind::Headers => {
+                    /* unexpected — pass through */
+                    return Ok(None);
+                }
                 _ => {}
             }
             self.flush_write()?;
@@ -780,19 +951,21 @@ impl<S: Read + Write> H2Connection<S> {
 
             match head.kind {
                 Kind::Headers => {
-                    let hf = HeadersFrame::parse(&head, &payload)
-                        .map_err(proto_err)?;
+                    let hf = HeadersFrame::parse(&head, &payload).map_err(proto_err)?;
 
-                    let decoded = self.hpack_dec.decode(&hf.header_block)
-                        .map_err(proto_err)?;
+                    let decoded = self.hpack_dec.decode(&hf.header_block).map_err(proto_err)?;
 
-                    let response = self.build_request(&decoded, hf.flags & headers_flags::END_STREAM != 0);
+                    let response =
+                        self.build_request(&decoded, hf.flags & headers_flags::END_STREAM != 0);
                     return Ok(Some((head.stream_id, response)));
                 }
                 Kind::Settings => self.handle_settings(head, &payload)?,
                 Kind::WindowUpdate => self.handle_window_update(head, &payload)?,
                 Kind::Ping => self.handle_ping(head, &payload)?,
-                Kind::GoAway => { self.goaway_received = true; return Ok(None); }
+                Kind::GoAway => {
+                    self.goaway_received = true;
+                    return Ok(None);
+                }
                 Kind::Reset => { /* ignore for client */ }
                 _ => {} // ignore other frames on client
             }

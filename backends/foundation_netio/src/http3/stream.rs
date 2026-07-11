@@ -198,7 +198,10 @@ pub struct StreamTypeReader<R: QuicRecvStream> {
 impl<R: QuicRecvStream> StreamTypeReader<R> {
     /// Begin reading a unidirectional stream's type.
     pub fn new(recv: R) -> Self {
-        Self { recv: Some(recv), buffer: Vec::with_capacity(8) }
+        Self {
+            recv: Some(recv),
+            buffer: Vec::with_capacity(8),
+        }
     }
 
     /// WHAT: the stream type, plus the receive stream and any bytes that followed

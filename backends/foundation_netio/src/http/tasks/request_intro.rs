@@ -242,7 +242,7 @@ impl TaskIterator for GetRequestIntroTask {
                                 tracing::error!("Get intro from stream - error: {:?}", err);
                                 return Some(TaskStatus::Ready(err.into()));
                             }
-                        };
+                        }
 
                         tracing::trace!("[PROCESSING CHECK] Finished Status::Processing");
                     }

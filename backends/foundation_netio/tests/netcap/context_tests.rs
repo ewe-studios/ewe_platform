@@ -26,7 +26,10 @@ fn test_connection_context_empty_default() {
     assert_eq!(ctx.alpn_str(), None);
     assert!(ctx.peer_addr.is_none());
     // `empty()` is the same as `default()`.
-    assert_eq!(ConnectionContext::empty().peer_identity, PeerIdentity::Anonymous);
+    assert_eq!(
+        ConnectionContext::empty().peer_identity,
+        PeerIdentity::Anonymous
+    );
 }
 
 /// WHY: A request built without a connection context must still be valid and
@@ -68,10 +71,16 @@ fn test_request_carries_populated_connection() {
         .expect("valid request");
 
     assert!(req.connection.peer_addr.is_some());
-    assert_eq!(req.connection.peer_identity, PeerIdentity::Ed25519(vec![0xAB; 32]));
+    assert_eq!(
+        req.connection.peer_identity,
+        PeerIdentity::Ed25519(vec![0xAB; 32])
+    );
     assert_eq!(req.connection.alpn_str(), Some("h2"));
     assert_eq!(
-        req.connection.tls.as_ref().and_then(|t| t.server_name.as_deref()),
+        req.connection
+            .tls
+            .as_ref()
+            .and_then(|t| t.server_name.as_deref()),
         Some("example.com")
     );
     // Shared by refcount: the builder cloned the Arc, so both point at one value.

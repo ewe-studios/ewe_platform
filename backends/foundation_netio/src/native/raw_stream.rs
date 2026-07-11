@@ -9,8 +9,8 @@ use foundation_core::io::ioutils::{
     BufferedReader, BufferedWriter, PeekError, PeekableReadStream, ReadTimeoutOperations,
 };
 
+use crate::native::connection::{Connection, DataStreamAddr, Endpoint, EndpointConfig, SocketAddr};
 use crate::shared::errors::{self, DataStreamError, TlsError};
-use crate::native::connection::{Connection, SocketAddr, Endpoint, EndpointConfig, DataStreamAddr};
 
 #[cfg(any(
     feature = "ssl-rustls",
@@ -35,10 +35,7 @@ use crate::native::ssl::openssl;
 use crate::native::ssl::native_ttls;
 
 pub enum RawStream {
-    AsPlain(
-        BufferedReader<BufferedWriter<Connection>>,
-        DataStreamAddr,
-    ),
+    AsPlain(BufferedReader<BufferedWriter<Connection>>, DataStreamAddr),
     #[cfg(any(
         feature = "ssl-rustls",
         feature = "ssl-openssl",
@@ -92,7 +89,7 @@ impl core::fmt::Debug for RawStream {
 }
 
 /// `AsRawFd`/`AsFd` reach through the `BufferedReader<BufferedWriter<…>>` wrapper
-/// to the underlying socket's file descriptor, so the ConnectRPC layer (above
+/// to the underlying socket's file descriptor, so the `ConnectRPC` layer (above
 /// `netio`) can register a live `RawStream` with the `foundation_nativeapis`
 /// reactor and obtain a `RegisteredFd: EventReadiness` to park on (Decision 12
 /// §12). TLS variants delegate to the fd of the wrapped TCP socket — readiness
@@ -228,7 +225,9 @@ pub enum ClientEndpoint {
 // --- Constructors
 
 impl RawStream {
-    pub fn from_endpoint(endpoint: &ClientEndpoint) -> crate::shared::errors::DataStreamResult<Self> {
+    pub fn from_endpoint(
+        endpoint: &ClientEndpoint,
+    ) -> crate::shared::errors::DataStreamResult<Self> {
         match endpoint {
             ClientEndpoint::Plain(endpoint) => Self::client_from_endpoint(endpoint),
             #[cfg(feature = "ssl-rustls")]
@@ -259,7 +258,9 @@ impl RawStream {
         }
     }
 
-    pub fn client_from_endpoint(endpoint: &Endpoint<()>) -> crate::shared::errors::DataStreamResult<Self> {
+    pub fn client_from_endpoint(
+        endpoint: &Endpoint<()>,
+    ) -> crate::shared::errors::DataStreamResult<Self> {
         let host = endpoint.host();
         let host_socket_addr: core::net::SocketAddr = host.parse()?;
 

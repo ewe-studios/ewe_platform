@@ -113,7 +113,10 @@ fn detect_refuses_non_http_protocols() {
     );
 
     // A leading space: there is no method at all.
-    assert_eq!(detect_protocol(b" GET / HTTP/1.1"), DetectedProtocol::Unsupported);
+    assert_eq!(
+        detect_protocol(b" GET / HTTP/1.1"),
+        DetectedProtocol::Unsupported
+    );
 
     // Raw binary noise.
     assert_eq!(
@@ -137,8 +140,18 @@ fn detect_method_length_boundary() {
 #[test]
 fn detect_accepts_registered_and_webdav_methods() {
     for method in [
-        "GET ", "PUT ", "HEAD ", "POST ", "PATCH ", "TRACE ", "DELETE ", "CONNECT ", "OPTIONS ",
-        "PROPFIND ", "PROPPATCH ", "UNSUBSCRIBE ",
+        "GET ",
+        "PUT ",
+        "HEAD ",
+        "POST ",
+        "PATCH ",
+        "TRACE ",
+        "DELETE ",
+        "CONNECT ",
+        "OPTIONS ",
+        "PROPFIND ",
+        "PROPPATCH ",
+        "UNSUBSCRIBE ",
     ] {
         assert_eq!(
             detect_protocol(method.as_bytes()),

@@ -12,17 +12,17 @@
 //! Uses `HttpConnectionPool` for connection management with pooling support.
 //! Uses WebSocket frame decoding for message parsing.
 
-use foundation_core::io::ioutils::ReadTimeoutOperations;
-use crate::netcap::RawStream;
-use foundation_core::valtron::{BoxedSendExecutionAction, PipeReceiver, TaskIterator, TaskStatus};
-use crate::shared::client::DnsResolver;
 use crate::http::HttpClientConnection;
 use crate::http::HttpConnectionPool;
-use foundation_core::url::Uri;
+use crate::netcap::RawStream;
+use crate::shared::client::DnsResolver;
+use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
 use crate::simple_http::shared::{
     Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
 };
-use crate::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
+use foundation_core::io::ioutils::ReadTimeoutOperations;
+use foundation_core::url::Uri;
+use foundation_core::valtron::{BoxedSendExecutionAction, PipeReceiver, TaskIterator, TaskStatus};
 
 use std::io::Write;
 use std::sync::Arc;
@@ -31,7 +31,9 @@ use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::frame::{generate_mask, Opcode, WebSocketFrame};
-use crate::websocket::shared::handshake::{build_upgrade_request, compute_accept_key, generate_websocket_key};
+use crate::websocket::shared::handshake::{
+    build_upgrade_request, compute_accept_key, generate_websocket_key,
+};
 use crate::websocket::shared::message::WebSocketMessage;
 
 /// [`WebSocketProgress`] indicates the current state of WebSocket connection.
@@ -432,7 +434,7 @@ where
                 let host_only = state.url.host_str().unwrap_or_default();
                 let host = match state.url.port() {
                     Some(p) => format!("{host_only}:{p}"),
-                    None => host_only.to_string(),
+                    None => host_only.clone(),
                 };
                 let path = state.url.path();
                 let query = state.url.query();
@@ -614,13 +616,13 @@ where
 
                                 // outbound_rx must always be provided - panic if missing as this
                                 // is a programming error (queue should be created before connect)
-                                let queue = state
-                                    .outbound_rx
-                                    .expect("delivery_queue must be provided");
+                                let queue =
+                                    state.outbound_rx.expect("delivery_queue must be provided");
 
                                 // Create buffer pool for zero-copy frame reading (8KB buffers, 4 pre-allocated)
-                                let buffer_pool =
-                                    Arc::new(foundation_core::io::buffer_pool::BytesPool::new(8192, 4));
+                                let buffer_pool = Arc::new(
+                                    foundation_core::io::buffer_pool::BytesPool::new(8192, 4),
+                                );
 
                                 self.state = Some(WebSocketState::Open(Some(Box::new(
                                     WebSocketOpenState {
@@ -750,13 +752,8 @@ where
                 // Set read timeout before reading - get from calculator
                 let ctx = TimeoutContext::default();
                 let read_timeout = open_state.timeout_calculator.calculate_read_timeout(&ctx);
-                let _ = open_state
-                    .stream
-                    .set_read_timeout_as(read_timeout);
-                debug!(
-                    "Read timeout set to {:?} from calculator",
-                    read_timeout,
-                );
+                let _ = open_state.stream.set_read_timeout_as(read_timeout);
+                debug!("Read timeout set to {:?} from calculator", read_timeout,);
 
                 // Use pooled buffer for zero-copy frame reading
                 match WebSocketFrame::decode_with_buffer(
@@ -878,7 +875,8 @@ where
                         debug!("Read timeout - no data available yet, will retry after delay");
                         // Calculate sleep BEFORE moving open_state
                         let ctx = TimeoutContext::default().streaming();
-                        let sleep_duration = open_state.timeout_calculator.calculate_sleep_duration(&ctx);
+                        let sleep_duration =
+                            open_state.timeout_calculator.calculate_sleep_duration(&ctx);
                         self.state = Some(WebSocketState::Open(Some(open_state)));
                         Some(TaskStatus::Delayed(sleep_duration))
                     }

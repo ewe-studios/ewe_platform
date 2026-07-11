@@ -8,8 +8,8 @@ pub mod pushable_body;
 pub mod timeout;
 
 pub use errors::*;
+pub use extensions::{ContentLengthEnforcingIterator, Extensions};
 pub use impls::*;
-pub use extensions::{Extensions, ContentLengthEnforcingIterator};
 pub use pushable_body::{
     pushable_request_body, pushable_request_body_with_depth, PushableRequestBody,
     DEFAULT_PUSHABLE_DEPTH,

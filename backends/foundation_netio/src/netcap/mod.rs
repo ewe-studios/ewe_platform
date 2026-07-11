@@ -9,12 +9,12 @@
 //! resolves) and as a glob (so `netcap::ConnectionContext` resolves).
 
 // ── Shared modules (always compiled) ──────────────────────────────────
-pub use crate::shared::core;
 pub use crate::shared::context;
+pub use crate::shared::core;
 pub use crate::shared::errors;
 
-pub use crate::shared::core::*;
 pub use crate::shared::context::*;
+pub use crate::shared::core::*;
 pub use crate::shared::errors::*;
 
 // ── Native-only modules ───────────────────────────────────────────────

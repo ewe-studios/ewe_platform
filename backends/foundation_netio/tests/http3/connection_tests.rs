@@ -71,8 +71,8 @@ fn quic_pair() -> (QuicDriver, QuicDriver, QuinnConnection, QuinnConnection) {
     let (mut client, client_conn) =
         QuicDriver::connect(addr, client_cfg, "localhost").expect("connect");
 
-    let server_conn = drive_until(&mut server, &mut client, QuicDriver::take_accepted)
-        .expect("server accepted");
+    let server_conn =
+        drive_until(&mut server, &mut client, QuicDriver::take_accepted).expect("server accepted");
 
     (server, client, server_conn, client_conn)
 }
@@ -165,13 +165,16 @@ fn http3_request_response_round_trip_over_the_simple_types() {
         .with_status(Status::OK)
         .build()
         .expect("response");
-    response
-        .headers
-        .insert(SimpleHeader::from("content-type".to_string()), vec!["application/grpc".into()]);
+    response.headers.insert(
+        SimpleHeader::from("content-type".to_string()),
+        vec!["application/grpc".into()],
+    );
 
     let response_fields = response_to_fields(&response);
-    let pairs: Vec<(&[u8], &[u8])> =
-        response_fields.iter().map(|(n, v)| (&n[..], &v[..])).collect();
+    let pairs: Vec<(&[u8], &[u8])> = response_fields
+        .iter()
+        .map(|(n, v)| (&n[..], &v[..]))
+        .collect();
 
     let mut resp_headers = H3Request::<QuinnBidiStream>::encode_headers(&pairs);
     until!(sq, cq, inbound.poll_send_headers(&mut resp_headers));
@@ -248,7 +251,9 @@ fn a_control_stream_whose_first_frame_is_not_settings_is_rejected() {
     // Hand-roll a control stream that opens with GOAWAY instead of SETTINGS.
     let mut control = until!(sq, cq, client_conn.open_send());
     let mut preamble = Vec::new();
-    VarInt::new(stream_type::CONTROL).unwrap().encode(&mut preamble);
+    VarInt::new(stream_type::CONTROL)
+        .unwrap()
+        .encode(&mut preamble);
     Frame::GoAway(VarInt::new(0).unwrap()).encode(&mut preamble);
     let mut bytes = Bytes::from(preamble);
 
@@ -314,7 +319,10 @@ fn a_trailing_headers_frame_is_surfaced_as_trailers() {
     let mut inbound = until!(sq, cq, server.poll_accept());
     let _ = until!(sq, cq, inbound.poll_headers());
 
-    assert!(inbound.trailers().is_none(), "no trailers before the body is drained");
+    assert!(
+        inbound.trailers().is_none(),
+        "no trailers before the body is drained"
+    );
 
     let body = until!(sq, cq, inbound.poll_body()).expect("DATA");
     assert_eq!(&body[..], b"payload");
@@ -322,9 +330,13 @@ fn a_trailing_headers_frame_is_surfaced_as_trailers() {
     let end = until!(sq, cq, inbound.poll_body());
     assert!(end.is_none(), "the trailers section ends the body");
 
-    let trailers = inbound.trailers().expect("trailers must be surfaced, not discarded");
+    let trailers = inbound
+        .trailers()
+        .expect("trailers must be surfaced, not discarded");
     assert!(
-        trailers.iter().any(|(n, v)| &n[..] == b"grpc-status" && &v[..] == b"0"),
+        trailers
+            .iter()
+            .any(|(n, v)| &n[..] == b"grpc-status" && &v[..] == b"0"),
         "gRPC's status lives in the trailers: {trailers:?}"
     );
 }

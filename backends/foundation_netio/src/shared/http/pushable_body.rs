@@ -23,7 +23,8 @@ use bytes::Bytes;
 use foundation_core::extensions::result_ext::BoxedError;
 use foundation_core::io::readers::Data;
 use foundation_core::valtron::{
-    BoxedSendableDataIterator, Pipe, PipeReceiver, PipeSender, SendError, TryRecvError, TrySendError,
+    BoxedSendableDataIterator, Pipe, PipeReceiver, PipeSender, SendError, TryRecvError,
+    TrySendError,
 };
 
 use crate::simple_http::shared::impls::SendSafeBody;
@@ -127,8 +128,7 @@ pub fn pushable_request_body() -> (PushableRequestBody, SendSafeBody) {
 #[must_use]
 pub fn pushable_request_body_with_depth(depth: usize) -> (PushableRequestBody, SendSafeBody) {
     let (sender, receiver) = Pipe::<Bytes>::with_depth(depth);
-    let reader: BoxedSendableDataIterator<BoxedError> =
-        Box::new(PushableBodyReader { receiver });
+    let reader: BoxedSendableDataIterator<BoxedError> = Box::new(PushableBodyReader { receiver });
     (
         PushableRequestBody { sender },
         SendSafeBody::Stream(Some(reader)),

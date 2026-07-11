@@ -126,21 +126,29 @@ pub struct DynamicTable {
 
 impl DynamicTable {
     /// Create a new dynamic table with the given max size.
+    #[must_use]
     pub fn new(max_size: usize) -> Self {
-        Self { entries: VecDeque::new(), current_size: 0, max_size }
+        Self {
+            entries: VecDeque::new(),
+            current_size: 0,
+            max_size,
+        }
     }
 
     /// Number of entries currently in the table.
+    #[must_use]
     pub fn len(&self) -> usize {
         self.entries.len()
     }
 
     /// Current total size in bytes.
+    #[must_use]
     pub fn size(&self) -> usize {
         self.current_size
     }
 
     /// Maximum allowed size in bytes.
+    #[must_use]
     pub fn max_size(&self) -> usize {
         self.max_size
     }
@@ -157,16 +165,20 @@ impl DynamicTable {
     }
 
     /// Look up an entry by its 1-based HPACK index (62+ is dynamic, 62 = most recent).
+    #[must_use]
     pub fn get(&self, index: usize) -> Option<(&[u8], &[u8])> {
         if index < FIRST_DYNAMIC_INDEX {
             return None;
         }
         let offset = index - FIRST_DYNAMIC_INDEX;
-        self.entries.get(offset).map(|e| (e.name.as_ref(), e.value.as_ref()))
+        self.entries
+            .get(offset)
+            .map(|e| (e.name.as_ref(), e.value.as_ref()))
     }
 
     /// Find the index of a matching (name, value) pair in this table.
     /// Returns the 1-based HPACK index (62+).
+    #[must_use]
     pub fn find_exact(&self, name: &[u8], value: &[u8]) -> Option<usize> {
         for (i, entry) in self.entries.iter().enumerate() {
             if entry.name.as_ref() == name && entry.value.as_ref() == value {
@@ -178,6 +190,7 @@ impl DynamicTable {
 
     /// Find the index of a matching name in this table.
     /// Returns the 1-based HPACK index (62+).
+    #[must_use]
     pub fn find_name(&self, name: &[u8]) -> Option<usize> {
         for (i, entry) in self.entries.iter().enumerate() {
             if entry.name.as_ref() == name {
@@ -218,8 +231,9 @@ impl DynamicTable {
 // ── Static table helpers ────────────────────────────────────────────────────
 
 /// Look up an entry by its 1-based HPACK index (1..=61 for static).
+#[must_use]
 pub fn static_table_get(index: usize) -> Option<(&'static str, &'static str)> {
-    if index >= 1 && index <= STATIC_TABLE_LEN {
+    if (1..=STATIC_TABLE_LEN).contains(&index) {
         Some(STATIC_TABLE[index - 1])
     } else {
         None
@@ -227,6 +241,7 @@ pub fn static_table_get(index: usize) -> Option<(&'static str, &'static str)> {
 }
 
 /// Find the index of a matching (name, value) in the static table.
+#[must_use]
 pub fn static_table_find_exact(name: &[u8], value: &[u8]) -> Option<usize> {
     for (i, (n, v)) in STATIC_TABLE.iter().enumerate() {
         if n.as_bytes() == name && v.as_bytes() == value {
@@ -237,6 +252,7 @@ pub fn static_table_find_exact(name: &[u8], value: &[u8]) -> Option<usize> {
 }
 
 /// Find the index of a matching name in the static table.
+#[must_use]
 pub fn static_table_find_name(name: &[u8]) -> Option<usize> {
     for (i, (n, _)) in STATIC_TABLE.iter().enumerate() {
         if n.as_bytes() == name {
@@ -381,16 +397,22 @@ pub struct Decoder {
 
 impl Decoder {
     /// Create a new decoder with the default max table size (4096 bytes).
+    #[must_use]
     pub fn new() -> Self {
         Self::with_max_size(DEFAULT_MAX_TABLE_SIZE)
     }
 
     /// Create a new decoder with the given max table size.
+    #[must_use]
     pub fn with_max_size(max_size: usize) -> Self {
-        Self { table: DynamicTable::new(max_size), pending: BytesMut::new() }
+        Self {
+            table: DynamicTable::new(max_size),
+            pending: BytesMut::new(),
+        }
     }
 
     /// Access the dynamic table.
+    #[must_use]
     pub fn table(&self) -> &DynamicTable {
         &self.table
     }
@@ -435,7 +457,6 @@ impl Decoder {
 
         Ok(headers)
     }
-
 }
 
 /// What the caller should do after decoding one item from the buffer.
@@ -469,7 +490,11 @@ fn decode_one(table: &DynamicTable, buf: &[u8]) -> Result<(DecodeAction, usize),
         };
         let (name, value) = lookup(table, idx)?;
         return Ok((
-            DecodeAction::Emit(Bytes::copy_from_slice(name), Bytes::copy_from_slice(value), false),
+            DecodeAction::Emit(
+                Bytes::copy_from_slice(name),
+                Bytes::copy_from_slice(value),
+                false,
+            ),
             consumed,
         ));
     }
@@ -538,7 +563,10 @@ fn decode_literal_no_index(
         None => return Ok((DecodeAction::NeedMore, 0)),
     };
 
-    Ok((DecodeAction::Emit(name, value, false), offset + val_consumed))
+    Ok((
+        DecodeAction::Emit(name, value, false),
+        offset + val_consumed,
+    ))
 }
 
 /// Helper: decode the name part of a literal header.
@@ -599,16 +627,21 @@ pub struct Encoder {
 
 impl Encoder {
     /// Create a new encoder with the default max table size.
+    #[must_use]
     pub fn new() -> Self {
         Self::with_max_size(DEFAULT_MAX_TABLE_SIZE)
     }
 
     /// Create a new encoder with the given max table size.
+    #[must_use]
     pub fn with_max_size(max_size: usize) -> Self {
-        Self { table: DynamicTable::new(max_size) }
+        Self {
+            table: DynamicTable::new(max_size),
+        }
     }
 
     /// Access the encoder's dynamic table.
+    #[must_use]
     pub fn table(&self) -> &DynamicTable {
         &self.table
     }
@@ -621,8 +654,8 @@ impl Encoder {
     /// Encode a single header field and append to `dst`.
     pub fn encode_header(&mut self, name: &[u8], value: &[u8], dst: &mut BytesMut) {
         // Try indexed representation (full match in static or dynamic table)
-        if let Some(idx) = static_table_find_exact(name, value)
-            .or_else(|| self.table.find_exact(name, value))
+        if let Some(idx) =
+            static_table_find_exact(name, value).or_else(|| self.table.find_exact(name, value))
         {
             // Indexed Header Field: 1xxx_xxxx
             let prefix_max = int_prefix_max(7);
@@ -636,8 +669,7 @@ impl Encoder {
         }
 
         // Try literal with indexed name
-        let name_idx = static_table_find_name(name)
-            .or_else(|| self.table.find_name(name));
+        let name_idx = static_table_find_name(name).or_else(|| self.table.find_name(name));
 
         if let Some(idx) = name_idx {
             // Literal Header Field with Incremental Indexing: 01xx_xxxx
@@ -658,7 +690,8 @@ impl Encoder {
         encode_string_literal(value, dst);
 
         // Add to dynamic table
-        self.table.insert(Bytes::copy_from_slice(name), Bytes::copy_from_slice(value));
+        self.table
+            .insert(Bytes::copy_from_slice(name), Bytes::copy_from_slice(value));
     }
 
     /// Encode a header field without adding it to the dynamic table.

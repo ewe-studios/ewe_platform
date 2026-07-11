@@ -116,7 +116,11 @@ fn decode_int(src: &[u8], prefix_bits: u8) -> Result<(u64, usize), QpackError> {
     for &byte in &src[1..] {
         consumed += 1;
         value = value
-            .checked_add(u64::from(byte & 0x7f).checked_shl(shift).ok_or(QpackError::BadInteger)?)
+            .checked_add(
+                u64::from(byte & 0x7f)
+                    .checked_shl(shift)
+                    .ok_or(QpackError::BadInteger)?,
+            )
             .ok_or(QpackError::BadInteger)?;
         if byte & 0x80 == 0 {
             return Ok((value, consumed));
@@ -168,7 +172,9 @@ fn decode_string(src: &[u8], prefix_bits: u8) -> Result<(Bytes, usize), QpackErr
 
     let value = if huffman {
         // QPACK reuses HPACK's Huffman code verbatim (RFC 9204 §5).
-        huffman::decode(raw).map_err(QpackError::BadHuffman)?.freeze()
+        huffman::decode(raw)
+            .map_err(QpackError::BadHuffman)?
+            .freeze()
     } else {
         Bytes::copy_from_slice(raw)
     };
@@ -184,7 +190,12 @@ fn encode_string(value: &[u8], prefix_bits: u8, flags: u8, out: &mut Vec<u8>) {
     // Huffman is only worth it when it shrinks the string; RFC 7541 §5.2 leaves
     // the choice to the encoder.
     if huffed.len() < value.len() {
-        encode_int(huffed.len() as u64, prefix_bits, flags | (1 << prefix_bits), out);
+        encode_int(
+            huffed.len() as u64,
+            prefix_bits,
+            flags | (1 << prefix_bits),
+            out,
+        );
         out.extend_from_slice(&huffed);
     } else {
         encode_int(value.len() as u64, prefix_bits, flags, out);

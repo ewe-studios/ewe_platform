@@ -13,18 +13,18 @@
 //!
 //! PHASE 2 SCOPE: Max reconnect duration support, exponential backoff with jitter.
 
-use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
-use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
 use crate::shared::client::DnsResolver;
 use crate::simple_http::shared::SimpleHeader;
 use concurrent_queue::ConcurrentQueue;
+use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 use tracing::{debug, error, info, instrument, trace};
 
+use crate::websocket::native::task::{WebSocketProgress, WebSocketTask};
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::message::WebSocketMessage;
-use crate::websocket::native::task::{WebSocketProgress, WebSocketTask};
 
 /// Configuration for reconnecting WebSocket client.
 pub struct ReconnectingConfig {
@@ -305,14 +305,25 @@ where
                     }
                     Some(TaskStatus::Spread(items)) => {
                         self.state = Some(ReconnectingWebSocketState::Connected(inner));
-                        let mapped: Vec<TaskSpread<Result<WebSocketMessage, WebSocketError>, ReconnectingWebSocketProgress>> = items
+                        let mapped: Vec<
+                            TaskSpread<
+                                Result<WebSocketMessage, WebSocketError>,
+                                ReconnectingWebSocketProgress,
+                            >,
+                        > = items
                             .into_iter()
                             .map(|item| match item {
                                 TaskSpread::Ready(v) => TaskSpread::Ready(v),
                                 TaskSpread::Pending(p) => TaskSpread::Pending(match p {
-                                    WebSocketProgress::Connecting => ReconnectingWebSocketProgress::Connecting,
-                                    WebSocketProgress::Handshaking => ReconnectingWebSocketProgress::Handshaking,
-                                    WebSocketProgress::Reading => ReconnectingWebSocketProgress::Reading,
+                                    WebSocketProgress::Connecting => {
+                                        ReconnectingWebSocketProgress::Connecting
+                                    }
+                                    WebSocketProgress::Handshaking => {
+                                        ReconnectingWebSocketProgress::Handshaking
+                                    }
+                                    WebSocketProgress::Reading => {
+                                        ReconnectingWebSocketProgress::Reading
+                                    }
                                 }),
                             })
                             .collect();

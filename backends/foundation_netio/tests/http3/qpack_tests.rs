@@ -20,7 +20,12 @@ const NO_LIMIT: usize = 1 << 20;
 fn fields(pairs: &[(&str, &str)]) -> Vec<(Bytes, Bytes)> {
     pairs
         .iter()
-        .map(|(n, v)| (Bytes::copy_from_slice(n.as_bytes()), Bytes::copy_from_slice(v.as_bytes())))
+        .map(|(n, v)| {
+            (
+                Bytes::copy_from_slice(n.as_bytes()),
+                Bytes::copy_from_slice(v.as_bytes()),
+            )
+        })
         .collect()
 }
 
@@ -51,7 +56,10 @@ fn static_table_matches_the_rfc_at_its_boundaries() {
     assert_eq!(static_table::STATIC_TABLE_LEN, 99);
     assert_eq!(static_table::get(0), Some((&b":authority"[..], &b""[..])));
     assert_eq!(static_table::get(1), Some((&b":path"[..], &b"/"[..])));
-    assert_eq!(static_table::get(98), Some((&b"x-frame-options"[..], &b"sameorigin"[..])));
+    assert_eq!(
+        static_table::get(98),
+        Some((&b"x-frame-options"[..], &b"sameorigin"[..]))
+    );
     assert_eq!(static_table::get(99), None, "index 99 is out of range");
 
     assert_eq!(static_table::find_exact(b":path", b"/"), Some(1));
@@ -97,7 +105,9 @@ fn every_representation_round_trips() {
 fn empty_field_section_round_trips() {
     let encoded = encode_field_section::<&str, &str>(&[]);
     assert_eq!(encoded, vec![0x00, 0x00], "just the two zero prefixes");
-    assert!(decode_field_section(&encoded, NO_LIMIT).expect("decode").is_empty());
+    assert!(decode_field_section(&encoded, NO_LIMIT)
+        .expect("decode")
+        .is_empty());
 }
 
 #[test]
@@ -208,11 +218,20 @@ fn an_out_of_range_static_index_is_rejected() {
 fn a_truncated_section_is_rejected_rather_than_half_decoded() {
     // A literal announcing 11 bytes of value but carrying 3.
     let wire: &[u8] = &[0x00, 0x00, 0x51, 0x0b, 0x2f, 0x69, 0x6e];
-    assert_eq!(decode_field_section(wire, NO_LIMIT), Err(QpackError::Truncated));
+    assert_eq!(
+        decode_field_section(wire, NO_LIMIT),
+        Err(QpackError::Truncated)
+    );
 
     // And the two mandatory prefixes cannot be skipped.
-    assert_eq!(decode_field_section(&[], NO_LIMIT), Err(QpackError::Truncated));
-    assert_eq!(decode_field_section(&[0x00], NO_LIMIT), Err(QpackError::Truncated));
+    assert_eq!(
+        decode_field_section(&[], NO_LIMIT),
+        Err(QpackError::Truncated)
+    );
+    assert_eq!(
+        decode_field_section(&[0x00], NO_LIMIT),
+        Err(QpackError::Truncated)
+    );
 }
 
 #[test]
@@ -221,7 +240,11 @@ fn a_decompression_bomb_is_capped() {
     // RFC 9204 §4.5.1 charges 32 bytes of overhead per field for exactly this.
     let many: Vec<(&str, &str)> = std::iter::repeat((":path", "/")).take(200).collect();
     let encoded = encode_field_section(&many);
-    assert!(encoded.len() < 250, "200 indexed lines compress tightly: {}", encoded.len());
+    assert!(
+        encoded.len() < 250,
+        "200 indexed lines compress tightly: {}",
+        encoded.len()
+    );
 
     match decode_field_section(&encoded, 1024) {
         Err(QpackError::TooLarge { limit }) => assert_eq!(limit, 1024),
@@ -229,5 +252,10 @@ fn a_decompression_bomb_is_capped() {
     }
 
     // With room, the same bytes decode fine.
-    assert_eq!(decode_field_section(&encoded, NO_LIMIT).expect("decode").len(), 200);
+    assert_eq!(
+        decode_field_section(&encoded, NO_LIMIT)
+            .expect("decode")
+            .len(),
+        200
+    );
 }

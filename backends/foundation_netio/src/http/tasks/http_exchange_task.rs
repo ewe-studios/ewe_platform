@@ -21,13 +21,9 @@ use foundation_core::valtron::{
 };
 
 use crate::http::tasks::{RequestIntro, SendRequestTask};
-use crate::shared::client::body_reader::{
-    SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
-};
+use crate::shared::client::body_reader::{SendSafeBodyBytesItem, SendSafeBodyBytesIterator};
 use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
-use crate::shared::client::{
-    ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver,
-};
+use crate::shared::client::{ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver};
 use crate::simple_http::client::{HttpClientConnection, HttpConnectionPool};
 use crate::simple_http::shared::IncomingResponseParts;
 
@@ -177,10 +173,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
                             // `Send + Sync` error that crosses the task/split boundary.
                             // A non-`Send` trait object cannot enter that container, so
                             // we preserve the message via an `io::Error`.
-                            let se: SendableBoxedError = Box::new(std::io::Error::new(
-                                std::io::ErrorKind::Other,
-                                e.to_string(),
-                            ));
+                            let se: SendableBoxedError =
+                                Box::new(std::io::Error::other(e.to_string()));
                             let taken_conn = conn.take();
                             self.state = State::Failed(Some(se));
                             if let Some(mut c) = taken_conn {
@@ -203,8 +197,10 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for HttpExchangeTask<R> {
 
                 // 2. Read the next `IncomingResponseParts` from the body reader.
                 match body_reader.next() {
-                    Some(Ok(IncomingResponseParts::SizedBody(body)))
-                    | Some(Ok(IncomingResponseParts::StreamedBody(body))) => {
+                    Some(Ok(
+                        IncomingResponseParts::SizedBody(body)
+                        | IncomingResponseParts::StreamedBody(body),
+                    )) => {
                         *chunk_iter = Some(SendSafeBodyBytesIterator::new(body));
                         Some(TaskStatus::Pending(HttpExchangePending::Waiting))
                     }

@@ -113,7 +113,6 @@ fn test_with_max_retries() {
 #[test]
 #[traced_test]
 fn test_with_max_reconnect_duration() {
-
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()
@@ -164,7 +163,6 @@ fn test_with_header() {
 #[test]
 #[traced_test]
 fn test_with_read_timeout() {
-
     let resolver = SystemDnsResolver;
     let task = ReconnectingWebSocketTask::connect(resolver, "ws://localhost:8080/chat")
         .unwrap()

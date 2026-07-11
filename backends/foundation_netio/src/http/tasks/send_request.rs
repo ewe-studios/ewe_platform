@@ -15,19 +15,17 @@
 //! PHASE 1 SCOPE: HTTP-only (no HTTPS), blocking connection, basic GET requests.
 //! PHASE 2 SCOPE: HTTPS support, non-blocking connection, advanced request handling.
 
-use foundation_core::url::Uri;
-use foundation_core::valtron::{
-    drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineAction,
-    TaskIterator, TaskStatus,
-};
 use crate::shared::client::body_reader::drain_stream_iterator_from_send_safe;
-use crate::shared::client::{
-    redirects, ClientConfig, DnsResolver, PreparedRequest,
-};
+use crate::shared::client::{redirects, ClientConfig, DnsResolver, PreparedRequest};
 use crate::simple_http::client::HttpConnectionPool;
 use crate::simple_http::shared::{
     HttpClientError, IncomingResponseParts, SendSafeBody, SimpleHeader, SimpleIncomingRequest,
     SimpleMethod, Status,
+};
+use foundation_core::url::Uri;
+use foundation_core::valtron::{
+    drive_receiver, inlined_task, BoxedSendExecutionAction, DrivenRecvIterator, InlineAction,
+    TaskIterator, TaskStatus,
 };
 use std::io::Write;
 use std::sync::Arc;
@@ -213,9 +211,7 @@ where
                     Some(TaskStatus::Pending(_)) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
-                    Some(TaskStatus::Spawn(action)) => {
-                        Some(TaskStatus::Spawn(Box::new(action)))
-                    }
+                    Some(TaskStatus::Spawn(action)) => Some(TaskStatus::Spawn(Box::new(action))),
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
                     Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
@@ -297,34 +293,33 @@ where
                                                 }
                                             };
 
-                                            match next_item {
-                                                IncomingResponseParts::StreamedBody(stream) => {
-                                                    tracing::info!(
-                                                    "[PROCESSING CHECK] Saw next body under Status::Processing state: {:?}",
-                                                    &stream,
-                                                );
+                                            if let IncomingResponseParts::StreamedBody(stream) =
+                                                next_item
+                                            {
+                                                tracing::info!(
+                                                "[PROCESSING CHECK] Saw next body under Status::Processing state: {:?}",
+                                                &stream,
+                                            );
 
-                                                    if let Err(err) =
-                                                        drain_stream_iterator_from_send_safe(stream)
-                                                    {
-                                                        tracing::error!(
-                                                        "[PROCESSING CHECK] Failed to drain body from 102 status due to: {:?}",
-                                                        err
-                                                    );
-                                                        self.0.take();
-                                                        return Some(TaskStatus::Ready(
-                                                            RequestIntro::Failed(
-                                                                HttpClientError::ReadError,
-                                                            ),
-                                                        ));
-                                                    }
-                                                }
-                                                _ => {
-                                                    tracing::trace!(
-                                                    "[PROCESSING CHECK] Skipping body state from request under Status::Processing"
+                                                if let Err(err) =
+                                                    drain_stream_iterator_from_send_safe(stream)
+                                                {
+                                                    tracing::error!(
+                                                    "[PROCESSING CHECK] Failed to drain body from 102 status due to: {:?}",
+                                                    err
                                                 );
-                                                    continue;
+                                                    self.0.take();
+                                                    return Some(TaskStatus::Ready(
+                                                        RequestIntro::Failed(
+                                                            HttpClientError::ReadError,
+                                                        ),
+                                                    ));
                                                 }
+                                            } else {
+                                                tracing::trace!(
+                                                "[PROCESSING CHECK] Skipping body state from request under Status::Processing"
+                                            );
+                                                continue;
                                             }
                                         }
 
@@ -363,7 +358,7 @@ where
                                                 );
                                                 return Some(TaskStatus::Ready(err.into()));
                                             }
-                                        };
+                                        }
 
                                         tracing::trace!("[PROCESSING CHECK] read new header from branched reader");
                                         match reader.next()? {
@@ -390,7 +385,7 @@ where
                                                 );
                                                 return Some(TaskStatus::Ready(err.into()));
                                             }
-                                        };
+                                        }
 
                                         tracing::trace!(
                                             "[PROCESSING CHECK] Finished Status::Processing"
@@ -500,9 +495,7 @@ where
                     Some(TaskStatus::Pending(())) => {
                         Some(TaskStatus::Pending(HttpRequestPending::WaitingForStream))
                     }
-                    Some(TaskStatus::Spawn(action)) => {
-                        Some(TaskStatus::Spawn(Box::new(action)))
-                    }
+                    Some(TaskStatus::Spawn(action)) => Some(TaskStatus::Spawn(Box::new(action))),
                     Some(TaskStatus::Ignore) => Some(TaskStatus::Ignore),
                     Some(TaskStatus::Wait) => Some(TaskStatus::Wait),
                     Some(TaskStatus::Depends(signal)) => Some(TaskStatus::Depends(signal)),
@@ -565,10 +558,7 @@ where
                             )));
                         }
                         self.4 -= 1;
-                        tracing::info!(
-                            "CheckRedirect: following redirect, {} remaining",
-                            self.4
-                        );
+                        tracing::info!("CheckRedirect: following redirect, {} remaining", self.4);
 
                         // drain connection
                         conn.drain_stream();
@@ -604,7 +594,7 @@ where
                                                 "CheckRedirect: Adding headers to req: {:?}",
                                                 headers_to_add
                                             );
-                                            for (key, values) in headers_to_add.iter() {
+                                            for (key, values) in headers_to_add {
                                                 for value in values {
                                                     new_request = new_request
                                                         .add_header(key.clone(), value.clone());

@@ -11,12 +11,12 @@
 //! HOW: Uses `execute_stream()` internally and maps Stream states to user-visible
 //! variants.
 
-use foundation_core::valtron::{execute, DrivenStreamIterator, Stream};
 use crate::event_source::{
     Event, EventSourceError, EventSourceTask, ParseResult, ReconnectingEventSourceTask,
 };
-use crate::shared::client::DnsResolver;
 use crate::http::HttpConnectionPool;
+use crate::shared::client::DnsResolver;
+use foundation_core::valtron::{execute, DrivenStreamIterator, Stream};
 use std::sync::Arc;
 
 /// SSE event wrapper that indicates whether to process or skip.

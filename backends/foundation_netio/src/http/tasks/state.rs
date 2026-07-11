@@ -170,7 +170,7 @@ impl<T, E> FetchOutcome<T, E> {
 ///
 /// WHAT: Combines source identifier with `FetchOutcome` for complete tracking.
 ///
-/// HOW: Use as the `Ready` type in TaskIterator combinators for observable fetches.
+/// HOW: Use as the `Ready` type in `TaskIterator` combinators for observable fetches.
 /// After execution, collect all results and report failures by source.
 ///
 /// # Type Parameters
@@ -208,7 +208,7 @@ pub struct FetchResult<S = &'static str, T = Vec<()>, E = String> {
 }
 
 impl<S, T, E> FetchResult<S, T, E> {
-    /// Create a new FetchResult
+    /// Create a new `FetchResult`
     pub fn new(source: S, outcome: FetchOutcome<T, E>) -> Self {
         Self { source, outcome }
     }
@@ -324,6 +324,7 @@ pub struct ErrorCollector<S = String, E = String> {
 
 impl<S, E> ErrorCollector<S, E> {
     /// Create a new error collector
+    #[must_use]
     pub fn new() -> Self {
         Self {
             inner: Arc::new(Mutex::new(Vec::new())),
@@ -340,18 +341,21 @@ impl<S: Clone, E: Clone> ErrorCollector<S, E> {
     }
 
     /// Collect all recorded errors
+    #[must_use]
     pub fn collect(&self) -> Vec<(S, E)> {
         self.inner.lock().map(|g| g.clone()).unwrap_or_default()
     }
 
     /// Check if any errors were recorded
+    #[must_use]
     pub fn has_errors(&self) -> bool {
-        self.inner.lock().map(|g| !g.is_empty()).unwrap_or(false)
+        self.inner.lock().is_ok_and(|g| !g.is_empty())
     }
 
     /// Get the count of recorded errors
+    #[must_use]
     pub fn count(&self) -> usize {
-        self.inner.lock().map(|g| g.len()).unwrap_or(0)
+        self.inner.lock().map_or(0, |g| g.len())
     }
 }
 

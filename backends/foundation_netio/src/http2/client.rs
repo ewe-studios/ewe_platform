@@ -27,7 +27,9 @@ pub struct H2Client<S: Read + Write> {
 impl<S: Read + Write> H2Client<S> {
     /// Create a new client over the given connected socket.
     pub fn new(socket: S) -> Self {
-        Self { conn: H2Connection::new(socket, false) }
+        Self {
+            conn: H2Connection::new(socket, false),
+        }
     }
 
     /// Complete the HTTP/2 handshake (send preface, exchange SETTINGS).
@@ -56,6 +58,10 @@ impl<S: Read + Write> H2Client<S> {
     }
 
     /// Access the underlying connection.
-    pub fn connection(&self) -> &H2Connection<S> { &self.conn }
-    pub fn connection_mut(&mut self) -> &mut H2Connection<S> { &mut self.conn }
+    pub fn connection(&self) -> &H2Connection<S> {
+        &self.conn
+    }
+    pub fn connection_mut(&mut self) -> &mut H2Connection<S> {
+        &mut self.conn
+    }
 }

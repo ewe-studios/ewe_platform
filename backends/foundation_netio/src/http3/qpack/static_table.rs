@@ -69,8 +69,14 @@ pub const STATIC_TABLE: [(&[u8], &[u8]); 99] = [
     (b"content-type", b"text/plain;charset=utf-8"),
     (b"range", b"bytes=0-"),
     (b"strict-transport-security", b"max-age=31536000"),
-    (b"strict-transport-security", b"max-age=31536000; includesubdomains"),
-    (b"strict-transport-security", b"max-age=31536000; includesubdomains; preload"),
+    (
+        b"strict-transport-security",
+        b"max-age=31536000; includesubdomains",
+    ),
+    (
+        b"strict-transport-security",
+        b"max-age=31536000; includesubdomains; preload",
+    ),
     (b"vary", b"accept-encoding"),
     (b"vary", b"origin"),
     (b"x-content-type-options", b"nosniff"),
@@ -97,7 +103,10 @@ pub const STATIC_TABLE: [(&[u8], &[u8]); 99] = [
     (b"access-control-request-method", b"post"),
     (b"alt-svc", b"clear"),
     (b"authorization", b""),
-    (b"content-security-policy", b"script-src 'none'; object-src 'none'; base-uri 'none'"),
+    (
+        b"content-security-policy",
+        b"script-src 'none'; object-src 'none'; base-uri 'none'",
+    ),
     (b"early-data", b"1"),
     (b"expect-ct", b""),
     (b"forwarded", b""),

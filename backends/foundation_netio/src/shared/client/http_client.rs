@@ -36,9 +36,8 @@ pub enum SseProgress {
 pub type BoxedSseIterator = Box<dyn Iterator<Item = Stream<ParseResult, SseProgress>> + Send>;
 
 /// Boxed async stream yielding SSE events — for async callers.
-pub type BoxedSseFutureStream = Pin<
-    Box<dyn futures_core::Stream<Item = Stream<ParseResult, SseProgress>> + Send>,
->;
+pub type BoxedSseFutureStream =
+    Pin<Box<dyn futures_core::Stream<Item = Stream<ParseResult, SseProgress>> + Send>>;
 
 /// Platform-agnostic HTTP client with both async and sync surfaces.
 ///
@@ -62,10 +61,7 @@ pub trait HttpClient: Send + Sync {
     ) -> Result<BoxedSseFutureStream, HttpClientError>;
 
     /// Send an HTTP request synchronously.
-    fn send(
-        &self,
-        req: PreparedRequest,
-    ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
+    fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError>;
 
     /// Send an SSE request synchronously — returns a sync iterator.
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;

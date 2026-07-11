@@ -4,8 +4,8 @@
 //! may respond in <100ms while upload endpoints take seconds. Static timeouts
 //! can't adapt to these differences.
 //!
-//! WHAT: LatencyTracker records per-endpoint request latencies and calculates
-//! P50 (median) and P99 percentiles. TimeoutCalculator uses these to adjust
+//! WHAT: `LatencyTracker` records per-endpoint request latencies and calculates
+//! P50 (median) and P99 percentiles. `TimeoutCalculator` uses these to adjust
 //! timeouts based on historical endpoint behavior.
 //!
 //! HOW: Ring buffer per endpoint stores recent samples. Percentiles are calculated
@@ -181,7 +181,7 @@ fn percentile(data: &[u64], p: usize) -> u64 {
     sorted[idx]
 }
 
-/// Configuration for LatencyTracker.
+/// Configuration for `LatencyTracker`.
 #[derive(Debug, Clone, Copy)]
 pub struct LatencyTrackerConfig {
     /// Maximum samples per endpoint.
@@ -208,7 +208,7 @@ impl Default for LatencyTrackerConfig {
 /// Thread-safe per-endpoint latency tracker.
 ///
 /// WHY: Multiple threads may record latencies for the same endpoint.
-/// WHAT: RwLock-protected HashMap of endpoint -> EndpointLatency.
+/// WHAT: RwLock-protected `HashMap` of endpoint -> `EndpointLatency`.
 #[derive(Debug, Clone)]
 pub struct LatencyTracker {
     /// Per-endpoint latency history.
@@ -270,8 +270,7 @@ impl LatencyTracker {
         let endpoints = self.endpoints.read().expect("poisoned lock");
         endpoints
             .get(endpoint)
-            .map(|ep| ep.sample_count() >= min_samples)
-            .unwrap_or(false)
+            .is_some_and(|ep| ep.sample_count() >= min_samples)
     }
 
     /// Remove an endpoint from tracking.

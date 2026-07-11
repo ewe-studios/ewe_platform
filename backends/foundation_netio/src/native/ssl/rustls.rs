@@ -2,10 +2,10 @@
 
 #![cfg(not(target_family = "wasm"))]
 
-use foundation_core::io::ioutils::ReadTimeoutOperations;
 use crate::native::connection::Connection;
 use crate::native::connection::{DataStreamAddr, Endpoint, EndpointConfig, SocketAddr};
 use crate::shared::errors::{DataStreamError, DataStreamResult};
+use foundation_core::io::ioutils::ReadTimeoutOperations;
 use rustls::crypto::CryptoProvider;
 use rustls::pki_types::ServerName;
 use rustls::{RootCertStore, ALL_VERSIONS};
@@ -92,7 +92,10 @@ impl<T> std::os::unix::io::AsRawFd for RustlsStream<T> {
     fn as_raw_fd(&self) -> std::os::unix::io::RawFd {
         // Reading the fd only touches the socket handle; recover from a poisoned
         // lock rather than panic (the fd is still valid).
-        let guard = self.0.lock().unwrap_or_else(|e| e.into_inner());
+        let guard = self
+            .0
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner);
         guard.sock.as_raw_fd()
     }
 }

@@ -35,8 +35,8 @@ use std::io::Read;
 
 use bytes::Bytes;
 
-use foundation_core::io::{DecodeError, DecodeStep, IncrementalDecoder};
 use foundation_core::io::incremental_decoder::AccumulatingBuffer;
+use foundation_core::io::{DecodeError, DecodeStep, IncrementalDecoder};
 
 use super::varint::VarInt;
 
@@ -279,7 +279,10 @@ impl FrameDecoder {
                     }
 
                     self.buffer.advance(ty_len + len_len);
-                    self.state = State::Payload { ty: ty.value(), len };
+                    self.state = State::Payload {
+                        ty: ty.value(),
+                        len,
+                    };
                 }
                 State::Payload { ty, len } => {
                     if self.buffer.len() < len {
@@ -307,7 +310,10 @@ fn decode_payload(ty: u64, payload: Bytes) -> Result<Frame, DecodeError> {
             let Some((push_id, used)) = VarInt::decode(&payload)? else {
                 return Err(DecodeError::protocol("PUSH_PROMISE frame is truncated"));
             };
-            Ok(Frame::PushPromise { push_id, encoded: payload.slice(used..) })
+            Ok(Frame::PushPromise {
+                push_id,
+                encoded: payload.slice(used..),
+            })
         }
         // RFC 9114 §9: ignore unknown frame types rather than failing. This is
         // what lets a newer peer's grease frames pass through.
@@ -335,7 +341,9 @@ fn decode_settings(mut payload: &[u8]) -> Result<Frame, DecodeError> {
 
     while !payload.is_empty() {
         let Some((id, id_len)) = VarInt::decode(payload)? else {
-            return Err(DecodeError::protocol("SETTINGS frame truncated mid-identifier"));
+            return Err(DecodeError::protocol(
+                "SETTINGS frame truncated mid-identifier",
+            ));
         };
         payload = &payload[id_len..];
 

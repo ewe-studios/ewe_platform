@@ -10,7 +10,7 @@ use foundation_netio::simple_http::client::shared::{MockDnsResolver, SystemDnsRe
 use foundation_netio::simple_http::client::HttpClientConnection;
 use foundation_netio::simple_http::shared::HttpClientError;
 
-use foundation_core::url::{Uri, Scheme};
+use foundation_core::url::{Scheme, Uri};
 use std::{
     net::{IpAddr, Ipv4Addr, SocketAddr},
     time::Duration,
@@ -184,7 +184,8 @@ fn test_connection_http_real() {
     let url = Uri::parse("http://httpbin.org").unwrap();
     let resolver = SystemDnsResolver::new();
 
-    let result = HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(10)));
+    let result =
+        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(10)));
 
     assert!(result.is_ok(), "Should connect to httpbin.org");
 }
@@ -198,7 +199,8 @@ fn test_connection_https_real() {
     let url = Uri::parse("https://httpbin.org").unwrap();
     let resolver = SystemDnsResolver::new();
 
-    let result = HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(10)));
+    let result =
+        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(10)));
 
     assert!(result.is_ok(), "Should connect to httpbin.org with TLS");
 }
@@ -217,7 +219,8 @@ fn test_connection_timeout() {
         vec![SocketAddr::new(IpAddr::V4(Ipv4Addr::new(192, 0, 2, 1)), 80)],
     );
 
-    let result = HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_millis(100)));
+    let result =
+        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_millis(100)));
 
     assert!(result.is_err());
     assert!(matches!(
@@ -234,7 +237,8 @@ fn test_connection_dns_failure() {
     let url = Uri::parse("http://invalid-host-12345.invalid").unwrap();
     let resolver = SystemDnsResolver::new();
 
-    let result = HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(5)));
+    let result =
+        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_secs(5)));
 
     assert!(result.is_err());
     // Should be wrapped in HttpClientError::DnsError
@@ -251,7 +255,8 @@ fn test_connection_with_mock_resolver() {
     let url = Uri::parse("http://example.com:8080").unwrap();
 
     // This will fail to connect since no server is running, but DNS should work
-    let result = HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_millis(100)));
+    let result =
+        HttpClientConnection::connect(&url, &resolver, Some(std::time::Duration::from_millis(100)));
 
     // We expect connection failure, not DNS failure
     assert!(result.is_err());

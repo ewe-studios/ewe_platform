@@ -102,7 +102,10 @@ fn a_frame_split_across_every_byte_boundary_still_decodes() {
     }
 
     assert_eq!(decoded, Some(frame));
-    assert!(!decoder.has_partial(), "a fully consumed decoder holds nothing");
+    assert!(
+        !decoder.has_partial(),
+        "a fully consumed decoder holds nothing"
+    );
 }
 
 #[test]
@@ -110,7 +113,10 @@ fn unknown_frame_types_are_ignored_not_rejected() {
     // RFC 9114 §9: "Implementations MUST ignore unknown or unsupported values in
     // all extensible protocol elements." A decoder that errors here cannot talk to
     // a peer speaking any later draft.
-    let unknown = Frame::Unknown { ty: 0x21, payload: Bytes::from_static(b"grease") };
+    let unknown = Frame::Unknown {
+        ty: 0x21,
+        payload: Bytes::from_static(b"grease"),
+    };
     round_trip(&unknown);
 
     // And an unknown frame between two known ones must not disturb them.
@@ -131,7 +137,10 @@ fn reserved_grease_frame_types_decode_as_unknown() {
     // RFC 9114 §7.2.8 reserves 0x1f * N + 0x21 to exercise the ignore path.
     for n in 0..4u64 {
         let ty = 0x1f * n + 0x21;
-        let frame = Frame::Unknown { ty, payload: Bytes::from_static(b"") };
+        let frame = Frame::Unknown {
+            ty,
+            payload: Bytes::from_static(b""),
+        };
         let frames = decode_all(&frame.to_bytes());
         assert_eq!(frames.len(), 1, "grease type {ty:#x} must decode");
         assert_eq!(frames[0].ty(), ty);
@@ -159,9 +168,13 @@ fn control_only_frames_are_identified() {
 fn settings_with_a_repeated_identifier_is_a_protocol_error() {
     // RFC 9114 §7.2.4: a repeated setting identifier is H3_SETTINGS_ERROR.
     let mut payload = Vec::new();
-    VarInt::new(setting::MAX_FIELD_SECTION_SIZE).unwrap().encode(&mut payload);
+    VarInt::new(setting::MAX_FIELD_SECTION_SIZE)
+        .unwrap()
+        .encode(&mut payload);
     VarInt::new(1).unwrap().encode(&mut payload);
-    VarInt::new(setting::MAX_FIELD_SECTION_SIZE).unwrap().encode(&mut payload);
+    VarInt::new(setting::MAX_FIELD_SECTION_SIZE)
+        .unwrap()
+        .encode(&mut payload);
     VarInt::new(2).unwrap().encode(&mut payload);
 
     let mut buf = Vec::new();
@@ -171,7 +184,9 @@ fn settings_with_a_repeated_identifier_is_a_protocol_error() {
 
     let mut decoder = FrameDecoder::new();
     let mut src = buf.as_slice();
-    let err = decoder.step(&mut src).expect_err("a repeated identifier must be rejected");
+    let err = decoder
+        .step(&mut src)
+        .expect_err("a repeated identifier must be rejected");
     assert!(
         err.to_string().contains("repeats"),
         "the error must name the problem: {err}"
@@ -189,7 +204,9 @@ fn a_goaway_frame_with_trailing_bytes_is_rejected() {
 
     let mut decoder = FrameDecoder::new();
     let mut src = buf.as_slice();
-    let err = decoder.step(&mut src).expect_err("trailing bytes must be rejected");
+    let err = decoder
+        .step(&mut src)
+        .expect_err("trailing bytes must be rejected");
     assert!(err.to_string().contains("trailing"), "{err}");
 }
 
@@ -203,7 +220,9 @@ fn a_frame_larger_than_the_limit_is_rejected_without_buffering_it() {
 
     let mut decoder = FrameDecoder::new().with_max_frame_size(1024);
     let mut src = buf.as_slice();
-    let err = decoder.step(&mut src).expect_err("oversized frame must be rejected");
+    let err = decoder
+        .step(&mut src)
+        .expect_err("oversized frame must be rejected");
     assert!(err.to_string().contains("exceeds"), "{err}");
 }
 
@@ -216,6 +235,12 @@ fn a_truncated_frame_reports_partial_state_at_eof() {
 
     let mut decoder = FrameDecoder::new();
     let mut src = &encoded[..encoded.len() - 3];
-    assert!(matches!(decoder.step(&mut src).expect("pending"), DecodeStep::Pending));
-    assert!(decoder.has_partial(), "a truncated frame must be visible as partial");
+    assert!(matches!(
+        decoder.step(&mut src).expect("pending"),
+        DecodeStep::Pending
+    ));
+    assert!(
+        decoder.has_partial(),
+        "a truncated frame must be visible as partial"
+    );
 }

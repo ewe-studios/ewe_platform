@@ -109,30 +109,49 @@ fn all_states_exhaustive() {
         let mut s = *state;
         let result = s.send_headers(false);
         match *state {
-            StreamState::Idle | StreamState::ReservedLocal | StreamState::Open => assert!(result.is_ok(), "{state:?}: send_headers should succeed"),
+            StreamState::Idle | StreamState::ReservedLocal | StreamState::Open => {
+                assert!(result.is_ok(), "{state:?}: send_headers should succeed")
+            }
             _ => assert!(result.is_err(), "{state:?}: send_headers should fail"),
         }
         s = *state;
         let result = s.recv_headers(false);
         match *state {
-            StreamState::Idle | StreamState::ReservedRemote | StreamState::Open | StreamState::HalfClosedLocal => assert!(result.is_ok(), "{state:?}: recv_headers should succeed"),
+            StreamState::Idle
+            | StreamState::ReservedRemote
+            | StreamState::Open
+            | StreamState::HalfClosedLocal => {
+                assert!(result.is_ok(), "{state:?}: recv_headers should succeed")
+            }
             _ => assert!(result.is_err(), "{state:?}: recv_headers should fail"),
         }
         s = *state;
         let result = s.send_data(false);
         match *state {
-            StreamState::Open | StreamState::HalfClosedRemote => assert!(result.is_ok(), "{state:?}: send_data should succeed"),
+            StreamState::Open | StreamState::HalfClosedRemote => {
+                assert!(result.is_ok(), "{state:?}: send_data should succeed")
+            }
             _ => assert!(result.is_err(), "{state:?}: send_data should fail"),
         }
         s = *state;
         let result = s.recv_data(false);
         match *state {
-            StreamState::Open | StreamState::HalfClosedLocal => assert!(result.is_ok(), "{state:?}: recv_data should succeed"),
+            StreamState::Open | StreamState::HalfClosedLocal => {
+                assert!(result.is_ok(), "{state:?}: recv_data should succeed")
+            }
             _ => assert!(result.is_err(), "{state:?}: recv_data should fail"),
         }
         s = *state;
-        assert_eq!(s.send_reset().is_ok(), *state != StreamState::Idle, "{state:?}: send_reset");
+        assert_eq!(
+            s.send_reset().is_ok(),
+            *state != StreamState::Idle,
+            "{state:?}: send_reset"
+        );
         s = *state;
-        assert_eq!(s.recv_reset().is_ok(), *state != StreamState::Idle, "{state:?}: recv_reset");
+        assert_eq!(
+            s.recv_reset().is_ok(),
+            *state != StreamState::Idle,
+            "{state:?}: recv_reset"
+        );
     }
 }

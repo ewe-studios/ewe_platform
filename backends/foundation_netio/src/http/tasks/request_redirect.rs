@@ -217,9 +217,8 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
                     // assembled by other paths.
                     if matches!(
                         data.body,
-                        Some(SendSafeBody::Stream(_))
-                            | Some(SendSafeBody::ChunkedStream(_))
-                            | Some(SendSafeBody::LineFeedStream(_))
+                        Some(SendSafeBody::Stream(_) | SendSafeBody::ChunkedStream(_) |
+SendSafeBody::LineFeedStream(_))
                     ) {
                         ensure_chunked_transfer_encoding(&mut descriptor.headers);
                     }
@@ -672,4 +671,3 @@ impl<R: DnsResolver + Send + 'static> TaskIterator for GetHttpRequestRedirectTas
         })
     }
 }
-

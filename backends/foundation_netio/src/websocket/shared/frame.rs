@@ -353,7 +353,9 @@ impl WebSocketFrame {
     ///
     /// # Panics
     /// Never panics.
-    pub fn to_message(self) -> Result<crate::websocket::shared::message::WebSocketMessage, WebSocketError> {
+    pub fn to_message(
+        self,
+    ) -> Result<crate::websocket::shared::message::WebSocketMessage, WebSocketError> {
         use crate::websocket::shared::message::WebSocketMessage;
 
         match self.opcode {

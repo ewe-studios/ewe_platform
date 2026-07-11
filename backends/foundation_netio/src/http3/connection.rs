@@ -322,7 +322,12 @@ struct TypedRecv<R: QuicRecvStream> {
 
 impl<R: QuicRecvStream> TypedRecv<R> {
     fn new(inner: R) -> Self {
-        Self { inner, leftover: None, type_consumed: false, buffer: Vec::new() }
+        Self {
+            inner,
+            leftover: None,
+            type_consumed: false,
+            buffer: Vec::new(),
+        }
     }
 }
 
@@ -485,10 +490,7 @@ impl<S: QuicBidiStream> H3Request<S> {
     /// Write a field section as a HEADERS frame. Drives to completion.
     ///
     /// `Pending` while the flow-control window is full.
-    pub fn poll_send_headers(
-        &mut self,
-        pending: &mut Bytes,
-    ) -> Stream<Result<(), H3Error>, ()> {
+    pub fn poll_send_headers(&mut self, pending: &mut Bytes) -> Stream<Result<(), H3Error>, ()> {
         self.poll_send_raw(pending)
     }
 

@@ -66,7 +66,11 @@ impl ClientConfig {
     #[must_use]
     pub fn get_op_timeout(&self) -> (Duration, Duration, Duration) {
         let config = self.timeout_calculator.config();
-        (config.connect_timeout, config.min_read_timeout, config.min_read_timeout)
+        (
+            config.connect_timeout,
+            config.min_read_timeout,
+            config.min_read_timeout,
+        )
     }
 
     #[must_use]

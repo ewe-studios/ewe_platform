@@ -40,10 +40,18 @@ fn initial_window_size_validation() {
 #[test]
 fn apply_tracks_changes() {
     let mut s = SettingsStore::default();
-    let changes = s.apply(&[
-        Setting { id: SettingId::MaxConcurrentStreams, value: 100 },
-        Setting { id: SettingId::InitialWindowSize, value: 65535 },
-    ]).unwrap();
+    let changes = s
+        .apply(&[
+            Setting {
+                id: SettingId::MaxConcurrentStreams,
+                value: 100,
+            },
+            Setting {
+                id: SettingId::InitialWindowSize,
+                value: 65535,
+            },
+        ])
+        .unwrap();
     assert_eq!(changes.len(), 1);
     assert_eq!(changes[0].id, SettingId::MaxConcurrentStreams);
 }

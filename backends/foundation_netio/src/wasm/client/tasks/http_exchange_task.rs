@@ -21,14 +21,12 @@ use foundation_core::valtron::{
     from_future, BoxedSendExecutionAction, FutureTask, Stream, TaskIterator, TaskStatus,
 };
 
-use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
-use crate::shared::client::request::PreparedRequest;
-use crate::shared::client::body_reader::{
-    SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
-};
+use crate::shared::client::body_reader::{SendSafeBodyBytesItem, SendSafeBodyBytesIterator};
 use crate::shared::client::http_client::HttpClient;
-use crate::wasm::client::client::FetchHttpClient;
+use crate::shared::client::request::PreparedRequest;
+use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
 use crate::simple_http::shared::{HttpClientError, SendSafeBody};
+use crate::wasm::client::client::FetchHttpClient;
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -45,7 +43,11 @@ struct FetchOutput {
 async fn fetch_via_client(req: PreparedRequest) -> Result<FetchOutput, HttpClientError> {
     let client = FetchHttpClient;
     let (status, headers, body) = client.send_async(req).await?.into_parts();
-    Ok(FetchOutput { status, headers, body })
+    Ok(FetchOutput {
+        status,
+        headers,
+        body,
+    })
 }
 
 type FetchFuture = Pin<Box<dyn Future<Output = Result<FetchOutput, HttpClientError>> + Send>>;
@@ -60,7 +62,9 @@ enum WasmExchangeState {
     /// Child `FutureTask` being polled.
     Polling { task: FetchTask },
     /// Future resolved; draining body chunks.
-    DrainingBody { chunk_iter: SendSafeBodyBytesIterator },
+    DrainingBody {
+        chunk_iter: SendSafeBodyBytesIterator,
+    },
     /// Fetch or body failed.
     Failed(Option<SendableBoxedError>),
 }
@@ -93,7 +97,11 @@ impl TaskIterator for WasmHttpExchangeTask {
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match &mut self.state {
             WasmExchangeState::Polling { ref mut task } => match task.next_status() {
-                Some(TaskStatus::Ready(Ok(FetchOutput { status, headers, body }))) => {
+                Some(TaskStatus::Ready(Ok(FetchOutput {
+                    status,
+                    headers,
+                    body,
+                }))) => {
                     self.state = WasmExchangeState::DrainingBody {
                         chunk_iter: SendSafeBodyBytesIterator::new(body),
                     };
@@ -113,8 +121,12 @@ impl TaskIterator for WasmHttpExchangeTask {
                 Some(TaskStatus::Depends(_)) => {
                     Some(TaskStatus::Pending(HttpExchangePending::Waiting))
                 }
-                Some(TaskStatus::Spawn(_)) | Some(TaskStatus::Ignore) | Some(TaskStatus::Wait)
-                | Some(TaskStatus::Init) | Some(TaskStatus::Delayed(_)) | Some(TaskStatus::Spread(_)) => {
+                Some(TaskStatus::Spawn(_))
+                | Some(TaskStatus::Ignore)
+                | Some(TaskStatus::Wait)
+                | Some(TaskStatus::Init)
+                | Some(TaskStatus::Delayed(_))
+                | Some(TaskStatus::Spread(_)) => {
                     Some(TaskStatus::Pending(HttpExchangePending::Waiting))
                 }
                 None => {

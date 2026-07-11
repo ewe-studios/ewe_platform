@@ -45,7 +45,9 @@ impl<S: Read + Write> H2Server<S> {
     pub fn serve(&mut self) -> io::Result<()> {
         self.conn.server_handshake()?;
 
-        let mut bridge = ServeBridge { handler: &*self.handler };
+        let mut bridge = ServeBridge {
+            handler: &*self.handler,
+        };
         loop {
             match self.conn.process_next(&mut bridge) {
                 Ok(true) => {} // continue

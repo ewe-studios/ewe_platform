@@ -6,7 +6,7 @@
 //! concrete HTTP/1.1 connection, and providing a simple, non-generic API.
 //!
 //! WHAT: [`H2Conn`] wraps `H2Connection`, delegating handshake, frame I/O,
-//! HPACK decoding, and per-stream H2Frame encoding through a clean surface.
+//! HPACK decoding, and per-stream `H2Frame` encoding through a clean surface.
 //!
 //! HOW: A frame is only read once it is entirely buffered. `H2Conn` first
 //! `peek`s (which consumes nothing) to confirm the 9-byte header plus its
@@ -20,8 +20,8 @@ use std::io;
 
 use bytes::{Bytes, BytesMut};
 
-use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBufferStream};
 use crate::netcap::RawStream;
+use foundation_core::io::ioutils::{PeekError, PeekableReadStream, SharedByteBufferStream};
 
 use crate::http2::connection::H2Connection;
 use crate::http2::frame::{
@@ -184,7 +184,11 @@ impl H2Conn {
     /// Call [`flush`](Self::flush) to send it over the socket.
     pub fn encode_frame(&mut self, stream_id: u32, frame: &H2Frame) {
         match frame {
-            H2Frame::Headers { status, headers, end_stream } => {
+            H2Frame::Headers {
+                status,
+                headers,
+                end_stream,
+            } => {
                 // A fresh encoder never emits dynamic-table indices (its table is
                 // empty), so every field goes out as a literal — wasteful but
                 // always decodable. Sharing one encoder across frames would be
@@ -202,21 +206,32 @@ impl H2Conn {
                 }
 
                 let mut flags = headers_flags::END_HEADERS;
-                if *end_stream { flags |= headers_flags::END_STREAM; }
+                if *end_stream {
+                    flags |= headers_flags::END_STREAM;
+                }
 
                 let hf = HeadersFrame {
-                    stream_id, flags,
+                    stream_id,
+                    flags,
                     header_block: header_block.freeze(),
-                    pad_len: None, priority: None,
+                    pad_len: None,
+                    priority: None,
                 };
                 let mut buf = BytesMut::new();
                 hf.encode(&mut buf);
                 self.inner.write_buf_mut().extend_from_slice(&buf);
             }
-            H2Frame::Data { payload, end_stream } => {
+            H2Frame::Data {
+                payload,
+                end_stream,
+            } => {
                 let df = DataFrame {
                     stream_id,
-                    flags: if *end_stream { data_flags::END_STREAM } else { 0 },
+                    flags: if *end_stream {
+                        data_flags::END_STREAM
+                    } else {
+                        0
+                    },
                     data: payload.clone(),
                     pad_len: None,
                 };
@@ -225,7 +240,10 @@ impl H2Conn {
                 self.inner.write_buf_mut().extend_from_slice(&buf);
             }
             H2Frame::Reset { error_code } => {
-                let rf = ResetFrame { stream_id, error_code: *error_code };
+                let rf = ResetFrame {
+                    stream_id,
+                    error_code: *error_code,
+                };
                 let mut buf = BytesMut::new();
                 rf.encode(&mut buf);
                 self.inner.write_buf_mut().extend_from_slice(&buf);

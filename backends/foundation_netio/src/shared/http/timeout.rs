@@ -38,7 +38,7 @@ pub struct ExpectContinueConfig {
     pub max_attempts: usize,
 
     /// Amount subtracted from the delay on each retry (default: 10ms).
-    /// Delay = base_delay - (attempt * penalty_reduction), clamped to min.
+    /// Delay = `base_delay` - (attempt * `penalty_reduction`), clamped to min.
     pub penalty_reduction: Duration,
 }
 
@@ -64,7 +64,7 @@ pub struct TimeoutConfig {
     pub connect_timeout: Duration,
 
     /// Base read timeout per KB of expected body size.
-    /// Scaled sub-linearly using sqrt(size_kb) to avoid excessive timeouts.
+    /// Scaled sub-linearly using `sqrt(size_kb)` to avoid excessive timeouts.
     pub read_timeout_per_kb: Duration,
 
     /// Base write timeout per KB of body size for uploads.
@@ -147,7 +147,7 @@ impl Default for TimeoutConfig {
 ///
 /// WHAT: Encapsulates all contextual information needed for timeout calculation.
 ///
-/// HOW: Created per-request and passed to TimeoutCalculator methods.
+/// HOW: Created per-request and passed to `TimeoutCalculator` methods.
 #[derive(Debug, Clone, Default)]
 pub struct TimeoutContext {
     /// Target endpoint (e.g., "api.example.com/v1/users").
@@ -240,8 +240,8 @@ impl TimeoutContext {
 /// WHAT: Calculates timeouts for HTTP operations using size-based formulas
 /// with configurable bounds and optional latency adjustment.
 ///
-/// HOW: Uses sqrt(size_kb) scaling to provide reasonable timeouts for both
-/// small API calls and large file transfers. Optionally uses LatencyTracker
+/// HOW: Uses `sqrt(size_kb)` scaling to provide reasonable timeouts for both
+/// small API calls and large file transfers. Optionally uses `LatencyTracker`
 /// to adjust based on historical endpoint behavior.
 ///
 /// # Example
@@ -269,7 +269,7 @@ pub struct TimeoutCalculator {
     latency_tracker: Option<LatencyTracker>,
     /// Optional load tracker for load-based scaling.
     load_tracker: Option<LoadTracker>,
-    /// Optional client classifier for DoS protection.
+    /// Optional client classifier for `DoS` protection.
     client_classifier: Option<ClientClassifier>,
     /// Factor to apply to P99 latency as safety margin (default: 2.0).
     latency_safety_factor: f64,
@@ -338,7 +338,7 @@ impl TimeoutCalculator {
         self
     }
 
-    /// Enable client classification for DoS protection.
+    /// Enable client classification for `DoS` protection.
     #[must_use]
     pub fn with_client_classifier(mut self, classifier: ClientClassifier) -> Self {
         self.client_classifier = Some(classifier);
@@ -366,7 +366,7 @@ impl TimeoutCalculator {
 
     /// Set the latency safety factor.
     ///
-    /// The calculated timeout is: base_timeout + (p99_latency * factor)
+    /// The calculated timeout is: `base_timeout` + (`p99_latency` * factor)
     #[must_use]
     pub fn with_latency_safety_factor(mut self, factor: f64) -> Self {
         self.latency_safety_factor = factor;
@@ -397,7 +397,7 @@ impl TimeoutCalculator {
     /// Record a transfer for client classification.
     ///
     /// WHY: Server needs to track transfer rates per client IP to classify
-    /// clients for DoS protection and apply appropriate timeouts.
+    /// clients for `DoS` protection and apply appropriate timeouts.
     ///
     /// Does nothing if client classification is not enabled.
     pub fn record_client_transfer(&self, client_ip: &str, bytes: usize, duration: Duration) {
@@ -473,13 +473,13 @@ impl TimeoutCalculator {
 
     /// Calculate read timeout with client IP for classification.
     ///
-    /// WHY: Server connections need to classify clients by IP for DoS protection
+    /// WHY: Server connections need to classify clients by IP for `DoS` protection
     /// and apply appropriate timeout multipliers based on transfer rate history.
     ///
     /// WHAT: Calculates read timeout with optional client classification multiplier.
     ///
-    /// HOW: Applies client-specific multiplier if client_classifier is configured
-    /// and client_ip is provided.
+    /// HOW: Applies client-specific multiplier if `client_classifier` is configured
+    /// and `client_ip` is provided.
     #[must_use]
     pub fn calculate_read_timeout_with_client(
         &self,
@@ -503,7 +503,7 @@ impl TimeoutCalculator {
 
     /// Calculate write timeout for a request.
     ///
-    /// Similar to read timeout but uses write_timeout_per_kb.
+    /// Similar to read timeout but uses `write_timeout_per_kb`.
     /// Uploads get additional scaling factor.
     #[must_use]
     pub fn calculate_write_timeout(&self, ctx: &TimeoutContext) -> Duration {
@@ -529,7 +529,7 @@ impl TimeoutCalculator {
     /// Calculate total request timeout.
     ///
     /// This is the maximum time for the entire request including retries.
-    /// Uses max_total_timeout as upper bound.
+    /// Uses `max_total_timeout` as upper bound.
     #[must_use]
     pub fn calculate_total_timeout(&self, ctx: &TimeoutContext) -> Duration {
         let read_timeout = self.calculate_read_timeout(ctx);
@@ -599,7 +599,10 @@ impl TimeoutCalculator {
 
         // For upload operations, use middle value
         if ctx.is_upload {
-            let mid_ms = (base_sleep_ms + self.config.max_sleep_duration.as_millis() as u64) / 2;
+            let mid_ms = u64::midpoint(
+                base_sleep_ms,
+                self.config.max_sleep_duration.as_millis() as u64,
+            );
             return Duration::from_millis(mid_ms);
         }
 

@@ -70,17 +70,37 @@ pub use self::rustls::RustlsAcceptor as SSLAcceptor;
 #[cfg(feature = "ssl-rustls")]
 pub use self::rustls::RustlsConnector as SSLConnector;
 
-#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
 pub mod native_ttls;
 
-#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
 pub use self::native_ttls::NativeTlsAcceptor as SSLAcceptor;
 
-#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
 pub use self::native_ttls::NativeTlsConnector as SSLConnector;
 
-#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
 pub use self::native_ttls::NativeTlsStream as ClientSSLStream;
 
-#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
 pub use self::native_ttls::NativeTlsStream as ServerSSLStream;

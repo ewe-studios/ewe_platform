@@ -150,7 +150,9 @@ pub fn request_from_fields(
         }
         // §4.2: TE is allowed, but only with the value "trailers".
         if &name[..] == b"te" && &value[..] != b"trailers" {
-            return Err(MalformedRequest::BadTe(String::from_utf8_lossy(value).into_owned()));
+            return Err(MalformedRequest::BadTe(
+                String::from_utf8_lossy(value).into_owned(),
+            ));
         }
     }
 
@@ -209,10 +211,7 @@ pub fn response_to_fields(response: &SimpleOutgoingResponse) -> Vec<(Bytes, Byte
         }
 
         for value in values {
-            fields.push((
-                Bytes::from(lowered.clone()),
-                Bytes::from(value.clone()),
-            ));
+            fields.push((Bytes::from(lowered.clone()), Bytes::from(value.clone())));
         }
     }
 

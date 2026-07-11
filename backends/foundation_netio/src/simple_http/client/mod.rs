@@ -21,8 +21,8 @@ pub use crate::http::default_http_client;
 #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
 pub use crate::wasm::client::default_http_client;
 
-pub use shared::*;
 #[cfg(all(feature = "multi", not(target_family = "wasm")))]
 pub use native::*;
+pub use shared::*;
 #[cfg(all(target_family = "wasm", feature = "wasm-fetch"))]
 pub use wasm::*;

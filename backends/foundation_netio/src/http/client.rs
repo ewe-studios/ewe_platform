@@ -9,8 +9,8 @@
 //! hand-written references keep compiling through the migration window. It will
 //! be removed in Stage 4 when all sites have been migrated.
 
-use crate::shared::client::{DnsResolver, SystemDnsResolver};
 use crate::http::NativeHttpClient;
+use crate::shared::client::{DnsResolver, SystemDnsResolver};
 
 #[deprecated(note = "use NativeHttpClient; SimpleHttpClient was folded into it (F51)")]
 #[allow(type_alias_bounds)]

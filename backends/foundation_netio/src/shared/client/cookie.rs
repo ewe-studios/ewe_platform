@@ -246,7 +246,10 @@ impl Cookie {
                 let secs = dur.as_secs();
                 let dt = chrono::DateTime::from_timestamp(secs as i64, 0);
                 if let Some(dt) = dt {
-                    parts.push(format!("Expires={}", dt.format("%a, %d %b %Y %H:%M:%S GMT")));
+                    parts.push(format!(
+                        "Expires={}",
+                        dt.format("%a, %d %b %Y %H:%M:%S GMT")
+                    ));
                 }
             }
         }
@@ -634,4 +637,3 @@ impl Default for CookieJar {
         Self::new()
     }
 }
-

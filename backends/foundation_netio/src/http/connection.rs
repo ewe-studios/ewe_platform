@@ -8,10 +8,10 @@ use std::io::Read;
 use std::ops::{Deref, DerefMut};
 use std::sync::Arc;
 
-use foundation_core::io::ioutils::SharedByteBufferStream;
 use crate::netcap::{Connection, RawStream};
 use crate::shared::client::dns::DnsResolver;
 use crate::simple_http::shared::HttpClientError;
+use foundation_core::io::ioutils::SharedByteBufferStream;
 use std::time::Duration;
 
 use crate::netcap::ssl::SSLConnector;
@@ -234,12 +234,11 @@ impl HttpClientConnection {
         tls_connector: Option<&SSLConnector>,
     ) -> Result<Self, HttpClientError> {
         let default_connector;
-        let connector = match tls_connector {
-            Some(c) => c,
-            None => {
-                default_connector = SSLConnector::new();
-                &default_connector
-            }
+        let connector = if let Some(c) = tls_connector {
+            c
+        } else {
+            default_connector = SSLConnector::new();
+            &default_connector
         };
         let (tls_stream, _addr) = connector
             .from_tcp_stream(host.to_string(), connection)

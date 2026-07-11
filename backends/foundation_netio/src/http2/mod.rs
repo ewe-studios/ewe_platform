@@ -18,15 +18,15 @@
 //!
 //! [`IncrementalDecoder`]: foundation_core::io::IncrementalDecoder
 
+pub mod channel;
+pub mod client;
+pub mod conn;
+pub mod connection;
+pub mod detect;
 pub mod flow_control;
 pub mod frame;
 pub mod hpack;
+pub mod server;
 pub mod settings;
 pub mod stream;
-pub mod connection;
-pub mod channel;
-pub mod conn;
 pub mod types;
-pub mod client;
-pub mod server;
-pub mod detect;

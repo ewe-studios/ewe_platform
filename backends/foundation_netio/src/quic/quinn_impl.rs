@@ -40,7 +40,9 @@ fn closed_error(state: &SharedConn) -> Option<QuicStreamError> {
     let guard = lock(state).ok()?;
     guard.closed.as_ref().map(|e| {
         QuicStreamError::ConnClosed(match e {
-            QuicConnError::ApplicationClose { code } => QuicConnError::ApplicationClose { code: *code },
+            QuicConnError::ApplicationClose { code } => {
+                QuicConnError::ApplicationClose { code: *code }
+            }
             QuicConnError::Timeout => QuicConnError::Timeout,
             QuicConnError::Internal(m) => QuicConnError::Internal(m.clone()),
             QuicConnError::Other(e) => QuicConnError::Internal(e.to_string()),
@@ -159,8 +161,12 @@ impl QuicConnection for QuinnConnection {
             return;
         };
         let code = VarInt::from_u64(code).unwrap_or(VarInt::MAX);
-        guard.conn.close(std::time::Instant::now(), code, reason.to_vec().into());
-        guard.closed = Some(QuicConnError::ApplicationClose { code: code.into_inner() });
+        guard
+            .conn
+            .close(std::time::Instant::now(), code, reason.to_vec().into());
+        guard.closed = Some(QuicConnError::ApplicationClose {
+            code: code.into_inner(),
+        });
     }
 }
 
@@ -172,7 +178,9 @@ pub struct QuinnSendStream {
 
 impl std::fmt::Debug for QuinnSendStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("QuinnSendStream").field("id", &self.id).finish()
+        f.debug_struct("QuinnSendStream")
+            .field("id", &self.id)
+            .finish()
     }
 }
 
@@ -214,7 +222,9 @@ impl QuicSendStream for QuinnSendStream {
             // error. h3 would have surfaced it through `poll_ready`.
             Err(quinn_proto::WriteError::Blocked) => Stream::Pending(()),
             Err(quinn_proto::WriteError::Stopped(code)) => {
-                Stream::Next(Err(QuicStreamError::Terminated { code: code.into_inner() }))
+                Stream::Next(Err(QuicStreamError::Terminated {
+                    code: code.into_inner(),
+                }))
             }
             Err(quinn_proto::WriteError::ClosedStream) => {
                 Stream::Next(Err(QuicStreamError::Terminated { code: 0 }))
@@ -237,14 +247,20 @@ impl QuicSendStream for QuinnSendStream {
             // asked for.
             Err(quinn_proto::FinishError::ClosedStream) => Stream::Next(Ok(())),
             Err(quinn_proto::FinishError::Stopped(code)) => {
-                Stream::Next(Err(QuicStreamError::Terminated { code: code.into_inner() }))
+                Stream::Next(Err(QuicStreamError::Terminated {
+                    code: code.into_inner(),
+                }))
             }
         }
     }
 
     fn reset(&mut self, code: u64) {
-        let Ok(mut guard) = lock(&self.state) else { return };
-        let Ok(qid) = quinn_proto::StreamId::try_from(self.id) else { return };
+        let Ok(mut guard) = lock(&self.state) else {
+            return;
+        };
+        let Ok(qid) = quinn_proto::StreamId::try_from(self.id) else {
+            return;
+        };
         let code = VarInt::from_u64(code).unwrap_or(VarInt::MAX);
         let _ = guard.conn.send_stream(qid).reset(code);
     }
@@ -274,7 +290,11 @@ impl std::fmt::Debug for QuinnRecvStream {
 
 impl QuinnRecvStream {
     pub(crate) fn new(state: SharedConn, id: StreamId) -> Self {
-        Self { state, id, finished: false }
+        Self {
+            state,
+            id,
+            finished: false,
+        }
     }
 }
 
@@ -326,14 +346,20 @@ impl QuicRecvStream for QuinnRecvStream {
             Err(quinn_proto::ReadError::Blocked) => Stream::Pending(()),
             Err(quinn_proto::ReadError::Reset(code)) => {
                 self.finished = true;
-                Stream::Next(Err(QuicStreamError::Terminated { code: code.into_inner() }))
+                Stream::Next(Err(QuicStreamError::Terminated {
+                    code: code.into_inner(),
+                }))
             }
         }
     }
 
     fn stop_sending(&mut self, code: u64) {
-        let Ok(mut guard) = lock(&self.state) else { return };
-        let Ok(qid) = quinn_proto::StreamId::try_from(self.id) else { return };
+        let Ok(mut guard) = lock(&self.state) else {
+            return;
+        };
+        let Ok(qid) = quinn_proto::StreamId::try_from(self.id) else {
+            return;
+        };
         let code = VarInt::from_u64(code).unwrap_or(VarInt::MAX);
         let _ = guard.conn.recv_stream(qid).stop(code);
     }
@@ -351,7 +377,9 @@ pub struct QuinnBidiStream {
 
 impl std::fmt::Debug for QuinnBidiStream {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("QuinnBidiStream").field("id", &self.send.id).finish()
+        f.debug_struct("QuinnBidiStream")
+            .field("id", &self.send.id)
+            .finish()
     }
 }
 

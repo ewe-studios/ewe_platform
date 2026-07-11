@@ -49,8 +49,8 @@ pub enum HttpExchangePending {
 /// valtron's blanket impl and works with `valtron::execute()`/`send()`.
 pub type HttpExchangeClientTask = Box<
     dyn foundation_core::valtron::TaskIterator<
-        Ready = HttpExchange,
-        Pending = HttpExchangePending,
-        Spawner = foundation_core::valtron::BoxedSendExecutionAction,
-    > + Send,
+            Ready = HttpExchange,
+            Pending = HttpExchangePending,
+            Spawner = foundation_core::valtron::BoxedSendExecutionAction,
+        > + Send,
 >;

@@ -28,8 +28,8 @@ use bytes::{Buf, Bytes};
 use foundation_core::valtron::{Stream, TaskIterator, TaskStatus};
 
 use foundation_netio::quic::{
-    client_config_trusting_pem, server_config_from_pem, QuicBidiStream, QuicConnection,
-    QuicDriver, QuicRecvStream, QuicSendStream, QuinnConnection,
+    client_config_trusting_pem, server_config_from_pem, QuicBidiStream, QuicConnection, QuicDriver,
+    QuicRecvStream, QuicSendStream, QuinnConnection,
 };
 
 const CERT_PEM: &[u8] = include_bytes!("../fixtures/quic_cert.pem");
@@ -70,7 +70,8 @@ fn connected_pair() -> (QuicDriver, QuicDriver, QuinnConnection, QuinnConnection
     let server_cfg = server_config_from_pem(CERT_PEM, KEY_PEM).expect("server config");
     let client_cfg = client_config_trusting_pem(CA_PEM).expect("client config");
 
-    let mut server = QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind server");
+    let mut server =
+        QuicDriver::server("127.0.0.1:0".parse().unwrap(), server_cfg).expect("bind server");
     let addr: SocketAddr = server.local_addr().expect("local addr");
 
     let (mut client, client_conn) =
@@ -136,16 +137,24 @@ fn client_connects_and_server_accepts() {
     // `connected_pair` already proves the server accepted. What is worth asserting
     // beyond that is that the connection is *usable*: both ends can open a stream,
     // which only succeeds once the handshake has completed.
-    let opened = drive_until(&mut server, &mut client, |_, _| match client_conn.open_bidi() {
-        Stream::Next(Ok(s)) => Some(s),
-        Stream::Next(Err(e)) => panic!("open_bidi after handshake failed: {e}"),
-        _ => None,
+    let opened = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_bidi() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("open_bidi after handshake failed: {e}"),
+            _ => None,
+        }
     });
-    assert!(opened.is_some(), "an established connection must be able to open a stream");
+    assert!(
+        opened.is_some(),
+        "an established connection must be able to open a stream"
+    );
 
     // And the server side has not gone anywhere.
     assert!(
-        matches!(server_conn.accept_bidi(), Stream::Pending(()) | Stream::Next(Ok(_))),
+        matches!(
+            server_conn.accept_bidi(),
+            Stream::Pending(()) | Stream::Next(Ok(_))
+        ),
         "the accepted connection must still be live"
     );
 }
@@ -171,7 +180,12 @@ fn bidi_stream_echo_over_the_trait_set() {
         client_stream.id()
     );
 
-    write_all(&mut server, &mut client, &mut client_stream, b"ping over quic");
+    write_all(
+        &mut server,
+        &mut client,
+        &mut client_stream,
+        b"ping over quic",
+    );
 
     // Server accepts it.
     let mut server_stream = drive_until(&mut server, &mut client, |_, _| {
@@ -195,10 +209,12 @@ fn bidi_stream_echo_over_the_trait_set() {
 
     // Echo it back on the same stream, then finish.
     write_all(&mut server, &mut client, &mut server_stream, &got);
-    drive_until(&mut server, &mut client, |_, _| match server_stream.finish() {
-        Stream::Next(Ok(())) => Some(()),
-        Stream::Next(Err(e)) => panic!("finish failed: {e}"),
-        _ => None,
+    drive_until(&mut server, &mut client, |_, _| {
+        match server_stream.finish() {
+            Stream::Next(Ok(())) => Some(()),
+            Stream::Next(Err(e)) => panic!("finish failed: {e}"),
+            _ => None,
+        }
     })
     .expect("server finish never completed");
 
@@ -208,7 +224,10 @@ fn bidi_stream_echo_over_the_trait_set() {
 
     // After FIN, the read half reports end-of-stream, repeatedly.
     let after = read_chunk(&mut server, &mut client, &mut client_stream);
-    assert!(after.is_none(), "a finished stream must report end-of-stream, got {after:?}");
+    assert!(
+        after.is_none(),
+        "a finished stream must report end-of-stream, got {after:?}"
+    );
     assert!(
         matches!(client_stream.read(), Stream::Next(Ok(None))),
         "end-of-stream must latch"
@@ -254,10 +273,12 @@ fn unidirectional_stream_open_and_accept() {
 
     // HTTP/3 control and QPACK streams are unidirectional; this is the path they
     // take.
-    let mut send = drive_until(&mut server, &mut client, |_, _| match client_conn.open_send() {
-        Stream::Next(Ok(s)) => Some(s),
-        Stream::Next(Err(e)) => panic!("open_send failed: {e}"),
-        _ => None,
+    let mut send = drive_until(&mut server, &mut client, |_, _| {
+        match client_conn.open_send() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("open_send failed: {e}"),
+            _ => None,
+        }
     })
     .expect("open_send");
 
@@ -269,10 +290,12 @@ fn unidirectional_stream_open_and_accept() {
 
     write_all(&mut server, &mut client, &mut send, b"control");
 
-    let mut recv = drive_until(&mut server, &mut client, |_, _| match server_conn.accept_recv() {
-        Stream::Next(Ok(s)) => Some(s),
-        Stream::Next(Err(e)) => panic!("accept_recv failed: {e}"),
-        _ => None,
+    let mut recv = drive_until(&mut server, &mut client, |_, _| {
+        match server_conn.accept_recv() {
+            Stream::Next(Ok(s)) => Some(s),
+            Stream::Next(Err(e)) => panic!("accept_recv failed: {e}"),
+            _ => None,
+        }
     })
     .expect("accept_recv");
 
@@ -310,10 +333,12 @@ fn peer_reset_surfaces_as_terminated() {
     // its own error space, so the code cannot be swallowed.
     server_stream.reset(42);
 
-    let err = drive_until(&mut server, &mut client, |_, _| match client_stream.read() {
-        Stream::Next(Err(e)) => Some(e),
-        Stream::Next(Ok(None)) => panic!("a reset stream must not look like a clean FIN"),
-        _ => None,
+    let err = drive_until(&mut server, &mut client, |_, _| {
+        match client_stream.read() {
+            Stream::Next(Err(e)) => Some(e),
+            Stream::Next(Ok(None)) => panic!("a reset stream must not look like a clean FIN"),
+            _ => None,
+        }
     })
     .expect("client never observed the reset");
 
@@ -327,9 +352,9 @@ fn peer_reset_surfaces_as_terminated() {
 
 #[test]
 fn idle_driver_parks_on_injected_readiness_instead_of_spinning() {
+    use foundation_core::valtron::EventReadiness;
     use std::sync::atomic::{AtomicBool, Ordering};
     use std::sync::Arc;
-    use foundation_core::valtron::EventReadiness;
 
     /// A readiness signal we control, standing in for `RegisteredFd`.
     struct Never(AtomicBool);

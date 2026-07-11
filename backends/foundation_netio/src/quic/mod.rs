@@ -23,7 +23,9 @@
 /// The backend-agnostic QUIC trait set (Decision 01, normative).
 pub mod traits;
 
-pub use traits::{QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError};
+pub use traits::{
+    QuicBidiStream, QuicConnError, QuicConnection, QuicRecvStream, QuicSendStream, QuicStreamError,
+};
 
 #[cfg(feature = "quic")]
 mod state;

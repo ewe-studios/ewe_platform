@@ -20,7 +20,10 @@ fn single_char_multi_byte() {
 #[test]
 fn multi_char() {
     assert_eq!(&huffman::decode(&[254, 1]).unwrap()[..], b"!0");
-    assert_eq!(&huffman::decode(&[0b01010011, 0b11111000]).unwrap()[..], b" !");
+    assert_eq!(
+        &huffman::decode(&[0b01010011, 0b11111000]).unwrap()[..],
+        b" !"
+    );
 }
 
 #[test]

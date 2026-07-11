@@ -1,7 +1,9 @@
 //! Taken from the tiny-http project <https://github.com/tiny-http/tiny-http>/
 //! Abstractions of Tcp and Unix socket types
 
-use foundation_core::io::ioutils::{PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream};
+use foundation_core::io::ioutils::{
+    PeekError, PeekableReadStream, ReadTimeoutOperations, SplitReadStream,
+};
 use foundation_core::url::{InvalidUri, Uri};
 #[cfg(unix)]
 use std::os::unix::io::AsRawFd;
@@ -31,7 +33,11 @@ type TlsStream = crate::native::ssl::rustls::RustTlsClientStream;
 #[cfg(all(not(feature = "ssl-rustls"), feature = "ssl-openssl"))]
 type TlsStream = crate::native::ssl::openssl::SplitOpenSslStream;
 
-#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
 type TlsStream = crate::native::ssl::native_ttls::NativeTlsStream;
 
 #[derive(From, Debug, Clone)]
@@ -361,7 +367,7 @@ pub enum Connection {
     ))]
     Tls(TlsStream),
 
-    /// A byte source whose reads come from the io_uring completion inbox — the
+    /// A byte source whose reads come from the `io_uring` completion inbox — the
     /// kernel already performed them (Decision 14 F4 / Feature 48).
     ///
     /// The boxed trait object breaks the dependency cycle that a concrete
@@ -922,7 +928,11 @@ impl From<crate::native::ssl::openssl::SplitOpenSslStream> for Connection {
     }
 }
 
-#[cfg(all(not(feature = "ssl-rustls"), not(feature = "ssl-openssl"), feature = "ssl-native-tls"))]
+#[cfg(all(
+    not(feature = "ssl-rustls"),
+    not(feature = "ssl-openssl"),
+    feature = "ssl-native-tls"
+))]
 impl From<crate::native::ssl::native_ttls::NativeTlsStream> for Connection {
     fn from(s: crate::native::ssl::native_ttls::NativeTlsStream) -> Self {
         Self::Tls(s)
