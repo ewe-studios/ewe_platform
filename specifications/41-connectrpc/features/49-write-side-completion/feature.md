@@ -291,7 +291,8 @@ forwards the same buffer to the upstream. The buffer is never copied into user
 memory — the kernel reads it from one fd and writes it to another.
 
 **This feature does NOT ship the zero-copy relay.** It ships the SEND mechanism
-the relay needs. The relay itself is a separate feature (tentatively Feature 50)
+the relay needs. The relay itself is
+**[Feature 50](../50-client-completion-relay/feature.md)** (Part C there),
 because:
 
 - `IORING_OP_SEND_ZC` has different completion semantics: the CQE reports both

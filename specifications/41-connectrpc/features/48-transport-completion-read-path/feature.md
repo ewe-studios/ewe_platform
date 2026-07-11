@@ -103,9 +103,10 @@ Phase 3 — it is blocked on machinery *no* phase of F48 builds:
 `splice_bidirectional`'s upstream leg is an outbound `TcpStream::connect`, a
 client dial that is never registered with the reactor, so there is no inbox to
 park a composite readiness on. F48 only ever built the *server accept* path.
-Client-side/outbound completion registration belongs with the write-side work
-(**[Feature 49](../49-write-side-completion/feature.md)**), where the dial and
-`SEND` accounting live together. Two further facts confirm the rehoming:
+Client-side/outbound completion registration and the readiness-aware splice are
+now **[Feature 50](../50-client-completion-relay/feature.md)**, which consumes the
+`SEND` machinery of [Feature 49](../49-write-side-completion/feature.md) for its
+zero-copy phase. Two further facts confirm the rehoming:
 `splice_bidirectional` is generic over `A: Read + Write` and exposes no readiness
 handle, and it runs on a dedicated OS thread with a 1 ms idle sleep rather than
 as a valtron task that returns `Depends` — so "park on readiness" there is a
@@ -817,8 +818,8 @@ needs `IORING_OP_SEND` against a provided buffer, which is out of scope here.
 - ~~**Phase 4: `splice_bidirectional` without the sleep.**~~ **Designed out of
   this feature** (see *Implementation update*). The splice's upstream leg is an
   unregistered outbound dial, so there is no inbox to park on; the change is
-  rehomed to the client-side/write-side work
-  ([Feature 49](../49-write-side-completion/feature.md)). The proxy's HTTP
+  rehomed to **[Feature 50](../50-client-completion-relay/feature.md)**
+  (client-side completion + zero-syscall relay). The proxy's HTTP
   front-door reads already reach completion mode via
   `ServerConfig::with_io(ServerIo::Completion)`.
 - **Phase 5 (separate feature): `IORING_OP_SEND` and the zero-copy relay.**
