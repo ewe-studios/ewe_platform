@@ -530,6 +530,25 @@ pub fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_test::wasm_test(attr.into(), item.into()).into()
 }
 
+/// `#[valtron_wasm_test]` — `#[wasm_test]` with valtron pool auto-init (F52).
+///
+/// Same as `#[wasm_test]` (owned export + manifest), but wraps the test body
+/// in `valtron::initialize_pool()` / `drop()` so `execute()` + `spawn()` are
+/// available without manual pool setup.
+///
+/// ```ignore
+/// use foundation_macros::valtron_wasm_test;
+///
+/// #[valtron_wasm_test]
+/// fn my_test() {
+///     let mut stream = valtron::execute(task, None).unwrap();
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    wasm_test::valtron_wasm_test(attr.into(), item.into()).into()
+}
+
 /// `#[valtron_bindgen]` — wasm-bindgen browser test with valtron pool (F52).
 ///
 /// Single attribute that combines:

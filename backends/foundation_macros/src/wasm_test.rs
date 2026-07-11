@@ -280,29 +280,12 @@ pub(crate) fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     };
 
     quote! {
-        // (1) The original function — kept verbatim so the case remains
-        // ordinary Rust (callable by other code, compilable natively).
         #case
-
-        // (2) The runnable export. wasm-only: native builds of the test crate
-        // must not grow C exports or depend on the host ABI.
         #[cfg(target_family = "wasm")]
         #[no_mangle]
         pub extern "C" fn #export() -> u32 {
-            // Record the running case FIRST — the panic hook reads it to
-            // attribute a failure (the hook only receives the panic info).
             #fw::testing::enter_case(#name_str);
             {
-                // One panic hook per crate, installed lazily by whichever case
-                // runs first (`Once` makes later calls no-ops). The hook is
-                // generated HERE — not inside foundation_wasm — because
-                // std::panic::set_hook is a `std` API and foundation_wasm is
-                // `no_std`; test crates are always std cdylibs.
-                //
-                // The hook is the ONLY chance to ship a failure message: wasm32
-                // panics ABORT (no unwinding), so the moment the hook returns,
-                // the instance traps and never executes again. The JS runner
-                // catches that trap and re-instantiates for the next case.
                 static __FWT_HOOK: ::std::sync::Once = ::std::sync::Once::new();
                 __FWT_HOOK.call_once(|| {
                     ::std::panic::set_hook(::std::boxed::Box::new(|info| {
@@ -311,24 +294,106 @@ pub(crate) fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
                 });
             }
             if #ignore {
-                // Ignored cases still REPORT (status 2) so the runner can count
-                // them — they just never execute the body.
                 #fw::testing::ignored(#name_str);
                 return 0;
             }
             #invoke
         }
-
-        // (3) The manifest entry. `link_section` routes the bytes into the
-        // `__fwt_manifest` CUSTOM SECTION of the .wasm — the linker
-        // concatenates every case's bytes into one section, and that
-        // concatenation IS the manifest "map". `used` stops the
-        // otherwise-unreferenced static from being stripped (which would
-        // silently delete the manifest). wasm-only: ELF/Mach-O section
-        // semantics differ and nothing reads the manifest natively.
         #[cfg(target_family = "wasm")]
         #[used]
         #[link_section = "__fwt_manifest"]
         static #meta_ident: [u8; #manifest_len] = *#manifest_bytes;
     }
+    .into()
+}
+
+/// `#[valtron_wasm_test]` — `#[wasm_test]` but with a live valtron pool.
+///
+/// Same as `#[wasm_test]` (owned export + manifest entry + runner),
+/// but wraps the test body in `valtron::initialize_pool()` / drop() so
+/// `valtron::execute()` and `valtron::spawn()` are available without
+/// manual pool setup.
+pub(crate) fn valtron_wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let flags = match parse_flags(attr) {
+        Ok(flags) => flags,
+        Err(err) => return err.to_compile_error(),
+    };
+    let case = match syn::parse2::<syn::ItemFn>(item.clone()) {
+        Ok(case) => case,
+        Err(err) => return err.to_compile_error(),
+    };
+    if !case.sig.inputs.is_empty() {
+        return syn::Error::new_spanned(
+            &case.sig.inputs,
+            "#[valtron_wasm_test] functions take no arguments",
+        )
+        .to_compile_error();
+    }
+
+    let fw = foundation_wasm_path();
+    let name = &case.sig.ident;
+    let name_str = name.to_string();
+    let is_async = case.sig.asyncness.is_some();
+    let export = format_ident!("__fwt_{name}");
+    let meta_ident = format_ident!("__FWT_META_{}", name_str.to_uppercase());
+    let ignore = flags.ignore;
+
+    let mut manifest_flags = String::new();
+    if is_async { manifest_flags.push('a'); }
+    if flags.should_panic { manifest_flags.push('p'); }
+    if ignore { manifest_flags.push('i'); }
+    let manifest_line = format!("{name_str}|{manifest_flags}\n");
+    let manifest_bytes = syn::LitByteStr::new(manifest_line.as_bytes(), name.span());
+    let manifest_len = manifest_line.len();
+
+    let invoke = if is_async {
+        quote! { #fw::testing::run_async(#name_str, #name()) }
+    } else {
+        quote! {
+            #name();
+            #fw::testing::pass(#name_str);
+            0
+        }
+    };
+
+    // Wrap invoke with valtron pool init/teardown.
+    let invoke_with_pool = quote! {
+        let __valtron_guard = foundation_core::valtron::initialize_pool(
+            ::std::hash::BuildHasher::hash_one(
+                &::std::collections::hash_map::RandomState::new(),
+                0x0045_5745_u64,
+            ),
+            ::core::option::Option::None,
+        );
+        let __valtron_out = { #invoke };
+        ::core::mem::drop(__valtron_guard);
+        __valtron_out
+    };
+
+    quote! {
+        #case
+        #[cfg(target_family = "wasm")]
+        #[no_mangle]
+        pub extern "C" fn #export() -> u32 {
+            #fw::testing::enter_case(#name_str);
+            {
+                static __FWT_HOOK: ::std::sync::Once = ::std::sync::Once::new();
+                __FWT_HOOK.call_once(|| {
+                    ::std::panic::set_hook(::std::boxed::Box::new(|info| {
+                        #fw::testing::fail_current(&::std::string::ToString::to_string(info));
+                    }));
+                });
+            }
+            if #ignore {
+                #fw::testing::ignored(#name_str);
+                return 0;
+            }
+            #invoke_with_pool
+        }
+        #[cfg(target_family = "wasm")]
+        #[used]
+        #[link_section = "__fwt_manifest"]
+        static #meta_ident: [u8; #manifest_len] = *#manifest_bytes;
+    }
+    .into()
 }
