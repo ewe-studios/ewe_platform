@@ -41,7 +41,7 @@ pub struct StreamId(pub u32);
 
 impl StreamId {
     /// The connection-wide stream (0).
-    pub const CONNECTION: Self = StreamId(0);
+    pub const CONNECTION: Self = Self(0);
 
     /// Whether this is a client-initiated stream (odd stream ID).
     #[must_use]
@@ -58,12 +58,12 @@ impl StreamId {
 
 impl From<u32> for StreamId {
     fn from(id: u32) -> Self {
-        StreamId(id)
+        Self(id)
     }
 }
 
 impl From<StreamId> for u32 {
-    fn from(s: StreamId) -> u32 {
+    fn from(s: StreamId) -> Self {
         s.0
     }
 }

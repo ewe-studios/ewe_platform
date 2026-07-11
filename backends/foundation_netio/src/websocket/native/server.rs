@@ -432,6 +432,6 @@ impl WebSocketError {
     /// Returns a `ProtocolError` indicating the masking violation.
     #[must_use]
     pub fn unmasked_client_frame() -> Self {
-        WebSocketError::ProtocolError("Client sent unmasked frame".to_string())
+        Self::ProtocolError("Client sent unmasked frame".to_string())
     }
 }

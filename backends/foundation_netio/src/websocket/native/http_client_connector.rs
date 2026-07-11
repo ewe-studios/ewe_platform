@@ -58,7 +58,7 @@ impl<R: DnsResolver + Clone + Send + Sync + 'static> WebSocketConnector for Nati
         let host_only = uri.host_str().unwrap_or_else(|| "localhost".to_string());
         let host = match uri.port() {
             Some(p) => format!("{host_only}:{p}"),
-            None => host_only.clone(),
+            None => host_only,
         };
         let path = uri.path();
         let query = uri.query();

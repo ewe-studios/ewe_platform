@@ -434,7 +434,7 @@ where
                 let host_only = state.url.host_str().unwrap_or_default();
                 let host = match state.url.port() {
                     Some(p) => format!("{host_only}:{p}"),
-                    None => host_only.clone(),
+                    None => host_only,
                 };
                 let path = state.url.path();
                 let query = state.url.query();
@@ -535,7 +535,7 @@ where
                                     error!(?status, "Upgrade failed - not 101 Switching Protocols");
                                     self.state = Some(WebSocketState::Closed(Some(
                                         WebSocketError::UpgradeFailed(
-                                            status.clone().into_usize() as u16
+                                            status.into_usize() as u16
                                         ),
                                     )));
                                     return None;

@@ -56,7 +56,7 @@ pub enum DnsError {
 // Manual From implementation for io::Error
 impl From<io::Error> for DnsError {
     fn from(err: io::Error) -> Self {
-        DnsError::IoError(err.to_string())
+        Self::IoError(err.to_string())
     }
 }
 
@@ -232,7 +232,7 @@ impl<T> From<PoisonError<T>> for HttpClientError {
 
 impl From<InvalidUri> for HttpClientError {
     fn from(err: InvalidUri) -> Self {
-        HttpClientError::InvalidUrl(err.to_string())
+        Self::InvalidUrl(err.to_string())
     }
 }
 
@@ -427,7 +427,7 @@ impl core::fmt::Display for HttpReaderError {
 impl From<ChunkStateError> for HttpReaderError {
     fn from(err: ChunkStateError) -> Self {
         match err {
-            ChunkStateError::ChunkSizeTooLarge(size) => HttpReaderError::ChunkSizeTooLarge(size),
+            ChunkStateError::ChunkSizeTooLarge(size) => Self::ChunkSizeTooLarge(size),
             ChunkStateError::ParseFailed
             | ChunkStateError::InvalidByte(_)
             | ChunkStateError::InvalidOctetSizeByte(_)
@@ -435,8 +435,8 @@ impl From<ChunkStateError> for HttpReaderError {
             | ChunkStateError::InvalidChunkEndingExpectedCRLF
             | ChunkStateError::ExtensionWithNoValue
             | ChunkStateError::InvalidOctetBytes(_)
-            | ChunkStateError::ChunkSizeNotFound => HttpReaderError::InvalidChunkSize,
-            ChunkStateError::ReadErrors => HttpReaderError::ReadFailed,
+            | ChunkStateError::ChunkSizeNotFound => Self::InvalidChunkSize,
+            ChunkStateError::ReadErrors => Self::ReadFailed,
         }
     }
 }

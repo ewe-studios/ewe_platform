@@ -186,7 +186,7 @@ impl HttpClientConnection {
                         RawStream::from_connection(connection)
                             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
                     );
-                    return Ok(HttpClientConnection { stream, host, port });
+                    return Ok(Self { stream, host, port });
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -252,7 +252,7 @@ impl HttpClientConnection {
                 .map_err(|e| HttpClientError::TlsHandshakeFailed(e.to_string()))?,
         );
 
-        Ok(HttpClientConnection {
+        Ok(Self {
             stream,
             host: host.into(),
             port,
@@ -376,7 +376,7 @@ impl HttpClientConnection {
                         RawStream::from_connection(connection)
                             .map_err(|e| HttpClientError::ConnectionFailed(e.to_string()))?,
                     );
-                    return Ok(HttpClientConnection { stream, host, port });
+                    return Ok(Self { stream, host, port });
                 }
                 Err(e) => {
                     last_error = Some(e);
@@ -1065,7 +1065,7 @@ impl<R: DnsResolver> HttpConnectionPool<R> {
                     );
                     Ok(HttpClientConnection {
                         stream,
-                        host: target_host.clone(),
+                        host: target_host,
                         port: target_port,
                     })
                 }

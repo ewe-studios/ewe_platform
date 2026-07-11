@@ -47,12 +47,12 @@ impl Opcode {
     /// Never panics.
     pub fn from_byte(byte: u8) -> Result<Self, WebSocketError> {
         match byte {
-            0x0 => Ok(Opcode::Continuation),
-            0x1 => Ok(Opcode::Text),
-            0x2 => Ok(Opcode::Binary),
-            0x8 => Ok(Opcode::Close),
-            0x9 => Ok(Opcode::Ping),
-            0xA => Ok(Opcode::Pong),
+            0x0 => Ok(Self::Continuation),
+            0x1 => Ok(Self::Text),
+            0x2 => Ok(Self::Binary),
+            0x8 => Ok(Self::Close),
+            0x9 => Ok(Self::Ping),
+            0xA => Ok(Self::Pong),
             _ => Err(WebSocketError::InvalidFrame(format!(
                 "unknown opcode: 0x{byte:X}"
             ))),
@@ -69,7 +69,7 @@ impl Opcode {
     /// Never panics.
     #[must_use]
     pub fn is_control(&self) -> bool {
-        matches!(self, Opcode::Close | Opcode::Ping | Opcode::Pong)
+        matches!(self, Self::Close | Self::Ping | Self::Pong)
     }
 }
 
@@ -304,7 +304,7 @@ impl WebSocketFrame {
             apply_mask(&mut payload, mask_key);
         }
 
-        Ok(WebSocketFrame {
+        Ok(Self {
             fin,
             opcode,
             mask,
@@ -531,7 +531,7 @@ impl WebSocketFrame {
             }
         }
 
-        Ok(WebSocketFrame {
+        Ok(Self {
             fin,
             opcode,
             mask,

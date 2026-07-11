@@ -93,7 +93,7 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
         let host = if parsed_url.port().is_some() {
             format!("{}:{}", host_str, parsed_url.port_or_default())
         } else {
-            host_str.clone()
+            host_str
         };
         headers.insert(SimpleHeader::HOST, vec![host]);
 

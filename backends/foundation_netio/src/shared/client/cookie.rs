@@ -45,7 +45,7 @@ impl Default for SameSite {
     /// # Panics
     /// Never panics.
     fn default() -> Self {
-        SameSite::Lax
+        Self::Lax
     }
 }
 
@@ -290,7 +290,7 @@ impl Cookie {
             CookieParseError::InvalidFormat("missing = in name=value".to_string())
         })?;
 
-        let mut cookie = Cookie::new(name.trim(), value.trim());
+        let mut cookie = Self::new(name.trim(), value.trim());
 
         // Parse remaining attributes
         for attr in &parts[1..] {

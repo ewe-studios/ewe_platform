@@ -41,7 +41,7 @@ impl StreamState {
     /// The initial state for a new client-initiated stream (odd stream ID).
     #[must_use]
     pub fn new_client_initiated() -> Self {
-        StreamState::Idle
+        Self::Idle
     }
 
     /// The initial state for a server-pushed stream (even stream ID).
@@ -49,7 +49,7 @@ impl StreamState {
     /// on the associated stream, so the new stream enters reserved state.
     #[must_use]
     pub fn new_server_push() -> Self {
-        StreamState::ReservedLocal
+        Self::ReservedLocal
     }
 
     // ── Send transitions ─────────────────────────────────────────────────
@@ -61,27 +61,27 @@ impl StreamState {
     ///
     /// # Errors
     /// Returns the current state if this transition is illegal.
-    pub fn send_headers(&mut self, end_stream: bool) -> Result<(), StreamState> {
+    pub fn send_headers(&mut self, end_stream: bool) -> Result<(), Self> {
         match *self {
-            StreamState::Idle => {
+            Self::Idle => {
                 *self = if end_stream {
-                    StreamState::HalfClosedLocal
+                    Self::HalfClosedLocal
                 } else {
-                    StreamState::Open
+                    Self::Open
                 };
                 Ok(())
             }
-            StreamState::ReservedLocal => {
+            Self::ReservedLocal => {
                 *self = if end_stream {
-                    StreamState::Closed
+                    Self::Closed
                 } else {
-                    StreamState::HalfClosedRemote
+                    Self::HalfClosedRemote
                 };
                 Ok(())
             }
-            StreamState::Open => {
+            Self::Open => {
                 if end_stream {
-                    *self = StreamState::HalfClosedLocal;
+                    *self = Self::HalfClosedLocal;
                 }
                 Ok(())
             }
@@ -92,17 +92,17 @@ impl StreamState {
     /// We are sending DATA. Only valid in Open or `HalfClosedRemote`.
     ///
     /// # Errors
-    pub fn send_data(&mut self, end_stream: bool) -> Result<(), StreamState> {
+    pub fn send_data(&mut self, end_stream: bool) -> Result<(), Self> {
         match *self {
-            StreamState::Open => {
+            Self::Open => {
                 if end_stream {
-                    *self = StreamState::HalfClosedLocal;
+                    *self = Self::HalfClosedLocal;
                 }
                 Ok(())
             }
-            StreamState::HalfClosedRemote => {
+            Self::HalfClosedRemote => {
                 if end_stream {
-                    *self = StreamState::Closed;
+                    *self = Self::Closed;
                 }
                 Ok(())
             }
@@ -113,11 +113,11 @@ impl StreamState {
     /// We are sending `RST_STREAM`. Closes the stream from any state except Idle.
     ///
     /// # Errors
-    pub fn send_reset(&mut self) -> Result<(), StreamState> {
-        if *self == StreamState::Idle {
-            Err(StreamState::Idle)
+    pub fn send_reset(&mut self) -> Result<(), Self> {
+        if *self == Self::Idle {
+            Err(Self::Idle)
         } else {
-            *self = StreamState::Closed;
+            *self = Self::Closed;
             Ok(())
         }
     }
@@ -125,9 +125,9 @@ impl StreamState {
     /// We are sending a `PUSH_PROMISE` on an associated stream.
     /// Creates a new promised stream in `ReservedLocal`.
     #[must_use]
-    pub fn send_push_promise(&self) -> Result<StreamState, StreamState> {
+    pub fn send_push_promise(&self) -> Result<Self, Self> {
         match *self {
-            StreamState::Open | StreamState::HalfClosedRemote => Ok(StreamState::ReservedLocal),
+            Self::Open | Self::HalfClosedRemote => Ok(Self::ReservedLocal),
             _ => Err(*self),
         }
     }
@@ -141,33 +141,33 @@ impl StreamState {
     /// - `HalfClosedLocal` → `HalfClosedLocal` (trailers; → Closed if `END_STREAM`)
     ///
     /// # Errors
-    pub fn recv_headers(&mut self, end_stream: bool) -> Result<(), StreamState> {
+    pub fn recv_headers(&mut self, end_stream: bool) -> Result<(), Self> {
         match *self {
-            StreamState::Idle => {
+            Self::Idle => {
                 *self = if end_stream {
-                    StreamState::HalfClosedRemote
+                    Self::HalfClosedRemote
                 } else {
-                    StreamState::Open
+                    Self::Open
                 };
                 Ok(())
             }
-            StreamState::ReservedRemote => {
+            Self::ReservedRemote => {
                 *self = if end_stream {
-                    StreamState::Closed
+                    Self::Closed
                 } else {
-                    StreamState::HalfClosedLocal
+                    Self::HalfClosedLocal
                 };
                 Ok(())
             }
-            StreamState::Open => {
+            Self::Open => {
                 if end_stream {
-                    *self = StreamState::HalfClosedRemote;
+                    *self = Self::HalfClosedRemote;
                 }
                 Ok(())
             }
-            StreamState::HalfClosedLocal => {
+            Self::HalfClosedLocal => {
                 if end_stream {
-                    *self = StreamState::Closed;
+                    *self = Self::Closed;
                 }
                 Ok(())
             }
@@ -178,17 +178,17 @@ impl StreamState {
     /// We received DATA. Only valid in Open or `HalfClosedLocal`.
     ///
     /// # Errors
-    pub fn recv_data(&mut self, end_stream: bool) -> Result<(), StreamState> {
+    pub fn recv_data(&mut self, end_stream: bool) -> Result<(), Self> {
         match *self {
-            StreamState::Open => {
+            Self::Open => {
                 if end_stream {
-                    *self = StreamState::HalfClosedRemote;
+                    *self = Self::HalfClosedRemote;
                 }
                 Ok(())
             }
-            StreamState::HalfClosedLocal => {
+            Self::HalfClosedLocal => {
                 if end_stream {
-                    *self = StreamState::Closed;
+                    *self = Self::Closed;
                 }
                 Ok(())
             }
@@ -199,20 +199,20 @@ impl StreamState {
     /// We received `RST_STREAM`. Closes the stream from any state except Idle.
     ///
     /// # Errors
-    pub fn recv_reset(&mut self) -> Result<(), StreamState> {
-        if *self == StreamState::Idle {
-            Err(StreamState::Idle)
+    pub fn recv_reset(&mut self) -> Result<(), Self> {
+        if *self == Self::Idle {
+            Err(Self::Idle)
         } else {
-            *self = StreamState::Closed;
+            *self = Self::Closed;
             Ok(())
         }
     }
 
     /// We received a `PUSH_PROMISE`. The new promised stream enters `ReservedRemote`.
     #[must_use]
-    pub fn recv_push_promise(&self) -> Result<StreamState, StreamState> {
+    pub fn recv_push_promise(&self) -> Result<Self, Self> {
         match *self {
-            StreamState::Open | StreamState::HalfClosedLocal => Ok(StreamState::ReservedRemote),
+            Self::Open | Self::HalfClosedLocal => Ok(Self::ReservedRemote),
             _ => Err(*self),
         }
     }
@@ -222,7 +222,7 @@ impl StreamState {
     pub fn can_send(&self) -> bool {
         matches!(
             *self,
-            StreamState::Open | StreamState::HalfClosedRemote | StreamState::ReservedLocal
+            Self::Open | Self::HalfClosedRemote | Self::ReservedLocal
         )
     }
 
@@ -231,7 +231,7 @@ impl StreamState {
     pub fn can_recv(&self) -> bool {
         matches!(
             *self,
-            StreamState::Open | StreamState::HalfClosedLocal | StreamState::ReservedRemote
+            Self::Open | Self::HalfClosedLocal | Self::ReservedRemote
         )
     }
 }

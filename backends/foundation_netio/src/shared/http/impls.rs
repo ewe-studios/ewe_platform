@@ -48,7 +48,7 @@ impl ChunkedData {
     /// Panics if extension value cloning fails.
     pub fn into_bytes(&mut self) -> Vec<u8> {
         match self {
-            ChunkedData::Data(data, exts) => {
+            Self::Data(data, exts) => {
                 let hexa_octet = format!("{:x}", data.len());
                 let extension_string: Option<Vec<String>> = exts.as_mut().map(|extensions| {
                     extensions
@@ -69,14 +69,14 @@ impl ChunkedData {
                     chunk_data
                         .append(&mut format!("{} {}", hexa_octet, ext_str.join("")).into_bytes());
                 } else {
-                    chunk_data.extend(hexa_octet.clone().into_bytes());
+                    chunk_data.extend(hexa_octet.into_bytes());
                 }
 
                 chunk_data.append(data);
                 chunk_data
             }
-            ChunkedData::DataEnded => b"0\r\n".to_vec(),
-            ChunkedData::Trailers(trailers) => {
+            Self::DataEnded => b"0\r\n".to_vec(),
+            Self::Trailers(trailers) => {
                 let content: Vec<String> = trailers
                     .iter()
                     .map(|(key, value)| {
@@ -187,12 +187,12 @@ pub enum SimpleBody {
 impl From<SendSafeBody> for IncomingResponseParts {
     fn from(val: SendSafeBody) -> Self {
         match &val {
-            SendSafeBody::None => IncomingResponseParts::NoBody,
-            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => IncomingResponseParts::SizedBody(val),
+            SendSafeBody::None => Self::NoBody,
+            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => Self::SizedBody(val),
             SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
             | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::SseStream(_) => IncomingResponseParts::StreamedBody(val),
+            | SendSafeBody::SseStream(_) => Self::StreamedBody(val),
         }
     }
 }
@@ -200,12 +200,12 @@ impl From<SendSafeBody> for IncomingResponseParts {
 impl From<SendSafeBody> for IncomingRequestParts {
     fn from(val: SendSafeBody) -> Self {
         match &val {
-            SendSafeBody::None => IncomingRequestParts::NoBody,
-            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => IncomingRequestParts::SizedBody(val),
+            SendSafeBody::None => Self::NoBody,
+            SendSafeBody::Text(_) | SendSafeBody::Bytes(_) => Self::SizedBody(val),
             SendSafeBody::Stream(_)
             | SendSafeBody::LineFeedStream(_)
             | SendSafeBody::ChunkedStream(_)
-            | SendSafeBody::SseStream(_) => IncomingRequestParts::StreamedBody(val),
+            | SendSafeBody::SseStream(_) => Self::StreamedBody(val),
         }
     }
 }
@@ -394,26 +394,26 @@ impl core::fmt::Debug for SendSafeBody {
 impl From<SendSafeBody> for SimpleBody {
     fn from(value: SendSafeBody) -> Self {
         match value {
-            SendSafeBody::None => SimpleBody::None,
-            SendSafeBody::Text(s) => SimpleBody::Text(s),
-            SendSafeBody::Bytes(b) => SimpleBody::Bytes(b),
+            SendSafeBody::None => Self::None,
+            SendSafeBody::Text(s) => Self::Text(s),
+            SendSafeBody::Bytes(b) => Self::Bytes(b),
             SendSafeBody::Stream(iter) => {
                 let bytes_iter = iter.map(|i| {
                     let wrapped = DataBytesIterator::new(i);
                     Box::new(wrapped) as VecBoxedIterator<BoxedError>
                 });
-                SimpleBody::Stream(bytes_iter)
+                Self::Stream(bytes_iter)
             }
             // Cast Box<dyn Iterator + Send> to Box<dyn Iterator> by forgetting Send bound
             SendSafeBody::ChunkedStream(iter) => {
-                SimpleBody::ChunkedStream(iter.map(|i| i as ChunkedVecIterator<BoxedError>))
+                Self::ChunkedStream(iter.map(|i| i as ChunkedVecIterator<BoxedError>))
             }
             SendSafeBody::LineFeedStream(iter) => {
-                SimpleBody::LineFeedStream(iter.map(|i| i as LineFeedVecIterator<BoxedError>))
+                Self::LineFeedStream(iter.map(|i| i as LineFeedVecIterator<BoxedError>))
             }
             // SseStream cannot be converted to SimpleBody as it requires special handling
             // In this case, we return SimpleBody::None as SSE streams should be handled separately
-            SendSafeBody::SseStream(_) => SimpleBody::None,
+            SendSafeBody::SseStream(_) => Self::None,
         }
     }
 }
@@ -1006,16 +1006,16 @@ impl From<String> for SimpleMethod {
 impl SimpleMethod {
     fn value(&self) -> String {
         match self {
-            SimpleMethod::HEAD => "HEAD".into(),
-            SimpleMethod::GET => "GET".into(),
-            SimpleMethod::POST => "POST".into(),
-            SimpleMethod::PUT => "PUT".into(),
-            SimpleMethod::DELETE => "DELETE".into(),
-            SimpleMethod::PATCH => "PATCH".into(),
-            SimpleMethod::OPTIONS => "OPTIONS".into(),
-            SimpleMethod::CONNECT => "CONNECT".into(),
-            SimpleMethod::TRACE => "TRACE".into(),
-            SimpleMethod::Custom(inner) => inner.clone(),
+            Self::HEAD => "HEAD".into(),
+            Self::GET => "GET".into(),
+            Self::POST => "POST".into(),
+            Self::PUT => "PUT".into(),
+            Self::DELETE => "DELETE".into(),
+            Self::PATCH => "PATCH".into(),
+            Self::OPTIONS => "OPTIONS".into(),
+            Self::CONNECT => "CONNECT".into(),
+            Self::TRACE => "TRACE".into(),
+            Self::Custom(inner) => inner.clone(),
         }
     }
 
@@ -1352,7 +1352,7 @@ impl SimpleUrl {
         matcher: regex::Regex,
         params: Vec<String>,
         query: BTreeMap<String, String>,
-    ) -> SimpleUrl {
+    ) -> Self {
         Self {
             url_only,
             url: request_url,
@@ -1366,7 +1366,7 @@ impl SimpleUrl {
     /// will not have queries or parameters to be extracted.
     /// Generally you will use this on the server side when representing
     /// a request with no queries or parameters.
-    pub fn url_only<S: Into<String>>(request_url: S) -> SimpleUrl {
+    pub fn url_only<S: Into<String>>(request_url: S) -> Self {
         Self {
             url: request_url.into(),
             url_only: true,
@@ -1389,7 +1389,7 @@ impl SimpleUrl {
     /// this means the matched URL must match the queries as well except in
     /// the cases where the value part of your query `key={value}` is a `*`
     /// which allows you to match any with the condition the key is present.
-    pub fn url_with_query<S: Into<String>>(request_url: S) -> SimpleUrl {
+    pub fn url_with_query<S: Into<String>>(request_url: S) -> Self {
         let request_url_str = request_url.into();
         let params = Self::capture_url_params(&request_url_str);
         let matcher = Self::capture_path_pattern(&request_url_str);
@@ -1403,7 +1403,7 @@ impl SimpleUrl {
             queries
         );
 
-        SimpleUrl {
+        Self {
             params,
             queries,
             url_only: false,
@@ -1483,7 +1483,7 @@ impl SimpleUrl {
     }
 
     #[must_use]
-    pub fn matches_other(&self, target: &SimpleUrl) -> bool {
+    pub fn matches_other(&self, target: &Self) -> bool {
         let matched_uri_regex = match &self.matcher {
             Some(inner) => inner.is_match(&target.url),
             None => self.url == target.url,
@@ -1657,7 +1657,7 @@ impl SimpleOutgoingResponse {
     /// # Panics
     /// Panics if building the response fails (should never happen with this configuration).
     #[must_use]
-    pub fn empty() -> SimpleOutgoingResponse {
+    pub fn empty() -> Self {
         SimpleOutgoingResponseBuilder::default()
             .with_status(Status::OK)
             .add_header(SimpleHeader::CONTENT_LENGTH, "0")
@@ -2298,7 +2298,7 @@ impl Iterator for Http11RequestBodyIterator {
                     SendSafeBody::Bytes(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11RequestBodyState::End);
-                        Some(Ok(inner.clone()))
+                        Some(Ok(inner))
                     }
                     SendSafeBody::ChunkedStream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
@@ -2626,14 +2626,14 @@ impl Http11Chunk {
     #[must_use]
     pub fn render(&self) -> Vec<u8> {
         match self {
-            Http11Chunk::Raw(data) => data.clone(),
-            Http11Chunk::Chunked(data) => {
+            Self::Raw(data) => data.clone(),
+            Self::Chunked(data) => {
                 let mut out = format!("{:x}\r\n", data.len()).into_bytes();
                 out.extend_from_slice(data);
                 out.extend_from_slice(b"\r\n");
                 out
             }
-            Http11Chunk::ChunkedExt(data, exts) => {
+            Self::ChunkedExt(data, exts) => {
                 let mut header = format!("{:x}", data.len()).into_bytes();
                 for (name, value) in exts {
                     header.push(b';');
@@ -2778,7 +2778,7 @@ pub struct Http11ResponseIterator(Option<Http11ResState>);
 impl Http11ResponseIterator {
     #[must_use]
     pub fn new(response: SimpleOutgoingResponse) -> Self {
-        Http11ResponseIterator(Some(Http11ResState::Intro(response)))
+        Self(Some(Http11ResState::Intro(response)))
     }
 }
 
@@ -2861,7 +2861,7 @@ impl Iterator for Http11ResponseIterator {
                     SendSafeBody::Bytes(inner) => {
                         // tell the iterator we want it to end
                         self.0 = Some(Http11ResState::End);
-                        Some(Ok(inner.clone()))
+                        Some(Ok(inner))
                     }
                     SendSafeBody::ChunkedStream(mut streamer_container) => {
                         if let Some(inner) = streamer_container.take() {
@@ -3086,21 +3086,21 @@ impl RenderHttp for Http11 {
         self,
     ) -> std::result::Result<BoxedResultIterator<Vec<u8>, Self::Error>, Self::Error> {
         match self {
-            Http11::RequestDescriptor(request) => {
+            Self::RequestDescriptor(request) => {
                 Ok(Box::new(Http11RequestDescriptorIterator::new(request)))
             }
-            Http11::RequestBody(request) => Ok(Box::new(Http11RequestBodyIterator::new(request))),
-            Http11::Request(request) => Ok(Box::new(Http11RequestIterator::new(request))),
-            Http11::Response(response) => Ok(Box::new(Http11ResponseIterator::new(response))),
-            Http11::ResponseStatusLine(status) => {
+            Self::RequestBody(request) => Ok(Box::new(Http11RequestBodyIterator::new(request))),
+            Self::Request(request) => Ok(Box::new(Http11RequestIterator::new(request))),
+            Self::Response(response) => Ok(Box::new(Http11ResponseIterator::new(response))),
+            Self::ResponseStatusLine(status) => {
                 Ok(Box::new(Http11ResponseStatusLineIterator::new(status)))
             }
-            Http11::ResponseHeaders(headers) => {
+            Self::ResponseHeaders(headers) => {
                 Ok(Box::new(Http11ResponseHeadersIterator::new(headers)))
             }
-            Http11::ResponseHead(head) => Ok(Box::new(Http11ResponseHeadIterator::new(head))),
-            Http11::ResponseBodyChunk(chunk) => Ok(Box::new(Http11ChunkIterator::new(chunk))),
-            Http11::ResponseTrailers(trailers) => {
+            Self::ResponseHead(head) => Ok(Box::new(Http11ResponseHeadIterator::new(head))),
+            Self::ResponseBodyChunk(chunk) => Ok(Box::new(Http11ChunkIterator::new(chunk))),
+            Self::ResponseTrailers(trailers) => {
                 Ok(Box::new(Http11TrailersIterator::new(trailers)))
             }
         }
@@ -4610,9 +4610,9 @@ impl LineFeed {
         let line_feed_result = match pointer
             .do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume_some)
         {
-            Some(value) => match String::from_utf8(value.clone()) {
+            Some(value) => match String::from_utf8(value) {
                 Ok(converted_string) => Ok(if converted_string.trim().is_empty() {
-                    LineFeed::SKIP
+                    Self::SKIP
                 } else {
                     tracing::trace!("Processing::LineFeed::Line: {:?} ", &converted_string);
 
@@ -4622,11 +4622,11 @@ impl LineFeed {
                     //     .filter(|item| !item.trim().is_empty())
                     //     .collect();
 
-                    LineFeed::Line(converted_string)
+                    Self::Line(converted_string)
                 }),
                 Err(err) => return Err(LineFeedError::InvalidUTF(err)),
             },
-            None => Ok(LineFeed::END),
+            None => Ok(Self::END),
         };
 
         // eat all the space
@@ -4639,7 +4639,7 @@ impl LineFeed {
         let () = Self::eat_crlf(pointer.clone())?;
 
         // eat all crlf
-        let () = Self::eat_escaped_crlf(pointer.clone())?;
+        let () = Self::eat_escaped_crlf(pointer)?;
 
         line_feed_result
     }
@@ -4902,12 +4902,12 @@ impl ChunkState {
         }
 
         match pointer.do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume) {
-            Ok(value) => match String::from_utf8(value.clone()) {
+            Ok(value) => match String::from_utf8(value) {
                 Ok(converted_string) => Ok(
                     if converted_string.is_empty() || converted_string.trim().is_empty() {
                         None
                     } else {
-                        Some(ChunkState::Trailer(converted_string))
+                        Some(Self::Trailer(converted_string))
                     },
                 ),
                 Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
@@ -5056,7 +5056,7 @@ impl ChunkState {
         let (chunk_size, chunk_string): (u64, String) = match chunk_size_octet.take() {
             Some(value) => {
                 let converted = Self::parse_chunk_octet(&value)?;
-                match String::from_utf8(value.clone()) {
+                match String::from_utf8(value) {
                     Ok(converted_string) => (converted, converted_string),
                     Err(err) => return Err(ChunkStateError::InvalidOctetBytes(err)),
                 }
@@ -5252,8 +5252,8 @@ impl ChunkState {
         match (extension_key, extension_value) {
             (Some(key), Some(value)) => {
                 match (
-                    String::from_utf8(key.clone()),
-                    String::from_utf8(value.clone()),
+                    String::from_utf8(key),
+                    String::from_utf8(value),
                 ) {
                     (Ok(key_string), Ok(value_string)) => Ok((key_string, Some(value_string))),
                     (Ok(_), Err(err)) => Err(ChunkStateError::InvalidOctetBytes(err)),
@@ -5261,7 +5261,7 @@ impl ChunkState {
                     (Err(err), Err(_)) => Err(ChunkStateError::InvalidOctetBytes(err)),
                 }
             }
-            (Some(key), None) => match String::from_utf8(key.clone()) {
+            (Some(key), None) => match String::from_utf8(key) {
                 Ok(converted_string) => Ok((converted_string, None)),
                 Err(err) => Err(ChunkStateError::InvalidOctetBytes(err)),
             },
@@ -5628,7 +5628,7 @@ pub struct SimpleHttpBody(pub Option<u64>, pub u64, pub usize, pub usize);
 impl Default for SimpleHttpBody {
     fn default() -> Self {
         // max_body_size: 1 GB, full_body_threshold: 512 KB, batch_size: 8192, max_retries: 100
-        SimpleHttpBody(Some(1024 * 1024 * 1024), 512 * 1024, 8192, 100)
+        Self(Some(1024 * 1024 * 1024), 512 * 1024, 8192, 100)
     }
 }
 
@@ -5651,7 +5651,7 @@ impl SimpleHttpBody {
         batch_size: usize,
         max_retries: usize,
     ) -> Self {
-        SimpleHttpBody(max_body_size, full_body_threshold, batch_size, max_retries)
+        Self(max_body_size, full_body_threshold, batch_size, max_retries)
     }
 }
 
@@ -5771,8 +5771,8 @@ impl<T: std::io::Read + Send + 'static> HttpRequestReader<SimpleHttpBody, T> {
     #[must_use]
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
-    ) -> HttpRequestReader<SimpleHttpBody, T> {
-        HttpRequestReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
+    ) -> Self {
+        Self::new(reader, SimpleHttpBody::default())
     }
 
     /// Set the maximum body size limit. If `None`, no limit is enforced.
@@ -5809,8 +5809,8 @@ impl<T: std::io::Read + Send + 'static> HttpResponseReader<SimpleHttpBody, T> {
     #[must_use]
     pub fn simple_tcp_stream(
         reader: SharedByteBufferStream<T>,
-    ) -> HttpResponseReader<SimpleHttpBody, T> {
-        HttpResponseReader::<SimpleHttpBody, T>::new(reader, SimpleHttpBody::default())
+    ) -> Self {
+        Self::new(reader, SimpleHttpBody::default())
     }
 
     /// Set the maximum body size limit. If `None`, no limit is enforced.

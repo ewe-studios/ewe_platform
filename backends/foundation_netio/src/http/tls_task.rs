@@ -159,7 +159,7 @@ impl TaskIterator for TlsHandshakeTask {
 
                         // Send error through channel
                         if let Some(sender) = self.sender.take() {
-                            if let Err(send_err) = sender.send(Err(e.clone())) {
+                            if let Err(send_err) = sender.send(Err(e)) {
                                 tracing::error!(
                                     "Failed to send TLS handshake error: {:?}",
                                     send_err

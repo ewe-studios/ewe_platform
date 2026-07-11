@@ -45,10 +45,10 @@ impl LoadLevel {
     #[must_use]
     pub fn timeout_factor(&self) -> f64 {
         match self {
-            LoadLevel::Low => 1.0,
-            LoadLevel::Medium => 0.9,
-            LoadLevel::High => 0.75,
-            LoadLevel::Critical => 0.6,
+            Self::Low => 1.0,
+            Self::Medium => 0.9,
+            Self::High => 0.75,
+            Self::Critical => 0.6,
         }
     }
 
@@ -56,10 +56,10 @@ impl LoadLevel {
     #[must_use]
     pub fn description(&self) -> &'static str {
         match self {
-            LoadLevel::Low => "Low load",
-            LoadLevel::Medium => "Medium load",
-            LoadLevel::High => "High load",
-            LoadLevel::Critical => "Critical load",
+            Self::Low => "Low load",
+            Self::Medium => "Medium load",
+            Self::High => "High load",
+            Self::Critical => "Critical load",
         }
     }
 }

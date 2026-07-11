@@ -154,9 +154,9 @@ impl Eq for ReconnectionStatus {}
 impl PartialEq for ReconnectionStatus {
     fn eq(&self, other: &Self) -> bool {
         match (self, other) {
-            (ReconnectionStatus::Waiting(m1), ReconnectionStatus::Waiting(m2)) => m1 == m2,
-            (ReconnectionStatus::Ready(_), ReconnectionStatus::Ready(_)) => true,
-            (ReconnectionStatus::NoMoreWaiting, ReconnectionStatus::NoMoreWaiting) => true,
+            (Self::Waiting(m1), Self::Waiting(m2)) => m1 == m2,
+            (Self::Ready(_), Self::Ready(_)) => true,
+            (Self::NoMoreWaiting, Self::NoMoreWaiting) => true,
             _ => false,
         }
     }

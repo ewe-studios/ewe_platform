@@ -85,16 +85,16 @@ impl<S: AsRef<str>, E: std::fmt::Display> FetchPending<S, E> {
 impl<S: AsRef<str>, E: std::fmt::Display> std::fmt::Display for FetchPending<S, E> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            FetchPending::Connecting { source } => {
+            Self::Connecting { source } => {
                 write!(f, "{}: Connecting...", source.as_ref())
             }
-            FetchPending::AwaitingResponse { source } => {
+            Self::AwaitingResponse { source } => {
                 write!(f, "{}: Awaiting response...", source.as_ref())
             }
-            FetchPending::Failed { source, error } => {
+            Self::Failed { source, error } => {
                 write!(f, "{}: FAILED - {}", source.as_ref(), error)
             }
-            FetchPending::Completed { source } => {
+            Self::Completed { source } => {
                 write!(f, "{}: Completed", source.as_ref())
             }
         }

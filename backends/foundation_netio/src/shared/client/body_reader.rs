@@ -175,7 +175,7 @@ pub fn collect_string_strict(
                 return match body {
                     SendSafeBody::Text(t) => Ok(t),
                     SendSafeBody::Bytes(b) => {
-                        String::from_utf8(b.clone()).map_err(StringBodyError::InvalidUtf8)
+                        String::from_utf8(b).map_err(StringBodyError::InvalidUtf8)
                     }
                     SendSafeBody::Stream(mut opt_iter) => {
                         let mut bytes = Vec::new();
@@ -424,7 +424,7 @@ pub fn collect_bytes_strict(
             ) => {
                 return match body {
                     SendSafeBody::Text(t) => Ok(t.into_bytes()),
-                    SendSafeBody::Bytes(b) => Ok(b.clone()),
+                    SendSafeBody::Bytes(b) => Ok(b),
                     SendSafeBody::Stream(mut opt_iter) => {
                         if let Some(iter) = opt_iter.take() {
                             for chunk_result in DataBytesIterator::new(iter) {
@@ -588,7 +588,7 @@ pub fn collect_bytes_direct(
                 IncomingResponseParts::SizedBody(body) | IncomingResponseParts::StreamedBody(body),
             ) => match body {
                 SendSafeBody::Text(t) => return t.into_bytes(),
-                SendSafeBody::Bytes(b) => return b.clone(),
+                SendSafeBody::Bytes(b) => return b,
                 SendSafeBody::Stream(mut opt_iter) => {
                     if let Some(iter) = opt_iter.take() {
                         for chunk_result in DataBytesIterator::new(iter) {

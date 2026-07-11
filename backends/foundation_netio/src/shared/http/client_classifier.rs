@@ -49,9 +49,9 @@ impl ClientClassification {
     #[must_use]
     pub fn timeout_multiplier(&self) -> f64 {
         match self {
-            ClientClassification::Normal => 1.0,
-            ClientClassification::Slow => 1.5, // +50% timeout
-            ClientClassification::Suspicious => 0.5, // -50% timeout (fail fast)
+            Self::Normal => 1.0,
+            Self::Slow => 1.5, // +50% timeout
+            Self::Suspicious => 0.5, // -50% timeout (fail fast)
         }
     }
 
@@ -59,9 +59,9 @@ impl ClientClassification {
     #[must_use]
     pub fn description(&self) -> &'static str {
         match self {
-            ClientClassification::Normal => "Normal transfer rate",
-            ClientClassification::Slow => "Slow transfer rate",
-            ClientClassification::Suspicious => "Suspicious transfer rate",
+            Self::Normal => "Normal transfer rate",
+            Self::Slow => "Slow transfer rate",
+            Self::Suspicious => "Suspicious transfer rate",
         }
     }
 }

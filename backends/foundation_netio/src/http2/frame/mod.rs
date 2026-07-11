@@ -50,17 +50,17 @@ impl Kind {
     #[must_use]
     pub fn from_byte(byte: u8) -> Self {
         match byte {
-            0 => Kind::Data,
-            1 => Kind::Headers,
-            2 => Kind::Priority,
-            3 => Kind::Reset,
-            4 => Kind::Settings,
-            5 => Kind::PushPromise,
-            6 => Kind::Ping,
-            7 => Kind::GoAway,
-            8 => Kind::WindowUpdate,
-            9 => Kind::Continuation,
-            _ => Kind::Data, // Unknown types treated as DATA per spec (but flagged by validator)
+            0 => Self::Data,
+            1 => Self::Headers,
+            2 => Self::Priority,
+            3 => Self::Reset,
+            4 => Self::Settings,
+            5 => Self::PushPromise,
+            6 => Self::Ping,
+            7 => Self::GoAway,
+            8 => Self::WindowUpdate,
+            9 => Self::Continuation,
+            _ => Self::Data, // Unknown types treated as DATA per spec (but flagged by validator)
         }
     }
 }

@@ -65,7 +65,7 @@ impl RequestIntro {
     #[must_use]
     pub fn to_cloneable_data(&self) -> Option<RequestIntroData> {
         match self {
-            RequestIntro::Success {
+            Self::Success {
                 conn,
                 intro,
                 headers,
@@ -75,14 +75,14 @@ impl RequestIntro {
                 intro: intro.clone().into(),
                 headers: headers.clone(),
             }),
-            RequestIntro::Failed(_) => None,
+            Self::Failed(_) => None,
         }
     }
 }
 
 impl From<HttpReaderError> for RequestIntro {
     fn from(error: HttpReaderError) -> Self {
-        RequestIntro::Failed(HttpClientError::ReaderError(error))
+        Self::Failed(HttpClientError::ReaderError(error))
     }
 }
 

@@ -33,7 +33,7 @@ impl PartialEq for TlsError {
 
 impl From<io::Error> for TlsError {
     fn from(value: io::Error) -> Self {
-        TlsError::IO(value)
+        Self::IO(value)
     }
 }
 
@@ -140,11 +140,11 @@ pub enum TlsVerificationError {
 impl std::fmt::Display for TlsVerificationError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            TlsVerificationError::CertificateError(msg) => write!(f, "Certificate error: {msg}"),
-            TlsVerificationError::PrivateKeyError(msg) => write!(f, "Private key error: {msg}"),
-            TlsVerificationError::BackendError(msg) => write!(f, "TLS backend error: {msg}"),
-            TlsVerificationError::TimeoutError(msg) => write!(f, "Timeout error: {msg}"),
-            TlsVerificationError::InvalidConfigError(msg) => {
+            Self::CertificateError(msg) => write!(f, "Certificate error: {msg}"),
+            Self::PrivateKeyError(msg) => write!(f, "Private key error: {msg}"),
+            Self::BackendError(msg) => write!(f, "TLS backend error: {msg}"),
+            Self::TimeoutError(msg) => write!(f, "Timeout error: {msg}"),
+            Self::InvalidConfigError(msg) => {
                 write!(f, "Invalid configuration: {msg}")
             }
         }

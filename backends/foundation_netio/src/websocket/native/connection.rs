@@ -351,13 +351,13 @@ pub enum WsPending {
 
 impl From<WebSocketProgress> for WsPending {
     fn from(p: WebSocketProgress) -> Self {
-        WsPending::Task(p)
+        Self::Task(p)
     }
 }
 
 impl From<ReconnectingWebSocketProgress> for WsPending {
     fn from(p: ReconnectingWebSocketProgress) -> Self {
-        WsPending::Reconnecting(p)
+        Self::Reconnecting(p)
     }
 }
 
@@ -377,10 +377,10 @@ where
 
     fn next_status(&mut self) -> Option<TaskStatus<Self::Ready, Self::Pending, Self::Spawner>> {
         match self {
-            WsTask::Single(t) => t
+            Self::Single(t) => t
                 .next_status()
                 .map(|s| remap_task_status(s, WsPending::Task)),
-            WsTask::Reconnecting(t) => t
+            Self::Reconnecting(t) => t
                 .next_status()
                 .map(|s| remap_task_status(s, WsPending::Reconnecting)),
         }
@@ -611,8 +611,8 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
 
         let task = match reconnect {
             Reconnect::No => WsTask::Single(WebSocketTask::connect_with_delivery(
-                resolver.clone(),
-                url_str.clone(),
+                resolver,
+                url_str,
                 None,
                 Vec::new(),
                 rx,
@@ -658,8 +658,8 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
 
         let task = match reconnect {
             Reconnect::No => WsTask::Single(WebSocketTask::connect_with_delivery(
-                resolver.clone(),
-                url_str.clone(),
+                resolver,
+                url_str,
                 None,
                 Vec::new(),
                 msg_rx,

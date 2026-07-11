@@ -110,7 +110,7 @@ impl ProxyConfig {
             HttpClientError::InvalidProxyUrl(format!("Invalid port number: {port_str}"))
         })?;
 
-        Ok(ProxyConfig {
+        Ok(Self {
             protocol,
             host: host.to_string(),
             port,

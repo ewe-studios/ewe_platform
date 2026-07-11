@@ -92,13 +92,13 @@ impl Endpoint<()> {
     #[inline]
     #[must_use]
     pub fn with_default(target: Uri) -> Self {
-        Endpoint::WithDefault(EndpointConfig::NoTimeout(target))
+        Self::WithDefault(EndpointConfig::NoTimeout(target))
     }
 
     #[inline]
     #[must_use]
     pub fn with_timeout(target: Uri, timeout: Duration) -> Self {
-        Endpoint::WithDefault(EndpointConfig::WithTimeout(target, timeout))
+        Self::WithDefault(EndpointConfig::WithTimeout(target, timeout))
     }
 
     /// Create an endpoint from a string.
@@ -108,7 +108,7 @@ impl Endpoint<()> {
     #[inline]
     pub fn with_string<S: Into<String>>(target: S) -> std::result::Result<Self, EndpointError> {
         match Uri::parse(&target.into()) {
-            Ok(uri) => Ok(Endpoint::WithDefault(EndpointConfig::NoTimeout(uri))),
+            Ok(uri) => Ok(Self::WithDefault(EndpointConfig::NoTimeout(uri))),
             Err(err) => Err(EndpointError::ParseUrlFailed(err)),
         }
     }
@@ -123,7 +123,7 @@ impl Endpoint<()> {
         timeout: Duration,
     ) -> std::result::Result<Self, EndpointError> {
         match Uri::parse(&target.into()) {
-            Ok(uri) => Ok(Endpoint::WithDefault(EndpointConfig::WithTimeout(
+            Ok(uri) => Ok(Self::WithDefault(EndpointConfig::WithTimeout(
                 uri, timeout,
             ))),
             Err(err) => Err(EndpointError::ParseUrlFailed(err)),
@@ -135,12 +135,12 @@ impl Endpoint<()> {
 impl<T: Clone> Endpoint<T> {
     #[inline]
     pub fn with_identity(target: Uri, identity: T) -> Self {
-        Endpoint::WithIdentity(EndpointConfig::NoTimeout(target), identity)
+        Self::WithIdentity(EndpointConfig::NoTimeout(target), identity)
     }
 
     #[inline]
     pub fn with_identity_timeout(target: Uri, timeout: Duration, identity: T) -> Self {
-        Endpoint::WithIdentity(EndpointConfig::WithTimeout(target, timeout), identity)
+        Self::WithIdentity(EndpointConfig::WithTimeout(target, timeout), identity)
     }
 }
 
@@ -1039,7 +1039,7 @@ impl TcpStreamWrapper {
     /// Creates a new `TcpStreamWrapper` from a `TcpStream`
     #[must_use]
     pub fn new(stream: TcpStream) -> Self {
-        TcpStreamWrapper { inner: stream }
+        Self { inner: stream }
     }
 
     /// Consumes the wrapper and returns the inner `TcpStream`

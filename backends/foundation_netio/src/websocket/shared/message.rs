@@ -45,12 +45,12 @@ impl WebSocketMessage {
     #[must_use]
     pub fn variant_name(&self) -> &'static str {
         match self {
-            WebSocketMessage::ConnectionEstablished => "connection_established",
-            WebSocketMessage::Text(_) => "text",
-            WebSocketMessage::Binary(_) => "binary",
-            WebSocketMessage::Ping(_) => "ping",
-            WebSocketMessage::Pong(_) => "pong",
-            WebSocketMessage::Close(_, _) => "close",
+            Self::ConnectionEstablished => "connection_established",
+            Self::Text(_) => "text",
+            Self::Binary(_) => "binary",
+            Self::Ping(_) => "ping",
+            Self::Pong(_) => "pong",
+            Self::Close(_, _) => "close",
         }
     }
 }
