@@ -463,13 +463,12 @@ where
                                     last_activity: Instant::now(),
                                 });
                                 return Some(TaskStatus::Pending(EventSourceProgress::Reading));
-                            } else {
-                                error!("SseStream iterator is None");
-                                self.state = Some(EventSourceState::Closed(
-                                    EventSourceCloseReason::ConnectionError,
-                                ));
-                                return None;
                             }
+                            error!("SseStream iterator is None");
+                            self.state = Some(EventSourceState::Closed(
+                                EventSourceCloseReason::ConnectionError,
+                            ));
+                            return None;
                         }
                         Some(Ok(IncomingResponseParts::SizedBody(_))) => {
                             error!("Expected streamed SSE body, got sized body");
