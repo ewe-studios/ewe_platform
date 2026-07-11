@@ -215,6 +215,23 @@ impl Selector {
         }
     }
 
+    /// Submit a zero-copy `IORING_OP_SEND_ZC` for `token`/`fd` (F50 Part C). Only
+    /// the completion backend supports it.
+    ///
+    /// # Errors
+    /// `WouldBlock` if the send pool is exhausted; `Unsupported` off the
+    /// completion backend; the kernel's submission error otherwise.
+    #[cfg(feature = "uring")]
+    pub fn submit_send_zc(&self, token: Token, fd: RawFd, data: &[u8]) -> io::Result<usize> {
+        match self {
+            Selector::UringCompletion(s) => s.submit_send_zc(token, fd, data),
+            _ => Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "IORING_OP_SEND_ZC requires the io_uring completion backend",
+            )),
+        }
+    }
+
     /// Take finished sends for `token`. Empty on non-completion backends.
     ///
     /// # Panics

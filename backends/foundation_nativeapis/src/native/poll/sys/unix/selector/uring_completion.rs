@@ -74,8 +74,14 @@ const POLL_TAG: u64 = 1 << 62;
 /// owning token and buffer.
 const SEND_TAG: u64 = 1 << 61;
 
+/// Tag bit marking an `IORING_OP_SEND_ZC` (zero-copy) completion (F50 Part C).
+/// SEND_ZC yields **two** CQEs per submission — the first reports bytes on the
+/// wire (`F_MORE` set), the second (`F_NOTIF`) says the buffer is reusable — so
+/// its buffer lives until the notif, unlike plain SEND.
+const SENDZC_TAG: u64 = 1 << 60;
+
 /// Tokens (and send ids) must fit below the tag bits.
-const MAX_TOKEN: u64 = SEND_TAG - 1;
+const MAX_TOKEN: u64 = SENDZC_TAG - 1;
 
 /// Buffer group id for this selector's ring.
 const BGID: u16 = 0;
@@ -362,6 +368,49 @@ impl Selector {
         if let Err(e) = self.push_and_submit(&sqe) {
             // Submission failed: reclaim the buffer so it does not leak from the
             // pool (no CQE will ever arrive for it).
+            self.in_flight_sends
+                .lock()
+                .expect("uring in-flight sends lock poisoned")
+                .remove(&send_id);
+            return Err(e);
+        }
+        Ok(n)
+    }
+
+    /// Zero-copy send (F50 Part C): submit `IORING_OP_SEND_ZC` for up to one pool
+    /// buffer of `data`. Like [`submit_send`](Self::submit_send) but the kernel
+    /// sends directly from the pinned buffer without copying it into the socket's
+    /// send buffer — a CPU win for large writes. The buffer is held until the
+    /// second (`F_NOTIF`) CQE, not the first, since SEND_ZC keeps referencing it
+    /// until then.
+    ///
+    /// # Errors
+    /// [`io::ErrorKind::WouldBlock`] if the send pool is exhausted; the kernel's
+    /// error if the SQE cannot be submitted.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    pub fn submit_send_zc(&self, token: Token, fd: RawFd, data: &[u8]) -> io::Result<usize> {
+        let buf = self.send_pool.checkout(data)?;
+        let n = buf.len();
+        if n == 0 {
+            return Ok(0);
+        }
+        let send_id = self.next_send_id.fetch_add(1, Ordering::Relaxed) & (SENDZC_TAG - 1);
+        let user_data = SENDZC_TAG | send_id;
+        let ptr = buf.as_ptr();
+        self.in_flight_sends
+            .lock()
+            .expect("uring in-flight sends lock poisoned")
+            .insert(send_id, (token, buf));
+
+        // SAFETY: `ptr` addresses `n` initialised bytes owned by the `SendBuf`
+        // held in `in_flight_sends`; it stays alive and unmoved until this send's
+        // `F_NOTIF` CQE removes it in `drain_completions`.
+        let sqe = opcode::SendZc::new(types::Fd(fd), ptr, n as u32)
+            .build()
+            .user_data(user_data);
+        if let Err(e) = self.push_and_submit(&sqe) {
             self.in_flight_sends
                 .lock()
                 .expect("uring in-flight sends lock poisoned")
@@ -896,6 +945,69 @@ impl Selector {
                             .push_back(completion);
                         // Wake the task parked on `flush()` for this token.
                         *seen.entry(token).or_insert(0) |= libc::EPOLLOUT as u32;
+                    }
+                    continue;
+                }
+
+                if user_data & SENDZC_TAG != 0 {
+                    // ── IORING_OP_SEND_ZC (F50 Part C): two CQEs per submission ──
+                    let send_id = user_data & (SENDZC_TAG - 1);
+                    if cqueue::notif(flags) {
+                        // Second CQE: the kernel is done with the buffer — recycle
+                        // it. (The byte count was reported on the first CQE.)
+                        let removed = self
+                            .in_flight_sends
+                            .lock()
+                            .expect("uring in-flight sends lock poisoned")
+                            .remove(&send_id);
+                        if let Some((token, _buf)) = removed {
+                            // Wake `flush` once the buffer is fully released.
+                            *seen.entry(token).or_insert(0) |= libc::EPOLLOUT as u32;
+                        }
+                        continue;
+                    }
+                    // First CQE: bytes are on the wire. Report, but hold the buffer
+                    // until the notif — unless no notif will follow (an error clears
+                    // `F_MORE`), in which case reclaim it now.
+                    let token = {
+                        let flight = self
+                            .in_flight_sends
+                            .lock()
+                            .expect("uring in-flight sends lock poisoned");
+                        flight.get(&send_id).map(|(t, _)| *t)
+                    };
+                    if let Some(token) = token {
+                        let completion = if result >= 0 {
+                            SendCompletion::Written(result as usize)
+                        } else {
+                            let errno = -result;
+                            if errno != libc::ECANCELED {
+                                SendCompletion::Error(io::Error::from_raw_os_error(errno))
+                            } else {
+                                // Cancelled: no report; the notif (if any) recycles.
+                                if !cqueue::more(flags) {
+                                    self.in_flight_sends
+                                        .lock()
+                                        .expect("uring in-flight sends lock poisoned")
+                                        .remove(&send_id);
+                                }
+                                continue;
+                            }
+                        };
+                        self.send_mailboxes
+                            .lock()
+                            .expect("uring send mailbox lock poisoned")
+                            .entry(token)
+                            .or_default()
+                            .push_back(completion);
+                        *seen.entry(token).or_insert(0) |= libc::EPOLLOUT as u32;
+                        if !cqueue::more(flags) {
+                            // No notif will follow (e.g. an error) — recycle now.
+                            self.in_flight_sends
+                                .lock()
+                                .expect("uring in-flight sends lock poisoned")
+                                .remove(&send_id);
+                        }
                     }
                     continue;
                 }

@@ -73,9 +73,22 @@ created: 2026-07-11
 > nativeapis reactor/uring tests green (no regression from the drain-loop change or
 > the splice rework).
 >
-> **Deferred — Part C (SEND_ZC zero-copy relay):** F49's SEND pool now exists, but
-> `IORING_OP_SEND_ZC` has distinct two-notification completion semantics and needs
-> the Part B splice first.
+> **Part C — SEND_ZC mechanism done (2026-07-12); the direct-handoff relay wiring
+> remains.** The subtle kernel piece — `IORING_OP_SEND_ZC`'s **two-phase
+> completion** — is implemented and verified: `Selector::submit_send_zc` submits
+> the zero-copy send, the drain handles both CQEs (first = bytes on the wire, its
+> `F_MORE` meaning a notif follows so the buffer is *held*; second = `F_NOTIF`,
+> buffer released and recycled), with error paths that reclaim the buffer when no
+> notif will follow. Threaded through dispatch → `poll` → `Reactor::submit_send_zc`.
+> Verified by `send_zc_delivers_bytes_and_releases_the_buffer_on_the_notif` (on a
+> **TCP** loopback pair — SEND_ZC's notif is a network-socket feature, not
+> `AF_UNIX`). **Remaining:** wire it into `CompletionSocket` as a zero-copy write
+> mode, and the *true* zero-copy relay — send an inbound RECV `ProvidedBuf`
+> directly via SEND_ZC (holding the `ProvidedBuf`, not a pool `SendBuf`, until the
+> notif) so bytes move fd→ring→fd with no user-memory copy at all. The current
+> `submit_send_zc` still copies once into the send pool; eliminating that copy is
+> the `ProvidedBuf`-handoff integration, whose benefit the design gates on
+> measurement.
 >
 > The original design proposal follows, retained for context.
 

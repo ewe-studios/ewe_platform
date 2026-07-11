@@ -217,6 +217,16 @@ impl Poll {
         self.selector.submit_send(token, fd, data)
     }
 
+    /// Submit a zero-copy `IORING_OP_SEND_ZC` for `token`/`fd` (F50 Part C).
+    ///
+    /// # Errors
+    /// `WouldBlock` when the send pool is exhausted; `Unsupported` off the
+    /// completion backend; the kernel's submission error otherwise.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send_zc(&self, token: Token, fd: sys::RawFd, data: &[u8]) -> io::Result<usize> {
+        self.selector.submit_send_zc(token, fd, data)
+    }
+
     /// Take finished sends for `token`. Empty off the completion backend.
     ///
     /// # Panics

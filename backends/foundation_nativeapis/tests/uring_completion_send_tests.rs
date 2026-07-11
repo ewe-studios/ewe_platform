@@ -60,6 +60,25 @@ fn socketpair() -> (RawFd, RawFd) {
     (fds[0], fds[1])
 }
 
+/// A connected, non-blocking TCP loopback pair `(client_fd, server_fd)`.
+///
+/// SEND_ZC's zero-copy path (and its `F_NOTIF`) is a network-socket feature, so
+/// its test needs real TCP rather than an `AF_UNIX` socketpair. Both fds are
+/// owned by the caller (closed via [`close`]).
+fn tcp_pair() -> (RawFd, RawFd) {
+    use std::net::{TcpListener, TcpStream};
+    use std::os::fd::{AsRawFd, IntoRawFd};
+
+    let listener = TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("local_addr");
+    let client = TcpStream::connect(addr).expect("connect");
+    let (server, _) = listener.accept().expect("accept");
+    client.set_nonblocking(true).expect("client nonblocking");
+    server.set_nonblocking(true).expect("server nonblocking");
+    let _keep = client.as_raw_fd(); // ensure connect completed
+    (client.into_raw_fd(), server.into_raw_fd())
+}
+
 fn read_available(fd: RawFd, buf: &mut [u8]) -> usize {
     // SAFETY: reading into a valid writable slice from an owned fd.
     let n = unsafe { libc::read(fd, buf.as_mut_ptr().cast(), buf.len()) };
@@ -162,6 +181,44 @@ fn successive_sends_deliver_in_order() {
     let mut buf = [0u8; 64];
     let got = read_available(b, &mut buf);
     assert_eq!(&buf[..got], b"onetwothree", "bytes arrive in submission order");
+
+    close(a);
+    close(b);
+}
+
+#[test]
+fn send_zc_delivers_bytes_and_releases_the_buffer_on_the_notif() {
+    require_completion_tier!();
+    // SEND_ZC's F_NOTIF path is a network-socket feature — use real TCP loopback.
+    let (a, b) = tcp_pair();
+    let sel = Selector::new().expect("completion selector");
+    let token = Token(11);
+    let payload = b"zero-copy send via IORING_OP_SEND_ZC";
+
+    let taken = sel.submit_send_zc(token, a, payload).expect("submit_send_zc");
+    assert_eq!(taken, payload.len());
+
+    // First CQE: bytes are on the wire.
+    let sends = poll_sends(&sel, token, Duration::from_secs(2));
+    assert!(matches!(sends.as_slice(), [SendCompletion::Written(n)] if *n == payload.len()));
+
+    // The peer receives exactly those bytes.
+    let mut buf = [0u8; 64];
+    let got = read_available(b, &mut buf);
+    assert_eq!(&buf[..got], payload);
+
+    // The buffer stays in flight until the second (F_NOTIF) CQE releases it. Drive
+    // the ring until it does — proving the two-phase completion is handled.
+    let deadline = Instant::now() + Duration::from_secs(2);
+    let mut events = Events::with_capacity(16);
+    while sel.has_pending_sends(token) && Instant::now() < deadline {
+        events.clear();
+        sel.poll(&mut events, Some(Duration::from_millis(25))).expect("poll");
+    }
+    assert!(
+        !sel.has_pending_sends(token),
+        "the F_NOTIF CQE must release the SEND_ZC buffer"
+    );
 
     close(a);
     close(b);

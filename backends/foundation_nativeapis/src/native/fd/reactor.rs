@@ -484,6 +484,18 @@ impl Reactor {
         self.poll.submit_send(token, fd, data)
     }
 
+    /// Zero-copy send: submit `IORING_OP_SEND_ZC` for `token`/`fd` (F50 Part C).
+    /// The kernel sends directly from the pinned pool buffer without copying it
+    /// into the socket send buffer.
+    ///
+    /// # Errors
+    /// `WouldBlock` when the send pool is exhausted; `Unsupported` off the
+    /// completion backend; the kernel's submission error otherwise.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send_zc(&self, token: Token, fd: std::os::fd::RawFd, data: &[u8]) -> io::Result<usize> {
+        self.poll.submit_send_zc(token, fd, data)
+    }
+
     /// Take finished sends for `token` (drained by a transport's `flush`).
     ///
     /// # Panics
