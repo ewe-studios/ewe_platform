@@ -28,7 +28,7 @@ use super::epoll;
 #[cfg(feature = "uring")]
 use super::uring;
 #[cfg(feature = "uring")]
-use super::uring_completion::{self, Completion};
+use super::uring_completion::{self, Completion, SendCompletion};
 use crate::native::poll::{Interest, Token};
 
 /// The raw fd type on Linux.
@@ -193,6 +193,60 @@ impl Selector {
     pub fn is_recv_token(&self, token: Token) -> bool {
         match self {
             Selector::UringCompletion(s) => s.is_recv_token(token),
+            _ => false,
+        }
+    }
+
+    /// Submit an `IORING_OP_SEND` for `token`/`fd` (F49). Only the completion
+    /// backend supports it; every other backend reports `Unsupported`, which the
+    /// caller never hits because it gates on `is_recv_token` first.
+    ///
+    /// # Errors
+    /// `WouldBlock` if the send pool is exhausted; `Unsupported` off the
+    /// completion backend; the kernel's submission error otherwise.
+    #[cfg(feature = "uring")]
+    pub fn submit_send(&self, token: Token, fd: RawFd, data: &[u8]) -> io::Result<usize> {
+        match self {
+            Selector::UringCompletion(s) => s.submit_send(token, fd, data),
+            _ => Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "IORING_OP_SEND requires the io_uring completion backend",
+            )),
+        }
+    }
+
+    /// Take finished sends for `token`. Empty on non-completion backends.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(feature = "uring")]
+    pub fn take_send_completions(&self, token: Token) -> Vec<SendCompletion> {
+        match self {
+            Selector::UringCompletion(s) => s.take_send_completions(token),
+            _ => Vec::new(),
+        }
+    }
+
+    /// Whether finished sends are waiting for `token`. `false` off completion.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(feature = "uring")]
+    pub fn has_send_completions(&self, token: Token) -> bool {
+        match self {
+            Selector::UringCompletion(s) => s.has_send_completions(token),
+            _ => false,
+        }
+    }
+
+    /// Whether `token` has an unfinished SEND in flight. `false` off completion.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(feature = "uring")]
+    pub fn has_pending_sends(&self, token: Token) -> bool {
+        match self {
+            Selector::UringCompletion(s) => s.has_pending_sends(token),
             _ => false,
         }
     }

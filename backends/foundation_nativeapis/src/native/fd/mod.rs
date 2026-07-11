@@ -531,6 +531,95 @@ impl FdRegistration {
         }
         Ok(n as usize)
     }
+
+    /// WHY: the SEND mirror of [`read_bytes`](Self::read_bytes) — the write half
+    /// of Decision 14 F4 (F49). On an io_uring completion socket the bytes are
+    /// copied into a pool buffer and submitted as `IORING_OP_SEND` with **no
+    /// `write(2)`**; on every other fd it degrades to `write(2)`, exactly as
+    /// `read_bytes` degrades to `read(2)`.
+    ///
+    /// WHAT: accept up to `data.len()` bytes; return how many were taken. A short
+    /// count means the send pool buffer was smaller than `data` and the caller
+    /// should resubmit the remainder (ordinary `write` semantics).
+    ///
+    /// # Errors
+    /// `WouldBlock` if the send pool is momentarily exhausted (park and retry);
+    /// the socket's error otherwise.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn send_bytes(&self, fd: RawFd, data: &[u8]) -> io::Result<usize> {
+        if !self.is_send_source() {
+            return Self::write_syscall(fd, data);
+        }
+        let Some(ref reactor) = self.reactor else {
+            return Self::write_syscall(fd, data);
+        };
+        reactor.submit_send(self.token, fd, data)
+    }
+
+    /// Whether writes through [`send_bytes`](Self::send_bytes) submit
+    /// `IORING_OP_SEND` rather than `write(2)`. True exactly when the fd is a
+    /// completion-mode socket (which both receives and sends through the ring).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn is_send_source(&self) -> bool {
+        completion::CompletionSource::is_completion_source(self)
+    }
+
+    /// Drain finished sends for this fd, surfacing the first error. If any SEND is
+    /// still in flight, returns `WouldBlock` so the caller parks until the send's
+    /// CQE (which latches writability) wakes it — the `flush()` barrier.
+    ///
+    /// A `write(2)`-backed fd has already flushed synchronously, so this is a
+    /// no-op there.
+    ///
+    /// # Errors
+    /// The first failed send's error; `WouldBlock` while sends remain in flight.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn drain_sends(&self) -> io::Result<()> {
+        if !self.is_send_source() {
+            return Ok(());
+        }
+        let Some(ref reactor) = self.reactor else {
+            return Ok(());
+        };
+        for completion in reactor.take_send_completions(self.token) {
+            if let completion::SendCompletion::Error(e) = completion {
+                return Err(e);
+            }
+        }
+        if reactor.has_pending_sends(self.token) {
+            // Only this fd's SEND CQEs latch WRITABLE (completion sockets never
+            // arm POLL_ADD), so clearing it here is safe: the next send CQE both
+            // re-latches it and emits a wake event for the parked task.
+            self.clear_readiness(Ready::WRITABLE);
+            return Err(io::Error::new(
+                io::ErrorKind::WouldBlock,
+                "sends still in flight",
+            ));
+        }
+        Ok(())
+    }
+
+    /// The `write(2)` fallback for [`send_bytes`](Self::send_bytes) on fds that
+    /// are not completion sources.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    fn write_syscall(fd: RawFd, data: &[u8]) -> io::Result<usize> {
+        // SAFETY: `data` is a valid readable slice of `data.len()` bytes and `fd`
+        // is a registered, open descriptor.
+        let n = unsafe { libc::write(fd, data.as_ptr().cast(), data.len()) };
+        if n < 0 {
+            return Err(io::Error::last_os_error());
+        }
+        Ok(n as usize)
+    }
 }
 
 impl EventReadiness for FdRegistration {
@@ -706,6 +795,48 @@ impl<T: AsRawFd> RegisteredFd<T> {
     pub fn read_bytes(&self, buf: &mut [u8]) -> io::Result<usize> {
         let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
         self.registration.read_bytes(fd, buf)
+    }
+
+    /// WHY: the SEND mirror of [`read_bytes`](Self::read_bytes). On a completion
+    /// socket a write costs no `write(2)` — the kernel copies from a pool buffer
+    /// and reports later (F49); on every other fd it degrades to `write(2)`.
+    ///
+    /// WHAT: submit up to `data.len()` bytes; return how many were taken.
+    ///
+    /// # Errors
+    /// `WouldBlock` if the send pool is momentarily exhausted; the socket's error
+    /// otherwise.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn send_bytes(&self, data: &[u8]) -> io::Result<usize> {
+        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        self.registration.send_bytes(fd, data)
+    }
+
+    /// Drain finished sends, surfacing the first error; `WouldBlock` while any
+    /// send is still in flight (the `flush()` barrier). See
+    /// [`FdRegistration::drain_sends`].
+    ///
+    /// # Errors
+    /// The first failed send's error; `WouldBlock` while sends remain in flight.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn drain_sends(&self) -> io::Result<()> {
+        self.registration.drain_sends()
+    }
+
+    /// Whether [`send_bytes`](Self::send_bytes) submits `IORING_OP_SEND` rather
+    /// than `write(2)`.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn is_send_source(&self) -> bool {
+        self.registration.is_send_source()
     }
 
     /// Get a shared reference to the inner object.

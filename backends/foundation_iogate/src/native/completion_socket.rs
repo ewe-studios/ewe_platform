@@ -176,11 +176,31 @@ impl<T: AsRawFd + Read + Write> Read for CompletionSocket<T> {
 
 impl<T: AsRawFd + Read + Write> Write for CompletionSocket<T> {
     fn write(&mut self, buf: &[u8]) -> io::Result<usize> {
-        self.inner.get_mut().write(buf)
+        // On an io_uring completion socket this submits `IORING_OP_SEND` with no
+        // `write(2)` (F49); on every other fd `send_bytes` degrades to `write(2)`.
+        // A `WouldBlock` here means the send pool is momentarily full — the caller
+        // parks and retries, exactly as it does on a non-blocking `write(2)`.
+        #[cfg(target_os = "linux")]
+        {
+            self.inner.send_bytes(buf)
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            self.inner.get_mut().write(buf)
+        }
     }
 
     fn flush(&mut self) -> io::Result<()> {
-        self.inner.get_mut().flush()
+        // Drain the in-flight SENDs: `WouldBlock` while any is unacknowledged, so
+        // `flush()` only reports success once every submitted byte is on the wire.
+        #[cfg(target_os = "linux")]
+        {
+            self.inner.drain_sends()
+        }
+        #[cfg(not(target_os = "linux"))]
+        {
+            self.inner.get_mut().flush()
+        }
     }
 }
 

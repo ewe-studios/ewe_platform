@@ -1,7 +1,7 @@
 ---
 feature: "Write-side completion — IORING_OP_SEND (D14 F4 SEND half)"
 description: "io_uring SEND for transport writes, buffer-ownership tracking, and a path to the zero-copy proxy relay"
-status: "proposed"
+status: "implemented (Phases A+B; Phase C split write-half deferred)"
 priority: "medium"
 phase: 3
 depends_on: ["48-transport-completion-read-path"]
@@ -10,10 +10,52 @@ created: 2026-07-11
 ---
 # Feature 49: Write-side completion — IORING_OP_SEND
 
-> **Status: proposed, for review.** This document is a design proposal, not a plan
-> of record. Nothing is implemented. It assumes feature 48 has shipped: the read
-> path uses `Connection::Completion`, `Reactor::init()` honours preferences, and
-> `ServerIo` is the runtime switch.
+> **Status: implemented (Phases A+B), 2026-07-12.** The SEND mechanism and its
+> zero-syscall proof are in and verified on a real kernel. Deferred: Phase C (the
+> `split_read_write` completion-backed write half) and Phase D (the SEND_ZC
+> zero-copy relay, which is Feature 50). The design below stands; see
+> *Implementation status* immediately after this note.
+
+## Implementation status — Phases A+B landed (2026-07-12)
+
+What shipped, bottom-up, all behind `#[cfg(all(target_os = "linux", feature = "uring"))]`:
+
+- **`SendPool` / `SendBuf`** (`foundation_nativeapis/src/native/fd/send_pool.rs`):
+  the user-filled buffer pool (the SEND mirror of the RECV `BufRing`). Owned
+  fixed-size buffers, checked out and filled at `send`, kept alive for the SQE's
+  duration, recycled on drop; exhaustion returns `WouldBlock`. Uses
+  `Mutex<VecDeque>` + `AtomicUsize` (no `concurrent_queue` dep, contrary to the
+  sketch below). 5 unit tests.
+- **`uring_completion::Selector` SEND path**: `submit_send` (checkout → record in
+  an in-flight map keyed by a tagged send id → push `IORING_OP_SEND`),
+  `take_send_completions`, `has_send_completions`, `has_pending_sends`, plus a new
+  `SEND_TAG` and SEND-CQE handling in `drain_completions` (removes the in-flight
+  `SendBuf` — recycling it — and mailboxes a `SendCompletion::Written`/`Error`,
+  latching `EPOLLOUT` to wake a parked `flush`). `MAX_TOKEN` lowered to fit the new
+  tag bit.
+- **Threaded through** dispatch → `poll` → `Reactor` → `FdRegistration` (inherent
+  `send_bytes`/`drain_sends`/`is_send_source` mirroring `read_bytes`, with a
+  `write(2)` degrade path) → `RegisteredFd`.
+- **`CompletionSocket::write`/`flush`** (`foundation_iogate`) now submit
+  `IORING_OP_SEND` and drain-with-`WouldBlock`-barrier respectively, mirroring the
+  F48 read wiring.
+- **Verification**: `uring_completion_send_tests.rs` (4 real-socket tests: delivery,
+  short-send cap, ordering, small-pool recycle) and, in
+  `uring_completion_syscall_tests.rs`, `completion_mode_writes_the_socket_without_a_write_syscall`
+  — the ptrace proof of **zero write-family syscalls** on the socket, bytes out via
+  `io_uring_enter`. Acceptance criteria for the SEND mechanism, the pool
+  `WouldBlock`, the `flush` barrier, and the unchanged wasm build are met. The
+  epoll-control **write** arm and a `CompletionSocket`-level HTTP end-to-end test
+  are the remaining nice-to-haves.
+
+**Deferred:** Phase C (`split_read_write`'s write half as a second-registration
+`CompletionSocket`) and Phase D / SEND_ZC (→ Feature 50).
+
+---
+
+> **Original design proposal (retained for context).** It assumes feature 48 has
+> shipped: the read path uses `Connection::Completion`, `Reactor::init()` honours
+> preferences, and `ServerIo` is the runtime switch.
 
 ## Why this exists
 

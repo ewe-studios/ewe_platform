@@ -207,6 +207,46 @@ impl Poll {
         self.selector.is_recv_token(token)
     }
 
+    /// Submit an `IORING_OP_SEND` for `token`/`fd` on the completion backend (F49).
+    ///
+    /// # Errors
+    /// `WouldBlock` when the send pool is exhausted; `Unsupported` off the
+    /// completion backend; the kernel's submission error otherwise.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send(&self, token: Token, fd: sys::RawFd, data: &[u8]) -> io::Result<usize> {
+        self.selector.submit_send(token, fd, data)
+    }
+
+    /// Take finished sends for `token`. Empty off the completion backend.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn take_send_completions(
+        &self,
+        token: Token,
+    ) -> Vec<sys::unix::selector::uring_completion::SendCompletion> {
+        self.selector.take_send_completions(token)
+    }
+
+    /// Whether finished sends are waiting for `token`.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_send_completions(&self, token: Token) -> bool {
+        self.selector.has_send_completions(token)
+    }
+
+    /// Whether `token` has an unfinished SEND in flight.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_pending_sends(&self, token: Token) -> bool {
+        self.selector.has_pending_sends(token)
+    }
+
     /// Register `fd`, opting its read path into completion mode where possible.
     ///
     /// Returns whether the kernel will now read this fd for you. See

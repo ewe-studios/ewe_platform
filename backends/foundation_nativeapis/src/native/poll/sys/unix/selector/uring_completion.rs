@@ -53,6 +53,7 @@ use io_uring::{cqueue, opcode, types, IoUring};
 
 use super::super::super::super::event::{Event, Events};
 use super::bufring::{BufRing, ProvidedBuf};
+use crate::native::fd::send_pool::{SendBuf, SendPool};
 use crate::native::poll::{Interest, Token};
 
 /// The raw fd type on Linux.
@@ -67,8 +68,14 @@ const TRACKING_USER_DATA: u64 = u64::MAX;
 /// so the two ops cannot share a bare token as `user_data`.
 const POLL_TAG: u64 = 1 << 62;
 
-/// Tokens must fit below the tag bits.
-const MAX_TOKEN: u64 = POLL_TAG - 1;
+/// Tag bit marking an `IORING_OP_SEND` completion (F49). Unlike RECV/POLL, a
+/// SEND is one-shot and per-write, so its `user_data` carries a unique send id
+/// (below this bit) rather than a token — the in-flight map resolves it to the
+/// owning token and buffer.
+const SEND_TAG: u64 = 1 << 61;
+
+/// Tokens (and send ids) must fit below the tag bits.
+const MAX_TOKEN: u64 = SEND_TAG - 1;
 
 /// Buffer group id for this selector's ring.
 const BGID: u16 = 0;
@@ -89,6 +96,17 @@ pub enum Completion {
     /// The peer closed; no further data will arrive.
     Eof,
     /// The recv failed. The multishot registration has ended.
+    Error(io::Error),
+}
+
+/// One completed `IORING_OP_SEND` (F49): the bytes the kernel placed on the
+/// wire, or the error that ended the send. The owned buffer has already been
+/// recycled to the [`SendPool`] by the time this is delivered.
+#[derive(Debug)]
+pub enum SendCompletion {
+    /// `n` bytes were placed on the wire.
+    Written(usize),
+    /// The send failed; the buffer was consumed and recycled.
     Error(io::Error),
 }
 
@@ -122,6 +140,17 @@ pub struct Selector {
     starved: Mutex<HashSet<Token>>,
     /// `BufRing::recycle_count` as of the last starvation sweep.
     last_recycles: AtomicU64,
+    /// User-filled buffer pool backing `IORING_OP_SEND` (F49). The SEND mirror of
+    /// `bufring`: it owns the bytes a write submits until the send's CQE arrives.
+    send_pool: Arc<SendPool>,
+    /// SEND buffers whose CQE has not yet arrived, keyed by send id. Holding the
+    /// `SendBuf` here keeps its bytes alive (and unmoved) for the kernel; the CQE
+    /// removes and drops it, recycling the buffer.
+    in_flight_sends: Mutex<HashMap<u64, (Token, SendBuf)>>,
+    /// Monotonic send-id source; the low bits become each SEND's `user_data`.
+    next_send_id: AtomicU64,
+    /// Per-token mailbox of finished sends, drained by `take_send_completions`.
+    send_mailboxes: Mutex<HashMap<Token, VecDeque<SendCompletion>>>,
     /// SQEs pushed since construction.
     ///
     /// Decision 14 OQ#14.1 predicted that completion mode would make submission
@@ -220,6 +249,10 @@ impl Selector {
             inboxes: Mutex::new(HashMap::new()),
             starved: Mutex::new(HashSet::new()),
             last_recycles: AtomicU64::new(0),
+            send_pool: SendPool::new(buf_size, entries as usize),
+            in_flight_sends: Mutex::new(HashMap::new()),
+            next_send_id: AtomicU64::new(0),
+            send_mailboxes: Mutex::new(HashMap::new()),
             submissions: AtomicU64::new(0),
             waker_fd: Mutex::new(None),
             waker_token: Mutex::new(None),
@@ -280,6 +313,114 @@ impl Selector {
     /// The buffer ring backing this selector's completions.
     pub fn bufring(&self) -> &Arc<BufRing> {
         &self.bufring
+    }
+
+    // ── SEND (F49) ────────────────────────────────────────────────────────────
+
+    /// WHY: the SEND mirror of the RECV inbox — a write costs no `write(2)`, the
+    /// kernel copies from an owned buffer we hand it and reports completion later.
+    ///
+    /// WHAT: copy up to one pool buffer of `data` into an owned [`SendBuf`] and
+    /// submit an `IORING_OP_SEND` for it on `fd`. Returns how many bytes were
+    /// taken (a short write when `data` exceeds the pool buffer size — the caller
+    /// resubmits the remainder).
+    ///
+    /// HOW: check a buffer out of the [`SendPool`] (which parks the caller with
+    /// `WouldBlock` when exhausted), record it in the in-flight map keyed by a
+    /// unique send id, then push the SEND SQE. The buffer stays owned here — and
+    /// its heap allocation unmoved — until the CQE removes and drops it.
+    ///
+    /// # Errors
+    /// [`io::ErrorKind::WouldBlock`] if the send pool is exhausted; the kernel's
+    /// error if the SQE cannot be submitted.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    pub fn submit_send(&self, token: Token, fd: RawFd, data: &[u8]) -> io::Result<usize> {
+        let buf = self.send_pool.checkout(data)?;
+        let n = buf.len();
+        if n == 0 {
+            return Ok(0);
+        }
+        let send_id = self.next_send_id.fetch_add(1, Ordering::Relaxed) & (SEND_TAG - 1);
+        let user_data = SEND_TAG | send_id;
+        // Capture the stable heap pointer before the buffer moves into the map;
+        // moving the `SendBuf` moves only the `Vec` header, not its allocation.
+        let ptr = buf.as_ptr();
+        self.in_flight_sends
+            .lock()
+            .expect("uring in-flight sends lock poisoned")
+            .insert(send_id, (token, buf));
+
+        // SAFETY: `ptr` addresses `n` initialised bytes owned by the `SendBuf`
+        // held in `in_flight_sends`; it stays alive and unmoved until this send's
+        // CQE removes it in `drain_completions`. The len fits `u32` (pool buffers
+        // are 16 KiB).
+        let sqe = opcode::Send::new(types::Fd(fd), ptr, n as u32)
+            .build()
+            .user_data(user_data);
+        if let Err(e) = self.push_and_submit(&sqe) {
+            // Submission failed: reclaim the buffer so it does not leak from the
+            // pool (no CQE will ever arrive for it).
+            self.in_flight_sends
+                .lock()
+                .expect("uring in-flight sends lock poisoned")
+                .remove(&send_id);
+            return Err(e);
+        }
+        Ok(n)
+    }
+
+    /// Take every finished send for `token` since the last call. A transport
+    /// calls this from `flush()`: it sums the byte counts and surfaces any error.
+    ///
+    /// # Panics
+    /// Panics if the send-mailbox lock is poisoned.
+    pub fn take_send_completions(&self, token: Token) -> Vec<SendCompletion> {
+        let mut mailboxes = self
+            .send_mailboxes
+            .lock()
+            .expect("uring send mailbox lock poisoned");
+        match mailboxes.get_mut(&token) {
+            Some(queue) => queue.drain(..).collect(),
+            None => Vec::new(),
+        }
+    }
+
+    /// Whether finished sends are waiting for `token`, without taking them.
+    ///
+    /// # Panics
+    /// Panics if the send-mailbox lock is poisoned.
+    pub fn has_send_completions(&self, token: Token) -> bool {
+        self.send_mailboxes
+            .lock()
+            .expect("uring send mailbox lock poisoned")
+            .get(&token)
+            .is_some_and(|q| !q.is_empty())
+    }
+
+    /// Number of SEND buffers currently in flight (submitted, CQE not yet seen).
+    /// For monitoring the send pool.
+    #[must_use]
+    pub fn sends_in_flight(&self) -> usize {
+        self.in_flight_sends
+            .lock()
+            .expect("uring in-flight sends lock poisoned")
+            .len()
+    }
+
+    /// Whether `token` has any SEND whose CQE has not yet arrived. A transport's
+    /// `flush()` parks while this is true, so every submitted byte is on the wire
+    /// before `flush()` reports success.
+    ///
+    /// # Panics
+    /// Panics if the in-flight lock is poisoned.
+    pub fn has_pending_sends(&self, token: Token) -> bool {
+        self.in_flight_sends
+            .lock()
+            .expect("uring in-flight sends lock poisoned")
+            .values()
+            .any(|(t, _)| *t == token)
     }
 
     /// WHY: buffer starvation is invisible from the outside — the socket simply
@@ -722,6 +863,39 @@ impl Selector {
                     *seen.entry(token).or_insert(0) |= Self::epoll_bits_from_revents(result as u32);
                     if !cqueue::more(flags) {
                         rearm_poll.push(token);
+                    }
+                    continue;
+                }
+
+                if user_data & SEND_TAG != 0 {
+                    // ── one-shot IORING_OP_SEND (F49) ──
+                    let send_id = user_data & (SEND_TAG - 1);
+                    let removed = self
+                        .in_flight_sends
+                        .lock()
+                        .expect("uring in-flight sends lock poisoned")
+                        .remove(&send_id);
+                    // Dropping the taken `SendBuf` (in `_buf`) recycles it to the pool.
+                    if let Some((token, _buf)) = removed {
+                        let completion = if result >= 0 {
+                            SendCompletion::Written(result as usize)
+                        } else {
+                            let errno = -result;
+                            // Cancelled by deregistration: the buffer is reclaimed,
+                            // and the token is gone — nothing to report.
+                            if errno == libc::ECANCELED {
+                                continue;
+                            }
+                            SendCompletion::Error(io::Error::from_raw_os_error(errno))
+                        };
+                        self.send_mailboxes
+                            .lock()
+                            .expect("uring send mailbox lock poisoned")
+                            .entry(token)
+                            .or_default()
+                            .push_back(completion);
+                        // Wake the task parked on `flush()` for this token.
+                        *seen.entry(token).or_insert(0) |= libc::EPOLLOUT as u32;
                     }
                     continue;
                 }

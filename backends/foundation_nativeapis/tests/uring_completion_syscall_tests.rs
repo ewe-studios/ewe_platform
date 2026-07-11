@@ -42,6 +42,16 @@ const SYS_PREADV2: u64 = 327;
 /// The syscall completion mode should be using instead.
 const SYS_IO_URING_ENTER: u64 = 426;
 
+/// x86_64 syscall numbers for every way a process can write to an fd (F49).
+const SYS_WRITE: u64 = 1;
+const SYS_PWRITE64: u64 = 18;
+const SYS_WRITEV: u64 = 20;
+const SYS_SENDTO: u64 = 44;
+const SYS_SENDMSG: u64 = 46;
+const SYS_PWRITEV: u64 = 296;
+const SYS_SENDMMSG: u64 = 307;
+const SYS_PWRITEV2: u64 = 328;
+
 fn is_read_family(nr: u64) -> bool {
     matches!(
         nr,
@@ -56,6 +66,20 @@ fn is_read_family(nr: u64) -> bool {
     )
 }
 
+fn is_write_family(nr: u64) -> bool {
+    matches!(
+        nr,
+        SYS_WRITE
+            | SYS_PWRITE64
+            | SYS_WRITEV
+            | SYS_SENDTO
+            | SYS_SENDMSG
+            | SYS_PWRITEV
+            | SYS_SENDMMSG
+            | SYS_PWRITEV2
+    )
+}
+
 /// What the tracer observed while the child ran the hot path.
 #[derive(Debug, Default, PartialEq, Eq)]
 struct SyscallCounts {
@@ -63,6 +87,10 @@ struct SyscallCounts {
     reads_on_socket: usize,
     /// Read-family syscalls against any fd (waker eventfds, /proc, …).
     reads_total: usize,
+    /// Write-family syscalls issued against the traced socket fd (F49).
+    writes_on_socket: usize,
+    /// Write-family syscalls against any fd.
+    writes_total: usize,
     /// `io_uring_enter` calls — how completion mode reaches the kernel.
     io_uring_enters: usize,
     /// The child's exit status; 0 means it saw the bytes it expected.
@@ -179,6 +207,11 @@ fn trace_hot_path(watch_fd: RawFd, hot_path: impl FnOnce() -> bool) -> SyscallCo
                 counts.reads_total += 1;
                 if arg0 == watch_fd as u64 {
                     counts.reads_on_socket += 1;
+                }
+            } else if is_write_family(nr) {
+                counts.writes_total += 1;
+                if arg0 == watch_fd as u64 {
+                    counts.writes_on_socket += 1;
                 }
             } else if nr == SYS_IO_URING_ENTER {
                 counts.io_uring_enters += 1;
@@ -323,6 +356,76 @@ fn read_bytes_copies_from_the_inbox_without_a_read_syscall() {
     assert_eq!(
         counts.io_uring_enters, 0,
         "popping an already-filled inbox must not enter the kernel at all: {counts:?}"
+    );
+}
+
+/// The F49 acceptance criterion: a write through the completion path issues zero
+/// write-family syscalls on the socket — the kernel copies from the SEND pool
+/// buffer and puts the bytes on the wire via `io_uring_enter`, not `write(2)`.
+#[test]
+fn completion_mode_writes_the_socket_without_a_write_syscall() {
+    match probe::probe() {
+        Ok(caps) if caps.supports_completion() => {}
+        Ok(caps) => {
+            eprintln!("skipping: kernel lacks the completion tier ({caps})");
+            return;
+        }
+        Err(e) => {
+            eprintln!("skipping: io_uring unavailable ({e})");
+            return;
+        }
+    }
+
+    let (a, b) = socketpair();
+    let token = Token(1);
+    let payload = b"sent without write(2)";
+
+    // Build before forking, so the traced region is only the hot path.
+    let sel = uring_completion::Selector::new().expect("completion selector");
+
+    let counts = trace_hot_path(a, move || {
+        // Submitting the SEND is the hot path: it copies into a pool buffer and
+        // pushes an IORING_OP_SEND — no write(2) on the socket.
+        if sel.submit_send(token, a, payload).unwrap_or(0) != payload.len() {
+            return false;
+        }
+        let mut events = Events::with_capacity(16);
+        spin_until(Duration::from_secs(3), || {
+            events.clear();
+            if sel.poll(&mut events, Some(Duration::from_millis(20))).is_err() {
+                return false;
+            }
+            sel.take_send_completions(token)
+                .iter()
+                .any(|c| matches!(c, uring_completion::SendCompletion::Written(n) if *n == payload.len()))
+        })
+    });
+
+    // The peer must actually have the bytes (proves the send really happened).
+    let mut buf = [0u8; 64];
+    // SAFETY: reading into a valid local buffer from the peer socket.
+    let got = unsafe { libc::read(b, buf.as_mut_ptr().cast(), buf.len()) };
+    close(a);
+    close(b);
+
+    assert_eq!(
+        counts.child_exit, 0,
+        "the child never confirmed the send completion, so the counts prove nothing: {counts:?}"
+    );
+    assert!(
+        got > 0 && &buf[..got as usize] == payload,
+        "the peer did not receive the sent bytes"
+    );
+    assert_eq!(
+        counts.writes_on_socket, 0,
+        "completion mode issued {} write-family syscall(s) on the socket. The kernel \
+         is supposed to send from the pool buffer via io_uring; a write() here means the \
+         syscall F49 removes has crept back in. {counts:?}",
+        counts.writes_on_socket
+    );
+    assert!(
+        counts.io_uring_enters > 0,
+        "the bytes must have gone out through io_uring_enter; {counts:?}"
     );
 }
 

@@ -459,6 +459,48 @@ impl Reactor {
         self.poll.is_recv_token(token)
     }
 
+    /// WHY: the SEND mirror of [`Reactor::take_completions`] — a write costs no
+    /// `write(2)`; the kernel copies from an owned buffer and reports later (F49).
+    ///
+    /// WHAT: submit an `IORING_OP_SEND` of up to one pool buffer of `data` for
+    /// `token`/`fd`; returns the bytes taken (a short write on overflow).
+    ///
+    /// # Errors
+    /// `WouldBlock` when the send pool is exhausted; `Unsupported` off the
+    /// completion backend; the kernel's submission error otherwise.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send(&self, token: Token, fd: std::os::fd::RawFd, data: &[u8]) -> io::Result<usize> {
+        self.poll.submit_send(token, fd, data)
+    }
+
+    /// Take finished sends for `token` (drained by a transport's `flush`).
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn take_send_completions(&self, token: Token) -> Vec<super::completion::SendCompletion> {
+        self.poll.take_send_completions(token)
+    }
+
+    /// Whether finished sends are waiting for `token`.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_send_completions(&self, token: Token) -> bool {
+        self.poll.has_send_completions(token)
+    }
+
+    /// Whether `token` has an unfinished SEND in flight — a transport's `flush`
+    /// parks while this is true.
+    ///
+    /// # Panics
+    /// Never panics.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn has_pending_sends(&self, token: Token) -> bool {
+        self.poll.has_pending_sends(token)
+    }
+
     /// Whether this reactor delivers bytes through completions rather than
     /// readiness.
     ///
