@@ -113,3 +113,71 @@ pub struct DnsRecordPatch {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub comment: Option<String>,
 }
+
+// ── DnsRecordInput (request body for create/update) ──
+
+/// Request body for creating or updating a DNS record.
+///
+/// Contains only the fields the Cloudflare API accepts in POST/PUT bodies
+/// (no `id`, `zone_id`, `created_on`, `modified_on`).
+#[derive(Debug, Clone, Serialize)]
+pub struct DnsRecordInput {
+    #[serde(rename = "type")]
+    pub r#type: DnsRecordType,
+    pub name: String,
+    pub content: String,
+    pub ttl: u32,
+    pub proxied: bool,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub comment: Option<String>,
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub tags: Vec<String>,
+}
+
+impl From<&DnsRecord> for DnsRecordInput {
+    fn from(r: &DnsRecord) -> Self {
+        Self {
+            r#type: r.r#type,
+            name: r.name.clone(),
+            content: r.content.clone(),
+            ttl: r.ttl,
+            proxied: r.proxied,
+            comment: r.comment.clone(),
+            tags: r.tags.clone(),
+        }
+    }
+}
+
+// ── Cloudflare API envelope types ──
+
+/// Typed wrapper for the Cloudflare v4 API response envelope
+/// `{ success, errors, messages, result, result_info }`.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CloudflareResponse<T> {
+    pub success: bool,
+    #[serde(default)]
+    pub errors: Vec<CloudflareApiError>,
+    #[serde(default)]
+    pub messages: Vec<String>,
+    pub result: T,
+    #[serde(default)]
+    pub result_info: Option<ResultInfo>,
+}
+
+/// API-level error returned inside a Cloudflare response.
+#[derive(Debug, Clone, Deserialize)]
+pub struct CloudflareApiError {
+    pub code: u32,
+    pub message: String,
+}
+
+/// Pagination metadata returned with list responses.
+#[derive(Debug, Clone, Deserialize)]
+pub struct ResultInfo {
+    pub page: u32,
+    pub per_page: u32,
+    pub total_pages: u32,
+    pub count: u32,
+    pub total_count: u32,
+}
+

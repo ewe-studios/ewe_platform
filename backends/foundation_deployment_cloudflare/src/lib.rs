@@ -11,4 +11,7 @@ pub mod types;
 pub mod generated;
 
 pub use client::CloudflareClient;
-pub use types::{cf_err, CloudflareError, DnsRecord, DnsRecordPatch, DnsRecordType, Zone, ZoneStatus};
+pub use types::{
+    cf_err, CloudflareApiError, CloudflareError, CloudflareResponse, DnsRecord, DnsRecordInput,
+    DnsRecordPatch, DnsRecordType, ResultInfo, Zone, ZoneStatus,
+};
