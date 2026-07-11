@@ -3,9 +3,9 @@
 use foundation_core::valtron::{sendables::sync_collect_one, Stream};
 use foundation_netio::simple_http::shared::{SimpleHeader, SimpleHeaders};
 
-use crate::shared::{ApiError, ApiPending, ApiResponse};
+use crate::generated::shared::{ApiError, ApiPending, ApiResponse};
 use crate::types::{cf_err, CloudflareError, DnsRecord, DnsRecordType};
-use crate::zones::{
+use crate::generated::zones::{
     dns_records_for_a_zone_create_dns_record_request,
     dns_records_for_a_zone_delete_dns_record_request,
     dns_records_for_a_zone_list_dns_records_request,

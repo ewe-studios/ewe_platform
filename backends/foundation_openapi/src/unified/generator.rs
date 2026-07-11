@@ -693,14 +693,17 @@ impl UnifiedGenerator {
         let analysis = analyze_spec(spec_content, provider, options)
             .map_err(|e| GenError::AnalysisFailed(e.to_string()))?;
 
-        let provider_output_dir = self
+        let provider_root = self
             .provider_dir_override
             .clone()
             .unwrap_or_else(|| self.output_dir.join(provider));
-        fs::create_dir_all(&provider_output_dir)?;
+        // All generated files live under `generated/` so hand-written code
+        // in neighbouring directories is never overwritten by regeneration.
+        let generated_dir = provider_root.join("generated");
+        fs::create_dir_all(&generated_dir)?;
 
         // Generate shared/ module (always needed for ApiError/ApiResponse types)
-        self.generate_shared_module(&analysis, &provider_output_dir)?;
+        self.generate_shared_module(&analysis, &generated_dir)?;
 
         // Generate one module per group
         for group in &analysis.groups {
@@ -709,12 +712,24 @@ impl UnifiedGenerator {
                 group,
                 &analysis.shared_resources,
                 &analysis.schemas,
-                &provider_output_dir,
+                &generated_dir,
             )?;
         }
 
-        // Generate provider mod.rs with feature guards
-        self.generate_provider_mod(provider, &analysis.groups, &analysis.shared_resources)?;
+        // Generate generated/mod.rs with feature guards — this becomes the
+        // single entry point for all generated code.
+        self.generate_provider_mod(provider, &analysis.groups, &analysis.shared_resources, &generated_dir)?;
+
+        // For monolith providers, write a thin parent mod.rs that just re-exports
+        // `generated/`. Only create it if the file doesn't already exist (so
+        // users can replace it with hand-written code without losing it on the
+        // next regeneration).
+        if self.provider_dir_override.is_none() {
+            let parent_mod = provider_root.join("mod.rs");
+            if !parent_mod.exists() {
+                fs::write(&parent_mod, "//! Auto-generated thin re-export module.\n//! Replace with hand-written code — this file will not be overwritten.\npub mod generated;\n")?;
+            }
+        }
 
         // Update Cargo.toml with missing feature flags.
         // For split-out providers (provider_dir_override set), output_dir IS the
@@ -955,8 +970,9 @@ impl UnifiedGenerator {
             // Rename types that conflict with std types
             let safe_type_name = rename_std_type_conflict(type_name);
 
-            // Try to find the schema for this type
-            if let Some(schema) = schemas.get(type_name) {
+            // Try to find the schema for this type (may be PascalCase while
+            // schemas use the original spec key convention)
+            if let Some(schema) = Self::resolve_schema_key(type_name, schemas) {
                 // Generate proper struct from schema, wrapping recursive refs in Box<>
                 self.generate_type_from_schema(
                     &mut out,
@@ -1145,7 +1161,10 @@ impl UnifiedGenerator {
             }
         }
 
-        // If no properties were generated, add a fallback field
+        // If no properties were generated, the schema is opaque — emit a
+        // placeholder. (Shared resource types with real schemas are now
+        // resolved in generate_shared_module; this fallback only fires for
+        // truly unresolvable cases.)
         if schema.properties.is_none() && schema.all_of.is_none() {
             writeln!(out, "    #[serde(flatten)]")?;
             writeln!(
@@ -1377,7 +1396,42 @@ impl UnifiedGenerator {
         Ok(())
     }
 
+    /// Resolve a PascalCase type name to the original OpenAPI spec schema key.
+    ///
+    /// The `schemas` map uses the spec's original keys (typically `snake_case`),
+    /// but `shared_resources` stores `PascalCase` names. Try direct lookup first
+    /// (some specs use PascalCase keys), then convert to snake_case.
+    fn resolve_schema_key<'a>(
+        type_name: &str,
+        schemas: &'a std::collections::BTreeMap<String, crate::spec::Schema>,
+    ) -> Option<&'a crate::spec::Schema> {
+        // 1. Direct lookup (spec may use PascalCase keys)
+        if let Some(s) = schemas.get(type_name) {
+            return Some(s);
+        }
+        // 2. Convert to snake_case (Cloudflare spec uses snake_case keys)
+        let snake = crate::to_snake_case(type_name);
+        if let Some(s) = schemas.get(&snake) {
+            return Some(s);
+        }
+        // 3. Lowercase the first char (e.g. "FooBar" → "fooBar")
+        if let Some(first) = type_name.chars().next() {
+            let lower_first = first.to_lowercase().collect::<String>() + &type_name[first.len_utf8()..];
+            if let Some(s) = schemas.get(&lower_first) {
+                return Some(s);
+            }
+        }
+        None
+    }
+
     /// Generate shared module for cross-group types.
+    ///
+    /// WHY: Types used by multiple groups (shared_resources) must live in one place so
+    /// group modules can import them via `super::shared::`. The OLD behaviour was to emit
+    /// a `HashMap<String, Value>` stub for every shared type regardless of the actual
+    /// OpenAPI schema. The NEW behaviour resolves each type's schema and generates a
+    /// properly typed struct with real fields, only falling back to HashMap when the
+    /// schema truly cannot be resolved.
     fn generate_shared_module(
         &self,
         analysis: &super::analyzer::AnalysisResult,
@@ -1385,6 +1439,11 @@ impl UnifiedGenerator {
     ) -> Result<(), GenError> {
         let shared_dir = output_dir.join("shared");
         fs::create_dir_all(&shared_dir)?;
+
+        // Build dependency graph across ALL schemas (including shared ones) so we
+        // detect mutually recursive types that need Box wrapping.
+        let type_deps = build_type_dependencies(&analysis.schemas);
+        let recursive_types = find_recursive_types(&type_deps);
 
         let mut out = String::new();
         writeln!(
@@ -1399,11 +1458,19 @@ impl UnifiedGenerator {
         )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
+        // For split-out providers (provider_dir_override set), the shared
+        // module lives in its own crate so it must import from
+        // foundation_deployment rather than crate::providers::common.
+        let common_path = if self.provider_dir_override.is_some() {
+            "foundation_deployment::providers::common"
+        } else {
+            "crate::providers::common"
+        };
         writeln!(
             out,
             "// Re-export common API types from foundation_deployment"
         )?;
-        writeln!(out, "pub use crate::providers::common::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro}};")?;
+        writeln!(out, "pub use {common_path}::{{ApiError, ApiPending, ApiResponse, BoxedSendExecutionAction, Empty, Operation, RequestIntro}};")?;
         writeln!(out)?;
         writeln!(out, "// Imports for shared resource types")?;
         writeln!(out, "use foundation_macros::JsonHash;")?;
@@ -1450,19 +1517,37 @@ impl UnifiedGenerator {
             // Rename types that conflict with std types
             let safe_name = rename_std_type_conflict(type_name);
 
-            writeln!(out, "/// Shared type: `{}`.", safe_name)?;
-            writeln!(
-                out,
-                "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
-            )?;
-            writeln!(out, "pub struct {} {{", safe_name)?;
-            writeln!(out, "    #[serde(flatten)]")?;
-            writeln!(
-                out,
-                "    pub data: std::collections::HashMap<String, serde_json::Value>,"
-            )?;
-            writeln!(out, "}}")?;
-            writeln!(out)?;
+            // Try to resolve the schema for this shared type.
+            // Schemas are keyed by original spec names (usually snake_case);
+            // shared_resources stores PascalCase names. resolve_schema_key
+            // tries multiple naming conventions.
+            if let Some(schema) = Self::resolve_schema_key(type_name, &analysis.schemas) {
+                // Generate a properly typed struct from the OpenAPI schema.
+                self.generate_type_from_schema(
+                    &mut out,
+                    &safe_name,
+                    schema,
+                    &analysis.schemas,
+                    &recursive_types,
+                )?;
+            } else {
+                // No schema found — emit a placeholder HashMap wrapper so the
+                // generated code still compiles (callers should investigate
+                // why the schema wasn't resolved).
+                writeln!(out, "/// Shared type: `{}`.", safe_name)?;
+                writeln!(
+                    out,
+                    "#[derive(Debug, Clone, Default, Serialize, Deserialize, JsonHash)]"
+                )?;
+                writeln!(out, "pub struct {} {{", safe_name)?;
+                writeln!(out, "    #[serde(flatten)]")?;
+                writeln!(
+                    out,
+                    "    pub data: std::collections::HashMap<String, serde_json::Value>,"
+                )?;
+                writeln!(out, "}}")?;
+                writeln!(out)?;
+            }
         }
 
         fs::write(shared_dir.join("mod.rs"), out)?;
@@ -1470,24 +1555,26 @@ impl UnifiedGenerator {
     }
 
     /// Generate provider mod.rs with feature guards.
+    /// Generate `mod.rs` inside `generated/` that declares all sub-modules.
     fn generate_provider_mod(
         &self,
         provider: &str,
         groups: &[ApiGroup],
         _shared_resources: &[String],
+        generated_dir: &Path,
     ) -> Result<(), GenError> {
         let feature_name = provider.replace('-', "_").replace('/', "_");
 
         let mut out = String::new();
-        writeln!(out, "//! Auto-generated provider module for {}.", provider)?;
+        writeln!(out, "//! Auto-generated module for {provider}.",)?;
         writeln!(out, "//!")?;
         writeln!(
             out,
-            "//! Generated by `cargo run --bin ewe_platform gen_api`."
+            "//! Generated by `cargo run --bin genapi generate`."
         )?;
         writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
         writeln!(out)?;
-        writeln!(out, "#![cfg(feature = \"{}\")]", feature_name)?;
+        writeln!(out, "#![cfg(feature = \"{feature_name}\")]")?;
         writeln!(
             out,
             "#![allow(clippy::too_many_arguments, clippy::type_complexity)]"
@@ -1515,12 +1602,8 @@ impl UnifiedGenerator {
             writeln!(out, "pub mod {safe_name:};")?;
         }
 
-        let provider_dir = self
-            .provider_dir_override
-            .clone()
-            .unwrap_or_else(|| self.output_dir.join(provider));
-        fs::create_dir_all(&provider_dir)?;
-        fs::write(provider_dir.join("mod.rs"), out)?;
+        fs::create_dir_all(generated_dir)?;
+        fs::write(generated_dir.join("mod.rs"), out)?;
 
         Ok(())
     }

@@ -711,16 +711,18 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             } else {
                 crate_root.clone()
             };
-            // The directory where generated files actually land:
-            //  - monolith: <crate_root>/<provider>/  (e.g. foundation_deployment/src/providers/cloudflare/)
-            //  - split:    <crate_root>/src/          (generated directly into crate src/)
+            // The provider's source directory. The generator appends `generated/`
+            // internally, so all files land under <provider_dir>/generated/.
+            //  - monolith: <crate_root>/<provider>/generated/  (e.g. foundation_deployment/src/providers/cloudflare/generated/)
+            //  - split:    <crate_root>/src/generated/          (generated into crate src/generated/)
             let actual_provider_dir = if is_split {
                 crate_root.join("src")
             } else {
                 output_dir.join(provider)
             };
+            let generated_dir = actual_provider_dir.join("generated");
 
-            println!("Output directory: {}", actual_provider_dir.display());
+            println!("Output directory: {}", generated_dir.display());
             if is_split {
                 println!("Mode: split-out crate");
             }
@@ -862,7 +864,7 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
 
             // Post-step: Fix up feature flags for all providers with sub-groups.
             if is_multi_spec_provider {
-                generate_parent_mod_rs(&provider, &actual_provider_dir)?;
+                generate_parent_mod_rs(&provider, &generated_dir)?;
             }
             // For split-out crates, the Cargo.toml is at crate_root;
             // for monolith crates, it's 2 levels up from output_dir.
@@ -877,13 +879,13 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             };
             fix_hierarchical_features(
                 &provider,
-                &actual_provider_dir,
+                &generated_dir,
                 &regenerated,
                 &cargo_toml_path,
             )?;
 
             println!("\n=== Generation Complete ===");
-            println!("Output directory: {}", actual_provider_dir.display());
+            println!("Output directory: {}", generated_dir.display());
 
             // Auto-fix common issues (unused imports, snake_case, etc.)
             println!("\n=== Running cargo fix ===");
