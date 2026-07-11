@@ -371,7 +371,7 @@ fn proto_bytes(msg: &TestMsg) -> Vec<u8> {
 fn connect_transport() -> (H1Transport, TestServer) {
     let serve = echo_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
     (transport, server)
 }
 
@@ -498,7 +498,7 @@ async fn connect_unary_post_json_success() {
 async fn connect_unary_error() {
     let serve = error_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 1, name: "error".into() };
     let body = json_bytes(&msg);
@@ -554,7 +554,7 @@ async fn connect_unary_get_success() {
 
     let serve = echo_serve(); // NoSideEffects
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 77, name: "get-test".into() };
     let json_body = json_bytes(&msg);
@@ -655,7 +655,7 @@ async fn connect_unary_unknown_path_404() {
 async fn connect_unary_wrong_method_405() {
     let serve = echo_post_only_serve(); // NoSideEffects NOT set
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let desc = build_request_descriptor(
         server.addr,
@@ -697,7 +697,7 @@ async fn connect_unary_wrong_method_405() {
 async fn connect_server_stream_success() {
     let serve = list_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 10, name: "seed".into() };
     let json = json_bytes(&msg);
@@ -756,7 +756,7 @@ async fn connect_server_stream_success() {
 async fn connect_client_stream_success() {
     let serve = client_stream_echo_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let desc = build_request_descriptor(
         server.addr,
@@ -813,7 +813,7 @@ async fn connect_client_stream_success() {
 async fn connect_server_stream_error() {
     let serve = error_stream_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 1, name: "trigger".into() };
     let envelope = connect_envelope(&json_bytes(&msg));
@@ -917,7 +917,7 @@ async fn grpc_web_unary_proto_success() {
 async fn grpc_web_unary_error() {
     let serve = error_serve(); // returns permission_denied
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 1, name: "grpc-error".into() };
     let proto = proto_bytes(&msg);
@@ -976,7 +976,7 @@ async fn grpc_web_unary_error() {
 async fn grpc_web_server_stream_success() {
     let serve = list_serve(); // 3 items
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 20, name: "stream".into() };
     let json = json_bytes(&msg);
@@ -1036,7 +1036,7 @@ async fn grpc_web_server_stream_success() {
 async fn request_headers_reach_handler() {
     let serve = echo_with_header_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 1, name: "headers".into() };
     let body = json_bytes(&msg);
@@ -1103,7 +1103,7 @@ async fn request_headers_reach_handler() {
 async fn response_headers_reach_client() {
     let serve = echo_with_trailer_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 1, name: "resp-headers".into() };
     let body = json_bytes(&msg);
@@ -1151,7 +1151,7 @@ async fn response_headers_reach_client() {
 async fn response_trailers_reach_client() {
     let serve = echo_with_trailer_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 1, name: "trailers".into() };
     let body = json_bytes(&msg);
@@ -1250,7 +1250,7 @@ async fn error_code_to_http_status() {
 async fn error_end_stream() {
     let serve = error_stream_serve();
     let server = start_server(serve);
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let msg = TestMsg { id: 1, name: "endstream".into() };
     let envelope = connect_envelope(&json_bytes(&msg));

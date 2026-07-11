@@ -394,7 +394,7 @@ fn h1_transport_capabilities_are_correct() {
     use foundation_netio::simple_http::shared::Proto;
 
     let client = SimpleHttpClient::from_system();
-    let transport = H1Transport::new(client);
+    let transport = H1Transport::new(Arc::new(client));
     let caps = transport.capabilities();
 
     assert!(caps.request_streaming, "h1 supports chunked upload");
@@ -451,7 +451,7 @@ async fn h1_client_transport_over_real_socket() {
 
     // Client: H1Transport. `open()` is synchronous — spawns the pump on the pool
     // and returns the three caller-facing pipe halves immediately.
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
 
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let uri = Uri::parse(&url).expect("parse URL");
@@ -563,7 +563,7 @@ async fn h1_client_server_stream_over_real_socket() {
     let _ = TcpStream::connect_timeout(&addr, Duration::from_secs(2)).expect("server ready");
 
     // Client: H1Transport, Connect streaming content-type.
-    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
     let url = format!("http://127.0.0.1:{}{LIST_PROCEDURE}", addr.port());
     let uri = Uri::parse(&url).expect("parse URL");
     let descriptor = RequestDescriptor {

@@ -1,23 +1,27 @@
 //! Native HTTP/1.1 `Transport` implementation (Decision 11 §Transport, Feature 44
-//! walking skeleton; F45 Part D seam shrink).
+//! walking skeleton; F45 Part D seam shrink; F51 Stage 3 de-leak).
 //!
-//! WHY: `Transport` byte-level client-seam contract.
-//! WHAT: `open()` creates an `HttpExchangeTask` (native: wraps `SendRequestTask`)
-//! and fans its `HttpExchange` output out with valtron's native splits — the head
-//! into a `HeadStream`, the body into a `BodyStream` — spawns the drive task on the
-//! valtron pool via `valtron::send()`, and returns `TransportStream` synchronously.
-//! HOW: `PreparedRequest` → `HttpExchangeTask::new()` →
+//! WHY: `Transport` byte-level client-seam contract. F51 de-leaked this module:
+//! it no longer names `SimpleHttpClient`, `HttpExchangeTask`, or
+//! `HttpConnectionPool` — the client owns its pool/resolver and exposes an
+//! `open_exchange` task. This module is now platform-agnostic in its client
+//! dependency (holds `Arc<dyn HttpClient>`).
+//!
+//! WHAT: `open()` calls `self.client.open_exchange(prepared)` to get a
+//! `HttpExchangeClientTask`, then fans its `HttpExchange` output with valtron
+//! splits — identical to before, just through the trait method.
+//!
+//! HOW: `PreparedRequest` → `self.client.open_exchange(prepared)` →
 //! `.split_collect_until_map(head)` → `.split_collector_map(body)` →
-//! `body_cont.map_ready(|_| ())` → `valtron::send()`; each observer is bridged into
-//! its erased stream via `into_next_stream()`. `send_body` is the only `Pipe`.
+//! `body_cont.map_ready(|_| ())` → `valtron::send()`.
 
 use std::sync::Arc;
 
 use foundation_core::url::Uri;
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
+use foundation_netio::simple_http::client::shared::http_client::HttpClient;
 use foundation_netio::simple_http::client::shared::request_task::HttpExchange;
 use foundation_netio::simple_http::client::shared::PreparedRequest;
-use foundation_netio::simple_http::client::{HttpExchangeTask, SimpleHttpClient};
 use foundation_netio::simple_http::shared::Extensions;
 use foundation_netio::simple_http::shared::{
     pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
@@ -29,16 +33,35 @@ use super::{
     TransportStream,
 };
 
-#[derive(Clone, Default)]
+#[derive(Clone)]
 pub struct H1Transport {
-    client: Arc<SimpleHttpClient>,
+    client: Arc<dyn HttpClient>,
 }
 
 impl H1Transport {
+    /// Create an H1 transport backed by any `HttpClient`.
+    ///
+    /// On native, pass a `NativeHttpClient` (or any `HttpClient` impl). On
+    /// wasm, pass a `FetchHttpClient`. The transport is platform-agnostic.
     #[must_use]
-    pub fn new(client: SimpleHttpClient) -> Self {
-        Self {
-            client: Arc::new(client),
+    pub fn new(client: Arc<dyn HttpClient>) -> Self {
+        Self { client }
+    }
+}
+
+impl Default for H1Transport {
+    fn default() -> Self {
+        // Default to native system client. On wasm this path is never hit
+        // (wasm uses a different transport), but the default is still sound.
+        #[cfg(not(target_family = "wasm"))]
+        {
+            use foundation_netio::simple_http::client::NativeHttpClient;
+            Self::new(Arc::new(NativeHttpClient::default()))
+        }
+        #[cfg(target_family = "wasm")]
+        {
+            use foundation_netio::simple_http::client::wasm::client::FetchHttpClient;
+            Self::new(Arc::new(FetchHttpClient::new()))
         }
     }
 }
@@ -73,15 +96,9 @@ impl Transport for H1Transport {
             extensions: Extensions::new(),
         };
 
-        let pool = self.client.client_pool().ok_or_else(|| {
-            TransportError::Connect(Arc::new(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                "no connection pool configured",
-            )))
-        })?;
-        let config = self.client.client_config();
-
-        let pump = HttpExchangeTask::new(prepared, config.max_redirects, pool, config);
+        // F51: the client owns the pool, resolver, and config — the transport
+        // just asks for the task. No more reaching into SimpleHttpClient internals.
+        let pump = self.client.open_exchange(prepared);
 
         // Peel the response head (or a *pre-head* failure) into an observer whose
         // item is `Result<(Status, SimpleHeaders), TransportError>`, closing after

@@ -96,7 +96,7 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
 async fn main() {
     let (addr, shutdown) = start_server();
 
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(SimpleHttpClient::from_system()));
+    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(Arc::new(SimpleHttpClient::from_system())));
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let client: Client<CountRequest, CountItem> = Client::new(
         transport,

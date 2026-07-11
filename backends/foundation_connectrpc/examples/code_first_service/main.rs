@@ -111,7 +111,7 @@ async fn main() {
 
     // Client: the generated typed `GreetServiceClient`. `new` takes a base URL;
     // it appends each procedure path internally. Code-first JSON → select "json".
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(SimpleHttpClient::from_system()));
+    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(Arc::new(SimpleHttpClient::from_system())));
     let base_url = format!("http://127.0.0.1:{}", addr.port());
     let client = GreetServiceClient::new(transport, &base_url, ClientOptions::new().with_codec("json"))
         .expect("build client");

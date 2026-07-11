@@ -151,7 +151,7 @@ async fn main() {
     let (addr, shutdown) = start_server();
 
     // Build the client stack: an HTTP/1.1 transport + a typed per-procedure client.
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(SimpleHttpClient::from_system()));
+    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(Arc::new(SimpleHttpClient::from_system())));
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let client: Client<EchoMessage, EchoMessage> = Client::new(
         transport,
