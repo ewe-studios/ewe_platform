@@ -28,6 +28,7 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
 | # | Feature | Status |
 |---|---------|--------|
 | 48 | Transport completion read path | Phases 0-3 implemented; `foundation_iogate` bridge crate breaks netio↔nativeapis cycle. **Phase 4 (proxy splice) designed out.** |
+| 49 | Write-side completion (IORING_OP_SEND) | **Phases A+B implemented + verified 2026-07-12** (commit d17ec5634): `SendPool`/`SendBuf`, Selector `submit_send`/SEND-CQE drain, threaded to `CompletionSocket::write`/`flush`. Zero write-family syscalls proven via ptrace; 4 real-socket + 5 pool + 1 syscall tests. **Deferred:** Phase C (`split_read_write` write half), Phase D SEND_ZC (→ F50). |
 | 51 | Unified HTTP+WebSocket client | **Wasm criterion MET** (commit fb3d86744): `foundation_connectrpc` compiles clean for `wasm32-unknown-unknown`. `SimpleHttpClient` alias-only, `H1Transport` holds `Arc<dyn HttpClient>`, no `NoSpawner`, `open_websocket` auto-switches native/wasm. **`+ Clone` criterion WAIVED** as cosmetic (28 inert bounds; stack monomorphises at `BoxedDnsResolver` where `Clone` = `Arc::clone`). |
 | 51b | connectrpc shared/native restructure | Crate split into `shared/` (codec, compression, context, envelope, error, error_writer, interceptor, message, protocol, client, router, transport incl. H1+WS) + `native/` (server, h2_serve, transport h2/h3). h2 dispatch method cfg-gated in place. foundation_http H2Serve moved shared/serve → native/serve (native http2 leak). 180/180 tests pass; native + wasm warning-free. |
 | 52 | Browser test harness | Implemented, **diverged from design**: shipped `#[valtron_bindgen]` + `#[valtron_wasm_test]` macros (valtron-pool-aware) instead of a bare `#[wasm_bindgen_test]` re-export. `foundation_wasm_testbed` deleted, tests relocated to `foundation_netio/tests/wasm/`, docs updated. CLI shipped as top-level `deno`/`browser`/`bindgen` commands + wasm-bindgen version check (CLI ≥ crate). **Not shipped:** the design's 4-way `test` auto-detect (still legacy mode-based); `bindgen-web` kept with an INTEROP warning, not a formal deprecation. **Not re-verified:** end-to-end Chromium browser run (blocked earlier on a testbed feature-combo build issue). |
@@ -36,8 +37,7 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
 
 | # | Feature | Status |
 |---|---------|--------|
-| 49 | Write-side completion (IORING_OP_SEND) | proposed — design doc only |
-| 50 | Client completion + zero-syscall proxy relay | proposed — design doc only |
+| 50 | Client completion + zero-syscall proxy relay | proposed — design doc only (Part C needs F49; in progress next) |
 
 ## Pending
 
