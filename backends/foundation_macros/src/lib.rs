@@ -22,6 +22,7 @@ mod wasm_modes;
 mod serial_test;
 mod valtron_entry;
 mod wasm_test;
+mod bindgen_test;
 mod wasm_ui_server_entry;
 mod wasmbin_codec;
 
@@ -527,6 +528,29 @@ pub fn wasmbin_visit_derive(item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn wasm_test(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_test::wasm_test(attr.into(), item.into()).into()
+}
+
+/// `#[valtron_bindgen]` — wasm-bindgen browser test with valtron pool (F52).
+///
+/// Single attribute that combines:
+/// 1. Browser-mode link-section marker for wasm-bindgen-test-runner
+/// 2. Valtron single-threaded pool init + teardown (like `#[valtron_test]`)
+/// 3. Delegation to `#[wasm_bindgen_test]` for test discovery (`__wbgt_` export)
+///
+/// ```ignore
+/// use foundation_macros::valtron_bindgen;
+/// use foundation_testbed::bindgen::{js_sys, wasm_bindgen_futures, web_sys};
+///
+/// #[valtron_bindgen]
+/// fn my_browser_test() {
+///     let (task, _delivery) = client.open_websocket_task(...);
+///     let mut stream = valtron::execute(task, None).expect("execute");
+///     // pool is live here
+/// }
+/// ```
+#[proc_macro_attribute]
+pub fn valtron_bindgen(attr: TokenStream, item: TokenStream) -> TokenStream {
+    bindgen_test::valtron_bindgen(attr, item)
 }
 
 /// Runs a function with the valtron execution engine live around it (the

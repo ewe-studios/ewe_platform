@@ -124,9 +124,14 @@ impl StaticFileHandler {
         for attempt in 0..MAX_RETRIES {
             match conn.write_all(&wire).and_then(|()| conn.flush()) {
                 Ok(()) => return ConnectionResult::Keep,
-                Err(e) if e.kind() == std::io::ErrorKind::WouldBlock => {
+                Err(ref e)
+                    if e.kind() == std::io::ErrorKind::WouldBlock
+                        || e.kind() == std::io::ErrorKind::ConnectionReset
+                        || e.kind() == std::io::ErrorKind::ConnectionAborted
+                        || e.kind() == std::io::ErrorKind::BrokenPipe =>
+                {
                     if attempt + 1 < MAX_RETRIES {
-                        std::thread::sleep(Duration::from_millis(50 * (attempt as u64 + 1)));
+                        std::thread::sleep(Duration::from_millis(50 * (attempt + 1) as u64));
                         continue;
                     }
                     tracing::error!("Failed to write static file after {MAX_RETRIES} retries");

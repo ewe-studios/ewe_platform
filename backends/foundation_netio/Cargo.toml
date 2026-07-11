@@ -79,10 +79,11 @@ quinn-proto = { version = "0.11", optional = true, features = ["rustls", "ring"]
 # All wasm-bindgen ecosystem re-exported by foundation_testbed.
 foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
 wasm-bindgen-test = "=0.3.76"
+# Proc-macro crate — always compiled for host, safe for all targets.
+foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 foundation_testing = { path = "../foundation_testing" }
-foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
 serial_test = { workspace = true }
 tracing-test = { version = "0.2",  features = ["no-env-filter"] }
