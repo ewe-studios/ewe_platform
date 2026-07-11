@@ -25,6 +25,12 @@ tracing = "0.1"
 uuid = { version = "1.6", features = ["v4"] }
 async-trait = "0.1"
 
+# The I/O gate: ServerIo + the completion-mode accept path (Feature 48). Native
+# only — there is no reactor on wasm. iogate brings foundation_nativeapis in
+# transitively, above netio, so no dependency cycle forms.
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+foundation_iogate = { path = "../foundation_iogate", version = "0.0.1" }
+
 # On wasm32, uuid needs a randomness source
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 uuid = { version = "1.6", features = ["v4", "js"] }

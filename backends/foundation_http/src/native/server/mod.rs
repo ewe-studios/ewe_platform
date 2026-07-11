@@ -9,6 +9,7 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
+use foundation_iogate::ServerIo;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_netio::netcap::SocketAddr as NetcapSocketAddr;
 use foundation_core::synca::{OnSignal, WaitGroup};
@@ -25,14 +26,6 @@ use foundation_netio::simple_http::shared::timeout::{
     feature = "ssl-native-tls",
 ))]
 use foundation_netio::netcap::ssl::SSLAcceptor;
-#[cfg(any(
-    feature = "ssl",
-    feature = "ssl-rustls",
-    feature = "ssl-rustls-ring",
-    feature = "ssl-rustls-awsrc",
-    feature = "ssl-openssl",
-    feature = "ssl-native-tls",
-))]
 use foundation_netio::netcap::Connection;
 
 use crate::shared::app::{HttpApp, ServerApp};
@@ -165,6 +158,11 @@ pub struct ServerConfig {
     /// up to this long for active connections to finish before force-closing
     /// whatever remains. Default: 30s.
     pub shutdown_grace: Duration,
+    /// How accepted sockets acquire bytes (Feature 48). Default
+    /// [`ServerIo::Std`] — plain `read(2)`, no reactor, so nothing changes for a
+    /// caller who does not ask. [`ServerIo::Completion`] opts the read path into
+    /// the io_uring completion inbox and errors at startup if the kernel cannot.
+    pub io_mode: ServerIo,
     /// TLS acceptor for encrypted connections.
     #[cfg(any(
         feature = "ssl",
@@ -186,6 +184,7 @@ impl ServerConfig {
             keep_alive: KeepAliveConfig::defaults(),
             max_body_bytes: 10 * 1024 * 1024, // 10 MB
             shutdown_grace: Duration::from_secs(30),
+            io_mode: ServerIo::Std,
             #[cfg(any(
                 feature = "ssl",
                 feature = "ssl-rustls",
@@ -295,6 +294,24 @@ impl ServerConfig {
         self
     }
 
+    /// Choose how accepted sockets acquire bytes (Feature 48).
+    ///
+    /// WHY: an operator who wants the io_uring completion read path must be able
+    /// to demand it — and be told at startup if the kernel cannot deliver —
+    /// rather than getting a silent default.
+    ///
+    /// WHAT: sets the [`ServerIo`] mode. [`ServerIo::Std`] (the default) keeps
+    /// today's plain `read(2)` behaviour; [`ServerIo::Completion`] arms the
+    /// completion inbox and fails at `serve` time on a non-io_uring kernel.
+    ///
+    /// HOW: the accept loop hands the mode to `foundation_iogate` on unix; on
+    /// non-unix targets the mode is inert and serving stays on `read(2)`.
+    #[must_use]
+    pub fn with_io(mut self, io_mode: ServerIo) -> Self {
+        self.io_mode = io_mode;
+        self
+    }
+
     /// Set the TLS acceptor for encrypted connections.
     #[cfg(any(
         feature = "ssl",
@@ -315,6 +332,38 @@ impl Default for ServerConfig {
     fn default() -> Self {
         Self::defaults()
     }
+}
+
+/// Build the accept-time [`Connection`] for `tcp` under `io_mode`.
+///
+/// WHY: the accept loop should know only which [`ServerIo`] mode it serves, not
+/// reactors or completion sockets. This is the one seam where the mode turns
+/// into a concrete connection (Feature 48).
+///
+/// WHAT: on unix, delegates to `foundation_iogate::accept_connection` — a plain
+/// `Connection::Tcp` for [`ServerIo::Std`], a `Connection::Completion` otherwise.
+/// On non-unix there is no reactor, so the mode is inert and the result is always
+/// a plain `Connection::Tcp`.
+///
+/// # Errors
+/// The reactor/registration error surfaced by the I/O gate, as a `String`.
+#[cfg(unix)]
+fn build_connection(
+    tcp: TcpStream,
+    addr: std::net::SocketAddr,
+    io_mode: ServerIo,
+) -> Result<Connection, String> {
+    foundation_iogate::accept_connection(tcp, addr, io_mode)
+        .map_err(|e| format!("iogate accept failed: {e}"))
+}
+
+#[cfg(not(unix))]
+fn build_connection(
+    tcp: TcpStream,
+    _addr: std::net::SocketAddr,
+    _io_mode: ServerIo,
+) -> Result<Connection, String> {
+    Ok(Connection::from(tcp))
 }
 
 mod connection;
@@ -375,8 +424,12 @@ impl HttpServer {
             .set_nonblocking(true)
             .expect("Failed to set non-blocking");
 
-        self.serve_loop(&listener, shutdown, |tcp: TcpStream| {
-            RawStream::from_tcp(tcp).map_err(|e| format!("Failed to create RawStream: {e}"))
+        self.init_io();
+        let io_mode = self.config.io_mode;
+        self.serve_loop(&listener, shutdown, move |tcp, addr| {
+            let conn = build_connection(tcp, addr, io_mode)?;
+            RawStream::from_connection(conn)
+                .map_err(|e| format!("Failed to create RawStream: {e}"))
         });
     }
 
@@ -393,8 +446,12 @@ impl HttpServer {
             .set_nonblocking(true)
             .expect("Failed to set non-blocking");
 
-        self.serve_loop(listener, shutdown, |tcp| {
-            RawStream::from_tcp(tcp).map_err(|e| format!("Failed to create RawStream: {e}"))
+        self.init_io();
+        let io_mode = self.config.io_mode;
+        self.serve_loop(listener, shutdown, move |tcp, addr| {
+            let conn = build_connection(tcp, addr, io_mode)?;
+            RawStream::from_connection(conn)
+                .map_err(|e| format!("Failed to create RawStream: {e}"))
         });
     }
 
@@ -433,8 +490,12 @@ impl HttpServer {
             .set_nonblocking(true)
             .expect("Failed to set non-blocking");
 
-        self.serve_loop(&listener, &shutdown, move |tcp| {
-            let conn = Connection::from(tcp);
+        self.init_io();
+        let io_mode = self.config.io_mode;
+        self.serve_loop(&listener, &shutdown, move |tcp, addr| {
+            // rustls reads *through* this Connection, so a completion-backed
+            // Connection gives TLS the completion read path for free.
+            let conn = build_connection(tcp, addr, io_mode)?;
             let tls_stream = acceptor
                 .accept(conn)
                 .map_err(|e| format!("TLS handshake failed: {e}"))?;
@@ -470,8 +531,12 @@ impl HttpServer {
         listener
             .set_nonblocking(true)
             .expect("Failed to set non-blocking");
-        self.serve_loop(listener, shutdown, move |tcp| {
-            let conn = Connection::from(tcp);
+        self.init_io();
+        let io_mode = self.config.io_mode;
+        self.serve_loop(listener, shutdown, move |tcp, addr| {
+            // rustls reads *through* this Connection, so a completion-backed
+            // Connection gives TLS the completion read path for free.
+            let conn = build_connection(tcp, addr, io_mode)?;
             let tls_stream = acceptor
                 .accept(conn)
                 .map_err(|e| format!("TLS handshake failed: {e}"))?;
@@ -480,13 +545,46 @@ impl HttpServer {
         });
     }
 
+    /// Initialise the shared reactor for the configured [`ServerIo`] mode.
+    ///
+    /// WHY: an operator who asks for [`ServerIo::Completion`] must get io_uring
+    /// or a hard failure at startup — never a server that logs one line and then
+    /// silently serves nothing (Feature 48, no-silent-defaults).
+    ///
+    /// WHAT: a no-op for [`ServerIo::Std`] and on non-unix targets; otherwise it
+    /// initialises the process-wide reactor on the required backend.
+    ///
+    /// HOW: delegates to `foundation_iogate::init_reactor_for`.
+    ///
+    /// # Panics
+    /// Panics, naming the requested mode, if the reactor cannot be initialised on
+    /// the backend the mode demands (e.g. `Completion` on a kernel without
+    /// io_uring) — the same fail-fast contract as the `set_nonblocking` setup
+    /// above.
+    #[cfg(unix)]
+    fn init_io(&self) {
+        foundation_iogate::init_reactor_for(self.config.io_mode).unwrap_or_else(|e| {
+            panic!(
+                "server I/O mode '{}' could not be initialised: {e}",
+                self.config.io_mode
+            )
+        });
+    }
+
+    /// Non-unix targets have no reactor; the I/O mode is inert.
+    #[cfg(not(unix))]
+    fn init_io(&self) {}
+
     /// Generic accept loop — shared by `serve` and `serve_tls`.
     #[tracing::instrument(skip(self, listener, shutdown, wrap_stream))]
     fn serve_loop(
         self,
         listener: &std::net::TcpListener,
         shutdown: &Arc<OnSignal>,
-        wrap_stream: impl Fn(std::net::TcpStream) -> Result<RawStream, String> + Send + Sync + 'static,
+        wrap_stream: impl Fn(std::net::TcpStream, std::net::SocketAddr) -> Result<RawStream, String>
+            + Send
+            + Sync
+            + 'static,
     ) {
         let wrap_stream = Arc::new(wrap_stream);
         let would_block_sleep = self.config.would_block_sleep();
@@ -531,7 +629,7 @@ impl HttpServer {
 
                     // Perform connection setup (TLS handshake if any) in the
                     // accept loop before submitting to valtron.
-                    let raw_stream = match wrap_clone(tcp) {
+                    let raw_stream = match wrap_clone(tcp, addr) {
                         Ok(s) => s,
                         Err(e) => {
                             tracing::error!(%client_ip, "Connection setup failed: {e}");

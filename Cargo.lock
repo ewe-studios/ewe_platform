@@ -4497,6 +4497,7 @@ dependencies = [
  "foundation_core",
  "foundation_db",
  "foundation_errstacks",
+ "foundation_iogate",
  "foundation_macros",
  "foundation_nativeapis",
  "foundation_netio",
@@ -4515,6 +4516,17 @@ dependencies = [
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
+]
+
+[[package]]
+name = "foundation_iogate"
+version = "0.0.1"
+dependencies = [
+ "foundation_nativeapis",
+ "foundation_netio",
+ "serial_test",
+ "tracing",
+ "tracing-test",
 ]
 
 [[package]]

@@ -1,18 +1,22 @@
 ---
 feature: "Transport opt-in to the completion read path (D14 F4 remainder)"
 description: "Give netio transports a byte source backed by the io_uring completion inbox, so real connections read with zero read() syscalls"
-status: "proposed"
+status: "implemented (phases 0–3; proxy splice designed out — see Implementation update)"
 priority: "medium"
 phase: 3
 depends_on: ["43-uring-completion-mode"]
 estimated_effort: "large"
 created: 2026-07-10
+updated: 2026-07-11
 ---
 # Feature 48: Transport opt-in to the completion read path
 
-> **Status: proposed, for review.** This document is a design proposal, not a
-> plan of record. It ends with a recommendation and the alternatives I rejected,
-> with the reasons. Nothing is implemented.
+> **Status: phases 0–3 implemented (2026-07-11).** The design below stands, with
+> one material correction recorded in *Implementation update* immediately after
+> this note: the `netio → nativeapis` edge the recommendation assumed is *not*
+> acyclic, so the completion socket and accept path live in a new bridge crate,
+> `foundation_iogate`, and `Connection::Completion` holds a `Box<dyn
+> CompletionReadWrite>`. Phase 4 (proxy splice) is designed out of this feature.
 >
 > **Supersedes and absorbs** spec-53 Decision 30 (`30-iouring-completion-netio.md`),
 > which is merged into this document and deleted. See *Relationship to Decision 30*
@@ -38,6 +42,80 @@ Nothing in the tree opts in. `foundation_netio` does not depend on
 `SharedByteBufferStream<RawStream>` and never touch `RegisteredFd`. So the
 kernel-read path exists, is tested, and serves no production connection. This
 feature closes that.
+
+## Implementation update (2026-07-11)
+
+The recommendation below has one load-bearing error, found during
+implementation. Everything else shipped as written.
+
+**The `netio → nativeapis` edge is *not* acyclic.** The section *What actually
+blocks it* argues that `foundation_nativeapis` does not depend on
+`foundation_netio`, so netio could take a direct target-gated dependency on
+nativeapis. It can't:
+
+```
+foundation_nativeapis → foundation_db (optional, via vfs-d1/r2/fjall)
+foundation_db         → foundation_netio
+foundation_netio      → foundation_nativeapis   ← closes the cycle
+```
+
+`cargo` rejects this with `cyclic package dependency`. So netio cannot name
+`CompletionSocket` directly, and the "no `Box<dyn>`, no orphan-rule dance"
+promise below does not hold.
+
+**Resolution — a bridge crate, `foundation_iogate`.** A new crate sits *above*
+both netio and nativeapis, so every edge points one way and no cycle forms:
+
+```
+foundation_iogate → foundation_netio        (Connection, CompletionReadWrite)
+foundation_iogate → foundation_nativeapis   (Reactor, RegisteredFd, io_uring)
+foundation_http   → foundation_iogate       (ServerIo + the accept path)
+```
+
+What this changed from the recommendation, and why:
+
+- **`CompletionSocket` lives in `foundation_iogate::native`, not
+  `foundation_nativeapis`.** It owns a `RegisteredFd` (nativeapis) *and* impls
+  `CompletionReadWrite` (netio); only a crate above both can hold both without
+  the orphan rule or the cycle objecting.
+- **`Connection::Completion` holds `Box<dyn CompletionReadWrite>`,** a trait
+  defined in netio, not a concrete `CompletionSocket`. The box is the seam that
+  keeps netio free of nativeapis. The one indirect call per `read` is negligible
+  against the 16 KiB memcpy, as the doc already argued for the zero-copy
+  trade-off. Eliminating the box would require splitting `foundation_nativeapis`
+  so its reactor half carries no `foundation_db` dependency — a separate,
+  larger refactor, deliberately not taken here.
+- **`ServerIo` and the accept wiring shipped as designed.**
+  `foundation_iogate::{ServerIo, accept_connection, init_reactor_for}` and
+  `foundation_http`'s `ServerConfig::with_io(..)` are in place; the accept loop
+  builds `Connection::Completion` for every non-`Std` mode. An explicit
+  `ServerIo::Completion` that the kernel cannot honour **panics at `serve`
+  time**, matching the adjacent `set_nonblocking` fail-fast — not a silent
+  log-and-return.
+- **Proven end to end.** A loopback TCP connection accepted in `Completion`
+  mode carries bytes through `Connection::Completion` on this io_uring kernel
+  (`backends/foundation_iogate/tests/iogate_tests.rs`). netio's wasm build is
+  unchanged; the whole platform graph (proxy, platform binary) resolves with no
+  cycle.
+
+**Phase 4 (proxy splice) is designed out of Feature 48.** It is not blocked on
+Phase 3 — it is blocked on machinery *no* phase of F48 builds:
+`splice_bidirectional`'s upstream leg is an outbound `TcpStream::connect`, a
+client dial that is never registered with the reactor, so there is no inbox to
+park a composite readiness on. F48 only ever built the *server accept* path.
+Client-side/outbound completion registration belongs with the write-side work
+(**[Feature 49](../49-write-side-completion/feature.md)**), where the dial and
+`SEND` accounting live together. Two further facts confirm the rehoming:
+`splice_bidirectional` is generic over `A: Read + Write` and exposes no readiness
+handle, and it runs on a dedicated OS thread with a 1 ms idle sleep rather than
+as a valtron task that returns `Depends` — so "park on readiness" there is a
+different concurrency change, not a small tweak. The proxy's *HTTP front-door*
+reads, by contrast, already reach completion mode today via
+`ServerConfig::with_io(ServerIo::Completion)` — that is the main-path win, and
+Phase 3 delivered it.
+
+The original design narrative is kept below unchanged for the record; read it
+through the correction above.
 
 ## The question this design has to answer
 
@@ -736,8 +814,13 @@ needs `IORING_OP_SEND` against a provided buffer, which is out of scope here.
 - **Phase 3: `ServerIo` + server + proxy integration.** `ServerIo` enum on the
   server builder. Accept path builds `Connection::Completion` when not `Std`.
   Benchmark proxy throughput with the switch on and off.
-- **Phase 4: `splice_bidirectional` without the sleep.** Composite readiness over
-  both inboxes.
+- ~~**Phase 4: `splice_bidirectional` without the sleep.**~~ **Designed out of
+  this feature** (see *Implementation update*). The splice's upstream leg is an
+  unregistered outbound dial, so there is no inbox to park on; the change is
+  rehomed to the client-side/write-side work
+  ([Feature 49](../49-write-side-completion/feature.md)). The proxy's HTTP
+  front-door reads already reach completion mode via
+  `ServerConfig::with_io(ServerIo::Completion)`.
 - **Phase 5 (separate feature): `IORING_OP_SEND` and the zero-copy relay.**
   Scoped as **[Feature 49](../49-write-side-completion/feature.md)**; needs
   write-side buffer accounting and a user-filled SEND pool.

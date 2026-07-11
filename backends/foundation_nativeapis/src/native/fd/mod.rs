@@ -49,12 +49,13 @@ pub mod reactor;
 /// The `CompletionSource` seam — byte acquisition for io_uring completion mode.
 pub mod completion;
 
-/// `CompletionSocket` — transport-facing byte source wrapper (Decision 14 F4 / F48).
-pub mod completion_socket;
+// `CompletionSocket` — the transport-facing byte-source wrapper — moved to
+// `foundation_iogate::native`, the one crate that owns both this reactor and
+// the netio `Connection`/`CompletionReadWrite` seam it plugs into. Keeping it
+// here would strand it below the `Connection` it exists to construct.
 
 pub use guard::{MutReadyGuard, ReadyGuard, TryIoError};
 pub use error::{FdRegistrationError, RegistrationError};
-pub use completion_socket::CompletionSocket;
 pub use reactor::{AlreadyInitialised, Reactor, SharedReadiness};
 
 #[cfg(all(target_os = "linux", feature = "uring"))]
