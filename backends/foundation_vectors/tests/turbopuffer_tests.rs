@@ -16,7 +16,7 @@ use foundation_netio::simple_http::client::shared::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient,
 };
 use foundation_netio::simple_http::client::shared::request::PreparedRequest;
-use foundation_netio::simple_http::client::shared::request_task::HttpExchangeClientTask;
+use foundation_netio::simple_http::client::shared::HttpExchangeClientTask;
 use foundation_netio::simple_http::shared::{
     HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleResponse, Status,
 };

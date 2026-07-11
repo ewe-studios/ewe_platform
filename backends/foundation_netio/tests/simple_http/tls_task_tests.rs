@@ -4,7 +4,7 @@
 //! module. They perform lightweight compile-time and debug-string checks to
 //! ensure the TLS handshake task exposes the expected types and trait bounds.
 
-use foundation_core::valtron::{NoAction, TaskIterator};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator};
 use foundation_netio::simple_http::client::{TlsHandshakeState, TlsHandshakeTask};
 
 /// WHY: Verify all `TlsHandshakeState` variants exist and are constructible
@@ -49,7 +49,7 @@ fn test_tls_handshake_task_associated_types() {
     // If TlsHandshakeTask does not match the required associated types, this will fail to compile.
     fn check_types<T>()
     where
-        T: TaskIterator<Pending = TlsHandshakeState, Ready = (), Spawner = NoAction>,
+        T: TaskIterator<Pending = TlsHandshakeState, Ready = (), Spawner = BoxedSendExecutionAction>,
     {
     }
 

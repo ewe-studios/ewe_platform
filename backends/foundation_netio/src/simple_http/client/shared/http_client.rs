@@ -70,13 +70,5 @@ pub trait HttpClient: Send + Sync {
     /// Send an SSE request synchronously — returns a sync iterator.
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError>;
 
-    /// Build a valtron task that drives one request/response exchange, yielding
-    /// [`HttpExchange`](super::request_task::HttpExchange) items (`Head`,
-    /// `BodyChunk`, `Failed`). The caller spawns it with `valtron::send()` or
-    /// composes it with split combinators.
-    ///
-    /// WHY: Lets the transport pump (`H1Transport`, WASM fetch pump) be
-    /// platform-agnostic — the client owns the pool, config, and resolver, so
-    /// the pump never names a concrete transport type.
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask;
 }

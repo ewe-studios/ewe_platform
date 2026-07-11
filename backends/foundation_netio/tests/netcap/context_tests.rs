@@ -51,7 +51,7 @@ fn test_request_defaults_to_empty_connection() {
 fn test_request_carries_populated_connection() {
     let addr = "127.0.0.1:8080".parse().expect("valid socket addr");
     let ctx = Arc::new(ConnectionContext {
-        peer_addr: Some(foundation_netio::netcap::SocketAddr::Tcp(addr)),
+        peer_addr: Some(addr),
         peer_identity: PeerIdentity::Ed25519(vec![0xAB; 32]),
         tls: Some(TlsInfo {
             peer_certificates: vec![vec![1, 2, 3]],

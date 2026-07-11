@@ -211,7 +211,7 @@ impl HttpClient for FetchHttpClient {
 
     fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
         let task = WasmHttpExchangeTask::new(req);
-        HttpExchangeClientTask::wasm(task)
+        Box::new(task)
     }
 }
 

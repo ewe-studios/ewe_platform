@@ -1,4 +1,4 @@
-use foundation_core::valtron::{NoAction, TaskIterator};
+use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator};
 use foundation_netio::simple_http::client::{TlsHandshakeState, TlsHandshakeTask};
 
 #[test]
@@ -34,7 +34,7 @@ fn test_tls_handshake_task_associated_types() {
 
     fn check_types<T>()
     where
-        T: TaskIterator<Pending = TlsHandshakeState, Ready = (), Spawner = NoAction>,
+        T: TaskIterator<Pending = TlsHandshakeState, Ready = (), Spawner = BoxedSendExecutionAction>,
     {
     }
 

@@ -13,6 +13,7 @@ pub mod proxy;
 pub mod redirects;
 pub mod request;
 pub mod request_task;
+pub use request_task::HttpExchangeClientTask;
 
 pub use config::{ClientConfig, RedirectConfig};
 pub use request::PreparedRequest;

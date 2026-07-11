@@ -33,9 +33,9 @@ pub mod wasm;
 // All implementation moved to shared/native/wasm; these are re-exports.
 
 pub mod event_source;
+pub mod netcap;
 pub mod simple_http;
 pub mod websocket;
-pub mod netcap;
 
 #[cfg(not(target_family = "wasm"))]
 pub mod http2;

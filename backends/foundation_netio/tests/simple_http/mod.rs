@@ -24,6 +24,7 @@ mod cookie_tests;
 mod dns_tests;
 mod eof_handling_tests;
 mod errors_tests;
+mod f51_unified_client_tests;
 mod header_lowercase_tests;
 mod http11_response_parts_tests;
 mod http_exchange_task_tests;

@@ -543,7 +543,7 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
             resolver,
         ));
         let task = HttpExchangeTask::new(req, config.max_redirects, pool, config);
-        HttpExchangeClientTask::native(task)
+        Box::new(task)
     }
 }
 

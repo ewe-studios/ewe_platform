@@ -405,17 +405,15 @@ impl<D, P, S: ExecutionAction> From<TaskStatus<D, P, S>> for Stream<D, P> {
             TaskStatus::Pending(inner) => Stream::Pending(inner),
             TaskStatus::Ignore => Stream::Ignore,
             TaskStatus::Wait => Stream::Wait,
-            TaskStatus::Spread(items) => {
-                Stream::Spread(
-                    items
-                        .into_iter()
-                        .map(|item| match item {
-                            TaskSpread::Ready(d) => crate::valtron::streams::StreamSpread::Done(d),
-                            TaskSpread::Pending(p) => crate::valtron::streams::StreamSpread::Pending(p),
-                        })
-                        .collect(),
-                )
-            }
+            TaskStatus::Spread(items) => Stream::Spread(
+                items
+                    .into_iter()
+                    .map(|item| match item {
+                        TaskSpread::Ready(d) => crate::valtron::streams::StreamSpread::Done(d),
+                        TaskSpread::Pending(p) => crate::valtron::streams::StreamSpread::Pending(p),
+                    })
+                    .collect(),
+            ),
             TaskStatus::Depends(_) => Stream::Ignore,
         }
     }
@@ -1509,14 +1507,15 @@ where
                 TaskStatus::Ready(item) => Some(Stream::Next(item)),
                 TaskStatus::Ignore => Some(Stream::Ignore),
                 TaskStatus::Wait => Some(Stream::Wait),
-                TaskStatus::Spread(items) => {
-                    Some(Stream::Spread(
-                        items.into_iter().map(|item| match item {
+                TaskStatus::Spread(items) => Some(Stream::Spread(
+                    items
+                        .into_iter()
+                        .map(|item| match item {
                             TaskSpread::Ready(d) => StreamSpread::Done(d),
                             TaskSpread::Pending(p) => StreamSpread::Pending(p),
-                        }).collect(),
-                    ))
-                }
+                        })
+                        .collect(),
+                )),
                 TaskStatus::Depends(_) => Some(Stream::Ignore),
             },
             None => None,
