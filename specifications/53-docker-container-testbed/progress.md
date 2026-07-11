@@ -133,43 +133,23 @@
   type check)
 - All existing tests pass (28 macros + 52 trybuild + 41 proxy)
 
-### Active: Cloudflare typed records (Decision 24)
+### ✅ Generator improvements — COMPLETE 2026-07-11
 
-**Root cause:** The `zones/` module was generated using an older version of the generator
-(`foundation_openapi/src/unified/generator.rs`) that didn't include query param
-serialization. The current generator (lines 1278-1295) DOES emit query param code
-(iterates `ep.query_params`, appends `name=urlencoding::encode(v)` to URL), but:
-
-1. The Cloudflare crate wasn't regenerated after that generator change
-2. `urlencoding` crate isn't in `foundation_deployment_cloudflare` deps (it's in
-   `foundation_deployment` but generated code calls it directly)
-3. Feature flag mismatch: Cargo.toml defines `zones` but generated code gates on
-   `cloudflare_zones`
-
-**Implementation plan:**
-
-**Phase A — Regenerate from OpenAPI spec (fix generator gap):**
-1. Add `urlencoding = "2.1"` to `foundation_deployment_cloudflare/Cargo.toml`
-2. Fix feature flag: add `cloudflare_zones = ["zones"]` to Cargo.toml
-3. Run `cargo run --bin ewe_platform -- gen_api cloudflare` to regenerate zones/
-4. Verify generated `list_dns_records_request` now includes query param serialization
-5. Fix any compile issues in regenerated output
-
-**Phase B — Generator improvements (medium-term, save manual work):**
-- Generator `update_cargo_toml()` only manages feature flags — teach it to also add
-  `urlencoding` dep when query params are present (via flag or auto-detected)
-- Consider: convert `urlencoding::encode` to use a shared helper from
-  `foundation_deployment::providers::common` so generated crates don't each need the dep
-
-**Phase C — Typed records (Decision 24 core):**
-1. Add `DnsRecordInput`, `CloudflareResponse<T>`, `CloudflareApiError`, `ResultInfo` to types.rs
-2. Add `From<DnsRecord> for DnsRecordInput`
-3. Fix `drive_task` to preserve HTTP status codes from `ApiError::HttpStatus`
-4. Replace `record_to_body` HashMap dance with typed `DnsRecordInput`
-5. Replace response extraction (`.data.get("result")`) with typed `CloudflareResponse<T>`
-6. Add `find_zone` and `delete_dns_records_by_name`
-7. Expand tests in types_tests.rs
-8. Update lib.rs re-exports
+**What was done:**
+- **gen_api binary** moved from `bin/platform` to `foundation_codegentools/src/cli/`
+  with `command()` + `register()` API. Standalone binary at `src/bin/genapi.rs`.
+- **Split-out provider routing**: `SPLIT_OUT_PROVIDERS` table maps provider names to
+  crate paths. Adding new split-out providers is one line.
+- **Query param fix**: generator now uses original spec name (`name.exact`) for URL
+  keys instead of sanitized (`name_exact`). All 44 Cloudflare group modules regenerated.
+- **Typed shared resources**: `generate_shared_module` now resolves schemas from the
+  OpenAPI spec and generates properly typed structs instead of `HashMap<String, Value>`
+  stubs. `resolve_schema_key()` bridges PascalCase ↔ snake_case naming conventions.
+- **`generated/` isolation**: all generated files now live under `generated/` subdirectory.
+  Hand-written code is never overwritten. Monolith providers get a thin parent `mod.rs`
+  created once (never overwritten).
+- **Result**: Cloudflare shared module went from 45 HashMap wrappers → 45 typed structs
+  (19 remaining HashMap fallbacks for truly unresolvable allOf/oneOf schemas).
 
 ## Stage 3 (control plane)
 
