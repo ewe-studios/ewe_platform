@@ -7,20 +7,58 @@ phase: 1
 depends_on: ["17-transport-seam", "22-router-dispatch", "07-pushable-request-body", "10-reactor-parking"]
 estimated_effort: "large"
 created: 2026-07-05
-updated: 2026-07-06
+updated: 2026-07-11
 ---
 # Feature 44-connection-owner-walking-skeleton: end-to-end spine over a real socket
 
-## Completion status (2026-07-06)
+## Completion status (2026-07-11)
 
-**F44 is complete.** All three tracked items delivered:
+**F44 is complete.** The walking-skeleton spine is proven end-to-end over a real
+loopback socket, on both the server and the H1 **client** owner, for **unary and
+server-streaming** RPCs.
 
-1. ✅ **WASM `HttpExchangeTask`** (`wasm/tasks/http_exchange_task.rs`) — wraps `FetchHttpClient::send_async()` in a `FutureTask`, polls cooperatively via `from_future()`, yields `HttpExchange::Head` then `BodyChunk` chunks. Compiles clean on `wasm32-unknown-unknown --features wasm-fetch`. Compile-time smoke test included.
-2. ✅ **Direct `SendSafeBodyBytesIterator` tests** — 15 unit tests in `body_reader.rs` covering all 7 `SendSafeBody` variants (`Bytes`, `Text`, `None`, `Stream`, `ChunkedStream`, `LineFeedStream`, `SseStream`) + error propagation + exhaust idempotency.
-3. ✅ **`HttpClientConnection` pool-return** — **Bug fix**: `HttpExchangeTask` was dropping connections on all 4 exit paths instead of returning them to the pool. Added `connection_count()` introspection to `ConnectionPool`/`HttpConnectionPool`. Integration test verifies pool size 0→1 after exchange completes.
-4. 🔄 **Incremental streaming `WriteBody`** — *deferred to F23 (h1-transport-client)*. Today's unary path doesn't hit it; streaming uploads need `Depends(pipe-readiness)` composing cancel.
+> **Design note — this feature shipped its client seam through
+> [Feature 45](../45-delivery-and-split-backpressure/feature.md) Part D, not the
+> `TransportPump` shape sketched in the *H1Transport pump design* section below.**
+> That section is kept for historical context; the *authoritative* shape is:
+> `Transport::open()` builds an `HttpExchangeTask` and fans its `HttpExchange`
+> output out with valtron's native splits (`split_collect_until_map` for the head,
+> `split_collector_map` for the body), spawns **one** drive task via
+> `valtron::send()`, and returns a **four-half** `TransportStream`
+> (`send_body: Arc<dyn SendBody>`, `head: HeadStream`, `recv_body: BodyStream`,
+> `trailers`). There is no `TransportPump` type, and `head`/`recv_body` are erased
+> `futures::Stream`s carrying `Result<_, TransportError>`, not
+> `PipeReceiver<SimpleResponse<()>>`. See the *Acceptance criteria* below, which
+> have been updated to the shipped shape.
 
-The walking-skeleton spine remains proven over a real loopback socket.
+Delivered and verified:
+
+1. ✅ **`SendSafeBodyBytesIterator`** in
+   `simple_http/client/shared/body_reader.rs`, with an extensive `#[test]` suite
+   covering every `SendSafeBody` variant + error propagation + exhaust idempotency.
+2. ✅ **`HttpExchange` / `HttpExchangePending`** shared types in
+   `client/shared/request_task.rs`.
+3. ✅ **Native `HttpExchangeTask`** (`client/native/tasks/http_exchange_task.rs`)
+   with tests in `tests/simple_http/http_exchange_task_tests.rs` (Head→BodyChunk
+   success, pre-head `Failed`, and `HttpClientConnection` pool-return via `Drop`).
+4. ✅ **WASM `WasmHttpExchangeTask`** (`client/wasm/tasks/http_exchange_task.rs`) —
+   wraps `FetchHttpClient::send_async()` in a `FutureTask` via `from_future`,
+   yields `HttpExchange::Head` then `BodyChunk`. Compiles clean on
+   `wasm32-unknown-unknown --features wasm-fetch`; compile-time smoke test included.
+5. ✅ **Server owner** `ConnectRpcServe` implements foundation_http `Serve`.
+6. ✅ **Client owner** `H1Transport::open()` returns `TransportStream`
+   synchronously (four halves, no `BoxFuture`).
+7. ✅ **End-to-end over real loopback TCP** (`tests/server_socket_tests.rs`,
+   `#[valtron_test]`, `--profile uat`): `unary_round_trip_over_real_socket` and
+   `server_stream_over_real_socket` pin the server via raw TCP;
+   `h1_client_transport_over_real_socket` (unary) and
+   `h1_client_server_stream_over_real_socket` (3-frame server stream + EndStream)
+   prove the H1 **client** owner. All pass.
+
+Deferred (unchanged): **incremental streaming `WriteBody`** →
+[Feature 23](../23-h1-transport/feature.md). Streaming *uploads* need
+`Depends(pipe-readiness)` composing cancel; the unary and server-stream paths
+proven here do not exercise it.
 
 ## Why this exists (sequencing correction)
 
@@ -62,13 +100,25 @@ F23/F24 and every later transport slot into a **proven** path.
 
 - **Server connection owner:** `ConnectRpcServe` implements foundation_http `Serve`. ✅ DONE
 
-- **Client connection owner — TransportPump:** a single `TaskIterator` that creates the platform
-  `HttpExchangeTask`, spawns it via `inlined_task` + `TaskStatus::Spawn`, then forwards
-  `HttpExchange::Head` → `head_tx` and `HttpExchange::BodyChunk` → `recv_tx`.
-  `open()` creates the pump and the three output pipes, spawns via `valtron::send()`, and
-  returns `TransportStream` **synchronously**.
+- **Client connection owner — `H1Transport::open()`** (shipped shape; F45 Part D).
+  `open()` builds the platform `HttpExchangeTask`, then fans its `HttpExchange`
+  output out with valtron's native splits rather than a bespoke pump task:
+  `split_collect_until_map` peels the head (or a pre-head `Failed`) into a
+  `HeadStream`, `split_collector_map` peels body chunks (or a mid-body `Failed`)
+  into a `BodyStream`, and the remaining continuation — terminated with
+  `map_ready(|_| ())` so body chunks are not re-buffered — is the **one** task
+  spawned via `valtron::send()`. `open()` returns `TransportStream`
+  **synchronously**. (The earlier `TransportPump` design in *H1Transport pump
+  design* below was superseded by this split-based shape.)
 
-## H1Transport pump design (2026-07-05)
+## H1Transport pump design (2026-07-05) — SUPERSEDED, historical
+
+> **This section describes the original `TransportPump` sketch. It was superseded
+> by the split-based `open()` shape (F45 Part D) documented in *Completion status*
+> and *Scope* above. `TransportPump` does not exist in the code; `open()` uses
+> `HttpExchangeTask` + `split_collect_until_map` / `split_collector_map`, and
+> `TransportStream` has four halves whose `head`/`recv_body` are erased
+> `futures::Stream`s. Read the rest of this section only for the original intent.**
 
 ### Shared types in `client/shared/request_task.rs`
 
@@ -161,15 +211,25 @@ no `BoxFuture`, no `std::thread::spawn`, no `try_collect_bytes` buffering.**
 - WASM `HttpExchangeTask` in `client/wasm/http_exchange_task.rs` with a compile-time
   smoke test (full browser integration stays in F23).
 
-- `Transport::open()` returns `Result<TransportStream, TransportError>` synchronously — no
-  `BoxFuture`. `TransportStream.head: PipeReceiver<SimpleResponse<()>>` replaces the old
-  `response: BoxFuture<…>` field. Uses `SimpleResponse<()>` (`no_body`) which is already a
-  shared type in `foundation_netio::simple_http::shared`.
+- `Transport::open()` returns `Result<TransportStream, TransportError>`
+  synchronously — no `BoxFuture`. **Shipped shape (F45 Part D):** `TransportStream`
+  has four halves — `send_body: Arc<dyn SendBody>`, `head: HeadStream`,
+  `recv_body: BodyStream`, `trailers: PipeReceiver<SimpleHeaders>`. `head` and
+  `recv_body` are erased `futures::Stream`s yielding
+  `Result<(Status, SimpleHeaders), TransportError>` and `Result<Bytes, TransportError>`
+  respectively (a pre-head/mid-body failure rides the payload as `Err` — no silent
+  drop), replacing both the old `response: BoxFuture<…>` field and the
+  `PipeReceiver<SimpleResponse<()>>` head sketched earlier. ✅ DONE
 
 - Server: `ConnectRpcServe` per-connection task owns fd, dispatches, streams response. ✅ DONE
 
-- Client: `TransportPump` spawned via `valtron::send()`; three caller-facing pipe halves
-  (`send_body`, `head`, `recv_body`). The caller polls them directly — no `futures_lite::block_on`.
+- Client: `H1Transport::open()` builds an `HttpExchangeTask`, fans it out with
+  `split_collect_until_map` (head) + `split_collector_map` (body), and spawns the
+  single drive task via `valtron::send()`. The caller drains the four halves
+  directly — no `futures_lite::block_on`, no `TransportPump`. ✅ DONE
 
 - End-to-end over real loopback TCP: unary + server-stream + H1Transport client RPC.
-  `#[valtron_test]`, `--profile uat`, `--features multi`.
+  `#[valtron_test]`, `--profile uat` (default `rpc_multi` feature). Proven by
+  `unary_round_trip_over_real_socket`, `server_stream_over_real_socket` (server via
+  raw TCP), `h1_client_transport_over_real_socket` (unary via H1 client), and
+  `h1_client_server_stream_over_real_socket` (3-frame server stream via H1 client). ✅ DONE

@@ -474,7 +474,6 @@ async fn h1_client_transport_over_real_socket() {
     };
 
     let stream = transport.open(descriptor).expect("open");
-    eprintln!("[test] open() returned");
     let mut head = stream.head;
     let mut recv_body = stream.recv_body;
 
@@ -517,6 +516,120 @@ async fn h1_client_transport_over_real_socket() {
         echoed, msg,
         "H1Transport: echoed message matches request over real socket"
     );
+
+    shutdown.turn_on();
+}
+
+/// Prove the **client** connection owner for a *server-streaming* RPC over a real
+/// loopback socket — the one acceptance phrase the unary client test does not
+/// cover.
+///
+/// 1. Server: `ConnectRpcServe` runs a `server_stream` handler emitting 3 items.
+/// 2. Client: `H1Transport::open()` sends a Connect streaming request
+///    (`application/connect+json`, one enveloped seed message) and returns
+///    `TransportStream` synchronously.
+/// 3. The caller drains `recv_body` to end of stream, reassembles the Connect
+///    envelope frames, and asserts all 3 items plus the terminating EndStream
+///    frame arrived — proving the H1 client consumes a multi-frame server stream,
+///    not just a single unary body.
+#[valtron_test(seed = 45, threads = 8)]
+#[traced_test]
+async fn h1_client_server_stream_over_real_socket() {
+    use foundation_connectrpc::transport::Transport;
+    use foundation_connectrpc::H1Transport;
+    use foundation_core::url::Uri;
+    use foundation_netio::simple_http::client::SimpleHttpClient;
+    use foundation_netio::simple_http::shared::{
+        Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
+    };
+
+    // Server: the same server-streaming handler the raw-TCP test pins.
+    let mut app = HttpApp::new_serve();
+    let serve = list_serve();
+    app.router.add_route_any(LIST_PROCEDURE, &serve);
+
+    let shutdown = Arc::new(OnSignal::new());
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let server = HttpServer::with_config(
+        app,
+        &format!("127.0.0.1:{}", addr.port()),
+        ServerConfig::defaults(),
+    );
+    let shutdown_thread = shutdown.clone();
+    std::thread::spawn(move || server.serve_with_listener(&listener, &shutdown_thread));
+
+    // Wait for the server to be accepting.
+    let _ = TcpStream::connect_timeout(&addr, Duration::from_secs(2)).expect("server ready");
+
+    // Client: H1Transport, Connect streaming content-type.
+    let transport = H1Transport::new(SimpleHttpClient::from_system());
+    let url = format!("http://127.0.0.1:{}{LIST_PROCEDURE}", addr.port());
+    let uri = Uri::parse(&url).expect("parse URL");
+    let descriptor = RequestDescriptor {
+        proto: Proto::HTTP11,
+        request_url: SimpleUrl::url_only(url.clone()),
+        request_uri: uri,
+        headers: {
+            let mut h = SimpleHeaders::new();
+            h.insert(
+                foundation_netio::simple_http::shared::SimpleHeader::CONTENT_TYPE,
+                vec!["application/connect+json".to_string()],
+            );
+            h
+        },
+        method: SimpleMethod::POST,
+    };
+
+    let stream = transport.open(descriptor).expect("open");
+    let mut head = stream.head;
+    let mut recv_body = stream.recv_body;
+
+    // Push one enveloped seed message (flags=0, 4-byte length prefix), then EOF.
+    let seed = TestMsg {
+        id: 10,
+        name: "seed".to_string(),
+    };
+    let json = JsonCodec.marshal(&seed).expect("marshal").to_vec();
+    let mut envelope = Vec::with_capacity(5 + json.len());
+    envelope.push(0u8);
+    envelope.extend_from_slice(&(json.len() as u32).to_be_bytes());
+    envelope.extend_from_slice(&json);
+    stream
+        .send_body
+        .try_send(Bytes::from(envelope))
+        .expect("send request envelope");
+    stream.send_body.close();
+
+    // Head first.
+    let (status, _headers) = head
+        .next()
+        .await
+        .expect("response head chunk")
+        .expect("response head ok");
+    assert_eq!(status, foundation_netio::simple_http::shared::Status::OK);
+
+    // Drain the whole streamed body (many BodyChunk frames), reassemble, parse.
+    let mut body = Vec::new();
+    while let Some(chunk) = recv_body.next().await {
+        let bytes = chunk.expect("body chunk ok");
+        body.extend_from_slice(&bytes);
+    }
+
+    let (messages, saw_end_stream) = parse_connect_envelope_stream(&body);
+    assert_eq!(
+        messages.len(),
+        3,
+        "H1 client received all 3 server-stream items"
+    );
+    assert!(saw_end_stream, "H1 client saw the EndStream frame");
+    for (i, msg_bytes) in messages.iter().enumerate() {
+        let item: TestMsg = JsonCodec
+            .unmarshal(Bytes::from(msg_bytes.clone()))
+            .expect("decode item");
+        assert_eq!(item.id, 10 + i as i32, "item {i} id over H1 client");
+        assert_eq!(item.name, format!("item-{i}"), "item {i} name over H1 client");
+    }
 
     shutdown.turn_on();
 }
