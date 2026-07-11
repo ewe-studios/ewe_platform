@@ -63,6 +63,9 @@ const BOOTSTRAP_GLOBALS: &str = r#"
   const headers = load("ext:deno_fetch/20_headers.js");
   const request = load("ext:deno_fetch/23_request.js");
   const response = load("ext:deno_fetch/23_response.js");
+  // NB: `WebSocket` is published by the `fwt_websocket_glue` esm_entry_point at
+  // init (deno_websocket ships it as an ES module, not a `lazy_loaded_js`), so it
+  // is NOT loaded here.
   Object.assign(globalThis, {
     TextEncoder: enc.TextEncoder,
     TextDecoder: enc.TextDecoder,
@@ -115,6 +118,19 @@ deno_core::extension!(
     },
 );
 
+// F51: publish the `WebSocket` global. deno_websocket ships `01_websocket.js` as
+// `lazy_loaded_esm` (an ES module, not `lazy_loaded_js`), so it can't be pulled in
+// via `Deno.core.loadExtScript` the way the deno_web/deno_fetch globals are. This
+// glue extension's `esm_entry_point` imports it at runtime init and assigns the
+// global — the same shape deno's own runtime bootstrap uses. `deps` on
+// deno_websocket so the `ext:deno_websocket/…` module specifier resolves.
+deno_core::extension!(
+    fwt_websocket_glue,
+    deps = [deno_websocket],
+    esm_entry_point = "ext:fwt_websocket_glue/websocket_glue.js",
+    esm = [dir "src/wasm/js", "websocket_glue.js"],
+);
+
 /// The runner's final result, captured via `op_fwt_report`.
 #[derive(Debug, serde::Deserialize)]
 pub struct HarnessReport {
@@ -154,6 +170,13 @@ fn build_runtime_with(extra: Vec<Extension>) -> Result<JsRuntime, Box<dyn std::e
         // deno_net extension must be registered too (no cert store / no ignored certs).
         deno_net::deno_net::init(None, None),
         deno_fetch::deno_fetch::init(deno_fetch::Options::default()),
+        // WebSocket global (F51). Reads the same `PermissionsContainer` and
+        // `FetchOptions` from `OpState` that deno_fetch installs, so it needs no
+        // options of its own. Must come after deno_fetch (it borrows `FetchOptions`).
+        // The `fwt_websocket_glue` extension below evaluates its `01_websocket.js`
+        // ESM and publishes the `WebSocket` global.
+        deno_websocket::deno_websocket::init(),
+        fwt_websocket_glue::init(),
     ];
     extensions.extend(extra);
 
@@ -247,6 +270,7 @@ fn install_crypto_provider() {
 /// deno_core's event loop + timers (`reactor_tokio.rs`) require.
 fn tokio_runtime() -> Result<tokio::runtime::Runtime, Box<dyn std::error::Error>> {
     Ok(tokio::runtime::Builder::new_current_thread()
+        .enable_io() // deno_websocket dials real TCP — needs the I/O driver
         .enable_time()
         .build()?)
 }
