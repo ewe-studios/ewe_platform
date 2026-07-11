@@ -13,7 +13,7 @@ use core::mem::MaybeUninit;
 /// each chunk should be unpoisoned individually. This way, the correctness of
 /// the chunking logic can be validated (in part) using MSAN.
 pub unsafe fn unpoison(buf: &mut [MaybeUninit<u8>]) {
-    cfg_if! {
+    cfg_if::cfg_if! {
         if #[cfg(getrandom_msan)] {
             unsafe extern "C" {
                 fn __msan_unpoison(a: *mut core::ffi::c_void, size: usize);

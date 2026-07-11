@@ -1,7 +1,7 @@
 ---
 feature: "Wasm-bindgen browser test harness — re-export #[wasm_bindgen_test] from foundation_testbed so crates test their browser API bridges directly (no standalone test crate, no extra deps)"
 description: "Fold the wasm-bindgen-test ecosystem into foundation_testbed: re-export the proc-macro + runtime glue, add a top-level `wasm-testbed browser <crate>` command, and let crates put cfg-gated #[wasm_bindgen_test] functions in their own tests/. Deletes the standalone foundation_wasm_testbed crate."
-status: "proposed"
+status: "implemented (diverged from design — see Implementation status)"
 priority: "high"
 phase: 1
 depends_on: ["51-unified-http-client-surface"]
@@ -9,6 +9,42 @@ estimated_effort: "medium"
 created: 2026-07-11
 ---
 # Feature 52: Browser test harness — wasm-bindgen in the testbed
+
+> **Status: implemented (2026-07-11), with a deliberate divergence from the design
+> below.** The design proposed a *plain re-export* of `#[wasm_bindgen_test]` from
+> `foundation_testbed`. What shipped is richer: two purpose-built proc-macros in
+> `foundation_macros` that own the valtron pool lifecycle. See *Implementation
+> status* immediately below; the original design is retained for context.
+
+## Implementation status — landed (diverged from design)
+
+What actually shipped, verified in-tree:
+
+- **`#[valtron_bindgen]`** (`foundation_macros/src/bindgen_test.rs`) — a one-step
+  wasm-bindgen browser test that auto-inits the valtron pool and drives the body
+  via `foundation_core::valtron::block_on_future` (async) or a plain call (sync),
+  emitting a `__bindgen_env_<name>` marker. This is the richer replacement for the
+  design's bare `pub use wasm_bindgen_test::wasm_bindgen_test;` — the macro exists
+  precisely so browser tests get a live valtron pool without hand-rolled setup.
+- **`#[valtron_wasm_test]`** (`foundation_macros/src/wasm_test.rs`) — the owned
+  (`__fwt_`) wasm test path with valtron pool auto-init, complementing the bindgen
+  path.
+- **`foundation_testbed` owns the ecosystem** — `src/bindgen.rs` plus the
+  `wasm-testbed` bin dispatch (`browser`/`bindgen` handling); `foundation_wasm_testbed`
+  standalone crate **deleted** (Step 5 done).
+- **Tests relocated into the crate under test** — `foundation_netio/tests/wasm/`
+  (`mod.rs` + `websocket.rs`) holds the WebSocket bridge tests; `open_websocket_task`
+  on `WebSocketConnector` returns a `Box<dyn TaskIterator>` so the wasm bridge is
+  exercisable (yields `Pending(Connecting)` via `next_status`). Step 4 done.
+- **Docs updated** — testbed README + `running-js-and-wasm-tests.md` reflect the
+  F52 macros + API (HEAD commit `3a15883cb`).
+
+**Remaining / to reconcile against the design:** the four-way CLI table
+(`deno`/`browser`/`bindgen`/`test` auto-detect) and the `test` auto-detect command
+that discovers both `__fwt_` and `__wbgt_` in one `--tests` build — verify which of
+these actually shipped vs. the `browser`/`bindgen` split that landed. The
+`wasm-bindgen` CLI version check (Step/§6) and the `test bindgen-web` deprecation
+notice (Step 3) also need a landed/not-landed confirmation.
 
 ## Problem
 

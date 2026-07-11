@@ -16,7 +16,7 @@
 //! is a claim about the matching rule, and a server test would only reach it
 //! after transport, routing and capability checks had all agreed.
 
-use foundation_connectrpc::protocol::{grpc, grpc_web};
+use foundation_connectrpc::shared::protocol::{grpc, grpc_web};
 
 // ── gRPC ─────────────────────────────────────────────────────────────────────
 

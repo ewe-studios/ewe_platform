@@ -18,12 +18,12 @@
 
 use foundation_netio::shared::http::Proto;
 
-use foundation_connectrpc::context::StreamType;
-use foundation_connectrpc::transport::capabilities::{
+use foundation_connectrpc::shared::context::StreamType;
+use foundation_connectrpc::shared::transport::capabilities::{
     check_compatible, requirements, ProtocolKind,
 };
-use foundation_connectrpc::transport::h3::H3Transport;
-use foundation_connectrpc::transport::Transport;
+use foundation_connectrpc::native::transport::h3::H3Transport;
+use foundation_connectrpc::shared::transport::Transport;
 
 /// A transport instance. The client config is never used: no call is opened.
 fn transport() -> H3Transport {

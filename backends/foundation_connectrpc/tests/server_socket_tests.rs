@@ -59,7 +59,7 @@ use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
 
-use foundation_connectrpc::codec::CodecFor;
+use foundation_connectrpc::shared::codec::CodecFor;
 use foundation_connectrpc::{
     ConnectResult, ConnectRpcServe, HandlerOptions, IdempotencyLevel, JsonCodec, ProcedureCodecs,
     Request, Response, Router,
@@ -388,12 +388,12 @@ fn connect_with_retry(addr: std::net::SocketAddr) -> TcpStream {
 /// compile time.
 #[test]
 fn h1_transport_capabilities_are_correct() {
-    use foundation_connectrpc::transport::Transport;
+    use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
-    use foundation_netio::http::SimpleHttpClient;
+    use foundation_netio::http::NativeHttpClient;
     use foundation_netio::shared::http::Proto;
 
-    let client = SimpleHttpClient::from_system();
+    let client = NativeHttpClient::from_system();
     let transport = H1Transport::new(Arc::new(client));
     let caps = transport.capabilities();
 
@@ -422,9 +422,9 @@ fn h1_transport_capabilities_are_correct() {
 #[valtron_test(seed = 44, threads = 8)]
 #[traced_test]
 async fn h1_client_transport_over_real_socket() {
-    use foundation_connectrpc::transport::Transport;
+    use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
-    use foundation_netio::http::SimpleHttpClient;
+    use foundation_netio::http::NativeHttpClient;
     use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
     };
@@ -451,7 +451,7 @@ async fn h1_client_transport_over_real_socket() {
 
     // Client: H1Transport. `open()` is synchronous — spawns the pump on the pool
     // and returns the three caller-facing pipe halves immediately.
-    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
+    let transport = H1Transport::new(Arc::new(NativeHttpClient::from_system()));
 
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let uri = Uri::parse(&url).expect("parse URL");
@@ -535,10 +535,10 @@ async fn h1_client_transport_over_real_socket() {
 #[valtron_test(seed = 45, threads = 8)]
 #[traced_test]
 async fn h1_client_server_stream_over_real_socket() {
-    use foundation_connectrpc::transport::Transport;
+    use foundation_connectrpc::shared::transport::Transport;
     use foundation_connectrpc::H1Transport;
     use foundation_core::url::Uri;
-    use foundation_netio::http::SimpleHttpClient;
+    use foundation_netio::http::NativeHttpClient;
     use foundation_netio::shared::http::{
         Proto, RequestDescriptor, SimpleHeaders, SimpleMethod, SimpleUrl,
     };
@@ -563,7 +563,7 @@ async fn h1_client_server_stream_over_real_socket() {
     let _ = TcpStream::connect_timeout(&addr, Duration::from_secs(2)).expect("server ready");
 
     // Client: H1Transport, Connect streaming content-type.
-    let transport = H1Transport::new(Arc::new(SimpleHttpClient::from_system()));
+    let transport = H1Transport::new(Arc::new(NativeHttpClient::from_system()));
     let url = format!("http://127.0.0.1:{}{LIST_PROCEDURE}", addr.port());
     let uri = Uri::parse(&url).expect("parse URL");
     let descriptor = RequestDescriptor {

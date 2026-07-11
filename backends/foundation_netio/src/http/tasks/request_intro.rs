@@ -209,7 +209,6 @@ impl TaskIterator for GetRequestIntroTask {
                                 tracing::trace!(
                                     "[PROCESSING CHECK] Skipping body state from request under Status::Processing"
                                 );
-                                ;
                             }
                         }
 

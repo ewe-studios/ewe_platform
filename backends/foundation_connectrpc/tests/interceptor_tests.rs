@@ -10,11 +10,11 @@ use std::task::{Context, Poll, Wake, Waker};
 use bytes::Bytes;
 use foundation_netio::shared::http::SimpleHeaders;
 
-use foundation_connectrpc::context::{CancelSignal, Ctx, Peer, Spec};
-use foundation_connectrpc::interceptor::{
+use foundation_connectrpc::shared::context::{CancelSignal, Ctx, Peer, Spec};
+use foundation_connectrpc::shared::interceptor::{
     Interceptor, InterceptorChain, RecoverInterceptor, UnaryCall, UnaryFunc, UnaryReply,
 };
-use foundation_connectrpc::transport::{
+use foundation_connectrpc::shared::transport::{
     BoxFuture, ConnReceiver, ConnSender, Frame, HandlerConn, PipeHandlerConn,
 };
 
@@ -72,14 +72,14 @@ impl Interceptor for Tagging {
     }
     fn wrap_streaming_client(
         &self,
-        next: foundation_connectrpc::interceptor::StreamingClientFunc,
-    ) -> foundation_connectrpc::interceptor::StreamingClientFunc {
+        next: foundation_connectrpc::shared::interceptor::StreamingClientFunc,
+    ) -> foundation_connectrpc::shared::interceptor::StreamingClientFunc {
         next
     }
     fn wrap_streaming_handler(
         &self,
-        next: foundation_connectrpc::interceptor::StreamingHandlerFunc,
-    ) -> foundation_connectrpc::interceptor::StreamingHandlerFunc {
+        next: foundation_connectrpc::shared::interceptor::StreamingHandlerFunc,
+    ) -> foundation_connectrpc::shared::interceptor::StreamingHandlerFunc {
         next
     }
 }

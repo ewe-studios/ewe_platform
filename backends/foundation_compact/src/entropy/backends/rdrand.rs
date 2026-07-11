@@ -5,7 +5,7 @@ use core::mem::{MaybeUninit, size_of};
 #[cfg(not(any(target_arch = "x86_64", target_arch = "x86")))]
 compile_error!("`rdrand` backend can be enabled only for x86 and x86-64 targets!");
 
-cfg_if! {
+cfg_if::cfg_if! {
     if #[cfg(target_arch = "x86_64")] {
         use core::arch::x86_64 as arch;
         use arch::_rdrand64_step as rdrand_step;

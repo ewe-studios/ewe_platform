@@ -21,10 +21,10 @@ use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_http::shared::serve::h2::H2Serve;
+use foundation_http::native::serve::H2Serve;
 
-use foundation_connectrpc::error::ConnectResult;
-use foundation_connectrpc::transport::Transport;
+use foundation_connectrpc::shared::error::ConnectResult;
+use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
     Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
     ProcedureCodecs, Request, RequestStream, Response, Router,

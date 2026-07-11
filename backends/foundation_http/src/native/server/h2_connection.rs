@@ -36,7 +36,7 @@ use foundation_netio::http2::types::{header_from_hpack, H2Frame, H2IncomingFrame
 use foundation_netio::netcap::ConnectionContext;
 
 use crate::shared::app::HttpApp;
-use crate::shared::serve::h2::H2Serve;
+use crate::native::serve::H2Serve;
 
 const POLL_DELAY: Duration = Duration::from_millis(10);
 const IDLE_TIMEOUT: Duration = Duration::from_secs(60);

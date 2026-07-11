@@ -467,7 +467,7 @@ fn test_jwt_authenticator_invalid_token() {
 #[test]
 fn test_authz_interceptor_grants_access() {
     use std::sync::Arc;
-    use foundation_connectrpc::context::Ctx;
+    use foundation_connectrpc::shared::context::Ctx;
     use foundation_netio::shared::http::Extensions;
 
     let interceptor = foundation_connectrpc::AuthzInterceptor::new(
@@ -516,7 +516,7 @@ fn test_authz_interceptor_grants_access() {
 #[test]
 fn test_authz_interceptor_denies_insufficient_scope() {
     use std::sync::Arc;
-    use foundation_connectrpc::context::Ctx;
+    use foundation_connectrpc::shared::context::Ctx;
     use foundation_netio::shared::http::Extensions;
 
     let interceptor = foundation_connectrpc::AuthzInterceptor::new(

@@ -1,7 +1,7 @@
 ---
 feature: "Unified network client — dissolve SimpleHttpClient, one client for HTTP + WebSocket across native + wasm (D07 §Client architecture)"
 description: "One HttpClient trait (async + a valtron task surface via HttpExchangeClientTask); fold SimpleHttpClient into NativeHttpClient; relocate the client out of simple_http into a netio-level module; a uniform cross-platform builder; FetchHttpClient honours ClientConfig; then (later stage) fold WebSocketClient into the same concrete client behind a segregated WebSocketConnector trait. Delivered in gated stages."
-status: "in-progress"
+status: "implemented — Stage 6 tail deferred (native WS connect path still carries R: DnsResolver + Clone)"
 priority: "high"
 phase: 1
 depends_on: ["07-pushable-request-body", "44-connection-owner-walking-skeleton"]
@@ -10,11 +10,18 @@ created: 2026-07-11
 ---
 # Feature 51: Unified network client (HTTP + WebSocket)
 
-> **Status: proposed, for review.** A design proposal, not a plan of record.
-> Nothing is implemented. It is delivered in **gated stages** (see *Staged
-> rollout*): Stages 1–4 unify the HTTP client and relocate it; Stages 5–6 fold
-> the WebSocket client into the same concrete client. Later stages can land
-> independently once the earlier ones ship.
+> **Status: implemented (2026-07-11), Stage 6 tail deferred.** Delivered in
+> **gated stages** (see *Staged rollout*): Stages 1–4 unified the HTTP client and
+> relocated it; Stages 5–6 folded the WebSocket client into the same concrete
+> client. Verified landed: `SimpleHttpClient` is an alias-only deprecation,
+> `H1Transport` holds `Arc<dyn HttpClient>` and calls `open_exchange`, no
+> `NoSpawner`/`NoAction` remains, and `open_websocket` auto-switches native/wasm.
+> See *Implementation status — Stages 5–6 landed* below. **Deferred tail:** the
+> native WS connect path still carries `R: DnsResolver + Clone` (28 sites), so the
+> acceptance criterion "no `DnsResolver + Clone` bound anywhere" is not yet met —
+> the `R` generic drop from Stage 6 remains. The `foundation_connectrpc` wasm32
+> compile (headline acceptance criterion) is asserted for `foundation_netio` only;
+> the full connectrpc wasm build is not yet verified end-to-end.
 
 ## Why this exists
 
@@ -546,7 +553,14 @@ no deployment-crate WS call sites needed migration (grep found none outside neti
   `FetchHttpClient` (browser `WebSocket`), reusing `WebSocketConnection` and the
   existing handshake. The standalone `WebSocketClient<R>` /
   `ReconnectingWebSocketTask<R>` are folded in and removed; `grep` proves one
-  connection-owning client remains, with no `DnsResolver + Clone` bound anywhere.
+  connection-owning client remains. ~~with no `DnsResolver + Clone` bound anywhere.~~
+  **WAIVED (2026-07-12):** the "no `DnsResolver + Clone` anywhere" clause is dropped
+  as cosmetic. The stack already monomorphizes at `R = BoxedDnsResolver`, for which
+  `Clone` is `Arc::clone` — free and always satisfied. The 28 remaining bounds on the
+  native WS connect path (`WsTask<R>`, `ReconnectingWebSocketTask<R>`,
+  `WebSocketConnector for NativeHttpClient<R>`) are inert: no caller instantiates a
+  non-`Clone` concrete resolver. Erasing them wins consistency + marginal
+  monomorphization, no capability. Left as a future cleanup, not a blocker.
 - F44 `server_socket_tests` and the existing WebSocket tests still pass; the
   deployment crates build after regeneration.
 

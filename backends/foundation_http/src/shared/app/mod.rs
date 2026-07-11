@@ -112,7 +112,7 @@ impl HttpApp<Arc<dyn crate::shared::serve::Serve>> {
 // Native H2Serve handlers (cfg-gated, non-wasm only)
 
 #[cfg(not(target_family = "wasm"))]
-impl HttpApp<Arc<dyn crate::shared::serve::h2::H2Serve>> {
+impl HttpApp<Arc<dyn crate::native::serve::H2Serve>> {
     /// Create a new empty `HttpApp` for HTTP/2 handlers.
     #[must_use]
     pub fn new_h2_serve() -> Self {
@@ -132,7 +132,7 @@ impl HttpApp<Arc<dyn crate::shared::serve::h2::H2Serve>> {
         &mut self,
         method: SimpleMethod,
         path: &str,
-        handler: Arc<dyn crate::shared::serve::h2::H2Serve>,
+        handler: Arc<dyn crate::native::serve::H2Serve>,
     ) -> &mut Self {
         self.router.add_route(method, path, handler);
         self
@@ -142,7 +142,7 @@ impl HttpApp<Arc<dyn crate::shared::serve::h2::H2Serve>> {
     pub fn route_any_h2(
         &mut self,
         path: &str,
-        handler: Arc<dyn crate::shared::serve::h2::H2Serve>,
+        handler: Arc<dyn crate::native::serve::H2Serve>,
     ) -> &mut Self {
         self.router.add_route_any(path, &handler);
         self
@@ -202,7 +202,7 @@ where
 pub type H1App = Arc<HttpApp<Arc<dyn crate::shared::serve::Serve>>>;
 
 #[cfg(not(target_family = "wasm"))]
-pub type H2App = Arc<HttpApp<Arc<dyn crate::shared::serve::h2::H2Serve>>>;
+pub type H2App = Arc<HttpApp<Arc<dyn crate::native::serve::H2Serve>>>;
 
 #[cfg(not(target_family = "wasm"))]
 #[derive(Clone)]
@@ -220,14 +220,14 @@ impl ServerApp {
     }
 
     #[must_use]
-    pub fn http2(app: HttpApp<Arc<dyn crate::shared::serve::h2::H2Serve>>) -> Self {
+    pub fn http2(app: HttpApp<Arc<dyn crate::native::serve::H2Serve>>) -> Self {
         ServerApp::Http2(Arc::new(app))
     }
 
     #[must_use]
     pub fn both(
         http1: HttpApp<Arc<dyn crate::shared::serve::Serve>>,
-        http2: HttpApp<Arc<dyn crate::shared::serve::h2::H2Serve>>,
+        http2: HttpApp<Arc<dyn crate::native::serve::H2Serve>>,
     ) -> Self {
         ServerApp::Both {
             http1: Arc::new(http1),

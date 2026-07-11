@@ -4606,7 +4606,6 @@ impl LineFeed {
             }
             false
         }) {
-            ;
         }
 
         let line_feed_result = match pointer
@@ -4908,7 +4907,6 @@ impl ChunkState {
 
             false
         }) {
-            ;
         }
 
         match pointer.do_once_mut(foundation_core::io::ioutils::ByteBufferPointer::consume) {
@@ -4971,7 +4969,6 @@ impl ChunkState {
             }
             false
         }) {
-            ;
         }
 
         // NOTE: Some chunk encoding use \r\n and others \n\n for

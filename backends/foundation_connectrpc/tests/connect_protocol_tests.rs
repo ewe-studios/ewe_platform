@@ -15,15 +15,15 @@ use foundation_netio::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
 
-use foundation_connectrpc::context::{CancelSignal, Spec, StreamType};
-use foundation_connectrpc::protocol::connect::{
+use foundation_connectrpc::shared::context::{CancelSignal, Spec, StreamType};
+use foundation_connectrpc::shared::protocol::connect::{
     constants, encode_get_query, get_url_exceeds, streaming_content_type, unary_content_type,
     unary_error_body, unary_error_status, ConnectClient, ConnectHandler,
 };
-use foundation_connectrpc::protocol::{
+use foundation_connectrpc::shared::protocol::{
     canonicalize_content_type, parse_connect_content_type, ProtocolClient, ProtocolHandler,
 };
-use foundation_connectrpc::transport::TransportStream;
+use foundation_connectrpc::shared::transport::TransportStream;
 use foundation_connectrpc::{CompressionRegistry, ConnectError};
 
 // ── content-type mechanics ────────────────────────────────────────────────────
@@ -200,7 +200,7 @@ fn streaming_roundtrip_normalizes_endstream() {
             foundation_netio::shared::http::Status,
             foundation_netio::shared::http::SimpleHeaders,
         )>,
-        foundation_connectrpc::transport::HeadSource,
+        foundation_connectrpc::shared::transport::HeadSource,
     ) = foundation_core::valtron::Pipe::with_depth(1);
     let client = ConnectClient
         .new_conn(
@@ -215,8 +215,8 @@ fn streaming_roundtrip_normalizes_endstream() {
                 send_body: Arc::new(req_tx),
                 // F45 Part D: TransportStream now speaks FutureStream; bridge the
                 // pipe-fed test harness through the pipe→FutureStream adapters.
-                head: foundation_connectrpc::transport::head_stream_from_pipe(client_head_rx),
-                recv_body: foundation_connectrpc::transport::body_stream_from_pipe(resp_rx),
+                head: foundation_connectrpc::shared::transport::head_stream_from_pipe(client_head_rx),
+                recv_body: foundation_connectrpc::shared::transport::body_stream_from_pipe(resp_rx),
                 trailers: {
                     let (tx, rx) = Pipe::with_depth(1);
                     tx.close();

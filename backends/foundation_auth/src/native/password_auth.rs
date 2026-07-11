@@ -1,9 +1,9 @@
 //! Password Authentication Client (native).
 //!
 //! Implements username/password login against an IdP endpoint using
-//! `SimpleHttpClient`. Supports MFA challenge flow.
+//! `NativeHttpClient`. Supports MFA challenge flow.
 
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 use serde::{Deserialize, Serialize};
 
@@ -173,7 +173,7 @@ impl PasswordAuthClient {
         url: &str,
         body: &str,
     ) -> Result<serde_json::Value, PasswordAuthError> {
-        let client = SimpleHttpClient::from_system();
+        let client = NativeHttpClient::from_system();
         let resp = client
             .post(url)
             .map_err(|e| PasswordAuthError::ConnectionFailed(e.to_string()))?

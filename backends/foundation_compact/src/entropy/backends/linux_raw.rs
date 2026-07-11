@@ -14,7 +14,7 @@ unsafe fn getrandom_syscall(buf: *mut u8, buflen: usize, flags: u32) -> isize {
     let r0;
 
     // Based on `rustix` and `linux-raw-sys` code.
-    cfg_if! {
+    cfg_if::cfg_if! {
         if #[cfg(all(
             target_arch = "arm",
             any(target_abi = "eabi", target_abi = "eabihf"),

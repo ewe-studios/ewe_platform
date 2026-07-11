@@ -2,8 +2,9 @@
 //!
 //! `Serve` (native-only): takes `SharedByteBufferStream<RawStream>` for TCP connections.
 //! `ServeWriter` (both targets): takes `&mut dyn Write` for memory-backed or any writable stream.
-
-pub mod h2;
+//!
+//! The HTTP/2 serve trait (`H2Serve`) is native-only (it drives the native
+//! `foundation_netio::http2` substrate) and lives at [`crate::native::serve`].
 
 #[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;

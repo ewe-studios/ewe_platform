@@ -18,9 +18,6 @@
 //! let elapsed = now.elapsed();
 //! ```
 
-#[macro_use]
-extern crate cfg_if;
-
 // ─── Time ───────────────────────────────────────────────────────────────────────
 
 #[cfg(all(target_family = "wasm", any(target_os = "unknown", target_os = "none")))]

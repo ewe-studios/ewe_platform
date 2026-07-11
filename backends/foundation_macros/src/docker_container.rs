@@ -35,8 +35,8 @@ impl Parse for Attr {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut image = None;
         let mut port = Vec::new();
-        let mut port_mapped = Vec::new();
-        let mut env = Vec::new();
+        let port_mapped = Vec::new();
+        let env = Vec::new();
         let mut network = None;
         let mut name = None;
         let mut wait_stdout = None;

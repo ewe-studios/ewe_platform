@@ -30,10 +30,10 @@ use foundation_core::synca::OnSignal;
 use foundation_core::valtron::valtron_test;
 use foundation_http::native::server::HttpServer;
 use foundation_http::shared::app::{HttpApp, ServerApp};
-use foundation_http::shared::serve::h2::H2Serve;
+use foundation_http::native::serve::H2Serve;
 
-use foundation_connectrpc::error::ConnectResult;
-use foundation_connectrpc::transport::Transport;
+use foundation_connectrpc::shared::error::ConnectResult;
+use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
     Client, ClientOptions, ConnectRpcServeH2, Ctx, H2Transport, HandlerOptions, JsonCodec,
     ProcedureCodecs, Request, RequestStream, Response, Router,
@@ -480,7 +480,7 @@ async fn grpc_handler_error_returns_http_200() {
         ERR_PATH,
         codecs(),
         |_ctx: Ctx, _req: Request<Msg>| async move {
-            Err(foundation_connectrpc::error::ConnectError::permission_denied("not allowed").into())
+            Err(foundation_connectrpc::shared::error::ConnectError::permission_denied("not allowed").into())
         },
         HandlerOptions::new(),
     );
@@ -692,7 +692,7 @@ async fn grpc_error_trailers_readable_from_response() {
         codecs(),
         |_ctx: Ctx, _req: Request<Msg>| async move {
             Err(
-                foundation_connectrpc::error::ConnectError::permission_denied("not allowed")
+                foundation_connectrpc::shared::error::ConnectError::permission_denied("not allowed")
                     .into(),
             )
         },

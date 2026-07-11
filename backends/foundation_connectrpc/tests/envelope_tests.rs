@@ -8,7 +8,7 @@ use std::time::Duration;
 
 use bytes::Bytes;
 
-use foundation_connectrpc::envelope::{decode_grpc_timeout, encode_grpc_timeout, TimeoutError};
+use foundation_connectrpc::shared::envelope::{decode_grpc_timeout, encode_grpc_timeout, TimeoutError};
 use foundation_connectrpc::{
     Envelope, EnvelopeReader, EnvelopeWriter, GzipCompressor,
 };

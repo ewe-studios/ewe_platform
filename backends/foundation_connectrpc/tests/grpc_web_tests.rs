@@ -14,13 +14,13 @@ use foundation_netio::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
 
-use foundation_connectrpc::context::{CancelSignal, IdempotencyLevel, Spec, StreamType};
-use foundation_connectrpc::protocol::grpc_web::{
+use foundation_connectrpc::shared::context::{CancelSignal, IdempotencyLevel, Spec, StreamType};
+use foundation_connectrpc::shared::protocol::grpc_web::{
     build_status_trailers, constants, content_type, parse_status_trailers, Base64StreamDecoder,
     Base64StreamEncoder, GrpcWebClient, GrpcWebHandler,
 };
-use foundation_connectrpc::protocol::{ProtocolClient, ProtocolHandler};
-use foundation_connectrpc::transport::TransportStream;
+use foundation_connectrpc::shared::protocol::{ProtocolClient, ProtocolHandler};
+use foundation_connectrpc::shared::transport::TransportStream;
 use foundation_connectrpc::{Code, CompressionRegistry, ConnectError};
 
 // ── status trailers ───────────────────────────────────────────────────────────
@@ -63,7 +63,7 @@ fn status_details_bin_preferred_over_status_message() {
         vec!["3".to_string()], // InvalidArgument
     );
     // details-bin still encodes NotFound(5) "detailed".
-    let details = foundation_connectrpc::protocol::grpc_web::encode_status_proto(5, "detailed");
+    let details = foundation_connectrpc::shared::protocol::grpc_web::encode_status_proto(5, "detailed");
     use base64::Engine as _;
     trailers.insert(
         SimpleHeader::from(constants::TRAILER_STATUS_DETAILS.to_string()),
@@ -78,7 +78,7 @@ fn status_details_bin_preferred_over_status_message() {
 
 #[test]
 fn grpc_message_percent_encoding_roundtrip() {
-    use foundation_connectrpc::protocol::grpc_web::{percent_decode_message, percent_encode_message};
+    use foundation_connectrpc::shared::protocol::grpc_web::{percent_decode_message, percent_encode_message};
     let msg = "needs %encoding: café\n";
     let enc = percent_encode_message(msg);
     assert!(!enc.contains('é'));
@@ -186,7 +186,7 @@ fn roundtrip(text: bool) {
             foundation_netio::shared::http::Status,
             foundation_netio::shared::http::SimpleHeaders,
         )>,
-        foundation_connectrpc::transport::HeadSource,
+        foundation_connectrpc::shared::transport::HeadSource,
     ) = foundation_core::valtron::Pipe::with_depth(1);
     let client = GrpcWebClient { text }
         .new_conn(
@@ -201,8 +201,8 @@ fn roundtrip(text: bool) {
                 send_body: Arc::new(req_tx),
                 // F45 Part D: TransportStream now speaks FutureStream; bridge the
                 // pipe-fed test harness through the pipe→FutureStream adapters.
-                head: foundation_connectrpc::transport::head_stream_from_pipe(client_head_rx),
-                recv_body: foundation_connectrpc::transport::body_stream_from_pipe(resp_rx),
+                head: foundation_connectrpc::shared::transport::head_stream_from_pipe(client_head_rx),
+                recv_body: foundation_connectrpc::shared::transport::body_stream_from_pipe(resp_rx),
                 trailers: {
                     let (tx, rx) = Pipe::with_depth(1);
                     tx.close();

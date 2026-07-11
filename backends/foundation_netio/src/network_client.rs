@@ -21,7 +21,10 @@ use std::sync::Arc;
 use std::time::Duration;
 
 use crate::shared::client::http_client::HttpClient;
-use crate::shared::client::{ClientConfig, SystemDnsResolver};
+use crate::shared::client::ClientConfig;
+// SystemDnsResolver is only used by the native `build()` branch.
+#[cfg(all(feature = "multi", not(target_family = "wasm")))]
+use crate::shared::client::SystemDnsResolver;
 use crate::shared::http::timeout::TimeoutCalculator;
 use crate::websocket::shared::connector::WebSocketConnector;
 
@@ -227,6 +230,8 @@ impl HttpClientBuilder {
     /// # Errors
     ///
     /// Returns `HttpClientError` if the proxy URL is malformed.
+    // On wasm the mutation below is cfg'd out, so `mut self` is not needed there.
+    #[cfg_attr(target_family = "wasm", allow(unused_mut))]
     pub fn proxy(mut self, proxy_url: &str) -> Result<Self, HttpClientError> {
         #[cfg(not(target_family = "wasm"))]
         {

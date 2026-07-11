@@ -39,9 +39,9 @@ use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 
-use foundation_connectrpc::transport::Transport;
+use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
     ArrowCodec, Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport,
     HandlerOptions, JsonCodec, ProcedureCodecs, ProtoCodec, Request, Response, Router,
@@ -191,7 +191,7 @@ async fn round_trip(
 async fn main() {
     let (addr, shutdown) = start_server();
     let base = format!("http://127.0.0.1:{}", addr.port());
-    let t = || -> Arc<dyn Transport> { Arc::new(H1Transport::new(Arc::new(SimpleHttpClient::from_system()))) };
+    let t = || -> Arc<dyn Transport> { Arc::new(H1Transport::new(Arc::new(NativeHttpClient::from_system()))) };
 
     println!("codec combinations, each verified over a real socket:");
 

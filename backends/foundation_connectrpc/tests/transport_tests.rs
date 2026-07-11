@@ -12,8 +12,8 @@ use std::time::{Duration, Instant};
 use bytes::Bytes;
 use foundation_netio::shared::http::{Proto, SimpleHeaders};
 
-use foundation_connectrpc::context::{CancelSignal, Peer, Spec, StreamType};
-use foundation_connectrpc::transport::{
+use foundation_connectrpc::shared::context::{CancelSignal, Peer, Spec, StreamType};
+use foundation_connectrpc::shared::transport::{
     check_compatible, requirements, ClientConn, Frame, HandlerConn, PipeClientConn,
     PipeHandlerConn, ProtocolKind, TransportCapabilities,
 };

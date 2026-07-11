@@ -504,7 +504,6 @@ where
                         }
                         _ => {
                             // Skip unknown parts
-                            ;
                         }
                     }
                 }

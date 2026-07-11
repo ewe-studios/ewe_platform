@@ -14,14 +14,14 @@ use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeaders, Status,
 };
 
-use foundation_connectrpc::client::{
+use foundation_connectrpc::shared::client::{
     Client, ClientOptions, ProtocolSelection,
 };
-use foundation_connectrpc::codec::{Codec, CodecError, CodecFor, ProcedureCodecs};
-use foundation_connectrpc::context::Ctx;
-use foundation_connectrpc::error::Code;
-use foundation_connectrpc::message::Request;
-use foundation_connectrpc::transport::{
+use foundation_connectrpc::shared::codec::{Codec, CodecError, CodecFor, ProcedureCodecs};
+use foundation_connectrpc::shared::context::Ctx;
+use foundation_connectrpc::shared::error::Code;
+use foundation_connectrpc::shared::message::Request;
+use foundation_connectrpc::shared::transport::{
     Transport, TransportCapabilities, TransportError, TransportStream,
     head_stream_from_pipe, body_stream_from_pipe,
 };

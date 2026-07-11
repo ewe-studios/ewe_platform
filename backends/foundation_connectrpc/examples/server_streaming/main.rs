@@ -26,9 +26,9 @@ use foundation_core::valtron::valtron;
 use foundation_http::native::server::{HttpServer, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
-use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::http::NativeHttpClient;
 
-use foundation_connectrpc::transport::Transport;
+use foundation_connectrpc::shared::transport::Transport;
 use foundation_connectrpc::{
     Client, ClientOptions, ConnectResult, ConnectRpcServe, Ctx, H1Transport, HandlerOptions,
     JsonCodec, ProcedureCodecs, Request, Router,
@@ -96,7 +96,7 @@ fn start_server() -> (std::net::SocketAddr, Arc<OnSignal>) {
 async fn main() {
     let (addr, shutdown) = start_server();
 
-    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(Arc::new(SimpleHttpClient::from_system())));
+    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(Arc::new(NativeHttpClient::from_system())));
     let url = format!("http://127.0.0.1:{}{PROCEDURE}", addr.port());
     let client: Client<CountRequest, CountItem> = Client::new(
         transport,

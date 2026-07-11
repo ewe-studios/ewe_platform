@@ -74,7 +74,7 @@ response back.
 ### The client
 
 ```rust
-let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(SimpleHttpClient::from_system()));
+let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(NativeHttpClient::from_system()));
 let client: Client<EchoMessage, EchoMessage> = Client::new(
     transport,
     "http://127.0.0.1:<port>/demo.EchoService/Echo",  // base URL + procedure path

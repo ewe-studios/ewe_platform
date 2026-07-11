@@ -20,7 +20,7 @@ use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleIncomingRequest, SimpleMethod, Status,
 };
 
-use foundation_connectrpc::codec::CodecFor;
+use foundation_connectrpc::shared::codec::CodecFor;
 use foundation_connectrpc::{
     ConnectResult, EnvelopeWriter, HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response,
     Router,

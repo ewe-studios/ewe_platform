@@ -33,7 +33,7 @@ impl NativeOAuth {
     }
 
     // ========================================================================
-    // Async API (source of truth — uses SimpleHttpClient::send_async)
+    // Async API (source of truth — uses NativeHttpClient::send_async)
     // ========================================================================
 
     /// Async version of [`Self::exchange_code`].
@@ -228,7 +228,7 @@ fn collect_one_result<T>(
 
 /// Async HTTP POST with form-urlencoded body.
 async fn do_post_async(url: &str, body: &str) -> Result<HttpResponse, OAuthError> {
-    let client = foundation_netio::http::SimpleHttpClient::from_system();
+    let client = foundation_netio::http::NativeHttpClient::from_system();
     let response = client
         .post(url)
         .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
