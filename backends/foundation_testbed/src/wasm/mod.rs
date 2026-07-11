@@ -23,3 +23,7 @@ pub mod wasm;
 pub mod wasi_runner;
 pub mod wasm_test;
 pub mod wrangler;
+
+// F52: wasm-bindgen browser test runner.
+#[cfg(feature = "wasm-bindgen-test")]
+pub mod bindgen_runner;

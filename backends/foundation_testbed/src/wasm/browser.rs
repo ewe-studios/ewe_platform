@@ -16,30 +16,16 @@ use tracing::{debug, info};
 use crate::wasm::cli::Browser;
 use crate::wasm::error::{Result, ToTrace, WasmTestbedError};
 
-/// Output from a browser test run.
 #[derive(Debug)]
 pub struct BrowserOutput {
-    /// The first line of `#output` (e.g. `test result: ok. …`).
     pub test_result: String,
-    /// Captured console logs (best-effort; currently unused by callers).
     pub console_logs: Vec<String>,
-    /// Process-style exit code: `0` once results were captured (callers derive
-    /// pass/fail from `test_result`).
     pub exit_code: i32,
 }
 
-/// How long to wait for the page to produce a result before giving up.
 const RESULT_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// Run the wasm test page at `url` in a real Chromium and capture its result.
-///
-/// # Errors
-/// [`WasmTestbedError::BrowserDriver`] if Chromium can't launch/navigate or the
-/// page doesn't produce a result within [`RESULT_TIMEOUT`]; for an unsupported
-/// browser (only Chromium ships in phase 1).
 pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput> {
-    // The pure-Rust driver speaks CDP — Chromium only (Firefox/WebKit are the
-    // spec-43 phase-2 WebDriver-BiDi follow-up).
     if !matches!(browser, Browser::Chrome) {
         return Err(WasmTestbedError::BrowserDriver(format!(
             "{browser:?} is not supported by the pure-Rust CDP driver yet — use Chrome"
@@ -54,10 +40,25 @@ pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput
     let page = driver
         .new_page()
         .map_err(|e| WasmTestbedError::BrowserDriver(format!("attach page: {e}")).trace())?;
+
+    // Poll the page after navigation. We don't rely on Page.loadEventFired
+    // because type="module" scripts may execute AFTER that event.
+    // Instead: just navigate and immediately start polling.
+    //
+    // page.goto() internally subscribes to Page.loadEventFired, fires
+    // Page.navigate, and blocks until the event. After it returns the
+    // page is loaded (static HTML parsed, module scripts fetched). The
+    // top-level await in the module then executes — typically within a few
+    // hundred ms for our lightweight test.
     page.goto(url)
         .map_err(|e| WasmTestbedError::BrowserDriver(format!("navigate {url}: {e}")).trace())?;
 
-    // Poll #output for the result sentinel the test harness writes.
+    // Give module scripts time to resolve top-level await.
+    // Page.loadEventFired (waited in `goto`) fires before type="module"
+    // scripts execute their async body. A brief wall-clock sleep lets the
+    // browser fetch and execute the module graph.
+    std::thread::sleep(Duration::from_secs(3));
+
     let deadline = Instant::now() + RESULT_TIMEOUT;
     let output = loop {
         let text = page
@@ -65,12 +66,17 @@ pub fn run(url: &str, browser: &Browser, headless: bool) -> Result<BrowserOutput
             .ok()
             .and_then(|v| v.as_str().map(str::to_string))
             .unwrap_or_default();
-        if text.contains("test result:") || text.contains("Tests complete") {
+        if text.contains("test result:") {
             break text;
         }
         if Instant::now() >= deadline {
+            let diagnostic = page
+                .eval("JSON.stringify({title:document.title||'',hasOutput:!!document.querySelector('#output'),body:(document.body?.textContent||'').substring(0,500)})")
+                .ok()
+                .and_then(|v| v.as_str().map(str::to_string))
+                .unwrap_or_default();
             return Err(WasmTestbedError::BrowserDriver(format!(
-                "test did not produce results within {}s",
+                "test did not produce results within {}s\ndiagnostic: {diagnostic}",
                 RESULT_TIMEOUT.as_secs()
             ))
             .trace());

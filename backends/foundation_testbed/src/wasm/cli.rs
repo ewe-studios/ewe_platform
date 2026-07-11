@@ -49,8 +49,10 @@ pub enum Command {
     /// OWNED default: build → discover `#[wasm_test]` cases → run headless on the
     /// embedded Deno runtime, in-process (requires `wasm-embedded-js`)
     Deno(OwnedRunArgs),
-    /// OWNED: same loop served + run under Playwright on our runtime
-    Web(OwnedRunArgs),
+    /// OWNED: same loop served + run under our Chromium CDP driver
+    Browser(OwnedRunArgs),
+    /// F52: build → wasm-bindgen → run wasm-bindgen tests in Chromium
+    Bindgen(BindgenArgs),
     /// Build for wasm32-unknown-emscripten and run via node
     Emscripten(EmscriptenArgs),
     /// Build for wasm32-wasip1/wasip2 and run via wasmtime
@@ -85,6 +87,29 @@ pub struct OwnedRunArgs {
 
     /// Run the browser headless (web mode only)
     #[arg(long)]
+    pub headless: bool,
+}
+
+/// F52: arguments for the `bindgen` subcommand — wasm-bindgen browser tests.
+#[derive(Parser)]
+pub struct BindgenArgs {
+    /// Path to the Cargo crate containing `#[wasm_bindgen_test]` cases
+    pub crate_path: PathBuf,
+
+    /// Build in release mode (default: debug)
+    #[arg(long)]
+    pub release: bool,
+
+    /// Cargo features to enable during build
+    #[arg(long)]
+    pub features: Option<String>,
+
+    /// Only run cases whose name contains this substring
+    #[arg(long)]
+    pub filter: Option<String>,
+
+    /// Run Chromium headless (default: true)
+    #[arg(long, default_value = "true")]
     pub headless: bool,
 }
 

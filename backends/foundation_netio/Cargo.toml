@@ -75,6 +75,12 @@ socket2 = { version = "0.6", optional = true }
 quinn-proto = { version = "0.11", optional = true, features = ["rustls", "ring"] }
 
 [dev-dependencies]
+# F52: wasm-bindgen browser tests via foundation_testbed (wasm32-only).
+# All wasm-bindgen ecosystem re-exported by foundation_testbed.
+foundation_testbed = { path = "../foundation_testbed", default-features = false, features = ["wasm-bindgen-test"] }
+wasm-bindgen-test = "=0.3.76"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dev-dependencies]
 foundation_testing = { path = "../foundation_testing" }
 foundation_macros = { path = "../foundation_macros", version = "0.0.4" }
 
@@ -162,6 +168,12 @@ required-features = ["quic"]
 name = "http3"
 path = "tests/http3/mod.rs"
 required-features = ["quic"]
+
+# F52: wasm32 browser tests (wasm-bindgen). Only compiled for wasm32 targets.
+[[test]]
+name = "wasm"
+path = "tests/wasm/mod.rs"
+required-features = ["wasm-fetch"]
 
 [package.metadata.docs.rs]
 # enable one of these as default implementation

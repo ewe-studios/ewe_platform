@@ -10,3 +10,9 @@ pub mod vms;
 
 #[cfg(feature = "wasm")]
 pub mod wasm;
+
+// F52: re-export js-sys / web-sys / wasm-bindgen-futures for browser tests.
+// wasm-bindgen-test must be a direct dev-dep of the consumer (Rust limitation:
+// proc-macro attributes cannot be re-exported across crate boundaries).
+#[cfg(feature = "wasm-bindgen-test")]
+pub mod bindgen;

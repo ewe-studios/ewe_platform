@@ -69,6 +69,13 @@ pub enum WasmTestbedError {
     #[error(ignore)]
     WasmBindgenFailed(Option<i32>),
 
+    #[display(
+        "wasm-bindgen CLI version {cli} does not match crate version {crate_version}.\n\
+         Install the matching version: cargo install wasm-bindgen-cli --version {crate_version}"
+    )]
+    #[error(ignore)]
+    WasmBindgenVersionMismatch { cli: String, crate_version: String },
+
     // --- wasm_test.rs ---
     #[display("Wasm binary not found: {_0}")]
     #[error(ignore)]

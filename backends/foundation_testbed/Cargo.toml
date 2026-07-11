@@ -29,6 +29,7 @@ vms = [
   "dep:fs2",
   "dep:sha2",
   "dep:whoami",
+  "dep:which",
 ]
 
 # Linux: QEMU/KVM backend
@@ -56,6 +57,17 @@ wasm = [
   "dep:tempfile",
   "dep:portpicker",
   "dep:tracing-subscriber",
+  "dep:which",
+]
+
+# F52: re-export #[wasm_bindgen_test] from foundation_testbed so consumer crates
+# can write browser tests without depending on wasm-bindgen directly.
+wasm-bindgen-test = [
+  "dep:wasm-bindgen",
+  "dep:wasm-bindgen-test",
+  "dep:wasm-bindgen-futures",
+  "dep:js-sys",
+  "dep:web-sys",
 ]
 
 # spec-44: run the wasm harness JS in-process via an embedded Deno runtime. We
@@ -82,7 +94,7 @@ wasm-embedded-js = [
 # Shared across features.
 foundation_errstacks = { path = "../foundation_errstacks", version = "0.0.1" }
 foundation_core = { path = "../foundation_core", version = "0.0.3", features = ["multi"] }
-which = "7"
+which = { version = "7", optional = true }
 base64 = "0.22"
 tracing = "0.1"
 serde = { version = "1", features = ["derive"] }
@@ -101,6 +113,20 @@ portpicker = { workspace = true, optional = true }
 tempfile = { version = "3", optional = true }
 tracing-subscriber = { workspace = true, features = ["env-filter"], optional = true }
 
+# F52: wasm-bindgen ecosystem — re-exported for consumer browser tests.
+# Pinned by foundation_testbed (single source of truth). Update the CLI:
+#   cargo install wasm-bindgen-cli --version <same as wasm-bindgen below>
+# The runtime version check (>=) allows newer CLI, not older.
+wasm-bindgen = { version = "=0.2.126", optional = true }
+wasm-bindgen-test = { version = "=0.3.76", optional = true }
+wasm-bindgen-test-macro = { version = "=0.3.76", optional = true }
+wasm-bindgen-futures = { version = "=0.4.76", optional = true }
+js-sys = { version = "=0.3.103", optional = true }
+web-sys = { version = "=0.3.103", optional = true, features = [
+  "Window", "console",
+  "WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "ErrorEvent", "Event",
+] }
+
 # wasm-embedded-js feature — embedded Deno runtime, composed (spec-44, optional).
 # deno_core + the minimal extension set (versions coordinated with deno_core 0.404).
 # Deliberately NO deno_crypto (aes =0.8.3 vs turso aes 0.8.4 — see spec-44 §4.4).
@@ -118,6 +144,11 @@ tokio = { version = "1", features = ["rt", "time", "net", "io-util"], optional =
 
 # clap drives both the vms CLI (`cli`) and the wasm-testbed bin (`wasm`).
 clap = { version = "4", features = ["derive"], optional = true }
+
+# getrandom needs the "js" feature on wasm32. It's a transitive dep
+# (walrus→wasmparser→hashbrown→ahash→const-random→getrandom).
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "*", features = ["js"] }
 
 # vms feature — VM infrastructure deps (optional, enabled by `vms`).
 foundation_netio = { path = "../foundation_netio", version = "0.0.1", optional = true, features = ["multi"] }

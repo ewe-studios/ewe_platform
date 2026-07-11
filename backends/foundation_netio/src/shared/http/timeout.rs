@@ -735,7 +735,7 @@ mod tests {
 
         // Huge body (36GB+) gets max timeout (60s)
         // sqrt(36M KB) * 10ms = 6000 * 10ms = 60s, clamped to max
-        let ctx = TimeoutContext::with_size(36 * 1024 * 1024 * 1024);
+        let ctx = TimeoutContext::with_size((36u64 * 1024 * 1024 * 1024) as usize);
         let timeout = calc.calculate_read_timeout(&ctx);
         assert_eq!(timeout, Duration::from_secs(60));
     }
@@ -776,7 +776,7 @@ mod tests {
         // Huge body (75GB+) gets clamped to max_read_timeout (60s)
         // sqrt(75M KB) * 10ms = 8660 * 10ms = 86.6s per read, clamped to 60s
         // With 4 attempts: 60s * 4 = 240s
-        let ctx = TimeoutContext::with_size(75 * 1024 * 1024 * 1024);
+        let ctx = TimeoutContext::with_size((75u64 * 1024 * 1024 * 1024) as usize);
         let timeout = calc.calculate_total_timeout(&ctx);
         assert_eq!(timeout, Duration::from_secs(240));
     }
@@ -797,7 +797,7 @@ mod tests {
 
         // Huge body (9GB+) uses custom max (30s)
         // sqrt(9M KB) * 10ms = 3000 * 10ms = 30s, clamped to max
-        let ctx = TimeoutContext::with_size(9 * 1024 * 1024 * 1024);
+        let ctx = TimeoutContext::with_size((9u64 * 1024 * 1024 * 1024) as usize);
         let timeout = calc.calculate_read_timeout(&ctx);
         assert_eq!(timeout, Duration::from_secs(30));
     }
