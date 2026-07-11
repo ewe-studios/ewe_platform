@@ -1,16 +1,21 @@
-//! Platform-agnostic `HttpClientBuilder` — produces an `HttpClient` on both targets.
+//! Platform-agnostic network client surface (F51 + F52).
+//!
+//! Provides the builder (`HttpClientBuilder`) that constructs a concrete platform
+//! client, plus the combined client handle types (`NetClient` / `DynNetClient`)
+//! that cover both HTTP and WebSocket — transports hold one `Arc<dyn NetClient>`
+//! for all protocol needs.
 //!
 //! WHY: F51 Stage 2 — a single builder surface replaces the native-only
-//! `SimpleHttpClient` configuration surface. Callers write identical code on
-//! native and wasm; the builder dispatches to `NativeHttpClient` or
-//! `FetchHttpClient` at `build()` time.
+//! `SimpleHttpClient`. F52 adds the combined trait + type alias so transports
+//! don't leak platform-specific types.
 //!
-//! WHAT: Accumulates `ClientConfig`, optional resolver, and default headers.
-//! On native, `build()` creates a `NativeHttpClient` with a fresh pool.
-//! On wasm, `build()` creates a `FetchHttpClient` with the accumulated config.
+//! WHAT: `HttpClientBuilder` accumulates `ClientConfig` and dispatches to
+//! `NativeHttpClient` or `FetchHttpClient` at `build()` time. `NetClient` is
+//! the supertrait of `HttpClient + WebSocketConnector` and `DynNetClient` is
+//! its `Arc<dyn ...>` handle.
 //!
-//! HOW: The struct is platform-neutral. `build()` is cfg-gated internally —
-//! the signature is identical on both targets (`-> impl HttpClient`).
+//! HOW: The builder is platform-neutral; `build()` is cfg-gated internally.
+//! `NetClient` is a blanket impl — every platform client automatically satisfies it.
 
 use std::sync::Arc;
 use std::time::Duration;
