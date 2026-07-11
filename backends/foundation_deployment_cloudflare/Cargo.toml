@@ -176,9 +176,9 @@ cloudflare_tracer = []
 cloudflare_waiting_rooms = []
 cloudflare_workers = []
 cloudflare_zones = []
-default = ["zones"]
-full = ["zones"]
-zones = []
+default = ["cloudflare"]
+full = ["cloudflare"]
+zones = ["cloudflare_zones"]
 
 [lints]
 workspace = true

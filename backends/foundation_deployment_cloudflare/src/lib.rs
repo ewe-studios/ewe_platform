@@ -5,6 +5,7 @@
 //! `cargo run --bin genapi -- generate cloudflare` to regenerate).
 
 pub mod client;
+pub mod dns_ops;
 pub mod types;
 // Re-export the generated shared types (ApiError, ApiResponse, etc.) and
 // group modules via the generated entry point.

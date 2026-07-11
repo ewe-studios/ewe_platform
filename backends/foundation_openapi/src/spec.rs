@@ -150,7 +150,7 @@ pub struct Operation {
     pub description: Option<String>,
     #[serde(default)]
     pub parameters: Option<Vec<Parameter>>,
-    #[serde(default, rename = "request")]
+    #[serde(default, rename = "requestBody")]
     pub request_body: Option<RequestBody>,
     #[serde(default)]
     pub responses: BTreeMap<String, Response>,
