@@ -10,6 +10,9 @@
 // ── Shared (wasm-compatible) modules — always compiled ──────────────
 pub mod shared;
 
+// ── Cross-platform client builder (F51) ──────────────────────────────
+pub mod http_client_builder;
+
 // ── Native-only modules ─────────────────────────────────────────────
 #[cfg(not(target_family = "wasm"))]
 pub mod native;

@@ -33,6 +33,7 @@ use crate::simple_http::client::shared::http_client::{
 };
 use crate::simple_http::client::shared::request::PreparedRequest;
 use crate::simple_http::client::shared::request_task::HttpExchangeClientTask;
+use crate::simple_http::client::shared::ClientConfig;
 use crate::simple_http::shared::{
     HttpClientError, LineFeed, SendSafeBody, SimpleMethod, SimpleResponse, Status,
 };
@@ -43,12 +44,61 @@ use super::tasks::WasmHttpExchangeTask;
 
 /// Fetch-based HTTP client for wasm32 (browser + Cloudflare Workers).
 ///
-/// Stateless — each call builds a fresh `web_sys::Request` and calls
-/// `fetch()`. Runtime detection selects `window.fetch` (browser) or
-/// `ServiceWorkerGlobalScope.fetch` (CF Workers).
-pub struct FetchHttpClient;
+/// F51 Stage 2: carries a [`ClientConfig`] so the same `HttpClientBuilder`
+/// surface works on both native and wasm. Fields the browser owns (pool, TLS,
+/// DNS) are documented no-ops; the client honours timeouts, redirect policy,
+/// default headers, and max body size where the platform allows.
+pub struct FetchHttpClient {
+    config: ClientConfig,
+}
 
-// SAFETY: wasm32 is single-threaded; FetchHttpClient has no state.
+impl FetchHttpClient {
+    /// Create a fetch client with default configuration.
+    #[must_use]
+    pub fn new() -> Self {
+        Self {
+            config: ClientConfig::default(),
+        }
+    }
+
+    /// Create a fetch client with a specific configuration.
+    #[must_use]
+    pub fn with_config(config: ClientConfig) -> Self {
+        Self { config }
+    }
+
+    /// Return a reference to the current configuration.
+    #[must_use]
+    pub fn config(&self) -> &ClientConfig {
+        &self.config
+    }
+}
+
+impl Default for FetchHttpClient {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+// -- private helpers --------------------------------------------------
+
+impl FetchHttpClient {
+    /// Merge client-level default headers into a request.
+    ///
+    /// Request headers take precedence over client defaults — if the request
+    /// already sets a header key present in the client config, the request's
+    /// value is kept.
+    fn merge_default_headers(&self, mut req: PreparedRequest) -> PreparedRequest {
+        if let Some(ref defaults) = self.config.headers_to_add {
+            for (key, values) in defaults {
+                req.headers.entry(key.clone()).or_insert_with(|| values.clone());
+            }
+        }
+        req
+    }
+}
+
+// SAFETY: wasm32 is single-threaded.
 unsafe impl Send for FetchHttpClient {}
 unsafe impl Sync for FetchHttpClient {}
 
@@ -58,8 +108,12 @@ impl HttpClient for FetchHttpClient {
         &self,
         req: PreparedRequest,
     ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+        // Merge client-level default headers into the request (request headers
+        // take precedence over client defaults).
+        let req = self.merge_default_headers(req);
+        let max_redirects = self.config.max_redirects;
         SendWrapper::new(async move {
-            let ws_req = build_web_request(req)?;
+            let ws_req = build_web_request(req, max_redirects)?;
             let resp = do_fetch(&ws_req).await?;
 
             let status = Status::from(resp.status().to_string());
@@ -87,8 +141,9 @@ impl HttpClient for FetchHttpClient {
         &self,
         req: PreparedRequest,
     ) -> Result<BoxedSseFutureStream, HttpClientError> {
+        let max_redirects = self.config.max_redirects;
         SendWrapper::new(async move {
-            let ws_req = build_web_request(req)?;
+            let ws_req = build_web_request(req, max_redirects)?;
             let resp = do_fetch(&ws_req).await?;
 
             let status_code = resp.status();
@@ -113,7 +168,7 @@ impl HttpClient for FetchHttpClient {
         &self,
         req: PreparedRequest,
     ) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
-        let fut = FetchHttpClient.send_async(req);
+        let fut = self.send_async(req);
         let results = run_future(fut)
             .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
         results
@@ -125,8 +180,9 @@ impl HttpClient for FetchHttpClient {
     }
 
     fn send_sse(&self, req: PreparedRequest) -> Result<BoxedSseIterator, HttpClientError> {
+        let max_redirects = self.config.max_redirects;
         let fut = SendWrapper::new(async move {
-            let ws_req = build_web_request(req)?;
+            let ws_req = build_web_request(req, max_redirects)?;
             let resp = do_fetch(&ws_req).await?;
 
             let status_code = resp.status();
@@ -167,9 +223,17 @@ impl HttpClient for FetchHttpClient {
 /// - `Bytes` → `Uint8Array`
 /// - `Stream` / `ChunkedStream` / `LineFeedStream` / `SseStream` →
 ///   JS `ReadableStream` via valtron's `iterator_to_readable_stream`
-fn build_web_request(req: PreparedRequest) -> Result<Request, HttpClientError> {
+fn build_web_request(req: PreparedRequest, max_redirects: u8) -> Result<Request, HttpClientError> {
     let init = RequestInit::new();
     init.set_method(method_str(&req.method));
+
+    // Map max_redirects → fetch redirect mode.
+    // 0 = manual (no redirects); >0 = follow (browser handles redirects).
+    if max_redirects == 0 {
+        init.set_redirect("manual");
+    } else {
+        init.set_redirect("follow");
+    }
 
     let body_js = send_safe_body_to_js(req.body)?;
     if !body_js.is_undefined() {
@@ -320,5 +384,5 @@ fn method_str(method: &SimpleMethod) -> &'static str {
 /// Create a wasm `HttpClient` with default settings.
 #[must_use]
 pub fn default_http_client() -> Arc<dyn HttpClient> {
-    Arc::new(FetchHttpClient)
+    Arc::new(FetchHttpClient::new())
 }
