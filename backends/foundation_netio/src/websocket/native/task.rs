@@ -18,7 +18,7 @@ use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
 use crate::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
 use crate::shared::http::{
-    Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHttpBody, Status,
+    Http11, HttpResponseReader, RenderHttp, SimpleHeader, SimpleHeaders, SimpleHttpBody, Status,
 };
 use foundation_core::io::ioutils::ReadTimeoutOperations;
 use foundation_core::url::Uri;
@@ -48,7 +48,7 @@ pub enum WebSocketProgress {
 pub struct WebSocketConnectInfo {
     pub url: String,
     pub subprotocols: Option<String>,
-    pub extra_headers: Vec<(SimpleHeader, String)>,
+    pub extra_headers: SimpleHeaders,
     pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     /// Dynamic timeout calculator - provides all timeout values
     pub timeout_calculator: TimeoutCalculator,
@@ -76,7 +76,7 @@ pub struct WebSocketConnectingState {
     pub url: Uri,
     pub ws_key: String,
     pub subprotocols: Option<String>,
-    pub extra_headers: Vec<(SimpleHeader, String)>,
+    pub extra_headers: SimpleHeaders,
     pub outbound_rx: Option<PipeReceiver<WebSocketMessage>>,
     pub timeout_calculator: TimeoutCalculator,
 }
@@ -184,7 +184,7 @@ where
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols: None,
-                extra_headers: Vec::new(),
+                extra_headers: SimpleHeaders::new(),
                 outbound_rx: None,
                 timeout_calculator: TimeoutCalculator::new(),
             })))),
@@ -223,7 +223,7 @@ where
             state: Some(WebSocketState::Init(Some(Box::new(WebSocketConnectInfo {
                 url: url_str,
                 subprotocols: None,
-                extra_headers: Vec::new(),
+                extra_headers: SimpleHeaders::new(),
                 outbound_rx: None,
                 timeout_calculator: TimeoutCalculator::new(),
             })))),
@@ -250,7 +250,7 @@ where
         resolver: R,
         url: String,
         subprotocols: Option<String>,
-        extra_headers: Vec<(SimpleHeader, String)>,
+        extra_headers: SimpleHeaders,
         outbound_rx: PipeReceiver<WebSocketMessage>,
         read_timeout: Duration,
         sleep_between: Duration,
@@ -299,7 +299,7 @@ where
         _url: String,
         pool: Arc<HttpConnectionPool<R>>,
         subprotocols: Option<String>,
-        extra_headers: Vec<(SimpleHeader, String)>,
+        extra_headers: SimpleHeaders,
         outbound_rx: PipeReceiver<WebSocketMessage>,
         read_timeout: Duration,
         sleep_between: Duration,
@@ -363,7 +363,7 @@ where
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
         debug!(?name, "Adding custom header");
         if let Some(WebSocketState::Init(Some(ref mut info))) = self.state {
-            info.extra_headers.push((name, value.into()));
+            info.extra_headers.entry(name).or_default().push(value.into());
         }
         self
     }
@@ -448,6 +448,7 @@ where
                     &path_query,
                     &state.ws_key,
                     state.subprotocols.as_deref(),
+                    &state.extra_headers,
                 ) else {
                     error!("Failed to build upgrade request");
                     self.state = Some(WebSocketState::Closed(Some(WebSocketError::InvalidUrl(

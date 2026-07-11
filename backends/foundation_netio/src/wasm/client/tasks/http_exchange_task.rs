@@ -41,7 +41,7 @@ struct FetchOutput {
 
 /// Async block that calls the HTTP client and returns structured output.
 async fn fetch_via_client(req: PreparedRequest) -> Result<FetchOutput, HttpClientError> {
-    let client = FetchHttpClient;
+    let client = FetchHttpClient::new();
     let (status, headers, body) = client.send_async(req).await?.into_parts();
     Ok(FetchOutput {
         status,

@@ -26,7 +26,9 @@ use foundation_netio::shared::client::{
 use foundation_netio::shared::http::{
     Extensions, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod, Status,
 };
+use foundation_netio::websocket::shared::client::{WebSocketConnectConfig, WebSocketEvent};
 use foundation_netio::websocket::shared::connector::WebSocketConnector;
+use foundation_netio::websocket::shared::message::WebSocketMessage;
 use foundation_netio::websocket::shared::handshake::compute_accept_key;
 
 // ============================================================================
@@ -311,14 +313,39 @@ fn websocket_connector_trait_bound() {
     _require_ws(&system_client());
 }
 
+/// Poll a client's message stream up to `max_polls` times, returning the first
+/// real message (skips [`WebSocketEvent::Skip`]). `None` means the stream ended
+/// or errored before delivering a message.
+fn poll_for_message(
+    client: &mut foundation_netio::websocket::shared::client::WebSocketClient,
+    max_polls: usize,
+) -> Option<WebSocketMessage> {
+    for _ in 0..max_polls {
+        match client.messages().next() {
+            Some(Ok(WebSocketEvent::Message(m))) => return Some(m),
+            Some(Ok(WebSocketEvent::Skip)) => continue,
+            Some(Err(_)) | None => return None,
+        }
+    }
+    None
+}
+
 #[valtron_test]
 fn websocket_connector_rejects_plain_http() {
     let addr = raw_http_serve(200, "not a websocket");
     let url = format!("ws://127.0.0.1:{}/ws", addr.port());
 
+    // The connector is now task-based: `open_websocket` schedules the handshake
+    // and returns immediately. A non-101 response fails validation inside the
+    // task, which closes the stream WITHOUT ever delivering a message.
     let client = system_client();
-    let result = client.open_websocket(&url, SimpleHeaders::new());
-    assert!(result.is_err(), "plain HTTP should be rejected");
+    let mut ws = client
+        .open_websocket(&url, WebSocketConnectConfig::new())
+        .expect("scheduling the task succeeds; the handshake is what fails");
+    assert!(
+        poll_for_message(&mut ws, 5000).is_none(),
+        "plain HTTP must never yield a WebSocket message"
+    );
 }
 
 #[valtron_test]
@@ -351,14 +378,26 @@ fn websocket_connector_accepts_valid_101() {
                  Sec-WebSocket-Accept: {accept}\r\n\r\n"
             );
             let _ = stream.write_all(response.as_bytes());
+            // After the upgrade, push one unmasked server→client Text frame
+            // ("hi"): FIN+Text (0x81), len 2 (0x02), payload. Receiving it
+            // proves the handshake validated and the stream is live.
+            let _ = stream.write_all(&[0x81, 0x02, b'h', b'i']);
+            let _ = stream.flush();
+            // Hold the connection open briefly so the client can read the frame.
+            std::thread::sleep(std::time::Duration::from_millis(500));
             break;
         }
     });
 
     let url = format!("ws://127.0.0.1:{}/ws", addr.port());
     let client = system_client();
-    let result = client.open_websocket(&url, SimpleHeaders::new());
-    assert!(result.is_ok(), "valid 101 handshake should succeed");
+    let mut ws = client
+        .open_websocket(&url, WebSocketConnectConfig::new())
+        .expect("scheduling the task succeeds");
+    match poll_for_message(&mut ws, 5000) {
+        Some(WebSocketMessage::Text(text)) => assert_eq!(text, "hi"),
+        other => panic!("expected Text(\"hi\") after a valid 101, got {other:?}"),
+    }
 }
 
 // ============================================================================

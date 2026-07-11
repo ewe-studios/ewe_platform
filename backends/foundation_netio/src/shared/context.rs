@@ -23,7 +23,6 @@
 //! so the context compiles on wasm; the network peer address (a native-only
 //! `netcap` socket type) is the sole target-gated field.
 
-#[cfg(not(target_family = "wasm"))]
 /// Cryptographic identity of the connection peer.
 ///
 /// WHY: Some transports authenticate the peer with a public key rather than (or

@@ -58,6 +58,8 @@ web-sys = { version = "0.3", optional = true, features = [
     "Request", "RequestInit", "RequestMode",
     "Response", "Headers",
     "ReadableStream", "ReadableStreamDefaultReader", "ReadableStreamDefaultController",
+    # WebSocket (F51 — unified cross-platform WebSocket client)
+    "WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "ErrorEvent", "Event",
 ] }
 
 [target.'cfg(not(target_arch = "wasm32"))'.dependencies]

@@ -5,15 +5,18 @@
 //! (request→response vs persistent full-duplex); interface segregation keeps
 //! each cohesive and lets HTTP-only consumers depend on `HttpClient` alone.
 //!
-//! WHAT: `WebSocketConnector` with `open_websocket(&self, url, headers) ->
-//! Result<WebSocketConnection, WebSocketError>`. On native, the HTTP client
-//! performs the Upgrade handshake over its pool/TLS. On wasm, the fetch client
-//! delegates to the browser `WebSocket` API.
+//! WHAT: `WebSocketConnector::open_websocket(&self, url, config) ->
+//! Result<WebSocketClient, WebSocketError>`. This is the **single, auto-switching
+//! surface**: the same call yields a native or a browser-backed
+//! [`WebSocketClient`] depending only on which concrete client (`NativeHttpClient`
+//! vs `FetchHttpClient`) the caller holds — the returned type and the
+//! [`WebSocketConnectConfig`] are identical on both targets.
 //!
-//! HOW: Implementors wire the handshake through their connection infrastructure.
+//! HOW: Native performs the HTTP/1.1 Upgrade over its own dial/TLS and drives a
+//! valtron task; wasm hands off to the browser `WebSocket` API. Both box their
+//! inbound stream into the shared [`WebSocketClient`].
 
-use crate::shared::http::SimpleHeaders;
-use crate::websocket::native::connection::WebSocketConnection;
+use crate::websocket::shared::client::{WebSocketClient, WebSocketConnectConfig};
 use crate::websocket::shared::error::WebSocketError;
 
 /// Trait for opening WebSocket connections through a client.
@@ -24,21 +27,26 @@ use crate::websocket::shared::error::WebSocketError;
 ///
 /// The same concrete client (`NativeHttpClient`, `FetchHttpClient`) implements
 /// both traits, with the WebSocket opening reusing the client's connection
-/// infrastructure (pool, TLS, DNS on native; browser WebSocket API on wasm).
+/// infrastructure (dial, TLS, DNS on native; browser WebSocket API on wasm).
 pub trait WebSocketConnector: Send + Sync {
-    /// Open a WebSocket connection to `url` with the given request headers.
+    /// Open a WebSocket connection to `url` with the given [`WebSocketConnectConfig`].
     ///
     /// On native, the implementor performs an HTTP/1.1 `Upgrade` handshake over
-    /// the client's connection pool and TLS infrastructure.
+    /// the client's own resolver/TLS, optionally layering reconnection.
     ///
-    /// On wasm, the implementor delegates to the browser `WebSocket` API.
+    /// On wasm, the implementor delegates to the browser `WebSocket` API. Fields
+    /// the browser owns (reconnection lifecycle) are best-effort — see
+    /// [`WebSocketConnectConfig`].
+    ///
+    /// Returns a cross-platform [`WebSocketClient`]: iterate `client.messages()`
+    /// for inbound messages, and use `client.delivery()` to send.
     ///
     /// # Errors
     ///
-    /// Returns `WebSocketError` if the connection or handshake fails.
+    /// Returns [`WebSocketError`] if the connection or handshake fails.
     fn open_websocket(
         &self,
         url: &str,
-        headers: SimpleHeaders,
-    ) -> Result<WebSocketConnection, WebSocketError>;
+        config: WebSocketConnectConfig,
+    ) -> Result<WebSocketClient, WebSocketError>;
 }

@@ -14,7 +14,7 @@
 //! PHASE 2 SCOPE: Max reconnect duration support, exponential backoff with jitter.
 
 use crate::shared::client::DnsResolver;
-use crate::shared::http::SimpleHeader;
+use crate::shared::http::{SimpleHeader, SimpleHeaders};
 use concurrent_queue::ConcurrentQueue;
 use foundation_core::retries::{ExponentialBackoffDecider, RetryDecider, RetryState};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskSpread, TaskStatus};
@@ -30,7 +30,7 @@ use crate::websocket::shared::message::WebSocketMessage;
 pub struct ReconnectingConfig {
     url: String,
     subprotocols: Option<String>,
-    extra_headers: Vec<(SimpleHeader, String)>,
+    extra_headers: SimpleHeaders,
     max_retries: u32,
     max_reconnect_duration: Option<Duration>,
     read_timeout: Duration,
@@ -41,7 +41,7 @@ impl ReconnectingConfig {
         Self {
             url,
             subprotocols: None,
-            extra_headers: Vec::new(),
+            extra_headers: SimpleHeaders::new(),
             max_retries: 5,
             max_reconnect_duration: None,
             read_timeout: Duration::from_secs(5),
@@ -198,7 +198,11 @@ where
     #[must_use]
     pub fn with_header(mut self, name: SimpleHeader, value: impl Into<String>) -> Self {
         debug!("Adding custom header");
-        self.config.extra_headers.push((name, value.into()));
+        self.config
+            .extra_headers
+            .entry(name)
+            .or_default()
+            .push(value.into());
         self
     }
 
@@ -227,9 +231,11 @@ where
             task = task.with_subprotocol(subprotocol.clone());
         }
 
-        // Apply headers
-        for (name, value) in &self.config.extra_headers {
-            task = task.with_header(name.clone(), value.clone());
+        // Apply headers (multi-value aware).
+        for (name, values) in &self.config.extra_headers {
+            for value in values {
+                task = task.with_header(name.clone(), value.clone());
+            }
         }
 
         Some(task)

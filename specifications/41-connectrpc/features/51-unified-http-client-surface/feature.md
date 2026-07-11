@@ -1,7 +1,7 @@
 ---
 feature: "Unified network client — dissolve SimpleHttpClient, one client for HTTP + WebSocket across native + wasm (D07 §Client architecture)"
 description: "One HttpClient trait (async + a valtron task surface via HttpExchangeClientTask); fold SimpleHttpClient into NativeHttpClient; relocate the client out of simple_http into a netio-level module; a uniform cross-platform builder; FetchHttpClient honours ClientConfig; then (later stage) fold WebSocketClient into the same concrete client behind a segregated WebSocketConnector trait. Delivered in gated stages."
-status: "proposed"
+status: "in-progress"
 priority: "high"
 phase: 1
 depends_on: ["07-pushable-request-body", "44-connection-owner-walking-skeleton"]
@@ -94,9 +94,20 @@ HttpClientBuilder        (shared, generic; produces an HttpClient)
                    max_body_size, verb helpers (get/post/…)
   #[cfg(native)]:  connection pool, TLS connector, DnsResolver<R>, proxy
 
-WebSocketConnector trait (shared; Stages 5–6)          ← separate trait, same types
-  open_websocket(req) -> WebSocketConnection
-  impl for NativeHttpClient (HTTP Upgrade over the pool) + FetchHttpClient (browser WS)
+WebSocketConnector trait (shared; Stages 5–6)          ← separate trait, shared types
+  open_websocket(req) -> WebSocketClient              (shared type, cross-platform)
+  impl for NativeHttpClient (HTTP Upgrade over pool) + FetchHttpClient (browser WS)
+
+  WebSocketClient   (shared, no R generic)            ←  wraps
+    Box<dyn StreamIterator<Item=Stream<WebSocketMessage, WebSocketProgress>> + Send>
+    + MessageDelivery                                  (PipeSender, always cross-platform)
+  
+  NativeHttpClient::open_websocket:
+    pool.create_http_connection() → WebSocketTask or ReconnectingWebSocketTask
+    → WsTask(Single|Reconnecting) → execute() → Box → WebSocketClient::new(boxed_stream, delivery)
+  
+  FetchHttpClient::open_websocket:
+    browser WebSocket → WasmWsTask → execute() → Box → WebSocketClient::new(boxed_stream, delivery)
 
   all of the above live in  top-level http / src::shared / src::wasm   (flattened out of simple_http/client)
 ```
@@ -402,11 +413,92 @@ Each stage compiles and keeps F44 green, so later stages can land independently.
   `websocket/shared/handshake.rs`, returning `WebSocketConnection`) and for
   `FetchHttpClient` (browser `WebSocket`). Additive — `WebSocketClient<R>` still
   exists.
-- **Stage 6 — fold + retire `WebSocketClient`.** Route `WebSocketClient<R>` /
+
+  **Implementation plan (2026-07-11):**
+
+  The blocker: `WebSocketClient` is native-only (parameterised over
+  `R: DnsResolver`), and `WebSocketConnection` wraps `SharedByteBufferStream<RawStream>`
+  which doesn't exist on wasm. Two work items unlock cross-platform:
+
+  **A. Make `WebSocketClient` cross-platform by decoupling it from `R`:**
+  - Move `WebSocketClient` + `MessageDelivery` out of `native/connection.rs` into
+    `websocket/client.rs` (beside `native/` — shared).
+  - Change `WebSocketClient` from `WebSocketClient<R: DnsResolver>` to
+    `WebSocketClient` (no generic) — it stores a `Box<dyn StreamIterator<Item = Stream<WebSocketMessage, WebSocketProgress>> + Send>`
+    plus a `MessageDelivery`.
+  - `WebSocketClient::connect()` becomes `WebSocketClient::new(stream, delivery)` —
+    the caller provides an already-spawned stream + delivery handle.
+  - Platform-specific `connect` helpers stay in their respective modules:
+    `native::connect(resolver, url, …)` returns `(WebSocketClient, MessageDelivery)`
+    by creating a `WebSocketTask`/`ReconnectingWebSocketTask`, wrapping in `WsTask`
+    enum, spawning, and boxing.
+    `wasm::connect(url, …)` does the same with a wasm `WebSocket` task.
+  - `WebSocketClient<R>` stays as a deprecated type alias during migration.
+
+  **B. `WebSocketConnector` trait returns `WebSocketClient`, not `WebSocketConnection`:**
+  - Change `open_websocket` return type to `Result<WebSocketClient, WebSocketError>`.
+  - Native impl: reuses the existing `WsTask` enum (Single | Reconnecting) —
+    creates `WebSocketTask` (or `ReconnectingWebSocketTask`) via the client's pool,
+    wraps in `WsTask`, `execute()`s, boxes the `DrivenStreamIterator`, wraps in
+    `WebSocketClient`.
+  - Wasm impl: `FetchHttpClient` creates a wasm `WebSocket` task (browser `WebSocket`
+    API bridged through `web_sys`), spawns, wraps in `WebSocketClient`.
+  - Both return the same shared `WebSocketClient` type — zero platform leakage.
+
+- **Stage 6 — fold + retire `WebSocketClient<R>`.** Route `WebSocketClient<R>` /
   `ReconnectingWebSocketTask<R>` through the unified client, drop their `R: DnsResolver
   + Clone` generic (inherit `BoxedDnsResolver`), migrate WS call sites to
   `open_websocket`, and remove the standalone `WebSocketClient` (alias during the
   window). `grep` proves one connection-owning client remains.
+
+## Implementation status — Stages 5–6 landed (2026-07-11)
+
+The cross-platform WebSocket client is implemented and unifies native + wasm:
+
+- **`WebSocketClient` is now non-generic and shared** (`websocket/shared/client.rs`).
+  It stores `Box<dyn Iterator<Item = WebSocketStreamItem> + Send>` + `MessageDelivery`,
+  where `WebSocketStreamItem = Stream<Result<WebSocketMessage, WebSocketError>, WsProgress>`.
+  The native `connect`/`with_options`/`connect_with_reconnect`/`with_pool*`/
+  `connect_parts` helpers are generic over `R` but return the non-generic client
+  (resolver erased at construction), so existing call sites compile unchanged.
+- **Shared `WsProgress`** (Connecting/Handshaking/Reading/Reconnecting) replaces the
+  earlier `()` pending erasure — both platforms map their progress into it, so the
+  connecting/handshaking/reconnecting signal survives to consumers. Native maps
+  `WsPending`; wasm maps the browser socket's readiness.
+- **Shared `WebSocketConnectConfig`** (subprotocols, `extra_headers: SimpleHeaders`,
+  `reconnect`, timeouts) — one config both platforms accept. `Reconnect` moved to the
+  shared client (native honours `Yes`; wasm documents it best-effort). `open_websocket`
+  now takes this config and returns `WebSocketClient` (was `WebSocketConnection`).
+- **`extra_headers` are now actually sent.** Pre-existing bug: the native task threaded
+  `extra_headers` through its state structs but `build_upgrade_request` never received
+  them — they were silently dropped. Fixed: `extra_headers` is `SimpleHeaders`
+  end-to-end (in `WebSocketTask` and `ReconnectingWebSocketTask`), applied to the
+  handshake request multi-value-aware. Covered by a new handshake test.
+- **Wasm browser bridge** (`websocket/wasm/browser.rs`): a `web_sys::WebSocket` wired
+  into the shared client — JS `open`/`message`/`error`/`close` callbacks feed a pipe,
+  outbound `MessageDelivery` drains to `WebSocket.send`. `FetchHttpClient` implements
+  `WebSocketConnector` (`websocket/wasm/http_client_connector.rs`). `Send` is asserted
+  only on single-threaded wasm (mirroring `SendWrapper`).
+- **`open_websocket` is the single auto-switching surface**: build a `NativeHttpClient`
+  or `FetchHttpClient` via the uniform builder, call the identical `open_websocket` →
+  the right platform impl runs, returning the same `WebSocketClient`.
+
+Verification: native — 175 websocket + F51 tests pass (`--profile uat`). Wasm —
+`cargo check --target wasm32-unknown-unknown --no-default-features --features wasm-fetch`
+compiles clean (0 errors). The browser socket's *runtime* behaviour is not exercised
+here (the embedded V8 testbed has no `WebSocket` global; that needs the Playwright
+browser runner + a WS server).
+
+**Incidental pre-existing wasm-client fixes (were blocking any wasm build):** the
+`src/shared/context.rs` `PeerIdentity` leak (cfg-gated out on wasm yet used
+unconditionally — a Stage-4 de-leak miss), `FetchHttpClient` constructed as a unit
+struct in the wasm exchange task, the stale `RequestInit::set_redirect` web-sys API
+(now set via `Reflect`), and a `&self`-borrow escaping `run_future` in
+`FetchHttpClient::send` (extracted to an owned `fetch_and_read` free fn).
+
+**Remaining (Stage 6 tail, deferred):** the native `connect*` helpers still take
+`R: DnsResolver + Clone` (erased at construction) rather than being dropped entirely;
+no deployment-crate WS call sites needed migration (grep found none outside netio).
 
 ## Open questions for review
 

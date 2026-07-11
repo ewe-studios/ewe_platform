@@ -1,7 +1,7 @@
 //! WebSocket handshake tests (RFC 6455 Section 4).
 
 use base64::Engine;
-use foundation_netio::shared::http::{SimpleHeader, Status};
+use foundation_netio::shared::http::{SimpleHeader, SimpleHeaders, Status};
 use foundation_netio::websocket::{
     build_upgrade_request, compute_accept_key, generate_websocket_key, validate_upgrade_response,
 };
@@ -47,7 +47,7 @@ fn first_header_value(
 fn test_build_upgrade_request_headers() {
     let key = "dGhlIHNhbXBsZSBub25jZQ==";
     let request =
-        build_upgrade_request("example.com", "/chat", key, None).expect("should build request");
+        build_upgrade_request("example.com", "/chat", key, None, &SimpleHeaders::new()).expect("should build request");
 
     let headers = &request.headers;
 
@@ -84,7 +84,7 @@ fn test_build_upgrade_request_headers() {
 #[test]
 fn test_build_upgrade_request_with_subprotocols() {
     let key = "dGhlIHNhbXBsZSBub25jZQ==";
-    let request = build_upgrade_request("example.com", "/chat", key, Some("chat, superchat"))
+    let request = build_upgrade_request("example.com", "/chat", key, Some("chat, superchat"), &SimpleHeaders::new())
         .expect("should build request");
 
     let headers = &request.headers;
@@ -93,6 +93,45 @@ fn test_build_upgrade_request_with_subprotocols() {
     assert_eq!(
         first_header_value(headers, &SimpleHeader::SEC_WEBSOCKET_PROTOCOL),
         Some("chat, superchat".to_string()),
+    );
+}
+
+// Test 4b: build_upgrade_request threads caller-supplied extra headers onto the
+// wire (F51 — previously the field was accepted but silently dropped).
+#[test]
+fn test_build_upgrade_request_extra_headers() {
+    let key = "dGhlIHNhbXBsZSBub25jZQ==";
+
+    let mut extra = SimpleHeaders::new();
+    extra.insert(SimpleHeader::AUTHORIZATION, vec!["Bearer token123".to_string()]);
+    // Multi-value header — both values must survive.
+    extra.insert(
+        SimpleHeader::from("x-trace".to_string()),
+        vec!["a".to_string(), "b".to_string()],
+    );
+
+    let request = build_upgrade_request("example.com", "/chat", key, None, &extra)
+        .expect("should build request");
+    let headers = &request.headers;
+
+    assert_eq!(
+        first_header_value(headers, &SimpleHeader::AUTHORIZATION),
+        Some("Bearer token123".to_string()),
+        "custom Authorization header must reach the handshake request",
+    );
+    let trace = headers
+        .get(&SimpleHeader::from("x-trace".to_string()))
+        .cloned()
+        .unwrap_or_default();
+    assert!(
+        trace.contains(&"a".to_string()) && trace.contains(&"b".to_string()),
+        "both values of a multi-value header must survive, got {trace:?}",
+    );
+
+    // Mandatory handshake headers are still present alongside the extras.
+    assert_eq!(
+        first_header_value(headers, &SimpleHeader::SEC_WEBSOCKET_KEY),
+        Some(key.to_string()),
     );
 }
 

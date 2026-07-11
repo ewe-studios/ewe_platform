@@ -112,29 +112,7 @@ impl HttpClient for FetchHttpClient {
         // take precedence over client defaults).
         let req = self.merge_default_headers(req);
         let max_redirects = self.config.max_redirects;
-        SendWrapper::new(async move {
-            let ws_req = build_web_request(req, max_redirects)?;
-            let resp = do_fetch(&ws_req).await?;
-
-            let status = Status::from(resp.status().to_string());
-            let headers = web_sys_headers_to_simple(&resp.headers());
-
-            let text_promise = resp
-                .text()
-                .map_err(|e| HttpClientError::Reason(format!("body read failed: {e:?}")))?;
-            let body_js = JsFuture::from(text_promise)
-                .await
-                .map_err(|e| HttpClientError::Reason(format!("body await failed: {e:?}")))?;
-            let body_text = body_js.as_string().unwrap_or_default();
-            let body = if body_text.is_empty() {
-                SendSafeBody::None
-            } else {
-                SendSafeBody::Text(body_text)
-            };
-
-            Ok(SimpleResponse::new(status, headers, body))
-        })
-        .await
+        SendWrapper::new(fetch_and_read(req, max_redirects)).await
     }
 
     async fn send_sse_async(
@@ -165,8 +143,11 @@ impl HttpClient for FetchHttpClient {
     }
 
     fn send(&self, req: PreparedRequest) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
-        let fut = self.send_async(req);
-        let results = run_future(fut)
+        // Build an owned future (no `&self` borrow) so it satisfies `run_future`'s
+        // `'static` bound — the sync wrapper drives the canonical async path.
+        let req = self.merge_default_headers(req);
+        let max_redirects = self.config.max_redirects;
+        let results = run_future(SendWrapper::new(fetch_and_read(req, max_redirects)))
             .map_err(|e| HttpClientError::Reason(format!("valtron executor error: {e}")))?;
         results
             .into_iter()
@@ -220,17 +201,53 @@ impl HttpClient for FetchHttpClient {
 /// - `Bytes` → `Uint8Array`
 /// - `Stream` / `ChunkedStream` / `LineFeedStream` / `SseStream` →
 ///   JS `ReadableStream` via valtron's `iterator_to_readable_stream`
+/// Perform one fetch and read the full response body into a `SimpleResponse`.
+///
+/// WHY: Extracted as a free async fn over owned data so both `send_async` (async
+/// seam) and `send` (sync wrapper via `run_future`) drive the identical path
+/// without either future borrowing `&FetchHttpClient` — `run_future` requires a
+/// `'static` future.
+async fn fetch_and_read(
+    req: PreparedRequest,
+    max_redirects: u8,
+) -> Result<SimpleResponse<SendSafeBody>, HttpClientError> {
+    let ws_req = build_web_request(req, max_redirects)?;
+    let resp = do_fetch(&ws_req).await?;
+
+    let status = Status::from(resp.status().to_string());
+    let headers = web_sys_headers_to_simple(&resp.headers());
+
+    let text_promise = resp
+        .text()
+        .map_err(|e| HttpClientError::Reason(format!("body read failed: {e:?}")))?;
+    let body_js = JsFuture::from(text_promise)
+        .await
+        .map_err(|e| HttpClientError::Reason(format!("body await failed: {e:?}")))?;
+    let body_text = body_js.as_string().unwrap_or_default();
+    let body = if body_text.is_empty() {
+        SendSafeBody::None
+    } else {
+        SendSafeBody::Text(body_text)
+    };
+
+    Ok(SimpleResponse::new(status, headers, body))
+}
+
 fn build_web_request(req: PreparedRequest, max_redirects: u8) -> Result<Request, HttpClientError> {
     let init = RequestInit::new();
     init.set_method(method_str(&req.method));
 
     // Map max_redirects → fetch redirect mode.
     // 0 = manual (no redirects); >0 = follow (browser handles redirects).
-    if max_redirects == 0 {
-        init.set_redirect("manual");
-    } else {
-        init.set_redirect("follow");
-    }
+    // Set via `Reflect` (the `RequestInit.redirect` field) rather than a typed
+    // web-sys setter — the setter's name/signature drifts across web-sys patch
+    // releases, and the string form is what the fetch API consumes regardless.
+    let redirect_mode = if max_redirects == 0 { "manual" } else { "follow" };
+    let _ = js_sys::Reflect::set(
+        init.as_ref(),
+        &JsValue::from_str("redirect"),
+        &JsValue::from_str(redirect_mode),
+    );
 
     let body_js = send_safe_body_to_js(req.body)?;
     if !body_js.is_undefined() {

@@ -4,6 +4,7 @@
 
 use foundation_core::valtron::PoolGuard;
 use foundation_netio::shared::client::SystemDnsResolver;
+use foundation_netio::shared::http::SimpleHeaders;
 use foundation_netio::websocket::{WebSocketClient, WebSocketEvent, WebSocketMessage};
 use foundation_testing::http::WebSocketEchoServer;
 use serial_test::serial;
@@ -29,7 +30,7 @@ fn test_client_requests_subprotocol() {
         SystemDnsResolver,
         &url,
         Some("chat".to_string()),
-        Vec::new(),
+        SimpleHeaders::new(),
         std::time::Duration::from_secs(5),
         std::time::Duration::from_secs(1),
     );
@@ -72,7 +73,7 @@ fn test_client_with_subprotocol_builder() {
         SystemDnsResolver,
         &url,
         Some("chat".to_string()),
-        Vec::new(),
+        SimpleHeaders::new(),
         std::time::Duration::from_secs(5),
         std::time::Duration::from_secs(1),
     );
@@ -97,7 +98,7 @@ fn test_server_selects_first_matching_protocol() {
         SystemDnsResolver,
         &url,
         Some("chat".to_string()),
-        Vec::new(),
+        SimpleHeaders::new(),
         std::time::Duration::from_secs(5),
         std::time::Duration::from_secs(1),
     );
@@ -125,7 +126,7 @@ fn test_client_requests_multiple_subprotocols() {
         SystemDnsResolver,
         &url,
         Some("superchat,chat".to_string()),
-        Vec::new(),
+        SimpleHeaders::new(),
         std::time::Duration::from_secs(5),
         std::time::Duration::from_secs(1),
     );

@@ -78,6 +78,7 @@ pub fn build_upgrade_request(
     path: &str,
     key: &str,
     protocols: Option<&str>,
+    extra_headers: &SimpleHeaders,
 ) -> Result<SimpleIncomingRequest, WebSocketError> {
     let url = format!("http://{host}{path}");
 
@@ -92,6 +93,15 @@ pub fn build_upgrade_request(
 
     if let Some(protos) = protocols {
         builder = builder.add_header_raw(SimpleHeader::SEC_WEBSOCKET_PROTOCOL, protos);
+    }
+
+    // Caller-supplied headers, applied after the mandatory handshake headers and
+    // multi-value aware (each value for a name is emitted). A caller who repeats
+    // a mandatory header simply adds another value for it.
+    for (name, values) in extra_headers {
+        for value in values {
+            builder = builder.add_header(name.clone(), value.clone());
+        }
     }
 
     builder

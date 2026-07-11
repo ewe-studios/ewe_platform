@@ -13,15 +13,19 @@
 use crate::http::HttpConnectionPool;
 use crate::netcap::RawStream;
 use crate::shared::client::DnsResolver;
-use crate::shared::http::SimpleHeader;
+use crate::shared::http::SimpleHeaders;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::valtron::{
-    execute, BoxedSendExecutionAction, DrivenStreamIterator, Pipe, PipeReceiver, PipeSender,
-    Stream, TaskIterator, TaskSpread, TaskStatus,
+    execute, BoxedSendExecutionAction, DrivenStreamIterator, Stream, StreamSpread, TaskIterator,
+    TaskSpread, TaskStatus,
 };
 use std::sync::Arc;
 use std::time::Duration;
 
+use crate::websocket::shared::client::{
+    BoxedWebSocketStream, MessageDelivery, Reconnect, WebSocketClient, WebSocketConnectConfig,
+    WsProgress,
+};
 use crate::websocket::native::reconnecting_task::{
     ReconnectingWebSocketProgress, ReconnectingWebSocketTask,
 };
@@ -417,141 +421,88 @@ fn remap_task_status<D, P1, P2>(
 
 // ═══════════════════════════════════════════════════════════════════════════════
 
-/// Whether to use reconnecting or single-shot.
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Reconnect {
-    No,
-    Yes,
+// ═══════════════════════════════════════════════════════════════════════════════
+// Boxing the native stream into the platform-erased WebSocketClient shape
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/// Map the native `WsPending` progress into the shared [`WsProgress`].
+fn native_progress(pending: WsPending) -> WsProgress {
+    match pending {
+        WsPending::Task(WebSocketProgress::Connecting)
+        | WsPending::Reconnecting(ReconnectingWebSocketProgress::Connecting) => WsProgress::Connecting,
+        WsPending::Task(WebSocketProgress::Handshaking)
+        | WsPending::Reconnecting(ReconnectingWebSocketProgress::Handshaking) => {
+            WsProgress::Handshaking
+        }
+        WsPending::Task(WebSocketProgress::Reading)
+        | WsPending::Reconnecting(ReconnectingWebSocketProgress::Reading) => WsProgress::Reading,
+        WsPending::Reconnecting(ReconnectingWebSocketProgress::Reconnecting) => {
+            WsProgress::Reconnecting
+        }
+    }
 }
 
-// ============== WebSocketClient (Executor-based) ==============
-
-/// WHY: Users need a send-capable WebSocket client that integrates with valtron executor.
-///
-/// WHAT: `MessageDelivery` provides message sending via `PipeSender` — the
-/// bounded, waker-hooked replacement for `ConcurrentQueue`. Same public API,
-/// now with executor-integrated wake and backpressure.
-///
-/// HOW: Wraps `PipeSender<WebSocketMessage>` — cloned for cheap sharing.
-#[derive(Clone)]
-pub struct MessageDelivery {
-    tx: PipeSender<WebSocketMessage>,
+/// Map the native `WsPending` progress context to the shared [`WsProgress`],
+/// preserving every data-bearing variant (including `Spread` payloads).
+fn map_progress<D>(item: Stream<D, WsPending>) -> Stream<D, WsProgress> {
+    match item {
+        Stream::Init => Stream::Init,
+        Stream::Ignore => Stream::Ignore,
+        Stream::Delayed(d) => Stream::Delayed(d),
+        Stream::Pending(p) => Stream::Pending(native_progress(p)),
+        Stream::Next(d) => Stream::Next(d),
+        Stream::Wait => Stream::Wait,
+        Stream::Spread(items) => Stream::Spread(
+            items
+                .into_iter()
+                .map(|spread| match spread {
+                    StreamSpread::Pending(p) => StreamSpread::Pending(native_progress(p)),
+                    StreamSpread::Done(d) => StreamSpread::Done(d),
+                })
+                .collect(),
+        ),
+    }
 }
 
-impl MessageDelivery {
-    /// Create a new `MessageDelivery` with a bounded pipe (depth 64).
+/// Box a spawned native WebSocket stream into the shared [`BoxedWebSocketStream`]
+/// the cross-platform client consumes.
+fn box_ws_stream<R>(inner: DrivenStreamIterator<WsTask<R>>) -> BoxedWebSocketStream
+where
+    R: DnsResolver + Clone + Send + 'static,
+{
+    Box::new(inner.map(map_progress))
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// Native connect helpers on the cross-platform WebSocketClient
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// WHY: `WebSocketClient` is now non-generic and shared. Its native constructors
+// stay here because they name native types (`WsTask`, `HttpConnectionPool`,
+// `execute`). They are generic over the resolver `R` but return the non-generic
+// `WebSocketClient`, so callers write `WebSocketClient::connect(resolver, …)`
+// exactly as before — the resolver is erased at construction.
+
+impl WebSocketClient {
+    /// Connect to a WebSocket endpoint (native: HTTP/1.1 Upgrade over the
+    /// resolver's own dial/TLS).
     ///
-    /// Returns both the delivery handle and the receiver half the task drains.
-    #[must_use]
-    pub fn new() -> (Self, PipeReceiver<WebSocketMessage>) {
-        let (tx, rx) = Pipe::with_depth(64);
-        (Self { tx }, rx)
-    }
-
-    /// Wrap an existing `PipeSender`. The caller already holds the matching receiver.
-    #[must_use]
-    pub fn from_pipe(tx: PipeSender<WebSocketMessage>) -> Self {
-        Self { tx }
-    }
-
-    /// Send a WebSocket message (non-blocking — returns `Full` if the pipe is at capacity).
+    /// Returns both the client and a [`MessageDelivery`] handle for sending.
     ///
     /// # Errors
     ///
-    /// Returns [`WebSocketError::ConnectionClosed`] if the receiver end has been dropped.
-    pub fn send(&self, message: WebSocketMessage) -> Result<(), WebSocketError> {
-        self.tx
-            .try_send(message)
-            .map_err(|_| WebSocketError::ConnectionClosed)?;
-        Ok(())
-    }
-
-    /// Send a Ping message.
-    pub fn ping(&self, data: Vec<u8>) -> Result<(), WebSocketError> {
-        self.send(WebSocketMessage::Ping(data))
-    }
-
-    /// Send a Pong message.
-    pub fn pong(&self, data: Vec<u8>) -> Result<(), WebSocketError> {
-        self.send(WebSocketMessage::Pong(data))
-    }
-
-    /// Send a Close message.
-    ///
-    /// # Errors
-    ///
-    /// Returns an error if the operation fails.
-    pub fn close(&self, code: u16, reason: &str) -> Result<(), WebSocketError> {
-        self.send(WebSocketMessage::Close(code, reason.to_string()))
-    }
-
-    /// Get the underlying `PipeSender` for Transport bridging.
-    #[must_use]
-    pub fn pipe(&self) -> &PipeSender<WebSocketMessage> {
-        &self.tx
-    }
-
-    /// Consume and return the underlying `PipeSender`.
-    #[must_use]
-    pub fn into_pipe(self) -> PipeSender<WebSocketMessage> {
-        self.tx
-    }
-
-    /// Deprecated — kept for transition. Returns a reference to the pipe sender
-    /// (use `pipe()` for the same access).
-    #[must_use]
-    #[deprecated(note = "use pipe() instead")]
-    pub fn queue(&self) -> &PipeSender<WebSocketMessage> {
-        &self.tx
-    }
-}
-
-/// WebSocket event for the client API.
-///
-/// WHY: Users need to know when the stream is still working vs. when an actual
-/// event is available.
-///
-/// WHAT: Enum with `Message` variant containing the actual message and `Skip` variant
-/// for pending/delayed states.
-#[derive(Debug, Clone)]
-pub enum WebSocketEvent {
-    /// A WebSocket message is available.
-    Message(WebSocketMessage),
-    /// Stream is still working, no message yet. User should call `next()` again.
-    Skip,
-}
-
-/// A WebSocket client that uses the valtron executor.
-///
-/// WHY: Users want to consume WebSocket messages without understanding `TaskIterator` internals.
-///
-/// WHAT: Wraps the executor's stream and presents a simple iterator interface.
-/// Includes `MessageDelivery` for sending messages. Can optionally use
-/// [`ReconnectingWebSocketTask`] via [`Reconnect::Yes`].
-pub struct WebSocketClient<R: DnsResolver + Clone + Send + 'static> {
-    inner: DrivenStreamIterator<WsTask<R>>,
-    delivery: MessageDelivery,
-    #[allow(dead_code)]
-    read_timeout: Duration,
-}
-
-impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
-    /// Connect to a WebSocket endpoint.
-    ///
-    /// Returns both the client and a `MessageDelivery` handle for sending messages.
-    ///
-    /// # Errors
-    ///
-    /// Returns [`WebSocketError`] if:
-    /// - URL is invalid
-    /// - Executor fails to schedule the task
-    pub fn connect(
+    /// Returns [`WebSocketError`] if the URL is invalid or the executor fails to
+    /// schedule the task.
+    pub fn connect<R>(
         resolver: R,
         url: impl Into<String>,
         read_timeout: Duration,
         sleep_timeout: Duration,
-    ) -> Result<(Self, MessageDelivery), WebSocketError> {
-        Self::with_options(resolver, url, None, Vec::new(), read_timeout, sleep_timeout)
+    ) -> Result<(Self, MessageDelivery), WebSocketError>
+    where
+        R: DnsResolver + Clone + Send + 'static,
+    {
+        Self::with_options(resolver, url, None, SimpleHeaders::new(), read_timeout, sleep_timeout)
     }
 
     /// Connect to a WebSocket endpoint with custom options.
@@ -563,21 +514,24 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
     /// * `subprotocols` - Optional comma-separated list of subprotocols
     /// * `extra_headers` - Additional HTTP headers for handshake
     /// * `read_timeout` - Timeout for read operations
+    /// * `sleep_timeout` - Idle poll interval
     ///
     /// # Errors
     ///
-    /// Returns [`WebSocketError`] if:
-    /// - URL is invalid
-    /// - Executor fails to schedule the task
+    /// Returns [`WebSocketError`] if the URL is invalid or the executor fails to
+    /// schedule the task.
     #[tracing::instrument(name = "websocket_connect", skip(resolver, extra_headers), fields(url))]
-    pub fn with_options(
+    pub fn with_options<R>(
         resolver: R,
         url: impl Into<String>,
         subprotocols: Option<String>,
-        extra_headers: Vec<(SimpleHeader, String)>,
+        extra_headers: SimpleHeaders,
         read_timeout: Duration,
         sleep_timeout: Duration,
-    ) -> Result<(Self, MessageDelivery), WebSocketError> {
+    ) -> Result<(Self, MessageDelivery), WebSocketError>
+    where
+        R: DnsResolver + Clone + Send + 'static,
+    {
         let url_str = url.into();
         let (delivery, rx) = MessageDelivery::new();
         let task = WebSocketTask::connect_with_delivery(
@@ -591,80 +545,56 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
         )?;
         let inner = execute(WsTask::Single(task), None)
             .map_err(|e| WebSocketError::ProtocolError(format!("Executor error: {e}")))?;
-        let client = Self {
-            inner,
-            delivery: delivery.clone(),
-            read_timeout,
-        };
+        let client = Self::new(box_ws_stream(inner), delivery.clone());
         Ok((client, delivery))
     }
 
     /// Connect with optional reconnection.
     ///
-    /// When `Reconnect::Yes`, uses `ReconnectingWebSocketTask` which handles
+    /// When [`Reconnect::Yes`], uses `ReconnectingWebSocketTask` which handles
     /// disconnect detection and exponential backoff transparently.
     ///
     /// # Errors
     ///
-    /// Returns an error if the operation fails.
-    pub fn connect_with_reconnect(
+    /// Returns [`WebSocketError`] if the URL is invalid or the executor fails to
+    /// schedule the task.
+    pub fn connect_with_reconnect<R>(
         resolver: R,
         url: impl Into<String>,
         reconnect: Reconnect,
         read_timeout: Duration,
         sleep_timeout: Duration,
-    ) -> Result<(Self, MessageDelivery), WebSocketError> {
-        let url_str = url.into();
-        let (delivery, rx) = MessageDelivery::new();
-
-        let task = match reconnect {
-            Reconnect::No => WsTask::Single(WebSocketTask::connect_with_delivery(
-                resolver,
-                url_str,
-                None,
-                Vec::new(),
-                rx,
-                read_timeout,
-                sleep_timeout,
-            )?),
-            Reconnect::Yes => {
-                WsTask::Reconnecting(ReconnectingWebSocketTask::connect(resolver, &url_str)?)
-            }
-        };
-
+    ) -> Result<(Self, MessageDelivery), WebSocketError>
+    where
+        R: DnsResolver + Clone + Send + 'static,
+    {
+        let (task, delivery) =
+            Self::connect_parts(resolver, url, reconnect, read_timeout, sleep_timeout)?;
         let inner = execute(task, None)
             .map_err(|e| WebSocketError::ProtocolError(format!("Executor error: {e}")))?;
-        Ok((
-            Self {
-                inner,
-                delivery: delivery.clone(),
-                read_timeout,
-            },
-            delivery,
-        ))
+        Ok((Self::new(box_ws_stream(inner), delivery.clone()), delivery))
     }
 
-    /// Connect with byte pipes — for Transport use.
+    /// Connect, returning the raw native task and delivery without spawning it —
+    /// for Transport use, where the caller drives the task on its own pool.
     ///
-    /// Returns the three parts the caller needs:
-    /// - `WsTask<R>` — spawned on the valtron pool. Use `execute()` to drive it.
-    /// - `MessageDelivery` — push `Binary(bytes)` to send data to the task.
-    /// - `PipeReceiver<Bytes>` — the task receives inbound bytes here.
-    ///
-    /// The caller spawns bridge tasks: one that wraps `Bytes → Binary → delivery`,
-    /// one that drains the task stream → `Binary → Bytes → body_tx`.
-    /// See `WsTransport::open()` for the canonical wiring.
+    /// Returns:
+    /// - `WsTask<R>` — the un-spawned task. Use `execute()` to drive it.
+    /// - `MessageDelivery` — push messages to send to the task.
     ///
     /// # Errors
     ///
-    /// Returns an error if the operation fails.
-    pub fn connect_parts(
+    /// Returns [`WebSocketError`] if the URL is invalid.
+    pub fn connect_parts<R>(
         resolver: R,
         url: impl Into<String>,
         reconnect: Reconnect,
         read_timeout: Duration,
         sleep_timeout: Duration,
-    ) -> Result<(WsTask<R>, MessageDelivery), WebSocketError> {
+    ) -> Result<(WsTask<R>, MessageDelivery), WebSocketError>
+    where
+        R: DnsResolver + Clone + Send + 'static,
+    {
         let url_str = url.into();
         let (delivery, msg_rx) = MessageDelivery::new();
 
@@ -673,7 +603,7 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
                 resolver,
                 url_str,
                 None,
-                Vec::new(),
+                SimpleHeaders::new(),
                 msg_rx,
                 read_timeout,
                 sleep_timeout,
@@ -690,18 +620,20 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
     ///
     /// # Errors
     ///
-    /// Returns [`WebSocketError`] if:
-    /// - URL is invalid
-    /// - Executor fails to schedule the task
-    pub fn with_pool(
+    /// Returns [`WebSocketError`] if the URL is invalid or the executor fails to
+    /// schedule the task.
+    pub fn with_pool<R>(
         url: impl Into<String>,
         pool: Arc<HttpConnectionPool<R>>,
-    ) -> Result<(Self, MessageDelivery), WebSocketError> {
+    ) -> Result<(Self, MessageDelivery), WebSocketError>
+    where
+        R: DnsResolver + Clone + Send + 'static,
+    {
         Self::with_pool_and_options(
             url,
             pool,
             None,
-            Vec::new(),
+            SimpleHeaders::new(),
             Duration::from_secs(3),
             Duration::from_secs(1),
         )
@@ -711,17 +643,19 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
     ///
     /// # Errors
     ///
-    /// Returns [`WebSocketError`] if:
-    /// - URL is invalid
-    /// - Executor fails to schedule the task
-    pub fn with_pool_and_options(
+    /// Returns [`WebSocketError`] if the URL is invalid or the executor fails to
+    /// schedule the task.
+    pub fn with_pool_and_options<R>(
         url: impl Into<String>,
         pool: Arc<HttpConnectionPool<R>>,
         subprotocols: Option<String>,
-        extra_headers: Vec<(SimpleHeader, String)>,
+        extra_headers: SimpleHeaders,
         read_timeout: Duration,
         sleep_timeout: Duration,
-    ) -> Result<(Self, MessageDelivery), WebSocketError> {
+    ) -> Result<(Self, MessageDelivery), WebSocketError>
+    where
+        R: DnsResolver + Clone + Send + 'static,
+    {
         let url_str = url.into();
         let (delivery, rx) = MessageDelivery::new();
         let task = WebSocketTask::connect_with_pool_and_delivery(
@@ -735,61 +669,46 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
         )?;
         let inner = execute(WsTask::Single(task), None)
             .map_err(|e| WebSocketError::ProtocolError(format!("Executor error: {e}")))?;
-        let client = Self {
-            inner,
-            delivery: delivery.clone(),
-            read_timeout,
-        };
+        let client = Self::new(box_ws_stream(inner), delivery.clone());
         Ok((client, delivery))
     }
 
-    /// Get the message delivery handle for sending messages.
-    #[must_use]
-    pub fn delivery(&self) -> MessageDelivery {
-        self.delivery.clone()
-    }
-
-    /// Consume the client, returning the inner stream for direct iteration.
-    #[must_use]
-    pub fn into_parts(self) -> (DrivenStreamIterator<WsTask<R>>, MessageDelivery) {
-        (self.inner, self.delivery)
-    }
-
-    /// Get an iterator over incoming messages.
-    pub fn messages(&mut self) -> WebSocketMessageIterator<'_, R> {
-        WebSocketMessageIterator { client: self }
-    }
-}
-
-/// Iterator over messages from a `WebSocketClient`.
-// `+ Clone` is explicit now that `DnsResolver` no longer requires it (F51 Stage 1);
-// `WebSocketClient<R>` clones the resolver. Folded into the unified client in Stage 6.
-pub struct WebSocketMessageIterator<'a, R: DnsResolver + Clone + Send + 'static> {
-    client: &'a mut WebSocketClient<R>,
-}
-
-impl<R: DnsResolver + Clone + Send + 'static> Iterator for WebSocketMessageIterator<'_, R> {
-    type Item = Result<WebSocketEvent, WebSocketError>;
-
-    fn next(&mut self) -> Option<Self::Item> {
-        match self.client.inner.next()? {
-            Stream::Next(result) => {
-                tracing::debug!("Stream got Next value");
-                // Skip ConnectionEstablished message, return actual messages
-                match result {
-                    Ok(WebSocketMessage::ConnectionEstablished) => Some(Ok(WebSocketEvent::Skip)),
-                    other => Some(other.map(WebSocketEvent::Message)),
-                }
-            }
-            Stream::Init
-            | Stream::Ignore
-            | Stream::Pending(_)
-            | Stream::Delayed(_)
-            | Stream::Wait
-            | Stream::Spread(_) => {
-                tracing::debug!("Stream got Init/Ignore/Pending/Delayed/Wait/Spread to be skipped");
-                Some(Ok(WebSocketEvent::Skip))
-            }
+    /// Connect honouring a full [`WebSocketConnectConfig`] — the native basis for
+    /// [`WebSocketConnector::open_websocket`](crate::websocket::shared::connector::WebSocketConnector).
+    ///
+    /// Dispatches on [`WebSocketConnectConfig::reconnect`]: `No` builds a
+    /// single-shot task honouring subprotocols, headers, and timeouts; `Yes`
+    /// layers the reconnecting task (subprotocols/headers use its defaults —
+    /// a documented limitation of the reconnect path).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WebSocketError`] if the URL is invalid or the executor fails to
+    /// schedule the task.
+    pub fn connect_with_config<R>(
+        resolver: R,
+        url: impl Into<String>,
+        config: &WebSocketConnectConfig,
+    ) -> Result<(Self, MessageDelivery), WebSocketError>
+    where
+        R: DnsResolver + Clone + Send + 'static,
+    {
+        match config.reconnect {
+            Reconnect::No => Self::with_options(
+                resolver,
+                url,
+                config.subprotocols.clone(),
+                config.extra_headers.clone(),
+                config.read_timeout,
+                config.sleep_timeout,
+            ),
+            Reconnect::Yes => Self::connect_with_reconnect(
+                resolver,
+                url,
+                Reconnect::Yes,
+                config.read_timeout,
+                config.sleep_timeout,
+            ),
         }
     }
 }
