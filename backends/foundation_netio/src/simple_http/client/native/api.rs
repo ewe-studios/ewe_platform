@@ -17,7 +17,7 @@ use foundation_core::valtron::{
     Stream, StreamIteratorExt, TaskIteratorExt,
 };
 use crate::simple_http::client::shared::{
-    ClientConfig, DnsResolver, MiddlewareChain, PreparedRequest, ResponseIntro,
+    ClientConfig, DnsResolver, PreparedRequest, ResponseIntro,
 };
 use crate::simple_http::client::{
     HttpClientConnection, HttpConnectionPool, HttpRequestPending, RequestIntro, SendRequestTask,
@@ -238,12 +238,6 @@ pub struct ClientRequest<R: DnsResolver + 'static> {
     /// Connection pool for reuse
     pool: Arc<HttpConnectionPool<R>>,
 
-    /// Middleware chain for request/response interception
-    middleware_chain: Arc<MiddlewareChain>,
-
-    /// Original request for middleware response processing
-    original_request: Option<PreparedRequest>,
-
     /// The prepared HTTP request to execute
     prepared_request: Option<PreparedRequest>,
 
@@ -277,13 +271,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         prepared: PreparedRequest,
         config: ClientConfig,
         pool: Arc<HttpConnectionPool<R>>,
-        middleware_chain: Arc<MiddlewareChain>,
     ) -> Self {
         Self {
             config,
             pool,
-            middleware_chain,
-            original_request: None,
             prepared_request: Some(prepared),
             task_state: ClientRequestState::NotStarted,
         }
@@ -374,13 +365,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         // Build complete response
         let (intro, headers) = intro_data.expect("should have intro");
         let (conn, body) = response_body.expect("should have body");
-        let mut response = SimpleResponse::new(intro.status, headers, body);
-
-        // Apply middleware to response (after receiving)
-        if let Some(request) = &self.original_request {
-            self.middleware_chain
-                .process_response(request, &mut response)?;
-        }
+        let response = SimpleResponse::new(intro.status, headers, body);
 
         Ok(FinalizedResponse::new(response, conn, self.pool.clone()))
     }
@@ -417,21 +402,9 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
         }
 
         // Take the prepared request to avoid cloning
-        let Some(mut request) = self.prepared_request.take() else {
+        let Some(request) = self.prepared_request.take() else {
             return Err(HttpClientError::NoRequestToSend);
         };
-
-        // Apply middleware to request (before sending)
-        self.middleware_chain.process_request(&mut request)?;
-
-        // Store request metadata for response middleware (without body)
-        self.original_request = Some(PreparedRequest {
-            method: request.method.clone(),
-            url: request.url.clone(),
-            headers: request.headers.clone(),
-            body: SendSafeBody::None,
-            extensions: std::mem::take(&mut request.extensions),
-        });
 
         // Transition to Executing state
         self.task_state = ClientRequestState::Executing;
@@ -536,12 +509,7 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
             .ok_or(HttpClientError::InvalidRequestState)?;
         let (intro, headers) = intro_result.0;
 
-        let mut response = SimpleResponse::new(intro.status, headers, body);
-
-        // Apply middleware to response (after receiving)
-        if let Some(request) = &self.original_request {
-            self.middleware_chain.process_response(request, &mut response)?;
-        }
+        let response = SimpleResponse::new(intro.status, headers, body);
 
         Ok(FinalizedResponse::new(response, conn, self.pool.clone()))
     }

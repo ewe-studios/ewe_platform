@@ -4,7 +4,7 @@
 
 use foundation_core::url::Uri;
 use crate::simple_http::client::shared::{
-    ClientConfig, DnsResolver, MiddlewareChain, PreparedRequest, SystemDnsResolver,
+    ClientConfig, DnsResolver, PreparedRequest, SystemDnsResolver,
 };
 use crate::simple_http::client::{ClientRequest, HttpConnectionPool};
 use crate::simple_http::shared::Extensions;
@@ -24,7 +24,6 @@ pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
     body: Option<SendSafeBody>,
     config: Option<ClientConfig>,
     pool: Option<Arc<HttpConnectionPool<R>>>,
-    middleware_chain: Option<Arc<MiddlewareChain>>,
 }
 
 impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
@@ -60,10 +59,7 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
 
         let pool = self.pool.unwrap_or_default();
         let config = self.config.unwrap_or_default();
-        let middleware_chain = self
-            .middleware_chain
-            .unwrap_or_else(|| Arc::new(MiddlewareChain::new()));
-        Ok(ClientRequest::new(prepared, config, pool, middleware_chain))
+        Ok(ClientRequest::new(prepared, config, pool))
     }
 
     pub fn build_send_request(self) -> Result<super::tasks::SendRequestTask<R>, HttpClientError> {
@@ -110,7 +106,6 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
             body: None,
             pool: None,
             config: None,
-            middleware_chain: None,
         })
     }
 
@@ -123,12 +118,6 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     #[must_use]
     pub fn without_pool(mut self) -> Self {
         self.pool = None;
-        self
-    }
-
-    #[must_use]
-    pub fn with_middleware(mut self, chain: Arc<MiddlewareChain>) -> Self {
-        self.middleware_chain = Some(chain);
         self
     }
 
