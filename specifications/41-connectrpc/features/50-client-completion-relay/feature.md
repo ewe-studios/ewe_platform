@@ -37,11 +37,34 @@ created: 2026-07-11
 > Also migrated the proxy + `foundation_db` off the deprecated `SimpleHttpClient`
 > alias while here.
 >
-> **Deferred — Part B2 (readiness-aware splice):** replacing the 1 ms sleep floor
-> with a `CompositeReadiness` park needs a `ReadinessSource` capability threaded
-> through the netcap `CompletionReadWrite` seam plus a `splice_bidirectional`
-> signature change and the thread-vs-valtron concurrency decision. Part B1 already
-> removes the upstream-leg *syscalls*; B2 removes the *latency floor*. Not started.
+> **Blocked — Part B2 (readiness-aware splice): the design's "block the thread on
+> `CompositeReadiness`" is not implementable as written.** Investigation
+> (2026-07-12) found that `EventReadiness::is_ready(dur)` is **non-blocking** for fd
+> readiness: `FdRegistration::is_ready` and `SharedReadiness::is_ready` both *ignore*
+> the `dur` argument and return the current latch state
+> (`reactor.is_ready(token)`). `CompositeReadiness::is_ready` just ORs the two, so it
+> is non-blocking too. There is **no condvar/park primitive** that blocks a raw
+> thread until an fd becomes ready — blocking-until-ready exists only inside the
+> reactor's `poll()` loop and is consumed by valtron tasks through
+> `TaskStatus::Depends`. So parking the splice thread on a composite readiness would
+> **busy-spin**, not sleep.
+>
+> B2 therefore needs one of two larger changes, both flagged in this doc's
+> concurrency-model open question:
+> 1. **A new blocking-readiness primitive** — e.g. a `Condvar` on `SharedReadiness`
+>    that the reactor's wake path notifies. This touches the reactor's hot wake path
+>    and every readiness consumer (high blast radius, correctness surface: lost
+>    wakeups, spurious wakeups).
+> 2. **Convert the splice to a valtron task** returning `Depends(CompositeReadiness)`
+>    — but the passthrough is *deliberately* on a dedicated OS thread (see
+>    `handler.rs`: "keeps upstream I/O off the valtron worker pool… doing that from a
+>    pool worker risks a cross-executor stall"), so this reverses an explicit design
+>    choice.
+>
+> Part B1 already delivered the syscall-removal (upstream reads from the inbox,
+> writes via SEND). B2 is only the *latency-floor* removal, and it is gated on
+> picking one of the two primitives above — a design decision with real trade-offs,
+> not a mechanical change. Deferred pending that decision.
 >
 > **Deferred — Part C (SEND_ZC zero-copy relay):** F49's SEND pool now exists, but
 > `IORING_OP_SEND_ZC` has distinct two-notification completion semantics and needs
