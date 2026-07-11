@@ -74,6 +74,16 @@ Wiring HTTP/3 into the seam: the third ConnectionHandler branch and client trans
 
 ### Remaining — the server half
 
+> **Sequencing note (2026-07-12):** the four items below are one interlocking
+> block, and item 2 (the netcap `Quic` `Listener`/`Connection` variants + routing
+> `HttpServer` through netcap's listener — D12 §9, carried over from F33) is the
+> **prerequisite** for the rest. `H3Serve` + `ConnectRpcServeH3` + `dispatch_h3`
+> (item 1) mirror the h2 path mechanically, but they are *undriven* — and therefore
+> scaffolding — until a real HTTP/3 connection handler exists, and that handler
+> needs the netcap listener from item 2. So the server half cannot land as small
+> additive slices; it is a single feature-sized effort rooted in the netcap
+> listener refactor. The client transport (above) is complete and independent.
+
 1. **`H3Serve` + the third `ConnectionHandler` branch.** `ServerApp` is
    `Http1 | Http2 | Both`; it needs `Http3`. `H2Serve` is the model: one task per stream, the
    handler never sees the connection, response frames go into a pipe the connection's poll loop
