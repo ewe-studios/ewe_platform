@@ -1,5 +1,6 @@
 pub mod assembler;
 pub mod batch_writer;
+pub mod connector;
 pub mod decoder;
 pub mod error;
 pub mod frame;

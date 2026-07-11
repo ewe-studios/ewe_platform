@@ -161,6 +161,13 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         self.pool.clone()
     }
 
+    /// Access the resolver for internal use (e.g. WebSocket handshake — Stage 5/6).
+    #[must_use]
+    #[allow(dead_code)]
+    pub(crate) fn resolver(&self) -> &R {
+        &self.resolver
+    }
+
     // -- builder helpers -------------------------------------------------
 
     /// Build a `ClientRequestBuilder` from a `PreparedRequest`, routing by method.
