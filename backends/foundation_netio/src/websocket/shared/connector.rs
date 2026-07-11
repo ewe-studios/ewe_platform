@@ -22,26 +22,11 @@
 //! valtron task; wasm hands off to the browser `WebSocket` API. Both box their
 //! inbound stream into the shared [`WebSocketClient`] or [`WsExchangeTask`].
 
-use std::sync::Arc;
-
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator};
 
-use crate::shared::client::http_client::HttpClient;
 use crate::websocket::shared::client::{MessageDelivery, WebSocketClient, WebSocketConnectConfig};
 use crate::websocket::shared::error::WebSocketError;
 use crate::websocket::shared::message::WebSocketMessage;
-
-/// A client that implements both `HttpClient` and `WebSocketConnector`.
-///
-/// The platform's concrete client (`NativeHttpClient` or `FetchHttpClient`)
-/// implements both traits, so an `Arc<dyn FullHttpClient>` serves as the
-/// single shared handle for the HTTP transport, the WS transport, and
-/// everything else that needs a client.
-pub trait FullHttpClient: HttpClient + WebSocketConnector {}
-impl<T: HttpClient + WebSocketConnector> FullHttpClient for T {}
-
-/// Shared, clonable handle to a platform client that does HTTP + WebSocket.
-pub type DynHttpClient = Arc<dyn FullHttpClient>;
 
 /// Boxed, platform-erased WebSocket task — `Box<dyn TaskIterator>` with shared
 /// Ready/Pending/Spawner types. Mirrors

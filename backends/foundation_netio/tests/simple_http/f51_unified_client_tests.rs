@@ -15,7 +15,7 @@ use std::time::Duration;
 
 use foundation_core::valtron::{self, valtron_test, Stream, TaskIterator, TaskIteratorExt};
 use foundation_netio::http::NativeHttpClient;
-use foundation_netio::http_client_builder::HttpClientBuilder;
+use foundation_netio::network_client::HttpClientBuilder;
 use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_netio::shared::client::request_task::{
     HttpExchange, HttpExchangeClientTask, HttpExchangePending,

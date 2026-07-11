@@ -18,6 +18,19 @@ use std::time::Duration;
 use crate::shared::client::http_client::HttpClient;
 use crate::shared::client::{ClientConfig, SystemDnsResolver};
 use crate::shared::http::timeout::TimeoutCalculator;
+use crate::websocket::shared::connector::WebSocketConnector;
+
+/// A client that handles **both** HTTP requests and WebSocket connections.
+///
+/// Every platform client (`NativeHttpClient`, `FetchHttpClient`) implements
+/// both `HttpClient` and `WebSocketConnector`. This supertrait + type alias
+/// lets transports hold one `Arc<dyn NetClient>` and use it for both protocols
+/// — no platform-specific types leak.
+pub trait NetClient: HttpClient + WebSocketConnector {}
+impl<T: HttpClient + WebSocketConnector> NetClient for T {}
+
+/// Shared handle to a platform client (HTTP + WebSocket). Clone is cheap (`Arc`).
+pub type DynNetClient = Arc<dyn NetClient>;
 use crate::shared::http::{HttpClientError, SimpleHeader, SimpleHeaders};
 
 /// Platform-agnostic builder for `Arc<dyn HttpClient>`.

@@ -19,7 +19,8 @@ use foundation_netio::shared::http::{
     Proto, RequestDescriptor, SimpleHeaders, Status,
 };
 use foundation_netio::websocket::shared::client::WebSocketConnectConfig;
-use foundation_netio::websocket::shared::connector::{DynHttpClient, WebSocketConnector};
+use foundation_netio::network_client::DynNetClient;
+use foundation_netio::websocket::shared::connector::WebSocketConnector;
 use foundation_netio::websocket::shared::error::WebSocketError;
 use foundation_netio::websocket::shared::message::WebSocketMessage;
 
@@ -40,18 +41,18 @@ const SLEEP_TIMEOUT: Duration = Duration::from_millis(100);
 
 #[derive(Clone)]
 pub struct WsTransport {
-    connector: DynHttpClient,
+    connector: DynNetClient,
 }
 
 impl WsTransport {
     /// Create a WsTransport backed by any `WebSocketConnector`.
     ///
-    /// The transport is platform-agnostic — it holds an `Arc<dyn WebSocketConnector>`
+    /// The transport is platform-agnostic — it holds a `DynNetClient`
     /// so the same code works with a native client or a wasm client. Typically
     /// the caller passes the same concrete client to both `H1Transport::new()` and
     /// `WsTransport::new()`.
     #[must_use]
-    pub fn new(connector: DynHttpClient) -> Self {
+    pub fn new(connector: DynNetClient) -> Self {
         Self { connector }
     }
 

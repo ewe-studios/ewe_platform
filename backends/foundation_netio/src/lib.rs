@@ -10,11 +10,13 @@
 // ── Shared (wasm-compatible) modules — always compiled ──────────────
 pub mod shared;
 
-// ── Cross-platform client builder (F51) ──────────────────────────────
-pub mod http_client_builder;
+// ── Cross-platform client + builder (F51) ─────────────────────────────
+pub mod network_client;
 
 /// Platform-agnostic re-export of the cross-platform client builder.
-pub use http_client_builder::HttpClientBuilder;
+pub use network_client::HttpClientBuilder;
+/// Combined HTTP + WebSocket client handle (F52).
+pub use network_client::{DynNetClient, NetClient};
 
 /// Platform-agnostic `default_http_client()` — resolves to the native
 /// (`crate::http`) or wasm (`crate::wasm::client`) constructor at compile time.
