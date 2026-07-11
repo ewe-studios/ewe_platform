@@ -267,6 +267,10 @@ pub fn static_table_find_name(name: &[u8]) -> Option<usize> {
 /// Decode an HPACK integer with the given prefix size.
 ///
 /// Returns `None` if more bytes are needed.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn decode_int(buf: &[u8], prefix_bits: u8) -> Result<Option<(usize, usize)>, &'static str> {
     if buf.is_empty() {
         return Ok(None);

@@ -154,6 +154,10 @@ impl H2Conn {
 
     /// Run the client-side h2 handshake (write preface + SETTINGS exchange).
     #[allow(dead_code)]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn client_handshake(&mut self) -> io::Result<()> {
         self.inner.client_handshake()
     }

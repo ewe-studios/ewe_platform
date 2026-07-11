@@ -163,6 +163,10 @@ pub enum ProcessStreamResult {
 ///     Err(StringBodyError::InvalidUtf8(e)) => handle_utf8_error(e),
 /// }
 /// ```
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn collect_string_strict(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
 ) -> Result<String, StringBodyError> {
@@ -302,6 +306,10 @@ pub fn collect_string(
 // Byte Body Reading
 // ============================================================================
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), BodyReaderError> {
     match body {
         SendSafeBody::Text(_) => Ok(()),
@@ -364,6 +372,10 @@ pub fn drain_stream_iterator_from_send_safe(body: SendSafeBody) -> Result<(), Bo
     }
 }
 
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn drain_stream_iterator(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
 ) -> Result<(), BodyReaderError> {
@@ -412,6 +424,10 @@ pub fn drain_stream_iterator(
 ///     Err(BodyReaderError::StreamRead(e)) => handle_error(e),
 /// }
 /// ```
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn collect_bytes_strict(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
 ) -> Result<Vec<u8>, BodyReaderError> {
@@ -967,6 +983,10 @@ pub fn collect_bytes_from_send_safe(body: SendSafeBody) -> Vec<u8> {
 /// let response = client.get(url).send()?;
 /// let bytes = collect_bytes_from_send_safe(response.take_body());
 /// ```
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn collect_strings_from_send_safe(body: SendSafeBody) -> Result<String, StringBodyError> {
     let collected = collect_bytes_from_send_safe(body);
     String::from_utf8(collected).map_err(StringBodyError::InvalidUtf8)
@@ -1005,6 +1025,10 @@ pub fn collect_strings_from_send_safe(body: SendSafeBody) -> Result<String, Stri
 /// let mut file = std::fs::File::create("download.bin")?;
 /// let bytes_written = collect_bytes_into(body, &mut file)?;
 /// ```
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn collect_bytes_into<W: std::io::Write>(
     body: SendSafeBody,
     writer: &mut W,
@@ -1089,6 +1113,10 @@ pub fn collect_bytes_into<W: std::io::Write>(
 ///     Err(JsonParseError::JsonParse(e)) => handle_parse_error(e),
 /// }
 /// ```
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn parse_json_strict<T: DeserializeOwned>(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
 ) -> Result<T, JsonParseError> {
@@ -1311,6 +1339,10 @@ where
 ///     Err(BodyReaderError::StreamRead(e)) => handle_error(e),
 /// }
 /// ```
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn process_streaming_body_strict<F>(
     stream: Box<dyn Iterator<Item = Result<IncomingResponseParts, HttpReaderError>> + Send>,
     mut processor: F,
@@ -1568,6 +1600,10 @@ where
 ///
 /// HOW: For eager bodies (`Text`/`Bytes`) it returns immediately. For streaming
 /// bodies it iterates until `None`, returning any `Err` from the stream.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
     match body {
         SendSafeBody::Text(t) => Ok(t.into_bytes()),
@@ -1637,6 +1673,10 @@ pub fn try_collect_bytes(body: SendSafeBody) -> Result<Vec<u8>, BoxedError> {
 /// WHY: Same as `try_collect_bytes` but returns a `String`.
 ///
 /// WHAT: Collects body bytes via `try_collect_bytes`, then validates UTF-8.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub fn try_collect_string(body: SendSafeBody) -> Result<String, BoxedError> {
     let bytes = try_collect_bytes(body)?;
     String::from_utf8(bytes).map_err(|e| Box::new(e) as BoxedError)
@@ -1883,6 +1923,10 @@ impl FuturesStream for AsyncSendSafeBody {
 }
 
 /// Collect all body bytes from an `AsyncSendSafeBody` in async context.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>, BoxedError> {
     use core::future::poll_fn;
     let mut all = Vec::new();
@@ -1898,6 +1942,10 @@ pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>,
 }
 
 /// Collect body as a String in async context.
+///
+/// # Errors
+///
+/// Returns an error if the operation fails.
 pub async fn collect_string_async(body: AsyncSendSafeBody) -> Result<String, BoxedError> {
     let bytes = collect_bytes_async(body).await?;
     String::from_utf8(bytes).map_err(|e| Box::new(e) as BoxedError)

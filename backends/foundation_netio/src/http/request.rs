@@ -26,6 +26,10 @@ pub struct ClientRequestBuilder<R: DnsResolver + 'static> {
 
 impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     #[must_use = "builder must be consumed to produce a PreparedRequest"]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn build(self) -> Result<PreparedRequest, HttpClientError> {
         Ok(PreparedRequest {
             method: self.method,
@@ -39,6 +43,10 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
 
 impl ClientRequestBuilder<SystemDnsResolver> {
     #[must_use = "builder must be consumed to produce a ClientRequest"]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn system_client(self) -> Result<ClientRequest<SystemDnsResolver>, HttpClientError> {
         self.build_client()
     }
@@ -46,6 +54,10 @@ impl ClientRequestBuilder<SystemDnsResolver> {
 
 impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
     #[must_use = "builder must be consumed to produce a ClientRequest"]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn build_client(self) -> Result<ClientRequest<R>, HttpClientError> {
         let prepared = PreparedRequest {
             method: self.method,
@@ -60,6 +72,10 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
         Ok(ClientRequest::new(prepared, config, pool))
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn build_send_request(self) -> Result<super::tasks::SendRequestTask<R>, HttpClientError> {
         let prepared_request = PreparedRequest {
             method: self.method,
@@ -82,6 +98,10 @@ impl<R: DnsResolver + Default + 'static> ClientRequestBuilder<R> {
 }
 
 impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn new(method: SimpleMethod, url: &str) -> Result<Self, HttpClientError> {
         let parsed_url = Uri::parse(url)?;
         let mut headers = BTreeMap::new();
@@ -200,6 +220,10 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     }
 
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn body_bytes(mut self, bytes: Vec<u8>) -> Self {
         let content_length = bytes.len().to_string();
 
@@ -271,31 +295,59 @@ impl<R: DnsResolver + 'static> ClientRequestBuilder<R> {
     /// responsible for headers when using raw body variants (streams,
     /// chunked, SSE, etc.).
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn body(mut self, body: SendSafeBody) -> Self {
         self.body = Some(body);
         self
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn get(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::GET, url)
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn post(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::POST, url)
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn put(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::PUT, url)
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn delete(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::DELETE, url)
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn patch(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::PATCH, url)
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn head(url: &str) -> Result<Self, HttpClientError> {
         Self::new(SimpleMethod::HEAD, url)
     }

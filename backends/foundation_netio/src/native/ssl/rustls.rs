@@ -113,6 +113,10 @@ impl<T> std::os::unix::io::AsFd for RustlsStream<T> {
 }
 
 impl<T> RustlsStream<T> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn try_clone_connection(&self) -> std::io::Result<Connection> {
         let guard = self
             .0
@@ -121,6 +125,10 @@ impl<T> RustlsStream<T> {
         guard.sock.try_clone()
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn read_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         let guard = self
             .0
@@ -129,6 +137,10 @@ impl<T> RustlsStream<T> {
         guard.sock.read_timeout()
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn write_timeout(&self) -> std::io::Result<Option<std::time::Duration>> {
         let guard = self
             .0
@@ -137,6 +149,10 @@ impl<T> RustlsStream<T> {
         guard.sock.write_timeout()
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn set_write_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
         let mut guard = self
             .0
@@ -145,6 +161,10 @@ impl<T> RustlsStream<T> {
         guard.sock.set_write_timeout(dur)
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn set_read_timeout(&mut self, dur: Option<std::time::Duration>) -> std::io::Result<()> {
         let mut guard = self
             .0
@@ -155,6 +175,10 @@ impl<T> RustlsStream<T> {
 }
 
 impl<T> RustlsStream<T> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn local_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         let guard = self
             .0
@@ -163,6 +187,10 @@ impl<T> RustlsStream<T> {
         guard.sock.local_addr()
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn peer_addr(&self) -> std::io::Result<Option<SocketAddr>> {
         let guard = self
             .0
@@ -171,6 +199,10 @@ impl<T> RustlsStream<T> {
         guard.sock.peer_addr()
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn stream_addr(&self) -> DataStreamResult<DataStreamAddr> {
         let local_addr = self.local_addr()?;
         let peer_addr = self.peer_addr()?;
@@ -183,6 +215,10 @@ impl<T> RustlsStream<T> {
         }
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn shutdown(&mut self, how: Shutdown) -> std::io::Result<()> {
         let guard = self
             .0
@@ -322,6 +358,10 @@ pub type RustTlsServerStream = RustlsStream<rustls::ServerConnection>;
 pub struct RustlsAcceptor(Arc<rustls::ServerConfig>);
 
 impl RustlsAcceptor {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn from_pem(
         certificates: Vec<u8>,
         private_key: Zeroizing<Vec<u8>>,
@@ -344,6 +384,10 @@ impl RustlsAcceptor {
         Ok(Self(Arc::new(tls_conf)))
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn accept(
         &self,
         stream: Connection,
@@ -413,6 +457,10 @@ impl RustlsConnector {
         }
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn client_tls_from_endpoint(
         endpoint: &Endpoint<Arc<rustls::ClientConfig>>,
     ) -> Result<(RustTlsClientStream, DataStreamAddr), Box<dyn Error + Send + Sync + 'static>> {
@@ -420,6 +468,10 @@ impl RustlsConnector {
         connector.from_endpoint(endpoint)
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn from_tcp_stream(
         &self,
         sni: String,
@@ -443,6 +495,10 @@ impl RustlsConnector {
         Ok((RustlsStream(shared_stream), addr))
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn from_endpoint(
         &self,
         endpoint: &Endpoint<Arc<rustls::ClientConfig>>,

@@ -477,6 +477,10 @@ impl MessageDelivery {
     }
 
     /// Send a Close message.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn close(&self, code: u16, reason: &str) -> Result<(), WebSocketError> {
         self.send(WebSocketMessage::Close(code, reason.to_string()))
     }
@@ -599,6 +603,10 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
     ///
     /// When `Reconnect::Yes`, uses `ReconnectingWebSocketTask` which handles
     /// disconnect detection and exponential backoff transparently.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn connect_with_reconnect(
         resolver: R,
         url: impl Into<String>,
@@ -646,6 +654,10 @@ impl<R: DnsResolver + Clone + Send + 'static> WebSocketClient<R> {
     /// The caller spawns bridge tasks: one that wraps `Bytes → Binary → delivery`,
     /// one that drains the task stream → `Binary → Bytes → body_tx`.
     /// See `WsTransport::open()` for the canonical wiring.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn connect_parts(
         resolver: R,
         url: impl Into<String>,

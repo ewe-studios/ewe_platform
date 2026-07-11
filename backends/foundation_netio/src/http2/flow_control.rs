@@ -81,12 +81,20 @@ impl Window {
     }
 
     /// Decrease the window by `other`, returning an error on underflow.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn decrease_by(&mut self, other: WindowSize) -> Result<(), FlowControlError> {
         self.0 = self.0.checked_sub(other as i32).ok_or(FlowControlError)?;
         Ok(())
     }
 
     /// Increase the window by `other`, returning an error on overflow.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn increase_by(&mut self, other: WindowSize) -> Result<(), FlowControlError> {
         self.0 = self.checked_add(other)?.0;
         Ok(())
@@ -94,6 +102,10 @@ impl Window {
 
     /// Add `other` to this window, returning the new [`Window`] or an error on overflow.
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn checked_add(self, other: WindowSize) -> Result<Self, FlowControlError> {
         let v = self.0.checked_add(other as i32).ok_or(FlowControlError)?;
         Ok(Self(v))

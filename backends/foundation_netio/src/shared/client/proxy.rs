@@ -68,6 +68,10 @@ impl ProxyConfig {
         self
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse(url: &str) -> Result<Self, HttpClientError> {
         let (protocol_str, rest) = url.split_once("://").ok_or_else(|| {
             HttpClientError::InvalidProxyUrl("Missing protocol separator ://".to_string())

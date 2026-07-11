@@ -140,6 +140,10 @@ impl<R: Read> SseParser<R> {
     /// - `Err(EventSourceError)` on I/O read failure.
     ///
     /// NOTE: Field lines accumulate locally; empty lines dispatch; comments return immediately.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn parse_next(&mut self) -> Result<Option<ParseResult>, EventSourceError> {
         let mut builder = EventBuilder::new();
 

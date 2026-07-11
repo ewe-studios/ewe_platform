@@ -181,6 +181,10 @@ impl<S: Read + Write> H2Connection<S> {
 
     /// Run the client-side handshake: send preface + SETTINGS, read server
     /// preface + SETTINGS + ACK, send ACK back.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn client_handshake(&mut self) -> io::Result<()> {
         // 1. Send client preface
         self.write_buf.put_slice(CLIENT_PREFACE);
@@ -229,6 +233,10 @@ impl<S: Read + Write> H2Connection<S> {
 
     /// Run the server-side handshake: read client preface + SETTINGS, send
     /// our SETTINGS, wait for client ACK.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn server_handshake(&mut self) -> io::Result<()> {
         // 1. Read client preface (24 bytes)
         let mut preface_buf = [0u8; CLIENT_PREFACE_LEN];
@@ -349,6 +357,10 @@ impl<S: Read + Write> H2Connection<S> {
 
     /// Public: read a raw frame from the socket, returning `(head, payload_bytes)`.
     /// Useful for manual frame-processing loops (streaming servers, etc.).
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn read_frame(&mut self) -> io::Result<(Head, Bytes)> {
         // Read the 9-byte header
         let mut header = [0u8; 9];
@@ -411,6 +423,10 @@ impl<S: Read + Write> H2Connection<S> {
 
     /// Process the next incoming frame, calling the handler as needed.
     /// Returns `true` if the connection should continue, `false` to close.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn process_next<H: StreamHandler>(&mut self, handler: &mut H) -> io::Result<bool> {
         let (head, payload) = self.read_frame()?;
         let stream_id = head.stream_id;
@@ -669,6 +685,10 @@ impl<S: Read + Write> H2Connection<S> {
     // ── Sending ────────────────────────────────────────────────────────
 
     /// Send a response on the given stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn send_response(&mut self, stream_id: u32, response: H2Response) -> io::Result<()> {
         // Build HPACK-encoded response HEADERS
         let mut header_block = BytesMut::new();
@@ -769,6 +789,10 @@ impl<S: Read + Write> H2Connection<S> {
     }
 
     /// Open a new outgoing stream (client-side) and send a request.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn send_request(&mut self, request: H2Request) -> io::Result<u32> {
         let stream_id = self
             .alloc_stream_id()
@@ -838,6 +862,10 @@ impl<S: Read + Write> H2Connection<S> {
     /// The caller follows up with [`send_data_frame`] calls and ends with
     /// `send_data_frame(stream_id, data, true)` or an empty
     /// `send_data_frame(stream_id, &[], true)`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn send_headers_response(
         &mut self,
         stream_id: u32,
@@ -883,6 +911,10 @@ impl<S: Read + Write> H2Connection<S> {
     /// The first call after `send_headers_response` or `send_request` must have
     /// `end_stream: false` for multi-frame streaming; the final frame sets
     /// `end_stream: true`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn send_data_frame(
         &mut self,
         stream_id: u32,
@@ -913,6 +945,10 @@ impl<S: Read + Write> H2Connection<S> {
     /// Read the next frame, returning `Some((stream_id, data, end_stream))` for a
     /// DATA frame, or `Ok(None)` for non-DATA frames (SETTINGS/PING/etc handled
     /// internally). Call in a loop until `end_stream` is true.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn recv_data_frame(&mut self) -> io::Result<Option<(u32, Bytes, bool)>> {
         loop {
             let (head, payload) = self.read_frame()?;
@@ -945,6 +981,10 @@ impl<S: Read + Write> H2Connection<S> {
 
     /// Read the next incoming frame, returning `Some(response)` if it's a
     /// response HEADERS frame for a stream we initiated.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn recv_response(&mut self) -> io::Result<Option<(u32, H2Request)>> {
         loop {
             let (head, payload) = self.read_frame()?;
@@ -974,6 +1014,10 @@ impl<S: Read + Write> H2Connection<S> {
     }
 
     /// Flush any pending writes.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn flush(&mut self) -> io::Result<()> {
         self.flush_write()
     }

@@ -148,6 +148,10 @@ impl DataFrame {
     }
 
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn with_end_stream(mut self) -> Self {
         self.flags |= data_flags::END_STREAM;
         self
@@ -245,6 +249,10 @@ impl HeadersFrame {
     }
 
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn with_end_stream(mut self) -> Self {
         self.flags |= headers_flags::END_STREAM;
         self
@@ -297,6 +305,10 @@ impl HeadersFrame {
     }
 
     /// Encode this HEADERS frame into `dst`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn encode(&self, dst: &mut BytesMut) {
         let mut payload_len = self.header_block.len();
         let pad = self.pad_len.unwrap_or(0) as usize;
@@ -401,6 +413,10 @@ pub enum ErrorCode {
 
 impl ErrorCode {
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn from_u32(code: u32) -> Self {
         match code {
             0 => Self::NoError,
@@ -516,6 +532,10 @@ impl SettingsFrame {
     }
 
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn is_ack(&self) -> bool {
         self.flags & settings_flags::ACK != 0
     }
@@ -548,6 +568,10 @@ impl SettingsFrame {
     }
 
     /// Encode this SETTINGS frame into `dst`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn encode(&self, dst: &mut BytesMut) {
         let payload_len = self.settings.len() * 6;
         let head = Head {
@@ -674,6 +698,10 @@ impl PingFrame {
     }
 
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn is_ack(&self) -> bool {
         self.flags & ping_flags::ACK != 0
     }
@@ -715,6 +743,10 @@ pub struct GoAwayFrame {
 
 impl GoAwayFrame {
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn new(last_stream_id: u32, error_code: ErrorCode) -> Self {
         Self {
             last_stream_id,
@@ -739,6 +771,10 @@ impl GoAwayFrame {
     }
 
     /// Encode this GOAWAY frame into `dst`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn encode(&self, dst: &mut BytesMut) {
         let payload_len = 8 + self.debug_data.len();
         let head = Head {
@@ -807,6 +843,10 @@ pub struct ContinuationFrame {
 }
 
 impl ContinuationFrame {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn new(stream_id: u32, header_block: impl Into<Bytes>) -> Self {
         Self {
             stream_id,

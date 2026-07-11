@@ -42,6 +42,10 @@ impl<S: Read + Write> H2Server<S> {
 
     /// Run the server: complete the handshake, then process frames until the
     /// connection closes.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn serve(&mut self) -> io::Result<()> {
         self.conn.server_handshake()?;
 

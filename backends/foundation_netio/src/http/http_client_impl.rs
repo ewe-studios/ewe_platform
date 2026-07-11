@@ -311,6 +311,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         self
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn proxy(mut self, proxy_url: &str) -> Result<Self, HttpClientError> {
         use crate::shared::client::proxy::ProxyConfig;
         let proxy_config = ProxyConfig::parse(proxy_url)?;
@@ -385,6 +389,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
 // ---------------------------------------------------------------------------
 
 impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn get(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::get(url).map(|builder| {
             builder
@@ -393,6 +401,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         })
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn post(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::post(url).map(|builder| {
             builder
@@ -401,6 +413,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         })
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn put(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::put(url).map(|builder| {
             builder
@@ -409,6 +425,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         })
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn delete(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::delete(url).map(|builder| {
             builder
@@ -417,6 +437,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         })
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn patch(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::patch(url).map(|builder| {
             builder
@@ -425,6 +449,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         })
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn head(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::head(url).map(|builder| {
             builder
@@ -433,6 +461,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         })
     }
 
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn options(&self, url: &str) -> Result<ClientRequestBuilder<R>, HttpClientError> {
         ClientRequestBuilder::options(url).map(|builder| {
             builder
@@ -451,6 +483,10 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
     ///
     /// Takes the `ClientRequestBuilder`, calls `.build()`, and wraps the
     /// request with the client's config and pool.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn request(
         &self,
         builder: ClientRequestBuilder<R>,

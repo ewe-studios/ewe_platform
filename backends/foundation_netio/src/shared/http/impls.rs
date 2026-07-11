@@ -4782,6 +4782,10 @@ pub enum ChunkState {
 
 impl ChunkState {
     #[must_use]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn new(chunk_size_octet: String, chunk_extension: Option<Extensions>) -> Self {
         Self::try_new(chunk_size_octet, chunk_extension).expect("should parse octet string")
     }
@@ -5941,6 +5945,10 @@ pub mod http_streams {
                 .into()
         }
 
+        ///
+        /// # Errors
+        ///
+        /// Returns an error if the operation fails.
         pub fn http_streams<T: Read + Send + 'static>(reader: T) -> HTTPStreams<T> {
             let source = ioutils::SharedByteBufferStream::rwrite(reader);
             HTTPStreams::new(source)

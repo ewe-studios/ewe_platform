@@ -103,6 +103,10 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
     ///
     /// `true` if status code is in range 200-299, `false` otherwise.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn is_success(&self) -> bool {
         let status_code = self
             .0
@@ -115,6 +119,10 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
 }
 
 impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn get_status(&self) -> Status {
         self.0
             .as_ref()
@@ -122,6 +130,10 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
             .get_status()
     }
 
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn get_headers_ref(&self) -> &SimpleHeaders {
         self.0
             .as_ref()
@@ -129,6 +141,10 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
             .get_headers_ref()
     }
 
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn get_headers_mut(&mut self) -> &mut SimpleHeaders {
         self.0
             .as_mut()
@@ -136,6 +152,10 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
             .get_headers_mut()
     }
 
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn get_body_ref(&self) -> &T {
         self.0
             .as_ref()
@@ -143,6 +163,10 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
             .get_body_ref()
     }
 
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn get_body_mut(&mut self) -> &mut T {
         self.0
             .as_mut()
@@ -150,6 +174,10 @@ impl<T, R: DnsResolver + 'static> FinalizedResponse<T, R> {
             .get_body_mut()
     }
 
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn into_parts(
         mut self,
     ) -> (
@@ -489,6 +517,10 @@ impl<R: DnsResolver + 'static> ClientRequest<R> {
     /// to completion using valtron's `into_ready_future()`, allowing the
     /// caller to `.await` without blocking the current thread.
     #[tracing::instrument(skip(self))]
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub async fn send_async(
         mut self,
     ) -> Result<FinalizedResponse<SendSafeBody, R>, HttpClientError> {

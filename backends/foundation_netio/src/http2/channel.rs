@@ -207,6 +207,10 @@ impl H2Channel {
     /// Run one client handshake step. Returns `Ok(())` when complete,
     /// `Err(WouldBlock)` when more data needs to be fed. Caller drains output,
     /// feeds input, and calls again until `Ok(())`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn client_handshake_step(&mut self) -> io::Result<()> {
         if !self.preface_sent {
             self.write_buf.put_slice(CLIENT_PREFACE);
@@ -257,6 +261,10 @@ impl H2Channel {
 
     /// Run one server handshake step. Returns `Ok(())` when complete,
     /// `Err(WouldBlock)` when more data needed.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn server_handshake_step(&mut self) -> io::Result<()> {
         // 1. Read client preface
         if !self.preface_received {
@@ -325,6 +333,10 @@ impl H2Channel {
 
     /// Send a request. Appends frames to `write_buf`. Caller drains output.
     /// Returns the stream ID.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn send_request(&mut self, request: &H2Request) -> io::Result<u32> {
         let stream_id = self
             .alloc_stream_id()
@@ -385,6 +397,10 @@ impl H2Channel {
     }
 
     /// Send a response on an existing stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn send_response(&mut self, stream_id: u32, response: &H2Response) -> io::Result<()> {
         let mut header_block = BytesMut::new();
         let status_bytes = response.status.to_string();
@@ -438,6 +454,10 @@ impl H2Channel {
     }
 
     /// Send headers-only response for streaming.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn send_headers_response(
         &mut self,
         stream_id: u32,
@@ -476,6 +496,10 @@ impl H2Channel {
     }
 
     /// Send a DATA frame on an already-open stream.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn send_data_frame(
         &mut self,
         stream_id: u32,
@@ -527,6 +551,10 @@ impl H2Channel {
     /// - `Ok(Some((stream_id, response)))` for a HEADERS frame
     /// - `Ok(None)` for GOAWAY
     /// - `Err(WouldBlock)` if more data needed
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn recv_response(&mut self) -> io::Result<Option<(u32, H2Request)>> {
         loop {
             let (head, payload) = self.read_frame()?;
@@ -554,6 +582,10 @@ impl H2Channel {
     /// - `Ok(Some((stream_id, data, end_stream)))`
     /// - `Ok(None)` for GOAWAY
     /// - `Err(WouldBlock)` if more data needed
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn recv_data_frame(&mut self) -> io::Result<Option<(u32, Bytes, bool)>> {
         loop {
             let (head, payload) = self.read_frame()?;
@@ -579,6 +611,10 @@ impl H2Channel {
     ///
     /// Returns `Ok(Some((stream_id, event)))` for DATA or trailing HEADERS,
     /// `Ok(None)` for GOAWAY, and `Err(WouldBlock)` when the buffer is drained.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the operation fails.
     pub fn recv_stream_event(&mut self) -> io::Result<Option<(u32, H2StreamEvent)>> {
         loop {
             let (head, payload) = self.read_frame()?;

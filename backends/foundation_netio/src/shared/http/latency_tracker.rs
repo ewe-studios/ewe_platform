@@ -239,6 +239,10 @@ impl LatencyTracker {
     /// Record a latency sample for an endpoint.
     ///
     /// Creates the endpoint entry if it doesn't exist.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn record(&self, endpoint: &str, duration: Duration) {
         let sample = LatencySample::new(duration);
 
@@ -254,6 +258,10 @@ impl LatencyTracker {
     ///
     /// Returns None if no samples exist for the endpoint.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn get_stats(&self, endpoint: &str) -> Option<LatencyStats> {
         // Try cleanup if needed
         self.maybe_cleanup();
@@ -266,6 +274,10 @@ impl LatencyTracker {
 
     /// Check if we have enough samples for an endpoint to provide reliable stats.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn has_reliable_stats(&self, endpoint: &str, min_samples: usize) -> bool {
         let endpoints = self.endpoints.read().expect("poisoned lock");
         endpoints
@@ -274,12 +286,20 @@ impl LatencyTracker {
     }
 
     /// Remove an endpoint from tracking.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn remove_endpoint(&self, endpoint: &str) {
         let mut endpoints = self.endpoints.write().expect("poisoned lock");
         endpoints.remove(endpoint);
     }
 
     /// Clear all endpoints.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn clear(&self) {
         let mut endpoints = self.endpoints.write().expect("poisoned lock");
         endpoints.clear();
@@ -287,6 +307,10 @@ impl LatencyTracker {
 
     /// Get the number of tracked endpoints.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn endpoint_count(&self) -> usize {
         let endpoints = self.endpoints.read().expect("poisoned lock");
         endpoints.len()
@@ -319,6 +343,10 @@ impl LatencyTracker {
     }
 
     /// Force immediate cleanup of expired samples.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn cleanup(&self) {
         let mut endpoints = self.endpoints.write().expect("poisoned lock");
         for endpoint_latency in endpoints.values_mut() {

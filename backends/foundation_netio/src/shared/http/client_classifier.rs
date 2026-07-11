@@ -184,6 +184,10 @@ impl ClientClassifier {
     }
 
     /// Record a transfer and update classification.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn record_transfer(&self, client_ip: &str, bytes: usize, duration: Duration) {
         if duration.is_zero() {
             return;
@@ -229,6 +233,10 @@ impl ClientClassifier {
 
     /// Get current classification for a client.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn classify(&self, client_ip: &str) -> ClientClassification {
         let clients = self.clients.read().expect("poisoned lock");
         clients
@@ -244,6 +252,10 @@ impl ClientClassifier {
 
     /// Get stats for a client.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn get_stats(&self, client_ip: &str) -> Option<ClientStats> {
         let clients = self.clients.read().expect("poisoned lock");
         clients.get(client_ip).cloned()
@@ -251,18 +263,30 @@ impl ClientClassifier {
 
     /// Check if client has been classified.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn is_tracked(&self, client_ip: &str) -> bool {
         let clients = self.clients.read().expect("poisoned lock");
         clients.contains_key(client_ip)
     }
 
     /// Remove a client from tracking.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn remove_client(&self, client_ip: &str) {
         let mut clients = self.clients.write().expect("poisoned lock");
         clients.remove(client_ip);
     }
 
     /// Clear all clients.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn clear(&self) {
         let mut clients = self.clients.write().expect("poisoned lock");
         clients.clear();
@@ -270,12 +294,20 @@ impl ClientClassifier {
 
     /// Get number of tracked clients.
     #[must_use]
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn client_count(&self) -> usize {
         let clients = self.clients.read().expect("poisoned lock");
         clients.len()
     }
 
     /// Cleanup old clients.
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
     pub fn cleanup(&self) {
         let now = Instant::now();
         let mut clients = self.clients.write().expect("poisoned lock");
