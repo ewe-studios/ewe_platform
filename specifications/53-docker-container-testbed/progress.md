@@ -115,7 +115,7 @@
 | TLS + auto-cert | 18 | rustls, acme-micro, VFS, CloudflareClient |
 | SSL redirect | 25 | Bundled with 18 — same PR |
 | ~~`proxy!` macro tests~~ | 19 | ✅ **COMPLETE** — 7 compile-fail + 13 round-trip tests |
-| Cloudflare typed records | 24 | serde, Cloudflare API — **IN PROGRESS** (generator fix + typed types) |
+| Cloudflare typed records | 24 | ✅ **COMPLETE** — typed types + dns_ops refactor |
 
 ### ✅ `proxy!` macro test suite (Decision 19) — COMPLETE 2026-07-10
 
