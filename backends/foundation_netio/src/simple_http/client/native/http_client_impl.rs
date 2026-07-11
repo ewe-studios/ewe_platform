@@ -8,8 +8,11 @@ use crate::simple_http::client::shared::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient, SseProgress,
 };
 use crate::simple_http::client::shared::request::PreparedRequest;
-use crate::simple_http::client::shared::{ClientConfig, DnsResolver, SystemDnsResolver};
-use crate::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use crate::simple_http::client::shared::request_task::HttpExchangeClientTask;
+use crate::simple_http::client::shared::{BoxedDnsResolver, ClientConfig, DnsResolver, SystemDnsResolver};
+use crate::simple_http::client::native::pool::ConnectionPool;
+use crate::simple_http::client::native::tasks::HttpExchangeTask;
+use crate::simple_http::client::{ClientRequestBuilder, HttpConnectionPool, SimpleHttpClient};
 use crate::simple_http::shared::{
     HttpClientError, SendSafeBody, SimpleMethod, SimpleResponse,
 };
@@ -172,6 +175,21 @@ impl<R: DnsResolver + Clone + Default + Send + Sync + 'static> HttpClient for Na
 
         let mapped = driven.map_pending(map_progress);
         Ok(Box::new(mapped))
+    }
+
+    fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
+        let config = self.client.client_config();
+        // Stage 1: create a fresh pool with a default system resolver erased to
+        // `BoxedDnsResolver`. Stage 2 folds `SimpleHttpClient` into
+        // `NativeHttpClient` and erases the resolver at construction, making the
+        // pool shared across `open_exchange` and the existing surface.
+        let resolver: BoxedDnsResolver = Arc::new(SystemDnsResolver::default());
+        let pool = Arc::new(HttpConnectionPool::new(
+            ConnectionPool::default(),
+            resolver,
+        ));
+        let task = HttpExchangeTask::new(req, config.max_redirects, pool, config);
+        HttpExchangeClientTask::native(task)
     }
 }
 

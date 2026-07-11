@@ -32,12 +32,14 @@ use crate::simple_http::client::shared::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient,
 };
 use crate::simple_http::client::shared::request::PreparedRequest;
+use crate::simple_http::client::shared::request_task::HttpExchangeClientTask;
 use crate::simple_http::shared::{
     HttpClientError, LineFeed, SendSafeBody, SimpleMethod, SimpleResponse, Status,
 };
 
 use super::headers::{simple_headers_to_web_sys, web_sys_headers_to_simple};
 use super::stream::WasmSseIterator;
+use super::tasks::WasmHttpExchangeTask;
 
 /// Fetch-based HTTP client for wasm32 (browser + Cloudflare Workers).
 ///
@@ -149,6 +151,11 @@ impl HttpClient for FetchHttpClient {
             .unwrap_or(Err(HttpClientError::Reason(
                 "run_future returned no result".into(),
             )))
+    }
+
+    fn open_exchange(&self, req: PreparedRequest) -> HttpExchangeClientTask {
+        let task = WasmHttpExchangeTask::new(req);
+        HttpExchangeClientTask::wasm(task)
     }
 }
 
