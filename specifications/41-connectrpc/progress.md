@@ -35,12 +35,12 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
 
 | 50 | Client completion + zero-syscall proxy relay | **Part A implemented + tested 2026-07-12** (commit 813d29e7b): `iogate::connect_completion` — outbound-dial mirror of `accept_connection`, returns a completion-backed `Connection`. **Deferred:** Part B (readiness-aware splice + proxy dial wiring — needs a `splice_bidirectional` signature change + proxy iogate dep + `ServerIo` config), Part C (`IORING_OP_SEND_ZC` zero-copy relay). |
 
-## Pending
+## HTTP/3 (F34 done, F35 client-side done)
 
-| # | Feature | Depends on | Effort |
-|---|---------|-----------|--------|
-| 34 | HTTP/3 module | 33, 29 | large |
-| 35 | HTTP/3 transport | 34, 22 | large |
+| # | Feature | Status |
+|---|---------|--------|
+| 34 | HTTP/3 module (framing + QPACK over QUIC traits) | **complete** — `foundation_netio::http3` (varint/frame/qpack); wire behaviour proved e2e in netio `tests/http3/connection_tests.rs`. |
+| 35 | HTTP/3 ConnectRPC transport | **in-progress — client half done.** `H3Transport` + capability matrix + 6–7 capability tests landed. **Remaining = the server half:** `H3Serve` + `ServerApp::Http3` branch, netcap `Quic` variants on `Connection`/`Listener` + routing `HttpServer` through netcap's listener, Alt-Svc + `ConnectionContext` population, then the Connect+gRPC conformance suites over a real HTTP/3 server. |
 
 ## Truly-remaining work (next steps)
 
@@ -51,6 +51,8 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
    config knob). Then **Part C** — the `IORING_OP_SEND_ZC` zero-copy relay.
 2. **F49 Phase C** — `split_read_write`'s write half as a second-registration
    `CompletionSocket` (the SEND mechanism it needs is done).
-3. **F34 / F35** — HTTP/3 module + transport (large; depends on F33 QUIC ✓ + F29 ✓).
+3. **F35 server half** — `H3Serve` + `ServerApp::Http3`, netcap `Quic` listener
+   variants, Alt-Svc + `ConnectionContext`, then Connect+gRPC conformance over a
+   real HTTP/3 server (large; the client transport + F34 module are done).
 4. **F52 tail** — optionally add the 4-way `test` auto-detect + formal `bindgen-web`
    deprecation; re-run the end-to-end Chromium browser test to close verification.
