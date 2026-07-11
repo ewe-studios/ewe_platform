@@ -33,11 +33,7 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
 | 51b | connectrpc shared/native restructure | Crate split into `shared/` (codec, compression, context, envelope, error, error_writer, interceptor, message, protocol, client, router, transport incl. H1+WS) + `native/` (server, h2_serve, transport h2/h3). h2 dispatch method cfg-gated in place. foundation_http H2Serve moved shared/serve → native/serve (native http2 leak). 180/180 tests pass; native + wasm warning-free. |
 | 52 | Browser test harness | Implemented, **diverged from design**: shipped `#[valtron_bindgen]` + `#[valtron_wasm_test]` macros (valtron-pool-aware) instead of a bare `#[wasm_bindgen_test]` re-export. `foundation_wasm_testbed` deleted, tests relocated to `foundation_netio/tests/wasm/`, docs updated. CLI shipped as top-level `deno`/`browser`/`bindgen` commands + wasm-bindgen version check (CLI ≥ crate). **Not shipped:** the design's 4-way `test` auto-detect (still legacy mode-based); `bindgen-web` kept with an INTEROP warning, not a formal deprecation. **Not re-verified:** end-to-end Chromium browser run (blocked earlier on a testbed feature-combo build issue). |
 
-## Design proposals — not built
-
-| # | Feature | Status |
-|---|---------|--------|
-| 50 | Client completion + zero-syscall proxy relay | proposed — design doc only (Part C needs F49; in progress next) |
+| 50 | Client completion + zero-syscall proxy relay | **Part A implemented + tested 2026-07-12** (commit 813d29e7b): `iogate::connect_completion` — outbound-dial mirror of `accept_connection`, returns a completion-backed `Connection`. **Deferred:** Part B (readiness-aware splice + proxy dial wiring — needs a `splice_bidirectional` signature change + proxy iogate dep + `ServerIo` config), Part C (`IORING_OP_SEND_ZC` zero-copy relay). |
 
 ## Pending
 
@@ -48,9 +44,13 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
 
 ## Truly-remaining work (next steps)
 
-1. **F49 / F50** — write-side completion (`IORING_OP_SEND`) + client completion /
-   zero-syscall proxy relay. Both are pure design proposals (design docs only).
-   **In progress next.**
-2. **F52 tail** — optionally add the 4-way `test` auto-detect + formal `bindgen-web`
+1. **F50 Part B** — the `ReadinessSource` capability + `CompositeReadiness`-parked
+   `splice_bidirectional` (replacing the 1 ms sleep floor), plus wiring
+   `foundation_proxy`'s `tunnel_tcp`/`forward_upgrade` to dial via
+   `connect_completion` (needs a proxy `foundation_iogate` dep + a `ServerIo`
+   config knob). Then **Part C** — the `IORING_OP_SEND_ZC` zero-copy relay.
+2. **F49 Phase C** — `split_read_write`'s write half as a second-registration
+   `CompletionSocket` (the SEND mechanism it needs is done).
+3. **F34 / F35** — HTTP/3 module + transport (large; depends on F33 QUIC ✓ + F29 ✓).
+4. **F52 tail** — optionally add the 4-way `test` auto-detect + formal `bindgen-web`
    deprecation; re-run the end-to-end Chromium browser test to close verification.
-3. **F34 / F35** — HTTP/3 module + transport, still unstarted (large).
