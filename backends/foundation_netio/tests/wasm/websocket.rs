@@ -1,5 +1,6 @@
+use foundation_core::valtron::{TaskIterator, TaskStatus};
 use foundation_netio::wasm::client::FetchHttpClient;
-use foundation_netio::websocket::shared::client::{WebSocketConnectConfig, WebSocketEvent};
+use foundation_netio::websocket::shared::client::{WebSocketConnectConfig, WebSocketEvent, WsProgress};
 use foundation_netio::websocket::shared::connector::WebSocketConnector;
 use foundation_netio::websocket::shared::message::WebSocketMessage;
 use foundation_testbed::bindgen::{js_sys, wasm_bindgen_futures, web_sys};
@@ -40,4 +41,23 @@ async fn open_websocket_refused_surfaces_close() {
         }
     }
     panic!("refused WebSocket never surfaced a close/error");
+}
+
+/// `open_websocket_task` returns a `Box<dyn TaskIterator>` — the same
+/// cross-platform pattern as `HttpClient::open_exchange()`. Before the browser
+/// delivers any WebSocket events, the first poll should yield
+/// `TaskStatus::Pending(WsProgress::Connecting)`, proving the `Stream → TaskStatus`
+/// adapter in `browser.rs` works.
+#[wasm_bindgen_test]
+fn open_websocket_task_yields_pending_connecting_on_wasm() {
+    let client = FetchHttpClient::new();
+    let (mut task, _delivery) = client
+        .open_websocket_task("ws://127.0.0.1:9", WebSocketConnectConfig::new())
+        .expect("open_websocket_task");
+
+    let status = task.next_status();
+    assert!(
+        matches!(status, Some(TaskStatus::Pending(WsProgress::Connecting))),
+        "expected Pending(Connecting) on first poll before browser events, got {status:?}"
+    );
 }
