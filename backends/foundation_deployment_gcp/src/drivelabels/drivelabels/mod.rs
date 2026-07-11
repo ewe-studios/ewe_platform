@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -1377,7 +1377,7 @@ pub fn drivelabels_labels_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels",);
@@ -1422,7 +1422,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1441,7 +1441,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2Label =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1496,7 +1496,7 @@ pub fn drivelabels_labels_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/{}", args.name,);
@@ -1537,7 +1537,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1556,7 +1556,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleProtobufEmpty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1614,7 +1614,7 @@ pub fn drivelabels_labels_delta_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/{}:delta", args.name,);
@@ -1633,7 +1633,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1652,7 +1652,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1707,7 +1707,7 @@ pub fn drivelabels_labels_disable_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1729,7 +1729,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1748,7 +1748,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2Label =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1803,7 +1803,7 @@ pub fn drivelabels_labels_enable_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/{}:enable", args.name,);
@@ -1822,7 +1822,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1841,7 +1841,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2Label =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1896,7 +1896,7 @@ pub fn drivelabels_labels_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/{}", args.name,);
@@ -1947,7 +1947,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1966,7 +1966,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2Label =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2024,7 +2024,7 @@ pub fn drivelabels_labels_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/labels",);
@@ -2125,7 +2125,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2144,7 +2144,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2ListLabelsResponse = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2199,7 +2199,7 @@ pub fn drivelabels_labels_publish_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2221,7 +2221,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2240,7 +2240,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2Label =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2295,7 +2295,7 @@ pub fn drivelabels_labels_update_label_copy_mode_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2317,7 +2317,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2336,7 +2336,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2Label =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2391,7 +2391,7 @@ pub fn drivelabels_labels_update_label_enabled_app_settings_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2413,7 +2413,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2432,7 +2432,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2Label =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2490,7 +2490,7 @@ pub fn drivelabels_labels_update_permissions_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2528,7 +2528,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2547,7 +2547,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2LabelPermission = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2605,7 +2605,7 @@ pub fn drivelabels_labels_locks_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2649,7 +2649,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2668,7 +2668,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2ListLabelLocksResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2723,7 +2723,7 @@ pub fn drivelabels_labels_permissions_batch_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2745,7 +2745,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2764,7 +2764,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleProtobufEmpty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2822,7 +2822,7 @@ pub fn drivelabels_labels_permissions_batch_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2844,7 +2844,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2863,7 +2863,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2921,7 +2921,7 @@ pub fn drivelabels_labels_permissions_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2959,7 +2959,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2978,7 +2978,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2LabelPermission = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3033,7 +3033,7 @@ pub fn drivelabels_labels_permissions_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/{}", args.name,);
@@ -3064,7 +3064,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3083,7 +3083,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleProtobufEmpty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3141,7 +3141,7 @@ pub fn drivelabels_labels_permissions_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3195,7 +3195,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3214,7 +3214,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2ListLabelPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3272,7 +3272,7 @@ pub fn drivelabels_labels_revisions_update_permissions_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3310,7 +3310,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3329,7 +3329,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2LabelPermission = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3387,7 +3387,7 @@ pub fn drivelabels_labels_revisions_locks_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3431,7 +3431,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3450,7 +3450,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2ListLabelLocksResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3505,7 +3505,7 @@ pub fn drivelabels_labels_revisions_permissions_batch_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3527,7 +3527,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3546,7 +3546,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleProtobufEmpty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3604,7 +3604,7 @@ pub fn drivelabels_labels_revisions_permissions_batch_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3626,7 +3626,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3645,7 +3645,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3703,7 +3703,7 @@ pub fn drivelabels_labels_revisions_permissions_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3741,7 +3741,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3760,7 +3760,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2LabelPermission = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3815,7 +3815,7 @@ pub fn drivelabels_labels_revisions_permissions_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/{}", args.name,);
@@ -3846,7 +3846,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3865,7 +3865,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleProtobufEmpty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -3923,7 +3923,7 @@ pub fn drivelabels_labels_revisions_permissions_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3977,7 +3977,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -3996,7 +3996,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2ListLabelPermissionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4054,7 +4054,7 @@ pub fn drivelabels_limits_get_label_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/limits/label",);
@@ -4085,7 +4085,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4104,7 +4104,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2LabelLimits = serde_json::from_str(&body)
                     .map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -4162,7 +4162,7 @@ pub fn drivelabels_users_get_capabilities_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://drivelabels.googleapis.com/v2/{}", args.name,);
@@ -4193,7 +4193,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -4212,7 +4212,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleAppsDriveLabelsV2UserCapabilities = serde_json::from_str(&body)
                     .map_err(
                     |e: serde_json::Error| super::shared::ApiError::ParseFailed(e.to_string()),

@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -466,7 +466,7 @@ pub fn policytroubleshooter_iam_troubleshoot_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://policytroubleshooter.googleapis.com/v3/iam:troubleshoot",);
@@ -485,7 +485,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -504,7 +504,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

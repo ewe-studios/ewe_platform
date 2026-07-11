@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -562,7 +562,7 @@ pub fn meet_conference_records_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -577,7 +577,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -596,7 +596,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ConferenceRecord =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -651,7 +651,7 @@ pub fn meet_conference_records_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/conferenceRecords",);
@@ -702,7 +702,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -721,7 +721,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListConferenceRecordsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -776,7 +776,7 @@ pub fn meet_conference_records_participants_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -791,7 +791,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -810,7 +810,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Participant =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -865,7 +865,7 @@ pub fn meet_conference_records_participants_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -919,7 +919,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -938,7 +938,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListParticipantsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -993,7 +993,7 @@ pub fn meet_conference_records_participants_participant_sessions_get_request<R, 
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -1008,7 +1008,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1027,7 +1027,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ParticipantSession =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1082,7 +1082,7 @@ pub fn meet_conference_records_participants_participant_sessions_list_request<R,
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1136,7 +1136,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1155,7 +1155,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListParticipantSessionsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1210,7 +1210,7 @@ pub fn meet_conference_records_recordings_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -1225,7 +1225,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1244,7 +1244,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Recording =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1299,7 +1299,7 @@ pub fn meet_conference_records_recordings_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}/recordings", args.parent,);
@@ -1340,7 +1340,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1359,7 +1359,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListRecordingsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1414,7 +1414,7 @@ pub fn meet_conference_records_smart_notes_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -1429,7 +1429,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1448,7 +1448,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: SmartNote =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1503,7 +1503,7 @@ pub fn meet_conference_records_smart_notes_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}/smartNotes", args.parent,);
@@ -1544,7 +1544,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1563,7 +1563,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListSmartNotesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1618,7 +1618,7 @@ pub fn meet_conference_records_transcripts_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -1633,7 +1633,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1652,7 +1652,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Transcript =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1707,7 +1707,7 @@ pub fn meet_conference_records_transcripts_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}/transcripts", args.parent,);
@@ -1748,7 +1748,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1767,7 +1767,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListTranscriptsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1822,7 +1822,7 @@ pub fn meet_conference_records_transcripts_entries_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -1837,7 +1837,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1856,7 +1856,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TranscriptEntry =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1911,7 +1911,7 @@ pub fn meet_conference_records_transcripts_entries_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}/entries", args.parent,);
@@ -1952,7 +1952,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1971,7 +1971,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListTranscriptEntriesResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2026,7 +2026,7 @@ pub fn meet_spaces_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/spaces",);
@@ -2045,7 +2045,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2064,7 +2064,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Space =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2119,7 +2119,7 @@ pub fn meet_spaces_end_active_conference_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2141,7 +2141,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2160,7 +2160,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Empty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2215,7 +2215,7 @@ pub fn meet_spaces_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -2230,7 +2230,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2249,7 +2249,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Space =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -2304,7 +2304,7 @@ pub fn meet_spaces_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://meet.googleapis.com/v2/{}", args.name,);
@@ -2339,7 +2339,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -2358,7 +2358,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Space =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

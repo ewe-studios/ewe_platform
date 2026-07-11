@@ -15,7 +15,7 @@
 #![allow(unused_imports)]
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -523,7 +523,7 @@ pub fn websecurityscanner_projects_scan_configs_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -545,7 +545,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -564,7 +564,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ScanConfig =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -619,7 +619,7 @@ pub fn websecurityscanner_projects_scan_configs_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://websecurityscanner.googleapis.com/v1/{}", args.name,);
@@ -634,7 +634,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -653,7 +653,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Empty =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -708,7 +708,7 @@ pub fn websecurityscanner_projects_scan_configs_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://websecurityscanner.googleapis.com/v1/{}", args.name,);
@@ -723,7 +723,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -742,7 +742,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ScanConfig =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -797,7 +797,7 @@ pub fn websecurityscanner_projects_scan_configs_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -841,7 +841,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -860,7 +860,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListScanConfigsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -915,7 +915,7 @@ pub fn websecurityscanner_projects_scan_configs_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://websecurityscanner.googleapis.com/v1/{}", args.name,);
@@ -950,7 +950,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -969,7 +969,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ScanConfig =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1024,7 +1024,7 @@ pub fn websecurityscanner_projects_scan_configs_start_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1046,7 +1046,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1065,7 +1065,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ScanRun =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1120,7 +1120,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://websecurityscanner.googleapis.com/v1/{}", args.name,);
@@ -1135,7 +1135,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1154,7 +1154,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ScanRun =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1209,7 +1209,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1253,7 +1253,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1272,7 +1272,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListScanRunsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1327,7 +1327,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_stop_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1349,7 +1349,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1368,7 +1368,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ScanRun =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1423,7 +1423,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_crawled_urls_list_requ
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1467,7 +1467,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1486,7 +1486,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListCrawledUrlsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1541,7 +1541,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_finding_type_stats_lis
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1559,7 +1559,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1578,7 +1578,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListFindingTypeStatsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1633,7 +1633,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_get_request<R
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://websecurityscanner.googleapis.com/v1/{}", args.name,);
@@ -1648,7 +1648,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1667,7 +1667,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Finding =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())
@@ -1722,7 +1722,7 @@ pub fn websecurityscanner_projects_scan_configs_scan_runs_findings_list_request<
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1776,7 +1776,7 @@ where
 
     Ok(builder
         .build_send_request()
-        .map_err(|e: foundation_netio::simple_http::shared::HttpClientError| {
+        .map_err(|e: foundation_netio::shared::http::HttpClientError| {
             super::shared::ApiError::RequestBuildFailed(e.to_string())
         })?
         .map_ready(|intro| match intro {
@@ -1795,7 +1795,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                    foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ListFindingsResponse =
                     serde_json::from_str(&body).map_err(|e: serde_json::Error| {
                         super::shared::ApiError::ParseFailed(e.to_string())

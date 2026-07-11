@@ -9,7 +9,7 @@
 
 use std::sync::Arc;
 
-use foundation_netio::simple_http::shared::SimpleMethod;
+use foundation_netio::shared::http::SimpleMethod;
 
 use crate::shared::context::ContextBag;
 use crate::shared::middleware::RequestMiddleware;

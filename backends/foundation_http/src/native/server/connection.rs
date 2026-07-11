@@ -15,8 +15,8 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::synca::{OnSignal, WaitGroupGuard};
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use foundation_netio::simple_http::shared::timeout::{TimeoutCalculator, TimeoutContext};
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::timeout::{TimeoutCalculator, TimeoutContext};
+use foundation_netio::shared::http::{
     HTTPStreams, Http11, HttpReaderError, Proto, RenderHttp, SendSafeBody, SimpleHeader,
     SimpleIncomingRequest, SimpleOutgoingResponse,
 };

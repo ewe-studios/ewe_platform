@@ -285,9 +285,9 @@ impl std::error::Error for DiscoveryError {}
 
 async fn fetch_discovery(url: &str) -> Result<String, DiscoveryError> {
     use foundation_core::url::Uri;
-    use foundation_netio::simple_http::client::default_http_client;
-    use foundation_netio::simple_http::client::shared::request::PreparedRequest;
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::http::default_http_client;
+    use foundation_netio::shared::client::request::PreparedRequest;
+    use foundation_netio::shared::http::{
         SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     };
 

@@ -16,7 +16,7 @@
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_macros::JsonHash;
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 // Import shared types used by this module
@@ -2506,7 +2506,7 @@ pub fn list_abuse_reports_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2621,7 +2621,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2690,7 +2690,7 @@ pub fn get_abuse_report_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2709,7 +2709,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2778,7 +2778,7 @@ pub fn submit_abuse_report_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2797,7 +2797,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2817,7 +2817,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AbuseReportsSubmitReportResponse = serde_json::from_str(&body)
@@ -2874,7 +2874,7 @@ pub fn mcp_portals_api_list_portals_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2929,7 +2929,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2998,7 +2998,7 @@ pub fn mcp_portals_api_create_portals_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3017,7 +3017,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3086,7 +3086,7 @@ pub fn mcp_portals_api_fetch_gateways_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3105,7 +3105,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3174,7 +3174,7 @@ pub fn mcp_portals_api_update_portals_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3193,7 +3193,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3262,7 +3262,7 @@ pub fn mcp_portals_api_delete_portals_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3281,7 +3281,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3350,7 +3350,7 @@ pub fn mcp_portals_api_list_servers_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3405,7 +3405,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3474,7 +3474,7 @@ pub fn mcp_portals_api_create_servers_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3493,7 +3493,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3562,7 +3562,7 @@ pub fn mcp_portals_api_fetch_servers_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3581,7 +3581,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3650,7 +3650,7 @@ pub fn mcp_portals_api_update_servers_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3669,7 +3669,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3738,7 +3738,7 @@ pub fn mcp_portals_api_delete_servers_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3757,7 +3757,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3826,7 +3826,7 @@ pub fn mcp_portals_api_sync_server_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3845,7 +3845,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3917,7 +3917,7 @@ pub fn access_applications_list_access_applications_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4002,7 +4002,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4022,7 +4022,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAppsComponentsSchemasResponseCollection =
@@ -4079,7 +4079,7 @@ pub fn access_applications_add_an_application_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4098,7 +4098,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4170,7 +4170,7 @@ pub fn access_short_lived_certificate_c_as_list_short_lived_certificate_c_as_req
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4205,7 +4205,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4225,7 +4225,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCaComponentsSchemasResponseCollection =
@@ -4285,7 +4285,7 @@ pub fn access_applications_get_an_access_application_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4304,7 +4304,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4324,7 +4324,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAppsComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -4381,7 +4381,7 @@ pub fn access_applications_update_an_access_application_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4400,7 +4400,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4469,7 +4469,7 @@ pub fn access_applications_delete_an_access_application_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4488,7 +4488,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4508,7 +4508,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessIdResponse =
@@ -4568,7 +4568,7 @@ pub fn access_short_lived_certificate_c_as_get_a_short_lived_certificate_ca_requ
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4587,7 +4587,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4607,7 +4607,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCaComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -4667,7 +4667,7 @@ pub fn access_short_lived_certificate_c_as_create_a_short_lived_certificate_ca_r
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4686,7 +4686,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4706,7 +4706,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCaComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -4763,7 +4763,7 @@ pub fn access_short_lived_certificate_c_as_delete_a_short_lived_certificate_ca_r
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4782,7 +4782,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4802,7 +4802,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSchemasIdResponse =
@@ -4862,7 +4862,7 @@ pub fn access_policies_list_access_app_policies_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4897,7 +4897,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4917,7 +4917,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAppPoliciesComponentsSchemasResponseCollection =
@@ -4977,7 +4977,7 @@ pub fn access_policies_create_an_access_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4996,7 +4996,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5016,7 +5016,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAppPoliciesComponentsSchemasSingleResponse =
@@ -5076,7 +5076,7 @@ pub fn access_policies_get_an_access_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5095,7 +5095,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5115,7 +5115,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAppPoliciesComponentsSchemasSingleResponse =
@@ -5175,7 +5175,7 @@ pub fn access_policies_update_an_access_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5194,7 +5194,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5214,7 +5214,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAppPoliciesComponentsSchemasSingleResponse =
@@ -5274,7 +5274,7 @@ pub fn access_policies_delete_an_access_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5293,7 +5293,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5313,7 +5313,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAppPoliciesComponentsSchemasIdResponse =
@@ -5373,7 +5373,7 @@ pub fn access_policies_convert_reusable_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5392,7 +5392,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5412,7 +5412,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAppPoliciesComponentsSchemasResponseCollection =
@@ -5469,7 +5469,7 @@ pub fn access_applications_revoke_service_tokens_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5488,7 +5488,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5508,7 +5508,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSchemasEmptyResponse =
@@ -5565,7 +5565,7 @@ pub fn access_applications_put_update_access_application_settings_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5584,7 +5584,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5653,7 +5653,7 @@ pub fn access_applications_patch_update_access_application_settings_request<R, F
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5672,7 +5672,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5741,7 +5741,7 @@ pub fn access_applications_test_access_policies_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5760,7 +5760,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5780,7 +5780,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessPolicyCheckResponse =
@@ -5840,7 +5840,7 @@ pub fn access_mtls_authentication_list_mtls_certificates_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5875,7 +5875,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5895,7 +5895,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCertificatesComponentsSchemasResponseCollection =
@@ -5955,7 +5955,7 @@ pub fn access_mtls_authentication_add_an_mtls_certificate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -5974,7 +5974,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -5994,7 +5994,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCertificatesComponentsSchemasSingleResponse =
@@ -6051,7 +6051,7 @@ pub fn access_mtls_authentication_update_an_mtls_certificate_settings_request<R,
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6070,7 +6070,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6090,7 +6090,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessResponseCollectionHostnames = serde_json::from_str(&body)
@@ -6150,7 +6150,7 @@ pub fn access_mtls_authentication_get_an_mtls_certificate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6169,7 +6169,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6189,7 +6189,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCertificatesComponentsSchemasSingleResponse =
@@ -6249,7 +6249,7 @@ pub fn access_mtls_authentication_update_an_mtls_certificate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6268,7 +6268,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6288,7 +6288,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCertificatesComponentsSchemasSingleResponse =
@@ -6345,7 +6345,7 @@ pub fn access_mtls_authentication_delete_an_mtls_certificate_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6364,7 +6364,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6384,7 +6384,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessComponentsSchemasIdResponse = serde_json::from_str(&body)
@@ -6444,7 +6444,7 @@ pub fn access_gateway_ca_list_ssh_ca_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6463,7 +6463,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6483,7 +6483,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessGatewayCaComponentsSchemasResponseCollection =
@@ -6543,7 +6543,7 @@ pub fn access_gateway_ca_add_an_ssh_ca_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6562,7 +6562,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6582,7 +6582,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessGatewayCaComponentsSchemasSingleResponse =
@@ -6639,7 +6639,7 @@ pub fn access_gateway_ca_delete_an_ssh_ca_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6658,7 +6658,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6678,7 +6678,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessIdResponse =
@@ -6735,7 +6735,7 @@ pub fn access_groups_list_access_groups_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6780,7 +6780,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6800,7 +6800,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSchemasResponseCollection =
@@ -6860,7 +6860,7 @@ pub fn access_groups_create_an_access_group_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6879,7 +6879,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6899,7 +6899,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessGroupsComponentsSchemasSingleResponse =
@@ -6959,7 +6959,7 @@ pub fn access_groups_get_an_access_group_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -6978,7 +6978,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -6998,7 +6998,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessGroupsComponentsSchemasSingleResponse =
@@ -7058,7 +7058,7 @@ pub fn access_groups_update_an_access_group_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7077,7 +7077,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -7097,7 +7097,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessGroupsComponentsSchemasSingleResponse =
@@ -7154,7 +7154,7 @@ pub fn access_groups_delete_an_access_group_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7173,7 +7173,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -7193,7 +7193,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessIdResponse =
@@ -7250,7 +7250,7 @@ pub fn access_identity_providers_list_access_identity_providers_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7295,7 +7295,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -7315,7 +7315,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessResponseCollection =
@@ -7375,7 +7375,7 @@ pub fn access_identity_providers_add_an_access_identity_provider_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7394,7 +7394,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -7414,7 +7414,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -7474,7 +7474,7 @@ pub fn access_identity_providers_get_an_access_identity_provider_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7493,7 +7493,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -7513,7 +7513,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -7573,7 +7573,7 @@ pub fn access_identity_providers_update_an_access_identity_provider_request<R, F
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7592,7 +7592,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -7612,7 +7612,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -7669,7 +7669,7 @@ pub fn access_identity_providers_delete_an_access_identity_provider_request<R, F
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7688,7 +7688,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -7708,7 +7708,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessIdResponse =
@@ -7765,7 +7765,7 @@ pub fn access_identity_providers_list_scim_group_resources_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7830,7 +7830,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -7850,7 +7850,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessScimGroupsResponse =
@@ -7907,7 +7907,7 @@ pub fn access_identity_providers_list_scim_user_resources_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -7992,7 +7992,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -8012,7 +8012,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessScimUsersResponse =
@@ -8072,7 +8072,7 @@ pub fn access_key_configuration_get_the_access_key_configuration_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8091,7 +8091,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -8111,7 +8111,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessKeysComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -8171,7 +8171,7 @@ pub fn access_key_configuration_update_the_access_key_configuration_request<R, F
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8190,7 +8190,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -8210,7 +8210,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessKeysComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -8270,7 +8270,7 @@ pub fn access_key_configuration_rotate_access_keys_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8289,7 +8289,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -8309,7 +8309,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessKeysComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -8369,7 +8369,7 @@ pub fn access_authentication_logs_get_access_authentication_logs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8574,7 +8574,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -8594,7 +8594,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessAccessRequestsComponentsSchemasResponseCollection =
@@ -8651,7 +8651,7 @@ pub fn access_scim_update_logs_list_access_scim_update_logs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8806,7 +8806,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -8826,7 +8826,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessScimUpdateLogsResponse =
@@ -8883,7 +8883,7 @@ pub fn zero_trust_organization_get_your_zero_trust_organization_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8902,7 +8902,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -8922,7 +8922,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSingleResponse =
@@ -8979,7 +8979,7 @@ pub fn zero_trust_organization_create_your_zero_trust_organization_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -8998,7 +8998,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9018,7 +9018,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSingleResponse =
@@ -9075,7 +9075,7 @@ pub fn zero_trust_organization_update_your_zero_trust_organization_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9094,7 +9094,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9114,7 +9114,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSingleResponse =
@@ -9171,7 +9171,7 @@ pub fn zero_trust_organization_get_your_zero_trust_organization_doh_settings_req
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9190,7 +9190,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9259,7 +9259,7 @@ pub fn zero_trust_organization_update_your_zero_trust_organization_doh_settings_
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9278,7 +9278,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9347,7 +9347,7 @@ pub fn zero_trust_organization_revoke_all_access_tokens_for_a_user_request<R, F>
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9382,7 +9382,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9402,7 +9402,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessEmptyResponse =
@@ -9462,7 +9462,7 @@ pub fn access_policies_list_access_reusable_policies_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9497,7 +9497,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9517,7 +9517,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessReusablePoliciesComponentsSchemasResponseCollection =
@@ -9577,7 +9577,7 @@ pub fn access_policies_create_an_access_reusable_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9596,7 +9596,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9616,7 +9616,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessReusablePoliciesComponentsSchemasSingleResponse =
@@ -9676,7 +9676,7 @@ pub fn access_policies_get_an_access_reusable_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9695,7 +9695,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9715,7 +9715,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessReusablePoliciesComponentsSchemasSingleResponse =
@@ -9775,7 +9775,7 @@ pub fn access_policies_update_an_access_reusable_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9794,7 +9794,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9814,7 +9814,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessReusablePoliciesComponentsSchemasSingleResponse =
@@ -9874,7 +9874,7 @@ pub fn access_policies_delete_an_access_reusable_policy_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9893,7 +9893,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -9913,7 +9913,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessReusablePoliciesComponentsSchemasIdResponse =
@@ -9970,7 +9970,7 @@ pub fn access_policy_tests_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -9989,7 +9989,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10009,7 +10009,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessPolicyInitResp =
@@ -10066,7 +10066,7 @@ pub fn access_policy_tests_get_an_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10085,7 +10085,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10105,7 +10105,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessPolicyUpdateResp =
@@ -10162,7 +10162,7 @@ pub fn access_policy_tests_get_a_user_page_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10207,7 +10207,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10227,7 +10227,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessPolicyUsersResp =
@@ -10287,7 +10287,7 @@ pub fn zero_trust_seats_update_a_user_seat_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10306,7 +10306,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10326,7 +10326,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSeatsComponentsSchemasResponseCollection =
@@ -10386,7 +10386,7 @@ pub fn access_service_tokens_list_service_tokens_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10431,7 +10431,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10451,7 +10451,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessComponentsSchemasResponseCollection = serde_json::from_str(&body)
@@ -10508,7 +10508,7 @@ pub fn access_service_tokens_create_a_service_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10527,7 +10527,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10547,7 +10547,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCreateResponse =
@@ -10604,7 +10604,7 @@ pub fn access_service_tokens_get_a_service_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10623,7 +10623,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10643,7 +10643,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSchemasSingleResponse =
@@ -10700,7 +10700,7 @@ pub fn access_service_tokens_update_a_service_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10719,7 +10719,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10739,7 +10739,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSchemasSingleResponse =
@@ -10796,7 +10796,7 @@ pub fn access_service_tokens_delete_a_service_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10815,7 +10815,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10835,7 +10835,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSchemasSingleResponse =
@@ -10892,7 +10892,7 @@ pub fn access_service_tokens_refresh_a_service_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -10911,7 +10911,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -10931,7 +10931,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSchemasSingleResponse =
@@ -10988,7 +10988,7 @@ pub fn access_service_tokens_rotate_a_service_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11007,7 +11007,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11027,7 +11027,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessCreateResponse =
@@ -11087,7 +11087,7 @@ pub fn access_tags_list_tags_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11122,7 +11122,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11142,7 +11142,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessTagsComponentsSchemasResponseCollection =
@@ -11202,7 +11202,7 @@ pub fn access_tags_create_tag_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11221,7 +11221,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11241,7 +11241,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessTagsComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -11301,7 +11301,7 @@ pub fn access_tags_get_a_tag_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11320,7 +11320,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11340,7 +11340,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessTagsComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -11400,7 +11400,7 @@ pub fn access_tags_update_a_tag_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11419,7 +11419,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11439,7 +11439,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessTagsComponentsSchemasSingleResponse = serde_json::from_str(&body)
@@ -11496,7 +11496,7 @@ pub fn access_tags_delete_a_tag_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11515,7 +11515,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11535,7 +11535,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessNameResponse =
@@ -11595,7 +11595,7 @@ pub fn zero_trust_users_get_users_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11650,7 +11650,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11670,7 +11670,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessUsersComponentsSchemasResponseCollection =
@@ -11727,7 +11727,7 @@ pub fn zero_trust_users_create_user_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11746,7 +11746,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11766,7 +11766,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSingleUserResponse =
@@ -11823,7 +11823,7 @@ pub fn zero_trust_users_get_user_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11842,7 +11842,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11862,7 +11862,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSingleUserResponse =
@@ -11919,7 +11919,7 @@ pub fn zero_trust_users_update_user_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -11938,7 +11938,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -11958,7 +11958,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessSingleUserResponse =
@@ -12015,7 +12015,7 @@ pub fn zero_trust_users_delete_user_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12034,7 +12034,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12054,7 +12054,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessDeleteUserResponse =
@@ -12111,7 +12111,7 @@ pub fn zero_trust_users_get_active_sessions_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12130,7 +12130,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12150,7 +12150,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessActiveSessionsResponse =
@@ -12207,7 +12207,7 @@ pub fn zero_trust_users_get_active_session_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12226,7 +12226,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12246,7 +12246,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessActiveSessionResponse =
@@ -12303,7 +12303,7 @@ pub fn zero_trust_users_get_failed_logins_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12322,7 +12322,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12342,7 +12342,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessFailedLoginResponse =
@@ -12399,7 +12399,7 @@ pub fn zero_trust_users_get_last_seen_identity_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12418,7 +12418,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12438,7 +12438,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessLastSeenIdentityResponse =
@@ -12495,7 +12495,7 @@ pub fn zero_trust_users_delete_mfa_authenticator_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12514,7 +12514,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12534,7 +12534,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AccessDeleteAuthenticatorResponse = serde_json::from_str(&body)
@@ -12594,7 +12594,7 @@ pub fn ip_address_management_address_maps_add_an_account_membership_to_an_addres
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12613,7 +12613,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12633,7 +12633,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AddressingApiResponseCollection =
@@ -12693,7 +12693,7 @@ pub fn ip_address_management_address_maps_remove_an_account_membership_from_an_a
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12712,7 +12712,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12732,7 +12732,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AddressingApiResponseCollection =
@@ -12792,7 +12792,7 @@ pub fn account_permission_group_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12867,7 +12867,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12887,7 +12887,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamCollectionPermissionGroupsResponse = serde_json::from_str(&body)
@@ -12944,7 +12944,7 @@ pub fn account_permission_group_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -12963,7 +12963,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -12983,7 +12983,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSinglePermissionGroupsResponse = serde_json::from_str(&body)
@@ -13040,7 +13040,7 @@ pub fn account_resource_group_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13085,7 +13085,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13154,7 +13154,7 @@ pub fn account_resource_group_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13173,7 +13173,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13242,7 +13242,7 @@ pub fn account_resource_group_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13261,7 +13261,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13330,7 +13330,7 @@ pub fn account_resource_group_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13349,7 +13349,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13418,7 +13418,7 @@ pub fn account_resource_group_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13437,7 +13437,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13457,7 +13457,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamApiResponseSingleId =
@@ -13514,7 +13514,7 @@ pub fn account_user_group_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13599,7 +13599,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13668,7 +13668,7 @@ pub fn account_user_group_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13687,7 +13687,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13756,7 +13756,7 @@ pub fn account_user_group_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13775,7 +13775,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13844,7 +13844,7 @@ pub fn account_user_group_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13863,7 +13863,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13932,7 +13932,7 @@ pub fn account_user_group_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -13951,7 +13951,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -13971,7 +13971,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamApiResponseSingleId =
@@ -14028,7 +14028,7 @@ pub fn account_user_group_member_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14073,7 +14073,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14142,7 +14142,7 @@ pub fn account_user_group_member_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14161,7 +14161,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14230,7 +14230,7 @@ pub fn account_user_group_members_update_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14249,7 +14249,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14318,7 +14318,7 @@ pub fn account_user_group_member_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14337,7 +14337,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14409,7 +14409,7 @@ pub fn account_members_list_members_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14484,7 +14484,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14504,7 +14504,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamCollectionMemberResponseWithPolicies = serde_json::from_str(&body)
@@ -14564,7 +14564,7 @@ pub fn account_members_add_member_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14583,7 +14583,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14603,7 +14603,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleMemberResponseWithPolicies = serde_json::from_str(&body)
@@ -14663,7 +14663,7 @@ pub fn account_members_member_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14682,7 +14682,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14702,7 +14702,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleMemberResponseWithPolicies = serde_json::from_str(&body)
@@ -14762,7 +14762,7 @@ pub fn account_members_update_member_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14781,7 +14781,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14801,7 +14801,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleMemberResponseWithPolicies = serde_json::from_str(&body)
@@ -14858,7 +14858,7 @@ pub fn account_members_remove_member_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14877,7 +14877,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -14897,7 +14897,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamApiResponseSingleId =
@@ -14954,7 +14954,7 @@ pub fn accounts_list_account_organizations_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -14973,7 +14973,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15042,7 +15042,7 @@ pub fn account_roles_list_roles_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15087,7 +15087,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15107,7 +15107,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamCollectionRoleResponse =
@@ -15164,7 +15164,7 @@ pub fn account_roles_role_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15183,7 +15183,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15203,7 +15203,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleRoleResponse =
@@ -15260,7 +15260,7 @@ pub fn scim_groups_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15315,7 +15315,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15384,7 +15384,7 @@ pub fn scim_groups_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15403,7 +15403,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15472,7 +15472,7 @@ pub fn scim_groups_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15491,7 +15491,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15560,7 +15560,7 @@ pub fn scim_groups_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15579,7 +15579,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15648,7 +15648,7 @@ pub fn scim_groups_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15667,7 +15667,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15736,7 +15736,7 @@ pub fn scim_resource_types_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15755,7 +15755,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15824,7 +15824,7 @@ pub fn scim_resource_types_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15843,7 +15843,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -15912,7 +15912,7 @@ pub fn scim_schemas_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -15931,7 +15931,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16000,7 +16000,7 @@ pub fn scim_schemas_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16019,7 +16019,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16088,7 +16088,7 @@ pub fn scim_service_provider_config_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16107,7 +16107,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16176,7 +16176,7 @@ pub fn scim_users_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16231,7 +16231,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16300,7 +16300,7 @@ pub fn scim_users_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16319,7 +16319,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16388,7 +16388,7 @@ pub fn scim_users_get_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16407,7 +16407,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16476,7 +16476,7 @@ pub fn scim_users_put_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16495,7 +16495,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16564,7 +16564,7 @@ pub fn scim_users_patch_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16583,7 +16583,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16652,7 +16652,7 @@ pub fn get_all_sso_connectors_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16671,7 +16671,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16691,7 +16691,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSsoConnectorCollectionResponse = serde_json::from_str(&body)
@@ -16748,7 +16748,7 @@ pub fn init_new_sso_connector_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16767,7 +16767,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16787,7 +16787,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSsoConnectorResponse =
@@ -16844,7 +16844,7 @@ pub fn get_sso_connector_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16863,7 +16863,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16883,7 +16883,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSsoConnectorResponse =
@@ -16940,7 +16940,7 @@ pub fn update_sso_connector_state_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -16959,7 +16959,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -16979,7 +16979,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSsoConnectorResponse =
@@ -17036,7 +17036,7 @@ pub fn delete_sso_connector_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -17055,7 +17055,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17075,7 +17075,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamApiResponseSingleId =
@@ -17132,7 +17132,7 @@ pub fn begin_sso_connector_verification_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -17151,7 +17151,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17171,7 +17171,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamApiResponseSingle =
@@ -17228,7 +17228,7 @@ pub fn dlp_risk_score_summary_get_for_user_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -17247,7 +17247,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17316,7 +17316,7 @@ pub fn dlp_risk_score_reset_post_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -17335,7 +17335,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17404,7 +17404,7 @@ pub fn user_s_account_memberships_list_memberships_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/memberships",);
@@ -17496,7 +17496,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17516,7 +17516,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: serde_json::Value =
@@ -17576,7 +17576,7 @@ pub fn user_s_account_memberships_membership_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -17595,7 +17595,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17615,7 +17615,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleMembershipResponseWithPolicies = serde_json::from_str(&body)
@@ -17675,7 +17675,7 @@ pub fn user_s_account_memberships_update_membership_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -17694,7 +17694,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17714,7 +17714,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleMembershipResponseWithPolicies = serde_json::from_str(&body)
@@ -17771,7 +17771,7 @@ pub fn user_s_account_memberships_delete_membership_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -17790,7 +17790,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17859,7 +17859,7 @@ pub fn organization_list_organizations_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/organizations",);
@@ -17875,7 +17875,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -17944,7 +17944,7 @@ pub fn organizations_create_user_organization_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/organizations",);
@@ -17960,7 +17960,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -18029,7 +18029,7 @@ pub fn organizations_retrieve_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -18048,7 +18048,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -18117,7 +18117,7 @@ pub fn organizations_modify_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -18136,7 +18136,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -18205,7 +18205,7 @@ pub fn organizations_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -18224,7 +18224,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -18293,7 +18293,7 @@ pub fn organizations_get_accounts_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -18418,7 +18418,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -18490,7 +18490,7 @@ pub fn audit_logs_v2_get_organization_audit_logs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -18925,7 +18925,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -18945,7 +18945,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AaaAuditLogsV2OrgResponseCollection = serde_json::from_str(&body)
@@ -19002,7 +19002,7 @@ pub fn members_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19077,7 +19077,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19146,7 +19146,7 @@ pub fn members_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19165,7 +19165,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19234,7 +19234,7 @@ pub fn members_retrieve_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19253,7 +19253,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19322,7 +19322,7 @@ pub fn members_delete_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19341,7 +19341,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19410,7 +19410,7 @@ pub fn members_batch_create_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19429,7 +19429,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19498,7 +19498,7 @@ pub fn organizations_get_profile_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19517,7 +19517,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19537,7 +19537,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: OrganizationsApiProfileResponse =
@@ -19594,7 +19594,7 @@ pub fn organizations_modify_profile_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19613,7 +19613,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19685,7 +19685,7 @@ pub fn organization_shares_list_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19704,7 +19704,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19724,7 +19724,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: ResourceSharingShareResponseCollection = serde_json::from_str(&body)
@@ -19781,7 +19781,7 @@ pub fn tenants_list_memberships_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -19800,7 +19800,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19869,7 +19869,7 @@ pub fn user_user_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user",);
@@ -19885,7 +19885,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19905,7 +19905,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleUserResponse =
@@ -19962,7 +19962,7 @@ pub fn user_edit_user_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user",);
@@ -19978,7 +19978,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -19998,7 +19998,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleUserResponse =
@@ -20055,7 +20055,7 @@ pub fn audit_logs_get_user_audit_logs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/audit_logs",);
@@ -20197,7 +20197,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20217,7 +20217,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: AaaAuditLogsResponseCollection =
@@ -20277,7 +20277,7 @@ pub fn user_s_invites_list_invitations_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/invites",);
@@ -20293,7 +20293,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20313,7 +20313,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSchemasCollectionInviteResponse = serde_json::from_str(&body)
@@ -20370,7 +20370,7 @@ pub fn user_s_invites_invitation_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -20389,7 +20389,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20409,7 +20409,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleInviteResponse =
@@ -20466,7 +20466,7 @@ pub fn user_s_invites_respond_to_invitation_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -20485,7 +20485,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20505,7 +20505,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleInviteResponse =
@@ -20565,7 +20565,7 @@ pub fn load_balancer_monitors_list_monitors_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url =
@@ -20582,7 +20582,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20602,7 +20602,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingMonitorResponseCollection = serde_json::from_str(&body)
@@ -20662,7 +20662,7 @@ pub fn load_balancer_monitors_create_monitor_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url =
@@ -20679,7 +20679,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20699,7 +20699,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_str(&body)
@@ -20759,7 +20759,7 @@ pub fn load_balancer_monitors_monitor_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -20778,7 +20778,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20798,7 +20798,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_str(&body)
@@ -20858,7 +20858,7 @@ pub fn load_balancer_monitors_update_monitor_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -20877,7 +20877,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20897,7 +20897,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_str(&body)
@@ -20957,7 +20957,7 @@ pub fn load_balancer_monitors_patch_monitor_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -20976,7 +20976,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -20996,7 +20996,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingMonitorResponseSingle = serde_json::from_str(&body)
@@ -21053,7 +21053,7 @@ pub fn load_balancer_monitors_delete_monitor_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -21072,7 +21072,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21092,7 +21092,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingIdResponse =
@@ -21149,7 +21149,7 @@ pub fn load_balancer_monitors_preview_monitor_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -21168,7 +21168,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21188,7 +21188,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingPreviewResponse =
@@ -21248,7 +21248,7 @@ pub fn load_balancer_monitors_list_monitor_references_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -21267,7 +21267,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21287,7 +21287,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingMonitorReferencesResponse = serde_json::from_str(&body)
@@ -21347,7 +21347,7 @@ pub fn load_balancer_pools_list_pools_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/load_balancers/pools",);
@@ -21379,7 +21379,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21399,7 +21399,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingSchemasResponseCollection = serde_json::from_str(&body)
@@ -21459,7 +21459,7 @@ pub fn load_balancer_pools_create_pool_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/load_balancers/pools",);
@@ -21475,7 +21475,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21495,7 +21495,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_str(&body)
@@ -21555,7 +21555,7 @@ pub fn load_balancer_pools_patch_pools_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/load_balancers/pools",);
@@ -21571,7 +21571,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21591,7 +21591,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingSchemasResponseCollection = serde_json::from_str(&body)
@@ -21651,7 +21651,7 @@ pub fn load_balancer_pools_pool_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -21670,7 +21670,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21690,7 +21690,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_str(&body)
@@ -21750,7 +21750,7 @@ pub fn load_balancer_pools_update_pool_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -21769,7 +21769,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21789,7 +21789,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_str(&body)
@@ -21849,7 +21849,7 @@ pub fn load_balancer_pools_patch_pool_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -21868,7 +21868,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21888,7 +21888,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingSchemasSingleResponse = serde_json::from_str(&body)
@@ -21945,7 +21945,7 @@ pub fn load_balancer_pools_delete_pool_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -21964,7 +21964,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -21984,7 +21984,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingSchemasIdResponse =
@@ -22041,7 +22041,7 @@ pub fn load_balancer_pools_pool_health_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -22060,7 +22060,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22080,7 +22080,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingHealthDetails =
@@ -22137,7 +22137,7 @@ pub fn load_balancer_pools_preview_pool_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -22156,7 +22156,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22176,7 +22176,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingPreviewResponse =
@@ -22236,7 +22236,7 @@ pub fn load_balancer_pools_list_pool_references_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -22255,7 +22255,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22275,7 +22275,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingPoolsReferencesResponse = serde_json::from_str(&body)
@@ -22335,7 +22335,7 @@ pub fn load_balancer_monitors_preview_result_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -22354,7 +22354,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22374,7 +22374,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingPreviewResultResponse = serde_json::from_str(&body)
@@ -22434,7 +22434,7 @@ pub fn load_balancer_healthcheck_events_list_healthcheck_events_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url =
@@ -22527,7 +22527,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22547,7 +22547,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: LoadBalancingComponentsSchemasResponseCollection =
@@ -22607,7 +22607,7 @@ pub fn user_subscription_get_user_subscriptions_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/subscriptions",);
@@ -22623,7 +22623,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22643,7 +22643,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: BillSubsApiUserSubscriptionResponseCollection =
@@ -22703,7 +22703,7 @@ pub fn user_subscription_update_user_subscription_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -22722,7 +22722,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22742,7 +22742,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: BillSubsApiUserSubscriptionResponseSingle = serde_json::from_str(&body)
@@ -22799,7 +22799,7 @@ pub fn user_subscription_delete_user_subscription_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -22818,7 +22818,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22887,7 +22887,7 @@ pub fn user_api_tokens_list_tokens_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/tokens",);
@@ -22939,7 +22939,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -22959,7 +22959,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamCollectionTokensResponse =
@@ -23016,7 +23016,7 @@ pub fn user_api_tokens_create_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/tokens",);
@@ -23032,7 +23032,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -23052,7 +23052,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleTokenCreateResponse =
@@ -23112,7 +23112,7 @@ pub fn permission_groups_list_permission_groups_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url =
@@ -23155,7 +23155,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -23175,7 +23175,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamPermissionsGroupResponseCollection = serde_json::from_str(&body)
@@ -23235,7 +23235,7 @@ pub fn user_api_tokens_verify_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/user/tokens/verify",);
@@ -23251,7 +23251,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -23271,7 +23271,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamTokenVerifyResponseSingleSegment = serde_json::from_str(&body)
@@ -23328,7 +23328,7 @@ pub fn user_api_tokens_token_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -23347,7 +23347,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -23367,7 +23367,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleTokenResponse =
@@ -23424,7 +23424,7 @@ pub fn user_api_tokens_update_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -23443,7 +23443,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -23463,7 +23463,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamSingleTokenResponse =
@@ -23520,7 +23520,7 @@ pub fn user_api_tokens_delete_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -23539,7 +23539,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -23559,7 +23559,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamApiResponseSingleId =
@@ -23616,7 +23616,7 @@ pub fn user_api_tokens_roll_token_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -23635,7 +23635,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -23655,7 +23655,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: IamResponseSingleValue =
@@ -23712,7 +23712,7 @@ pub fn user_list_user_tenants_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!("https://api.cloudflare.com/client/v4/users/tenants",);
@@ -23728,7 +23728,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?

@@ -29,7 +29,7 @@ use foundation_http::native::upgrade::SseStream;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::shared::SimpleIncomingRequest;
+use foundation_netio::shared::http::SimpleIncomingRequest;
 use foundation_wasm_ui::server::{Broadcaster, FrameTransport};
 
 /// The stream route the browser's runtime connects to.

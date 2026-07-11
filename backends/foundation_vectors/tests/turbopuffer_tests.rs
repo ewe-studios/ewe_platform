@@ -12,12 +12,12 @@
 use std::sync::{Arc, Mutex};
 
 use async_trait::async_trait;
-use foundation_netio::simple_http::client::shared::http_client::{
+use foundation_netio::shared::client::http_client::{
     BoxedSseFutureStream, BoxedSseIterator, HttpClient,
 };
-use foundation_netio::simple_http::client::shared::request::PreparedRequest;
-use foundation_netio::simple_http::client::shared::HttpExchangeClientTask;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::client::request::PreparedRequest;
+use foundation_netio::shared::client::HttpExchangeClientTask;
+use foundation_netio::shared::http::{
     HttpClientError, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleResponse, Status,
 };
 

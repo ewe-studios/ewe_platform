@@ -12,7 +12,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_iogate::ServerIo;
 use foundation_netio::netcap::{ConnectionContext, RawStream};
 use foundation_core::synca::{OnSignal, WaitGroup};
-use foundation_netio::simple_http::shared::timeout::{
+use foundation_netio::shared::http::timeout::{
     ExpectContinueConfig, TimeoutCalculator, TimeoutConfig, TimeoutContext,
 };
 
@@ -709,5 +709,5 @@ impl HttpServer {
 
 // Re-export timeout types so users can configure expect-continue behavior.
 pub mod timeout {
-    pub use foundation_netio::simple_http::shared::timeout::ExpectContinueConfig;
+    pub use foundation_netio::shared::http::timeout::ExpectContinueConfig;
 }

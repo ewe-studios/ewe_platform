@@ -16,7 +16,7 @@
 
 use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_macros::JsonHash;
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
 use serde::{Deserialize, Serialize};
 
 use super::shared::ApiResponse;
@@ -643,7 +643,7 @@ pub fn stream_video_clipping_clip_videos_given_a_start_and_end_time_request<R, F
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -662,7 +662,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -682,7 +682,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamClipResponseSingle =
@@ -739,7 +739,7 @@ pub fn stream_videos_upload_videos_from_a_url_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -758,7 +758,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -778,7 +778,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamVideoResponseSingle =
@@ -835,7 +835,7 @@ pub fn stream_videos_upload_videos_via_direct_upload_ur_ls_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -854,7 +854,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -874,7 +874,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDirectUploadResponse =
@@ -931,7 +931,7 @@ pub fn stream_signing_keys_list_signing_keys_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -950,7 +950,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -970,7 +970,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamKeyResponseCollection =
@@ -1027,7 +1027,7 @@ pub fn stream_signing_keys_create_signing_keys_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1046,7 +1046,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1066,7 +1066,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamKeyGenerationResponse =
@@ -1123,7 +1123,7 @@ pub fn stream_signing_keys_delete_signing_keys_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1142,7 +1142,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1162,7 +1162,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDeletedResponse =
@@ -1219,7 +1219,7 @@ pub fn stream_live_inputs_list_live_inputs_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1254,7 +1254,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1274,7 +1274,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLiveInputResponseCollection = serde_json::from_str(&body)
@@ -1331,7 +1331,7 @@ pub fn stream_live_inputs_create_a_live_input_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1350,7 +1350,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1370,7 +1370,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLiveInputResponseSingle =
@@ -1427,7 +1427,7 @@ pub fn stream_live_inputs_retrieve_a_live_input_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1446,7 +1446,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1466,7 +1466,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLiveInputResponseSingle =
@@ -1523,7 +1523,7 @@ pub fn stream_live_inputs_update_a_live_input_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1542,7 +1542,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1562,7 +1562,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLiveInputResponseSingle =
@@ -1619,7 +1619,7 @@ pub fn stream_live_inputs_delete_a_live_input_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1638,7 +1638,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1707,7 +1707,7 @@ pub fn stream_live_inputs_disable_a_live_input_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1726,7 +1726,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1746,7 +1746,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLiveInputResponseSingle =
@@ -1803,7 +1803,7 @@ pub fn stream_live_inputs_enable_a_live_input_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1822,7 +1822,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1842,7 +1842,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLiveInputResponseSingle =
@@ -1899,7 +1899,7 @@ pub fn stream_live_inputs_list_all_outputs_associated_with_a_specified_live_inpu
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -1918,7 +1918,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -1938,7 +1938,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamOutputResponseCollection =
@@ -1995,7 +1995,7 @@ pub fn stream_live_inputs_create_a_new_output_connected_to_a_live_input_request<
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2014,7 +2014,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2034,7 +2034,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamOutputResponseSingle =
@@ -2091,7 +2091,7 @@ pub fn stream_live_inputs_update_an_output_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2110,7 +2110,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2130,7 +2130,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamOutputResponseSingle =
@@ -2187,7 +2187,7 @@ pub fn stream_live_inputs_delete_an_output_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2206,7 +2206,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2275,7 +2275,7 @@ pub fn stream_videos_storage_usage_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2310,7 +2310,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2330,7 +2330,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamStorageUseResponse =
@@ -2387,7 +2387,7 @@ pub fn stream_watermark_profile_list_watermark_profiles_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2406,7 +2406,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2426,7 +2426,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamWatermarkResponseCollection = serde_json::from_str(&body)
@@ -2483,7 +2483,7 @@ pub fn stream_watermark_profile_create_watermark_profiles_via_basic_upload_reque
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2502,7 +2502,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2522,7 +2522,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamWatermarkResponseSingle =
@@ -2579,7 +2579,7 @@ pub fn stream_watermark_profile_watermark_profile_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2598,7 +2598,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2618,7 +2618,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamWatermarkResponseSingle =
@@ -2675,7 +2675,7 @@ pub fn stream_watermark_profile_delete_watermark_profiles_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2694,7 +2694,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2763,7 +2763,7 @@ pub fn stream_webhook_view_webhooks_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2782,7 +2782,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2802,7 +2802,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamWebhookResponseSingle =
@@ -2859,7 +2859,7 @@ pub fn stream_webhook_create_webhooks_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2878,7 +2878,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2898,7 +2898,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamWebhookResponseSingle =
@@ -2955,7 +2955,7 @@ pub fn stream_webhook_delete_webhooks_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -2974,7 +2974,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -2994,7 +2994,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDeletedResponse =
@@ -3051,7 +3051,7 @@ pub fn stream_videos_retrieve_video_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3070,7 +3070,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3090,7 +3090,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamVideoResponseSingle =
@@ -3147,7 +3147,7 @@ pub fn stream_videos_update_video_details_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3166,7 +3166,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3186,7 +3186,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamVideoResponseSingle =
@@ -3243,7 +3243,7 @@ pub fn stream_videos_delete_video_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3262,7 +3262,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3331,7 +3331,7 @@ pub fn list_audio_tracks_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3350,7 +3350,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3370,7 +3370,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamListAudioTrackResponse =
@@ -3427,7 +3427,7 @@ pub fn add_audio_track_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3446,7 +3446,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3466,7 +3466,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamAddAudioTrackResponse =
@@ -3523,7 +3523,7 @@ pub fn edit_audio_tracks_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3542,7 +3542,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3562,7 +3562,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamAddAudioTrackResponse =
@@ -3619,7 +3619,7 @@ pub fn delete_audio_tracks_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3638,7 +3638,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3658,7 +3658,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDeletedResponse =
@@ -3715,7 +3715,7 @@ pub fn stream_subtitles_captions_list_captions_or_subtitles_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3734,7 +3734,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3754,7 +3754,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLanguageResponseCollection = serde_json::from_str(&body)
@@ -3811,7 +3811,7 @@ pub fn stream_subtitles_captions_get_caption_or_subtitle_for_language_request<R,
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3830,7 +3830,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3850,7 +3850,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLanguageResponseSingle =
@@ -3907,7 +3907,7 @@ pub fn stream_subtitles_captions_upload_captions_or_subtitles_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -3926,7 +3926,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -3946,7 +3946,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLanguageResponseSingle =
@@ -4003,7 +4003,7 @@ pub fn stream_subtitles_captions_delete_captions_or_subtitles_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4022,7 +4022,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4091,7 +4091,7 @@ pub fn stream_subtitles_captions_generate_caption_or_subtitle_for_language_reque
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4110,7 +4110,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4130,7 +4130,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamLanguageResponseSingle =
@@ -4187,7 +4187,7 @@ pub fn stream_subtitles_captions_get_vtt_caption_or_subtitle_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4206,7 +4206,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4275,7 +4275,7 @@ pub fn stream_m_p_4_downloads_list_downloads_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4294,7 +4294,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4314,7 +4314,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDownloadsResponse =
@@ -4371,7 +4371,7 @@ pub fn stream_m_p_4_downloads_create_downloads_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4390,7 +4390,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4410,7 +4410,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDownloadsResponseSingle =
@@ -4467,7 +4467,7 @@ pub fn stream_m_p_4_downloads_delete_downloads_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4486,7 +4486,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4506,7 +4506,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDeletedResponse =
@@ -4563,7 +4563,7 @@ pub fn stream_downloads_create_type_specific_downloads_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4582,7 +4582,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4602,7 +4602,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDownloadsResponse =
@@ -4659,7 +4659,7 @@ pub fn stream_downloads_delete_type_specific_downloads_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4678,7 +4678,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4698,7 +4698,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamDeletedResponse =
@@ -4755,7 +4755,7 @@ pub fn stream_videos_retreieve_embed_code_html_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4774,7 +4774,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4794,7 +4794,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: serde_json::Value =
@@ -4851,7 +4851,7 @@ pub fn stream_videos_create_signed_url_tokens_for_videos_request<R, F>(
     super::shared::ApiError,
 >
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + Default + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + Default + 'static,
     F: FnOnce(&mut ClientRequestBuilder<R>),
 {
     let endpoint_url = format!(
@@ -4870,7 +4870,7 @@ where
     Ok(builder
         .build_send_request()
         .map_err(
-            |e: foundation_netio::simple_http::shared::HttpClientError| {
+            |e: foundation_netio::shared::http::HttpClientError| {
                 super::shared::ApiError::RequestBuildFailed(e.to_string())
             },
         )?
@@ -4890,7 +4890,7 @@ where
                     });
                 }
                 let body =
-                    foundation_netio::simple_http::client::shared::body_reader::collect_string(
+                    foundation_netio::shared::client::body_reader::collect_string(
                         stream,
                     );
                 let parsed: StreamSignedTokenResponse =

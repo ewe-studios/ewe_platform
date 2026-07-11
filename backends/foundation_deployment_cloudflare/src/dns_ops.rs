@@ -1,6 +1,6 @@
 //! High-level DNS record operations wrapping the auto-generated valtron functions.
 
-use foundation_netio::simple_http::shared::SimpleHeader;
+use foundation_netio::shared::http::SimpleHeader;
 
 use crate::generated::shared::{ApiError, ApiPending, ApiResponse};
 use crate::generated::zones::{
@@ -26,12 +26,12 @@ fn map_api_error(e: ApiError) -> CloudflareError {
 fn auth_mod(
     token: &str,
 ) -> impl FnOnce(
-    &mut foundation_netio::simple_http::client::ClientRequestBuilder<
-        foundation_netio::simple_http::client::shared::SystemDnsResolver,
+    &mut foundation_netio::http::ClientRequestBuilder<
+        foundation_netio::shared::client::SystemDnsResolver,
     >,
 ) + '_ {
     let t = token.to_string();
-    move |b: &mut foundation_netio::simple_http::client::ClientRequestBuilder<_>| {
+    move |b: &mut foundation_netio::http::ClientRequestBuilder<_>| {
         b.header(SimpleHeader::AUTHORIZATION, format!("Bearer {t}"));
     }
 }
@@ -72,7 +72,7 @@ impl crate::client::CloudflareClient {
             };
             let task = dns_records_for_a_zone_update_dns_record_request(
                 self.http(), &args,
-                Some(|b: &mut foundation_netio::simple_http::client::ClientRequestBuilder<_>| {
+                Some(|b: &mut foundation_netio::http::ClientRequestBuilder<_>| {
                     b.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", self.token()));
                     let _ = b.body_json(&input);
                 }),
@@ -88,7 +88,7 @@ impl crate::client::CloudflareClient {
             };
             let task = dns_records_for_a_zone_create_dns_record_request(
                 self.http(), &args,
-                Some(|b: &mut foundation_netio::simple_http::client::ClientRequestBuilder<_>| {
+                Some(|b: &mut foundation_netio::http::ClientRequestBuilder<_>| {
                     b.header(SimpleHeader::AUTHORIZATION, format!("Bearer {}", self.token()));
                     let _ = b.body_json(&input);
                 }),

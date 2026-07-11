@@ -2,7 +2,7 @@
 
 use std::collections::BTreeMap;
 
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
 };
 use foundation_proxy::forward::{is_upgrade_request, strip_hop_by_hop};

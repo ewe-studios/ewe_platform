@@ -6,7 +6,7 @@ use std::time::{Duration, Instant};
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory};
 use foundation_netio::event_source::{SseEvent, EventWriter, SseResponse};
-use foundation_netio::simple_http::shared::{Http11, RenderHttp};
+use foundation_netio::shared::http::{Http11, RenderHttp};
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
 
@@ -35,7 +35,7 @@ impl Serve for SseReloadHandler {
     fn serve(
         &self,
         _bag: Arc<ContextBag>,
-        _req: foundation_netio::simple_http::shared::SimpleIncomingRequest,
+        _req: foundation_netio::shared::http::SimpleIncomingRequest,
         mut conn: SharedByteBufferStream<RawStream>,
     ) -> ConnectionResult {
         // 1. Send SSE response headers

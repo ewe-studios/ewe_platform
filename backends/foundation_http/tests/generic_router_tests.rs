@@ -6,7 +6,7 @@ use std::sync::Arc;
 use foundation_http::shared::router::Router;
 use foundation_http::shared::serve::{ConnectionResult, ServeWriter, ServeWriterFactory};
 use foundation_http::shared::context::ContextBag;
-use foundation_netio::simple_http::shared::{SimpleIncomingRequest, SimpleMethod};
+use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 
 // -----------------------------------------------------------------------
 // Test ServeWriter handler

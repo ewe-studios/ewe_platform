@@ -22,7 +22,7 @@ use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::shared::{SimpleHeader, SimpleIncomingRequest};
+use foundation_netio::shared::http::{SimpleHeader, SimpleIncomingRequest};
 
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{respond, ConnectionResult, Serve, ServeFactory};

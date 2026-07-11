@@ -2,7 +2,7 @@
 //!
 //! Provides consistent error response rendering for debug/release modes.
 
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SendSafeBody, Status,
 };
 use foundation_errstacks::ErrorTrace;

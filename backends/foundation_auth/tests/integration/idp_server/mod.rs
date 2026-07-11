@@ -11,10 +11,10 @@ use foundation_db::{MemoryStorage, StorageBackend, StorageProvider};
 use foundation_http::native::server::{HttpServer, KeepAliveConfig, ServerConfig};
 use foundation_http::shared::app::HttpApp;
 use foundation_http::shared::serve::Serve;
-use foundation_netio::simple_http::client::shared::body_reader::try_collect_bytes;
-use foundation_netio::simple_http::client::shared::StaticSocketAddr;
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::client::StaticSocketAddr;
+use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 
 fn make_storage() -> Arc<HandlerStorage<MemoryStorage>> {
     let dir = tempfile::tempdir().expect("tempdir");

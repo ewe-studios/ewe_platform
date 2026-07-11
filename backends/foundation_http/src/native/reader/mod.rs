@@ -13,7 +13,7 @@
 use std::sync::Arc;
 
 use foundation_netio::netcap::ConnectionContext;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     HTTPStreams, HttpReaderError, IncomingRequestParts, SimpleIncomingRequest,
 };
 

@@ -7,7 +7,7 @@ use std::net::TcpStream;
 use foundation_http::shared::serve::ConnectionResult;
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::shared::HTTPStreams;
+use foundation_netio::shared::http::HTTPStreams;
 
 /// Copies data bidirectionally between two streams.
 pub fn copy_bidirectional<R: Read + Write, S: Read + Write>(a: &mut R, b: &mut S) {

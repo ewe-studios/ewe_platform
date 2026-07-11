@@ -19,7 +19,7 @@ use std::thread;
 
 use foundation_netio::netcap::connection::Connection;
 use foundation_netio::netcap::ssl::{SSLAcceptor, SSLConnector};
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeaders, SimpleMethod, SimpleUrl,
 };
 
@@ -244,8 +244,8 @@ fn handle_tls_connection(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use foundation_netio::simple_http::client::SimpleHttpClient;
-    use foundation_netio::simple_http::client::shared::StaticSocketAddr;
+    use foundation_netio::http::SimpleHttpClient;
+    use foundation_netio::shared::client::StaticSocketAddr;
     use std::net::SocketAddr;
 
     #[test]

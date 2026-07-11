@@ -343,7 +343,7 @@ use crate::providers::planetscale::clients::WorkflowSwitchPrimariesArgs;
 use crate::providers::planetscale::clients::WorkflowSwitchReplicasArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_netio::simple_http::client::{SimpleHttpClient, DnsResolver};
+use foundation_netio::http::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -366,7 +366,7 @@ use std::sync::Arc;
 pub struct PlanetscaleProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + 'static,
 {
     client: ProviderClient<S, R>,
     http_client: Arc<SimpleHttpClient<R>>,
@@ -375,7 +375,7 @@ where
 impl<S, R> PlanetscaleProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + 'static,
 {
     /// Create new PlanetscaleProvider.
     pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {

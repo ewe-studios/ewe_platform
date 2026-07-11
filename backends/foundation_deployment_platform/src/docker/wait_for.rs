@@ -15,7 +15,7 @@ use std::collections::HashMap;
 use std::net::{TcpStream, UdpSocket};
 use std::time::{Duration, Instant};
 
-use foundation_netio::simple_http::client::native::SimpleHttpClient;
+use foundation_netio::http::SimpleHttpClient;
 use crate::docker::error::{docker_err, DockerError, DockerResult};
 
 /// A readiness condition for a running container.

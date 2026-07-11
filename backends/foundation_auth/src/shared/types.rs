@@ -5,7 +5,7 @@ use foundation_core::valtron::StreamIterator;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use zeroize::Zeroizing;
 
-use foundation_netio::simple_http::client::shared::Cookie;
+use foundation_netio::shared::client::Cookie;
 
 use super::auth_state::AuthStateError;
 use super::jwt::JwtError;

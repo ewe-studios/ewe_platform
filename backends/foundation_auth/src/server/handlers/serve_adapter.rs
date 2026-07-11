@@ -5,7 +5,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_http::shared::context::ContextBag;
 use foundation_http::shared::serve::{ConnectionResult, Serve, ServeFactory, ServeError};
 use foundation_http::{SimpleIncomingRequest, RawStream};
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SimpleHeader, SimpleOutgoingResponse, SendSafeBody,
     Status,
 };

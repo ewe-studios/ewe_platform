@@ -8,12 +8,12 @@ use std::time::Duration;
 use std::collections::BTreeMap;
 
 use foundation_core::valtron::initialize_pool;
-use foundation_netio::simple_http::client::native::{
+use foundation_netio::http::{
     ClientRequestBuilder, HttpConnectionPool,
 };
-use foundation_netio::simple_http::client::shared::{ClientConfig, SystemDnsResolver};
+use foundation_netio::shared::client::{ClientConfig, SystemDnsResolver};
 use foundation_netio::http::NativeHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod};
 use std::sync::Arc;
 
 #[test]

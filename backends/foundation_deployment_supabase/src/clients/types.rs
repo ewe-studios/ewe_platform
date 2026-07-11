@@ -7,7 +7,7 @@
 
 #![cfg(feature = "supabase")]
 
-use foundation_netio::simple_http::shared::SimpleHeaders;
+use foundation_netio::shared::http::SimpleHeaders;
 
 use serde::{Deserialize, Serialize};
 

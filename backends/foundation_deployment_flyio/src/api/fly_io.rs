@@ -194,7 +194,7 @@ use crate::providers::fly_io::clients::VolumesOrgListArgs;
 use crate::providers::fly_io::clients::VolumesUpdateArgs;
 use crate::provider_client::{ProviderClient, ProviderError};
 use foundation_core::valtron::{execute, StreamIterator};
-use foundation_netio::simple_http::client::{SimpleHttpClient, DnsResolver};
+use foundation_netio::http::{SimpleHttpClient, DnsResolver};
 use foundation_db::state::store_state_task::StoreStateIdentifierTask;
 use std::sync::Arc;
 
@@ -217,7 +217,7 @@ use std::sync::Arc;
 pub struct FlyIoProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + 'static,
 {
     client: ProviderClient<S, R>,
     http_client: Arc<SimpleHttpClient<R>>,
@@ -226,7 +226,7 @@ where
 impl<S, R> FlyIoProvider<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + 'static,
 {
     /// Create new FlyIoProvider.
     pub fn new(client: ProviderClient<S, R>, http_client: Arc<SimpleHttpClient<R>>) -> Self {

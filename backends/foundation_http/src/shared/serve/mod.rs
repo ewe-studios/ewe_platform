@@ -8,7 +8,7 @@ pub mod h2;
 #[cfg(not(target_family = "wasm"))]
 use std::sync::Arc;
 
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SimpleIncomingRequest, SimpleOutgoingResponse, Status,
     SimpleHeader, SendSafeBody,
 };

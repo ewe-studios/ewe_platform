@@ -2,7 +2,7 @@
 
 use crate::shared::credential_store::CredentialStorage;
 use crate::shared::session::{Session, SessionError, SessionManager};
-use foundation_netio::simple_http::client::shared::Cookie;
+use foundation_netio::shared::client::Cookie;
 use std::sync::Arc;
 
 #[derive(Debug)]

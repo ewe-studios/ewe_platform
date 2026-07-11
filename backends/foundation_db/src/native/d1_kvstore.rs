@@ -12,9 +12,9 @@
 
 use base64::{engine::general_purpose::STANDARD, Engine};
 use foundation_core::valtron::{Stream, ThreadedValue};
-use foundation_netio::simple_http::client::shared::body_reader::{AsyncSendSafeBody, collect_string_async};
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_string_async};
+use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 use futures_lite::stream;
 use serde::{de::DeserializeOwned, Serialize};
 

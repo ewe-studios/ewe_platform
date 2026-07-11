@@ -8,7 +8,7 @@
 #![cfg(feature = "stripe_process_setup_intent_603")]
 
 use foundation_core::valtron::{execute, StreamIterator, TaskIterator};
-use foundation_netio::simple_http::client::{ClientRequestBuilder, SimpleHttpClient};
+use foundation_netio::http::{ClientRequestBuilder, SimpleHttpClient};
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
@@ -617,7 +617,7 @@ pub fn post_terminal_readers_reader_process_setup_intent_builder<R>(
     args: &PostTerminalReadersReaderProcessSetupIntentArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{reader}/process_setup_intent",
@@ -664,7 +664,7 @@ pub fn post_terminal_readers_reader_process_setup_intent_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TerminalReader = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -730,7 +730,7 @@ pub fn post_billing_meters_id_reactivate_builder<R>(
     args: &PostBillingMetersIdReactivateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/meters/{id}/reactivate",
@@ -777,7 +777,7 @@ pub fn post_billing_meters_id_reactivate_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: BillingMeter = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -843,7 +843,7 @@ pub fn post_identity_verification_sessions_session_redact_builder<R>(
     args: &PostIdentityVerificationSessionsSessionRedactArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/identity/verification_sessions/{session}/redact",
@@ -890,7 +890,7 @@ pub fn post_identity_verification_sessions_session_redact_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: IdentityVerificationSession = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -956,7 +956,7 @@ pub fn post_terminal_readers_reader_refund_payment_builder<R>(
     args: &PostTerminalReadersReaderRefundPaymentArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{reader}/refund_payment",
@@ -1003,7 +1003,7 @@ pub fn post_terminal_readers_reader_refund_payment_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TerminalReader = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1069,7 +1069,7 @@ pub fn post_subscription_schedules_schedule_release_builder<R>(
     args: &PostSubscriptionSchedulesScheduleReleaseArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscription_schedules/{schedule}/release",
@@ -1116,7 +1116,7 @@ pub fn post_subscription_schedules_schedule_release_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: SubscriptionSchedule = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1182,7 +1182,7 @@ pub fn post_invoices_invoice_remove_lines_builder<R>(
     args: &PostInvoicesInvoiceRemoveLinesArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoices/{invoice}/remove_lines",
@@ -1229,7 +1229,7 @@ pub fn post_invoices_invoice_remove_lines_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Invoice = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1290,7 +1290,7 @@ pub fn post_payment_records_report_payment_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/payment_records/report_payment",);
 
@@ -1334,7 +1334,7 @@ pub fn post_payment_records_report_payment_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentRecord = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1381,7 +1381,7 @@ pub fn post_payment_records_id_report_payment_attempt_builder<R>(
     args: &PostPaymentRecordsIdReportPaymentAttemptArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{id}/report_payment_attempt",
@@ -1428,7 +1428,7 @@ pub fn post_payment_records_id_report_payment_attempt_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentRecord = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1494,7 +1494,7 @@ pub fn post_payment_records_id_report_payment_attempt_canceled_builder<R>(
     args: &PostPaymentRecordsIdReportPaymentAttemptCanceledArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{id}/report_payment_attempt_canceled",
@@ -1541,7 +1541,7 @@ pub fn post_payment_records_id_report_payment_attempt_canceled_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentRecord = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1607,7 +1607,7 @@ pub fn post_payment_records_id_report_payment_attempt_failed_builder<R>(
     args: &PostPaymentRecordsIdReportPaymentAttemptFailedArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{id}/report_payment_attempt_failed",
@@ -1654,7 +1654,7 @@ pub fn post_payment_records_id_report_payment_attempt_failed_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentRecord = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1720,7 +1720,7 @@ pub fn post_payment_records_id_report_payment_attempt_guaranteed_builder<R>(
     args: &PostPaymentRecordsIdReportPaymentAttemptGuaranteedArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{id}/report_payment_attempt_guaranteed",
@@ -1767,7 +1767,7 @@ pub fn post_payment_records_id_report_payment_attempt_guaranteed_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentRecord = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1833,7 +1833,7 @@ pub fn post_payment_records_id_report_payment_attempt_informational_builder<R>(
     args: &PostPaymentRecordsIdReportPaymentAttemptInformationalArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{id}/report_payment_attempt_informational",
@@ -1880,7 +1880,7 @@ pub fn post_payment_records_id_report_payment_attempt_informational_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentRecord = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -1947,7 +1947,7 @@ pub fn post_payment_records_id_report_refund_builder<R>(
     args: &PostPaymentRecordsIdReportRefundArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_records/{id}/report_refund",
@@ -1994,7 +1994,7 @@ pub fn post_payment_records_id_report_refund_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentRecord = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2060,7 +2060,7 @@ pub fn post_test_helpers_issuing_authorizations_authorization_fraud_challenges_r
     args: &PostTestHelpersIssuingAuthorizationsAuthorizationFraudChallengesRespondArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/authorizations/{authorization}/fraud_challenges/respond",
@@ -2107,7 +2107,7 @@ pub fn post_test_helpers_issuing_authorizations_authorization_fraud_challenges_r
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: IssuingAuthorization = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2179,7 +2179,7 @@ pub fn post_subscriptions_subscription_resume_builder<R>(
     args: &PostSubscriptionsSubscriptionResumeArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/subscriptions/{subscription}/resume",
@@ -2226,7 +2226,7 @@ pub fn post_subscriptions_subscription_resume_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Subscription = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2292,7 +2292,7 @@ pub fn post_sigma_saved_queries_id_builder<R>(
     args: &PostSigmaSavedQueriesIdArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/sigma/saved_queries/{id}",
@@ -2339,7 +2339,7 @@ pub fn post_sigma_saved_queries_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: SigmaSigmaApiQuery = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2405,7 +2405,7 @@ pub fn post_invoices_invoice_send_builder<R>(
     args: &PostInvoicesInvoiceSendArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoices/{invoice}/send",
@@ -2452,7 +2452,7 @@ pub fn post_invoices_invoice_send_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Invoice = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2514,7 +2514,7 @@ pub fn post_terminal_readers_reader_set_reader_display_builder<R>(
     args: &PostTerminalReadersReaderSetReaderDisplayArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/terminal/readers/{reader}/set_reader_display",
@@ -2561,7 +2561,7 @@ pub fn post_terminal_readers_reader_set_reader_display_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TerminalReader = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2627,7 +2627,7 @@ pub fn get_setup_attempts_builder<R>(
     args: &GetSetupAttemptsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/setup_attempts",);
 
@@ -2730,7 +2730,7 @@ pub fn post_test_helpers_issuing_cards_card_shipping_ship_builder<R>(
     args: &PostTestHelpersIssuingCardsCardShippingShipArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/cards/{card}/shipping/ship",
@@ -2777,7 +2777,7 @@ pub fn post_test_helpers_issuing_cards_card_shipping_ship_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: IssuingCard = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2839,7 +2839,7 @@ pub fn post_financial_connections_accounts_account_subscribe_builder<R>(
     args: &PostFinancialConnectionsAccountsAccountSubscribeArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/accounts/{account}/subscribe",
@@ -2886,7 +2886,7 @@ pub fn post_financial_connections_accounts_account_subscribe_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: FinancialConnectionsAccount = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -2952,7 +2952,7 @@ pub fn post_test_helpers_treasury_inbound_transfers_id_succeed_builder<R>(
     args: &PostTestHelpersTreasuryInboundTransfersIdSucceedArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/treasury/inbound_transfers/{id}/succeed",
@@ -2999,7 +2999,7 @@ pub fn post_test_helpers_treasury_inbound_transfers_id_succeed_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TreasuryInboundTransfer = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3065,7 +3065,7 @@ pub fn post_test_helpers_terminal_readers_reader_succeed_input_collection_builde
     args: &PostTestHelpersTerminalReadersReaderSucceedInputCollectionArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/terminal/readers/{reader}/succeed_input_collection",
@@ -3112,7 +3112,7 @@ pub fn post_test_helpers_terminal_readers_reader_succeed_input_collection_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TerminalReader = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3179,7 +3179,7 @@ pub fn post_test_helpers_terminal_readers_reader_timeout_input_collection_builde
     args: &PostTestHelpersTerminalReadersReaderTimeoutInputCollectionArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/terminal/readers/{reader}/timeout_input_collection",
@@ -3226,7 +3226,7 @@ pub fn post_test_helpers_terminal_readers_reader_timeout_input_collection_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TerminalReader = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3293,7 +3293,7 @@ pub fn post_invoice_rendering_templates_template_unarchive_builder<R>(
     args: &PostInvoiceRenderingTemplatesTemplateUnarchiveArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoice_rendering_templates/{template}/unarchive",
@@ -3340,7 +3340,7 @@ pub fn post_invoice_rendering_templates_template_unarchive_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: InvoiceRenderingTemplate = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3406,7 +3406,7 @@ pub fn post_financial_connections_accounts_account_unsubscribe_builder<R>(
     args: &PostFinancialConnectionsAccountsAccountUnsubscribeArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/financial_connections/accounts/{account}/unsubscribe",
@@ -3453,7 +3453,7 @@ pub fn post_financial_connections_accounts_account_unsubscribe_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: FinancialConnectionsAccount = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3519,7 +3519,7 @@ pub fn post_invoices_invoice_update_lines_builder<R>(
     args: &PostInvoicesInvoiceUpdateLinesArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoices/{invoice}/update_lines",
@@ -3566,7 +3566,7 @@ pub fn post_invoices_invoice_update_lines_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Invoice = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3628,7 +3628,7 @@ pub fn post_payment_method_domains_payment_method_domain_validate_builder<R>(
     args: &PostPaymentMethodDomainsPaymentMethodDomainValidateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_method_domains/{payment_method_domain}/validate",
@@ -3675,7 +3675,7 @@ pub fn post_payment_method_domains_payment_method_domain_validate_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentMethodDomain = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3741,7 +3741,7 @@ pub fn post_billing_alerts_id_activate_builder<R>(
     args: &PostBillingAlertsIdActivateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/alerts/{id}/activate",
@@ -3788,7 +3788,7 @@ pub fn post_billing_alerts_id_activate_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: BillingAlert = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3856,7 +3856,7 @@ pub fn post_test_helpers_issuing_personalization_designs_personalization_design_
     args: &PostTestHelpersIssuingPersonalizationDesignsPersonalizationDesignActivateArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/test_helpers/issuing/personalization_designs/{personalization_design}/activate",
@@ -3903,7 +3903,7 @@ pub fn post_test_helpers_issuing_personalization_designs_personalization_design_
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: IssuingPersonalizationDesign = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -3977,7 +3977,7 @@ pub fn get_entitlements_active_entitlements_builder<R>(
     args: &GetEntitlementsActiveEntitlementsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/entitlements/active_entitlements",);
 
@@ -4080,7 +4080,7 @@ pub fn get_entitlements_active_entitlements_id_builder<R>(
     args: &GetEntitlementsActiveEntitlementsIdArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/entitlements/active_entitlements/{id}",
@@ -4127,7 +4127,7 @@ pub fn get_entitlements_active_entitlements_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: EntitlementsActiveEntitlement = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4193,7 +4193,7 @@ pub fn get_application_fees_builder<R>(
     args: &GetApplicationFeesArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/application_fees",);
 
@@ -4296,7 +4296,7 @@ pub fn get_application_fees_id_builder<R>(
     args: &GetApplicationFeesIdArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/application_fees/{id}", args.id,);
 
@@ -4340,7 +4340,7 @@ pub fn get_application_fees_id_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ApplicationFee = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4406,7 +4406,7 @@ pub fn post_issuing_authorizations_authorization_approve_builder<R>(
     args: &PostIssuingAuthorizationsAuthorizationApproveArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/issuing/authorizations/{authorization}/approve",
@@ -4453,7 +4453,7 @@ pub fn post_issuing_authorizations_authorization_approve_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: IssuingAuthorization = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4519,7 +4519,7 @@ pub fn post_reviews_review_approve_builder<R>(
     args: &PostReviewsReviewApproveArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/reviews/{review}/approve",
@@ -4566,7 +4566,7 @@ pub fn post_reviews_review_approve_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: Review = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4628,7 +4628,7 @@ pub fn post_billing_alerts_id_archive_builder<R>(
     args: &PostBillingAlertsIdArchiveArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/billing/alerts/{id}/archive",
@@ -4675,7 +4675,7 @@ pub fn post_billing_alerts_id_archive_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: BillingAlert = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4741,7 +4741,7 @@ pub fn post_invoice_rendering_templates_template_archive_builder<R>(
     args: &PostInvoiceRenderingTemplatesTemplateArchiveArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/invoice_rendering_templates/{template}/archive",
@@ -4788,7 +4788,7 @@ pub fn post_invoice_rendering_templates_template_archive_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: InvoiceRenderingTemplate = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4854,7 +4854,7 @@ pub fn get_balance_settings_builder<R>(
     args: &GetBalanceSettingsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/balance_settings",);
 
@@ -4898,7 +4898,7 @@ pub fn get_balance_settings_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: BalanceSettings = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -4963,7 +4963,7 @@ pub fn post_balance_settings_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/balance_settings",);
 
@@ -5007,7 +5007,7 @@ pub fn post_balance_settings_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: BalanceSettings = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5053,7 +5053,7 @@ pub fn post_tax_calculations_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/tax/calculations",);
 
@@ -5097,7 +5097,7 @@ pub fn post_tax_calculations_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TaxCalculation = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5144,7 +5144,7 @@ pub fn get_tax_calculations_calculation_builder<R>(
     args: &GetTaxCalculationsCalculationArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/tax/calculations/{calculation}",
@@ -5191,7 +5191,7 @@ pub fn get_tax_calculations_calculation_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: TaxCalculation = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5257,7 +5257,7 @@ pub fn get_customers_customer_cash_balance_builder<R>(
     args: &GetCustomersCustomerCashBalanceArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cash_balance",
@@ -5304,7 +5304,7 @@ pub fn get_customers_customer_cash_balance_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: CashBalance = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5366,7 +5366,7 @@ pub fn post_customers_customer_cash_balance_builder<R>(
     args: &PostCustomersCustomerCashBalanceArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cash_balance",
@@ -5413,7 +5413,7 @@ pub fn post_customers_customer_cash_balance_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: CashBalance = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5475,7 +5475,7 @@ pub fn get_customers_customer_cash_balance_transactions_builder<R>(
     args: &GetCustomersCustomerCashBalanceTransactionsArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cash_balance_transactions",
@@ -5581,7 +5581,7 @@ pub fn get_customers_customer_cash_balance_transactions_transaction_builder<R>(
     args: &GetCustomersCustomerCashBalanceTransactionsTransactionArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/customers/{customer}/cash_balance_transactions/{transaction}",
@@ -5628,7 +5628,7 @@ pub fn get_customers_customer_cash_balance_transactions_transaction_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: CustomerCashBalanceTransaction = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5695,7 +5695,7 @@ pub fn post_payment_intents_intent_confirm_builder<R>(
     args: &PostPaymentIntentsIntentConfirmArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/payment_intents/{intent}/confirm",
@@ -5742,7 +5742,7 @@ pub fn post_payment_intents_intent_confirm_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: PaymentIntent = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5808,7 +5808,7 @@ pub fn post_setup_intents_intent_confirm_builder<R>(
     args: &PostSetupIntentsIntentConfirmArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/setup_intents/{intent}/confirm",
@@ -5855,7 +5855,7 @@ pub fn post_setup_intents_intent_confirm_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: SetupIntent = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -5917,7 +5917,7 @@ pub fn get_confirmation_tokens_confirmation_token_builder<R>(
     args: &GetConfirmationTokensConfirmationTokenArgs,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!(
         "https://api.stripe.com//v1/confirmation_tokens/{confirmation_token}",
@@ -5964,7 +5964,7 @@ pub fn get_confirmation_tokens_confirmation_token_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ConfirmationToken = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -6029,7 +6029,7 @@ pub fn post_test_helpers_confirmation_tokens_builder<R>(
     client: &SimpleHttpClient<R>,
 ) -> Result<ClientRequestBuilder<R>, crate::ApiError>
 where
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone,
+    R: foundation_netio::shared::client::DnsResolver + Clone,
 {
     let endpoint_url = format!("https://api.stripe.com//v1/test_helpers/confirmation_tokens",);
 
@@ -6073,7 +6073,7 @@ pub fn post_test_helpers_confirmation_tokens_task(
                         body: None,
                     });
                 }
-                let body = foundation_netio::simple_http::client::shared::body_reader::collect_string(stream);
+                let body = foundation_netio::shared::client::body_reader::collect_string(stream);
                 let parsed: ConfirmationToken = serde_json::from_str(&body)
                     .map_err(|e| crate::ApiError::ParseFailed(e.to_string()))?;
                 Ok(ApiResponse {
@@ -6118,7 +6118,7 @@ pub fn post_test_helpers_confirmation_tokens_execute(
 impl<S, R> crate::ProviderClient<S, R>
 where
     S: foundation_db::state::traits::StateStore + Send + Sync + 'static,
-    R: foundation_netio::simple_http::client::shared::DnsResolver + Clone + 'static,
+    R: foundation_netio::shared::client::DnsResolver + Clone + 'static,
 {
     /// POST /v1/terminal/readers/{reader}/process_setup_intent.
     ///

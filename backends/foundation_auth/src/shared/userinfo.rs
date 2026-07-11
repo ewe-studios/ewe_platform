@@ -146,9 +146,9 @@ async fn fetch_userinfo(
     access_token: &str,
 ) -> Result<String, UserInfoError> {
     use foundation_core::url::Uri;
-    use foundation_netio::simple_http::client::default_http_client;
-    use foundation_netio::simple_http::client::shared::request::PreparedRequest;
-    use foundation_netio::simple_http::shared::{
+    use foundation_netio::http::default_http_client;
+    use foundation_netio::shared::client::request::PreparedRequest;
+    use foundation_netio::shared::http::{
         SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
     };
 

@@ -10,9 +10,9 @@
 //!   - `R2Store::new_state()` — `StateStore` (JSON objects, key: `{project}/{stage}/{id}.json`)
 
 use foundation_core::valtron::ThreadedValue;
-use foundation_netio::simple_http::client::shared::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader, Status};
+use foundation_netio::shared::client::body_reader::{AsyncSendSafeBody, collect_bytes_async, collect_string_async};
+use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader, Status};
 
 use crate::core::errors::{StorageError, StorageResult};
 use crate::core::state::traits::{StateStore, StateStoreStream};

@@ -27,7 +27,7 @@ use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatu
 use foundation_netio::http2::conn::H2Conn;
 use foundation_netio::http2::detect::{detect_protocol, DetectedProtocol, H2C_PREFACE_PEEK_LEN};
 use foundation_netio::netcap::{ConnectionContext, RawStream};
-use foundation_netio::simple_http::shared::HTTPStreams;
+use foundation_netio::shared::http::HTTPStreams;
 
 use super::connection::ConnectionHandler;
 use super::h2_connection::H2ConnectionHandler;

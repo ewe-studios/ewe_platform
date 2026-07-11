@@ -21,8 +21,8 @@ use std::time::Duration;
 use socket2::SockRef;
 
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::client::shared::body_reader::collect_bytes_from_send_safe;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::client::body_reader::collect_bytes_from_send_safe;
+use foundation_netio::shared::http::{
     http_streams, HttpReaderError, IncomingRequestParts, Proto, SendSafeBody,
 };
 

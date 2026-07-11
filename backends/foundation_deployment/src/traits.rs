@@ -13,7 +13,7 @@
 //!      and HTTP client for API calls.
 
 use foundation_core::valtron::{BoxedSendExecutionAction, TaskIterator, TaskStatus};
-use foundation_netio::simple_http::client::shared::DnsResolver;
+use foundation_netio::shared::client::DnsResolver;
 use foundation_db::core::state::namespaced::NamespacedStore;
 use foundation_db::core::state::traits::StateStore;
 use serde::Serialize;
@@ -66,7 +66,7 @@ pub enum Deploying {
 /// use foundation_deployment::traits::{Deployable, Deploying};
 /// use foundation_deployment::provider_client::ProviderClient;
 /// use foundation_db::state::FileStateStore;
-/// use foundation_netio::simple_http::client::SystemDnsResolver;
+/// use foundation_netio::http::SystemDnsResolver;
 /// use foundation_core::valtron::{TaskIterator, TaskIteratorExt, BoxedSendExecutionAction};
 ///
 /// struct MyWorker {

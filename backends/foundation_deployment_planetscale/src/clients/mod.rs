@@ -15,7 +15,7 @@ use foundation_core::valtron::{
     execute, BoxedSendExecutionAction, StreamIterator, StreamIteratorExt, TaskIterator,
     TaskIteratorExt,
 };
-use foundation_netio::simple_http::client::{
+use foundation_netio::http::{
     body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
     SystemDnsResolver,
 };

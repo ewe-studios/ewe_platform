@@ -30,7 +30,7 @@ use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_core::synca::OnSignal;
 use foundation_core::valtron::initialize_pool;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::shared::{SimpleIncomingRequest, SimpleMethod};
+use foundation_netio::shared::http::{SimpleIncomingRequest, SimpleMethod};
 use serial_test::serial;
 
 use foundation_http::{

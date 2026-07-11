@@ -1,7 +1,7 @@
 //! CloudflareClient — wraps the auto-generated valtron TaskIterator functions
 //! with auth injection and typed domain structs.
 
-use foundation_netio::simple_http::client::native::SimpleHttpClient;
+use foundation_netio::http::SimpleHttpClient;
 use crate::types::*;
 
 /// Central client for Cloudflare API operations.

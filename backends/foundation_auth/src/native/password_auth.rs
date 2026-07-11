@@ -3,8 +3,8 @@
 //! Implements username/password login against an IdP endpoint using
 //! `SimpleHttpClient`. Supports MFA challenge flow.
 
-use foundation_netio::simple_http::client::SimpleHttpClient;
-use foundation_netio::simple_http::shared::{SendSafeBody, SimpleHeader};
+use foundation_netio::http::SimpleHttpClient;
+use foundation_netio::shared::http::{SendSafeBody, SimpleHeader};
 use serde::{Deserialize, Serialize};
 
 use crate::ConfidentialText;

@@ -19,13 +19,13 @@ use foundation_core::url::Uri;
 use foundation_core::valtron::{Stream, StreamSpread};
 use foundation_errstacks::ErrorTrace;
 use foundation_netio::event_source::{Event, ParseResult};
-use foundation_netio::simple_http::client::shared::{
+use foundation_netio::shared::client::{
     request::Extensions,
     body_reader::collect_strings_from_send_safe,
     http_client::{BoxedSseIterator, HttpClient},
     request::PreparedRequest,
 };
-use foundation_netio::simple_http::shared::{
+use foundation_netio::shared::http::{
     SendSafeBody, SimpleHeader, SimpleHeaders, SimpleMethod,
 };
 use serde::{Deserialize, Serialize};
@@ -338,7 +338,7 @@ impl ModelProvider for OpenAIProvider {
 
         #[cfg(not(target_family = "wasm"))]
         if self.http_client.is_none() {
-            self.http_client = Some(foundation_netio::simple_http::client::default_http_client());
+            self.http_client = Some(foundation_netio::http::default_http_client());
         }
 
         Ok(self)

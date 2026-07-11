@@ -25,9 +25,9 @@ use std::sync::Arc;
 
 use foundation_core::io::ioutils::SharedByteBufferStream;
 use foundation_netio::netcap::RawStream;
-use foundation_netio::simple_http::client::native::{SimpleHttpClient, ClientRequestBuilder};
-use foundation_netio::simple_http::client::shared::SystemDnsResolver;
-use foundation_netio::simple_http::shared::{
+use foundation_netio::http::{SimpleHttpClient, ClientRequestBuilder};
+use foundation_netio::shared::client::SystemDnsResolver;
+use foundation_netio::shared::http::{
     Http11, RenderHttp, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest,
     SimpleOutgoingResponse, Status,
 };
