@@ -1,7 +1,7 @@
 # 08 — Streaming Responses
 
 **Date:** 2026-07-10
-**Updated:** 2026-07-12 (F51 alignment — Feature 00)
+**Updated:** 2026-07-12 (F51 alignment — Feature 01)
 **Status:** Resolved
 
 ## Decision
@@ -81,6 +81,10 @@ while let Some(item) = body.next() {
     }
 }
 ```
+
+In an async context, convert the body `StreamIterator` to a `Stream` via
+`.into_next_stream()` and await chunks with `StreamExt::next().await` — same
+pattern as `H1Transport` at lines 146-147. No blocking loop needed.
 
 ### Example: Container logs (multiplexed 8-byte frames)
 
@@ -185,4 +189,4 @@ Ok(SingleReadyTask::new(result.map(|response| {
 
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client pattern
 - **[05 — Valtron TaskIterator format](05-valtron-task-iterator.md)** — TaskIterator pattern
-- **[Feature 00 — DynNetClient + PreparedRequestBuilder alignment](../features/00-dynnetclient-codegen-alignment/feature.md)** — Full design
+- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design

@@ -44,6 +44,10 @@ marshalling and protocol framing.
 17 first-party proto files. The vendored containerd protos (`vendor/github.com/containerd/`)
 provide types referenced by BuildKit (platform, descriptor, mount).
 
+`foundation_connectrpc_codegen` auto-generates `ProcedureCodecs`, message types,
+and `buffa::Message` impls from proto files — the same tooling used for all
+connectrpc services. No hand-written codec code needed.
+
 ## The connectrpc client surface (how BuildKit plugs in)
 
 ### `Client<Req, Res>` — typed per-procedure RPC client
@@ -238,7 +242,12 @@ async fn build_status(
 ## What is BuildKit
 
 BuildKit is Docker's next-generation build system. Unlike the classic `docker build`
-(which uses the HTTP API), BuildKit communicates over gRPC on a Unix socket:
+(which uses the HTTP API), BuildKit communicates over gRPC on a Unix socket.
+
+BuildKit's frontend gateway supports inline Dockerfiles — a `String` Dockerfile
+definition can be sent directly in the `SolveRequest` without needing a build
+context tarball. This enables runtime-defined builds from code-generated
+Dockerfiles with no temp file staging.
 
 - **Efficient layer caching** — content-addressable, deduplicated
 - **Parallel build execution** — independent stages run concurrently
@@ -282,4 +291,4 @@ BuildKit is P2 because:
 - **[02 — Docker Engine API Spec Source](02-docker-openapi-spec.md)** — Same local checkout
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP transport
 - **[07 — Unix socket transport](07-unix-socket-transport.md)** — Unix socket support for DynNetClient
-- **[Feature 00 — DynNetClient + PreparedRequestBuilder alignment](../features/00-dynnetclient-codegen-alignment/feature.md)** — Full design
+- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design

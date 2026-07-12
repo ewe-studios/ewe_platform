@@ -1,7 +1,7 @@
 # 04 — HTTP via DynNetClient + PreparedRequestBuilder
 
 **Date:** 2026-07-10
-**Updated:** 2026-07-12 (F51 alignment — Feature 00)
+**Updated:** 2026-07-12 (F51 alignment — Feature 01)
 **Status:** Resolved
 
 ## Decision
@@ -36,7 +36,7 @@ DockerClient
 
 ## The HTTP exchange pattern
 
-Feature 00 establishes three layers for processing HTTP exchanges:
+Feature 01 establishes three layers for processing HTTP exchanges:
 
 ### 1. `split_exchange()` — split, don't send
 
@@ -192,4 +192,4 @@ Most users will use `DockerClient::connect_with_defaults()` which auto-negotiate
 - **[07 — Unix socket transport](07-unix-socket-transport.md)** — Transport layer
 - **[05 — Valtron TaskIterator format](05-valtron-task-iterator.md)** — TaskIterator pattern
 - **[08 — Streaming responses](08-streaming-responses.md)** — Streaming endpoint handling
-- **[Feature 00 — DynNetClient + PreparedRequestBuilder alignment](../features/00-dynnetclient-codegen-alignment/feature.md)** — Full design
+- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design

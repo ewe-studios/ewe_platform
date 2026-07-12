@@ -17,7 +17,7 @@ tasks may need to hold a shared reference.
 
 ## Why now
 
-Feature 00 (DynNetClient + PreparedRequestBuilder alignment) is moving all
+Feature 01 (DynNetClient + PreparedRequestBuilder alignment) is moving all
 deployment crates to use `DynNetClient` + `open_exchange()` for HTTP. The
 `open_exchange()` path returns `HttpExchangeClientTask` which is
 `Box<dyn TaskIterator + Send>`. Making `SendSafeBody` `Sync` would allow the body
@@ -135,8 +135,6 @@ for SSE parsing, not stored directly in `SendSafeBody`. Likely no wasm blocker.
 **Backward compatibility: Fully additive** — `Sync` is an auto-trait, adding it
 cannot break existing callers.
 
-## Approval required
+## Approval
 
-- [ ] Review and approve the approach
-- [ ] Decide whether to include this in Feature 00 scope or as a separate
-  follow-up feature
+- [x] Approved as standalone Feature 00 — SendSafeBody Sync (blocks Feature 01)

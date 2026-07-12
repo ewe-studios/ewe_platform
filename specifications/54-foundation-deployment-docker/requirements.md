@@ -4,7 +4,10 @@
 
 Implement `foundation_deployment_docker` — a Docker Engine API provider that implements the same
 `Deployable` trait surface as other providers in `foundation_deployment`, but communicates with
-Docker via our own `SimpleHttpClient` + valtron task format instead of depending on bollard.
+Docker via our own `DynNetClient` + `PreparedRequestBuilder` + valtron async tasks instead of depending on bollard.
+
+All crates are enhancement and if we need to break existing compatibility, we own the code we can make it better as necessary.
+
 
 ## Why
 

@@ -11,7 +11,7 @@ hand-refine the generated output where the spec → code mapping is lossy or pro
 This is a hybrid approach: **generate first, refine second** — not pure hand-writing, and not
 raw codegen without intervention.
 
-Breaking changes are acceptable when they improve the codebase. The Feature 00 migration
+Breaking changes are acceptable when they improve the codebase. The Feature 01 migration
 (SimpleHttpClient → DynNetClient, ClientRequestBuilder → PreparedRequestBuilder) is exactly
 this kind of structural improvement — we break compatibility with the old generated surface
 because the new surface is strictly better.

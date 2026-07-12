@@ -1,7 +1,7 @@
 # 05 — Valtron TaskIterator Format
 
 **Date:** 2026-07-10
-**Updated:** 2026-07-12 (F51 alignment — Feature 00)
+**Updated:** 2026-07-12 (F51 alignment — Feature 01)
 **Status:** Resolved
 
 ## Decision
@@ -166,4 +166,4 @@ impl Deployable for DockerContainer {
 
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client pattern
 - **[08 — Streaming responses](08-streaming-responses.md)** — Streaming endpoint handling
-- **[Feature 00 — DynNetClient + PreparedRequestBuilder alignment](../features/00-dynnetclient-codegen-alignment/feature.md)** — Full design
+- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full design

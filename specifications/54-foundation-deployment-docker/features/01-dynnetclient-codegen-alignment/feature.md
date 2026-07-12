@@ -4,11 +4,11 @@ description: "Migrate foundation_openapi code generator and all deployment crate
 status: "in-progress"
 priority: "high"
 phase: 0
-depends_on: []
+depends_on: ["00-sendsafebody-sync"]
 estimated_effort: "medium"
 created: 2026-07-12
 ---
-# Feature 00: DynNetClient + PreparedRequestBuilder alignment
+# Feature 01: DynNetClient + PreparedRequestBuilder alignment
 
 ## Why this exists
 

@@ -231,4 +231,4 @@ let client: Client<SolveRequest, SolveResponse> = Client::new(
 
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client
 - **[06 — BuildKit via foundation_connectrpc](06-buildkit-connectrpc.md)** — BuildKit RPC
-- **[Feature 00](../features/00-dynnetclient-codegen-alignment/feature.md)** — Full alignment
+- **[Feature 01 — DynNetClient + PreparedRequestBuilder alignment](../features/01-dynnetclient-codegen-alignment/feature.md)** — Full alignment
