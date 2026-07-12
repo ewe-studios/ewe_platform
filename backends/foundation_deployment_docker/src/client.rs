@@ -20,8 +20,10 @@ use crate::error::DockerError;
 use crate::generated::containers::{container_delete_request, ContainerDeleteArgs};
 use crate::generated::create::{container_create_request, ContainerCreateArgs, ContainerCreateResponse};
 use crate::generated::json::{container_inspect_request, ContainerInspectArgs, ContainerInspectResponse};
+use crate::generated::pause::{container_pause_request, ContainerPauseArgs};
 use crate::generated::start::{container_start_request, ContainerStartArgs};
 use crate::generated::stop::{container_stop_request, ContainerStopArgs};
+use crate::generated::unpause::{container_unpause_request, ContainerUnpauseArgs};
 use crate::generated::version::{system_version_request, SystemVersion, SystemVersionArgs};
 use crate::generated::wait::{container_wait_request, ContainerWaitArgs, ContainerWaitResponse};
 
@@ -285,6 +287,36 @@ impl DockerClient {
         };
         let response = container_inspect_request(self.http(), &args, None::<NoMod>).await?;
         Ok(response.body)
+    }
+
+    /// Pause a container (`POST /containers/{id}/pause`).
+    ///
+    /// WHY: Freezes all processes in the container via cgroups freezer.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    pub async fn pause_container(&self, id: &str) -> Result<(), DockerError> {
+        let args = ContainerPauseArgs {
+            id: id.to_string(),
+        };
+        container_pause_request(self.http(), &args, None::<NoMod>).await?;
+        Ok(())
+    }
+
+    /// Unpause a container (`POST /containers/{id}/unpause`).
+    ///
+    /// WHY: Resumes a paused container.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DockerError`] on transport failure or non-2xx status.
+    pub async fn unpause_container(&self, id: &str) -> Result<(), DockerError> {
+        let args = ContainerUnpauseArgs {
+            id: id.to_string(),
+        };
+        container_unpause_request(self.http(), &args, None::<NoMod>).await?;
+        Ok(())
     }
 }
 

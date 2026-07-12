@@ -29,7 +29,7 @@ use crate::shared::client::request_task::HttpExchangeClientTask;
 use crate::shared::client::{BoxedDnsResolver, ClientConfig, DnsResolver, SystemDnsResolver};
 use crate::http::{ClientRequest, ClientRequestBuilder, HttpConnectionPool};
 use crate::shared::http::timeout::TimeoutCalculator;
-use crate::shared::http::{HttpClientError, SendSafeBody, SimpleMethod, SimpleResponse};
+use crate::shared::http::{HttpClientError, SendSafeBody, SimpleHeader, SimpleMethod, SimpleResponse};
 
 /// The native HTTP client — owns the connection pool, configuration, and resolver.
 ///
@@ -186,6 +186,13 @@ impl<R: DnsResolver + Clone + Send + 'static> NativeHttpClient<R> {
         };
 
         for (key, values) in &req.headers {
+            // Host is already extracted from the URL by self.get() / self.post() /
+            // etc. above. Passing it again creates a duplicate value, which causes
+            // strict servers (including Docker's Engine API) to reject the request
+            // with HTTP 400.
+            if *key == SimpleHeader::HOST {
+                continue;
+            }
             for value in values {
                 builder = builder.header(key.clone(), value.clone());
             }
