@@ -1,29 +1,27 @@
 # 06 — BuildKit via foundation_connectrpc
 
 **Date:** 2026-07-10
-**Updated:** 2026-07-12 (local moby checkout, async fn)
+**Updated:** 2026-07-12 (local moby checkout, accurate connectrpc surface)
 **Status:** Resolved
 
 ## Decision
 
-Implement BuildKit RPC on top of `foundation_connectrpc` using the protobuf
-definitions from our **local moby checkout** at
+Implement BuildKit RPC on `foundation_connectrpc` using protobuf definitions from
+our **local moby checkout** at
 `/home/darkvoid/Boxxed/@formulas/src.rust/src.Containers/src.moby/buildkit/`.
 
-This is deferred to P2 (after HTTP API surface is complete). All RPC functions
-use `async fn` — consistent with decision 05 (generator emits `async fn`).
+The connectrpc `Transport` trait is the byte-level seam — we implement a
+Unix-socket-backed transport that speaks HTTP/1.1 (or HTTP/2 for gRPC streaming)
+to `buildkitd`. The typed `Client<SolveRequest, SolveResponse>` handles codec
+marshalling and protocol framing.
 
 ## Proto file sources (first-party)
-
-The BuildKit protos live directly in the moby source tree — not as vendored copies
-in bollard:
 
 ```
 /home/darkvoid/Boxxed/@formulas/src.rust/src.Containers/src.moby/buildkit/
 ├── api/
 │   ├── services/control/control.proto     # Main build control (Solve, Status, Info, etc.)
 │   └── types/worker.proto                 # Worker types
-├── cache/contenthash/checksum.proto       # Content-addressable checksums
 ├── frontend/gateway/pb/gateway.proto      # Frontend gateway (LLB → BuildKit bridge)
 ├── session/
 │   ├── auth/auth.proto                    # Registry authentication
@@ -43,12 +41,204 @@ in bollard:
     └── stack/stack.proto                  # Stack traces
 ```
 
-17 first-party proto files. No vendor directory needed for the core API.
+17 first-party proto files. The vendored containerd protos (`vendor/github.com/containerd/`)
+provide types referenced by BuildKit (platform, descriptor, mount).
+
+## The connectrpc client surface (how BuildKit plugs in)
+
+### `Client<Req, Res>` — typed per-procedure RPC client
+
+```rust
+pub struct Client<Req, Res> {
+    transport: Arc<dyn Transport>,    // byte-level transport seam
+    config: ClientConfig,             // frozen options (protocol, codec, compression, …)
+    protocol: Box<dyn ProtocolClient>, // Connect / gRPC / gRPC-Web
+    codecs: ProcedureCodecs<Req, Res>,// marshal/unmarshal per codec name
+}
+
+impl<Req: Send + 'static, Res: Send + 'static> Client<Req, Res> {
+    pub fn new(
+        transport: Arc<dyn Transport>,
+        url: &str,
+        codecs: ProcedureCodecs<Req, Res>,
+        options: ClientOptions,
+    ) -> ConnectResult<Self>;
+
+    // ── The four async RPC methods ──────────────────────────────
+    pub async fn unary(&self, ctx: Ctx, request: Request<Req>) -> ConnectResult<Response<Res>>;
+    pub async fn server_stream(&self, ctx: Ctx, request: Request<Req>) -> ConnectResult<ServerStream<Res>>;
+    pub async fn client_stream(&self, ctx: Ctx, reqs: impl Stream<Item = Req>) -> ConnectResult<Response<Res>>;
+    pub async fn bidi_stream(&self, ctx: Ctx, reqs: impl Stream<Item = Req>) -> ConnectResult<BidiStream<Req, Res>>;
+}
+```
+
+### `Transport` trait — the byte-level seam
+
+```rust
+pub trait Transport: Send + Sync {
+    fn capabilities(&self) -> TransportCapabilities;
+    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError>;
+}
+
+pub struct TransportStream {
+    pub send_body: Arc<dyn SendBody>,     // push Bytes, close
+    pub head: HeadStream,                  // Pin<Box<dyn Stream<Item = Result<(Status, Headers), Error>>>>
+    pub recv_body: BodyStream,             // Pin<Box<dyn Stream<Item = Result<Bytes, Error>>>>
+    pub trailers: Pipe<SimpleHeaders>,     // trailing headers
+}
+```
+
+`open()` is **synchronous** — it spawns the byte pump on valtron and returns
+pipe halves immediately. The caller is already in a valtron context.
+
+### `H1Transport` — HTTP/1.1 transport (what we use for Unix sockets)
+
+```rust
+pub struct H1Transport {
+    client: Arc<dyn HttpClient>,  // foundation_netio's HttpClient
+}
+
+impl Transport for H1Transport {
+    fn open(&self, request: RequestDescriptor) -> Result<TransportStream, TransportError> {
+        // 1. PreparedRequest from RequestDescriptor
+        // 2. self.client.open_exchange(prepared) → HttpExchangeClientTask
+        // 3. split_collect_until_map(head) + split_collector_map(body)
+        // 4. valtron::send(continuation)
+        // 5. Return TransportStream with pipe halves
+    }
+}
+```
+
+### The pattern: unary RPC
+
+Taken from `examples/unary_echo/main.rs`:
+
+```rust
+#[valtron(seed = 1, threads = 4)]
+async fn main() {
+    let transport: Arc<dyn Transport> = Arc::new(
+        H1Transport::new(Arc::new(NativeHttpClient::from_system()))
+    );
+    let client: Client<EchoMessage, EchoMessage> = Client::new(
+        transport,
+        "http://127.0.0.1:1234/demo.EchoService/Echo",
+        ProcedureCodecs::<EchoMessage, EchoMessage>::defaults(),
+        ClientOptions::new(),
+    ).expect("build client");
+
+    let ctx = Ctx::background().with_deadline(Duration::from_secs(10));
+    let request = Request::new(EchoMessage { id: 7, text: "hello".into() });
+    let response = client.unary(ctx, request).await.unwrap();
+}
+```
+
+## BuildKit client implementation
+
+### Transport: Unix socket
+
+BuildKitd listens on a Unix socket (`/run/buildkit/buildkitd.sock` by default).
+We need a `Transport` impl that opens HTTP/1.1 connections over that socket.
+
+`H1Transport` wraps `Arc<dyn HttpClient>` — if `DynNetClient` can connect to
+Unix sockets (decision 07), `H1Transport` already works for BuildKit. No custom
+transport needed.
+
+### Client setup
+
+```rust
+use foundation_connectrpc::{
+    Client, ClientOptions, Ctx, H1Transport, ProcedureCodecs, Request, Response,
+};
+use foundation_connectrpc::shared::transport::Transport;
+use foundation_netio::{DynNetClient, HttpClientBuilder};
+
+/// Connect to buildkitd over a Unix socket.
+async fn buildkit_client(
+    socket_path: &str,
+) -> ConnectResult<Client<SolveRequest, SolveResponse>> {
+    // Build a DynNetClient that connects over the Unix socket.
+    let http: DynNetClient = HttpClientBuilder::new()
+        .unix_socket(socket_path)       // hypothetical — see decision 07
+        .build();
+
+    let transport: Arc<dyn Transport> = Arc::new(H1Transport::new(http));
+
+    Client::new(
+        transport,
+        "http://localhost/moby.buildkit.v1.Control",
+        ProcedureCodecs::<SolveRequest, SolveResponse>::defaults(),
+        ClientOptions::new().with_grpc(),   // BuildKit speaks gRPC
+    )
+}
+```
+
+### Solve (bidi-streaming build)
+
+```rust
+async fn build_image(
+    client: &Client<SolveRequest, SolveResponse>,
+    ctx: &Ctx,
+    definition: LlbDefinition,
+) -> ConnectResult<()> {
+    // bidi_stream: send SolveRequests, receive SolveResponses
+    let reqs = futures::stream::iter([
+        SolveRequest { definition: Some(definition), ..Default::default() },
+    ]);
+
+    let mut stream = client.bidi_stream(ctx.clone(), reqs).await?;
+
+    // Stream build progress.
+    while let Some(resp) = stream.receive().await? {
+        for vertex in resp.vertexes {
+            tracing::info!(name = %vertex.name, "BuildKit vertex: {:?}", vertex.status);
+        }
+        for log in resp.logs {
+            tracing::info!("BuildKit: {}", String::from_utf8_lossy(&log.msg));
+        }
+    }
+
+    stream.response_trailers().await?;
+    Ok(())
+}
+```
+
+### Info (unary)
+
+```rust
+async fn buildkit_info(
+    client: &Client<InfoRequest, InfoResponse>,
+) -> ConnectResult<InfoResponse> {
+    let ctx = Ctx::background().with_deadline(Duration::from_secs(5));
+    let resp = client.unary(ctx, Request::new(InfoRequest::default())).await?;
+    Ok(resp.msg)
+}
+```
+
+### Status (server-streaming)
+
+```rust
+async fn build_status(
+    client: &Client<StatusRequest, StatusResponse>,
+    build_ref: String,
+) -> ConnectResult<()> {
+    let ctx = Ctx::background();
+    let mut stream = client.server_stream(
+        ctx,
+        Request::new(StatusRequest { ref_: build_ref }),
+    ).await?;
+
+    while let Some(status) = stream.receive().await? {
+        tracing::info!("Build status: {:?}", status);
+    }
+
+    Ok(())
+}
+```
 
 ## What is BuildKit
 
 BuildKit is Docker's next-generation build system. Unlike the classic `docker build`
-(which uses the HTTP API), BuildKit communicates over **gRPC** on a Unix socket:
+(which uses the HTTP API), BuildKit communicates over gRPC on a Unix socket:
 
 - **Efficient layer caching** — content-addressable, deduplicated
 - **Parallel build execution** — independent stages run concurrently
@@ -57,161 +247,24 @@ BuildKit is Docker's next-generation build system. Unlike the classic `docker bu
 - **Multi-platform builds** — cross-compile in a single build
 - **OCI image export** — standards-compliant output
 
-## BuildKit gRPC services
-
-| Service | Method | Type | Purpose |
-|---------|--------|------|---------|
-| **Control** | `Solve` | bidi-stream | Execute a build |
-| | `Status` | server-stream | Stream build status/progress |
-| | `DiskUsage` | unary | Report cache usage |
-| | `Prune` | unary | Clean build cache |
-| | `Info` | unary | BuildKit server info |
-| | `ListWorkers` | unary | Connected workers |
-| | `ListenBuildHistory` | server-stream | Build history events |
-| | `UpdateBuildHistory` | unary | Update build record |
-| **FileSend** (session) | `Send` | unary | Send build context files |
-| **AuthProvider** (session) | `Credentials` | unary | Registry credentials |
-| **SecretProvider** (session) | `GetSecret` | unary | Build secrets |
-| **SshProvider** (session) | `CheckAgent` | unary | SSH agent forwarding |
-| **Gateway** (frontend) | `Solve` | bidi-stream | Frontend LLB solve |
-| | `ResolveImageConfig` | unary | Resolve image config |
-| **ContentHash** (cache) | `Checksums` | server-stream | Content checksumming |
-
-## Why foundation_connectrpc
-
-`foundation_connectrpc` implements the Connect protocol (Connect, gRPC, gRPC-Web):
-
-- `ProtoCodec` for protobuf message encoding
-- `H1Transport` / `H2Transport` for HTTP transport
-- Unix socket transport via custom `Transport` implementation
-- `async fn` client API — consistent with decision 05
-- Client with `ClientStream`, `ServerStream`, `BidiStream` support
-
-This maps directly to BuildKit's gRPC interface without needing `tonic`.
-
-## Implementation approach
-
-### Phase 1: Proto code generation
+## Proto code generation
 
 ```
 foundation_deployment_docker/
   specs/
     buildkit/                       # Copied from local moby checkout
-      api/services/control/control.proto
-      api/types/worker.proto
-      session/auth/auth.proto
-      session/filesync/filesync.proto
-      session/secrets/secrets.proto
-      session/sshforward/ssh.proto
-      session/upload/upload.proto
-      session/exporter/exporter.proto
-      solver/pb/ops.proto
-      sourcepolicy/pb/policy.proto
-      ...
+      github.com/moby/buildkit/
+        api/services/control/control.proto
+        api/types/worker.proto
+        session/auth/auth.proto
+        session/filesync/filesync.proto
+        ...
 ```
 
-Use `foundation_connectrpc_codegen` to generate Rust types from the proto files.
-The proto import paths are already structured correctly in the moby tree.
-
-### Phase 2: ConnectRPC client (async fn)
-
-```rust
-/// BuildKit control client over Unix socket.
-pub struct BuildKitClient {
-    client: connectrpc::Client,
-}
-
-impl BuildKitClient {
-    /// Connect to buildkitd via Unix socket.
-    pub async fn connect_unix(socket: impl AsRef<Path>) -> Result<Self, BuildKitError> {
-        let transport = H1Transport::with_unix_socket(socket);
-        let client = connectrpc::Client::new(transport);
-        Ok(Self { client })
-    }
-
-    /// Execute a build. Returns a bidi stream for sending inputs
-    /// and receiving status updates.
-    pub async fn solve(
-        &self,
-        req: SolveRequest,
-    ) -> Result<
-        impl Stream<Item = Result<SolveResponse, ConnectError>> + Send,
-        ConnectError,
-    > {
-        self.client.bidi_streaming("/moby.buildkit.v1.Control/Solve", req).await
-    }
-
-    /// Stream build status.
-    pub async fn status(
-        &self,
-        req: StatusRequest,
-    ) -> Result<
-        impl Stream<Item = Result<StatusResponse, ConnectError>> + Send,
-        ConnectError,
-    > {
-        self.client.server_streaming("/moby.buildkit.v1.Control/Status", req).await
-    }
-
-    /// Get server info.
-    pub async fn info(&self) -> Result<InfoResponse, ConnectError> {
-        self.client.unary("/moby.buildkit.v1.Control/Info", &InfoRequest::default()).await
-    }
-
-    /// Report disk usage.
-    pub async fn disk_usage(&self) -> Result<DiskUsageResponse, ConnectError> {
-        self.client.unary("/moby.buildkit.v1.Control/DiskUsage", &DiskUsageRequest::default()).await
-    }
-
-    /// Prune build cache.
-    pub async fn prune(&self, req: PruneRequest) -> Result<PruneResponse, ConnectError> {
-        self.client.unary("/moby.buildkit.v1.Control/Prune", req).await
-    }
-}
-```
-
-### Phase 3: Docker build integration
-
-Wire BuildKit into the image build flow:
-
-```rust
-impl DockerClient {
-    /// Build an image using BuildKit (async, P2).
-    #[cfg(feature = "buildkit")]
-    pub async fn build_image_with_buildkit(
-        &self,
-        options: BuildImageOptions,
-        context: TarContext,
-    ) -> Result<BuildInfo, BuildKitError> {
-        let buildkit = BuildKitClient::connect_unix(
-            self.buildkit_socket.as_deref().unwrap_or_else(|| Path::new("/run/buildkit/buildkitd.sock"))
-        ).await?;
-
-        // 1. Upload build context via FileSend session
-        let ctx_ref = buildkit.upload_context(context).await?;
-
-        // 2. Call Solve with build options
-        let req = SolveRequest {
-            definition: options.to_llb_definition()?,
-            frontend: "dockerfile.v0".into(),
-            // ...
-        };
-
-        // 3. Stream build progress
-        let mut stream = buildkit.solve(req).await?;
-        while let Some(status) = stream.next().await {
-            match status {
-                Ok(SolveResponse { vertex, logs, .. }) => {
-                    tracing::info!(?vertex, "BuildKit: {}", String::from_utf8_lossy(&logs));
-                }
-                Err(e) => return Err(BuildKitError::Solve(e)),
-            }
-        }
-
-        // 4. Return build info
-        Ok(BuildInfo { /* ... */ })
-    }
-}
-```
+Use `foundation_connectrpc_codegen` to generate Rust types + `ProcedureCodecs`
+from the proto files. The proto import paths use Go-style fully-qualified names
+(`github.com/moby/buildkit/api/types/worker.proto`) — preserve the directory
+structure and set the proto include path to `specs/buildkit/`.
 
 ## Deferral rationale
 
@@ -219,58 +272,14 @@ BuildKit is P2 because:
 
 1. The testbed use case primarily pulls existing images, not builds new ones
 2. The HTTP API surface (containers, images, networks, volumes) is the priority
-3. BuildKit adds significant proto dependency surface (~17 proto files) with
-   cross-referencing Go-style import paths
+3. BuildKit adds proto dependency surface (~17 files) with cross-referencing
+   Go-style import paths
 4. The bidi-streaming `Solve` call exercises the most complex connectrpc codepath —
    we own connectrpc, so building on it finds the gaps and we fix them
-
-## Proto import strategy
-
-BuildKit protos import each other with paths like:
-
-```protobuf
-import "github.com/moby/buildkit/api/types/worker.proto";
-import "github.com/moby/buildkit/solver/pb/ops.proto";
-```
-
-These are **fully-qualified Go-style import paths** — they reflect the Go module
-structure, not filesystem paths. The `foundation_connectrpc_codegen` generator
-must either:
-
-- **Option A**: Map import paths to local files (maintain an import→path table)
-- **Option B**: Vend the protos with their directory structure preserved and set
-  the proto include path to the repo root
-
-**Chosen: Option B** — simpler, matches how the moby tree is already structured.
-Copy the protos preserving their `github.com/moby/buildkit/...` directory layout:
-
-```
-specs/buildkit/
-  github.com/moby/buildkit/
-    api/services/control/control.proto
-    api/types/worker.proto
-    session/auth/auth.proto
-    ...
-```
-
-Set `--proto_path specs/buildkit/` during code generation.
-
-## vendored containerd protos
-
-BuildKit vendors containerd protos under `vendor/github.com/containerd/` — these
-are NOT BuildKit-specific but are needed for type references (e.g., `containerd
-types/platform.proto` for platform definitions). We only need a subset:
-
-| Proto | Needed for |
-|-------|-----------|
-| `api/types/platform.proto` | Platform type used in SolveRequest |
-| `api/types/descriptor.proto` | OCI descriptor type |
-| `api/types/mount.proto` | Mount definitions |
-
-Copy only the needed files, not the entire containerd API surface.
 
 ## Related decisions
 
 - **[02 — Docker Engine API Spec Source](02-docker-openapi-spec.md)** — Same local checkout
-- **[05 — Valtron TaskIterator Format](05-valtron-task-iterator.md)** — async fn pattern
 - **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP transport
+- **[07 — Unix socket transport](07-unix-socket-transport.md)** — Unix socket support for DynNetClient
+- **[Feature 00 — DynNetClient + PreparedRequestBuilder alignment](../features/00-dynnetclient-codegen-alignment/feature.md)** — Full design
