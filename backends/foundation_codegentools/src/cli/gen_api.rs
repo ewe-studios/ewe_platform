@@ -21,7 +21,31 @@ type BoxedError = Box<dyn std::error::Error + Send + Sync + 'static>;
 /// Key = provider name, Value = crate root (relative to workspace or absolute).
 const SPLIT_OUT_PROVIDERS: &[(&str, &str)] = &[
     ("cloudflare", "backends/foundation_deployment_cloudflare"),
+    ("stripe", "backends/foundation_deployment_stripe"),
+    ("supabase", "backends/foundation_deployment_supabase"),
+    ("neon", "backends/foundation_deployment_neon"),
+    ("planetscale", "backends/foundation_deployment_planetscale"),
+    // Artefact/provider name differs from the crate suffix; `cargo fix`
+    // resolves the crate via `split_out_crate_name()`.
+    ("fly_io", "backends/foundation_deployment_flyio"),
+    ("prisma_postgres", "backends/foundation_deployment_prisma"),
 ];
+
+/// Resolve the split-out crate *name* (`foundation_deployment_*`) from its
+/// registered path, so `cargo fix -p <crate>` targets the real package even when
+/// the provider/artefact name differs from the crate suffix (fly_io → flyio,
+/// prisma_postgres → prisma).
+fn split_out_crate_name(provider: &str) -> Option<String> {
+    for (name, crate_path) in SPLIT_OUT_PROVIDERS {
+        if *name == provider {
+            return std::path::Path::new(crate_path)
+                .file_name()
+                .and_then(|n| n.to_str())
+                .map(|s| s.to_string());
+        }
+    }
+    None
+}
 
 /// Return `(crate_root, is_split_out)` for a provider name.
 fn provider_crate_info(provider: &str) -> (PathBuf, bool) {
@@ -891,7 +915,8 @@ pub fn run(matches: &clap::ArgMatches) -> Result<(), BoxedError> {
             println!("\n=== Running cargo fix ===");
             let feature_name = provider.replace('-', "_").replace('/', "_");
             let crate_name = if is_split {
-                format!("foundation_deployment_{}", provider)
+                split_out_crate_name(provider)
+                    .unwrap_or_else(|| format!("foundation_deployment_{}", provider))
             } else {
                 "foundation_deployment".to_string()
             };

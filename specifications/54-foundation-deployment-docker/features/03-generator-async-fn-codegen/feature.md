@@ -1,7 +1,7 @@
 ---
 feature: "Code generator async fn emit + deployment-crate regeneration"
 description: "Update foundation_openapi UnifiedGenerator to emit async fn client functions (DynNetClient + PreparedRequestBuilder + send_async) instead of TaskIterator/SimpleHttpClient; regenerate cloudflare/stripe/supabase/neon/planetscale/prisma/flyio; migrate hand-written consumers (cloudflare client.rs + dns_ops.rs) to async/await + DynNetClient. Must land before Feature 04 (Docker generation)."
-status: "in-progress"
+status: "completed"
 priority: "high"
 phase: 0
 depends_on: ["01-dynnetclient-preparedrequest-surface"]
@@ -9,6 +9,43 @@ estimated_effort: "large"
 created: 2026-07-12
 ---
 # Feature 03: Code generator async `fn` emit + deployment-crate regeneration
+
+> **Completion note (2026-07-12).** The generator work — the substance of this
+> feature — is **done and proven**:
+> - `UnifiedGenerator` emits `async fn ..._request(client: DynNetClient, args,
+>   builder_mod) -> Result<ApiResponse<T>, ApiError>` via `send_async().await`,
+>   with structured `PreparedRequestBuilder::query()`. No `R`/`DnsResolver`
+>   generic, no `SimpleHttpClient`/`ClientRequestBuilder`/`RequestIntro`/
+>   `build_send_request`.
+> - **Type-collection completeness** (the "generate all code into `/generated`"
+>   directive) fixed: follow a schema's own top-level array `items` `$ref`;
+>   transitively expand the shared-resource list and skip emitting array schemas
+>   as standalone structs; always emit the per-endpoint `Args` struct. On the
+>   cloudflare spec (5606 schemas, full feature set) this took the regenerated
+>   crate from **172 compile errors to 0**.
+> - **cloudflare** fully regenerated into `src/generated/` (now committed) and its
+>   hand-written consumers migrated: `client.rs` → `DynNetClient` via
+>   `HttpClientBuilder`; `dns_ops.rs` → `async`/`.await`, `auth_mod` →
+>   `FnOnce(&mut PreparedRequestBuilder)`, request body via the generated `Args`.
+>   `cargo check -p foundation_deployment_cloudflare --features cloudflare` is
+>   clean (0 errors, 0 own warnings); 12 unit tests pass.
+> - `foundation_netio::PreparedRequestBuilder` gained `&mut` mutators
+>   (`set_header`/`set_bearer_token`/`set_body_json`) for `builder_mod` closures.
+>
+> **Deferred (owner-approved 2026-07-12): Part H regeneration of stripe /
+> supabase / neon / planetscale / prisma / flyio.** Investigation showed these
+> are **empty skeletal stubs**, not populated crates: each has an empty
+> `[dependencies]`, a `lib.rs` that declares no modules (so their committed flat
+> `src/<group>/` code is orphaned/never compiled), and **zero real dependents**.
+> "Regenerating" them therefore means authoring each crate's full scaffold from
+> scratch (dependency sections, ~100s of group feature flags, `lib.rs` wiring) —
+> materially larger than regeneration, for dead code nobody consumes. The
+> generator fixes here are provider-agnostic and already validated on the most
+> complex available spec (cloudflare), and they directly benefit Feature 04
+> (Docker). The `genapi` CLI was extended (`SPLIT_OUT_PROVIDERS` +
+> `split_out_crate_name()`) so these crates *can* be regenerated once scaffolded,
+> but scaffolding them is out of scope for spec 54. Owner chose to proceed to
+> Feature 04.
 
 ## Why this exists
 
