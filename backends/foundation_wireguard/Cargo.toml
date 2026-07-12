@@ -36,6 +36,8 @@ derive_more = { workspace = true }
 serde = { workspace = true }
 # Compact, versioned wire codec for SWIM gossip messages (feature 03).
 bincode = { version = "2", features = ["serde"] }
+# wireguard.toml config loading (feature 09).
+toml = { workspace = true }
 
 # Native builds add the poll/fd reactor + UDP socket the tunnel driver runs on, plus
 # BoringSSL for the TLS-PSK bootstrap channel (decision 06; native-only per decision 01).
