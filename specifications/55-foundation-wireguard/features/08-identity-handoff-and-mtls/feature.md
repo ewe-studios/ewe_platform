@@ -20,6 +20,8 @@ and the seed's compromise window is bounded.
 
 ## HOW ([decision 10](../../decisions/10-identity-handoff-and-mtls.md))
 
+**TODO**: Persistence must be via our VFS from the `foundation_nativeapis, this lets us mount both local and remote (cloudflare r2, sqlite, ..etc) as the store.
+
 - **Generate:** `IdentityKeypair::generate()` (random `OsRng`, **not** seed-derived); persist the
   private half (feature 09 persistence) so restarts keep identity.
 - **Announce** the identity pubkey over secured gossip; peers install each other as `WgTunnel` peers

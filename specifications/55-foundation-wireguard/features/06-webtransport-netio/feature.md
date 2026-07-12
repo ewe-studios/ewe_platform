@@ -19,6 +19,8 @@ WG-specific.
 2. Server + native client session API (bidi/uni streams + datagrams).
 3. Reuse `web-transport-wasm` for the browser client (feature 07).
 
+**TODO**: cant we port that to ours `web-transport-wasm` so that we own the code for both wasm-bindgen and foundation-wasm?
+
 ## HOW ([decision 09](../../decisions/09-webtransport-on-quinn-proto.md))
 
 - Adapt `web-transport-proto` by replacing its `tokio::io` `AsyncRead`/`AsyncWrite` **trait usage**

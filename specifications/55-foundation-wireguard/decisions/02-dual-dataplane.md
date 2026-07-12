@@ -41,7 +41,7 @@ mechanisms, **not a protocol**; and `foundation_nativeapis`/`foundation_netio` s
 into the **kernel's** TCP/IP stack. smoltcp is the **protocol implementation itself**, running in
 our process. They are complementary, not substitutes. What we are "missing" is not a syscall wrapper
 (we have io_uring/epoll/UDP) — it is a **protocol stack**, and reimplementing correct TCP
-(retransmit, RTO, windowing, congestion) is a large, bug-prone undertaking, so we vendor smoltcp
+(retransmit, RTO, windowing, congestion) is a large, bug-prone undertaking, so we use smoltcp
 rather than write our own.
 
 Shipping **both** gives the best of both worlds the owner asked for: the portable, unprivileged,
