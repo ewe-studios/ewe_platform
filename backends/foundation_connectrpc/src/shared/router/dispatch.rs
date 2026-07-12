@@ -543,12 +543,10 @@ fn h2_headers(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
     out
 }
 
-/// The response body as bytes.
-///
-/// Only the buffered variants can appear here: `dispatch_h2` handles streaming
-/// bodies by forwarding the protocol's byte pipe directly, and the unary/error
-/// from the pool thread to yield chunks, so it blocks briefly while draining
-/// — but the same is true of every iterator drain in the dispatcher.
+/// The response body as a single `Bytes`, for use in a non-streaming H2
+/// HEADERS + DATA response. Iterator-backed variants are drained via
+/// `try_collect_bytes`; for streaming responses the protocol's byte pipe
+/// bypasses this path entirely.
 #[cfg(not(target_family = "wasm"))]
 fn h2_body(body: Option<SendSafeBody>) -> io::Result<Bytes> {
     match body {

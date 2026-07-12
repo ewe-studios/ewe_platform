@@ -28,8 +28,9 @@ use foundation_netio::http3::connection::{H3Error, H3Request};
 use foundation_netio::http3::types::{request_from_fields, response_to_fields};
 use foundation_netio::netcap::context::ConnectionContext;
 use foundation_netio::quic::QuinnBidiStream;
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::http::{SendSafeBody, SimpleOutgoingResponse, Status};
+use futures::StreamExt;
 
 use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, extract_path,
@@ -213,33 +214,29 @@ async fn collect_h3_body(req: &mut H3Request<QuinnBidiStream>) -> io::Result<Byt
 
 /// Encode a response and send it on the H3 request stream.
 ///
-/// Owns the response. `SendSafeBody` is `Send` but not `Sync` (its iterator
-/// variants hold `Box<dyn Error>`, which is not `Sync`), so headers are extracted
-/// synchronously and the body is drained via `try_collect_bytes` (the shared
-/// handler for every `SendSafeBody` variant) before any await.
+/// Owns the response. Headers extracted synchronously; body streamed
+/// chunk-by-chunk via `AsyncSendSafeBody` with no buffering.
 async fn send_h3_response(
     req: &mut H3Request<QuinnBidiStream>,
     mut response: SimpleOutgoingResponse,
 ) -> io::Result<()> {
     let response_fields = response_to_fields(&response);
     let body = response.body.take();
-    // response borrow done. Drain body synchronously — iterator-backed variants
-    // hold non-Send errors and cannot live across an await.
-    let body_bytes: Option<Bytes> = match body {
-        None | Some(SendSafeBody::None) => None,
-        Some(b) => Some(
-            Bytes::from(
-                try_collect_bytes(b).map_err(|e| io::Error::other(e.to_string()))?,
-            ),
-        ),
-    };
+    // response borrow done.
 
     let mut header_frame = H3Request::<QuinnBidiStream>::encode_headers(&response_fields);
     poll_h3(|| req.poll_send_headers(&mut header_frame)).await?;
 
-    if let Some(data) = body_bytes {
-        let mut data_frame = H3Request::<QuinnBidiStream>::encode_data(data);
-        poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
+    let mut stream = body
+        .filter(|b| !matches!(b, SendSafeBody::None))
+        .map(AsyncSendSafeBody::from);
+
+    if let Some(mut stream) = stream {
+        while let Some(chunk) = stream.next().await {
+            let chunk = chunk.map_err(|e| io::Error::other(e.to_string()))?;
+            let mut data_frame = H3Request::<QuinnBidiStream>::encode_data(Bytes::from(chunk));
+            poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
+        }
     }
 
     poll_h3_finish(req).await

@@ -1815,9 +1815,9 @@ enum SendSafeBodyState {
     Done,
     Text(Vec<u8>),
     Bytes(Vec<u8>),
-    Stream(BoxedSendableDataIterator<BoxedError>),
-    ChunkedStream(BoxedSendableIterator<ChunkedData, BoxedError>),
-    LineFeedStream(BoxedSendableIterator<LineFeed, BoxedError>),
+    Stream(BoxedSendableDataIterator<SendableBoxedError>),
+    ChunkedStream(BoxedSendableIterator<ChunkedData, SendableBoxedError>),
+    LineFeedStream(BoxedSendableIterator<LineFeed, SendableBoxedError>),
     SseStream(BoxedSendableIterator<crate::event_source::ParseResult, SendableBoxedError>),
 }
 
@@ -1827,11 +1827,17 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
             SendSafeBody::Text(t) => SendSafeBodyState::Text(t.into_bytes()),
             SendSafeBody::Bytes(b) => SendSafeBodyState::Bytes(b),
             SendSafeBody::None => SendSafeBodyState::Done,
-            SendSafeBody::Stream(Some(iter)) => SendSafeBodyState::Stream(iter),
+            SendSafeBody::Stream(Some(iter)) => {
+                SendSafeBodyState::Stream(Box::new(iter.map(|r| r.map_err(map_err))))
+            }
             SendSafeBody::Stream(None) => SendSafeBodyState::Done,
-            SendSafeBody::ChunkedStream(Some(iter)) => SendSafeBodyState::ChunkedStream(iter),
+            SendSafeBody::ChunkedStream(Some(iter)) => {
+                SendSafeBodyState::ChunkedStream(Box::new(iter.map(|r| r.map_err(map_err))))
+            }
             SendSafeBody::ChunkedStream(None) => SendSafeBodyState::Done,
-            SendSafeBody::LineFeedStream(Some(iter)) => SendSafeBodyState::LineFeedStream(iter),
+            SendSafeBody::LineFeedStream(Some(iter)) => {
+                SendSafeBodyState::LineFeedStream(Box::new(iter.map(|r| r.map_err(map_err))))
+            }
             SendSafeBody::LineFeedStream(None) => SendSafeBodyState::Done,
             SendSafeBody::SseStream(Some(iter)) => SendSafeBodyState::SseStream(iter),
             SendSafeBody::SseStream(None) => SendSafeBodyState::Done,
@@ -1840,8 +1846,12 @@ impl From<SendSafeBody> for AsyncSendSafeBody {
     }
 }
 
+fn map_err(e: BoxedError) -> SendableBoxedError {
+    Box::new(std::io::Error::other(e.to_string()))
+}
+
 impl FuturesStream for AsyncSendSafeBody {
-    type Item = Result<Vec<u8>, BoxedError>;
+    type Item = Result<Vec<u8>, SendableBoxedError>;
 
     fn poll_next(self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // SAFETY: we never move out of self, and the inner state is not self-referential.
@@ -1885,7 +1895,6 @@ impl FuturesStream for AsyncSendSafeBody {
                 match iter.next() {
                     Some(Ok(LineFeed::Line(line))) => {
                         this.inner = SendSafeBodyState::LineFeedStream(iter);
-                        // Include the stripped newline in the output
                         let mut bytes = line.into_bytes();
                         bytes.push(b'\n');
                         Poll::Ready(Some(Ok(bytes)))
@@ -1927,7 +1936,7 @@ impl FuturesStream for AsyncSendSafeBody {
 /// # Errors
 ///
 /// Returns an error if the operation fails.
-pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>, BoxedError> {
+pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>, SendableBoxedError> {
     use core::future::poll_fn;
     let mut all = Vec::new();
     loop {
@@ -1941,14 +1950,9 @@ pub async fn collect_bytes_async(mut body: AsyncSendSafeBody) -> Result<Vec<u8>,
     Ok(all)
 }
 
-/// Collect body as a String in async context.
-///
-/// # Errors
-///
-/// Returns an error if the operation fails.
-pub async fn collect_string_async(body: AsyncSendSafeBody) -> Result<String, BoxedError> {
+pub async fn collect_string_async(body: AsyncSendSafeBody) -> Result<String, SendableBoxedError> {
     let bytes = collect_bytes_async(body).await?;
-    String::from_utf8(bytes).map_err(|e| Box::new(e) as BoxedError)
+    String::from_utf8(bytes).map_err(|e| Box::new(std::io::Error::other(e.to_string())) as SendableBoxedError)
 }
 
 // ============================================================================
