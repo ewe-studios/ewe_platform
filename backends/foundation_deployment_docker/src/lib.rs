@@ -27,6 +27,9 @@ pub mod error;
 #[cfg(feature = "docker")]
 pub mod streaming;
 
+#[cfg(feature = "buildkit")]
+pub mod buildkit;
+
 #[cfg(feature = "docker")]
 pub use client::{DockerClient, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET};
 #[cfg(feature = "docker")]

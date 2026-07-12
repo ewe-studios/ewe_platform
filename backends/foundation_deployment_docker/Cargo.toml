@@ -9,6 +9,11 @@ workspace = true
 [dependencies.derive_more]
 workspace = true
 
+[dependencies.foundation_connectrpc]
+optional = true
+path = "../foundation_connectrpc"
+version = "0.0.1"
+
 [dependencies.foundation_core]
 path = "../foundation_core"
 version = "0.0.3"
@@ -44,6 +49,7 @@ workspace = true
 
 [features]
 default = []
+buildkit = ["foundation_connectrpc"]
 docker = [
     "docker_ping",
     "docker_archive",

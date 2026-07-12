@@ -4416,6 +4416,7 @@ dependencies = [
  "bytes",
  "chrono",
  "derive_more",
+ "foundation_connectrpc",
  "foundation_core",
  "foundation_deployment",
  "foundation_errstacks",
