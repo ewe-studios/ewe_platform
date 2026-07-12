@@ -66,6 +66,10 @@ name = "h3_capability_tests"
 required-features = ["rpc_multi", "h3"]
 
 [[test]]
+name = "h3_conformance_tests"
+required-features = ["rpc_multi", "h3"]
+
+[[test]]
 name = "server_socket_tests"
 required-features = ["rpc_multi"]
 
