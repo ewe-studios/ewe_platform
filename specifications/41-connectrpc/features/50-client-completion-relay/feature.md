@@ -1,7 +1,7 @@
 ---
 feature: "Client-side completion + zero-syscall proxy relay (D14 F4 relay half)"
 description: "Outbound-dial completion registration and a readiness-aware splice, so both legs of a proxied connection read from the io_uring inbox and the relay wakes on data instead of a 1 ms sleep — culminating in the SEND_ZC zero-copy handoff"
-status: "in-progress (Parts A + B1 + B2 landed + tested; Part C SEND_ZC deferred)"
+status: "implemented (Parts A+B1+B2+C: connect_completion + splice + SEND_ZC + ProvidedBuf-direct handoff + config gate)"
 priority: "medium"
 phase: 4
 depends_on: ["48-transport-completion-read-path", "49-write-side-completion"]

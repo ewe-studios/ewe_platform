@@ -227,6 +227,21 @@ impl Poll {
         self.selector.submit_send_zc(token, fd, data)
     }
 
+    /// Zero-copy send from an owned [`ProvidedBuf`] — the `ProvidedBuf`-direct
+    /// handoff (F50 Part C tail). No pool copy. Only the completion backend.
+    ///
+    /// # Errors
+    /// The kernel's submission error; `Unsupported` off the completion backend.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send_zc_direct(
+        &self,
+        token: Token,
+        fd: sys::RawFd,
+        buf: sys::unix::selector::bufring::ProvidedBuf,
+    ) -> io::Result<usize> {
+        self.selector.submit_send_zc_direct(token, fd, buf)
+    }
+
     /// Take finished sends for `token`. Empty off the completion backend.
     ///
     /// # Panics

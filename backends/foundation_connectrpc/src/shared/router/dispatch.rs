@@ -176,7 +176,7 @@ async fn dispatch_request(
 
 /// Unary: decode the request body → invoke the erased handler → frame the
 /// response per protocol. Unary bypasses the streaming seam (Decision 08).
-async fn run_unary(
+pub(crate) async fn run_unary(
     handler: Arc<dyn super::erased::ErasedUnaryHandler>,
     protocol: &dyn ProtocolHandler,
     mut request: SimpleIncomingRequest,
@@ -299,7 +299,7 @@ async fn run_streaming(
 // ── helpers ───────────────────────────────────────────────────────────────────
 
 /// The routing key: the path with any query string stripped (R1 leading slash).
-fn extract_path(url: &str) -> String {
+pub(crate) fn extract_path(url: &str) -> String {
     url.split('?').next().unwrap_or(url).to_string()
 }
 
@@ -308,7 +308,7 @@ fn extract_path(url: &str) -> String {
 /// Connect GET is only valid for idempotent/NoSideEffects procedures. When the
 /// procedure is not NoSideEffects, GET is excluded from the allowed list so that
 /// a GET to a POST-only endpoint correctly returns 405 (Decision 05 §Unary GET).
-fn allowed_methods(entry: &HandlerEntry) -> Vec<SimpleMethod> {
+pub(crate) fn allowed_methods(entry: &HandlerEntry) -> Vec<SimpleMethod> {
     let mut methods: Vec<SimpleMethod> = Vec::new();
     let is_nosideeffects = entry.spec.idempotency == IdempotencyLevel::NoSideEffects;
     for protocol in &entry.protocol_handlers {
@@ -328,7 +328,7 @@ fn allowed_methods(entry: &HandlerEntry) -> Vec<SimpleMethod> {
 }
 
 /// Server-side transport capabilities inferred from the request's HTTP version.
-fn capabilities_for(proto: &Proto) -> TransportCapabilities {
+pub(crate) fn capabilities_for(proto: &Proto) -> TransportCapabilities {
     let h2 = *proto >= Proto::HTTP20;
     TransportCapabilities {
         // HTTP/1.1 chunked and HTTP/2+ can both stream the request body.
@@ -347,7 +347,7 @@ fn capabilities_for(proto: &Proto) -> TransportCapabilities {
 }
 
 /// Build the per-call [`Ctx`] the dispatcher hands the handler.
-fn build_ctx(
+pub(crate) fn build_ctx(
     bag: Arc<ContextBag>,
     request: &SimpleIncomingRequest,
     spec: Spec,
@@ -382,7 +382,7 @@ fn build_ctx(
 
 /// P7: a required Connect procedure must carry the version marker —
 /// `Connect-Protocol-Version: 1` on POST, or `connect=v1` in the GET query.
-fn require_connect_version(request: &SimpleIncomingRequest) -> ConnectResult<()> {
+pub(crate) fn require_connect_version(request: &SimpleIncomingRequest) -> ConnectResult<()> {
     use crate::shared::protocol::connect::constants;
     let present = if request.method == SimpleMethod::GET {
         request
@@ -430,7 +430,7 @@ fn read_body(request: &mut SimpleIncomingRequest) -> Vec<u8> {
 }
 
 /// A blank response carrying the request's HTTP version and no headers/body.
-fn blank_response(request: &SimpleIncomingRequest) -> SimpleOutgoingResponse {
+pub(crate) fn blank_response(request: &SimpleIncomingRequest) -> SimpleOutgoingResponse {
     SimpleOutgoingResponse {
         proto: request.proto.clone(),
         status: Status::OK,
@@ -440,13 +440,13 @@ fn blank_response(request: &SimpleIncomingRequest) -> SimpleOutgoingResponse {
     }
 }
 
-fn status_only(request: &SimpleIncomingRequest, status: Status) -> SimpleOutgoingResponse {
+pub(crate) fn status_only(request: &SimpleIncomingRequest, status: Status) -> SimpleOutgoingResponse {
     let mut response = blank_response(request);
     response.status = status;
     response
 }
 
-fn method_not_allowed(
+pub(crate) fn method_not_allowed(
     request: &SimpleIncomingRequest,
     allowed: &[SimpleMethod],
 ) -> SimpleOutgoingResponse {
@@ -462,7 +462,7 @@ fn method_not_allowed(
     response
 }
 
-fn unsupported_media_type(
+pub(crate) fn unsupported_media_type(
     request: &SimpleIncomingRequest,
     entry: &HandlerEntry,
 ) -> SimpleOutgoingResponse {
@@ -483,12 +483,12 @@ fn unsupported_media_type(
     response
 }
 
-fn http_version_not_supported(request: &SimpleIncomingRequest) -> SimpleOutgoingResponse {
+pub(crate) fn http_version_not_supported(request: &SimpleIncomingRequest) -> SimpleOutgoingResponse {
     status_only(request, Status::HttpVersionNotSupported)
 }
 
 /// Render an RPC error into `response` via the protocol-aware [`ErrorWriter`].
-fn write_error(
+pub(crate) fn write_error(
     response: &mut SimpleOutgoingResponse,
     request: &SimpleIncomingRequest,
     error: &foundation_errstacks::ErrorTrace<ConnectError>,
@@ -501,7 +501,7 @@ fn write_error(
 /// Rebuild the request shell from an h2 HEADERS frame. The body is supplied
 /// separately (a pipe), so it stays `None` here.
 #[cfg(not(target_family = "wasm"))]
-fn request_from_header(header: &SimpleIncomingRequestHeader) -> SimpleIncomingRequest {
+pub(crate) fn request_from_header(header: &SimpleIncomingRequestHeader) -> SimpleIncomingRequest {
     SimpleIncomingRequest {
         proto: Proto::HTTP20,
         request_uri: header.uri.clone(),
@@ -547,19 +547,17 @@ fn h2_headers(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
 ///
 /// Only the buffered variants can appear here: `dispatch_h2` handles streaming
 /// bodies by forwarding the protocol's byte pipe directly, and the unary/error
-/// paths always produce `Bytes` or `Text`. An iterator-backed body would have to
-/// be drained by blocking the pool thread, so it is refused loudly rather than
-/// silently truncated.
+/// from the pool thread to yield chunks, so it blocks briefly while draining
+/// — but the same is true of every iterator drain in the dispatcher.
 #[cfg(not(target_family = "wasm"))]
 fn h2_body(body: Option<SendSafeBody>) -> io::Result<Bytes> {
     match body {
         None | Some(SendSafeBody::None) => Ok(Bytes::new()),
         Some(SendSafeBody::Bytes(bytes)) => Ok(Bytes::from(bytes)),
         Some(SendSafeBody::Text(text)) => Ok(Bytes::from(text.into_bytes())),
-        Some(_) => Err(io::Error::new(
-            io::ErrorKind::InvalidData,
-            "iterator-backed response body cannot be serialized to h2 frames",
-        )),
+        Some(other) => try_collect_bytes(other)
+            .map(Bytes::from)
+            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string())),
     }
 }
 

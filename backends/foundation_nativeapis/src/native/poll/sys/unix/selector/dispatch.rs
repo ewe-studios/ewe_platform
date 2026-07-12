@@ -24,6 +24,8 @@ use std::time::Duration;
 
 use super::super::super::super::event::Events;
 use super::super::super::super::{backend, Backend, BackendPreference};
+#[cfg(feature = "uring")]
+use super::bufring::ProvidedBuf;
 use super::epoll;
 #[cfg(feature = "uring")]
 use super::uring;
@@ -228,6 +230,28 @@ impl Selector {
             _ => Err(io::Error::new(
                 io::ErrorKind::Unsupported,
                 "IORING_OP_SEND_ZC requires the io_uring completion backend",
+            )),
+        }
+    }
+
+    /// Zero-copy send from an owned [`ProvidedBuf`] — the `ProvidedBuf`-direct
+    /// handoff (F50 Part C tail). No pool copy; the buffer's backing memory goes
+    /// straight to the kernel. Only the completion backend supports it.
+    ///
+    /// # Errors
+    /// The kernel's submission error; `Unsupported` off the completion backend.
+    #[cfg(feature = "uring")]
+    pub fn submit_send_zc_direct(
+        &self,
+        token: Token,
+        fd: RawFd,
+        buf: ProvidedBuf,
+    ) -> io::Result<usize> {
+        match self {
+            Selector::UringCompletion(s) => s.submit_send_zc_direct(token, fd, buf),
+            _ => Err(io::Error::new(
+                io::ErrorKind::Unsupported,
+                "IORING_OP_SEND_ZC direct requires the io_uring completion backend",
             )),
         }
     }

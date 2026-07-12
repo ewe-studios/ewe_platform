@@ -496,6 +496,22 @@ impl Reactor {
         self.poll.submit_send_zc(token, fd, data)
     }
 
+    /// Zero-copy send from an owned `ProvidedBuf` — the direct handoff (F50 Part C
+    /// tail). The buffer's backing memory (in the RECV ring) goes straight to the
+    /// kernel with no intermediate copy.
+    ///
+    /// # Errors
+    /// The kernel's submission error; `Unsupported` off the completion backend.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn submit_send_zc_direct(
+        &self,
+        token: Token,
+        fd: std::os::fd::RawFd,
+        buf: crate::native::poll::sys::unix::selector::bufring::ProvidedBuf,
+    ) -> io::Result<usize> {
+        self.poll.submit_send_zc_direct(token, fd, buf)
+    }
+
     /// Take finished sends for `token` (drained by a transport's `flush`).
     ///
     /// # Panics

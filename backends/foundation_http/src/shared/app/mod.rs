@@ -204,12 +204,21 @@ pub type H1App = Arc<HttpApp<Arc<dyn crate::shared::serve::Serve>>>;
 #[cfg(not(target_family = "wasm"))]
 pub type H2App = Arc<HttpApp<Arc<dyn crate::native::serve::H2Serve>>>;
 
+#[cfg(all(feature = "quic", not(target_family = "wasm")))]
+pub type H3App = Arc<HttpApp<Arc<dyn crate::native::serve::H3Serve>>>;
+
 #[cfg(not(target_family = "wasm"))]
 #[derive(Clone)]
 pub enum ServerApp {
     Http1(H1App),
     Http2(H2App),
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    Http3(H3App),
     Both { http1: H1App, http2: H2App },
+    /// HTTP/1.1 + HTTP/2 + HTTP/3 multiplexed on one port (h1 + h2c-negotiated +
+    /// Alt-Svc-advertised QUIC). Only available with the `quic` feature (F35).
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    Any { http1: H1App, http2: H2App, http3: H3App },
 }
 
 #[cfg(not(target_family = "wasm"))]
@@ -224,6 +233,12 @@ impl ServerApp {
         ServerApp::Http2(Arc::new(app))
     }
 
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    #[must_use]
+    pub fn http3(app: HttpApp<Arc<dyn crate::native::serve::H3Serve>>) -> Self {
+        ServerApp::Http3(Arc::new(app))
+    }
+
     #[must_use]
     pub fn both(
         http1: HttpApp<Arc<dyn crate::shared::serve::Serve>>,
@@ -235,6 +250,20 @@ impl ServerApp {
         }
     }
 
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    #[must_use]
+    pub fn any(
+        http1: HttpApp<Arc<dyn crate::shared::serve::Serve>>,
+        http2: HttpApp<Arc<dyn crate::native::serve::H2Serve>>,
+        http3: HttpApp<Arc<dyn crate::native::serve::H3Serve>>,
+    ) -> Self {
+        ServerApp::Any {
+            http1: Arc::new(http1),
+            http2: Arc::new(http2),
+            http3: Arc::new(http3),
+        }
+    }
+
     /// The HTTP/1.1 app, or `None` if this server does not speak HTTP/1.1.
     ///
     /// A `None` here means the connection must be refused with `505`, never
@@ -242,8 +271,13 @@ impl ServerApp {
     #[must_use]
     pub fn get_h1(&self) -> Option<&H1App> {
         match self {
-            ServerApp::Http1(a) | ServerApp::Both { http1: a, .. } => Some(a),
+            ServerApp::Http1(a)
+            | ServerApp::Both { http1: a, .. } => Some(a),
+            #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+            ServerApp::Any { http1: a, .. } => Some(a),
             ServerApp::Http2(_) => None,
+            #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+            ServerApp::Http3(_) => None,
         }
     }
 
@@ -253,8 +287,23 @@ impl ServerApp {
     #[must_use]
     pub fn get_h2(&self) -> Option<&H2App> {
         match self {
-            ServerApp::Http2(a) | ServerApp::Both { http2: a, .. } => Some(a),
+            ServerApp::Http2(a)
+            | ServerApp::Both { http2: a, .. } => Some(a),
+            #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+            ServerApp::Any { http2: a, .. } => Some(a),
             ServerApp::Http1(_) => None,
+            #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+            ServerApp::Http3(_) => None,
+        }
+    }
+
+    /// The HTTP/3 app, or `None` if this server does not speak HTTP/3 (F35).
+    #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+    #[must_use]
+    pub fn get_h3(&self) -> Option<&H3App> {
+        match self {
+            ServerApp::Http3(a) | ServerApp::Any { http3: a, .. } => Some(a),
+            ServerApp::Http1(_) | ServerApp::Http2(_) | ServerApp::Both { .. } => None,
         }
     }
 }

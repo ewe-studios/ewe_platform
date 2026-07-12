@@ -76,6 +76,8 @@ ssl-rustls-ring = ["foundation_netio/ssl-rustls-ring"]
 ssl-rustls-awsrc = ["foundation_netio/ssl-rustls-awsrc"]
 ssl-openssl = ["foundation_netio/ssl-openssl"]
 ssl-native-tls = ["foundation_netio/ssl-native-tls"]
+# HTTP/3 (QUIC) — gates H3Serve trait and ServerApp::Http3 (F35)
+quic = ["foundation_netio/quic"]
 # Wasm compatibility — uses browser crypto for UUID generation
 wasm = ["uuid/js", "dep:getrandom", "getrandom/js"]
 # Wasm-bindgen bridge entry points for web and Cloudflare Workers

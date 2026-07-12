@@ -157,6 +157,11 @@ pub struct Selector {
     next_send_id: AtomicU64,
     /// Per-token mailbox of finished sends, drained by `take_send_completions`.
     send_mailboxes: Mutex<HashMap<Token, VecDeque<SendCompletion>>>,
+    /// SEND_ZC buffers submitted directly (not through the SendPool) — e.g. a
+    /// `ProvidedBuf` from the RECV ring (F50 Part C tail). Keyed by send id;
+    /// the buffer (and its backing RECV-ring slot) is held until the `F_NOTIF`
+    /// CQE, at which point it is dropped — returning it to the RECV ring.
+    in_flight_zc_direct: Mutex<HashMap<u64, (Token, ProvidedBuf)>>,
     /// SQEs pushed since construction.
     ///
     /// Decision 14 OQ#14.1 predicted that completion mode would make submission
@@ -259,6 +264,7 @@ impl Selector {
             in_flight_sends: Mutex::new(HashMap::new()),
             next_send_id: AtomicU64::new(0),
             send_mailboxes: Mutex::new(HashMap::new()),
+            in_flight_zc_direct: Mutex::new(HashMap::new()),
             submissions: AtomicU64::new(0),
             waker_fd: Mutex::new(None),
             waker_token: Mutex::new(None),
@@ -414,6 +420,54 @@ impl Selector {
             self.in_flight_sends
                 .lock()
                 .expect("uring in-flight sends lock poisoned")
+                .remove(&send_id);
+            return Err(e);
+        }
+        Ok(n)
+    }
+
+    /// Zero-copy send from an **arbitrary owned buffer** — the `ProvidedBuf`-direct
+    /// handoff (F50 Part C tail). Unlike [`submit_send_zc`](Self::submit_send_zc),
+    /// this does NOT copy into the [`SendPool`]; it submits the buffer's own backing
+    /// memory directly. The kernel DMAs from the RECV ring without touching user
+    /// memory.
+    ///
+    /// The `ProvidedBuf` is held in `in_flight_zc_direct` until the `F_NOTIF` CQE,
+    /// at which point it is dropped — returning it to the RECV ring.
+    ///
+    /// # Errors
+    /// The kernel's error if the SQE cannot be submitted (e.g. SQ full).
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    pub fn submit_send_zc_direct(
+        &self,
+        token: Token,
+        fd: RawFd,
+        buf: ProvidedBuf,
+    ) -> io::Result<usize> {
+        let n = buf.len();
+        if n == 0 {
+            return Ok(0);
+        }
+        let send_id = self.next_send_id.fetch_add(1, Ordering::Relaxed) & (SENDZC_TAG - 1);
+        let user_data = SENDZC_TAG | send_id;
+        let ptr = buf.as_ptr();
+        self.in_flight_zc_direct
+            .lock()
+            .expect("uring zc-direct lock poisoned")
+            .insert(send_id, (token, buf));
+
+        // SAFETY: `ptr` addresses `n` initialised bytes in the RECV ring's mmap'd
+        // region, owned by the `ProvidedBuf` now held in `in_flight_zc_direct` —
+        // stable until this send's `F_NOTIF` CQE drops it in `drain_completions`.
+        let sqe = opcode::SendZc::new(types::Fd(fd), ptr, n as u32)
+            .build()
+            .user_data(user_data);
+        if let Err(e) = self.push_and_submit(&sqe) {
+            self.in_flight_zc_direct
+                .lock()
+                .expect("uring zc-direct lock poisoned")
                 .remove(&send_id);
             return Err(e);
         }
@@ -954,13 +1008,28 @@ impl Selector {
                     let send_id = user_data & (SENDZC_TAG - 1);
                     if cqueue::notif(flags) {
                         // Second CQE: the kernel is done with the buffer — recycle
-                        // it. (The byte count was reported on the first CQE.)
-                        let removed = self
-                            .in_flight_sends
-                            .lock()
-                            .expect("uring in-flight sends lock poisoned")
-                            .remove(&send_id);
-                        if let Some((token, _buf)) = removed {
+                        // it. Check both the pool-backed map and the direct-provided
+                        // map (F50 Part C tail).
+                        let mut found: Option<(Token,)> = None;
+                        {
+                            let mut sends = self
+                                .in_flight_sends
+                                .lock()
+                                .expect("uring in-flight sends lock poisoned");
+                            if let Some((token, _buf)) = sends.remove(&send_id) {
+                                found = Some((token,));
+                            }
+                        }
+                        if found.is_none() {
+                            let mut zc = self
+                                .in_flight_zc_direct
+                                .lock()
+                                .expect("uring zc-direct lock poisoned");
+                            if let Some((token, _buf)) = zc.remove(&send_id) {
+                                found = Some((token,));
+                            }
+                        }
+                        if let Some((token,)) = found {
                             // Wake `flush` once the buffer is fully released.
                             *seen.entry(token).or_insert(0) |= libc::EPOLLOUT as u32;
                         }
@@ -974,7 +1043,17 @@ impl Selector {
                             .in_flight_sends
                             .lock()
                             .expect("uring in-flight sends lock poisoned");
-                        flight.get(&send_id).map(|(t, _)| *t)
+                        let tk = flight.get(&send_id).map(|(t, _)| *t);
+                        drop(flight);
+                        if tk.is_some() {
+                            tk
+                        } else {
+                            self.in_flight_zc_direct
+                                .lock()
+                                .expect("uring zc-direct lock poisoned")
+                                .get(&send_id)
+                                .map(|(t, _)| *t)
+                        }
                     };
                     if let Some(token) = token {
                         let completion = if result >= 0 {
@@ -989,6 +1068,10 @@ impl Selector {
                                     self.in_flight_sends
                                         .lock()
                                         .expect("uring in-flight sends lock poisoned")
+                                        .remove(&send_id);
+                                    self.in_flight_zc_direct
+                                        .lock()
+                                        .expect("uring zc-direct lock poisoned")
                                         .remove(&send_id);
                                 }
                                 continue;
@@ -1006,6 +1089,10 @@ impl Selector {
                             self.in_flight_sends
                                 .lock()
                                 .expect("uring in-flight sends lock poisoned")
+                                .remove(&send_id);
+                            self.in_flight_zc_direct
+                                .lock()
+                                .expect("uring zc-direct lock poisoned")
                                 .remove(&send_id);
                         }
                     }

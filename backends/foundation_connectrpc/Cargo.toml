@@ -57,7 +57,7 @@ brotli = ["dep:brotli"]
 auth = ["dep:foundation_auth"]
 
 # HTTP/3 over QUIC (F35). Pulls quinn-proto through netio's `quic` feature.
-h3 = ["foundation_netio/quic"]
+h3 = ["foundation_netio/quic", "foundation_http/quic"]
 
 # Tests that use the valtron pool need the multi-threaded executor (`rpc_multi`).
 # HTTP/3 transport capabilities (F35).

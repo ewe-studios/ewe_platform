@@ -1,6 +1,6 @@
 # Spec 41 Progress
 
-Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
+Last updated: 2026-07-12 (F35 server half, F49 Phase C, F50 Part C tail, io_uring config gate)
 
 ## Completed features (committed + tested)
 
@@ -28,30 +28,27 @@ Last updated: 2026-07-12 (connectrpc wasm restructure landed, commit fb3d86744)
 | # | Feature | Status |
 |---|---------|--------|
 | 48 | Transport completion read path | Phases 0-3 implemented; `foundation_iogate` bridge crate breaks netio↔nativeapis cycle. **Phase 4 (proxy splice) designed out.** |
-| 49 | Write-side completion (IORING_OP_SEND) | **Phases A+B implemented + verified 2026-07-12** (commit d17ec5634): `SendPool`/`SendBuf`, Selector `submit_send`/SEND-CQE drain, threaded to `CompletionSocket::write`/`flush`. Zero write-family syscalls proven via ptrace; 4 real-socket + 5 pool + 1 syscall tests. **Deferred:** Phase C (`split_read_write` write half), Phase D SEND_ZC (→ F50). |
+| 49 | Write-side completion (IORING_OP_SEND) | **All phases implemented 2026-07-12.** Phases A+B: `SendPool`/`SendBuf`, SEND-CQE drain, zero write-syscalls (ptrace). **Phase C:** `CompletionSocket::split()` → `ReadHalf`/`WriteHalf` on dup'd fds, each with independent reactor registration. |
 | 51 | Unified HTTP+WebSocket client | **Wasm criterion MET** (commit fb3d86744): `foundation_connectrpc` compiles clean for `wasm32-unknown-unknown`. `SimpleHttpClient` alias-only, `H1Transport` holds `Arc<dyn HttpClient>`, no `NoSpawner`, `open_websocket` auto-switches native/wasm. **`+ Clone` criterion WAIVED** as cosmetic (28 inert bounds; stack monomorphises at `BoxedDnsResolver` where `Clone` = `Arc::clone`). |
 | 51b | connectrpc shared/native restructure | Crate split into `shared/` (codec, compression, context, envelope, error, error_writer, interceptor, message, protocol, client, router, transport incl. H1+WS) + `native/` (server, h2_serve, transport h2/h3). h2 dispatch method cfg-gated in place. foundation_http H2Serve moved shared/serve → native/serve (native http2 leak). 180/180 tests pass; native + wasm warning-free. |
 | 52 | Browser test harness | Implemented, **diverged from design**: shipped `#[valtron_bindgen]` + `#[valtron_wasm_test]` macros (valtron-pool-aware) instead of a bare `#[wasm_bindgen_test]` re-export. `foundation_wasm_testbed` deleted, tests relocated to `foundation_netio/tests/wasm/`, docs updated. CLI shipped as top-level `deno`/`browser`/`bindgen` commands + wasm-bindgen version check (CLI ≥ crate). **Not shipped:** the design's 4-way `test` auto-detect (still legacy mode-based); `bindgen-web` kept with an INTEROP warning, not a formal deprecation. **Not re-verified:** end-to-end Chromium browser run (blocked earlier on a testbed feature-combo build issue). |
 
-| 50 | Client completion + zero-syscall proxy relay | **Parts A + B1 + B2 + C-mechanism implemented + tested 2026-07-12** (commits 813d29e7b, b113e706a, 8bd9e5810, 96c2c0f28). A/B1: `iogate::connect_completion` + proxy dial wiring (`ProxyConfig::io_mode`). B2: reactor `wait_for_events` event-generation+condvar primitive (the design's `is_ready`-blocks assumption was false — `is_ready` is non-blocking; built the primitive) + readiness-aware `splice_bidirectional` (parks instead of the 1ms sleep) + WouldBlock-tolerant relay writes. C: `Selector::submit_send_zc` — `IORING_OP_SEND_ZC` two-phase (F_MORE/F_NOTIF) completion, verified on TCP. **Remaining Part C:** wire SEND_ZC into `CompletionSocket` + the true `ProvidedBuf`-direct-handoff relay (measurement-gated). |
+| 50 | Client completion + zero-syscall proxy relay | **All phases implemented 2026-07-12.** Parts A+B1+B2: `connect_completion` + proxy dial wiring + reactor `wait_for_events` + readiness-aware splice. **Part C mechanism + tail:** `submit_send_zc` two-phase + `submit_send_zc_direct` (`ProvidedBuf`-direct handoff — no user-memory copy). **Config gate:** `CompletionSocket` with explicit `ReadMode`/`WriteMode` enums (Std/Send/SendZc), every combination testable. |
 
 ## HTTP/3 (F34 done, F35 client-side done)
 
 | # | Feature | Status |
 |---|---------|--------|
 | 34 | HTTP/3 module (framing + QPACK over QUIC traits) | **complete** — `foundation_netio::http3` (varint/frame/qpack); wire behaviour proved e2e in netio `tests/http3/connection_tests.rs`. |
-| 35 | HTTP/3 ConnectRPC transport | **in-progress — client half done.** `H3Transport` + capability matrix + 6–7 capability tests landed. **Remaining = the server half:** `H3Serve` + `ServerApp::Http3` branch, netcap `Quic` variants on `Connection`/`Listener` + routing `HttpServer` through netcap's listener, Alt-Svc + `ConnectionContext` population, then the Connect+gRPC conformance suites over a real HTTP/3 server. |
+| 35 | HTTP/3 ConnectRPC transport | **Server half implemented 2026-07-12.** Client transport + capability matrix already done. **Server half:** `H3Serve` trait (foundation_http, `quic` feature), `ConnectRpcServeH3` (connectrpc, `h3` feature), `dispatch_h3` (headers-async-body adapter over `H3Request::poll_*`), `ServerApp::Http3`/`Any` variants. Unary works through shared dispatch (decision phase, `try_collect_bytes` for body). Streaming returns 501; full streaming needs a QUIC-aware pump (server analogue of `H3Pump`). **Remaining:** netcap `Quic` listener variants, Alt-Svc + `ConnectionContext`, conformance suite over real H3 server. |
 
 ## Truly-remaining work (next steps)
 
-1. **F50 Part C tail** — wire `submit_send_zc` into `CompletionSocket` as a
-   zero-copy write mode, and the true `ProvidedBuf`-direct-handoff relay (send an
-   inbound RECV buffer via SEND_ZC with no user-memory copy). Measurement-gated per
-   the design. The SEND_ZC *mechanism* is done + tested.
-2. **F49 Phase C** — `split_read_write`'s write half as a second-registration
-   `CompletionSocket` (the SEND mechanism it needs is done).
-3. **F35 server half** — `H3Serve` + `ServerApp::Http3`, netcap `Quic` listener
-   variants, Alt-Svc + `ConnectionContext`, then Connect+gRPC conformance over a
-   real HTTP/3 server (large; the client transport + F34 module are done).
-4. **F52 tail** — optionally add the 4-way `test` auto-detect + formal `bindgen-web`
+1. **F35 streaming** — H3 server/bidi/client-stream handlers need a QUIC-aware pump
+   (server analogue of `H3Pump`). Currently returns 501.
+2. **F35 netcap Quic listener** — `Quic` variants on `Connection`/`Listener`/
+   `ConfigListenAddr`, routing `HttpServer` through netcap's listener, Alt-Svc +
+   `ConnectionContext` population, Connect+gRPC conformance suites over a real H3
+   server.
+3. **F52 tail** — optionally add the 4-way `test` auto-detect + formal `bindgen-web`
    deprecation; re-run the end-to-end Chromium browser test to close verification.

@@ -559,6 +559,57 @@ impl FdRegistration {
         reactor.submit_send(self.token, fd, data)
     }
 
+    /// Zero-copy send: like [`send_bytes`](Self::send_bytes) but submits
+    /// `IORING_OP_SEND_ZC` instead of `IORING_OP_SEND` (F50 Part C). The kernel
+    /// sends directly from the pinned pool buffer without copying into the socket
+    /// send buffer. Still copies into the [`SendPool`] — one `memcpy` per write.
+    ///
+    /// # Errors
+    /// `WouldBlock` if the send pool is exhausted; the kernel's error otherwise.
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn send_bytes_zc(&self, fd: RawFd, data: &[u8]) -> io::Result<usize> {
+        if !self.is_send_source() {
+            return Self::write_syscall(fd, data);
+        }
+        let Some(ref reactor) = self.reactor else {
+            return Self::write_syscall(fd, data);
+        };
+        reactor.submit_send_zc(self.token, fd, data)
+    }
+
+    /// Zero-copy send from an **owned** [`ProvidedBuf`] — the true zero-copy
+    /// relay (F50 Part C tail). The buffer's backing memory in the RECV ring goes
+    /// straight to the kernel via `IORING_OP_SEND_ZC` with **no user-memory copy**
+    /// at all — no pool checkout, no `memcpy`. The `ProvidedBuf` is held until the
+    /// `F_NOTIF` CQE.
+    ///
+    /// # Errors
+    /// The kernel's submission error; degrades to `write(2)` if not a completion
+    /// source (though this path is only reachable with `WriteMode::SendZc`).
+    ///
+    /// # Panics
+    /// Panics if an internal lock is poisoned.
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn send_bytes_zc_direct(
+        &self,
+        fd: RawFd,
+        buf: crate::native::poll::sys::unix::selector::bufring::ProvidedBuf,
+    ) -> io::Result<usize> {
+        if !self.is_send_source() {
+            // Fallback: do a plain write(2) and drop the ProvidedBuf.
+            let n = Self::write_syscall(fd, &buf)?;
+            return Ok(n);
+        }
+        let Some(ref reactor) = self.reactor else {
+            let n = Self::write_syscall(fd, &buf)?;
+            return Ok(n);
+        };
+        reactor.submit_send_zc_direct(self.token, fd, buf)
+    }
+
     /// Whether writes through [`send_bytes`](Self::send_bytes) submit
     /// `IORING_OP_SEND` rather than `write(2)`. True exactly when the fd is a
     /// completion-mode socket (which both receives and sends through the ring).
@@ -813,6 +864,26 @@ impl<T: AsRawFd> RegisteredFd<T> {
     pub fn send_bytes(&self, data: &[u8]) -> io::Result<usize> {
         let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
         self.registration.send_bytes(fd, data)
+    }
+
+    /// Zero-copy send: like [`send_bytes`](Self::send_bytes) but via
+    /// `IORING_OP_SEND_ZC` (F50 Part C). See [`FdRegistration::send_bytes_zc`].
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn send_bytes_zc(&self, data: &[u8]) -> io::Result<usize> {
+        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        self.registration.send_bytes_zc(fd, data)
+    }
+
+    /// Zero-copy send from an owned [`ProvidedBuf`] — the true zero-copy relay
+    /// (F50 Part C tail). No pool copy; the buffer's RECV-ring memory goes
+    /// straight to `IORING_OP_SEND_ZC`. See [`FdRegistration::send_bytes_zc_direct`].
+    #[cfg(all(target_os = "linux", feature = "uring"))]
+    pub fn send_bytes_zc_direct(
+        &self,
+        buf: crate::native::poll::sys::unix::selector::bufring::ProvidedBuf,
+    ) -> io::Result<usize> {
+        let fd = self.inner.as_ref().expect("inner present until into_inner").as_raw_fd();
+        self.registration.send_bytes_zc_direct(fd, buf)
     }
 
     /// Drain finished sends, surfacing the first error; `WouldBlock` while any

@@ -1,7 +1,7 @@
 ---
 feature: "Write-side completion — IORING_OP_SEND (D14 F4 SEND half)"
 description: "io_uring SEND for transport writes, buffer-ownership tracking, and a path to the zero-copy proxy relay"
-status: "implemented (Phases A+B; Phase C split write-half deferred)"
+status: "implemented (Phases A+B+C: SEND pool + ptrace proof + split_read_write)"
 priority: "medium"
 phase: 3
 depends_on: ["48-transport-completion-read-path"]

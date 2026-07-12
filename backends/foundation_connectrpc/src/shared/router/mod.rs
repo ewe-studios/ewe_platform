@@ -16,7 +16,7 @@
 //! [`HandlerEntry`]. [`Router::into_handler`] consumes the router (Q10 — no
 //! post-build mutation).
 
-mod dispatch;
+pub(crate) mod dispatch;
 mod erased;
 
 use std::future::Future;
