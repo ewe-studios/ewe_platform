@@ -1,0 +1,27 @@
+//! `foundation_wireguard` — a userspace WireGuard® mesh (spec-55).
+//!
+//! WHY: Let any EWE service stand up a private, encrypted mesh from a single bootstrap
+//! secret and let other services join it — over WireGuard, entirely in userspace (no
+//! kernel module, no privileges in the default mode), across native/wasm/mobile.
+//!
+//! WHAT: This crate is the **top combiner**. It wraps `boringtun`'s Noise state machine
+//! ([`shared::tunnel`]), derives keys from a seed ([`shared::keys`]), and drives tunnels
+//! over the [`foundation_nativeapis`] data plane. Bootstrap, SWIM gossip, mesh
+//! orchestration, relay, and the config surface layer on top in later features.
+//!
+//! HOW: Sans-I/O cores (`Tunn`, smoltcp, SWIM) are *driven*, never self-running — a
+//! single valtron task couples `Tunn` timers with the data-plane poll loop. No tokio.
+
+/// Cross-platform building blocks (keys, tunnel, membership, mesh, config). No
+/// platform-specific re-exports live here (see `feedback_shared_module_purpose`).
+pub mod shared;
+
+/// Native-only glue: UDP transport and the tunnel driver task.
+#[cfg(not(target_family = "wasm"))]
+pub mod native;
+
+pub use shared::error::{WgError, WgResult};
+pub use shared::keys::{
+    BootstrapKeys, IdentityKeypair, NetworkId, PeerPublicKey, SeedBits, WgSeed,
+};
+pub use shared::tunnel::{WgOutcome, WgTunnel};

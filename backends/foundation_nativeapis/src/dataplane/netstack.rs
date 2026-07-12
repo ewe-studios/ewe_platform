@@ -11,15 +11,15 @@
 //!
 //! HOW: A custom smoltcp [`phy::Device`] ([`TunnDevice`]) whose RX queue is fed by
 //! [`DataPlane::inject_inbound_ip`] and whose TX queue is drained by
-//! [`DataPlane::drain_outbound_ip`]. All state lives behind an `Rc<RefCell<..>>` so the
-//! single driver task and the overlay socket handles share it cheaply; the stack is
-//! single-threaded by construction (smoltcp is sans-I/O and brings no runtime).
+//! [`DataPlane::drain_outbound_ip`]. All state lives behind an `Arc<Mutex<..>>` so the
+//! single driver task and the overlay socket handles share it cheaply while staying
+//! `Send` (required to run inside a valtron task); the stack is single-threaded by
+//! construction (smoltcp is sans-I/O and brings no runtime), so the mutex is uncontended.
 
-use std::cell::RefCell;
 use std::collections::{BTreeMap, VecDeque};
 use std::io;
 use std::net::{IpAddr, SocketAddr};
-use std::rc::Rc;
+use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
 use smoltcp::iface::{Config, Interface, SocketHandle, SocketSet};
@@ -134,7 +134,7 @@ impl Device for TunnDevice {
 // ---------------------------------------------------------------------------
 
 /// All mutable netstack state, shared between the driver and every overlay socket
-/// handle via `Rc<RefCell<..>>`. Single-threaded by construction.
+/// handle via `Arc<Mutex<..>>`. Single-threaded by construction (uncontended mutex).
 struct Inner {
     device: TunnDevice,
     iface: Interface,
@@ -210,12 +210,12 @@ impl NetStackConfig {
 /// same underlying stack, so they must all be driven from the same thread.
 #[derive(Clone)]
 pub struct NetStack {
-    inner: Rc<RefCell<Inner>>,
+    inner: Arc<Mutex<Inner>>,
 }
 
 impl std::fmt::Debug for NetStack {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let inner = self.inner.borrow();
+        let inner = self.inner.lock().expect("netstack mutex poisoned");
         f.debug_struct("NetStack")
             .field("mtu", &inner.device.mtu)
             .field("sockets", &inner.sockets.iter().count())
@@ -257,20 +257,20 @@ impl NetStack {
         };
 
         Self {
-            inner: Rc::new(RefCell::new(inner)),
+            inner: Arc::new(Mutex::new(inner)),
         }
     }
 
     /// Number of active overlay sockets. Primarily for diagnostics and tests.
     #[must_use]
     pub fn socket_count(&self) -> usize {
-        self.inner.borrow().sockets.iter().count()
+        self.inner.lock().expect("netstack mutex poisoned").sockets.iter().count()
     }
 
     /// Number of outbound IP packets currently queued for encryption.
     #[must_use]
     pub fn pending_outbound(&self) -> usize {
-        self.inner.borrow().device.tx.len()
+        self.inner.lock().expect("netstack mutex poisoned").device.tx.len()
     }
 }
 
@@ -279,11 +279,11 @@ impl DataPlane for NetStack {
         if packet.is_empty() {
             return;
         }
-        self.inner.borrow_mut().device.rx.push_back(packet.to_vec());
+        self.inner.lock().expect("netstack mutex poisoned").device.rx.push_back(packet.to_vec());
     }
 
     fn poll(&mut self, now: Instant) -> Option<Instant> {
-        let mut guard = self.inner.borrow_mut();
+        let mut guard = self.inner.lock().expect("netstack mutex poisoned");
         let inner = &mut *guard;
         let timestamp = inner.smol_now(now);
 
@@ -303,7 +303,7 @@ impl DataPlane for NetStack {
     }
 
     fn drain_outbound_ip(&mut self, f: &mut dyn FnMut(&[u8])) {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         while let Some(packet) = inner.device.tx.pop_front() {
             f(&packet);
         }
@@ -312,14 +312,14 @@ impl DataPlane for NetStack {
     fn tcp_listen(&mut self, addr: SocketAddr) -> io::Result<OverlayListener> {
         let handle = self.spawn_listening_socket(addr)?;
         Ok(OverlayListener {
-            inner: Rc::clone(&self.inner),
+            inner: Arc::clone(&self.inner),
             handle,
             local: addr,
         })
     }
 
     fn tcp_connect(&mut self, addr: SocketAddr) -> io::Result<OverlayStream> {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let local_port = inner.alloc_port();
         let remote = to_smol_endpoint(addr);
 
@@ -339,7 +339,7 @@ impl DataPlane for NetStack {
 
         let local = SocketAddr::new(local_addr(iface), local_port);
         Ok(OverlayStream {
-            inner: Rc::clone(&self.inner),
+            inner: Arc::clone(&self.inner),
             handle,
             local,
             peer: addr,
@@ -347,7 +347,7 @@ impl DataPlane for NetStack {
     }
 
     fn udp_bind(&mut self, addr: SocketAddr) -> io::Result<OverlayUdp> {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = udp::Socket::new(
             udp::PacketBuffer::new(
                 vec![PacketMetadata::EMPTY; UDP_PACKETS],
@@ -366,7 +366,7 @@ impl DataPlane for NetStack {
             .bind(endpoint)
             .map_err(|e| io::Error::new(io::ErrorKind::AddrInUse, format!("udp bind: {e}")))?;
         Ok(OverlayUdp {
-            inner: Rc::clone(&self.inner),
+            inner: Arc::clone(&self.inner),
             handle,
             local: addr,
         })
@@ -376,7 +376,7 @@ impl DataPlane for NetStack {
 impl NetStack {
     /// Create and arm a fresh listening TCP socket, returning its handle.
     fn spawn_listening_socket(&self, addr: SocketAddr) -> io::Result<SocketHandle> {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = tcp::Socket::new(
             tcp::SocketBuffer::new(vec![0u8; TCP_BUFFER_BYTES]),
             tcp::SocketBuffer::new(vec![0u8; TCP_BUFFER_BYTES]),
@@ -440,7 +440,7 @@ fn fire_ready_wakers(inner: &mut Inner) {
 /// An overlay TCP listener. `accept` yields one [`OverlayStream`] per inbound
 /// connection and re-arms a fresh listening socket so the listener keeps accepting.
 pub struct OverlayListener {
-    inner: Rc<RefCell<Inner>>,
+    inner: Arc<Mutex<Inner>>,
     handle: SocketHandle,
     local: SocketAddr,
 }
@@ -466,7 +466,7 @@ impl OverlayListener {
     /// [`io::ErrorKind::WouldBlock`] when no connection is pending.
     pub fn accept(&mut self) -> io::Result<OverlayStream> {
         let established = {
-            let inner = self.inner.borrow();
+            let inner = self.inner.lock().expect("netstack mutex poisoned");
             let socket = inner.sockets.get::<tcp::Socket>(self.handle);
             socket.state() != tcp::State::Listen
                 && socket.state() != tcp::State::Closed
@@ -477,7 +477,7 @@ impl OverlayListener {
         }
 
         let (peer, accepted) = {
-            let inner = self.inner.borrow();
+            let inner = self.inner.lock().expect("netstack mutex poisoned");
             let socket = inner.sockets.get::<tcp::Socket>(self.handle);
             let peer = socket
                 .remote_endpoint()
@@ -488,12 +488,12 @@ impl OverlayListener {
 
         // Re-arm a fresh listening socket so we keep accepting.
         let net = NetStack {
-            inner: Rc::clone(&self.inner),
+            inner: Arc::clone(&self.inner),
         };
         self.handle = net.spawn_listening_socket(self.local)?;
 
         Ok(OverlayStream {
-            inner: Rc::clone(&self.inner),
+            inner: Arc::clone(&self.inner),
             handle: accepted,
             local: self.local,
             peer,
@@ -503,7 +503,7 @@ impl OverlayListener {
     /// Register a one-shot waker fired when a connection becomes acceptable.
     pub fn set_accept_waker(&self, waker: WakeFn) {
         self.inner
-            .borrow_mut()
+            .lock().expect("netstack mutex poisoned")
             .read_wakers
             .insert(self.handle, waker);
     }
@@ -517,7 +517,7 @@ impl OverlayListener {
 
 impl Drop for OverlayListener {
     fn drop(&mut self) {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         inner.read_wakers.remove(&self.handle);
         inner.write_wakers.remove(&self.handle);
         inner.sockets.remove(self.handle);
@@ -526,7 +526,7 @@ impl Drop for OverlayListener {
 
 /// An overlay TCP stream (a single connection).
 pub struct OverlayStream {
-    inner: Rc<RefCell<Inner>>,
+    inner: Arc<Mutex<Inner>>,
     handle: SocketHandle,
     local: SocketAddr,
     peer: SocketAddr,
@@ -553,7 +553,7 @@ impl OverlayStream {
     /// [`io::ErrorKind::WouldBlock`] when no data is available yet; other kinds on a
     /// broken connection.
     pub fn read(&self, buf: &mut [u8]) -> io::Result<usize> {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<tcp::Socket>(self.handle);
         if socket.can_recv() {
             socket
@@ -577,7 +577,7 @@ impl OverlayStream {
     /// [`io::ErrorKind::WouldBlock`] when the send buffer is full;
     /// [`io::ErrorKind::BrokenPipe`] when the send half is closed.
     pub fn write(&self, buf: &[u8]) -> io::Result<usize> {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<tcp::Socket>(self.handle);
         if socket.can_send() {
             socket
@@ -596,7 +596,7 @@ impl OverlayStream {
     #[must_use]
     pub fn is_active(&self) -> bool {
         self.inner
-            .borrow()
+            .lock().expect("netstack mutex poisoned")
             .sockets
             .get::<tcp::Socket>(self.handle)
             .is_active()
@@ -607,7 +607,7 @@ impl OverlayStream {
     #[must_use]
     pub fn may_send(&self) -> bool {
         self.inner
-            .borrow()
+            .lock().expect("netstack mutex poisoned")
             .sockets
             .get::<tcp::Socket>(self.handle)
             .may_send()
@@ -617,7 +617,7 @@ impl OverlayStream {
     #[must_use]
     pub fn may_recv(&self) -> bool {
         self.inner
-            .borrow()
+            .lock().expect("netstack mutex poisoned")
             .sockets
             .get::<tcp::Socket>(self.handle)
             .may_recv()
@@ -626,7 +626,7 @@ impl OverlayStream {
     /// Begin an orderly close of the send half (FIN).
     pub fn close(&self) {
         self.inner
-            .borrow_mut()
+            .lock().expect("netstack mutex poisoned")
             .sockets
             .get_mut::<tcp::Socket>(self.handle)
             .close();
@@ -635,7 +635,7 @@ impl OverlayStream {
     /// Register a one-shot waker fired when the stream becomes readable.
     pub fn set_read_waker(&self, waker: WakeFn) {
         self.inner
-            .borrow_mut()
+            .lock().expect("netstack mutex poisoned")
             .read_wakers
             .insert(self.handle, waker);
     }
@@ -643,7 +643,7 @@ impl OverlayStream {
     /// Register a one-shot waker fired when the stream becomes writable.
     pub fn set_write_waker(&self, waker: WakeFn) {
         self.inner
-            .borrow_mut()
+            .lock().expect("netstack mutex poisoned")
             .write_wakers
             .insert(self.handle, waker);
     }
@@ -663,7 +663,7 @@ impl OverlayStream {
 
 impl Drop for OverlayStream {
     fn drop(&mut self) {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         inner.read_wakers.remove(&self.handle);
         inner.write_wakers.remove(&self.handle);
         inner.sockets.remove(self.handle);
@@ -672,7 +672,7 @@ impl Drop for OverlayStream {
 
 /// An overlay UDP socket.
 pub struct OverlayUdp {
-    inner: Rc<RefCell<Inner>>,
+    inner: Arc<Mutex<Inner>>,
     handle: SocketHandle,
     local: SocketAddr,
 }
@@ -695,7 +695,7 @@ impl OverlayUdp {
     /// # Errors
     /// [`io::ErrorKind::WouldBlock`] when no datagram is buffered.
     pub fn recv_from(&self, buf: &mut [u8]) -> io::Result<(usize, SocketAddr)> {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<udp::Socket>(self.handle);
         if !socket.can_recv() {
             return Err(io::Error::new(io::ErrorKind::WouldBlock, "no datagram"));
@@ -715,7 +715,7 @@ impl OverlayUdp {
     /// # Errors
     /// [`io::ErrorKind::WouldBlock`] when the send buffer is full; other kinds on error.
     pub fn send_to(&self, buf: &[u8], addr: SocketAddr) -> io::Result<usize> {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         let socket = inner.sockets.get_mut::<udp::Socket>(self.handle);
         if !socket.can_send() {
             return Err(io::Error::new(io::ErrorKind::WouldBlock, "send buffer full"));
@@ -729,7 +729,7 @@ impl OverlayUdp {
     /// Register a one-shot waker fired when a datagram becomes available.
     pub fn set_read_waker(&self, waker: WakeFn) {
         self.inner
-            .borrow_mut()
+            .lock().expect("netstack mutex poisoned")
             .read_wakers
             .insert(self.handle, waker);
     }
@@ -743,7 +743,7 @@ impl OverlayUdp {
 
 impl Drop for OverlayUdp {
     fn drop(&mut self) {
-        let mut inner = self.inner.borrow_mut();
+        let mut inner = self.inner.lock().expect("netstack mutex poisoned");
         inner.read_wakers.remove(&self.handle);
         inner.write_wakers.remove(&self.handle);
         inner.sockets.remove(self.handle);

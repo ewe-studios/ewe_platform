@@ -1,8 +1,37 @@
 # Feature 01 — WireGuard Core & Keys
 
+**Status:** ✅ Complete (implemented + tested 2026-07-13)
 **Depends on:** 00
 **Unblocks:** 02, 03, 04
 **Decisions:** [01](../../decisions/01-source-crates-and-pinning.md), [03](../../decisions/03-seed-derived-keys.md), [02](../../decisions/02-dual-dataplane.md)
+
+## Implementation notes (2026-07-13)
+
+New crate `foundation_wireguard` (top combiner, `shared/` + `native/`):
+
+- `shared/keys` — `WgSeed` (16/32-byte, base64url, zeroized), `SimpleHkdf<Blake2s256>`
+  derivation with the normative salt `foundation_wireguard/v1` and per-purpose
+  network-bound `info` strings → deterministic `BootstrapKeys` (x25519 static/public +
+  WG psk + tls_psk), `derive_network_id`, random `IdentityKeypair`, `PeerPublicKey`
+  hex/base64 parse. Reuses `boringtun::x25519` (no separate x25519-dalek dep).
+- `shared/tunnel` — sans-I/O `WgTunnel` wrapping `boringtun::noise::Tunn`; owned
+  `WgOutcome` (Done / WriteToNetwork / WriteToTunnel / Error); `flush_network` implements
+  boringtun's "repeat decapsulate until Done" queue-drain contract.
+- `native/driver` — `TunnelDriver` couples N `WgTunnel`s + one `NetStack` + a `UdpSocket`;
+  `drive_once` pumps inbound-UDP→decapsulate→overlay, overlay-poll→encapsulate→UDP, and
+  tunnel timers, returning the next wake deadline. `TunnelDriverTask` is the valtron
+  `TaskIterator` wrapper (`BoxedSendExecutionAction`, parks via `Delayed`).
+
+To run inside a valtron task the driver (hence `NetStack`) must be `Send`, so feature 00's
+`NetStack` was refactored from `Rc<RefCell>` to `Arc<Mutex>` (uncontended, single-threaded).
+
+Tests (`--profile uat`): seed determinism + network-binding + short-seed rejection, key
+parse round-trips, handshake-initiation shape, and **two nodes over loopback UDP complete
+a WireGuard handshake and pass TCP bytes both ways over the smoltcp overlay** (success
+criterion 1). All green, zero warnings.
+
+Deferred to F04: reactor-readiness parking for the driver task (currently polls on a
+250 ms WireGuard timer tick) and multi-peer inbound routing by receiver index.
 
 ## WHY
 
