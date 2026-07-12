@@ -1,7 +1,7 @@
 ---
 feature: "Make SendSafeBody implement Sync"
 description: "Add + Sync to BoxedSendIterator trait object bound in foundation_core; audit concrete iterators; add unsafe impl Sync where needed. Makes SendSafeBody and all body-bearing types (PreparedRequest, SimpleResponse, etc.) shareable across threads."
-status: "in-progress"
+status: "completed"
 priority: "high"
 phase: 0
 depends_on: []

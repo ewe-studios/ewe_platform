@@ -1,7 +1,7 @@
 ---
 feature: "BuildKit gRPC client via foundation_connectrpc"
 description: "Vend 17 BuildKit proto files from local moby checkout; generate Rust types via foundation_connectrpc_codegen; implement async Client<Req,Res> over Unix socket H1Transport for Solve (bidi), Status (server-stream), Info (unary), DiskUsage, Prune"
-status: "in-progress"
+status: "completed"
 priority: "low"
 phase: 2
 depends_on: ["02-unix-socket-transport", "04-type-replication"]

@@ -1,7 +1,7 @@
 ---
 feature: "Streaming endpoint handling for Docker logs, events, stats, build/pull progress"
 description: "Hand-write streaming endpoint functions using split_exchange() pattern; implement LogFrameDecoder for Docker's 8-byte multiplexed log format; async Stream via .into_next_stream() for caller consumption"
-status: "in-progress"
+status: "completed"
 priority: "high"
 phase: 1
 depends_on: ["01-dynnetclient-preparedrequest-surface", "04-type-replication"]

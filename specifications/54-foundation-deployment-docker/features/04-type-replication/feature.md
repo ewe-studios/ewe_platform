@@ -1,7 +1,7 @@
 ---
 feature: "Docker API type replication via gen_api code generation"
 description: "Vendor Docker Engine API spec v1.53 from local moby checkout; run gen_api generate to produce types, args structs, and async fn client functions; hand-refine streaming endpoints and Unix socket wiring"
-status: "in-progress"
+status: "completed"
 priority: "high"
 phase: 1
 depends_on: ["02-unix-socket-transport", "03-generator-async-fn-codegen"]
