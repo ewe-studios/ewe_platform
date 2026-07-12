@@ -16,12 +16,11 @@
 
 use std::future::Future;
 use std::io;
-use std::pin::Pin;
 use std::sync::Arc;
 use std::task::{Context, Poll};
 
 use bytes::Bytes;
-use foundation_core::valtron::Stream as VStream;
+use foundation_core::valtron::{Pipe, Stream as VStream};
 use foundation_http::native::serve::{BoxFuture, H3Serve};
 use foundation_http::shared::context::ContextBag;
 use foundation_netio::http3::connection::{H3Error, H3Request};
@@ -32,6 +31,8 @@ use foundation_netio::shared::client::body_reader::AsyncSendSafeBody;
 use foundation_netio::shared::http::{SendSafeBody, SimpleOutgoingResponse, Status};
 use futures::StreamExt;
 
+use crate::shared::context::{Ctx, Spec};
+use crate::shared::protocol::{HandlerExchange, ProtocolHandler};
 use crate::shared::router::dispatch::{
     self, allowed_methods, blank_response, build_ctx, capabilities_for, extract_path,
     http_version_not_supported, method_not_allowed, request_from_header, run_unary,
@@ -160,17 +161,109 @@ pub async fn dispatch_h3(
             .await;
             send_h3_response(&mut req, response).await
         }
-        HandlerKind::ServerStream(_)
-        | HandlerKind::ClientStream(_)
-        | HandlerKind::BidiStream(_) => {
-            let mut response = blank_response(&request);
-            response.status = Status::NotImplemented;
-            response.body = Some(send_safe_bytes(Bytes::from_static(
-                b"streaming over HTTP/3 is not yet supported",
-            )));
-            send_h3_response(&mut req, response).await
+        HandlerKind::ServerStream(handler)
+        | HandlerKind::ClientStream(handler)
+        | HandlerKind::BidiStream(handler) => {
+            run_streaming_h3(
+                handler.clone(),
+                protocol,
+                request,
+                spec,
+                codec_name,
+                compression,
+                ctx,
+                entry.options.pipe_depth,
+                req,
+            )
+            .await
         }
     }
+}
+
+// ── Streaming H3 dispatch ────────────────────────────────────────────────
+
+/// Streaming over H3. Body chunks from `poll_body()` are drained into the
+/// protocol's byte pipe first (H3Request uses `&mut self` so body and response
+/// cannot be polled concurrently in a join!); then handler + protocol pump run
+/// concurrently with `futures::join!`. Server-stream and client-stream work;
+/// true bidi interleaving needs a split of the underlying QUIC stream.
+#[allow(clippy::too_many_arguments)]
+async fn run_streaming_h3(
+    handler: Arc<dyn crate::shared::router::erased::ErasedStreamHandler>,
+    protocol: &dyn ProtocolHandler,
+    request: foundation_netio::shared::http::SimpleIncomingRequest,
+    spec: Spec,
+    codec_name: String,
+    compression: &crate::shared::compression::CompressionRegistry,
+    ctx: Ctx,
+    pipe_depth: usize,
+    mut req: H3Request<QuinnBidiStream>,
+) -> io::Result<()> {
+    let (req_tx, req_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
+    let (resp_tx, resp_rx) = Pipe::<Bytes>::with_depth(pipe_depth);
+
+    // Drain body chunks into req_tx before the join — H3Request borrows &mut
+    // so we can't interleave poll_body and poll_send_*.
+    loop {
+        match poll_h3(|| req.poll_body()).await {
+            Ok(Some(chunk)) => {
+                let _ = req_tx.send(chunk).await;
+            }
+            Ok(None) => break,
+            Err(_) => break,
+        }
+    }
+    req_tx.close();
+
+    let exchange = match protocol.new_conn(&request, spec, req_rx, resp_tx, compression) {
+        Ok(exchange) => exchange,
+        Err(e) => {
+            let mut response = blank_response(&request);
+            write_error(&mut response, &request, &e);
+            return send_h3_response(&mut req, response).await;
+        }
+    };
+    let HandlerExchange {
+        conn,
+        reader_task,
+        writer_task,
+    } = exchange;
+
+    // Pump protocol output into H3 DATA frames.
+    let content_type = protocol.streaming_response_content_type(&request, &codec_name);
+    let pump = async {
+        let mut opened = false;
+        while let Some(chunk) = resp_rx.receive().await {
+            if !opened {
+                opened = true;
+                let headers = vec![(
+                    Bytes::from_static(b"content-type"),
+                    Bytes::from(content_type.clone()),
+                )];
+                let mut header_frame = H3Request::<QuinnBidiStream>::encode_headers(&headers);
+                poll_h3(|| req.poll_send_headers(&mut header_frame)).await?;
+            }
+            let mut data_frame = H3Request::<QuinnBidiStream>::encode_data(chunk);
+            poll_h3(|| req.poll_send_data(&mut data_frame)).await?;
+        }
+        Ok::<bool, io::Error>(opened)
+    };
+
+    let handler_fut = handler.handle(ctx, &codec_name, conn);
+
+    let (reader_res, writer_res, handler_res, pumped) =
+        futures::join!(reader_task, writer_task, handler_fut, pump);
+
+    if pumped? {
+        poll_h3_finish(&mut req).await?;
+        return Ok(());
+    }
+
+    let mut response = blank_response(&request);
+    if let Some(e) = handler_res.err().or(writer_res.err()).or(reader_res.err()) {
+        write_error(&mut response, &request, &e);
+    }
+    send_h3_response(&mut req, response).await
 }
 
 // ── Helpers ──────────────────────────────────────────────────────────────
@@ -227,7 +320,7 @@ async fn send_h3_response(
     let mut header_frame = H3Request::<QuinnBidiStream>::encode_headers(&response_fields);
     poll_h3(|| req.poll_send_headers(&mut header_frame)).await?;
 
-    let mut stream = body
+    let stream = body
         .filter(|b| !matches!(b, SendSafeBody::None))
         .map(AsyncSendSafeBody::from);
 

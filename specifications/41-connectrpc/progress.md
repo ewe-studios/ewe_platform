@@ -40,15 +40,12 @@ Last updated: 2026-07-12 (F35 server half, F49 Phase C, F50 Part C tail, io_urin
 | # | Feature | Status |
 |---|---------|--------|
 | 34 | HTTP/3 module (framing + QPACK over QUIC traits) | **complete** — `foundation_netio::http3` (varint/frame/qpack); wire behaviour proved e2e in netio `tests/http3/connection_tests.rs`. |
-| 35 | HTTP/3 ConnectRPC transport | **Server half implemented 2026-07-12.** Client transport + capability matrix already done. **Server half:** `H3Serve` trait (foundation_http, `quic` feature), `ConnectRpcServeH3` (connectrpc, `h3` feature), `dispatch_h3` (poll-based adapter over `H3Request::poll_*`), `ServerApp::Http3`/`Any` variants. Unary works through shared dispatch pipe; body streamed chunk-by-chunk via `AsyncSendSafeBody` (no buffering). `AsyncSendSafeBody::Item` uses `SendableBoxedError` (Send+Sync) for await-safe streaming. Streaming returns 501. H2 dispatch similarly streams one DATA frame per chunk via `SendSafeBodyBytesIterator`. **Remaining:** netcap `Quic` listener variants, Alt-Svc + `ConnectionContext`, conformance suite over real H3 server. |
+| 35 | HTTP/3 ConnectRPC transport | **Server half + streaming implemented 2026-07-12.** Client transport + capability matrix done. **Server half:** `H3Serve` trait, `ConnectRpcServeH3`, `dispatch_h3` (poll-based adapter), `ServerApp::Http3`/`Any`. **Streaming:** server-stream/client-stream/bidi via `run_streaming_h3` — body drained into protocol pipe, handler + output pump joined with `futures::join!`. True bidi interleaving needs H3Request refsplit (QUIC streams support it, H3Request's `&mut self` prevents concurrent poll). Body/responses streamed chunk-by-chunk (no buffering). `AsyncSendSafeBody::Item` uses `SendableBoxedError` (Send+Sync). H2 dispatch similarly streams via `SendSafeBodyBytesIterator`. **Remaining:** netcap `Quic` listener variants, Alt-Svc + `ConnectionContext`, conformance suite over real H3 server. |
+| 52 | Browser test harness | **Reconciled 2026-07-12.** `deno`/`browser`/`bindgen` commands shipped. `test` auto-detect not shipped (explicit commands suffice). wasm-bindgen version constant exists, no runtime check. `bindgen-web` not formally deprecated. Doc updated. |
 
 ## Truly-remaining work (next steps)
 
-1. **F35 streaming** — H3 server/bidi/client-stream handlers need a QUIC-aware pump
-   (server analogue of `H3Pump`). Currently returns 501.
-2. **F35 netcap Quic listener** — `Quic` variants on `Connection`/`Listener`/
+1. **F35 netcap Quic listener** — `Quic` variants on `Connection`/`Listener`/
    `ConfigListenAddr`, routing `HttpServer` through netcap's listener, Alt-Svc +
    `ConnectionContext` population, Connect+gRPC conformance suites over a real H3
    server.
-3. **F52 tail** — optionally add the 4-way `test` auto-detect + formal `bindgen-web`
-   deprecation; re-run the end-to-end Chromium browser test to close verification.

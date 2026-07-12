@@ -1,7 +1,7 @@
 ---
 feature: "Wasm-bindgen browser test harness — re-export #[wasm_bindgen_test] from foundation_testbed so crates test their browser API bridges directly (no standalone test crate, no extra deps)"
 description: "Fold the wasm-bindgen-test ecosystem into foundation_testbed: re-export the proc-macro + runtime glue, add a top-level `wasm-testbed browser <crate>` command, and let crates put cfg-gated #[wasm_bindgen_test] functions in their own tests/. Deletes the standalone foundation_wasm_testbed crate."
-status: "implemented (diverged from design — see Implementation status)"
+status: "implemented (diverged from design; remaining items reconciled 2026-07-12)"
 priority: "high"
 phase: 1
 depends_on: ["51-unified-http-client-surface"]
@@ -39,12 +39,19 @@ What actually shipped, verified in-tree:
 - **Docs updated** — testbed README + `running-js-and-wasm-tests.md` reflect the
   F52 macros + API (HEAD commit `3a15883cb`).
 
-**Remaining / to reconcile against the design:** the four-way CLI table
-(`deno`/`browser`/`bindgen`/`test` auto-detect) and the `test` auto-detect command
-that discovers both `__fwt_` and `__wbgt_` in one `--tests` build — verify which of
-these actually shipped vs. the `browser`/`bindgen` split that landed. The
-`wasm-bindgen` CLI version check (Step/§6) and the `test bindgen-web` deprecation
-notice (Step 3) also need a landed/not-landed confirmation.
+**Reconciled 2026-07-12.**
+- **deno** command: shipped (`wasm-testbed deno <crate>` — owned tests in embedded Deno). ✅
+- **browser** command: shipped (`wasm-testbed browser <crate>` — owned tests + Chromium CDP). ✅
+- **bindgen** command: shipped (`wasm-testbed bindgen <crate>` — wasm-bindgen tests in Chromium). ✅
+- **test auto-detect**: NOT shipped. The `test` command is legacy Mode-based
+  (Web/Deno/Wrangler/BindgenWeb) — no auto-discovery of `__fwt_`/`__wbgt_` markers
+  to run both in one session. Explicit commands cover every use case; auto-detect is
+  not needed.
+- **wasm-bindgen version**: constant `WASM_BINDGEN_VERSION = "0.2.126"` in
+  `bindgen.rs`; no runtime check at CLI startup (non-critical — build-time
+  Cargo.toml pins the version).
+- **bindgen-web deprecation**: INTEROP warning on legacy `test bindgen-web` mode,
+  not a formal deprecation notice (the mode still works, just not the default).
 
 ## Problem
 

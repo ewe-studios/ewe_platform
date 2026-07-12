@@ -17,7 +17,7 @@
 //! post-build mutation).
 
 pub(crate) mod dispatch;
-mod erased;
+pub(crate) mod erased;
 
 use std::future::Future;
 use std::sync::Arc;
