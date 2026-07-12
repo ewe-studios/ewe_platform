@@ -19,9 +19,9 @@ use std::sync::Arc;
 
 use foundation_core::url::Uri;
 use foundation_core::valtron::{self, CollectionState, Pipe, StreamIteratorExt, TaskIteratorExt};
-use foundation_netio::shared::client::http_client::HttpClient;
 use foundation_netio::shared::client::request_task::HttpExchange;
 use foundation_netio::shared::client::PreparedRequest;
+use foundation_netio::DynNetClient;
 use foundation_netio::shared::http::Extensions;
 use foundation_netio::shared::http::{
     pushable_request_body_with_depth, HttpClientError, Proto, RequestDescriptor,
@@ -36,17 +36,18 @@ use super::{
 
 #[derive(Clone)]
 pub struct H1Transport {
-    client: Arc<dyn HttpClient>,
+    client: DynNetClient,
 }
 
 impl H1Transport {
-    /// Create an H1 transport backed by any `HttpClient`.
+    /// Create an H1 transport backed by any `NetClient` (`DynNetClient`).
     ///
-    /// The transport is platform-agnostic — it holds an `Arc<dyn HttpClient>`
-    /// and never names a concrete client type. Callers that want the platform
+    /// The transport is platform-agnostic — it holds a `DynNetClient`
+    /// (`Arc<dyn NetClient>`, which is `HttpClient + WebSocketConnector`) and
+    /// never names a concrete client type. Callers that want the platform
     /// default can use `H1Transport::default()`.
     #[must_use]
-    pub fn new(client: Arc<dyn HttpClient>) -> Self {
+    pub fn new(client: DynNetClient) -> Self {
         Self { client }
     }
 }

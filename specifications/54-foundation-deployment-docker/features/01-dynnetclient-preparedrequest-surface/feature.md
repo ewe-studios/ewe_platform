@@ -1,7 +1,7 @@
 ---
 feature: "DynNetClient + PreparedRequestBuilder cross-platform HTTP surface"
 description: "Foundation primitives for the F51 cross-platform HTTP surface: Uri structured query params (foundation_core); PreparedRequestBuilder query delegates + send() + crate-root re-export; HttpClientBuilder::build() -> DynNetClient (+ H1Transport field update); body_reader split_exchange()/send_and_split()/collect_exchange(); deprecate RequestIntro re-export. No generator or deployment-crate changes — those live in Feature 03."
-status: "in-progress"
+status: "completed"
 priority: "high"
 phase: 0
 depends_on: ["00-sendsafebody-sync"]

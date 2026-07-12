@@ -101,14 +101,14 @@ fn test_path_and_query_path_only() {
 fn test_path_and_query_with_query() {
     let pq = PathAndQuery::parse("/path?key=value").unwrap();
     assert_eq!(pq.path(), "/path");
-    assert_eq!(pq.query(), Some("key=value"));
+    assert_eq!(pq.query().as_deref(), Some("key=value"));
 }
 
 #[test]
 fn test_path_and_query_with_complex_query() {
     let pq = PathAndQuery::parse("/path?key=value&foo=bar&baz").unwrap();
     assert_eq!(pq.path(), "/path");
-    assert_eq!(pq.query(), Some("key=value&foo=bar&baz"));
+    assert_eq!(pq.query().as_deref(), Some("key=value&foo=bar&baz"));
 }
 
 #[test]

@@ -7,7 +7,7 @@
 | # | Feature | Status | Depends on | Effort |
 |---|---------|--------|------------|--------|
 | 00 | SendSafeBody Sync | ✅ Complete | — | Small |
-| 01 | DynNetClient + PreparedRequestBuilder surface (netio/core primitives) | 🟡 In progress | 00 | Medium |
+| 01 | DynNetClient + PreparedRequestBuilder surface (netio/core primitives) | ✅ Complete | 00 | Medium |
 | 02 | Unix socket transport | 🔴 Planned | 01 | Small |
 | 03 | Generator async fn codegen + regenerate deployment crates | 🔴 Planned | 01 | Large |
 | 04 | Docker type replication via gen_api | 🔴 Planned | 02, 03 | Large |
@@ -39,7 +39,7 @@
 
 ### Phase 0: Foundation (Feature 00, 01, 02, 03)
 - [x] Feature 00: Make `SendSafeBody: Sync` (~3 files, + Sync on one type alias)
-- [ ] Feature 01: netio/core HTTP primitives (Uri query, PreparedRequestBuilder, `build()`→DynNetClient, body_reader combinators)
+- [x] Feature 01: netio/core HTTP primitives (Uri structured `Query` w/ lossless raw cache, PreparedRequestBuilder query+send+re-export, `build()`→DynNetClient + H1Transport, body_reader split_exchange/send_and_split/collect_exchange, RequestIntro deprecated)
 - [ ] Feature 02: Unix socket transport in foundation_netio (~30 lines)
 - [ ] Feature 03: Generator emits `async fn`; regenerate + migrate cloudflare/stripe/supabase/neon/planetscale/prisma/flyio
 

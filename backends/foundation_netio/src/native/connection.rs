@@ -182,7 +182,7 @@ impl<T: Clone> Endpoint<T> {
     }
 
     #[inline]
-    pub fn query(&self) -> Option<&str> {
+    pub fn query(&self) -> Option<String> {
         self.url().query()
     }
 

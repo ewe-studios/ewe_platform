@@ -252,15 +252,20 @@ impl HttpClientBuilder {
 
     // -- build ------------------------------------------------------------
 
-    /// Build an `Arc<dyn HttpClient>`.
+    /// Build a [`DynNetClient`] (`Arc<dyn NetClient>` — HTTP + WebSocket).
     ///
     /// On native: creates a `NativeHttpClient` with a fresh pool and the
     /// configured resolver (defaults to `SystemDnsResolver`).
     ///
     /// On wasm: creates a `FetchHttpClient` with the accumulated config.
     /// Pool, TLS, and resolver settings are ignored (the browser owns them).
+    ///
+    /// The concrete clients implement both `HttpClient` and `WebSocketConnector`,
+    /// so they satisfy `NetClient` via the blanket impl and coerce into
+    /// `Arc<dyn NetClient>`. Callers that only need `HttpClient` still work —
+    /// its methods are reachable through the `NetClient` supertrait.
     #[must_use]
-    pub fn build(self) -> Arc<dyn HttpClient> {
+    pub fn build(self) -> DynNetClient {
         #[cfg(all(feature = "multi", not(target_family = "wasm")))]
         {
             Arc::new(crate::http::NativeHttpClient::new(SystemDnsResolver).config(self.config))

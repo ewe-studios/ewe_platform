@@ -17,6 +17,9 @@ pub mod network_client;
 pub use network_client::HttpClientBuilder;
 /// Combined HTTP + WebSocket client handle (F52).
 pub use network_client::{DynNetClient, NetClient};
+/// Cross-platform request builder + data struct (F51).
+pub use shared::client::request::PreparedRequest;
+pub use shared::client::request_builder::PreparedRequestBuilder;
 
 /// Platform-agnostic `default_http_client()` — resolves to the native
 /// (`crate::http`) or wasm (`crate::wasm::client`) constructor at compile time.

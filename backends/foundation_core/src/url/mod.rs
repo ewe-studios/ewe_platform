@@ -258,8 +258,85 @@ impl Uri {
     /// assert_eq!(uri.query().unwrap(), "key=value");
     /// ```
     #[must_use]
-    pub fn query(&self) -> Option<&str> {
+    pub fn query(&self) -> Option<String> {
         self.path_and_query.query()
+    }
+
+    /// Returns a reference to the structured query parameters.
+    #[must_use]
+    pub fn query_params(&self) -> &Query {
+        self.path_and_query.query_params()
+    }
+
+    /// Returns a mutable reference to the structured query parameters.
+    #[must_use]
+    pub fn query_params_mut(&mut self) -> &mut Query {
+        self.path_and_query.query_params_mut()
+    }
+
+    /// Returns a new `Uri` with the given structured query params.
+    #[must_use]
+    pub fn with_query_params(&self, query: Query) -> Self {
+        let path_and_query = PathAndQuery {
+            path: self.path_and_query.path().to_string(),
+            query,
+        };
+        Uri {
+            scheme: self.scheme.clone(),
+            authority: self.authority.clone(),
+            path_and_query,
+            fragment: self.fragment.clone(),
+        }
+    }
+
+    /// Appends a query parameter (allowing duplicate keys).
+    ///
+    /// WHY: Callers building requests need to add query params incrementally
+    /// without re-parsing the whole query string.
+    ///
+    /// WHAT: Pushes `(key, value)` onto the structured query.
+    ///
+    /// HOW: Delegates to [`Query::append`].
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
+    pub fn append_query(&mut self, key: impl Into<String>, value: impl Into<String>) {
+        self.path_and_query.query.append(key, value);
+    }
+
+    /// Sets a query parameter, removing any prior values for the same key.
+    ///
+    /// WHY: Some params are single-valued and later assignments must replace
+    /// earlier ones.
+    ///
+    /// WHAT: Drops existing pairs matching `key`, then appends the new pair.
+    ///
+    /// HOW: [`Query::retain`] to filter, then [`Query::append`].
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
+    pub fn set_query(&mut self, key: impl Into<String>, value: impl Into<String>) {
+        let k = key.into();
+        self.path_and_query.query.retain(|existing, _| existing != k);
+        self.path_and_query.query.append(k, value);
+    }
+
+    /// Removes all query params for the given key.
+    ///
+    /// WHY: Callers may need to strip a parameter (e.g. pagination cursor)
+    /// before reissuing a request.
+    ///
+    /// WHAT: Drops every pair whose key equals `key`.
+    ///
+    /// HOW: Delegates to [`Query::retain`].
+    ///
+    /// # Panics
+    ///
+    /// This function does not panic.
+    pub fn remove_query(&mut self, key: &str) {
+        self.path_and_query.query.retain(|k, _| k != key);
     }
 
     /// Returns the fragment component if present.
@@ -295,13 +372,10 @@ impl Uri {
     #[must_use]
     pub fn with_query(&self, query: impl Into<String>) -> Self {
         let query_str = query.into();
+        let parsed = Query::parse(&query_str).unwrap_or_default();
         let path_and_query = PathAndQuery {
             path: self.path_and_query.path().to_string(),
-            query: if query_str.is_empty() {
-                None
-            } else {
-                Some(query_str)
-            },
+            query: parsed,
         };
         Uri {
             scheme: self.scheme.clone(),
@@ -321,7 +395,7 @@ impl Uri {
             } else {
                 format!("/{new_path}")
             },
-            query: self.path_and_query.query().map(|s| s.to_string()),
+            query: self.path_and_query.query.clone(),
         };
         Uri {
             scheme: self.scheme.clone(),
@@ -462,7 +536,13 @@ impl UriBuilder {
             } else {
                 format!("/{}", self.path)
             },
-            query: self.query,
+            query: self
+                .query
+                .as_deref()
+                .map(Query::parse)
+                .transpose()
+                .unwrap_or_default()
+                .unwrap_or_default(),
         };
         Ok(Uri {
             scheme,

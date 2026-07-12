@@ -12,6 +12,10 @@ use serde::{Deserialize, Serialize};
 
 // Re-export types from foundation_core for convenience
 pub use foundation_core::valtron::BoxedSendExecutionAction;
+#[deprecated(
+    note = "RequestIntro is native-only; use HttpClient::open_exchange() + HttpExchange \
+            (or body_reader::split_exchange/collect_exchange) instead"
+)]
 pub use foundation_netio::http::RequestIntro;
 
 // =============================================================================

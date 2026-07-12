@@ -30,11 +30,24 @@ use crate::event_source::Event;
 use crate::shared::http::{
     ChunkedData, HttpReaderError, IncomingResponseParts, LineFeed, SendSafeBody,
 };
-use bytes::Bytes;
+use std::sync::Arc;
+
+use bytes::{Bytes, BytesMut};
 use foundation_core::extensions::result_ext::{BoxedError, SendableBoxedError};
 use foundation_core::io::readers::{Data, DataBytesIterator};
-use foundation_core::valtron::{BoxedSendableDataIterator, BoxedSendableIterator, Stream};
+use foundation_core::valtron::{
+    self, BoxedSendExecutionAction, BoxedSendableDataIterator, BoxedSendableIterator,
+    CollectionState, SplitCollectorMapObserver, SplitUntilObserverMap, Stream, TaskIterator,
+    TaskIteratorExt,
+};
 use serde::de::DeserializeOwned;
+
+use crate::network_client::DynNetClient;
+use crate::shared::client::request_builder::PreparedRequestBuilder;
+use crate::shared::client::request_task::{HttpExchange, HttpExchangePending};
+use crate::shared::http::{
+    HttpClientError, SimpleHeaders, SimpleResponse, Status, DEFAULT_PUSHABLE_DEPTH,
+};
 
 // ============================================================================
 // Error Types
@@ -3218,5 +3231,215 @@ mod tests {
         assert!(iter.next().is_none()); // exhausted
         assert!(iter.next().is_none()); // idempotent
         assert!(iter.next().is_none()); // still idempotent
+    }
+}
+
+// ============================================================================
+// HttpExchange split combinators (Feature 01 Part E)
+// ============================================================================
+//
+// WHY: `HttpClient::open_exchange()` returns an *unsent* `HttpExchangeClientTask`
+// (a valtron `TaskIterator` yielding `HttpExchange` variants). To consume it,
+// callers must split it into head/body observers and send the continuation to
+// valtron — the exact pattern `H1Transport` uses. These helpers package that
+// pattern so generated code and hand-written streaming clients don't reimplement
+// it.
+//
+// WHAT: `split_exchange()` (split, caller sends), `send_and_split()` (split +
+// send), and `collect_exchange()` (split + send + collect a full response).
+//
+// HOW: `builder.send(client)` → `split_collect_until_map` (head) →
+// `split_collector_map` (body) → the continuation is returned (or sent).
+
+/// Error payload carried by a failed HTTP exchange (`HttpExchange::Failed`).
+///
+/// A pre-head failure is fanned to *both* the head observer and the body
+/// continuation, so the payload is `Arc`-shared (clones losslessly).
+pub type ExchangeError = Arc<dyn std::error::Error + Send + Sync + 'static>;
+
+/// Head observer from [`split_exchange`].
+///
+/// Yields exactly one `Stream::Next(Ok((Status, SimpleHeaders)))` (or a pre-head
+/// `Stream::Next(Err(_))`) then closes.
+pub type ExchangeHeadObserver =
+    SplitUntilObserverMap<Result<(Status, SimpleHeaders), ExchangeError>, HttpExchangePending>;
+
+/// Body observer from [`split_exchange`].
+///
+/// Yields `Stream::Next(Ok(Bytes))` per body chunk (or a mid-body
+/// `Stream::Next(Err(_))`).
+pub type ExchangeBodyObserver =
+    SplitCollectorMapObserver<Result<Bytes, ExchangeError>, HttpExchangePending>;
+
+/// Unsent continuation from [`split_exchange`].
+///
+/// The caller sends this to valtron — typically `valtron::send(task.map_ready(|_| ()))`.
+///
+/// The `+ Send` bound is native-only: on wasm valtron runs single-threaded and the
+/// split machinery is non-sendable, so the boxed continuation is not `Send` there.
+#[cfg(not(target_family = "wasm"))]
+pub type ExchangeContinuation = Box<
+    dyn TaskIterator<
+            Ready = HttpExchange,
+            Pending = HttpExchangePending,
+            Spawner = BoxedSendExecutionAction,
+        > + Send,
+>;
+
+/// Unsent continuation from [`split_exchange`] (wasm — no `Send` bound).
+#[cfg(target_family = "wasm")]
+pub type ExchangeContinuation = Box<
+    dyn TaskIterator<
+        Ready = HttpExchange,
+        Pending = HttpExchangePending,
+        Spawner = BoxedSendExecutionAction,
+    >,
+>;
+
+/// Split an unsent HTTP exchange into head + body observers plus a continuation.
+///
+/// WHY: The caller may want to chain further combinators on the continuation, or
+/// control exactly when it is sent to valtron. **This does not send anything.**
+///
+/// WHAT: Returns `(head, body, task)` — `head` yields one `(Status, SimpleHeaders)`
+/// then closes; `body` yields `Bytes` per chunk; `task` is the continuation.
+///
+/// HOW: `builder.send(client)` produces the `HttpExchangeClientTask`, which is
+/// split via `split_collect_until_map` (head, closes after one) and
+/// `split_collector_map` (body) — mirroring `H1Transport`.
+///
+/// # Panics
+///
+/// This function does not panic.
+#[must_use]
+pub fn split_exchange(
+    client: DynNetClient,
+    builder: PreparedRequestBuilder,
+) -> (ExchangeHeadObserver, ExchangeBodyObserver, ExchangeContinuation) {
+    let pump = builder.send(client);
+
+    let (head, head_cont) = pump.split_collect_until_map(
+        |item: &HttpExchange| match item {
+            HttpExchange::Head { status, headers } => (
+                CollectionState::Close(true),
+                Some(Ok((status.clone(), headers.clone()))),
+            ),
+            HttpExchange::Failed(err) => (CollectionState::Close(true), Some(Err(Arc::clone(err)))),
+            HttpExchange::BodyChunk(_) => (CollectionState::Skip, None),
+        },
+        1,
+    );
+
+    let (body, body_cont) = head_cont.split_collector_map(
+        |item: &HttpExchange| match item {
+            HttpExchange::BodyChunk(bytes) => (true, Some(Ok(bytes.clone()))),
+            HttpExchange::Failed(err) => (true, Some(Err(Arc::clone(err)))),
+            HttpExchange::Head { .. } => (false, None),
+        },
+        DEFAULT_PUSHABLE_DEPTH,
+    );
+
+    (head, body, Box::new(body_cont))
+}
+
+/// Split an HTTP exchange **and** send the continuation to valtron.
+///
+/// WHY: The common case — callers just want the two observers ready to drain.
+///
+/// WHAT: Calls [`split_exchange`], sends `task.map_ready(|_| ())` to valtron, and
+/// returns `(head, body)`.
+///
+/// HOW: See [`split_exchange`]; the continuation is terminated with
+/// `map_ready(|_| ())` (body chunks must not be re-buffered) before `valtron::send`.
+///
+/// # Errors
+///
+/// Returns [`HttpClientError`] if `valtron::send()` fails.
+///
+/// # Panics
+///
+/// This function does not panic.
+pub fn send_and_split(
+    client: DynNetClient,
+    builder: PreparedRequestBuilder,
+) -> Result<(ExchangeHeadObserver, ExchangeBodyObserver), HttpClientError> {
+    let (head, body, task) = split_exchange(client, builder);
+    valtron::send(task.map_ready(|_| ()))
+        .map_err(|e| HttpClientError::Reason(format!("valtron::send failed: {e}")))?;
+    Ok((head, body))
+}
+
+/// Split, send, and collect a full (non-streaming) response.
+///
+/// WHY: Non-streaming callers that want a single collected response without
+/// touching the streaming observers.
+///
+/// WHAT: Drains the head observer (status + headers), then accumulates every body
+/// chunk into a `BytesMut`, returning `SimpleResponse<SendSafeBody::Bytes>`.
+///
+/// HOW: [`send_and_split`], then drain head then body. Non-data stream signals
+/// (`Wait`/`Pending`) yield the thread and keep draining.
+///
+/// **Caveat:** this blocks the calling thread until the exchange completes. Do
+/// not call it from inside a valtron worker task (it would block that worker);
+/// use [`split_exchange`] + async draining there. Generated non-streaming code
+/// uses `HttpClient::send_async()` instead of this helper.
+///
+/// # Errors
+///
+/// Returns the exchange's [`ExchangeError`] on a pre-head or mid-body failure, or
+/// a wrapped [`HttpClientError`] if `valtron::send()` fails or no head arrives.
+///
+/// # Panics
+///
+/// This function does not panic.
+pub fn collect_exchange(
+    client: DynNetClient,
+    builder: PreparedRequestBuilder,
+) -> Result<SimpleResponse<SendSafeBody>, ExchangeError> {
+    let (head, mut body) =
+        send_and_split(client, builder).map_err(|e| Arc::new(e) as ExchangeError)?;
+
+    let (status, headers) = drain_exchange_head(head)?;
+
+    let mut collected = BytesMut::new();
+    loop {
+        match body.next() {
+            Some(Stream::Next(Ok(chunk))) => collected.extend_from_slice(&chunk),
+            Some(Stream::Next(Err(e))) => return Err(e),
+            // Wait/Pending/Ignore — the queue is channel-backed; keep draining.
+            Some(_) => std::thread::yield_now(),
+            None => break,
+        }
+    }
+
+    Ok(SimpleResponse::new(
+        status,
+        headers,
+        SendSafeBody::Bytes(collected.to_vec()),
+    ))
+}
+
+/// Drain the single head item from an [`ExchangeHeadObserver`].
+///
+/// # Errors
+///
+/// Returns the pre-head [`ExchangeError`], or a wrapped [`HttpClientError`] if the
+/// observer closes without a head.
+fn drain_exchange_head(
+    mut head: ExchangeHeadObserver,
+) -> Result<(Status, SimpleHeaders), ExchangeError> {
+    loop {
+        match head.next() {
+            Some(Stream::Next(Ok(pair))) => return Ok(pair),
+            Some(Stream::Next(Err(e))) => return Err(e),
+            Some(_) => std::thread::yield_now(),
+            None => {
+                return Err(
+                    Arc::new(HttpClientError::Reason("no response head".to_string()))
+                        as ExchangeError,
+                )
+            }
+        }
     }
 }

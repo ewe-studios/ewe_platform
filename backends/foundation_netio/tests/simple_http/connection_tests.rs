@@ -84,7 +84,7 @@ fn test_parsed_url_with_query() {
     assert!(url.scheme().is_http());
     assert_eq!(url.host_str().unwrap(), "example.com");
     assert_eq!(url.path(), "/search");
-    assert_eq!(url.query(), Some("q=test&limit=10"));
+    assert_eq!(url.query().as_deref(), Some("q=test&limit=10"));
 }
 
 /// WHY: Verify `Uri` handles complex URLs with all components
@@ -98,7 +98,7 @@ fn test_parsed_url_complex() {
     assert_eq!(url.host_str().unwrap(), "api.example.com");
     assert_eq!(url.port().unwrap(), 8443);
     assert_eq!(url.path(), "/v2/users/123");
-    assert_eq!(url.query(), Some("fields=name,email"));
+    assert_eq!(url.query().as_deref(), Some("fields=name,email"));
 }
 
 /// WHY: Verify `Uri` rejects URLs with missing scheme
