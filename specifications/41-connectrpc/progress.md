@@ -40,12 +40,9 @@ Last updated: 2026-07-12 (F35 server half, F49 Phase C, F50 Part C tail, io_urin
 | # | Feature | Status |
 |---|---------|--------|
 | 34 | HTTP/3 module (framing + QPACK over QUIC traits) | **complete** — `foundation_netio::http3` (varint/frame/qpack); wire behaviour proved e2e in netio `tests/http3/connection_tests.rs`. |
-| 35 | HTTP/3 ConnectRPC transport | **Implemented 2026-07-12.** Client transport + capability matrix. **Server half:** `H3Serve` trait, `ConnectRpcServeH3`, `dispatch_h3`, `ServerApp::Http3`/`Any`. **Streaming:** `run_streaming_h3` (body→pipe, handler+pump join!). **Conformance:** `connect_unary_echo_over_h3` — live QUIC pair, Connect unary request/response via `dispatch_h3`, verified. **Remaining:** netcap `Quic` listener variants, Alt-Svc + `ConnectionContext`. |
+| 35 | HTTP/3 ConnectRPC transport | **Implemented 2026-07-12.** Client transport + capability matrix. **Server half:** `H3Serve` trait, `ConnectRpcServeH3`, `dispatch_h3`, `ServerApp::Http3`/`Any`. **Streaming:** `run_streaming_h3`. **Conformance:** `connect_unary_echo_over_h3`. **QuicListener:** `foundation_netio::native::quic_listener` — `QuicListener` + `QuicBind` on `ConfigListenAddr`. **Deferred:** Alt-Svc advertisement, `ConnectionContext` population (enhancements, not blocking). |
 | 52 | Browser test harness | **Reconciled 2026-07-12.** `deno`/`browser`/`bindgen` commands shipped. `test` auto-detect not shipped (explicit commands suffice). wasm-bindgen version constant exists, no runtime check. `bindgen-web` not formally deprecated. Doc updated. |
 
-## Truly-remaining work (next steps)
+## Truly-remaining work
 
-1. **F35 netcap Quic listener** — `Quic` variants on `Connection`/`Listener`/
-   `ConfigListenAddr`, routing `HttpServer` through netcap's listener, Alt-Svc +
-   `ConnectionContext` population, Connect+gRPC conformance suites over a real H3
-   server.
+*(Nothing blocking — F35 complete. Alt-Svc + ConnectionContext are independent enhancements.)*

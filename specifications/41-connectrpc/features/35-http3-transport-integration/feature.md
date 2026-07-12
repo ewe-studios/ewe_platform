@@ -1,7 +1,7 @@
 ---
 feature: "HTTP/3 ConnectRPC transport + conformance (D01 phase 3)"
 description: "Transport impl + ConnectionHandler third branch; gRPC/Connect over h3"
-status: "implemented (server half + streaming + conformance test; netcap Quic listener remain)"
+status: "implemented (server half + streaming + conformance test + QuicListener; Alt-Svc deferred)"
 priority: "medium"
 phase: 3
 depends_on: ["34-http3-module", "22-router-dispatch"]
