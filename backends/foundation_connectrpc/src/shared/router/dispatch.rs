@@ -27,8 +27,6 @@ use std::time::Instant;
 use bytes::Bytes;
 use foundation_core::valtron::Pipe;
 use foundation_core::valtron::Stream;
-// PipeReceiver/PipeSender are used only by the native h2 dispatch section.
-#[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::{PipeReceiver, PipeSender};
 use foundation_http::shared::context::ContextBag;
 // HTTP/2 dispatch is native-only (drives foundation_netio::http2). The h2 section
@@ -189,13 +187,15 @@ pub(crate) async fn run_unary(
 ) -> SimpleOutgoingResponse {
     let mut response = blank_response(&request);
 
-    // Decode first (borrows `request`), so the borrow ends *before* the handler
-    // await — otherwise `&request` would be held across it and poison `Send`
-    // (`SimpleIncomingRequest` is not `Sync`).
-    let decoded = {
-        let body = read_body(&mut request);
-        protocol.decode_unary_request(&request, Bytes::from(body), compression)
-    };
+    // Pipe body chunks through a pipe: pipe_body fills the sender, the
+    // receiver drains into Bytes for decode_unary_request.
+    let (tx, mut rx) = Pipe::<Bytes>::new();
+    if let Err(e) = pipe_body(&tx, &mut request) {
+        tracing::warn!(error = %e, "body pipe error; proceeding with partial body");
+    }
+    drop(tx);
+    let body = drain_to_bytes(&mut rx);
+    let decoded = protocol.decode_unary_request(&request, body, compression);
     let outcome: ConnectResult<UnaryOutcome> = match decoded {
         Ok(msg) => match handler.handle(ctx, &codec_name, msg).await {
             Ok((frame, headers, trailers)) => Ok(UnaryOutcome {
@@ -257,11 +257,18 @@ async fn run_streaming(
         writer_task,
     } = exchange;
 
-    // Feed the (buffered) request body into the transport byte pipe, then close.
-    let body = read_body(&mut request);
+    // Feed request body chunks into the transport byte pipe, then close.
+    let (body_tx, body_rx) = Pipe::<Bytes>::new();
+    if let Err(e) = pipe_body(&body_tx, &mut request) {
+        tracing::warn!(error = %e, "body pipe error; request body will be empty");
+    }
+    drop(body_tx);
     let feeder = async move {
-        if !body.is_empty() {
-            let _ = req_tx.send(Bytes::from(body)).await;
+        let mut rx = body_rx;
+        while let Ok(chunk) = rx.try_recv() {
+            if req_tx.send(chunk).await.is_err() {
+                break;
+            }
         }
         req_tx.close();
     };
@@ -420,28 +427,35 @@ fn protocol_name(kind: ProtocolKind) -> &'static str {
     }
 }
 
-/// Take the request body and drain every variant into a byte vector.
+/// Pump request body chunks into `tx`. Caller creates the pipe and holds `rx`.
+/// No buffering — the caller drains chunks from `rx`.
 ///
-/// WHY: the unary dispatch path needs the full body before the handler runs —
-/// the handler receives a `Request<Req>` with the decoded message, not a
-/// streaming body. Iterator-backed variants (`Stream`/`ChunkedStream`/
-/// `LineFeedStream`/`SseStream`) are drained chunk-by-chunk via the shared
-/// [`SendSafeBodyBytesIterator`] so no variant is lost; `Bytes`/`Text` pass
-/// through with no copy.
-///
-/// HOW: feeds every `SendSafeBodyBytesItem::Chunk` into a `Vec<u8>`. Errors
-/// are silently dropped (the body decoder will surface them downstream).
-fn read_body(request: &mut SimpleIncomingRequest) -> Vec<u8> {
-    let Some(body) = request.body.take() else {
-        return Vec::new();
-    };
-    let mut buf = Vec::new();
-    for item in SendSafeBodyBytesIterator::new(body) {
-        if let Stream::Next(SendSafeBodyBytesItem::Chunk(bytes)) = item {
-            buf.extend_from_slice(&bytes);
+/// # Errors
+/// Stream error from the body iterator, or pipe-full from `try_send`.
+fn pipe_body(tx: &PipeSender<Bytes>, request: &mut SimpleIncomingRequest) -> io::Result<()> {
+    let Some(body) = request.body.take() else { return Ok(()) };
+    let mut iter = SendSafeBodyBytesIterator::new(body);
+    loop {
+        match iter.next() {
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
+                tx.try_send(bytes).map_err(|e| io::Error::other(e.to_string()))?;
+            }
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
+                return Err(io::Error::other(e.to_string()));
+            }
+            None => return Ok(()),
+            _ => {}
         }
     }
-    buf
+}
+
+/// Drain a closed pipe receiver into a single `Bytes`.
+fn drain_to_bytes(rx: &mut PipeReceiver<Bytes>) -> Bytes {
+    let mut buf = bytes::BytesMut::new();
+    while let Ok(chunk) = rx.try_recv() {
+        buf.extend_from_slice(&chunk);
+    }
+    buf.freeze()
 }
 
 /// A blank response carrying the request's HTTP version and no headers/body.
@@ -564,22 +578,6 @@ fn stream_gone<T>(_: T) -> io::Error {
     io::Error::new(io::ErrorKind::BrokenPipe, "h2 response stream closed")
 }
 
-/// Pull the next chunk from a [`SendSafeBodyBytesIterator`], or surface a stream
-/// error. Returns `None` when the body is exhausted.
-#[cfg(not(target_family = "wasm"))]
-fn next_body_chunk(iter: &mut SendSafeBodyBytesIterator) -> io::Result<Option<Bytes>> {
-    loop {
-        match iter.next() {
-            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(b))) => return Ok(Some(b)),
-            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
-                return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
-            }
-            None => return Ok(None),
-            _ => {}
-        }
-    }
-}
-
 /// Serialize a complete (non-streaming) response: HEADERS, then one DATA frame
 /// per body chunk, then optional trailing HEADERS.
 #[cfg(not(target_family = "wasm"))]
@@ -592,11 +590,22 @@ async fn send_whole_response(
     let has_trailers = !response.trailers.is_empty();
     let body = response.body.take();
 
+    fn next_chunk(it: &mut Option<SendSafeBodyBytesIterator>) -> io::Result<Option<Bytes>> {
+        let Some(ref mut iter) = it else { return Ok(None) };
+        loop {
+            match iter.next() {
+                Some(Stream::Next(SendSafeBodyBytesItem::Chunk(b))) => return Ok(Some(b)),
+                Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
+                    return Err(io::Error::other(e.to_string()));
+                }
+                None => return Ok(None),
+                _ => {} // Ignore, Init, etc — skip.
+            }
+        }
+    }
+
     let mut iter = body.map(SendSafeBodyBytesIterator::new);
-    let mut chunk = match iter.as_mut() {
-        Some(it) => next_body_chunk(it)?,
-        None => None,
-    };
+    let mut chunk = next_chunk(&mut iter)?;
     let end_stream = chunk.is_none() && !has_trailers;
 
     tx.send(H2Frame::Headers { status, headers, end_stream })
@@ -604,10 +613,7 @@ async fn send_whole_response(
         .map_err(stream_gone)?;
 
     while let Some(cur) = chunk.take() {
-        let next = match iter.as_mut() {
-            Some(it) => next_body_chunk(it)?,
-            None => None,
-        };
+        let next = next_chunk(&mut iter)?;
         let data_end = next.is_none() && !has_trailers;
         tx.send(H2Frame::Data { payload: cur, end_stream: data_end })
             .await
