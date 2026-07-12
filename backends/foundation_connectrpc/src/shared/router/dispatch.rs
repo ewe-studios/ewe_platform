@@ -420,6 +420,17 @@ fn protocol_name(kind: ProtocolKind) -> &'static str {
     }
 }
 
+/// Take the request body and drain every variant into a byte vector.
+///
+/// WHY: the unary dispatch path needs the full body before the handler runs —
+/// the handler receives a `Request<Req>` with the decoded message, not a
+/// streaming body. Iterator-backed variants (`Stream`/`ChunkedStream`/
+/// `LineFeedStream`/`SseStream`) are drained chunk-by-chunk via the shared
+/// [`SendSafeBodyBytesIterator`] so no variant is lost; `Bytes`/`Text` pass
+/// through with no copy.
+///
+/// HOW: feeds every `SendSafeBodyBytesItem::Chunk` into a `Vec<u8>`. Errors
+/// are silently dropped (the body decoder will surface them downstream).
 fn read_body(request: &mut SimpleIncomingRequest) -> Vec<u8> {
     let Some(body) = request.body.take() else {
         return Vec::new();
@@ -553,6 +564,8 @@ fn stream_gone<T>(_: T) -> io::Error {
     io::Error::new(io::ErrorKind::BrokenPipe, "h2 response stream closed")
 }
 
+/// Pull the next chunk from a [`SendSafeBodyBytesIterator`], or surface a stream
+/// error. Returns `None` when the body is exhausted.
 #[cfg(not(target_family = "wasm"))]
 fn next_body_chunk(iter: &mut SendSafeBodyBytesIterator) -> io::Result<Option<Bytes>> {
     loop {
