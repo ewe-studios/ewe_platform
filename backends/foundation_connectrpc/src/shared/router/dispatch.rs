@@ -25,6 +25,7 @@ use std::sync::Arc;
 use std::time::Instant;
 
 use bytes::Bytes;
+use foundation_core::extensions::result_ext::SendableBoxedError;
 use foundation_core::valtron::Pipe;
 use foundation_core::valtron::Stream;
 use foundation_core::valtron::{PipeReceiver, PipeSender};
@@ -447,19 +448,16 @@ fn protocol_name(kind: ProtocolKind) -> &'static str {
 ///
 /// # Errors
 /// Stream error from the body iterator, or pipe-full from `try_send`.
-fn pipe_body(tx: &PipeSender<Bytes>, request: &mut SimpleIncomingRequest) -> io::Result<()> {
-    let Some(body) = request.body.take() else {
-        return Ok(());
-    };
+fn pipe_body(tx: &PipeSender<Bytes>, request: &mut SimpleIncomingRequest) -> Result<(), SendableBoxedError> {
+    let Some(body) = request.body.take() else { return Ok(()) };
     let mut iter = SendSafeBodyBytesIterator::new(body);
     loop {
         match iter.next() {
             Some(Stream::Next(SendSafeBodyBytesItem::Chunk(bytes))) => {
-                tx.try_send(bytes)
-                    .map_err(|e| io::Error::other(e.to_string()))?;
+                tx.try_send(bytes).map_err(|e| Box::new(std::io::Error::other(e.to_string())) as SendableBoxedError)?;
             }
             Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
-                return Err(io::Error::other(e.to_string()));
+                return Err(Box::new(std::io::Error::other(e.to_string())));
             }
             None => return Ok(()),
             _ => {}
@@ -468,21 +466,16 @@ fn pipe_body(tx: &PipeSender<Bytes>, request: &mut SimpleIncomingRequest) -> io:
 }
 
 /// Drain a closed pipe receiver into `Bytes`, enforcing `max_bytes`.
-/// `0` means unlimited. Returns `Err(PayloadTooLarge)` if the body exceeds
-/// the cap. Unary serde codecs require the complete message — the cap is
-/// the sole defence against OOM on a single large request.
-fn drain_to_bytes(rx: &mut PipeReceiver<Bytes>, max_bytes: usize) -> io::Result<Bytes> {
+/// `0` means unlimited. Returns `Err` if the body exceeds the cap.
+fn drain_to_bytes(rx: &mut PipeReceiver<Bytes>, max_bytes: usize) -> Result<Bytes, SendableBoxedError> {
     let mut buf = bytes::BytesMut::new();
     while let Ok(chunk) = rx.try_recv() {
         buf.extend_from_slice(&chunk);
         if max_bytes > 0 && buf.len() > max_bytes {
-            return Err(io::Error::new(
-                io::ErrorKind::Other,
-                format!(
-                    "request body of {} bytes exceeds read_max_bytes of {max_bytes}",
-                    buf.len()
-                ),
-            ));
+            return Err(Box::new(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("request body of {} bytes exceeds read_max_bytes of {max_bytes}", buf.len()),
+            )));
         }
     }
     Ok(buf.freeze())

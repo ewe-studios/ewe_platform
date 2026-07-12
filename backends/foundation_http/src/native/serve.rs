@@ -30,6 +30,8 @@ use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingReq
 #[cfg(all(feature = "quic", not(target_family = "wasm")))]
 use foundation_netio::http3::connection::H3Request;
 #[cfg(all(feature = "quic", not(target_family = "wasm")))]
+use foundation_netio::netcap::ConnectionContext;
+#[cfg(all(feature = "quic", not(target_family = "wasm")))]
 use foundation_netio::quic::QuinnBidiStream;
 
 use crate::shared::context::ContextBag;
@@ -79,6 +81,7 @@ pub trait H3Serve: Send + Sync + 'static {
     fn serve_h3(
         &self,
         bag: Arc<ContextBag>,
+        connection: Arc<ConnectionContext>,
         request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, io::Result<()>>;
 }

@@ -78,6 +78,8 @@ pub struct ConnectionHandler {
     max_continue_retries: usize,
     escalation_threshold: u32,
     max_delay_cycles: u32,
+    /// When set, every response carries `Alt-Svc: h3=":<port>"` (F53).
+    alt_svc_h3_port: Option<u16>,
     state: Option<HandlerState>,
     idle_poll_count: u32,
     idle_since: Option<Instant>,
@@ -95,6 +97,7 @@ impl ConnectionHandler {
         shutdown: Arc<OnSignal>,
         drain_guard: WaitGroupGuard,
         config: &super::KeepAliveConfig,
+        alt_svc_h3_port: Option<u16>,
     ) -> Self {
         let max_expect_attempts = config
             .timeout_calculator
@@ -114,6 +117,7 @@ impl ConnectionHandler {
             max_continue_retries: 3,
             escalation_threshold: config.escalation_threshold,
             max_delay_cycles: config.max_delay_cycles,
+            alt_svc_h3_port,
             state: Some(HandlerState::Idle),
             idle_poll_count: 0,
             idle_since: None,
@@ -641,6 +645,13 @@ impl ConnectionHandler {
                     let client_ip = self.client_ip.clone();
                     let client_status = resp.status.clone();
 
+                    if let Some(port) = self.alt_svc_h3_port {
+                        resp.headers.insert(
+                            SimpleHeader::from("alt-svc".to_string()),
+                            vec![format!("h3=\":{port}\"")],
+                        );
+                    }
+
                     if let Err(err) =
                         Http11::response(resp).http_render_to_writer(&mut self.conn.clone())
                     {
@@ -661,6 +672,12 @@ impl ConnectionHandler {
             if should_close {
                 resp.headers
                     .insert(SimpleHeader::CONNECTION, vec!["close".to_string()]);
+            }
+            if let Some(port) = self.alt_svc_h3_port {
+                resp.headers.insert(
+                    SimpleHeader::from("alt-svc".to_string()),
+                    vec![format!("h3=\":{port}\"")],
+                );
             }
             let _ = Http11::response(resp).http_render_to_writer(&mut self.conn.clone());
             if should_close {

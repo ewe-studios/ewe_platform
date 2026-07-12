@@ -60,23 +60,31 @@ impl H3Serve for ConnectRpcServeH3 {
     fn serve_h3(
         &self,
         bag: Arc<ContextBag>,
+        connection: Arc<ConnectionContext>,
         request: H3Request<QuinnBidiStream>,
     ) -> BoxFuture<'static, io::Result<()>> {
         let handler = self.handler.clone();
-        Box::pin(dispatch_h3(handler, bag, request))
+        Box::pin(dispatch_h3(handler, bag, connection, request))
     }
 }
 
 /// Drive one HTTP/3 request through the ConnectRPC router (F35 server half).
+/// Drive one HTTP/3 request through the ConnectRPC router (F35 server half).
+///
+/// `connection` is the connection-scoped context populated from the QUIC
+/// handshake — peer address, ALPN, TLS details — built once per connection
+/// via [`QuinnConnection::connection_context()`](foundation_netio::quic::QuinnConnection::connection_context)
+/// and shared across every request on this connection (F53).
 pub async fn dispatch_h3(
     handler: Arc<ConnectRpcHandler>,
     bag: Arc<ContextBag>,
+    connection: Arc<ConnectionContext>,
     mut req: H3Request<QuinnBidiStream>,
 ) -> io::Result<()> {
     // ── 1. Read the request headers ──────────────────────────────────────
     let fields = poll_h3(|| req.poll_headers()).await?;
 
-    let header = request_from_fields(&fields, Arc::new(ConnectionContext::default()))
+    let header = request_from_fields(&fields, connection)
         .map_err(|e| io::Error::other(e.to_string()))?;
     let request = request_from_header(&header);
     let path = extract_path(&request.request_url.url);

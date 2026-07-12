@@ -51,6 +51,8 @@ pub struct ProtocolDetectHandler {
     /// Moved into whichever handler we spawn; `None` after hand-off.
     drain_guard: Option<WaitGroupGuard>,
     keep_alive: KeepAliveConfig,
+    /// When set, every H1 response carries `Alt-Svc: h3=":<port>"` (F53).
+    alt_svc_h3_port: Option<u16>,
     started: Instant,
 }
 
@@ -64,6 +66,7 @@ impl ProtocolDetectHandler {
         shutdown: Arc<OnSignal>,
         drain_guard: WaitGroupGuard,
         keep_alive: KeepAliveConfig,
+        alt_svc_h3_port: Option<u16>,
     ) -> Self {
         Self {
             stream,
@@ -73,6 +76,7 @@ impl ProtocolDetectHandler {
             shutdown,
             drain_guard: Some(drain_guard),
             keep_alive,
+            alt_svc_h3_port,
             started: Instant::now(),
         }
     }
@@ -189,6 +193,7 @@ impl ProtocolDetectHandler {
             self.shutdown.clone(),
             guard,
             &self.keep_alive,
+            self.alt_svc_h3_port,
         );
 
         match foundation_core::valtron::send(handler) {

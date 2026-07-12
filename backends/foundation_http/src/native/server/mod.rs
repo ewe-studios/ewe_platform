@@ -157,6 +157,10 @@ pub struct ServerConfig {
     /// up to this long for active connections to finish before force-closing
     /// whatever remains. Default: 30s.
     pub shutdown_grace: Duration,
+    /// When set, every response carries an `Alt-Svc: h3=":<port>"` header
+    /// telling clients that this origin also speaks HTTP/3 on `port` (F53 /
+    /// RFC 7838). `None` (the default) means no header is added.
+    pub alt_svc_h3_port: Option<u16>,
     /// How accepted sockets acquire bytes (Feature 48). Default
     /// [`ServerIo::Std`] — plain `read(2)`, no reactor, so nothing changes for a
     /// caller who does not ask. [`ServerIo::Completion`] opts the read path into
@@ -183,6 +187,7 @@ impl ServerConfig {
             keep_alive: KeepAliveConfig::defaults(),
             max_body_bytes: 10 * 1024 * 1024, // 10 MB
             shutdown_grace: Duration::from_secs(30),
+            alt_svc_h3_port: None,
             io_mode: ServerIo::Std,
             #[cfg(any(
                 feature = "ssl",
@@ -290,6 +295,14 @@ impl ServerConfig {
     #[must_use]
     pub fn with_shutdown_grace(mut self, dur: Duration) -> Self {
         self.shutdown_grace = dur;
+        self
+    }
+
+    /// Advertise an HTTP/3 endpoint via `Alt-Svc: h3=":<port>"` on every response
+    /// (F53 / RFC 7838). `port` is the UDP port clients should connect to for QUIC.
+    #[must_use]
+    pub fn with_alt_svc_h3(mut self, port: u16) -> Self {
+        self.alt_svc_h3_port = Some(port);
         self
     }
 
@@ -658,6 +671,7 @@ impl HttpServer {
                         shutdown.clone(),
                         guard,
                         keep_alive_config.clone(),
+                        self.config.alt_svc_h3_port,
                     );
 
                     match foundation_core::valtron::send(detector) {

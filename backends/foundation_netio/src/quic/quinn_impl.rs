@@ -66,6 +66,22 @@ impl QuinnConnection {
         Self { state }
     }
 
+    /// Build a [`ConnectionContext`] for this QUIC connection (F53).
+    ///
+    /// Populates the peer's network address and the ALPN protocol id (`h3`) from
+    /// the QUIC handshake. The caller wraps this in `Arc` and passes it through
+    /// `request_from_fields` so handlers can access `connection.peer_addr` etc.
+    #[must_use]
+    pub fn connection_context(&self) -> crate::shared::context::ConnectionContext {
+        let peer_addr = lock(&self.state).ok().map(|g| g.peer);
+
+        crate::shared::context::ConnectionContext {
+            peer_addr: peer_addr.map(|a| core::net::SocketAddr::new(a.ip(), a.port())),
+            alpn: Some(b"h3".to_vec()),
+            ..Default::default()
+        }
+    }
+
     /// Accept the next inbound stream of `dir`, or report why we cannot.
     fn accept_dir<S>(
         &mut self,

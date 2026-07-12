@@ -26,6 +26,7 @@ mod h3_conformance {
     use foundation_connectrpc::{
         Ctx, HandlerOptions, JsonCodec, ProcedureCodecs, Request, Response, Router,
     };
+    use foundation_netio::netcap::context::ConnectionContext;
     use foundation_connectrpc::native::h3_serve::dispatch_h3;
 
     const CERT_PEM: &[u8] = include_bytes!("../../foundation_netio/tests/fixtures/quic_cert.pem");
@@ -150,7 +151,8 @@ mod h3_conformance {
         let inbound = until!(&mut sq, &mut cq, server.poll_accept());
         let bag = Arc::new(ContextBag::default());
 
-        let (result, mut sq, mut cq) = drive_dispatch(sq, cq, dispatch_h3(handler, bag, inbound));
+        let connection = Arc::new(ConnectionContext::default());
+        let (result, mut sq, mut cq) = drive_dispatch(sq, cq, dispatch_h3(handler, bag, connection, inbound));
         result.expect("dispatch_h3 failed");
 
         // Client reads response.
