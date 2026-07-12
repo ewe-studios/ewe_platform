@@ -11,6 +11,11 @@ hand-refine the generated output where the spec → code mapping is lossy or pro
 This is a hybrid approach: **generate first, refine second** — not pure hand-writing, and not
 raw codegen without intervention.
 
+Breaking changes are acceptable when they improve the codebase. The Feature 00 migration
+(SimpleHttpClient → DynNetClient, ClientRequestBuilder → PreparedRequestBuilder) is exactly
+this kind of structural improvement — we break compatibility with the old generated surface
+because the new surface is strictly better.
+
 ## How gen_api / UnifiedGenerator works
 
 The binary at `foundation_codegentools/src/cli/gen_api.rs` wraps
@@ -44,32 +49,44 @@ cargo run --bin ewe_platform gen_api generate --provider docker \
   --output-dir backends/foundation_deployment_docker/src
 ```
 
-### Generated client function pattern
+### Generated client function pattern (post-Feature-00)
 
 ```rust
 /// GET /containers/json.
-pub fn list_containers_request<R, F>(
-    client: &SimpleHttpClient<R>,
+pub async fn list_containers<F>(
+    client: DynNetClient,
     args: &ListContainersArgs,
     builder_mod: Option<F>,
-) -> Result<impl TaskIterator<Ready = Result<ApiResponse<Vec<ContainerSummary>>, ApiError>, Pending = ApiPending, Spawner = BoxedSendExecutionAction> + Send + 'static, ApiError>
+) -> Result<ApiResponse<Vec<ContainerSummary>>, ApiError>
 where
-    R: DnsResolver + Clone + Default + 'static,
-    F: FnOnce(&mut ClientRequestBuilder<R>),
+    F: FnOnce(&mut PreparedRequestBuilder),
 {
     let endpoint_url = format!("http://localhost/v1.53/containers/json");
-    // ... append query params ...
-    client.get(&endpoint_url)
-        .build_send_request()?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, .. } => {
-                // parse JSON → ApiResponse<T>
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(...)),
-        })
-        .map_pending(|_| ApiPending::Sending)
+    let mut builder = PreparedRequestBuilder::get(&endpoint_url)?
+        .query("all", args.all.as_deref())
+        .query("limit", args.limit.as_deref());
+
+    if let Some(f) = builder_mod {
+        f(&mut builder);
+    }
+
+    let req = builder.build();
+    let response = client.send_async(req).await
+        .map_err(|e| ApiError::RequestSendFailed(e.to_string()))?;
+
+    let body: Vec<ContainerSummary> = response.json().await
+        .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
+
+    Ok(ApiResponse {
+        status: response.status().into(),
+        headers: response.headers().clone(),
+        body,
+    })
 }
 ```
+
+No `R` generic, no `DnsResolver` bound, no `RequestIntro`, no `build_send_request()`.
+Just `async fn` + `DynNetClient` + `PreparedRequestBuilder`.
 
 ## Generation workflow
 
@@ -100,6 +117,11 @@ OpenAPI specs have limitations that make generated code awkward:
   visible from the spec alone
 
 ## Refinement areas
+
+Automate as much as possible via the generator; hand-refine only what the
+spec→code mapping can't express (streaming decoders, Unix socket setup, auth).
+The generator handles the 90% CRUD surface; hand-writing handles the
+Docker-specific 10%.
 
 After generation, we refine:
 

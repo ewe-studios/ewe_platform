@@ -7,7 +7,7 @@
 
 Do **not** depend on `bollard` as a library. Instead, replicate the Docker Engine API types
 (input/output structs) ourselves — using bollard's source as a reference — and implement all
-HTTP API calls via `foundation_netio::SimpleHttpClient` and valtron `TaskIterator` patterns.
+HTTP API calls via `foundation_netio::DynNetClient` and `PreparedRequestBuilder`.
 
 ## Why
 
@@ -39,9 +39,9 @@ which is a tokio-native type.
 ### 4. Dependency weight
 
 Bollard adds ~55 transitive dependencies. Our platform already has its own HTTP client
-(`SimpleHttpClient`), TLS connector (`SSLConnector`), and streaming infrastructure. Pulling
+(`DynNetClient`), TLS connector (`SSLConnector`), and streaming infrastructure. Pulling
 bollard means pulling duplicate functionality:
-- `hyper` vs our `SimpleHttpClient` (different HTTP client stacks)
+- `hyper` vs our `DynNetClient` (different HTTP client stacks)
 - `tokio` (97 lockfile entries already, bollard adds more feature requirements)
 - `tower-service`, `tokio-util`, `tokio-stream` (we don't use tower)
 
@@ -58,7 +58,7 @@ customize the generator without forking the swagger-codegen templates.
    endpoint metadata and type definitions
 2. **Hand-write the input/output structs** that we need (P0 first: containers, images, exec, system)
    guided by bollard's `models` and `query_parameters` modules as reference
-3. **Implement HTTP endpoints** as valtron `TaskIterator` chains using `SimpleHttpClient`
+3. **Implement HTTP endpoints** as `async fn` using `DynNetClient`
 4. **Implement streaming decoders** ourselves (Docker's 8-byte multiplexed log format, JSON-line
    streams) using `SharedByteBufferStream` which our platform already uses
 5. **Implement BuildKit RPC** later via `foundation_connectrpc` using bollard's protobuf files
@@ -68,4 +68,4 @@ customize the generator without forking the swagger-codegen templates.
 
 - **[02 — Docker OpenAPI spec source](02-docker-openapi-spec.md)** — Where we get the spec
 - **[03 — Type replication strategy](03-type-replication-strategy.md)** — How we write the types
-- **[04 — HTTP via SimpleHttpClient](04-http-via-simple-http-client.md)** — HTTP client pattern
+- **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client pattern

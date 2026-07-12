@@ -1,11 +1,12 @@
 # 07 — Unix Socket Transport
 
 **Date:** 2026-07-10
+**Updated:** 2026-07-12 (F51 alignment — Feature 00)
 **Status:** Resolved
 
 ## Decision
 
-Implement Unix socket transport for `SimpleHttpClient` as the primary Docker connection method.
+Implement Unix socket transport for `DynNetClient` as the primary Docker connection method.
 The Docker daemon listens on `/var/run/docker.sock` by default on Linux.
 
 ## Why Unix sockets
@@ -15,39 +16,38 @@ The Docker daemon listens on `/var/run/docker.sock` by default on Linux.
 3. **Permission-based auth** — Socket file permissions (root or `docker` group) control access
 4. **No network exposure** — Docker API never exposed on TCP
 
-## How SimpleHttpClient currently works
+## How DynNetClient connects
 
-`SimpleHttpClient` connects via TCP sockets using `TcpStream::connect()`. For Unix socket support,
-we need to add a `UnixStream::connect()` path.
+`DynNetClient` is built via `HttpClientBuilder`. Unix socket support is configured through
+the builder — either via a proxy config or a connector override:
 
-## Implementation approach
+### URL scheme-based transport selection
 
-### Option A: URL scheme-based transport selection
+Detect `unix://` scheme in the base URL and route to `UnixStream::connect()` instead of
+`TcpStream::connect()`:
 
 ```rust
-impl SimpleHttpClient<R> {
-    /// Connect via Unix socket instead of TCP.
-    pub fn with_unix_socket(socket_path: impl Into<PathBuf>) -> Self {
-        Self {
-            transport: Transport::Unix(socket_path.into()),
-            ..Self::from_system()
-        }
-    }
+enum Transport {
+    Tcp,
+    Unix(PathBuf),
+    #[cfg(feature = "tls")] Tls(TlsConfig),
 }
 
-enum Transport {
-    Tcp,                        // Normal TCP
-    Unix(PathBuf),              // Unix socket
-    #[cfg(feature = "tls")] Tls(TlsConfig),  // TLS
+fn resolve_transport(base_url: &str) -> Transport {
+    if let Some(path) = base_url.strip_prefix("unix://") {
+        Transport::Unix(PathBuf::from(path))
+    } else {
+        Transport::Tcp
+    }
 }
 ```
 
 When building a request:
 ```rust
-fn build_request(&self, method: &str, path: &str) -> Request {
+fn build_request(&self, method: &str, path: &str) -> PreparedRequestBuilder {
     let url = match &self.transport {
         Transport::Unix(_) => {
-            // Use fake host "localhost" for HTTP/1.1 requirement
+            // Use fake host "localhost" for HTTP/1.1 Host header requirement
             // Unix socket handles actual connection
             format!("http://localhost{}", path)
         }
@@ -55,34 +55,9 @@ fn build_request(&self, method: &str, path: &str) -> Request {
             format!("http://{}{}", self.host, path)
         }
     };
-    // ...
+    PreparedRequestBuilder::get(&url).unwrap()
 }
 ```
-
-### Option B: Custom connector trait
-
-```rust
-pub trait Connector: Send + Sync {
-    fn connect(&self) -> Result<Box<dyn IoStream>, ConnectorError>;
-}
-
-pub struct UnixConnector {
-    path: PathBuf,
-}
-
-impl Connector for UnixConnector {
-    fn connect(&self) -> Result<Box<dyn IoStream>, ConnectorError> {
-        let stream = UnixStream::connect(&self.path)?;
-        Ok(Box::new(stream))
-    }
-}
-```
-
-### Chosen: Option A (URL scheme-based)
-
-Simpler, matches how bollard handles it (`DOCKER_HOST=unix:///var/run/docker.sock`).
-The `ClientConfig` already has URL/parsing — we just need to detect `unix://` scheme and
-route to `UnixStream::connect()` instead of `TcpStream::connect()`.
 
 ## Docker socket locations
 
@@ -134,5 +109,10 @@ Unix socket connections can be pooled like TCP:
 ## Podman compatibility
 
 Podman implements a Docker-compatible API over Unix sockets. The same HTTP endpoints work
-( `/containers/create`, `/images/list`, etc.) with minor differences. Our Unix socket transport
+(`/containers/create`, `/images/list`, etc.) with minor differences. Our Unix socket transport
 automatically works with Podman — no special code needed.
+
+## Related decisions
+
+- **[04 — HTTP via DynNetClient + PreparedRequestBuilder](04-http-via-simple-http-client.md)** — HTTP client pattern
+- **[Feature 00 — DynNetClient + PreparedRequestBuilder alignment](../features/00-dynnetclient-codegen-alignment/feature.md)** — Full design
