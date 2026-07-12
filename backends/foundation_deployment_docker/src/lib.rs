@@ -24,6 +24,8 @@ pub mod generated;
 pub mod client;
 #[cfg(feature = "docker")]
 pub mod error;
+#[cfg(feature = "docker")]
+pub mod streaming;
 
 #[cfg(feature = "docker")]
 pub use client::{DockerClient, DEFAULT_API_VERSION, DEFAULT_DOCKER_SOCKET};

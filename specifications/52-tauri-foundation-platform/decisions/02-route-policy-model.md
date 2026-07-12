@@ -297,6 +297,7 @@ presentation; the rendering lane handles render_mode.
 
 ### `RenderMode` — what format the content is in
 
+
 ```rust
 enum RenderMode {
     /// The response is a full WASM application module.
@@ -370,6 +371,8 @@ How each mode works concretely:
    part of the page that changed, and only that part is updated.
 
 **`DataProjection`:**
+**TODO**: This makes no sense, the backend already streams the changes the UI needs to do, why are we concerning ourselves with this? We are just to setup either a means to pipe data to the webview (app in webview) or send DomOps to the webview efficiently (the wasm app running in the backend is deliverying update signals). If raw arrow data is being sent then thats what it expects and knows how to do (whether its running in webview or background), why is this lifted to render mode?
+
 1. The backend returns structured data — Arrow IPC `RecordBatch` or JSON.
 2. `foundation_wasm_ui`'s runtime receives the data, routes it through the
    signal graph or template system.
