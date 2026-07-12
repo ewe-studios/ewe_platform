@@ -106,6 +106,29 @@ impl TunnelDriver {
         self.dataplane.clone()
     }
 
+    /// Whether a peer with the given overlay (tunnel) IP is already attached.
+    #[must_use]
+    pub fn has_peer_ip(&self, tunnel_ip: IpAddr) -> bool {
+        self.peers.iter().any(|p| p.tunnel_ip == tunnel_ip)
+    }
+
+    /// Remove the peer with the given overlay IP (e.g. on `PeerDown`).
+    pub fn remove_peer_ip(&mut self, tunnel_ip: IpAddr) {
+        self.peers.retain(|p| p.tunnel_ip != tunnel_ip);
+    }
+
+    /// The overlay IPs of all attached peers.
+    #[must_use]
+    pub fn peer_ips(&self) -> Vec<IpAddr> {
+        self.peers.iter().map(|p| p.tunnel_ip).collect()
+    }
+
+    /// Number of attached peers.
+    #[must_use]
+    pub fn peer_count(&self) -> usize {
+        self.peers.len()
+    }
+
     /// The local UDP address the driver is bound to.
     ///
     /// # Errors

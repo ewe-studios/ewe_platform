@@ -189,9 +189,45 @@ impl BootstrapServer {
     /// [`WgError::Io`] on transport errors.
     pub fn serve_once(&self) -> WgResult<()> {
         let (tcp, _peer) = self.listener.accept()?;
+        self.handshake_and_serve(tcp)
+    }
+
+    /// WHY: In a live mesh every member keeps its bootstrap door open (masterless).
+    ///
+    /// WHAT: Accept and serve joiners until `stop` is set.
+    ///
+    /// HOW: Non-blocking `accept` with a short sleep when idle; each accepted connection
+    /// is handshaken and served (sequentially) to completion.
+    ///
+    /// # Errors
+    /// [`WgError::Io`] only on a fatal listener error; per-connection failures (e.g. a
+    /// wrong-seed handshake) are logged and skipped.
+    pub fn serve_until(&self, stop: &std::sync::atomic::AtomicBool) -> WgResult<()> {
+        use std::sync::atomic::Ordering;
+        self.listener.set_nonblocking(true)?;
+        while !stop.load(Ordering::Relaxed) {
+            match self.listener.accept() {
+                Ok((tcp, _peer)) => {
+                    if let Err(err) = tcp.set_nonblocking(false) {
+                        tracing::debug!(error = %err, "bootstrap conn set_blocking");
+                        continue;
+                    }
+                    if let Err(err) = self.handshake_and_serve(tcp) {
+                        tracing::debug!(error = %err, "bootstrap connection dropped");
+                    }
+                }
+                Err(e) if e.kind() == io::ErrorKind::WouldBlock => {
+                    std::thread::sleep(std::time::Duration::from_millis(5));
+                }
+                Err(e) => return Err(e.into()),
+            }
+        }
+        Ok(())
+    }
+
+    fn handshake_and_serve(&self, tcp: TcpStream) -> WgResult<()> {
         let ssl = Ssl::new(&self.context).map_err(|e| tls_err("ssl", &e))?;
-        let mut stream =
-            SslStream::new(ssl, tcp).map_err(|e| tls_err("ssl stream", &e))?;
+        let mut stream = SslStream::new(ssl, tcp).map_err(|e| tls_err("ssl stream", &e))?;
         stream
             .accept()
             .map_err(|e| WgError::Protocol(format!("tls-psk handshake failed: {e}")))?;
