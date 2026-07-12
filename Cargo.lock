@@ -5122,6 +5122,7 @@ name = "foundation_wireguard"
 version = "0.0.1"
 dependencies = [
  "base64 0.22.1",
+ "bincode 2.0.1",
  "blake2",
  "boringtun",
  "derive_more",

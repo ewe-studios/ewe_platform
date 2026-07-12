@@ -2,4 +2,5 @@
 
 pub mod error;
 pub mod keys;
+pub mod membership;
 pub mod tunnel;

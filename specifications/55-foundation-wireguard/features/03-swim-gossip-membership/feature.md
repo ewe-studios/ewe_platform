@@ -1,8 +1,31 @@
 # Feature 03 — SWIM Gossip & Membership
 
+**Status:** ✅ Complete (implemented + tested 2026-07-13)
 **Depends on:** 01
 **Unblocks:** 04
 **Decisions:** [05](../../decisions/05-swim-full-membership-gossip.md), [06](../../decisions/06-hybrid-transport-tls-psk.md)
+
+## Implementation notes (2026-07-13)
+
+`foundation_wireguard::shared::membership` — fully sans-I/O, simulated-clock testable:
+
+- `record` — `PeerId`, `Capabilities`, `MemberState`, `PeerRecord` with the CRDT
+  `supersedes` rule (higher incarnation wins; `Dead`>`Suspect`>`Alive` at equal
+  incarnation; higher heartbeat = LWW on endpoints/caps).
+- `mod`/`Membership` — the CRDT set + `merge_record` returning an observable delta.
+- `message` — `SwimMessage` (Ping/Ack/PingReq/Gossip/SyncDigest/SyncResponse), `SwimOutbound`,
+  and a compact version-prefixed `bincode` codec (`encode`/`decode`).
+- `swim::Swim` — the state machine: `tick(now)` (probe → indirect ping-req → suspect →
+  dead → tombstone → GC + anti-entropy), `on_message` (dispatch + direct-contact liveness),
+  `merge`/`snapshot` (join/PullMembership). Seeded xorshift for reproducible peer choice.
+  Epidemic re-gossip of *changed* records only (terminates on convergence); one-shot
+  incarnation refutation; a `reaped` guard stops anti-entropy from resurrecting GC'd
+  tombstones while still allowing higher-incarnation rejoins.
+
+Tests (`--profile uat`, in-memory lossy network + simulated clock): codec round-trip,
+CRDT order-independence/idempotency/refutation, N-node convergence with **and under 30%
+loss**, dead-node detection with **no false positives**, and tombstone GC. All green,
+zero warnings.
 
 ## WHY
 

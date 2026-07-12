@@ -24,4 +24,8 @@ pub use shared::error::{WgError, WgResult};
 pub use shared::keys::{
     BootstrapKeys, IdentityKeypair, NetworkId, PeerPublicKey, SeedBits, WgSeed,
 };
+pub use shared::membership::{
+    Capabilities, MemberState, Membership, PeerId, PeerRecord, Swim, SwimConfig, SwimEvent,
+    SwimMessage, SwimOutbound,
+};
 pub use shared::tunnel::{WgOutcome, WgTunnel};
