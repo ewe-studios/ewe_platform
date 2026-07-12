@@ -1,8 +1,32 @@
 # Feature 00 — `foundation_nativeapis` Data-Plane Primitives
 
+**Status:** ✅ Complete (implemented + tested 2026-07-13)
 **Depends on:** none (foundation)
 **Unblocks:** 01, 04
 **Decisions:** [02](../../decisions/02-dual-dataplane.md), [14](../../decisions/14-crate-layering.md)
+
+## Implementation notes (2026-07-13)
+
+Landed in `foundation_nativeapis::dataplane` behind new cargo features `netstack`
+(default-able, cross-target) and `tun` (native, implies `netstack`):
+
+- `dataplane/mod.rs` — the sans-I/O `DataPlane` trait + `WakeFn` one-shot waker type.
+- `dataplane/netstack.rs` — `NetStack`/`NetStackConfig` over smoltcp **0.12** at
+  `medium-ip`; a `TunnDevice` `phy::Device` whose RX/TX queues are the `Tunn` plaintext
+  side; overlay `OverlayStream`/`OverlayListener`/`OverlayUdp` handles sharing one
+  `Rc<RefCell<Inner>>` (single-threaded, as smoltcp is sans-I/O). std↔smoltcp address
+  conversions; per-socket one-shot read/write wakers fired from `poll`.
+- `dataplane/tun.rs` — `TunDevice`/`TunConfig` (Linux `/dev/net/tun` + `TUNSETIFF`,
+  Darwin `utun` control socket) and `TunDataPlane: DataPlane` (overlay socket API returns
+  `Unsupported`; inbound → fd write, `drain_outbound_ip` → fd read); wasm/other stub.
+
+Tests (`tests/dataplane/mod.rs`, `--profile uat`): TCP loopback round-trip across two
+bridged stacks, UDP datagram round-trip, read-waker firing on data, idle-poll deadline,
+and a privileged `#[ignore]` Linux TUN-open test. All green.
+
+> Note: smoltcp pinned to **0.12** (not 0.8) — 0.13 needs rustc 1.91 while the workspace
+> is on 1.87; decision 01 explicitly permits "0.8 or latest crates.io". 0.12 uses
+> `core::net` address types directly.
 
 ## WHY
 

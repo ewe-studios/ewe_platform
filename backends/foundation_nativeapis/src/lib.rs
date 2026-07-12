@@ -7,6 +7,15 @@ pub mod native;
 /// Valtron executor integration — shareable, platform-agnostic task adapters.
 pub mod valtron;
 
+/// WireGuard overlay data plane (spec-55, feature 00).
+///
+/// The sans-I/O `DataPlane` trait plus its two implementations — a smoltcp userspace
+/// TCP/IP netstack (`netstack` feature, cross-target) and a kernel TUN device
+/// (`tun` feature, native-only) — that convert overlay sockets to/from raw IP packets
+/// on `boringtun::Tunn`'s inner boundary.
+#[cfg(feature = "netstack")]
+pub mod dataplane;
+
 /// Interprocess message bus (IPC) — adapted from ipmb.
 /// Feature-gated: requires `ipc` feature. Only available on Linux, macOS, and Windows.
 #[cfg(all(feature = "ipc", any(target_os = "linux", target_os = "macos", target_os = "windows")))]

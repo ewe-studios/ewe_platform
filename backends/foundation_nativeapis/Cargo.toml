@@ -42,6 +42,17 @@ regex = { version = "1.10", optional = true }
 fff-search = { version = "0.9.3", optional = true }
 foundation_arrow = { path = "../foundation_arrow", version = "0.0.1", optional = true }
 
+# Userspace TCP/IP netstack for the WireGuard overlay data plane (spec-55, feature 00).
+# no_std / alloc only — the "phy" is us (the Tunn plaintext side), so no std/phy-* features.
+smoltcp = { version = "0.12", default-features = false, features = [
+    "medium-ip",
+    "proto-ipv4",
+    "proto-ipv6",
+    "socket-tcp",
+    "socket-udp",
+    "alloc",
+], optional = true }
+
 # Unix-only: libc for epoll/kqueue/eventfd syscalls
 [target.'cfg(unix)'.dependencies]
 libc = "0.2"
@@ -83,6 +94,11 @@ tempfile = "3"
 # Test targets (directory-based test groups)
 # Integration test targets for tests/<dir>/mod.rs. `autotests` only picks up
 # tests/*.rs, so a directory without an entry here is silently never compiled.
+[[test]]
+name = "dataplane"
+path = "tests/dataplane/mod.rs"
+required-features = ["netstack"]
+
 [[test]]
 name = "poll"
 path = "tests/poll/mod.rs"
@@ -363,6 +379,13 @@ vfs-nfs = ["vfs", "dep:nfsserve"]
 
 # LD_PRELOAD VFS shim — produces a .so that intercepts libc calls
 vfs-preload = ["vfs-native", "dep:once_cell"]
+
+# WireGuard overlay data plane (spec-55, feature 00).
+# `netstack` = smoltcp userspace TCP/IP stack (cross-target, default data plane).
+netstack = ["dep:smoltcp"]
+# `tun` = kernel TUN device data plane (native-only, privileged). Implies `netstack`
+# because the `DataPlane` trait and overlay socket handle types live with the netstack.
+tun = ["netstack", "poll", "fd"]
 
 # Full feature set for current platform
 native = ["poll", "fd"]
