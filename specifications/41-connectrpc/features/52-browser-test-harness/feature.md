@@ -1,7 +1,7 @@
 ---
 feature: "Wasm-bindgen browser test harness — re-export #[wasm_bindgen_test] from foundation_testbed so crates test their browser API bridges directly (no standalone test crate, no extra deps)"
 description: "Fold the wasm-bindgen-test ecosystem into foundation_testbed: re-export the proc-macro + runtime glue, add a top-level `wasm-testbed browser <crate>` command, and let crates put cfg-gated #[wasm_bindgen_test] functions in their own tests/. Deletes the standalone foundation_wasm_testbed crate."
-status: "implemented (diverged from design; remaining items reconciled 2026-07-12)"
+status: "completed"
 priority: "high"
 phase: 1
 depends_on: ["51-unified-http-client-surface"]

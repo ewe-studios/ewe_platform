@@ -1,7 +1,7 @@
 ---
 feature: "Alt-Svc advertisement + H3 ConnectionContext population (F35 tail / D12 §9)"
 description: "Advertise HTTP/3 from TCP servers via Alt-Svc header; populate ConnectionContext from QUIC handshake at H3 accept time"
-status: "implemented"
+status: "completed"
 priority: "low"
 phase: 5
 depends_on: ["35-http3-transport-integration"]
