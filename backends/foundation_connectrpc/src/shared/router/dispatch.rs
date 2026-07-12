@@ -26,6 +26,7 @@ use std::time::Instant;
 
 use bytes::Bytes;
 use foundation_core::valtron::Pipe;
+use foundation_core::valtron::Stream;
 // PipeReceiver/PipeSender are used only by the native h2 dispatch section.
 #[cfg(not(target_family = "wasm"))]
 use foundation_core::valtron::{PipeReceiver, PipeSender};
@@ -34,7 +35,9 @@ use foundation_http::shared::context::ContextBag;
 // below is cfg-gated to match; on wasm the router serves H1 protocols only.
 #[cfg(not(target_family = "wasm"))]
 use foundation_netio::http2::types::{H2Frame, H2IncomingFrame, SimpleIncomingRequestHeader};
-use foundation_netio::shared::client::body_reader::try_collect_bytes;
+use foundation_netio::shared::client::body_reader::{
+    SendSafeBodyBytesItem, SendSafeBodyBytesIterator,
+};
 use foundation_netio::shared::http::{
     Proto, SendSafeBody, SimpleHeader, SimpleHeaders, SimpleIncomingRequest, SimpleMethod,
     SimpleOutgoingResponse, Status,
@@ -417,16 +420,17 @@ fn protocol_name(kind: ProtocolKind) -> &'static str {
     }
 }
 
-/// Take the request body and collect it into a byte vector. In-memory bodies
-/// (`Bytes`/`Text`) return directly; iterator-backed bodies (what the live server
-/// hands us for a sized/chunked request) are drained via `try_collect_bytes`.
 fn read_body(request: &mut SimpleIncomingRequest) -> Vec<u8> {
-    match request.body.take() {
-        None | Some(SendSafeBody::None) => Vec::new(),
-        Some(SendSafeBody::Bytes(bytes)) => bytes,
-        Some(SendSafeBody::Text(text)) => text.into_bytes(),
-        Some(other) => try_collect_bytes(other).unwrap_or_default(),
+    let Some(body) = request.body.take() else {
+        return Vec::new();
+    };
+    let mut buf = Vec::new();
+    for item in SendSafeBodyBytesIterator::new(body) {
+        if let Stream::Next(SendSafeBodyBytesItem::Chunk(bytes)) = item {
+            buf.extend_from_slice(&bytes);
+        }
     }
+    buf
 }
 
 /// A blank response carrying the request's HTTP version and no headers/body.
@@ -543,65 +547,65 @@ fn h2_headers(headers: &SimpleHeaders) -> Vec<(Bytes, Bytes)> {
     out
 }
 
-/// The response body as a single `Bytes`, for use in a non-streaming H2
-/// HEADERS + DATA response. Iterator-backed variants are drained via
-/// `try_collect_bytes`; for streaming responses the protocol's byte pipe
-/// bypasses this path entirely.
-#[cfg(not(target_family = "wasm"))]
-fn h2_body(body: Option<SendSafeBody>) -> io::Result<Bytes> {
-    match body {
-        None | Some(SendSafeBody::None) => Ok(Bytes::new()),
-        Some(SendSafeBody::Bytes(bytes)) => Ok(Bytes::from(bytes)),
-        Some(SendSafeBody::Text(text)) => Ok(Bytes::from(text.into_bytes())),
-        Some(other) => try_collect_bytes(other)
-            .map(Bytes::from)
-            .map_err(|e| io::Error::new(io::ErrorKind::Other, e.to_string())),
-    }
-}
-
 /// The pipe is gone because the connection handler dropped the stream.
 #[cfg(not(target_family = "wasm"))]
 fn stream_gone<T>(_: T) -> io::Error {
     io::Error::new(io::ErrorKind::BrokenPipe, "h2 response stream closed")
 }
 
-/// Serialize a complete (non-streaming) response as HEADERS [+ DATA].
+#[cfg(not(target_family = "wasm"))]
+fn next_body_chunk(iter: &mut SendSafeBodyBytesIterator) -> io::Result<Option<Bytes>> {
+    loop {
+        match iter.next() {
+            Some(Stream::Next(SendSafeBodyBytesItem::Chunk(b))) => return Ok(Some(b)),
+            Some(Stream::Next(SendSafeBodyBytesItem::StreamError(e))) => {
+                return Err(io::Error::new(io::ErrorKind::Other, e.to_string()));
+            }
+            None => return Ok(None),
+            _ => {}
+        }
+    }
+}
+
+/// Serialize a complete (non-streaming) response: HEADERS, then one DATA frame
+/// per body chunk, then optional trailing HEADERS.
 #[cfg(not(target_family = "wasm"))]
 async fn send_whole_response(
     tx: &PipeSender<H2Frame>,
-    response: SimpleOutgoingResponse,
+    mut response: SimpleOutgoingResponse,
 ) -> io::Result<()> {
     let status = response.status.into_usize() as u16;
     let headers = h2_headers(&response.headers);
-    let payload = h2_body(response.body)?;
-    let has_body = !payload.is_empty();
     let has_trailers = !response.trailers.is_empty();
-    let end_stream = !has_body && !has_trailers;
+    let body = response.body.take();
 
-    tx.send(H2Frame::Headers {
-        status,
-        headers,
-        end_stream,
-    })
-    .await
-    .map_err(stream_gone)?;
+    let mut iter = body.map(SendSafeBodyBytesIterator::new);
+    let mut chunk = match iter.as_mut() {
+        Some(it) => next_body_chunk(it)?,
+        None => None,
+    };
+    let end_stream = chunk.is_none() && !has_trailers;
 
-    if has_body {
-        let data_end = !has_trailers;
-        tx.send(H2Frame::Data {
-            payload,
-            end_stream: data_end,
-        })
+    tx.send(H2Frame::Headers { status, headers, end_stream })
         .await
         .map_err(stream_gone)?;
+
+    while let Some(cur) = chunk.take() {
+        let next = match iter.as_mut() {
+            Some(it) => next_body_chunk(it)?,
+            None => None,
+        };
+        let data_end = next.is_none() && !has_trailers;
+        tx.send(H2Frame::Data { payload: cur, end_stream: data_end })
+            .await
+            .map_err(stream_gone)?;
+        chunk = next;
     }
 
     if has_trailers {
-        let trailer_headers = h2_headers(&response.trailers);
-        // Trailing HEADERS: status is ignored by the h2 connection layer.
         tx.send(H2Frame::Headers {
             status: 0,
-            headers: trailer_headers,
+            headers: h2_headers(&response.trailers),
             end_stream: true,
         })
         .await
